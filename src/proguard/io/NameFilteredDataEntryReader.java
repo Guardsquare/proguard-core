@@ -30,26 +30,26 @@ import java.util.List;
  *
  * @author Eric Lafortune
  */
-public class NameFilter extends FilteredDataEntryReader
+public class NameFilteredDataEntryReader extends FilteredDataEntryReader
 {
     /**
-     * Creates a new NameFilter that delegates to the given reader, depending
-     * on the given list of filters.
+     * Creates a new NameFilteredDataEntryReader that delegates to the given
+     * reader, depending on the given list of filters.
      */
-    public NameFilter(String          regularExpression,
-                      DataEntryReader acceptedDataEntryReader)
+    public NameFilteredDataEntryReader(String          regularExpression,
+                                       DataEntryReader acceptedDataEntryReader)
     {
         this(regularExpression, acceptedDataEntryReader, null);
     }
 
 
     /**
-     * Creates a new NameFilter that delegates to either of the two given
-     * readers, depending on the given list of filters.
+     * Creates a new NameFilteredDataEntryReader that delegates to either of
+     * the two given readers, depending on the given list of filters.
      */
-    public NameFilter(String          regularExpression,
-                      DataEntryReader acceptedDataEntryReader,
-                      DataEntryReader rejectedDataEntryReader)
+    public NameFilteredDataEntryReader(String          regularExpression,
+                                       DataEntryReader acceptedDataEntryReader,
+                                       DataEntryReader rejectedDataEntryReader)
     {
         super(new DataEntryNameFilter(new ListParser(new FileNameParser()).parse(regularExpression)),
               acceptedDataEntryReader,
@@ -58,23 +58,23 @@ public class NameFilter extends FilteredDataEntryReader
 
 
     /**
-     * Creates a new NameFilter that delegates to the given reader, depending
-     * on the given list of filters.
+     * Creates a new NameFilteredDataEntryReader that delegates to the given
+     * reader, depending on the given list of filters.
      */
-    public NameFilter(List            regularExpressions,
-                      DataEntryReader acceptedDataEntryReader)
+    public NameFilteredDataEntryReader(List            regularExpressions,
+                                       DataEntryReader acceptedDataEntryReader)
     {
         this(regularExpressions, acceptedDataEntryReader, null);
     }
 
 
     /**
-     * Creates a new NameFilter that delegates to either of the two given
-     * readers, depending on the given list of filters.
+     * Creates a new NameFilteredDataEntryReader that delegates to either of
+     * the two given readers, depending on the given list of filters.
      */
-    public NameFilter(List            regularExpressions,
-                      DataEntryReader acceptedDataEntryReader,
-                      DataEntryReader rejectedDataEntryReader)
+    public NameFilteredDataEntryReader(List            regularExpressions,
+                                       DataEntryReader acceptedDataEntryReader,
+                                       DataEntryReader rejectedDataEntryReader)
     {
         super(new DataEntryNameFilter(new ListParser(new FileNameParser()).parse(regularExpressions)),
               acceptedDataEntryReader,
