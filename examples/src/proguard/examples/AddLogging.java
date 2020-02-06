@@ -36,10 +36,10 @@ public class AddLogging
                 new File(outputJarFileName))));
 
             // Parse and push all classes from the input jar.
-            DirectoryPump directoryPump =
-                new DirectoryPump(new File(inputJarFileName));
+            DataEntrySource source =
+                new FileSource(new File(inputJarFileName));
 
-            directoryPump.pumpDataEntries(
+            source.pumpDataEntries(
                 new JarReader(
                 new ClassFilter(
                 new ClassReader(false, false, false, false, null,

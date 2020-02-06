@@ -10,6 +10,7 @@ import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.evaluation.*;
 import proguard.evaluation.value.*;
 import proguard.io.*;
+import proguard.util.ExtensionMatcher;;
 
 import java.io.*;
 import java.util.Arrays;
@@ -23,29 +24,32 @@ import java.util.Arrays;
  * information about the data.
  *
  * Usage:
- *     java proguard.examples.VisualizeControlFlow input.jar
+ *     java proguard.examples.VisualizeControlFlow input
+ *
+ * where the input can be a jar file or a directory containing jar files.
  */
 public class VisualizeControlFlow
 {
     public static void main(String[] args)
     {
-        String inputJarFileName = args[0];
+        String inputDirectoryName = args[0];
 
         try
         {
             // Parse all classes from the input jar,
             // and stream their code to the method analyzer.
-            DirectoryPump directoryPump =
-                new DirectoryPump(
-                new File(inputJarFileName));
+            DataEntrySource source =
+                new DirectorySource(
+                new File(inputDirectoryName));
 
-            directoryPump.pumpDataEntries(
+            source.pumpDataEntries(
+                new FilteredDataEntryReader(new DataEntryNameFilter(new ExtensionMatcher(".jar")),
                 new JarReader(
                 new ClassFilter(
                 new ClassReader(false, false, false, false, null,
                 new AllMethodVisitor(
                 new AllAttributeVisitor(
-                new MyMethodAnalyzer()))))));
+                new MyMethodAnalyzer())))))));
         }
         catch (IOException e)
         {

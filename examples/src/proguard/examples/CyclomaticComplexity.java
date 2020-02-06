@@ -8,6 +8,7 @@ import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 import proguard.io.*;
+import proguard.util.ExtensionMatcher;;
 
 import java.io.*;
 
@@ -19,28 +20,32 @@ import java.io.*;
  * (Dec 1976)
  *
  * Usage:
- *     java proguard.examples.CyclomaticComplexity input.jar
+ *     java proguard.examples.CyclomaticComplexity input
+ *
+ * where the input can be a jar file or a directory containing jar files.
  */
 public class CyclomaticComplexity
 {
     public static void main(String[] args)
     {
-        String inputJarFileName = args[0];
+        String inputDirectoryName = args[0];
 
         try
         {
             // Parse all classes from the input jar and stream their code to the
             // control flow analyzer.
-            DirectoryPump directoryPump =
-                new DirectoryPump(new File(inputJarFileName));
+            DataEntrySource source =
+                new DirectorySource(
+                new File(inputDirectoryName));
 
-            directoryPump.pumpDataEntries(
+            source.pumpDataEntries(
+                new FilteredDataEntryReader(new DataEntryNameFilter(new ExtensionMatcher(".jar")),
                 new JarReader(
                 new ClassFilter(
                 new ClassReader(false, false, false, false, null,
                 new AllMethodVisitor(
                 new AllAttributeVisitor(
-                new ControlFlowAnalyzer()))))));
+                new ControlFlowAnalyzer())))))));
         }
         catch (IOException e)
         {

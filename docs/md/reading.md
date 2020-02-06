@@ -2,22 +2,24 @@
 
 You can read classes from class files and various types of (nested) jar files
 or jmod files, with some convenient utility classes and visitors. For example,
-you can read the classes from a jar file and print them out in a streaming
-fashion, without collecting their representations:
+you can read all classes from all jar files in a given directory and print
+them out in a streaming fashion, while they are read, without collecting their
+representations:
 
-    DirectoryPump directoryPump =
-        new DirectoryPump(
-        new File(inputJarFileName));
+    DataEntrySource source =
+        new DirectorySource(
+        new File(inputDirectoryName));
 
-    directoryPump.pumpDataEntries(
+    source.pumpDataEntries(
+        new FilteredDataEntryReader(new DataEntryNameFilter(new ExtensionMatcher(".jar"))
         new JarReader(
         new ClassFilter(
         new ClassReader(false, false, false, false, null,
         new ClassPrinter()))));
 
-Note the constructor-based dependency injection of visitor classes. We
-typically use a slightly unconventional indentation to make this construct
-easy to read.
+Note the constructor-based dependency injection, to create a chain of visitor
+classes. We typically use a slightly unconventional indentation to make this
+construct easy to read.
 
 Complete example: PrintClasses.java
 
@@ -31,17 +33,17 @@ them out right away, again in a streaming fashion.
         new ZipWriter(
         new FixedFileWriter(
         new File(outputJarFileName))));
-    
-    DirectoryPump directoryPump =
-        new DirectoryPump(
+
+    DataEntrySource source =
+        new FileSource(
         new File(inputJarFileName));
-    
-    directoryPump.pumpDataEntries(
+
+    source.pumpDataEntries(
         new JarReader(
         new ClassFilter(
         new ClassReader(false, false, false, false, null,
         new DataEntryClassWriter(jarWriter)))));
-    
+
     jarWriter.close();
 
 Complete example: ApplyPeepholeOptimizations.java
@@ -53,11 +55,11 @@ first, so you can perform more extensive analyses on them:
 
     ClassPool classPool = new ClassPool();
 
-    DirectoryPump directoryPump =
-        new DirectoryPump(
+    DataEntrySource source =
+        new FileSource(
         new File(jarFileName));
 
-    directoryPump.pumpDataEntries(
+    source.pumpDataEntries(
         new JarReader(false,
         new ClassFilter(
         new ClassReader(false, false, false, false, null,

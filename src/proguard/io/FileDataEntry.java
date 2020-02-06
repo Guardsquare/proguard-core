@@ -33,6 +33,21 @@ public class FileDataEntry implements DataEntry
     private       InputStream inputStream;
 
 
+    /**
+     * Creates a new FileDataEntry.
+     * @param file the the absolute or relative location of the file.
+     */
+    public FileDataEntry(File file)
+    {
+        this(null, file);
+    }
+
+
+    /**
+     * Creates a new FileDataEntry.
+     * @param directory the base directory for the file.
+     * @param file      the the absolute or relative location of the file.
+     */
     public FileDataEntry(File directory,
                          File file)
     {
@@ -46,9 +61,9 @@ public class FileDataEntry implements DataEntry
      */
     public File getFile()
     {
-        return file.equals(directory) ?
-            file :
-            new File(directory, getRelativeFilePath());
+        return directory == null ||
+               file.equals(directory) ? file :
+                                        new File(directory, getRelativeFilePath());
     }
 
 
@@ -58,23 +73,20 @@ public class FileDataEntry implements DataEntry
     public String getName()
     {
         // Chop the directory name from the file name and get the right separators.
-        return file.equals(directory) ?
-            file.getName() :
-            getRelativeFilePath();
+        return directory == null      ? file.getPath() :
+               file.equals(directory) ? ""             :
+                                        getRelativeFilePath();
     }
 
 
     /**
-     * Returns the file path of this data entry, relative to the base directory.
-     * If the file equals the base directory, an empty string is returned.
+     * Returns the file path relative to the base directory.
      */
     private String getRelativeFilePath()
     {
-        return file.equals(directory) ?
-            "" :
-            file.getPath()
-                .substring(directory.getPath().length() + File.separator.length())
-                .replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
+        return file.getPath()
+                   .substring(directory.getPath().length() + File.separator.length())
+                   .replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
     }
 
 

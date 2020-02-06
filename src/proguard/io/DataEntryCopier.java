@@ -405,9 +405,9 @@ public class DataEntryCopier implements DataEntryReader
                 }
             }
 
-            DirectoryPump directoryReader = new DirectoryPump(new File(input));
+            DataEntrySource source = new DirectorySource(new File(input));
 
-            directoryReader.pumpDataEntries(reader);
+            source.pumpDataEntries(reader);
 
             writer.close();
         }

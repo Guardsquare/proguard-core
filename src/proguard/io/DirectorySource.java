@@ -19,25 +19,28 @@ package proguard.io;
 
 import java.io.*;
 
-
 /**
- * This class can read a given file or directory, recursively, applying a given
- * {@link DataEntryReader} to all files it comes across.
+ * This DataEntrySource can read a given file or directory, recursively,
+ * passing its files as {@link DataEntry} instances to {@link DataEntryReader}
+ * instances.
  *
  * @author Eric Lafortune
  */
-public class DirectoryPump implements DataEntryPump
+public class DirectorySource implements DataEntrySource
 {
     private final File directory;
 
 
-    public DirectoryPump(File directory)
+    /**
+     * Creates a new DirectorySource for the given directory.
+     */
+    public DirectorySource(File directory)
     {
         this.directory = directory;
     }
 
 
-    // Implementations for DataEntryPump.
+    // Implementations for DataEntrySource.
 
     @Override
     public void pumpDataEntries(DataEntryReader dataEntryReader)
@@ -51,6 +54,8 @@ public class DirectoryPump implements DataEntryPump
         readFiles(directory, dataEntryReader);
     }
 
+
+    // Small utility methods.
 
     /**
      * Reads the given subdirectory recursively, applying the given DataEntryReader

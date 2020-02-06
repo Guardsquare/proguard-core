@@ -8,6 +8,7 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 import proguard.io.*;
+import proguard.util.ExtensionMatcher;;
 
 import java.io.*;
 
@@ -22,21 +23,22 @@ public class PrintClasses
 {
     public static void main(String[] args)
     {
-        String inputJarFileName = args[0];
+        String inputDirectoryName = args[0];
 
         try
         {
             // Parse all classes from the input jar,
             // and stream them to the class printer.
-            DirectoryPump directoryPump =
-                new DirectoryPump(
-                new File(inputJarFileName));
+            DataEntrySource source =
+                new DirectorySource(
+                new File(inputDirectoryName));
 
-            directoryPump.pumpDataEntries(
+            source.pumpDataEntries(
+                new FilteredDataEntryReader(new DataEntryNameFilter(new ExtensionMatcher(".jar")),
                 new JarReader(
                 new ClassFilter(
                 new ClassReader(false, false, false, false, null,
-                new ClassPrinter()))));
+                new ClassPrinter())))));
         }
         catch (IOException e)
         {

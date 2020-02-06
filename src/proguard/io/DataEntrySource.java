@@ -19,17 +19,16 @@ package proguard.io;
 
 import java.io.IOException;
 
-
 /**
- * This interface provides a method to pump data entries. The implementation
- * determines the source and the type of the data entries. Typical examples
- * are zip entries coming from a zip file of file entries coming from a
- * directory structure. The reader can for instance collect the classes,
- * or copy the resource files that are presented.
+ * This interface provides a source for data entries. The implementation
+ * determines the type of the data entries. Typical examples are files or
+ * directories. The source can pump its data entries into a data entry reader
+ * (a "push" model for the entries), which can then optionally read their
+ * contents (a "pull" model for the contents).
  *
  * @author Eric Lafortune
  */
-public interface DataEntryPump
+public interface DataEntrySource
 {
     /**
      * Applies the given DataEntryReader to all data entries that the

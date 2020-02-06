@@ -31,11 +31,11 @@ public class JarUtil
 
         // Parse all classes from the input jar and
         // collect them in the class pool.
-        DirectoryPump directoryPump =
-            new DirectoryPump(
+        DataEntrySource source =
+            new FileSource(
             new File(jarFileName));
 
-        directoryPump.pumpDataEntries(
+        source.pumpDataEntries(
             new JarReader(isLibrary,
             new ClassFilter(
             new ClassReader(isLibrary, false, false, false, null,

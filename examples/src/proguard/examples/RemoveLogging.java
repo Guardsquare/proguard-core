@@ -76,14 +76,14 @@ public class RemoveLogging
                 new File(outputJarFileName))));
 
             // Parse and push all classes from the input jar.
-            DirectoryPump directoryPump =
-                new DirectoryPump(
+            DataEntrySource source =
+                new FileSource(
                 new File(inputJarFileName));
 
             BranchTargetFinder  branchTargetFinder  = new BranchTargetFinder();
             CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor();
 
-            directoryPump.pumpDataEntries(
+            source.pumpDataEntries(
                 new JarReader(
                 new ClassFilter(
                 new ClassReader(false, false, false, false, null,
