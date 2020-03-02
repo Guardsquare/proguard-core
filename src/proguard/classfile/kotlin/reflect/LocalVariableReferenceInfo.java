@@ -24,8 +24,6 @@ import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.kotlin.reflect.visitor.CallableReferenceInfoVisitor;
 
 /**
- * TODO supposedly local variable references are not supported yet.
- *
  * @author James Hamilton
  */
 public class LocalVariableReferenceInfo

@@ -114,8 +114,6 @@ implements   Processable
                                  KotlinMetadata    kotlinMetadata,
                                  KotlinTypeVisitor kotlinTypeVisitor)
     {
-        //TODO unusual?
-//        type.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeVisitor);
         kotlinTypeVisitor.visitFunctionReturnType(clazz, kotlinMetadata, this, returnType);
     }
 
@@ -126,8 +124,6 @@ implements   Processable
     {
         if (receiverType != null)
         {
-            //TODO unusual?
-//        receiverType.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeVisitor);
             kotlinTypeVisitor.visitFunctionReceiverType(clazz,
                                                         kotlinMetadata,
                                                         this,

@@ -848,7 +848,6 @@ implements   ClassVisitor,
             }
 
             if (kotlinPropertyMetadata.getterSignature != null)
-                //TODO kotlinPropertyMetadata.hasGetter()
             {
                 kotlinPropertyMetadata.referencedGetterMethod =
                     strictMemberFinder.findMethod(clazz,
@@ -857,7 +856,6 @@ implements   ClassVisitor,
             }
 
             if (kotlinPropertyMetadata.setterSignature != null)
-            //TODO kotlinPropertyMetadata.hasSetter()
             {
                 kotlinPropertyMetadata.referencedSetterMethod =
                     strictMemberFinder.findMethod(clazz,

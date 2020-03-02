@@ -80,9 +80,6 @@ implements   Processable
                                      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                      KotlinTypeVisitor                  kotlinTypeVisitor)
     {
-
-            //TODO unusual?
-//            underlyingType.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeVisitor);
             kotlinTypeVisitor.visitAliasUnderlyingType(clazz, kotlinDeclarationContainerMetadata, this, underlyingType);
     }
 
@@ -91,8 +88,6 @@ implements   Processable
                                    KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                    KotlinTypeVisitor                  kotlinTypeVisitor)
     {
-            //TODO unusual?
-//            underlyingType.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeVisitor);
             kotlinTypeVisitor.visitAliasExpandedType(clazz, kotlinDeclarationContainerMetadata, this, expandedType);
     }
 

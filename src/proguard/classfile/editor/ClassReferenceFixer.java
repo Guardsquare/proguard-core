@@ -644,8 +644,6 @@ implements   ClassVisitor,
             kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
-
-            //TODO change name, etc.
         }
 
 
@@ -657,7 +655,6 @@ implements   ClassVisitor,
         {
             if (kotlinFunctionMetadata.lambdaClassOriginName != null)
             {
-                //TODO in future, we could provide configurable option for this.
                 kotlinFunctionMetadata.lambdaClassOriginName       = null;
                 kotlinFunctionMetadata.referencedLambdaClassOrigin = null;
             }
@@ -677,7 +674,6 @@ implements   ClassVisitor,
             kotlinFunctionMetadata.returnTypeAccept(     clazz, kotlinMetadata, this);
             kotlinFunctionMetadata.contractsAccept(      clazz, kotlinMetadata, new AllTypeVisitor(this));
 
-            //TODO change name, name variants, etc.
             kotlinFunctionMetadata.name = kotlinFunctionMetadata.referencedMethod.getName(kotlinFunctionMetadata.referencedMethodClass);
         }
 
@@ -698,7 +694,6 @@ implements   ClassVisitor,
             kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
         }
 
-        //TODO Fix KotlinTypeMetadata.
 
         // Implementations for KotlinTypeVisitor.
         @Override

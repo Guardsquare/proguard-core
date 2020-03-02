@@ -95,8 +95,6 @@ extends      SimpleProcessable
                            KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                            KotlinTypeVisitor                  kotlinTypeVisitor)
     {
-        //TODO unusual?
-//        type.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeVisitor);
         kotlinTypeVisitor.visitPropertyType(clazz, kotlinDeclarationContainerMetadata, this, type);
     }
 
@@ -107,8 +105,6 @@ extends      SimpleProcessable
     {
         if (receiverType != null)
         {
-            //TODO unusual?
-//        receiverType.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeVisitor);
             kotlinTypeVisitor.visitPropertyReceiverType(clazz,
                                                         kotlinDeclarationContainerMetadata,
                                                         this,
@@ -146,16 +142,6 @@ extends      SimpleProcessable
         if (versionRequirement != null)
         {
             versionRequirement.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinVersionRequirementVisitor);
-        }
-    }
-
-
-    //TODO add different ones when they appear necessary.
-    public void referencedSetterMethodAccept(Clazz clazz, MemberVisitor methodVisitor)
-    {
-        if (referencedSetterMethod!= null)
-        {
-            referencedSetterMethod.accept(clazz, methodVisitor);
         }
     }
 

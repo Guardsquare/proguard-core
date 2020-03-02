@@ -400,7 +400,6 @@ implements AnnotationVisitor,
 
             // Inner classes are marked with a dot after the enclosing class instead
             // of '$' (only here, not in the actual d2 array).
-            // TODO Maybe need to replace it again when writing it out to the writer?
             className = className.replace('.', '$');
 
             kotlinClassKindMetadata.setMetadataFlags(flags);
@@ -441,8 +440,6 @@ implements AnnotationVisitor,
         @Override
         public void visitNestedClass(String nestedClassName)
         {
-            //TODO there have been cases where the whole enclosing class + nested class is renamed to a single new class, but this String refers to ONLY the nested name.
-
             nestedClassNames.add(nestedClassName);
         }
 
@@ -655,7 +652,6 @@ implements AnnotationVisitor,
             @Override
             public void visit(JvmMethodSignature jvmSignature)
             {
-                //TODO maybe "" instead of descr.getName() ? otherwise "<init>" will appear in the metadata, but it doesn't appear there by default.
                 if (hasValidJvmSignature)
                 {
                     kotlinConstructorMetadata.jvmSignature = fromKotlinJvmMethodSignature(jvmSignature);
@@ -765,21 +761,6 @@ implements AnnotationVisitor,
             public void visit(int jvmFlags, JvmFieldSignature fieldSignature, JvmMethodSignature getterSignature, JvmMethodSignature setterSignature)
             {
                 kotlinPropertyMetadata.backingFieldSignature = fromKotlinJvmFieldSignature(fieldSignature);
-
-//                if (getterSignature          !=      null          &&
-//                    getterSignature.getName().equals("getContext") &&
-//                    getterSignature.getDesc().equals(")Lkotlin/coroutines/experimental/CoroutineContext"))
-//                {
-//                    //TODO just set to null
-//                    System.err.print("Fixing getter signature [" + getterSignature + "] into [");
-//
-//                    String name = getterSignature.getName();
-//                    getterSignature = new JvmMethodSignature(
-//                        name,
-//                        "()Lkotlin/coroutines/experimental/CoroutineContext;");
-//
-//                    System.err.println(getterSignature + "]");
-//                }
 
                 kotlinPropertyMetadata.getterSignature = fromKotlinJvmMethodSignature(getterSignature);
                 kotlinPropertyMetadata.setterSignature = fromKotlinJvmMethodSignature(setterSignature);
@@ -1059,113 +1040,6 @@ implements AnnotationVisitor,
             @Override
             public void visit(JvmMethodSignature signature)
             {
-//                if (signature != null)
-//                {
-//                    if (signature.getName().equals("iterator") &&
-//                        signature.getDesc().equals("()L;"))
-//                    {
-//                        //TODO just set to null
-//                        System.err.print("Fixing signature [" + signature + "] into [");
-//
-//                        String name = signature.getName();
-//                        signature = new JvmMethodSignature(
-//                            name,
-//                            "()Ljava/util/Iterator;");
-//
-//                        System.err.println(signature + "]");
-//                    }
-//
-//                    if ((signature.getName().equals("resumeWithException") || signature.getName().equals("invoke")) &&
-//                        signature.getDesc().equals("(L;)V"))
-//                    {
-//                        //TODO just set to null
-//                        System.err.print("Fixing signature [" + signature + "] into [");
-//
-//                        String name = signature.getName();
-//                        signature = new JvmMethodSignature(
-//                            name,
-//                            "(Ljava/lang/Throwable;)V");
-//
-//                        System.err.println(signature + "]");
-//                    }
-//
-//                    if (signature.getName().equals("nvok") &&
-//                        signature.getDesc().equals("(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
-//                    {
-//                        System.err.print("Fixing signature [" + signature + "] into [");
-//
-//                        signature = new JvmMethodSignature(
-//                            "invoke",
-//                            signature.getDesc()
-//                        );
-//
-//                        System.err.println(signature + "]");
-//                    }
-//
-//                    if (signature.getName().equals("invoke") &&
-//                        signature.getDesc().equals("kotlin/Any"))
-//                    {
-//                        System.err.print("Fixing signature [" + signature + "] into [");
-//
-//                        signature = new JvmMethodSignature(
-//                            "invoke",
-//                            "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
-//                        );
-//
-//                        System.err.println(signature + "]");
-//                    }
-//
-//                    if (signature.getName().equals("invoke") &&
-//                        signature.getDesc().equals("kotlin/Array"))
-//                    {
-//                        System.err.print("Fixing signature [" + signature + "] into [");
-//
-//                        signature = new JvmMethodSignature(
-//                            "invoke",
-//                            "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
-//                        );
-//
-//                        System.err.println(signature + "]");
-//                    }
-//
-//                    if (signature.getName().equals("collect") &&
-//                        signature.getDesc().contains("LL"))
-//                    {
-//                        System.err.print("Fixing signature [" + signature + "] into [");
-//
-//                        if (signature.getDesc().contains("LLkotlinx/coroutines/flow/FlowCollector;;"))
-//                        {
-//                            signature = new JvmMethodSignature(
-//                                "collect",
-//                                signature.getDesc().replace("LLkotlinx/coroutines/flow/FlowCollector;;",
-//                                                            "Lkotlinx/coroutines/flow/FlowCollector;")
-//                            );
-//                        }
-//                        if (signature.getDesc().contains("LLkotlin/coroutines/Continuation;;"))
-//                        {
-//                            signature = new JvmMethodSignature(
-//                                "collect",
-//                                signature.getDesc().replace("LLkotlin/coroutines/Continuation;;", "Lkotlin/coroutines/Continuation;")
-//                            );
-//                        }
-//
-//                        System.err.println(signature + "]");
-//                    }
-//
-//                    if (signature.getName().equals("invoke") &&
-//                        signature.getDesc().equals("Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object"))
-//                    {
-//                        System.err.print("Fixing signature [" + signature + "] into [");
-//
-//                        signature = new JvmMethodSignature(
-//                            signature.getName(),
-//                            "(" + signature.getDesc() + ";"
-//                        );
-//
-//                        System.err.println(signature + "]");
-//                    }
-//                }
-
                 kotlinFunctionMetadata.jvmSignature = fromKotlinJvmMethodSignature(signature);
             }
 
@@ -1186,7 +1060,6 @@ implements AnnotationVisitor,
     }
 
 
-    //TODO verify for Kotlin 1.3
     private class ContractReader
     extends KmContractVisitor
     {

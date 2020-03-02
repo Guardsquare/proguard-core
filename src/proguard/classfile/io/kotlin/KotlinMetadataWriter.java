@@ -127,18 +127,6 @@ implements KotlinMetadataVisitor,
                                                   " Not writing the metadata for this class.");
         }
 
-        //TODO This can actually happen for interface classes that
-        // are non-recursively marked because they are a link in a
-        // chain to an actually used interfaces.
-        //    @see proguard.shrink.InterfaceUsageMarker
-        if (false &&!hasVisitedAny)
-        {
-            warningPrinter.print(clazz.getName(), "Invalid Kotlin metadata annotation for " +
-                                                  clazz.getName() +
-                                                  " (missing Kotlin metadata annotation)." +
-                                                  " Not writing the metadata for this class.");
-        }
-
         // Clean up dangling Strings from the original metadata.
         clazz.accept(constantPoolShrinker);
 
@@ -664,8 +652,6 @@ implements KotlinMetadataVisitor,
                     proguard.classfile.kotlin.JvmMethodSignature.toKotlinJvmMethodSignature(kotlinConstructorMetadata.jvmSignature);
 
                 constExtVis.visit(jvmMethodSignature);
-
-                //TODO no visitEnd() ?
             }
 
             // Finish.

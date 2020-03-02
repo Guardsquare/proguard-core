@@ -66,7 +66,6 @@ extends KotlinMetadata
     }
 
 
-    //TODO currently unclear whether these are separate from `properties` or if they are additional info about some of them
     public void delegatedPropertiesAccept(Clazz clazz, KotlinPropertyVisitor kotlinPropertyVisitor)
     {
         for (KotlinPropertyMetadata localDelegatedProperty : localDelegatedProperties)

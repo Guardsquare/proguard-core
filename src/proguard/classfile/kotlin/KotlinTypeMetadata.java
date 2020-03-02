@@ -42,7 +42,7 @@ implements   Processable
     public Clazz  referencedClass;
 
     public int                         typeParamID = -1;
-    public KotlinTypeParameterMetadata referencedParameter; //TODO probably not necessary.
+    public KotlinTypeParameterMetadata referencedParameter;
 
     public String                  aliasName;
     public KotlinTypeAliasMetadata referencedTypeAlias;

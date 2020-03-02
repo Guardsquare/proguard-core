@@ -20,7 +20,6 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-//TODO how to visit abbreviated types?
 public interface KotlinTypeVisitor
 {
     void visitAnyType(Clazz              clazz,

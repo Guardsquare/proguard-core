@@ -303,7 +303,6 @@ implements KotlinMetadataVisitor,
                                  KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                  KotlinPropertyMetadata kotlinPropertyMetadata)
     {
-        //TODO print if the declaring classes for backing field / synth antns method differs from clazz.
         print(
             propertyFlags(kotlinPropertyMetadata.flags) +
             hasAnnotationsFlag(kotlinPropertyMetadata.flags.common) + "\"" +
@@ -867,7 +866,6 @@ implements KotlinMetadataVisitor,
             {
                 pw.print(kotlinTypeMetadata.className);
             }
-            //TODO or just 'else'
             else if (kotlinTypeMetadata.aliasName != null)
             {
                 pw.print("used as: " + kotlinTypeMetadata.aliasName);

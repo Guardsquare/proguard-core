@@ -67,7 +67,6 @@ public class KotlinPropertyFlags extends KotlinFlags
      * A member kind flag, signifying that the corresponding property exists in the containing class because it has been produced
      * by interface delegation (delegation "by"). Kotlinc never writes this flag.
      */
-    //TODO It is unclear when this flag is written. Delegated properties have the IS_DELEGATED flag set but not this one.
     public boolean isDelegation;
 
     /**
