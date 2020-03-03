@@ -77,11 +77,11 @@ public class FunctionalInterfaceFilter implements ClassVisitor
         }
 
         // Count the abstract methods and the default methods in the
-        // interface hierarchy.
+        // interface hierarchy (including Object).
         Set abstractMethods = new HashSet();
         Set defaultMethods  = new HashSet();
 
-        clazz.hierarchyAccept(true, false, true, false,
+        clazz.hierarchyAccept(true, true, true, false,
                               new AllMethodVisitor(
                               new MultiMemberVisitor(
                                   new MemberAccessFilter(AccessConstants.ABSTRACT, 0,
