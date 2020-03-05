@@ -27,8 +27,10 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.JvmFieldSignature;
+import proguard.classfile.kotlin.JvmMethodSignature;
 import proguard.classfile.kotlin.flags.KotlinPropertyAccessorFlags;
-import proguard.classfile.kotlin.visitors.*;
+import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 
@@ -543,9 +545,9 @@ implements   ClassVisitor,
             for (int k = 0; k < kotlinClassKindMetadata.nestedClassNames.size(); k++)
             {
                 kotlinClassKindMetadata.nestedClassNames.set(k,
-                     newInnerClassName(clazz.getName(),
-                                       kotlinClassKindMetadata.nestedClassNames       .get(k),
-                                       kotlinClassKindMetadata.referencedNestedClasses.get(k)));
+                     newNestedClassName(clazz.getName(),
+                                        kotlinClassKindMetadata.nestedClassNames       .get(k),
+                                        kotlinClassKindMetadata.referencedNestedClasses.get(k)));
             }
 
             for (int k = 0; k < kotlinClassKindMetadata.sealedSubclassNames.size(); k++)
@@ -571,8 +573,6 @@ implements   ClassVisitor,
         @Override
         public void visitKotlinSyntheticClassMetadata(Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
         {
-            kotlinSyntheticClassKindMetadata.className = newClassName(kotlinSyntheticClassKindMetadata.className,
-                                                                      kotlinSyntheticClassKindMetadata.referencedClass);
             kotlinSyntheticClassKindMetadata.functionsAccept(clazz, this);
         }
 
@@ -590,8 +590,9 @@ implements   ClassVisitor,
         @Override
         public void visitKotlinMultiFilePartMetadata(Clazz clazz, KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata)
         {
-            kotlinMultiFilePartKindMetadata.xs = newClassName(kotlinMultiFilePartKindMetadata.xs,
-                                                              kotlinMultiFilePartKindMetadata.referencedFacade);
+            kotlinMultiFilePartKindMetadata.facadeName =
+                newClassName(kotlinMultiFilePartKindMetadata.facadeName,
+                             kotlinMultiFilePartKindMetadata.referencedFacadeClass);
 
             visitKotlinDeclarationContainerMetadata(clazz, kotlinMultiFilePartKindMetadata);
         }
@@ -769,6 +770,20 @@ implements   ClassVisitor,
     }
 
     // Small utility methods.
+
+    /**
+     * Returns the inner-most class name based on the obfuscated fully qualified name.
+     */
+    private static String newNestedClassName(String enclosingClassName,
+                                             String shortInnerClassName,
+                                             Clazz referencedClass)
+    {
+        String newFulllName = newClassName(enclosingClassName + "$" + shortInnerClassName,
+                                           referencedClass);
+
+        // Nested class names contain only the simple name, not the full name.
+        return ClassUtil.internalSimpleClassName(newFulllName);
+    }
 
     /**
      * Returns the new descriptor of a field after applying the obfuscation,

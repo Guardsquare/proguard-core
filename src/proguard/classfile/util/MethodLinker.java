@@ -18,6 +18,12 @@
 package proguard.classfile.util;
 
 import proguard.classfile.*;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.constant.*;
+import proguard.classfile.constant.visitor.ConstantVisitor;
+import proguard.classfile.instruction.visitor.*;
+import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.visitor.*;
 import proguard.util.Processable;
 
@@ -51,6 +57,9 @@ implements   ClassVisitor,
             new AllMethodVisitor(
             new MemberAccessFilter(0, AccessConstants.PRIVATE | AccessConstants.STATIC,
             this)));
+
+        // Link all the methods in the MultiFileFacades with their implementations in the corresponding MutliFilePart
+        clazz.kotlinMetadataAccept(new KotlinMultiFileFacadeMethodLinker());
 
         // Clean up for the next class hierarchy.
         memberMap.clear();
@@ -153,5 +162,50 @@ implements   ClassVisitor,
         }
 
         return lastProcessable;
+    }
+
+
+    private static class KotlinMultiFileFacadeMethodLinker
+    extends              SimplifiedVisitor
+    implements           KotlinMetadataVisitor,
+                         MemberVisitor,
+                         ConstantVisitor
+    {
+        private Member multiFileFacadeMember;
+
+        // Implementations for KotlinMetadataVisitor.
+
+        @Override
+        public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+
+        @Override
+        public void visitKotlinMultiFileFacadeMetadata(Clazz                             clazz,
+                                                       KotlinMultiFileFacadeKindMetadata kotlinMultiFileFacadeKindMetadata)
+        {
+            clazz.methodsAccept(this);
+        }
+
+        // Implementations for MemberVisitor.
+
+        @Override
+        public void visitAnyMember(Clazz clazz, Member member)
+        {
+            multiFileFacadeMember = member;
+            multiFileFacadeMember.accept(clazz,
+                new AllAttributeVisitor(
+                new AllInstructionVisitor(
+                new InstructionConstantVisitor(this))));
+        }
+
+        // Implementations for ConstantVisitor.
+
+        @Override
+        public void visitAnyConstant(Clazz clazz, Constant constant) {}
+
+        @Override
+        public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant refConstant)
+        {
+            link(multiFileFacadeMember, refConstant.referencedMethod);
+        }
     }
 }

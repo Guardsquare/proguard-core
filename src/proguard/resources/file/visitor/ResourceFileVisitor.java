@@ -18,6 +18,7 @@
 package proguard.resources.file.visitor;
 
 import proguard.resources.file.ResourceFile;
+import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
  * This interface specifies the methods for a visitor of {@link ResourceFile} instances.
@@ -27,5 +28,7 @@ import proguard.resources.file.ResourceFile;
 public interface ResourceFileVisitor
 //extends        ...Visitor
 {
-    public void visitResourceFile(ResourceFile resourceFile);
+    void visitResourceFile(ResourceFile resourceFile);
+
+    void visitKotlinModule(KotlinModule kotlinModule);
 }

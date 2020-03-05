@@ -25,11 +25,16 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.visitors.*;
+import proguard.classfile.kotlin.reflect.util.KotlinCallableReferenceInitializer;
+import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.visitor.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static proguard.classfile.TypeConstants.INNER_CLASS_SEPARATOR;
+import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_IMPLEMENTATIONS_SUFFIX;
+import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_METHOD_SUFFIX;
 
 /**
  * This {@link ClassVisitor} initializes the references of all classes that
@@ -70,7 +75,7 @@ implements   ClassVisitor,
     private final ClassPool      programClassPool;
     private final ClassPool      libraryClassPool;
     private final boolean        checkAccessRules;
-    private       WarningPrinter missingClassWarningPrinter;
+    private final WarningPrinter missingClassWarningPrinter;
     private final WarningPrinter missingProgramMemberWarningPrinter;
     private final WarningPrinter missingLibraryMemberWarningPrinter;
     private final WarningPrinter dependencyWarningPrinter;
@@ -155,7 +160,6 @@ implements   ClassVisitor,
         this.missingLibraryMemberWarningPrinter = missingLibraryMemberWarningPrinter;
         this.dependencyWarningPrinter           = dependencyWarningPrinter;
     }
-
 
     // Implementations for ClassVisitor.
 
@@ -451,6 +455,32 @@ implements   ClassVisitor,
                 }
             }
         }
+        else
+        {
+            if (enclosingClassName                                != null &&
+                enclosingClassName.indexOf(INNER_CLASS_SEPARATOR) != -1)
+            {
+                String myEnclosingClassName = enclosingClassName;
+
+                do
+                {
+                    // [DGD-1462] Truncate the name until we find the first
+                    // non-anonymous class, i.e. the first class that exists in
+                    // a class pool.
+                    myEnclosingClassName = myEnclosingClassName.substring(0, myEnclosingClassName.lastIndexOf("$"));
+
+                    enclosingMethodAttribute.referencedClass =
+                        findClass(clazz, myEnclosingClassName, false);
+                }
+                while (enclosingMethodAttribute.referencedClass            == null &&
+                       myEnclosingClassName.indexOf(INNER_CLASS_SEPARATOR) != -1);
+
+                if (enclosingMethodAttribute.referencedClass == null)
+                {
+                    reportMissingClass(clazz.getName(), enclosingClassName);
+                }
+            }
+        }
     }
 
 
@@ -582,7 +612,6 @@ implements   ClassVisitor,
         arrayElementValue.elementValuesAccept(clazz, annotation, this);
     }
 
-
     /**
      * Initializes the referenced method of an element value, if any.
      */
@@ -615,6 +644,11 @@ implements   ClassVisitor,
                   KotlinValueParameterVisitor,
                   KotlinTypeParameterVisitor
     {
+        private final KotlinDefaultImplsInitializer                kotlinDefaultImplsInitializer          = new KotlinDefaultImplsInitializer();
+        private final KotlinDefaultMethodInitializer               kotlinDefaultMethodInitializer         = new KotlinDefaultMethodInitializer();
+        private final KotlinInterClassSyntheticFunctionInitializer interClassSyntheticFunctionInitializer = new KotlinInterClassSyntheticFunctionInitializer();
+        private final KotlinCallableReferenceInitializer           callableReferenceInitializer           = new KotlinCallableReferenceInitializer();
+
         // Implementations for KotlinMetadataVisitor.
         @Override
         public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
@@ -623,8 +657,8 @@ implements   ClassVisitor,
         public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
                                                             KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
         {
-            kotlinDeclarationContainerMetadata.ownerClassName = clazz.getName();
-            kotlinDeclarationContainerMetadata.ownerReferencedClass = findClass(clazz, kotlinDeclarationContainerMetadata.ownerClassName);
+            kotlinDeclarationContainerMetadata.ownerClassName       = clazz.getName();
+            kotlinDeclarationContainerMetadata.ownerReferencedClass = clazz;
 
             kotlinDeclarationContainerMetadata.propertiesAccept(         clazz, this);
             kotlinDeclarationContainerMetadata.delegatedPropertiesAccept(clazz, this);
@@ -640,11 +674,14 @@ implements   ClassVisitor,
 
             if (kotlinClassKindMetadata.anonymousObjectOriginName != null)
             {
-                kotlinClassKindMetadata.anonymousObjectOriginClass = findClass(clazz,
-                                                                               kotlinClassKindMetadata.anonymousObjectOriginName);
-            }
+                kotlinClassKindMetadata.anonymousObjectOriginClass =
+                    findClass(clazz, kotlinClassKindMetadata.anonymousObjectOriginName, false);
 
-            //TODO strip prefix from companion and nested classes.
+                if (kotlinClassKindMetadata.anonymousObjectOriginClass == null)
+                {
+                    kotlinClassKindMetadata.anonymousObjectOriginName = null;
+                }
+            }
 
             if (kotlinClassKindMetadata.companionObjectName != null)
             {
@@ -682,20 +719,74 @@ implements   ClassVisitor,
             kotlinClassKindMetadata.constructorsAccept(  clazz, this);
 
             visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
+
+            if (kotlinClassKindMetadata.flags.isInterface)
+            {
+                // Initialize the default implementations class of interfaces.
+                // The class will be an inner class and have a name like MyInterface$DefaultImpls.
+                kotlinClassKindMetadata.referencedDefaultImplsClass =
+                    programClassPool.getClass(
+                        kotlinClassKindMetadata.className +
+                        KotlinConstants.DEFAULT_IMPLEMENTATIONS_SUFFIX
+                    );
+
+                if (kotlinClassKindMetadata.referencedDefaultImplsClass != null)
+                {
+                    // Initialize references from interface functions to
+                    // their default implementations.
+                    kotlinDefaultImplsInitializer.defaultImplsClass = kotlinClassKindMetadata.referencedDefaultImplsClass;
+                    kotlinClassKindMetadata.functionsAccept(clazz, kotlinDefaultImplsInitializer);
+
+                    // Initialize missing references from interface properties
+                    // to their backing field.
+                    kotlinClassKindMetadata.accept(clazz,
+                                                   new AllKotlinPropertiesVisitor(
+                                                   new KotlinInterClassPropertyReferenceInitializer(
+                                                       kotlinClassKindMetadata.referencedDefaultImplsClass)));
+                }
+            }
+
+            // Initialize references from functions to their utility methods
+            // for default parameter values.
+            kotlinDefaultMethodInitializer.isInterface = kotlinClassKindMetadata.flags.isInterface;
+            kotlinClassKindMetadata.functionsAccept(clazz, kotlinDefaultMethodInitializer);
+
+            if (kotlinClassKindMetadata.flags.isCompanionObject)
+            {
+                // Initialize missing references from properties in the Companion class
+                // that have their backing field on the parent class.
+                clazz.attributeAccept(Attribute.INNER_CLASSES,
+                                      new KotlinCompanionParentPropertyInitializer());
+            }
         }
 
         @Override
         public void visitKotlinFileFacadeMetadata(Clazz clazz, KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata)
         {
             visitKotlinDeclarationContainerMetadata(clazz, kotlinFileFacadeKindMetadata);
+
+            // Initialize references from functions to their utility methods
+            // for default parameter values.
+            kotlinDefaultMethodInitializer.isInterface = false;
+            kotlinFileFacadeKindMetadata.functionsAccept(clazz, kotlinDefaultMethodInitializer);
         }
 
         @Override
         public void visitKotlinSyntheticClassMetadata(Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
         {
-            kotlinSyntheticClassKindMetadata.className       = clazz.getName();
-            kotlinSyntheticClassKindMetadata.referencedClass = clazz;
             kotlinSyntheticClassKindMetadata.functionsAccept(clazz, this);
+
+            // Initialize references from functions to their utility methods
+            // for default parameter values.
+            kotlinDefaultMethodInitializer.isInterface = false;
+            kotlinSyntheticClassKindMetadata.functionsAccept(clazz, kotlinDefaultMethodInitializer);
+
+            // Initialize missing references from synthetic functions by
+            // searching in the enclosing method attribute.
+            kotlinSyntheticClassKindMetadata.functionsAccept(clazz, interClassSyntheticFunctionInitializer);
+
+            // Initialize callable references.
+            kotlinSyntheticClassKindMetadata.accept(clazz, callableReferenceInitializer);
         }
 
         @Override
@@ -712,10 +803,21 @@ implements   ClassVisitor,
         @Override
         public void visitKotlinMultiFilePartMetadata(Clazz clazz, KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata)
         {
-            kotlinMultiFilePartKindMetadata.referencedFacade = findClass(clazz,
-                                                                         kotlinMultiFilePartKindMetadata.xs);
+            kotlinMultiFilePartKindMetadata.referencedFacadeClass = findClass(clazz,
+                                                                              kotlinMultiFilePartKindMetadata.facadeName);
 
             visitKotlinDeclarationContainerMetadata(clazz, kotlinMultiFilePartKindMetadata);
+
+            // Initialize references from functions to their utility methods
+            // for default parameter values.
+            kotlinDefaultMethodInitializer.isInterface = false;
+            kotlinMultiFilePartKindMetadata.functionsAccept(clazz, kotlinDefaultMethodInitializer);
+
+            // Initialize missing references from properties in multi-file parts
+            // that have their backing field on the multi-file facade class.
+            kotlinMultiFilePartKindMetadata.accept(clazz,
+                                                   new AllKotlinPropertiesVisitor(
+                                                   new KotlinInterClassPropertyReferenceInitializer(kotlinMultiFilePartKindMetadata.referencedFacadeClass)));
         }
 
         // Implementations for KotlinPropertyVisitor.
@@ -787,14 +889,8 @@ implements   ClassVisitor,
 
             if (kotlinFunctionMetadata.lambdaClassOriginName != null)
             {
-                // Have to temporarily remove the warning printer because there might not be an actual class.
-                WarningPrinter tmpWarningPrinter = missingClassWarningPrinter;
-                missingClassWarningPrinter = null;
-
                 kotlinFunctionMetadata.referencedLambdaClassOrigin =
-                    findClass(clazz, kotlinFunctionMetadata.lambdaClassOriginName);
-
-                missingClassWarningPrinter = tmpWarningPrinter;
+                    findClass(clazz, kotlinFunctionMetadata.lambdaClassOriginName, false);
 
                 if (kotlinFunctionMetadata.referencedLambdaClassOrigin == null)
                 {
@@ -835,37 +931,13 @@ implements   ClassVisitor,
 
             if (className != null)
             {
-                    if (className.startsWith("."))
-                    {
-                        className = className.substring(1);
-                    }
+                // If this is a dummy Kotlin type, assign a dummy referenced class.
+                kotlinTypeMetadata.referencedClass = KotlinConstants.dummyClassPool.getClass(className);
 
-                    if (className.contains("."))
-                    {
-                        className = className.replace('.', '$');
-                    }
-
-                    // Have to temporarily remove the warning printer because clazz could be null
-                    WarningPrinter missingClassWarningPrinter = ClassReferenceInitializer.this.missingClassWarningPrinter;
-                    ClassReferenceInitializer.this.missingClassWarningPrinter = null;
-
+                if (kotlinTypeMetadata.referencedClass == null)
+                {
                     kotlinTypeMetadata.referencedClass = findClass(clazz, className);
-
-                    if (kotlinTypeMetadata.referencedClass == null)
-                    {
-                        // Assign dummy Kotlin class.
-                        kotlinTypeMetadata.referencedClass = KotlinConstants.dummyClassPool.getClass(className);
-
-                        if (kotlinTypeMetadata.referencedClass == null &&
-                            !className.equals(""))
-                        {
-                            missingClassWarningPrinter.print(className,
-                                                             "Warning: can't find referenced class in programClassPool or dummyKotlinClassPool - " +
-                                                             ClassUtil.externalClassName(className));
-                        }
-                    }
-
-                    ClassReferenceInitializer.this.missingClassWarningPrinter = missingClassWarningPrinter;
+                }
             }
             else if (kotlinTypeMetadata.aliasName != null)
             {
@@ -886,9 +958,8 @@ implements   ClassVisitor,
                 else
                 {
                     // Declared in a file facade - we know which package only.
-                    int lastPackageMarkerIndex = aliasName.lastIndexOf('/');
-                    classNameFilter            = aliasName.substring(0, lastPackageMarkerIndex) + "/*";
-                    simpleName                 = aliasName.substring(lastPackageMarkerIndex + 1);
+                    classNameFilter = ClassUtil.internalPackagePrefix(aliasName) + "*";
+                    simpleName      = ClassUtil.internalSimpleClassName(kotlinTypeMetadata.aliasName);
                 }
 
                 programClassPool.classesAccept(
@@ -1062,6 +1133,16 @@ implements   ClassVisitor,
      */
     private Clazz findClass(Clazz referencingClass, String name)
     {
+        return findClass(referencingClass, name, true);
+    }
+
+
+    /**
+     * @param report Report if the class is not found. Set to false if the class
+     *               doesn't necessarily exist.
+     */
+    private Clazz findClass(Clazz referencingClass, String name, boolean report)
+    {
         // Is it an array type?
         if (ClassUtil.isInternalArrayType(name))
         {
@@ -1083,18 +1164,12 @@ implements   ClassVisitor,
         {
             clazz = libraryClassPool.getClass(name);
 
-            if (clazz == null &&
+            if (report &&
+                clazz == null &&
                 missingClassWarningPrinter != null)
             {
                 // We didn't find the superclass or interface. Print a warning.
-                String referencingClassName = referencingClass.getName();
-
-                missingClassWarningPrinter.print(referencingClassName,
-                                                 name,
-                                                 "Warning: " +
-                                                 ClassUtil.externalClassName(referencingClassName) +
-                                                 ": can't find referenced class " +
-                                                 ClassUtil.externalClassName(name));
+                reportMissingClass(referencingClass.getName(), name);
             }
         }
         else if (dependencyWarningPrinter != null)
@@ -1114,8 +1189,18 @@ implements   ClassVisitor,
         return clazz;
     }
 
+    private void reportMissingClass(String referencingClassName, String name)
+    {
+        missingClassWarningPrinter.print(referencingClassName,
+                                         name,
+                                         "Warning: " +
+                                         ClassUtil.externalClassName(referencingClassName) +
+                                         ": can't find referenced class " +
+                                         ClassUtil.externalClassName(name));
+    }
 
-    // Helper class for KotlinReferenceInitializer.
+
+    // Helper classes for KotlinReferenceInitializer.
 
     public static class KotlinTypeAliasReferenceInitializer
     implements          KotlinMetadataVisitor,
@@ -1163,6 +1248,300 @@ implements   ClassVisitor,
             {
                 this.kotlinTypeMetadata.referencedTypeAlias = kotlinTypeAliasMetadata;
             }
+        }
+    }
+
+    /**
+     * This KotlinFunctionVisitor initializes references to the default implementations of
+     * interface functions.
+     */
+    private class KotlinDefaultImplsInitializer
+    implements KotlinFunctionVisitor
+    {
+        private Clazz defaultImplsClass;
+
+        @Override
+        public void visitAnyFunction(Clazz                  clazz,
+                                     KotlinMetadata         kotlinMetadata,
+                                     KotlinFunctionMetadata kotlinFunctionMetadata) {}
+
+        @Override
+        public void visitFunction(Clazz                              clazz,
+                                  KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+                                  KotlinFunctionMetadata             kotlinFunctionMetadata)
+        {
+            if (defaultImplsClass != null &&
+                !kotlinFunctionMetadata.flags.modality.isAbstract)
+            {
+                kotlinFunctionMetadata.referencedDefaultImplementationMethod =
+                    strictMemberFinder.findMethod(
+                        defaultImplsClass,
+                        kotlinFunctionMetadata.jvmSignature.getName(),
+                        getDescriptor(kotlinDeclarationContainerMetadata, kotlinFunctionMetadata)
+                    );
+
+                if (kotlinFunctionMetadata.referencedDefaultImplementationMethod != null)
+                {
+                    kotlinFunctionMetadata.referencedDefaultImplementationMethodClass = defaultImplsClass;
+                }
+            }
+        }
+
+        // Small helper methods.
+
+        /**
+         * Returns the descriptor for the default implementation method.
+         */
+        private String getDescriptor(KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+                                     KotlinFunctionMetadata             kotlinFunctionMetadata)
+        {
+            // Default implementation methods are static and have the interface
+            // instance as its first parameter.
+            return kotlinFunctionMetadata.jvmSignature.getDesc()
+                .replace("(", "(L" + kotlinDeclarationContainerMetadata.ownerClassName + ";");
+        }
+    }
+
+    /**
+     * This KotlinFunctionVisitor initializes references to sibling methods that
+     * handle default parameter values.
+      */
+    private class KotlinDefaultMethodInitializer
+    implements KotlinFunctionVisitor
+    {
+        boolean isInterface = false;
+        boolean hasDefaults = false;
+
+        // Implementations for KotlinFunctionVisitor.
+
+        @Override
+        public void visitAnyFunction(Clazz                  clazz,
+                                     KotlinMetadata         kotlinMetadata,
+                                     KotlinFunctionMetadata kotlinFunctionMetadata)
+        {
+            // During initialization this can be null because the
+            // Asserter has not been run yet.
+            if (kotlinFunctionMetadata.referencedMethod == null)
+            {
+                return;
+            }
+
+            // Use the jvm name here because the jvm name might not match
+            // the metadata name.
+            String methodName =
+                kotlinFunctionMetadata.referencedMethod.getName(kotlinFunctionMetadata.referencedMethodClass);
+
+            if (methodName.endsWith(DEFAULT_METHOD_SUFFIX))
+            {
+                return;
+            }
+
+            // Check if there are parameters with default values.
+            hasDefaults = false;
+            kotlinFunctionMetadata.valueParametersAccept(clazz,
+                                                         kotlinMetadata,
+                                                         (_clazz, vp) -> hasDefaults |= vp.flags.hasDefaultValue);
+
+            if (hasDefaults)
+            {
+                String defaultMethodName = methodName + DEFAULT_METHOD_SUFFIX;
+                String descriptor        = getDescriptor(kotlinFunctionMetadata);
+
+                kotlinFunctionMetadata.referencedDefaultMethod =
+                    strictMemberFinder.findMethod(kotlinFunctionMetadata.referencedMethodClass,
+                                                  defaultMethodName,
+                                                  descriptor);
+
+                kotlinFunctionMetadata.referencedDefaultMethodClass = strictMemberFinder.correspondingClass();
+
+                if (kotlinFunctionMetadata.referencedDefaultMethod == null && isInterface)
+                {
+                    Clazz defaultImplsClass = programClassPool.getClass(clazz.getName() +
+                                                                        DEFAULT_IMPLEMENTATIONS_SUFFIX);
+
+                    if (defaultImplsClass != null)
+                    {
+                        kotlinFunctionMetadata.referencedDefaultMethod =
+                            strictMemberFinder.findMethod(defaultImplsClass, defaultMethodName, descriptor);
+
+                        kotlinFunctionMetadata.referencedDefaultMethodClass = strictMemberFinder.correspondingClass();
+                    }
+                }
+            }
+        }
+
+        // Small helper methods.
+
+        /**
+         * Return the descriptor for the utility method for default parameter values of
+         * the supplied function.
+         *
+         * The descriptor matches the original method but with 2 or more extra parameters:
+         *
+         *  - the first parameter is an instance reference if the original method was not static.
+         *  - the last 2+ parameters
+         *     - int masks for every 32 parameters that encode which parameter values were passed
+         *     - an object for future use? seems to be always null for now?
+         */
+        private String getDescriptor(KotlinFunctionMetadata kotlinFunctionMetadata)
+        {
+            String originalDescriptor =
+                kotlinFunctionMetadata.referencedMethod.getDescriptor(kotlinFunctionMetadata.referencedMethodClass);
+
+            // Each int param encodes up to 32 parameters as being present or not.
+            int requiredIntParams = 1 + (ClassUtil.internalMethodParameterCount(originalDescriptor) / 32);
+
+            String descriptor = originalDescriptor.replace(
+                ")",
+                String.join("", Collections.nCopies(requiredIntParams, "I")) + "Ljava/lang/Object;)"
+            );
+
+            // Instance methods will have been made static and have the class
+            // instance as its first parameter.
+            if ((kotlinFunctionMetadata.referencedMethod.getAccessFlags() & AccessConstants.STATIC) == 0)
+            {
+                descriptor = descriptor.replace("(", "(L" + kotlinFunctionMetadata.referencedMethodClass.getName() + ";");
+            }
+
+            return descriptor;
+        }
+    }
+
+    /**
+     * This KotlinPropertyVisitor tries to initialize missing property references
+     * by looking into the supplied class.
+     */
+    private class KotlinInterClassPropertyReferenceInitializer
+    implements KotlinPropertyVisitor
+    {
+        private final Clazz clazz;
+
+        KotlinInterClassPropertyReferenceInitializer(Clazz clazz)
+        {
+            this.clazz = clazz;
+        }
+
+        // Implementations for KotlinPropertyVisitor.
+
+        @Override
+        public void visitAnyProperty(Clazz                              clazz,
+                                     KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+                                     KotlinPropertyMetadata             kotlinPropertyMetadata)
+        {
+            if (kotlinPropertyMetadata.backingFieldSignature  != null &&
+                kotlinPropertyMetadata.referencedBackingField == null)
+            {
+                kotlinPropertyMetadata.referencedBackingField =
+                    strictMemberFinder.findField(this.clazz,
+                                           kotlinPropertyMetadata.backingFieldSignature.getName(),
+                                           kotlinPropertyMetadata.backingFieldSignature.getDesc());
+
+                kotlinPropertyMetadata.referencedBackingFieldClass = strictMemberFinder.correspondingClass();
+            }
+
+            /* Default implementations of methods are stored in the $DefaultImpls class not in the
+             * interface class.
+             *
+             * We fix any synthetic methods for annotations that were not already set (because
+             * they weren't found the in interface class) - these will be found in the $DefaultImpls class.
+             *
+             * Not necessary for getters/setters as they are stored on the interface class itself.
+             */
+            if (kotlinPropertyMetadata.syntheticMethodForAnnotations           != null &&
+                kotlinPropertyMetadata.referencedSyntheticMethodForAnnotations == null)
+            {
+                kotlinPropertyMetadata.referencedSyntheticMethodForAnnotations =
+                    strictMemberFinder.findMethod(this.clazz,
+                                            kotlinPropertyMetadata.syntheticMethodForAnnotations.getName(),
+                                            kotlinPropertyMetadata.syntheticMethodForAnnotations.getDesc());
+
+                kotlinPropertyMetadata.referencedSyntheticMethodClass = strictMemberFinder.correspondingClass();
+            }
+        }
+    }
+
+    /**
+     * This KotlinFunctionVisitor tries to initialize missing function references.
+     */
+    private static class KotlinInterClassSyntheticFunctionInitializer
+    extends              SimplifiedVisitor
+    implements           KotlinFunctionVisitor,
+                         AttributeVisitor
+    {
+        private KotlinFunctionMetadata currentFunction;
+
+        @Override
+        public void visitAnyFunction(Clazz                  clazz,
+                                     KotlinMetadata         kotlinMetadata,
+                                     KotlinFunctionMetadata kotlinFunctionMetadata) {}
+
+        @Override
+        public void visitSyntheticFunction(Clazz                            clazz,
+                                           KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata,
+                                           KotlinFunctionMetadata           kotlinFunctionMetadata)
+        {
+            if (kotlinFunctionMetadata.referencedMethod == null)
+            {
+                this.currentFunction = kotlinFunctionMetadata;
+                clazz.attributeAccept(Attribute.ENCLOSING_METHOD, this);
+            }
+        }
+
+        @Override
+        public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
+        {
+            Method enclosingMethod      = enclosingMethodAttribute.referencedMethod;
+            Clazz  enclosingMethodClass = enclosingMethodAttribute.referencedClass;
+
+            if (enclosingMethod              != null &&
+                currentFunction.jvmSignature != null &&
+                enclosingMethod.getName(enclosingMethodClass).equals(currentFunction.jvmSignature.getName()))
+            {
+                currentFunction.referencedMethod      = enclosingMethod;
+                currentFunction.referencedMethodClass = enclosingMethodClass;
+            }
+        }
+    }
+
+    /**
+     * This AttributeVisitor finds the parent of the visited companion class
+     * and passes it to a KotlinInterClassPropertyReferenceInitializer.
+     */
+    private class KotlinCompanionParentPropertyInitializer
+    extends       SimplifiedVisitor
+    implements    AttributeVisitor,
+                  InnerClassesInfoVisitor,
+                  ConstantVisitor
+    {
+        // Implementations for AttributeVisitor.
+
+        @Override
+        public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+        @Override
+        public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
+        {
+            innerClassesAttribute.innerClassEntriesAccept(clazz, this);
+        }
+
+        // Implementations for InnerClassesInfoVisitor.
+
+        @Override
+        public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo)
+        {
+            innerClassesInfo.outerClassConstantAccept(clazz, this);
+        }
+
+        // Implementations for ConstantVisitor.
+
+        @Override
+        public void visitAnyConstant(Clazz clazz, Constant constant) {}
+
+        @Override
+        public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
+        {
+            clazz.kotlinMetadataAccept(new AllKotlinPropertiesVisitor(
+                                       new KotlinInterClassPropertyReferenceInitializer(classConstant.referencedClass)));
         }
     }
 }

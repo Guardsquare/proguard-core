@@ -1,19 +1,8 @@
 /*
- * ProGuard Core -- library to process Java bytecode.
+ * ProGuard -- shrinking, optimization, obfuscation, and preverification
+ *             of Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2002-2019 GuardSquare NV
  */
 package proguard.classfile.kotlin.flags;
 
@@ -128,14 +117,14 @@ public class KotlinPropertyFlags extends KotlinFlags
     /**
      * Signifies that its backing field is declared as a static field in an interface,
      * usually happens when @JvmField annotation is used e.g.
-     * <pre>
+     *
      * interface A {
      *     companion object {
      *          @JvmField
      *          val s:String = "string"
      *     }
      * }
-     * </pre>
+     *
      */
     public boolean isMovedFromInterfaceCompanion;
 
@@ -161,11 +150,20 @@ public class KotlinPropertyFlags extends KotlinFlags
         map.put(Flag.Property.IS_EXTERNAL,      new FlagValue(() -> isExternal,     newValue -> isExternal = newValue));
         map.put(Flag.Property.IS_DELEGATED,     new FlagValue(() -> isDelegated,    newValue -> isDelegated = newValue));
         map.put(Flag.Property.IS_EXPECT,        new FlagValue(() -> isExpect,       newValue -> isExpect = newValue));
-        map.put(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION,
-                new FlagValue(() -> isMovedFromInterfaceCompanion, newValue -> {/*not allowed for JVM property*/}));
         return map;
     }
 
+    public final int jvmFlagsAsInt()
+    {
+        ArrayList<Flag> flags = new ArrayList<>();
+
+        if (isMovedFromInterfaceCompanion)
+        {
+            flags.add(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION);
+        }
+
+        return FlagsKt.flagsOf(flags.toArray(new Flag[0]));
+    }
 
     public void setJvmFlags(int jvmFlags)
     {

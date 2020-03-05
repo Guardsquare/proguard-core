@@ -18,6 +18,7 @@
 package proguard.resources.file.visitor;
 
 import proguard.resources.file.*;
+import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
  * This {@link ResourceFileVisitor} delegates its visits to one of two
@@ -66,6 +67,17 @@ implements   ResourceFileVisitor
         }
     }
 
+
+    @Override
+    public void visitKotlinModule(KotlinModule kotlinModule)
+    {
+        ResourceFileVisitor resourceFileVisitor = resourceFileVisitor(kotlinModule);
+
+        if (resourceFileVisitor != null)
+        {
+            resourceFileVisitor.visitResourceFile(kotlinModule);
+        }
+    }
 
     // Small utility methods.
 

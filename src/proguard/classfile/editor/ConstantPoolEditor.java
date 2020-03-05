@@ -209,7 +209,10 @@ public class ConstantPoolEditor
 
     /**
      * Finds or creates a StringConstant constant pool entry with the given
-     * value.
+     * value, with optional referenced class/member.
+     *
+     * @param referencedClass  The class that this string references.
+     * @param referencedMember The member that this string references.
      * @return the constant pool index of the StringConstant.
      */
     public int addStringConstant(String string,
@@ -219,6 +222,15 @@ public class ConstantPoolEditor
         return addStringConstant(string, referencedClass, referencedMember, 0, null);
     }
 
+    /**
+     * Finds or creates a StringConstant constant pool entry with the given
+     * value.
+     * @return the constant pool index of the StringConstant.
+     */
+    public int addStringConstant(String string)
+    {
+        return addStringConstant(string, null, null);
+    }
 
     /**
      * Finds or creates a StringConstant constant pool entry with the given

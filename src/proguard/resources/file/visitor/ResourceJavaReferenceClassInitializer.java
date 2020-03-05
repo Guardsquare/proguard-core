@@ -20,6 +20,7 @@ package proguard.resources.file.visitor;
 import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 import proguard.resources.file.*;
+import proguard.resources.kotlinmodule.KotlinModule;
 
 import java.util.Set;
 
@@ -60,5 +61,12 @@ implements   ResourceFileVisitor
                 reference.referencedClass = programClassPool.getClass(internalClassName);
             }
         }
+    }
+
+
+    @Override
+    public void visitKotlinModule(KotlinModule kotlinModule)
+    {
+
     }
 }

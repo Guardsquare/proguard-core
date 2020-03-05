@@ -20,6 +20,7 @@ package proguard.util;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.visitor.*;
 import proguard.resources.file.visitor.ResourceFileVisitor;
+import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
  * This visitor clears the specified processing flags of the {@link Processable}

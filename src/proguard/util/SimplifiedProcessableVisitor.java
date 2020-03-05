@@ -21,6 +21,7 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.util.SimplifiedVisitor;
 import proguard.resources.file.ResourceFile;
+import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
  * This abstract utility class allows to implement visitor interfaces for various Processable entities.
@@ -74,5 +75,10 @@ extends               SimplifiedVisitor
     public void visitResourceFile(ResourceFile resourceFile)
     {
         visitAnyProcessable(resourceFile);
+    }
+
+    public void visitKotlinModule(KotlinModule kotlinModule)
+    {
+        visitAnyProcessable(kotlinModule);
     }
 }

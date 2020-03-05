@@ -18,6 +18,7 @@
 package proguard.resources.file.visitor;
 
 import proguard.resources.file.ResourceFile;
+import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
  * Abstract class providing default implementations for {@link ResourceFileVisitor}.
@@ -40,5 +41,10 @@ public abstract class SimplifiedResourceFileVisitor
     public void visitResourceFile(ResourceFile resourceFile)
     {
         visitAnyResourceFile(resourceFile);
+    }
+
+    public void visitKotlinModule(KotlinModule kotlinModule)
+    {
+        visitAnyResourceFile(kotlinModule);
     }
 }

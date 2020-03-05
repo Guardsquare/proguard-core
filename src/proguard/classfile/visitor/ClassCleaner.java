@@ -27,7 +27,7 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.visitors.KotlinMetadataVisitor;
+import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.Processable;
 
@@ -53,9 +53,11 @@ implements   ClassVisitor,
              LocalVariableTypeInfoVisitor,
              AnnotationVisitor,
              TypeAnnotationVisitor,
-             ElementValueVisitor,
-             KotlinMetadataVisitor
+             ElementValueVisitor
 {
+
+    private final KotlinMetadataCleaner kotlinMetadataCleaner = new KotlinMetadataCleaner();
+
     // Implementations for ClassVisitor.
 
     public void visitProgramClass(ProgramClass programClass)
@@ -69,7 +71,7 @@ implements   ClassVisitor,
 
         programClass.attributesAccept(this);
 
-        programClass.kotlinMetadataAccept(this);
+        programClass.kotlinMetadataAccept(kotlinMetadataCleaner);
     }
 
 
@@ -80,7 +82,7 @@ implements   ClassVisitor,
         libraryClass.fieldsAccept(this);
         libraryClass.methodsAccept(this);
 
-        libraryClass.kotlinMetadataAccept(this);
+        libraryClass.kotlinMetadataAccept(kotlinMetadataCleaner);
     }
 
 
@@ -360,11 +362,175 @@ implements   ClassVisitor,
     }
 
 
-    // Implementations for KotlinMetadataVisitor.
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
+    private class KotlinMetadataCleaner
+    implements KotlinMetadataVisitor,
+               KotlinPropertyVisitor,
+               KotlinFunctionVisitor,
+               KotlinConstructorVisitor,
+               KotlinTypeVisitor,
+               KotlinTypeAliasVisitor,
+               KotlinValueParameterVisitor,
+               KotlinTypeParameterVisitor
     {
-        clean(kotlinMetadata);
+        // Implementations for KotlinMetadataVisitor.
+        @Override
+        public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
+        {
+            clean(kotlinMetadata);
+        }
+
+        @Override
+        public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
+                                                            KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
+        {
+            visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);
+
+            kotlinDeclarationContainerMetadata.propertiesAccept(         clazz, this);
+            kotlinDeclarationContainerMetadata.delegatedPropertiesAccept(clazz, this);
+            kotlinDeclarationContainerMetadata.functionsAccept(          clazz, this);
+            kotlinDeclarationContainerMetadata.typeAliasesAccept(        clazz, this);
+        }
+
+
+        @Override
+        public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
+        {
+            visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
+
+            kotlinClassKindMetadata.typeParametersAccept(clazz, this);
+            kotlinClassKindMetadata.superTypesAccept(    clazz, this);
+            kotlinClassKindMetadata.constructorsAccept(  clazz, this);
+        }
+
+        @Override
+        public void visitKotlinSyntheticClassMetadata(Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
+        {
+            visitAnyKotlinMetadata(clazz, kotlinSyntheticClassKindMetadata);
+
+            kotlinSyntheticClassKindMetadata.functionsAccept(clazz, this);
+        }
+
+
+        // Implementations for KotlinPropertyVisitor.
+        @Override
+        public void visitAnyProperty(Clazz                              clazz,
+                                     KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+                                     KotlinPropertyMetadata             kotlinPropertyMetadata)
+        {
+            clean(kotlinPropertyMetadata);
+
+            kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        }
+
+
+        // Implementations for KotlinFunctionVisitor.
+        @Override
+        public void visitAnyFunction(Clazz                  clazz,
+                                     KotlinMetadata         kotlinMetadata,
+                                     KotlinFunctionMetadata kotlinFunctionMetadata)
+        {
+            clean(kotlinFunctionMetadata);
+
+            kotlinFunctionMetadata.typeParametersAccept( clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.receiverTypeAccept(   clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.returnTypeAccept(     clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.contractsAccept(      clazz, kotlinMetadata, new AllTypeVisitor(this));
+        }
+
+
+        // Implementations for KotlinConstructorVisitor.
+        @Override
+        public void visitConstructor(Clazz                     clazz,
+                                     KotlinClassKindMetadata   kotlinClassKindMetadata,
+                                     KotlinConstructorMetadata kotlinConstructorMetadata)
+        {
+            clean(kotlinConstructorMetadata);
+
+            kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
+        }
+
+
+        // Implementations for KotlinTypeVisitor.
+        @Override
+        public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata)
+        {
+            clean(kotlinTypeMetadata);
+
+            kotlinTypeMetadata.typeArgumentsAccept(clazz, this);
+            kotlinTypeMetadata.outerClassAccept(   clazz, this);
+            kotlinTypeMetadata.upperBoundsAccept(  clazz, this);
+            kotlinTypeMetadata.abbreviationAccept( clazz, this);
+        }
+
+
+        // Implementations for KotlinTypeAliasVisitor.
+        @Override
+        public void visitTypeAlias(Clazz                              clazz,
+                                   KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+                                   KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
+        {
+            clean(kotlinTypeAliasMetadata);
+
+            kotlinTypeAliasMetadata.underlyingTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinTypeAliasMetadata.expandedTypeAccept(  clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinTypeAliasMetadata.typeParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        }
+
+
+        // Implementations for KotlinValueParameterVisitor
+        @Override
+        public void visitAnyValueParameter(Clazz                        clazz,
+                                           KotlinValueParameterMetadata kotlinValueParameterMetadata)
+        {
+            clean(kotlinValueParameterMetadata);
+        }
+
+        @Override
+        public void visitFunctionValParameter(Clazz                        clazz,
+                                              KotlinMetadata               kotlinMetadata,
+                                              KotlinFunctionMetadata       kotlinFunctionMetadata,
+                                              KotlinValueParameterMetadata kotlinValueParameterMetadata)
+        {
+            visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+
+            kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+        }
+
+        @Override
+        public void visitConstructorValParameter(Clazz                        clazz,
+                                                 KotlinClassKindMetadata      kotlinClassKindMetadata,
+                                                 KotlinConstructorMetadata    kotlinConstructorMetadata,
+                                                 KotlinValueParameterMetadata kotlinValueParameterMetadata)
+        {
+            visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+
+            kotlinValueParameterMetadata.typeAccept(clazz, kotlinClassKindMetadata, kotlinConstructorMetadata, this);
+        }
+
+        @Override
+        public void visitPropertyValParameter(Clazz                              clazz,
+                                              KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+                                              KotlinPropertyMetadata             kotlinPropertyMetadata,
+                                              KotlinValueParameterMetadata       kotlinValueParameterMetadata)
+        {
+            visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+
+            kotlinValueParameterMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+        }
+
+
+        // Implementations for KotlinTypeParameterVisitor
+        @Override
+        public void visitAnyTypeParameter(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
+        {
+            clean(kotlinTypeParameterMetadata);
+
+            kotlinTypeParameterMetadata.upperBoundsAccept(clazz, this);
+        }
     }
 
 

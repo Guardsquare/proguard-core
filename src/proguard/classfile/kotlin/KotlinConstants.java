@@ -1,29 +1,16 @@
 /*
- * ProGuard Core -- library to process Java bytecode.
+ * ProGuard -- shrinking, optimization, obfuscation, and preverification
+ *             of Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2002-2019 GuardSquare NV
  */
 package proguard.classfile.kotlin;
 
 import proguard.classfile.*;
-import proguard.classfile.editor.ClassBuilder;
+import proguard.classfile.editor.*;
 import proguard.util.ProcessingFlags;
 
 import java.util.*;
-
-import static proguard.classfile.AccessConstants.PUBLIC;
 
 public class KotlinConstants
 {
@@ -32,6 +19,8 @@ public class KotlinConstants
     public static final int METADATA_KIND_SYNTHETIC_CLASS         = 3;
     public static final int METADATA_KIND_MULTI_FILE_CLASS_FACADE = 4;
     public static final int METADATA_KIND_MULTI_FILE_CLASS_PART   = 5;
+
+    public static final char INNER_CLASS_SEPARATOR = '.';
 
     public static final String NAME_KOTLIN_METADATA                  = "kotlin/Metadata";
     public static final String NAME_KOTLIN_COROUTINES_DEBUG_METADATA = "kotlin/coroutines/jvm/internal/DebugMetadata";
@@ -43,6 +32,39 @@ public class KotlinConstants
     public static final String WHEN_MAPPINGS_SUFFIX                  = "$WhenMappings";
 
     public static final String KOTLIN_INTRINSICS_CLASS               = "kotlin/jvm/internal/Intrinsics";
+
+    public static final class REFLECTION
+    {
+        public static final String CLASS_NAME                           = "kotlin/jvm/internal/Reflection";
+        public static final String CALLABLE_REFERENCE_CLASS_NAME        = "kotlin/jvm/internal/CallableReference";
+        public static final String FUNCTION_REFERENCE_CLASS_NAME        = "kotlin/jvm/internal/FunctionReference";
+        public static final String PROPERTY_REFERENCE_CLASS_NAME        = "kotlin/jvm/internal/PropertyReference";
+        public static final String LOCALVAR_REFERENCE_CLASS_NAME        = "kotlin/jvm/internal/LocalVariableReference";
+
+        public static final String PROPERTY_REFERENCE_GET_METHOD_NAME   = "get";
+        public static final String PROPERTY_REFERENCE_GET_METHOD_TYPE   = "()Ljava/lang/Object;";
+
+        public static final String GETNAME_METHOD_NAME                  = "getName";
+        public static final String GETNAME_METHOD_DESC                  = "()Ljava/lang/String;";
+
+        public static final String GETSIGNATURE_METHOD_NAME             = "getSignature";
+        public static final String GETSIGNATURE_METHOD_DESC             = "()Ljava/lang/String;";
+
+        public static final String GETOWNER_METHOD_NAME                 = "getOwner";
+        public static final String GETOWNER_METHOD_DESC                 = "()Lkotlin/reflect/KDeclarationContainer;";
+
+        public static final String GETORCREATEKOTLINCLASS_METHOD_NAME   = "getOrCreateKotlinClass";
+        public static final String GETORCREATEKOTLINCLASS_METHOD_DESC   = "(Ljava/lang/Class;)Lkotlin/reflect/KClass;";
+
+        public static final String GETORCREATEKOTLINPACKAGE_METHOD_NAME = "getOrCreateKotlinPackage";
+        public static final String GETORCREATEKOTLINPACKAGE_METHOD_DESC = "(Ljava/lang/Class;Ljava/lang/String;)Lkotlin/reflect/KDeclarationContainer;";
+    }
+
+    public static final class MODULE
+    {
+        public static final String FILE_EXTENSION  = ".kotlin_module";
+        public static final String FILE_EXPRESSION = "META-INF/*" + FILE_EXTENSION;
+    }
 
     private static final String[] KOTLIN_MAPPED_TYPES = {
         // Primitives
@@ -199,16 +221,16 @@ public class KotlinConstants
 
     private static ProgramClass createDummyClass(String name)
     {
-        return new ClassBuilder(
-            VersionConstants.CLASS_VERSION_1_2,
-            PUBLIC,
+        ClassBuilder editor = new ClassBuilder(
+            55,
+            AccessConstants.PUBLIC,
             name,
-            null,
-            null,
-            ProcessingFlags.DONT_OBFUSCATE |
-            ProcessingFlags.DONT_OPTIMIZE |
-            ProcessingFlags.DONT_SHRINK,
-            null)
-            .getProgramClass();
+            ClassConstants.NAME_JAVA_LANG_OBJECT,
+           null,
+           ProcessingFlags.DONT_OBFUSCATE | ProcessingFlags.DONT_OPTIMIZE | ProcessingFlags.DONT_SHRINK,
+           null
+        );
+
+        return editor.getProgramClass();
     }
 }

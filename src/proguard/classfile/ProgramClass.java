@@ -22,7 +22,7 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.KotlinMetadata;
-import proguard.classfile.kotlin.visitors.KotlinMetadataVisitor;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.util.ClassSubHierarchyInitializer;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;

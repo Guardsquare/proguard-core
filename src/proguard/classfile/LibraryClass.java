@@ -20,7 +20,7 @@ package proguard.classfile;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.KotlinMetadata;
-import proguard.classfile.kotlin.visitors.KotlinMetadataVisitor;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 import proguard.util.*;
