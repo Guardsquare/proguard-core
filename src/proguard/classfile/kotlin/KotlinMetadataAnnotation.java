@@ -19,6 +19,7 @@ package proguard.classfile.kotlin;
 
 import kotlinx.metadata.*;
 import proguard.classfile.*;
+import proguard.classfile.util.ClassUtil;
 import proguard.util.*;
 
 import java.util.Map;
@@ -43,6 +44,6 @@ implements   Processable
     @Override
     public String toString()
     {
-        return kmAnnotation.getClassName() + "(" + kmAnnotation.getArguments() + ")";
+        return ClassUtil.externalClassName(kmAnnotation.getClassName()) + "(" + kmAnnotation.getArguments() + ")";
     }
 }

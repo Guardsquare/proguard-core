@@ -141,6 +141,6 @@ implements   ResourceFileVisitor,
 
     private String hasRefIndicator(Object arg)
     {
-        return arg == null ? this.missingRefIndicator + " " : "";
+        return arg == null ? this.missingRefIndicator : "";
     }
 }

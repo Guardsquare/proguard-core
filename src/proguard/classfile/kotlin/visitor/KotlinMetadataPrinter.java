@@ -18,12 +18,15 @@
 package proguard.classfile.kotlin.visitor;
 
 import kotlinx.metadata.KmVariance;
-import proguard.classfile.Clazz;
+import proguard.classfile.*;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.flags.*;
+import proguard.classfile.util.ClassUtil;
 
 import java.io.PrintWriter;
 import java.util.*;
+
+import static proguard.classfile.util.ClassUtil.*;
 
 /**
  * @see KotlinMetadata .main
@@ -45,7 +48,7 @@ implements KotlinMetadataVisitor,
 {
 
     private static final String INDENTATION                   = "  ";
-    public static final  String DEFAULT_MISSING_REF_INDICATOR = "!";
+    public static final  String DEFAULT_MISSING_REF_INDICATOR = "! ";
 
     private final PrintWriter pw;
 
@@ -92,7 +95,7 @@ implements KotlinMetadataVisitor,
             hasRefIndicator(kotlinClassKindMetadata.referencedClass) +
             "Kotlin " + classFlags(kotlinClassKindMetadata.flags) +
             "class(" + hasAnnotationsFlag(kotlinClassKindMetadata.flags.common) +
-            kotlinClassKindMetadata.className + ")"
+            externalClassName(kotlinClassKindMetadata.className) + ")"
         );
 
         if (kotlinClassKindMetadata.companionObjectName != null)
@@ -108,7 +111,8 @@ implements KotlinMetadataVisitor,
 
         if (kotlinClassKindMetadata.anonymousObjectOriginName != null)
         {
-            pw.print(" from anonymous object class (" + kotlinClassKindMetadata.anonymousObjectOriginName + ")");
+            pw.print(" from anonymous object class (" +
+                     externalClassName(kotlinClassKindMetadata.anonymousObjectOriginName) + ")");
         }
 
         pw.println();
@@ -132,7 +136,7 @@ implements KotlinMetadataVisitor,
     public void visitKotlinFileFacadeMetadata(Clazz clazz, KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata)
     {
         println("_____________________________________________________________________");
-        println("Kotlin file facade: from Java class(" + clazz.getName() + ")"
+        println("Kotlin file facade: from Java class(" + externalClassName(clazz.getName()) + ")"
         );
 
         indent();
@@ -148,7 +152,7 @@ implements KotlinMetadataVisitor,
         println("Kotlin " +
                 kotlinSyntheticClassKindMetadata.flavor.toString().toLowerCase() +
                 " synthetic class(" +
-                clazz.getName() +
+                externalClassName(clazz.getName()) +
                 ") ");
 
         indent();
@@ -163,10 +167,12 @@ implements KotlinMetadataVisitor,
         println("_____________________________________________________________________");
         println(
             hasRefIndicator(kotlinMultiFileFacadeKindMetadata.referencedPartClasses) +
-            "Kotlin multi file facade (" + clazz.getName() + ")"
+            "Kotlin multi file facade (" + externalClassName(clazz.getName()) + ")"
         );
         indent();
-        kotlinMultiFileFacadeKindMetadata.partClassNames.forEach(this::println);
+        kotlinMultiFileFacadeKindMetadata.partClassNames.stream()
+            .map(ClassUtil::externalClassName)
+            .forEach(this::println);
         outdent();
     }
 
@@ -178,9 +184,9 @@ implements KotlinMetadataVisitor,
         println(
             hasRefIndicator(kotlinMultiFilePartKindMetadata.referencedFacadeClass) +
             "Kotlin multi file part metadata: " +
-            kotlinMultiFilePartKindMetadata.facadeName +
+            externalClassName(kotlinMultiFilePartKindMetadata.facadeName) +
             " from " +
-            "Java class(" + clazz.getName() + ")"
+            "Java class(" + externalClassName(clazz.getName()) + ")"
         );
 
         indent();
@@ -208,8 +214,8 @@ implements KotlinMetadataVisitor,
             pw.println(
                 hasRefIndicator(kotlinConstructorMetadata.referencedMethod) +
                 constructorFlags(kotlinConstructorMetadata.flags) +
-                hasAnnotationsFlag(kotlinConstructorMetadata.flags.common) +
-                kotlinConstructorMetadata.jvmSignature
+                hasAnnotationsFlag(kotlinConstructorMetadata.flags.common) + "[" +
+                externalMethodDescription(kotlinConstructorMetadata.jvmSignature) + "]"
             );
         }
 
@@ -334,7 +340,7 @@ implements KotlinMetadataVisitor,
             println(
                 "Backing field: " +
                 hasRefIndicator(kotlinPropertyMetadata.referencedBackingField) +
-                kotlinPropertyMetadata.backingFieldSignature
+                externalFieldDescription(kotlinPropertyMetadata.backingFieldSignature)
             );
         }
 
@@ -343,7 +349,7 @@ implements KotlinMetadataVisitor,
             println(
                 "Getter:        " +
                 hasRefIndicator(kotlinPropertyMetadata.referencedGetterMethod) +
-                kotlinPropertyMetadata.getterSignature
+                externalMethodDescription(kotlinPropertyMetadata.getterSignature)
             );
         }
 
@@ -352,19 +358,22 @@ implements KotlinMetadataVisitor,
             println(
                 "Setter:        " +
                 hasRefIndicator(kotlinPropertyMetadata.referencedSetterMethod) +
-                kotlinPropertyMetadata.setterSignature
+                externalMethodDescription(kotlinPropertyMetadata.setterSignature)
             );
         }
 
         if (kotlinPropertyMetadata.syntheticMethodForAnnotations != null)
         {
+            String referencedSyntheticMethodClassNamePrefix =
+                kotlinPropertyMetadata.referencedSyntheticMethodClass != null &&
+                clazz != kotlinPropertyMetadata.referencedSyntheticMethodClass ?
+                    externalClassName(kotlinPropertyMetadata.referencedSyntheticMethodClass.getName()) + "." : "";
+
             println(
                 "Synthetic method for annotations: " +
-                (kotlinPropertyMetadata.referencedSyntheticMethodClass != null &&
-                 clazz != kotlinPropertyMetadata.referencedSyntheticMethodClass ?
-                    kotlinPropertyMetadata.referencedSyntheticMethodClass.getName() + "." : "") +
+                referencedSyntheticMethodClassNamePrefix +
                 hasRefIndicator(kotlinPropertyMetadata.referencedSyntheticMethodForAnnotations) +
-                kotlinPropertyMetadata.syntheticMethodForAnnotations
+                externalMethodDescription(kotlinPropertyMetadata.syntheticMethodForAnnotations)
             );
         }
 
@@ -638,23 +647,26 @@ implements KotlinMetadataVisitor,
                                  KotlinMetadata kotlinMetadata,
                                  KotlinFunctionMetadata kotlinFunctionMetadata)
     {
+        String referencedMethodClassNamePrefix =
+            kotlinFunctionMetadata.referencedMethodClass != null &&
+            !clazz.equals(kotlinFunctionMetadata.referencedMethodClass) ?
+                externalClassName(kotlinFunctionMetadata.referencedMethodClass.getName()) + "." : "";
+
         pw.print(
             hasRefIndicator(kotlinFunctionMetadata.referencedMethod) +
             functionFlags(kotlinFunctionMetadata.flags) +
             hasAnnotationsFlag(kotlinFunctionMetadata.flags.common) + "\"" +
             kotlinFunctionMetadata.name + "\" [" +
-            (kotlinFunctionMetadata.referencedMethodClass != null &&
-             !clazz.equals(kotlinFunctionMetadata.referencedMethodClass)
-                 ? kotlinFunctionMetadata.referencedMethodClass.getName() + "."
-                 : "") +
-            kotlinFunctionMetadata.jvmSignature + "] "
+            referencedMethodClassNamePrefix +
+            externalMethodDescription(kotlinFunctionMetadata.jvmSignature) + "] "
         );
 
         if (kotlinFunctionMetadata.referencedDefaultImplementationMethod != null)
         {
-            pw.print("defaultImpl: [" + kotlinFunctionMetadata.referencedDefaultImplementationMethodClass.getName() +
-                     "." + kotlinFunctionMetadata.referencedDefaultImplementationMethod.getName(
-                         kotlinFunctionMetadata.referencedDefaultImplementationMethodClass) + "] ");
+            pw.print("defaultImpl: [" +
+                     externalClassName(kotlinFunctionMetadata.referencedDefaultImplementationMethodClass.getName()) + "." +
+                     kotlinFunctionMetadata.referencedDefaultImplementationMethod.getName(
+                     kotlinFunctionMetadata.referencedDefaultImplementationMethodClass) + "] ");
         }
 
         indent();
@@ -672,7 +684,7 @@ implements KotlinMetadataVisitor,
         {
             println(
                 hasRefIndicator(kotlinFunctionMetadata.referencedLambdaClassOrigin) +
-                "Lambda class original name: " + kotlinFunctionMetadata.lambdaClassOriginName
+                "Lambda class original name: " + externalClassName(kotlinFunctionMetadata.lambdaClassOriginName)
             );
         }
 
@@ -864,11 +876,11 @@ implements KotlinMetadataVisitor,
 
             if (kotlinTypeMetadata.className != null)
             {
-                pw.print(kotlinTypeMetadata.className);
+                pw.print(externalClassName(kotlinTypeMetadata.className));
             }
             else if (kotlinTypeMetadata.aliasName != null)
             {
-                pw.print("used as: " + kotlinTypeMetadata.aliasName);
+                pw.print("used as: " + externalClassName(kotlinTypeMetadata.aliasName));
             }
         }
 
@@ -938,14 +950,14 @@ implements KotlinMetadataVisitor,
 
     private String hasRefIndicator(Object arg)
     {
-        return arg == null ? this.refMissingIndicator + " " : "";
+        return arg == null ? this.refMissingIndicator : "";
     }
 
     private String hasRefIndicator(Collection<?> objects)
     {
         if (objects == null)
         {
-            return this.refMissingIndicator + " ";
+            return this.refMissingIndicator;
         }
         else if (objects.isEmpty())
         {
@@ -977,6 +989,44 @@ implements KotlinMetadataVisitor,
         }
 
         return count;
+    }
+
+    // Field/method signature printing helpers.
+
+    private static String externalFieldDescription(JvmFieldSignature jvmFieldSignature)
+    {
+        try
+        {
+            // If the types are invalid this will throw an exception.
+            return externalFullFieldDescription(0, jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+        }
+        catch (StringIndexOutOfBoundsException |
+               IllegalArgumentException e)
+        {
+            // TODO(#1776): Specialize the caught Exception.
+            return "Invalid field descriptor: " + jvmFieldSignature.asString();
+        }
+    }
+
+    private static String externalMethodDescription(JvmMethodSignature jvmMethodSignature)
+    {
+        try
+        {
+            // If the types are invalid this will throw an exception.
+            return (ClassUtil.isInitializer(jvmMethodSignature.getName()) ?
+                        "" :
+                        externalMethodReturnType(jvmMethodSignature.getDesc()) + ' ') +
+                   jvmMethodSignature.getName() +
+                   JavaConstants.METHOD_ARGUMENTS_OPEN +
+                   externalMethodArguments(jvmMethodSignature.getDesc()) +
+                   JavaConstants.METHOD_ARGUMENTS_CLOSE;
+        }
+        catch (StringIndexOutOfBoundsException |
+               IllegalArgumentException e)
+        {
+            // TODO(#1776): Specialize the caught Exception.
+            return "Invalid method descriptor: " + jvmMethodSignature.asString();
+        }
     }
 
     // Flag printing helpers
