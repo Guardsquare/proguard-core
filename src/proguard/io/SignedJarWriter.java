@@ -18,8 +18,11 @@
 package proguard.io;
 
 import proguard.util.*;
+
+/* JDK 9 modules no longer export the internal sun.security API.
 import sun.security.pkcs.*;
 import sun.security.x509.*;
+//*/
 
 import java.io.*;
 import java.security.*;
@@ -38,7 +41,9 @@ import java.security.cert.X509Certificate;
  */
 public class SignedJarWriter extends JarWriter
 {
+    /* JDK 9 modules no longer export the internal sun.security API.
     private static final boolean SUN_SECURITY_SIGNING = System.getProperty("sun.security.signing") != null;
+    //*/
 
     private final KeyStore.PrivateKeyEntry privateKeyEntry;
     private final int[]                    apkSignatureSchemeIDs;
@@ -288,6 +293,7 @@ public class SignedJarWriter extends JarWriter
                 // Write them out in a PKCS7 container.
                 String  encryptionAlgorithm = privateKeyEntry.getPrivateKey().getAlgorithm();
 
+                /* JDK 9 modules no longer export the internal sun.security API.
                 if (SUN_SECURITY_SIGNING)
                 {
                     // Using the internal sun.security API.
@@ -308,6 +314,7 @@ public class SignedJarWriter extends JarWriter
                     digitalSignatureFileStream.close();
                 }
                 else
+                //*/
                 {
                     // Using our own implementation.
                     PKCS7OutputStream pkcs7OutputStream =
