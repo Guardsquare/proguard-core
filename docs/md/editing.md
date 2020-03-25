@@ -3,6 +3,7 @@
 You can edit existing classes with ClassEditor and related editors like
 InterfacesEditor, AttributesEditor, and ConstantPoolEditor.
 
+    :::java
     ClassEditor classEditor =
         new ClassEditor(targetClass);
 
@@ -13,6 +14,7 @@ InterfacesEditor, AttributesEditor, and ConstantPoolEditor.
 If you want to create and add new fields or methods from scratch, you can use
 the more convenient ClassBuilder:
 
+    :::java
     ProgramClass programClass =
         new ClassBuilder(existingClass)
             .addField(
@@ -41,6 +43,7 @@ the more convenient ClassBuilder:
 Perhaps more interestingly, you can edit the bytecode of method bodies with
 CodeAttributeEditor.
 
+    :::java
     CodeAttributeEditor codeAttributeEditor =
         new CodeAttributeEditor();
 

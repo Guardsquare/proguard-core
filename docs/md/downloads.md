@@ -9,6 +9,7 @@ You can download the library in various forms:
 
 - [Pre-built artifacts](https://bintray.com/guardsquare/proguard) at JCenter
 
+        :::groovy
         dependencies {
             compile project(':net.sf.proguard:core:7.0.0')
         }

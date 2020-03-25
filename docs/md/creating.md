@@ -2,6 +2,7 @@ The easiest way to create a new class from scratch is with ClassBuilder. It
 provides a fluent API to add fields and methods. For example, to create a
 class that prints out "Hello, world!":
 
+    :::java
     ProgramClass programClass =
         new ClassBuilder(
             VersionConstants.CLASS_VERSION_1_8,
@@ -26,6 +27,7 @@ class that prints out "Hello, world!":
 
 You can also use it to add fields and methods to an existing class:
 
+    :::java
     ProgramClass programClass =
         new ClassBuilder(existingClass)
             .....

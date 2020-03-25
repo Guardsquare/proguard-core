@@ -27,6 +27,25 @@ public class JarUtil
                                     boolean isLibrary)
     throws IOException
     {
+        return readJar(jarFileName, "**", isLibrary);
+    }
+
+
+    /**
+     * Reads the classes from the specified jar file and returns them as a class
+     * pool.
+     *
+     * @param jarFileName the name of the jar file or jmod file.
+     * @param isLibrary   specifies whether classes should be represented as
+     *                    ProgramClass instances (for processing) or
+     *                    LibraryClass instances (more compact).
+     * @return a new class pool with the read classes.
+     */
+    public static ClassPool readJar(String  jarFileName,
+                                    String  classNameFilter,
+                                    boolean isLibrary)
+    throws IOException
+    {
         ClassPool classPool = new ClassPool();
 
         // Parse all classes from the input jar and
@@ -39,7 +58,8 @@ public class JarUtil
             new JarReader(isLibrary,
             new ClassFilter(
             new ClassReader(isLibrary, false, false, false, null,
-            new ClassPoolFiller(classPool)))));
+            new ClassNameFilter(classNameFilter,
+            new ClassPoolFiller(classPool))))));
 
         return classPool;
     }

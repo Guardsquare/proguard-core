@@ -11,18 +11,18 @@ copyright:        Copyright &copy; 2002-2020 Guardsquare NV
 ###################################################################
 theme:
   name:       null
-  custom_dir: ../../mkdocs/material
+  custom_dir: ../../../mkdocs/material
   logo:       img/core.png
   favicon:    img/guardsquare.png
   language:   en
   palette:    blue
   font:
-  feature: 
+  feature:
 
 docs_dir: md
 site_dir: html
 
-#extra_css: 
+#extra_css:
 #  - extra.css
 
 use_directory_urls: false
@@ -51,6 +51,7 @@ extra:
 markdown_extensions:
 - attr_list
 - admonition
+- codehilite
 - footnotes
 - def_list
 

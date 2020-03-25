@@ -4,6 +4,7 @@ The library has powerful support to match patterns in bytecode instruction
 sequences. You first define the pattern as a sequence of instructions, with
 wildcards. For example:
 
+    :::java
     final int X = InstructionSequenceMatcher.X;
     final int C = InstructionSequenceMatcher.C;
 
@@ -19,6 +20,7 @@ wildcards. For example:
 
 You can then find that pattern in given code:
 
+    :::java
     programClassPool.classesAccept(
         new AllMethodVisitor(
         new AllAttributeVisitor(
@@ -36,6 +38,7 @@ instrument code. The core classes are PeepholeEditor and
 InstructionSequenceReplacer. Say that you want to replace an instruction
 sequence "putstatic/getstatic" by an equivalent "dup/putstatic":
 
+    :::java
     final int X = InstructionSequenceReplacer.X;
 
     InstructionSequenceBuilder ____ =

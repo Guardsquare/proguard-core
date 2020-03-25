@@ -24,7 +24,7 @@ import java.util.Arrays;
  * information about the data.
  *
  * Usage:
- *     java proguard.examples.VisualizeControlFlow input
+ *     java proguard.examples.VisualizeControlFlow input.jar
  *
  * where the input can be a jar file or a directory containing jar files.
  */
@@ -32,15 +32,15 @@ public class VisualizeControlFlow
 {
     public static void main(String[] args)
     {
-        String inputDirectoryName = args[0];
+        String jarFileName = args[0];
 
         try
         {
             // Parse all classes from the input jar,
             // and stream their code to the method analyzer.
             DataEntrySource source =
-                new DirectorySource(
-                new File(inputDirectoryName));
+                new FileSource(
+                new File(jarFileName));
 
             source.pumpDataEntries(
                 new FilteredDataEntryReader(new DataEntryNameFilter(new ExtensionMatcher(".jar")),
@@ -72,9 +72,11 @@ public class VisualizeControlFlow
         // information about the values. For this value factory, we also don't
         // need to initialize the cached cross-references between classes.
         private final ValueFactory     valueFactory     = new BasicValueFactory();
+        private final InvocationUnit   invocationUnit   = new BasicInvocationUnit(valueFactory);
         private final PartialEvaluator partialEvaluator = new PartialEvaluator(valueFactory,
-                                                                               new BasicInvocationUnit(valueFactory),
+                                                                               invocationUnit,
                                                                                false);
+
         private final int[] lineStarts = new int[16];
         private final int[] lineEnds   = new int[16];
 

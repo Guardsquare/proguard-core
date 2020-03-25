@@ -6,6 +6,7 @@ you can read all classes from all jar files in a given directory and print
 them out in a streaming fashion, while they are read, without collecting their
 representations:
 
+    :::java
     DataEntrySource source =
         new DirectorySource(
         new File(inputDirectoryName));
@@ -28,6 +29,7 @@ Complete example: PrintClasses.java
 You can read classes, optionally perform some small modifications, and write
 them out right away, again in a streaming fashion.
 
+    :::java
     JarWriter jarWriter =
         new JarWriter(
         new ZipWriter(
@@ -53,6 +55,7 @@ Complete example: ApplyPeepholeOptimizations.java
 Alternatively, you may want to collect the classes in a so-called class pool
 first, so you can perform more extensive analyses on them:
 
+    :::java
     ClassPool classPool = new ClassPool();
 
     DataEntrySource source =
@@ -72,6 +75,7 @@ Complete example: Preverify.java
 If you've collected a set of classes in a class pool, you can write them out
 with the same visitors as before.
 
+    :::java
     JarWriter jarWriter =
         new JarWriter(
         new ZipWriter(
