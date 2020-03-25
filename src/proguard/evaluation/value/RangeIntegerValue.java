@@ -729,6 +729,15 @@ public final class RangeIntegerValue extends IntegerValue
 
     public String toString()
     {
-        return min + ".." + max;
+        return min == max               ? Integer.toString(min) :
+               min == 0 &&
+               max == 1                 ? "z" :
+               min == Byte.MIN_VALUE &&
+               max == Byte.MAX_VALUE    ? "b" :
+               min == Short.MIN_VALUE &&
+               max == Short.MAX_VALUE   ? "s" :
+               min == Integer.MIN_VALUE &&
+               max == Integer.MAX_VALUE ? "i" :
+                                          min + ".." + max;
     }
 }

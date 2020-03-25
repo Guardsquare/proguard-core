@@ -21,38 +21,37 @@ package proguard.evaluation.value;
  * This ValueFactory provides methods to create and reuse IntegerValue instances
  * that have known ranges.
  *
- * This implementation creates RangeIntegerValue instances in all IntegerValue
- * factory methods. This way, the RangeIntegerValue instances can generalize
- * further to other RangeIntegerValue instances, even if they start out as known
- * particular values.
+ * This basic implementation only creates RangeIntegerValue instances if they
+ * start out with a known range. Otherwise, it still creates
+ * ParticularIntegerValue instances or UnknownIntegerValue instances, which by
+ * themselves never generalize to RangeIntegerValue instances.
  *
  * @author Eric Lafortune
  */
-public class RangeValueFactory
-extends      BasicRangeValueFactory
+public class BasicRangeValueFactory
+extends      ParticularValueFactory
 implements   ValueFactory
 {
     // Shared copies of Value objects, to avoid creating a lot of objects.
     static final IntegerValue INTEGER_VALUE_BYTE  = new RangeIntegerValue(Byte.MIN_VALUE,      Byte.MAX_VALUE);
     static final IntegerValue INTEGER_VALUE_CHAR  = new RangeIntegerValue(Character.MIN_VALUE, Character.MAX_VALUE);
     static final IntegerValue INTEGER_VALUE_SHORT = new RangeIntegerValue(Short.MIN_VALUE,     Short.MAX_VALUE);
-    static final IntegerValue INTEGER_VALUE_INT   = new RangeIntegerValue(Integer.MIN_VALUE,   Integer.MAX_VALUE);
 
 
     /**
-     * Creates a new RangeValueFactory.
+     * Creates a new BasicRangeValueFactory.
      */
-    public RangeValueFactory()
+    public BasicRangeValueFactory()
     {
         super();
     }
 
 
     /**
-     * Creates a new RangeValueFactory that delegates to the given
+     * Creates a new BasicRangeValueFactory that delegates to the given
      * value factory for creating reference values.
      */
-    public RangeValueFactory(ValueFactory referenceValueFactory)
+    public BasicRangeValueFactory(ValueFactory referenceValueFactory)
     {
         super(referenceValueFactory);
     }
@@ -60,20 +59,10 @@ implements   ValueFactory
 
     // Implementations for ValueFactory.
 
-    public IntegerValue createIntegerValue()
-    {
-        return INTEGER_VALUE_INT;
-    }
-
-
-    public IntegerValue createIntegerValue(int value)
-    {
-        return new RangeIntegerValue(value, value);
-    }
-
-
     public IntegerValue createIntegerValue(int min, int max)
     {
-        return new RangeIntegerValue(min, max);
+        return min == max ?
+            new ParticularIntegerValue(min) :
+            new RangeIntegerValue(min, max);
     }
 }
