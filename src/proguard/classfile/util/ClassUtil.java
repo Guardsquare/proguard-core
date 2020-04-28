@@ -18,6 +18,7 @@
 package proguard.classfile.util;
 
 import proguard.classfile.*;
+import proguard.classfile.constant.ClassConstant;
 
 import java.util.List;
 
@@ -275,7 +276,8 @@ public class ClassUtil
     public static int internalArrayTypeDimensionCount(String internalType)
     {
         int dimensions = 0;
-        while (internalType.charAt(dimensions) == TypeConstants.ARRAY)
+        while (dimensions < internalType.length() &&
+               internalType.charAt(dimensions) == TypeConstants.ARRAY)
         {
             dimensions++;
         }
@@ -334,6 +336,21 @@ public class ClassUtil
     public static boolean isInternalPrimitiveType(String internalType)
     {
         return  isInternalPrimitiveType(internalType.charAt(0));
+    }
+
+
+    /**
+     * Returns whether the given internal type is a plain primitive type
+     * (not void) or a java/lang/String.
+     * @param internalType the internal type,
+     *                     e.g. "<code>I</code>".
+     * @return <code>true</code> if the given type is a class type,
+     *         <code>false</code> otherwise.
+     */
+    public static boolean isInternalPrimitiveTypeOrString(String internalType)
+    {
+        return internalType.equals(ClassConstants.NAME_JAVA_LANG_STRING) ||
+               isInternalPrimitiveType(internalType.charAt(0));
     }
 
 
@@ -1096,18 +1113,47 @@ public class ClassUtil
      *                     e.g. "<code>java.lang.Object</code>" or
      *                          "<code>java.lang.Object[][]</code>" or
      *                          "<code>int[]</code>".
+     *
+     * @throws IllegalArgumentException if the type is invalid.
      */
     public static String externalType(String internalType)
     {
+        if (internalType == null)
+        {
+            throw new IllegalArgumentException("Invalid type, null string");
+        }
+        else if (internalType.length() == 0)
+        {
+            throw new IllegalArgumentException("Invalid type, empty string");
+        }
+
         // Strip the array part, if any.
         int dimensionCount = internalArrayTypeDimensionCount(internalType);
         if (dimensionCount > 0)
         {
+            if (internalType.length() <= dimensionCount)
+            {
+                throw new IllegalArgumentException("Invalid array type [" + internalType + "]");
+            }
             internalType = internalType.substring(dimensionCount);
         }
 
         // Analyze the actual type part.
         char internalTypeChar = internalType.charAt(0);
+
+        if ((isInternalPrimitiveType(internalTypeChar) || internalTypeChar == TypeConstants.VOID || internalTypeChar == '%') &&
+            internalType.length() > 1)
+        {
+            throw new IllegalArgumentException("Invalid primitive type [" + internalType + "]");
+        }
+        else if (internalTypeChar == TypeConstants.CLASS_START && internalType.indexOf(TypeConstants.CLASS_END) == -1)
+        {
+            throw new IllegalArgumentException("Invalid class type, missing \";\" [" + internalType + "]");
+        }
+        else if (internalTypeChar == TypeConstants.VOID && dimensionCount > 0)
+        {
+            throw new IllegalArgumentException("Invalid array type [" + internalType + "]");
+        }
 
         String externalType =
             internalTypeChar == TypeConstants.VOID        ? JavaTypeConstants.VOID    :
@@ -1123,12 +1169,14 @@ public class ClassUtil
             internalTypeChar == TypeConstants.CLASS_START ? externalClassName(internalType.substring(1, internalType.indexOf(TypeConstants.CLASS_END))) :
                                                             null;
 
-        if (externalType == null)
+        if (externalType          == null ||
+            externalType.length() == 0)
         {
             throw new IllegalArgumentException("Unknown type ["+internalType+"]");
         }
 
-        // Append the array part, if any.
+        // Append the array part, if any. This won't happen very often, so
+        // we're not using a builder.
         for (int count = 0; count < dimensionCount; count++)
         {
             externalType += JavaTypeConstants.ARRAY;
