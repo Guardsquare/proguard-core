@@ -26,7 +26,6 @@ import proguard.classfile.attribute.preverification.visitor.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This visitor sets a fixed info object on all the {@link Processable}
@@ -35,7 +34,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class ProcessingInfoSetter
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor,
              MemberVisitor,

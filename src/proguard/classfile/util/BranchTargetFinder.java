@@ -35,7 +35,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class BranchTargetFinder
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ExceptionInfoVisitor,

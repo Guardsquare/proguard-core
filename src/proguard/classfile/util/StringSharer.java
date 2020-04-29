@@ -30,7 +30,6 @@ import proguard.classfile.visitor.ClassVisitor;
  * @author Eric Lafortune
  */
 public class StringSharer
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor,
              AttributeVisitor

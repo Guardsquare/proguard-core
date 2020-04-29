@@ -28,6 +28,24 @@ import proguard.classfile.*;
  */
 public interface ClassVisitor
 {
-    public void visitProgramClass(ProgramClass programClass);
-    public void visitLibraryClass(LibraryClass libraryClass);
+    /**
+     * Visits any Clazz instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyClass(Clazz clazz)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+clazz.getClass().getName());
+    }
+
+
+    default void visitProgramClass(ProgramClass programClass)
+    {
+        visitAnyClass(programClass);
+    }
+
+
+    default void visitLibraryClass(LibraryClass libraryClass)
+    {
+        visitAnyClass(libraryClass);
+    }
 }

@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ConstantVisitor} remaps all possible indices of bootstrap methods
@@ -29,7 +28,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class BootstrapMethodRemapper
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     private int[] bootstrapMethodIndexMap;

@@ -18,7 +18,6 @@ import java.util.List;
  * @author Johan Leys
  */
 public class ResourceFileNameFilter
-extends      SimplifiedResourceFileVisitor
 implements   ResourceFileVisitor
 {
     private final StringMatcher       fileNameFilter;

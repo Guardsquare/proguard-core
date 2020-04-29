@@ -22,7 +22,6 @@ import proguard.classfile.Method;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} delegates its visits to another given
@@ -32,7 +31,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Johan Leys
  */
 public class AttributeProcessingFlagFilter
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final int              requiredSetProcessingFlags;

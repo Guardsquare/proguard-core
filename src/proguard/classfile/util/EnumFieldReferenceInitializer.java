@@ -35,7 +35,6 @@ import proguard.classfile.visitor.MemberVisitor;
  * @author Eric Lafortune
  */
 public class EnumFieldReferenceInitializer
-extends      SimplifiedVisitor
 implements   ElementValueVisitor,
              InstructionVisitor,
              ConstantVisitor

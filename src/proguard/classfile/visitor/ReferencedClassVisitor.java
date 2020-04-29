@@ -24,7 +24,6 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ClassVisitor}, {@link MemberVisitor}, {@link ConstantVisitor}, {@link AttributeVisitor}, etc.
@@ -35,7 +34,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class ReferencedClassVisitor
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              MemberVisitor,
              ConstantVisitor,

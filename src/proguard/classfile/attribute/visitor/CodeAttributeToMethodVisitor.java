@@ -21,7 +21,6 @@ import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
@@ -30,7 +29,6 @@ import proguard.classfile.visitor.MemberVisitor;
  * @author Johan Leys
  */
 public class CodeAttributeToMethodVisitor
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final MemberVisitor memberVisitor;

@@ -19,16 +19,36 @@ package proguard.resources.file.visitor;
 
 import proguard.resources.file.ResourceFile;
 import proguard.resources.kotlinmodule.KotlinModule;
+import proguard.resources.kotlinmodule.visitor.KotlinModuleVisitor;
 
 /**
- * This interface specifies the methods for a visitor of {@link ResourceFile} instances.
+ * This interface specifies the methods for a visitor of ResourceFile instances.
  *
  * @author Johan Leys
  */
 public interface ResourceFileVisitor
-//extends        ...Visitor
+extends          // ...Visitor,
+                 KotlinModuleVisitor
 {
-    void visitResourceFile(ResourceFile resourceFile);
+    /**
+     * Visits any ResourceFile instance. The more specific default implementations of
+     * this interface delegate to this method.
+     *
+     * Unlike most other visitor interfaces, this default implementation is
+     * empty, because most implementations only care about one type of resource
+     * file.
+     */
+    default void visitAnyResourceFile(ResourceFile resourceFile)
+    {
+    }
 
-    void visitKotlinModule(KotlinModule kotlinModule);
+    default void visitKotlinModule(KotlinModule kotlinModule)
+    {
+        visitAnyResourceFile(kotlinModule);
+    }
+
+    default void visitResourceFile(ResourceFile resourceFile)
+    {
+        visitAnyResourceFile(resourceFile);
+    }
 }

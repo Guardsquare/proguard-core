@@ -32,7 +32,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class InterfaceSorter
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              AttributeVisitor
 {

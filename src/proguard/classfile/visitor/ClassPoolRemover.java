@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ClassVisitor} removes all the classes it visits from a given
@@ -27,7 +26,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class ClassPoolRemover
-extends      SimplifiedVisitor
 implements   ClassVisitor
 {
     private final ClassPool classPool;

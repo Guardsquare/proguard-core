@@ -22,7 +22,6 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.Processable;
 
@@ -36,7 +35,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class NameAndTypeShrinker
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor,
              AttributeVisitor

@@ -33,7 +33,6 @@ import proguard.classfile.util.*;
  * @author Eric Lafortune
  */
 public class MethodInvocationFixer
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ConstantVisitor

@@ -22,7 +22,6 @@ import proguard.resources.kotlinmodule.visitor.KotlinModulePackageVisitor;
  * @author James Hamilton
  */
 public class KotlinModuleReferenceInitializer
-extends      SimplifiedResourceFileVisitor
 implements   ResourceFileVisitor,
              KotlinModulePackageVisitor
 {
@@ -40,13 +39,11 @@ implements   ResourceFileVisitor,
     // Implementations for ResourceFileVisitor.
 
     @Override
-    public void visitAnyResourceFile(ResourceFile resourceFile) {}
-
-    @Override
     public void visitKotlinModule(KotlinModule kotlinModule)
     {
         kotlinModule.modulePackagesAccept(this);
     }
+
 
     // Implementations for KotlinModulePartVisitor.
 

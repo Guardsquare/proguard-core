@@ -19,7 +19,6 @@ package proguard.classfile.attribute.visitor;
 
 import proguard.classfile.*;
 import proguard.classfile.attribute.Attribute;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.Counter;
 
 /**
@@ -28,7 +27,6 @@ import proguard.util.Counter;
  * @author Thomas Neidhart
  */
 public class AttributeCounter
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              Counter
 {

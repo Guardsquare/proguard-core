@@ -22,7 +22,6 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link InstructionVisitor} writes out the instructions that it visits,
@@ -33,7 +32,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class InstructionWriter
-extends      SimplifiedVisitor
 implements   InstructionVisitor,
              AttributeVisitor
 {

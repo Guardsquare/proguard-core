@@ -16,8 +16,7 @@ import proguard.resources.file.ResourceFile;
  * @author Johan Leys
  */
 public class ResourceFileProcessingFlagFilter
-    extends SimplifiedResourceFileVisitor
-    implements ResourceFileVisitor
+implements   ResourceFileVisitor
 {
     private final int                 requiredSetProcessingFlags;
     private final int                 requiredUnsetProcessingFlags;

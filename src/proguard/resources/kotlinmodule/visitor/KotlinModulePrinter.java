@@ -20,12 +20,10 @@ import static proguard.classfile.kotlin.visitor.KotlinMetadataPrinter.DEFAULT_MI
  * Print Kotlin modules.
  */
 public class KotlinModulePrinter
-extends      SimplifiedResourceFileVisitor
 implements   ResourceFileVisitor,
              KotlinModuleVisitor,
              KotlinModulePackageVisitor
 {
-
     private static final String INDENTATION = "  ";
 
     private final PrintWriter pw;
@@ -47,9 +45,6 @@ implements   ResourceFileVisitor,
 
 
     // Implementations for ResourceFileVisitor.
-
-    @Override
-    public void visitAnyResourceFile(ResourceFile resourceFile) {}
 
     @Override
     public void visitKotlinModule(KotlinModule kotlinModule)

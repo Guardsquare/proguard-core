@@ -37,7 +37,6 @@ import proguard.classfile.visitor.ClassVisitor;
  * @author Eric Lafortune
  */
 public class ClassSuperHierarchyInitializer
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor
 {

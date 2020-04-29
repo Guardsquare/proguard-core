@@ -42,7 +42,6 @@ import proguard.util.StringMatcher;
  * @author Eric Lafortune
  */
 public class DynamicClassReferenceInitializer
-extends      SimplifiedVisitor
 implements   InstructionVisitor,
              ConstantVisitor,
              AttributeVisitor

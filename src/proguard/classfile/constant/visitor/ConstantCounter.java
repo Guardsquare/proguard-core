@@ -19,7 +19,6 @@ package proguard.classfile.constant.visitor;
 
 import proguard.classfile.*;
 import proguard.classfile.constant.Constant;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.Counter;
 
 /**
@@ -28,7 +27,6 @@ import proguard.util.Counter;
  * @author Eric Lafortune
  */
 public class ConstantCounter
-extends      SimplifiedVisitor
 implements   ConstantVisitor,
              Counter
 {

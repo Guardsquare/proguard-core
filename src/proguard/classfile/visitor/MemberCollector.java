@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 import java.util.Set;
 
@@ -29,7 +28,6 @@ import java.util.Set;
  * @author Eric Lafortune
  */
 public class MemberCollector
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     private final boolean includeClassName;

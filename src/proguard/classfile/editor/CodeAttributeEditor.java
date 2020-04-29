@@ -28,7 +28,6 @@ import proguard.classfile.attribute.preverification.visitor.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.ArrayUtil;
 
 import java.util.*;
@@ -89,7 +88,6 @@ import java.util.*;
  * @author Eric Lafortune
  */
 public class CodeAttributeEditor
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ExceptionInfoVisitor,

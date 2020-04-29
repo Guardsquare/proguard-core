@@ -31,8 +31,42 @@ import proguard.classfile.attribute.annotation.*;
  */
 public interface TypeAnnotationVisitor
 {
-    public void visitTypeAnnotation(Clazz clazz,                                             TypeAnnotation typeAnnotation);
-    public void visitTypeAnnotation(Clazz clazz, Field  field,                               TypeAnnotation typeAnnotation);
-    public void visitTypeAnnotation(Clazz clazz, Method method,                              TypeAnnotation typeAnnotation);
-    public void visitTypeAnnotation(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation);
+    /**
+     * Visits any TypeAnnotation instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitTypeAnnotation(Clazz clazz, TypeAnnotation typeAnnotation)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+typeAnnotation.getClass().getName());
+    }
+
+
+    default void visitTypeAnnotation(Clazz clazz, Member member, TypeAnnotation typeAnnotation)
+    {
+        visitTypeAnnotation(clazz, typeAnnotation);
+    }
+
+
+    default void visitTypeAnnotation(Clazz clazz, Field field, TypeAnnotation typeAnnotation)
+    {
+        visitTypeAnnotation(clazz, (Member)field, typeAnnotation);
+    }
+
+
+    default void visitTypeAnnotation(Clazz clazz, Method method, TypeAnnotation typeAnnotation)
+    {
+        visitTypeAnnotation(clazz, (Member)method, typeAnnotation);
+    }
+
+
+    default void visitTypeAnnotation(Clazz clazz, Method method, int parameterIndex, TypeAnnotation typeAnnotation)
+    {
+        visitTypeAnnotation(clazz, method, typeAnnotation);
+    }
+
+
+    default void visitTypeAnnotation(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation)
+    {
+        visitTypeAnnotation(clazz, method, typeAnnotation);
+    }
 }

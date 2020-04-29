@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link MemberVisitor} delegates its visits to methods to
@@ -29,7 +28,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class MethodImplementationFilter
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     private final MemberVisitor memberVisitor;

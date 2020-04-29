@@ -36,7 +36,6 @@ import proguard.classfile.visitor.MemberVisitor;
  * @author Johan Leys
  */
 public class ConstructorMethodFilter
-extends      SimplifiedVisitor
 implements   MemberVisitor,
 
              // Implementation interfaces.

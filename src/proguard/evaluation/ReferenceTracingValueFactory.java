@@ -21,7 +21,6 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.evaluation.value.*;
 
 /**
@@ -33,7 +32,6 @@ import proguard.evaluation.value.*;
  * @author Eric Lafortune
  */
 public class ReferenceTracingValueFactory
-extends      SimplifiedVisitor
 implements   InstructionVisitor,
              ValueFactory
 {

@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 import java.util.Arrays;
 
@@ -30,7 +29,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class LineNumberTableAttributeTrimmer
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     // Implementations for AttributeVisitor.

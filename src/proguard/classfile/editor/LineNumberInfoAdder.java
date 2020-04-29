@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} adds the line numbers of all line number attributes
@@ -28,7 +27,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * the sources of the line numbers are preserved or set.
  */
 public class LineNumberInfoAdder
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              LineNumberInfoVisitor
 {

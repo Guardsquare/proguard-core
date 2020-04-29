@@ -47,7 +47,6 @@ import proguard.util.StringMatcher;
  * @author Eric Lafortune
  */
 public class DynamicMemberReferenceInitializer
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ConstantVisitor,
@@ -565,7 +564,6 @@ implements   AttributeVisitor,
      * possible alternatives.
      */
     private class MyDynamicMemberFinder
-    extends       SimplifiedVisitor
     implements    InstructionVisitor,
                   ConstantVisitor
     {

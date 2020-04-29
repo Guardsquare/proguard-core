@@ -32,7 +32,6 @@ import proguard.classfile.visitor.ClassVisitor;
  * @author Eric Lafortune
  */
 public class InnerClassesAccessFixer
-extends      SimplifiedVisitor
 implements   InnerClassesInfoVisitor,
              ConstantVisitor,
              ClassVisitor

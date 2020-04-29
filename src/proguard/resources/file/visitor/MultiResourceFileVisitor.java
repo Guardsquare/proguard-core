@@ -28,7 +28,6 @@ import proguard.util.ArrayUtil;
  * @author Johan Leys
  */
 public class MultiResourceFileVisitor
-extends      SimplifiedResourceFileVisitor
 implements   ResourceFileVisitor
 {
     private ResourceFileVisitor[] resourceFileVisitors;

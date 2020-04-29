@@ -29,7 +29,6 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ClassPrinter;
 import proguard.util.ArrayUtil;
 
@@ -112,7 +111,6 @@ import java.util.Arrays;
  * @author Joachim Vandersmissen
  */
 public class CodeAttributeComposer
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ExceptionInfoVisitor,

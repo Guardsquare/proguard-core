@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link MemberVisitor} lets a given {@link ClassVisitor} visit all the classes
@@ -27,7 +26,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class MemberDescriptorReferencedClassVisitor
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     private final ClassVisitor classVisitor;

@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} resets it {@link CodeAttributeEditor} whenever it visits a
@@ -29,7 +28,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class CodeAttributeEditorResetter
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final CodeAttributeEditor codeAttributeEditor;

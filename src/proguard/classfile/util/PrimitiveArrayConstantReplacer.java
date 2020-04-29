@@ -35,7 +35,6 @@ import proguard.classfile.visitor.ClassVisitor;
  * @author Thomas Neidhart
  */
 public class PrimitiveArrayConstantReplacer
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              AttributeVisitor,
              InstructionVisitor,

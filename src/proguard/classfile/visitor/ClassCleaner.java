@@ -28,7 +28,6 @@ import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.visitor.*;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.Processable;
 
 /**
@@ -38,7 +37,6 @@ import proguard.util.Processable;
  * @author Eric Lafortune
  */
 public class ClassCleaner
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor,
              MemberVisitor,

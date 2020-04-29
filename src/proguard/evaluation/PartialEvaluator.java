@@ -36,7 +36,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class PartialEvaluator
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              ExceptionInfoVisitor
 {

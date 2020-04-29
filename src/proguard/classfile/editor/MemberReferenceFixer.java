@@ -34,7 +34,6 @@ import proguard.classfile.visitor.*;
  * @author Eric Lafortune
  */
 public class MemberReferenceFixer
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor,
              MemberVisitor,

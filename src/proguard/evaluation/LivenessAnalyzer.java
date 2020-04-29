@@ -23,7 +23,6 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.editor.ClassEstimates;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.evaluation.value.*;
 import proguard.util.ArrayUtil;
 
@@ -34,7 +33,6 @@ import proguard.util.ArrayUtil;
  * @author Eric Lafortune
  */
 public class LivenessAnalyzer
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ExceptionInfoVisitor

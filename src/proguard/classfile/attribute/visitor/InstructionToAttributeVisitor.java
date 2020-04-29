@@ -21,7 +21,6 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link InstructionVisitor} delegates to a given {@link AttributeVisitor}.
@@ -29,7 +28,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Johan Leys
  */
 public class InstructionToAttributeVisitor
-extends      SimplifiedVisitor
 implements   InstructionVisitor
 {
     private final AttributeVisitor attributeVisitor;

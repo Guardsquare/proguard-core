@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} computes and updates the maximum stack size of the
@@ -29,7 +28,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class StackSizeUpdater
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final StackSizeComputer stackSizeComputer = new StackSizeComputer();

@@ -38,7 +38,6 @@ import proguard.evaluation.value.*;
  * @author Thomas Neidhart
  */
 public class ArrayInitializationReplacer
-extends      SimplifiedVisitor
 implements   ClassVisitor,
 
              // Implementation interfaces.
@@ -153,7 +152,6 @@ implements   ClassVisitor,
      * "NEWARRAY" instructions.
      */
     private static class ArrayInitializationFilter
-    extends    SimplifiedVisitor
     implements AttributeVisitor
     {
         private final AttributeVisitor acceptedVisitor;

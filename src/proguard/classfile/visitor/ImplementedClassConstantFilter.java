@@ -20,7 +20,6 @@ package proguard.classfile.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ConstantVisitor} delegates its visits to class constants
@@ -30,7 +29,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class ImplementedClassConstantFilter
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     private final Clazz           implementedClass;

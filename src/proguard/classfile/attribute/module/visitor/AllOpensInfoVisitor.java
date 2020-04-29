@@ -21,7 +21,6 @@ import proguard.classfile.Clazz;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.module.ModuleAttribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} lets a given {@link OpensInfoVisitor} visit all
@@ -30,7 +29,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Joachim Vandersmissen
  */
 public class AllOpensInfoVisitor
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final OpensInfoVisitor opensInfoVisitor;

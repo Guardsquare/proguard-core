@@ -31,9 +31,43 @@ import proguard.classfile.attribute.annotation.Annotation;
  */
 public interface AnnotationVisitor
 {
-    public void visitAnnotation(Clazz clazz,                                             Annotation annotation);
-    public void visitAnnotation(Clazz clazz, Field  field,                               Annotation annotation);
-    public void visitAnnotation(Clazz clazz, Method method,                              Annotation annotation);
-    public void visitAnnotation(Clazz clazz, Method method, int parameterIndex,          Annotation annotation);
-    public void visitAnnotation(Clazz clazz, Method method, CodeAttribute codeAttribute, Annotation annotation);
+    /**
+     * Visits any Annotation instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnnotation(Clazz clazz, Annotation annotation)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+annotation.getClass().getName());
+    }
+
+
+
+    default void visitAnnotation(Clazz clazz, Member member, Annotation annotation)
+    {
+        visitAnnotation(clazz, annotation);
+    }
+
+
+    default void visitAnnotation(Clazz clazz, Field field, Annotation annotation)
+    {
+        visitAnnotation(clazz, (Member)field, annotation);
+    }
+
+
+    default void visitAnnotation(Clazz clazz, Method method, Annotation annotation)
+    {
+        visitAnnotation(clazz, (Member)method, annotation);
+    }
+
+
+    default void visitAnnotation(Clazz clazz, Method method, int parameterIndex, Annotation annotation)
+    {
+        visitAnnotation(clazz, method, annotation);
+    }
+
+
+    default void visitAnnotation(Clazz clazz, Method method, CodeAttribute codeAttribute, Annotation annotation)
+    {
+        visitAnnotation(clazz, method, annotation);
+    }
 }

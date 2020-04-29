@@ -35,7 +35,6 @@ import static proguard.classfile.kotlin.KotlinConstants.REFLECTION;
 public class KotlinCallableReferenceInitializer
 implements   KotlinMetadataVisitor
 {
-
     private static final MemberFinder memberFinder = new MemberFinder();
 
     @Override
@@ -156,7 +155,6 @@ implements   KotlinMetadataVisitor
      * implementations in a class i.e. a class that implements CallableReference.
      */
     private static class CallableReferenceInfoLoader
-    extends              SimplifiedVisitor
     implements           ClassVisitor,
                          MemberVisitor,
                          ConstantVisitor,

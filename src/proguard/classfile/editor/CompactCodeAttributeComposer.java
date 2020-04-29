@@ -90,7 +90,6 @@ import proguard.classfile.util.*;
  * @author Eric Lafortune
  */
 public class CompactCodeAttributeComposer
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final ConstantPoolEditor    constantPoolEditor;

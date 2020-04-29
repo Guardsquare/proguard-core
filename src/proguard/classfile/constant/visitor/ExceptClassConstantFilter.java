@@ -19,7 +19,6 @@ package proguard.classfile.constant.visitor;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.constant.ClassConstant;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ConstantVisitor} delegates its visits to class constants
@@ -28,7 +27,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class ExceptClassConstantFilter
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     private final String           exceptClassName;

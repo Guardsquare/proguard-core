@@ -29,9 +29,42 @@ import proguard.classfile.attribute.preverification.*;
  */
 public interface StackMapFrameVisitor
 {
-    public void visitSameZeroFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SameZeroFrame sameZeroFrame);
-    public void visitSameOneFrame( Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SameOneFrame  sameOneFrame);
-    public void visitLessZeroFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, LessZeroFrame lessZeroFrame);
-    public void visitMoreZeroFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, MoreZeroFrame moreZeroFrame);
-    public void visitFullFrame(    Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, FullFrame     fullFrame);
+    /**
+     * Visits any StackMapFrame instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyStackMapFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, StackMapFrame stackMapFrame)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+stackMapFrame.getClass().getName());
+    }
+
+
+    default void visitSameZeroFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SameZeroFrame sameZeroFrame)
+    {
+        visitAnyStackMapFrame(clazz, method, codeAttribute, offset, sameZeroFrame);
+    }
+
+
+    default void visitSameOneFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SameOneFrame sameOneFrame)
+    {
+        visitAnyStackMapFrame(clazz, method, codeAttribute, offset, sameOneFrame);
+    }
+
+
+    default void visitLessZeroFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, LessZeroFrame lessZeroFrame)
+    {
+        visitAnyStackMapFrame(clazz, method, codeAttribute, offset, lessZeroFrame);
+    }
+
+
+    default void visitMoreZeroFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, MoreZeroFrame moreZeroFrame)
+    {
+        visitAnyStackMapFrame(clazz, method, codeAttribute, offset, moreZeroFrame);
+    }
+
+
+    default void visitFullFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, FullFrame fullFrame)
+    {
+        visitAnyStackMapFrame(clazz, method, codeAttribute, offset, fullFrame);
+    }
 }

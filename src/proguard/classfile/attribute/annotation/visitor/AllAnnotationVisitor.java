@@ -21,7 +21,6 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} lets a given {@link AnnotationVisitor} visit all Annotation
@@ -30,7 +29,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class AllAnnotationVisitor
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final AnnotationVisitor annotationVisitor;

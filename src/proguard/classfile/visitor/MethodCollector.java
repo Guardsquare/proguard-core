@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 import java.util.Collection;
 
@@ -29,7 +28,6 @@ import java.util.Collection;
  * @author Johan Leys
  */
 public class MethodCollector
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     private final Collection<Method> collection;

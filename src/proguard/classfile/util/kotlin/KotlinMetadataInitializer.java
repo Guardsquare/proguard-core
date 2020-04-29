@@ -31,7 +31,6 @@ import static proguard.classfile.kotlin.KotlinConstants.*;
  * lists in kotlinMetadata are initialized, even if empty.
  */
 public class KotlinMetadataInitializer
-extends    SimplifiedVisitor
 implements AnnotationVisitor,
 
            // Implementation interfaces.
@@ -243,7 +242,6 @@ implements AnnotationVisitor,
 
 
     private class ArrayElementValueCollector
-    extends    SimplifiedVisitor
     implements ElementValueVisitor,
 
                // Implementation interfaces.

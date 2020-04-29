@@ -39,7 +39,6 @@ import java.util.Iterator;
  * @author Johan Leys
  */
 public class ClassMapDataEntryWriter
-extends      SimplifiedVisitor
 implements   DataEntryWriter,
 
              // Implementation interfaces.

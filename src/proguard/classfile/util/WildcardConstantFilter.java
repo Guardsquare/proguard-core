@@ -208,7 +208,6 @@ implements   ConstantVisitor
 
 
     private static class MyWildcardChecker
-    extends              SimplifiedVisitor
     implements           ConstantVisitor
     {
         public boolean containsWildcard;

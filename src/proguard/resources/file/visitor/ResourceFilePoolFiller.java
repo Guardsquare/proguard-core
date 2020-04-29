@@ -26,7 +26,6 @@ import proguard.resources.file.*;
  * @author Johan Leys
  */
 public class ResourceFilePoolFiller
-extends      SimplifiedResourceFileVisitor
 implements   ResourceFileVisitor
 {
     private final ResourceFilePool resourceFilePool;

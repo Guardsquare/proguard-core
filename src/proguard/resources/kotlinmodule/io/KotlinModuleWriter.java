@@ -20,7 +20,6 @@ import java.io.*;
  * @author James Hamilton
  */
 public class KotlinModuleWriter
-extends      SimplifiedResourceFileVisitor
 implements   ResourceFileVisitor
 {
     private final OutputStream outputStream;

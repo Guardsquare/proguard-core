@@ -23,7 +23,6 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.*;
 import proguard.util.Processable;
 
@@ -40,7 +39,6 @@ import java.util.Arrays;
  * @author Tim Van Den Broecke
  */
 public class BootstrapMethodsAttributeShrinker
-extends      SimplifiedVisitor
 implements   ClassVisitor,
 
              // Implementation interfaces.
@@ -250,7 +248,6 @@ implements   ClassVisitor,
     }
 
     private class MethodHandlesLookupInnerClassRemover
-    extends    SimplifiedVisitor
     implements AttributeVisitor,
 
                // Implementation interfaces.

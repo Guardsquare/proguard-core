@@ -179,7 +179,6 @@ implements   ClassVisitor
      * relative to the referencing class.
      */
     private class MyReferencedClassAccessFixer
-    extends       SimplifiedVisitor
     implements    ClassVisitor,
                   AttributeVisitor,
                   InnerClassesInfoVisitor
@@ -268,7 +267,6 @@ implements   ClassVisitor
      * visits, relative to the referencing class and method.
      */
     private class MyReferencedMemberAccessFixer
-    extends       SimplifiedVisitor
     implements    MemberVisitor
     {
         // Implementations for MemberVisitor.

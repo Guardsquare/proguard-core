@@ -23,7 +23,6 @@ import static java.util.Objects.requireNonNull;
  * @author James Hamilton
  */
 public class KotlinModuleReader
-extends      SimplifiedResourceFileVisitor
 implements   ResourceFileVisitor
 {
     private final InputStream inputStream;

@@ -20,7 +20,6 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.ArrayUtil;
 
 
@@ -30,7 +29,6 @@ import proguard.util.ArrayUtil;
  * @author Johan Leys
  */
 public class MultiConstantVisitor
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     private ConstantVisitor[] constantVisitors;

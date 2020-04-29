@@ -104,7 +104,7 @@ public abstract class Attribute extends SimpleProcessable
      */
     public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
     {
-        throw new UnsupportedOperationException("Method must be overridden in ["+this.getClass().getName()+"] if ever called");
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+"] on a class");
     }
 
     /**
@@ -119,7 +119,7 @@ public abstract class Attribute extends SimpleProcessable
         }
         else
         {
-            throw new UnsupportedOperationException("Method must be overridden in ["+this.getClass().getName()+"] if ever called");
+            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+"] on a field");
         }
     }
 
@@ -135,7 +135,7 @@ public abstract class Attribute extends SimpleProcessable
         }
         else
         {
-            throw new UnsupportedOperationException("Method must be overridden in ["+this.getClass().getName()+"] if ever called");
+            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+"] on a method");
         }
     }
 
@@ -152,7 +152,7 @@ public abstract class Attribute extends SimpleProcessable
         }
         else
         {
-            throw new UnsupportedOperationException("Method must be overridden in ["+this.getClass().getName()+"] if ever called");
+            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+"] on code");
         }
     }
 }

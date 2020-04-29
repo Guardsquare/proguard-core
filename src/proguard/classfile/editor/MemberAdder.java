@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.io.*;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.*;
 import proguard.util.*;
 
@@ -34,7 +33,6 @@ import java.io.*;
  * @author Eric Lafortune
  */
 public class MemberAdder
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     //*

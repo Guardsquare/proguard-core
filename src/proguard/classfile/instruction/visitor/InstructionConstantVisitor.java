@@ -21,7 +21,6 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.instruction.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link InstructionVisitor} lets a given {@link ConstantVisitor} visit all constants
@@ -30,7 +29,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class InstructionConstantVisitor
-extends      SimplifiedVisitor
 implements   InstructionVisitor
 {
     private final ConstantVisitor constantVisitor;

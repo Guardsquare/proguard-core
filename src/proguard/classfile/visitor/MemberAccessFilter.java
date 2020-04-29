@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link MemberVisitor} delegates its visits to another given
@@ -33,7 +32,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class MemberAccessFilter
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     // A mask of conflicting access flags. These are interpreted in a special

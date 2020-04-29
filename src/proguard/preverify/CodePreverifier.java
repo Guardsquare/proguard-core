@@ -36,7 +36,6 @@ import java.util.*;
  * @author Eric Lafortune
  */
 public class CodePreverifier
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     //*

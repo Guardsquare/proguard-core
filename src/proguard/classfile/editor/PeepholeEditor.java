@@ -32,7 +32,6 @@ import proguard.classfile.util.*;
  * @author Eric Lafortune
  */
 public class PeepholeEditor
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final BranchTargetFinder  branchTargetFinder;

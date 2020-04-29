@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link MemberVisitor} delegates its visits to another given
@@ -28,7 +27,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Johan Leys
  */
 public class MemberProcessingFlagFilter
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     private final int           requiredSetProcessingFlags;

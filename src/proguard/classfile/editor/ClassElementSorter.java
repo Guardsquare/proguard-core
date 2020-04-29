@@ -18,7 +18,6 @@
 package proguard.classfile.editor;
 
 import proguard.classfile.ProgramClass;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
@@ -28,7 +27,6 @@ import proguard.classfile.visitor.ClassVisitor;
  * @author Eric Lafortune
  */
 public class ClassElementSorter
-extends      SimplifiedVisitor
 implements   ClassVisitor
 {
     private final ClassVisitor interfaceSorter    = new InterfaceSorter();

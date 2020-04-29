@@ -45,7 +45,6 @@ import java.nio.charset.StandardCharsets;
  * @author Eric Lafortune
  */
 public class ClassPrinter
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor,
              MemberVisitor,

@@ -22,7 +22,6 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.ArrayUtil;
 
@@ -31,7 +30,6 @@ import proguard.util.ArrayUtil;
  * classes that it visits to the given target nest member attribute.
  */
 public class NestMemberAdder
-extends      SimplifiedVisitor
 implements   ConstantVisitor,
              ClassVisitor
 

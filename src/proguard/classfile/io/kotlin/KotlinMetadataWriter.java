@@ -29,7 +29,6 @@ import static proguard.classfile.kotlin.KotlinConstants.*;
  * to a @kotlin/Metadata annotation on the class.
  */
 public class KotlinMetadataWriter
-extends    SimplifiedVisitor
 implements KotlinMetadataVisitor,
 
            // Implementation interfaces.
@@ -215,7 +214,6 @@ implements KotlinMetadataVisitor,
     }
 
     private class ContractConstructor
-    extends    SimplifiedVisitor
     implements KotlinContractVisitor
     {
         private KmFunctionVisitor kmdFunctionVisitor;
@@ -1196,7 +1194,6 @@ implements KotlinMetadataVisitor,
      * This utility class constructs the protobuf (d1 and d2 arrays) for Kotlin synthetic class (k == 3) metadata.
      */
     private class KotlinSyntheticClassConstructor
-    extends SimplifiedVisitor
     implements KotlinMetadataVisitor,
 
                // Implementation interfaces.

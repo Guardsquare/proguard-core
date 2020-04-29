@@ -29,11 +29,7 @@ import proguard.resources.kotlinmodule.KotlinModule;
  * @author Johan Leys
  */
 public class ProcessingFlagCleaner
-extends      SimplifiedProcessableVisitor
-implements   ClassVisitor,
-             MemberVisitor,
-             AttributeVisitor,
-             ResourceFileVisitor
+implements   ProcessableVisitor
 {
     private final int processingFlags;
 
@@ -49,7 +45,7 @@ implements   ClassVisitor,
     }
 
 
-    // Implementations for SimplifiedProcessableVisitor.
+    // Implementations for ProcessableVisitor.
 
     @Override
     public void visitAnyProcessable(Processable processable)

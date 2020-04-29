@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.annotation.visitor.*;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.ArrayUtil;
 
 /**
@@ -31,7 +30,6 @@ import proguard.util.ArrayUtil;
  * @author Eric Lafortune
  */
 public class TypeAnnotationAdder
-extends      SimplifiedVisitor
 implements   TypeAnnotationVisitor
 {
     private static final ElementValue[] EMPTY_ELEMENT_VALUES = new ElementValue[0];

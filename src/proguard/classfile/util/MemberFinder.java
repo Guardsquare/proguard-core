@@ -27,7 +27,6 @@ import proguard.classfile.visitor.*;
  * @author Eric Lafortune
  */
 public class MemberFinder
-extends      SimplifiedVisitor
 implements   MemberVisitor
 {
     private static class MemberFoundException extends RuntimeException {}

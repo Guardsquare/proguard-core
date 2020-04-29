@@ -33,7 +33,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class InterfaceDeleter
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              AttributeVisitor
 {

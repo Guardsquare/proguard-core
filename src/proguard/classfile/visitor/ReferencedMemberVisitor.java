@@ -22,7 +22,6 @@ import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ConstantVisitor} and {@link ElementValueVisitor} lets a given {@link MemberVisitor}
@@ -31,7 +30,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class ReferencedMemberVisitor
-extends      SimplifiedVisitor
 implements   ConstantVisitor,
              ElementValueVisitor
 {

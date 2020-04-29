@@ -28,12 +28,60 @@ import proguard.classfile.constant.PrimitiveArrayConstant;
  */
 public interface PrimitiveArrayConstantElementVisitor
 {
-    public void visitBooleanArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, boolean value);
-    public void visitByteArrayConstantElement(   Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, byte    value);
-    public void visitCharArrayConstantElement(   Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, char    value);
-    public void visitShortArrayConstantElement(  Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, short   value);
-    public void visitIntArrayConstantElement(    Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, int     value);
-    public void visitFloatArrayConstantElement(  Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, float   value);
-    public void visitLongArrayConstantElement(   Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, long    value);
-    public void visitDoubleArrayConstantElement( Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, double  value);
+    /**
+     * Visits any PrimitiveArrayConstant instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyPrimitiveArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+primitiveArrayConstant.values.getClass().getName());
+    }
+
+
+    default void visitBooleanArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, boolean value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
+
+
+    default void visitByteArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, byte value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
+
+
+    default void visitCharArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, char value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
+
+
+    default void visitShortArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, short value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
+
+
+    default void visitIntArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, int value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
+
+
+    default void visitFloatArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, float value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
+
+
+    default void visitLongArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, long value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
+
+
+    default void visitDoubleArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, double value)
+    {
+        visitAnyPrimitiveArrayConstantElement(clazz, primitiveArrayConstant, index);
+    }
 }

@@ -30,10 +30,59 @@ import proguard.classfile.instruction.*;
  */
 public interface InstructionVisitor
 {
-    public void visitSimpleInstruction(      Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SimpleInstruction       simpleInstruction);
-    public void visitVariableInstruction(    Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, VariableInstruction     variableInstruction);
-    public void visitConstantInstruction(    Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction     constantInstruction);
-    public void visitBranchInstruction(      Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, BranchInstruction       branchInstruction);
-    public void visitTableSwitchInstruction( Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, TableSwitchInstruction  tableSwitchInstruction);
-    public void visitLookUpSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, LookUpSwitchInstruction lookUpSwitchInstruction);
+    /**
+     * Visits any Instruction instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+instruction.getClass().getName());
+    }
+
+
+    default void visitSimpleInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SimpleInstruction simpleInstruction)
+    {
+        visitAnyInstruction(clazz, method, codeAttribute, offset, simpleInstruction);
+    }
+
+
+    default void visitVariableInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, VariableInstruction variableInstruction)
+    {
+        visitAnyInstruction(clazz, method, codeAttribute, offset, variableInstruction);
+    }
+
+
+    default void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
+    {
+        visitAnyInstruction(clazz, method, codeAttribute, offset, constantInstruction);
+    }
+
+
+    default void visitBranchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, BranchInstruction branchInstruction)
+    {
+        visitAnyInstruction(clazz, method, codeAttribute, offset, branchInstruction);
+    }
+
+
+
+    /**
+     * Visits any SwitchInstruction instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnySwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SwitchInstruction switchInstruction)
+    {
+        visitAnyInstruction(clazz, method, codeAttribute, offset, switchInstruction);
+    }
+
+
+    default void visitTableSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, TableSwitchInstruction tableSwitchInstruction)
+    {
+        visitAnySwitchInstruction(clazz, method, codeAttribute, offset, tableSwitchInstruction);
+    }
+
+
+    default void visitLookUpSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, LookUpSwitchInstruction lookUpSwitchInstruction)
+    {
+        visitAnySwitchInstruction(clazz, method, codeAttribute, offset, lookUpSwitchInstruction);
+    }
 }

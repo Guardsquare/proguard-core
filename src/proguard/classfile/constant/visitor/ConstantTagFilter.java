@@ -19,7 +19,6 @@ package proguard.classfile.constant.visitor;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.constant.Constant;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ConstantVisitor} delegates its visits to one or more
@@ -28,7 +27,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class ConstantTagFilter
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     private final int             constantTagMask;

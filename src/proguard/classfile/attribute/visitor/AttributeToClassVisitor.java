@@ -19,7 +19,6 @@ package proguard.classfile.attribute.visitor;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.attribute.Attribute;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
@@ -28,7 +27,6 @@ import proguard.classfile.visitor.ClassVisitor;
  * @author Eric Lafortune
  */
 public class AttributeToClassVisitor
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final ClassVisitor classVisitor;

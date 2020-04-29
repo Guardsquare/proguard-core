@@ -19,7 +19,6 @@ package proguard.classfile.attribute.visitor;
 
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} lets a given {@link ExceptionInfoVisitor} visit all exceptions
@@ -28,7 +27,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class AllExceptionInfoVisitor
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final ExceptionInfoVisitor exceptionInfoVisitor;

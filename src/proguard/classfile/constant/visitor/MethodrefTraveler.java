@@ -19,7 +19,6 @@ package proguard.classfile.constant.visitor;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.constant.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link ConstantVisitor} travels from any method handle constants that it visits
@@ -28,7 +27,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class MethodrefTraveler
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     private ConstantVisitor methodrefConstantVisitor;

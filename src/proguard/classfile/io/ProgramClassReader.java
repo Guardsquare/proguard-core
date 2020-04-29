@@ -43,7 +43,6 @@ import java.io.DataInput;
  * @author Eric Lafortune
  */
 public class ProgramClassReader
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              MemberVisitor,
              ConstantVisitor,

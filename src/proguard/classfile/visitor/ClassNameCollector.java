@@ -18,7 +18,6 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.Clazz;
-import proguard.classfile.util.SimplifiedVisitor;
 
 import java.util.Collection;
 
@@ -29,7 +28,6 @@ import java.util.Collection;
  * @author Eric Lafortune
  */
 public class ClassNameCollector
-extends      SimplifiedVisitor
 implements   ClassVisitor
 {
     private final Collection<String> collection;

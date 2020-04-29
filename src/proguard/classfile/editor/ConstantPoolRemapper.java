@@ -30,7 +30,6 @@ import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.*;
 
 import java.util.Arrays;
@@ -43,7 +42,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class ConstantPoolRemapper
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              ConstantVisitor,
              MemberVisitor,

@@ -27,13 +27,12 @@ import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 
 /**
- * This {@link AttributeVisitor} inlines local subroutines (jsr/ret) in the code
+ * This AttributeVisitor inlines local subroutines (jsr/ret) in the code
  * attributes that it visits.
  *
  * @author Eric Lafortune
  */
 public class CodeSubroutineInliner
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ExceptionInfoVisitor

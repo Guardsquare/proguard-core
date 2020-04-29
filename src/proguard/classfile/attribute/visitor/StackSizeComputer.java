@@ -22,7 +22,6 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.editor.ClassEstimates;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ClassPrinter;
 import proguard.util.ArrayUtil;
 
@@ -33,7 +32,6 @@ import proguard.util.ArrayUtil;
  * @author Eric Lafortune
  */
 public class StackSizeComputer
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              ExceptionInfoVisitor

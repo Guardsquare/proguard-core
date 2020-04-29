@@ -30,7 +30,6 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  * @author Eric Lafortune
  */
 public class StringReferenceInitializer
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     private final ClassPool programClassPool;

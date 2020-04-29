@@ -29,22 +29,140 @@ import proguard.classfile.constant.*;
  */
 public interface ConstantVisitor
 {
-    public void visitIntegerConstant(           Clazz clazz, IntegerConstant            integerConstant);
-    public void visitLongConstant(              Clazz clazz, LongConstant               longConstant);
-    public void visitFloatConstant(             Clazz clazz, FloatConstant              floatConstant);
-    public void visitDoubleConstant(            Clazz clazz, DoubleConstant             doubleConstant);
-    public void visitPrimitiveArrayConstant(    Clazz clazz, PrimitiveArrayConstant     primitiveArrayConstant);
-    public void visitStringConstant(            Clazz clazz, StringConstant             stringConstant);
-    public void visitUtf8Constant(              Clazz clazz, Utf8Constant               utf8Constant);
-    public void visitDynamicConstant(           Clazz clazz, DynamicConstant            dynamicConstant);
-    public void visitInvokeDynamicConstant(     Clazz clazz, InvokeDynamicConstant      invokeDynamicConstant);
-    public void visitMethodHandleConstant(      Clazz clazz, MethodHandleConstant       methodHandleConstant);
-    public void visitFieldrefConstant(          Clazz clazz, FieldrefConstant           fieldrefConstant);
-    public void visitInterfaceMethodrefConstant(Clazz clazz, InterfaceMethodrefConstant interfaceMethodrefConstant);
-    public void visitMethodrefConstant(         Clazz clazz, MethodrefConstant          methodrefConstant);
-    public void visitClassConstant(             Clazz clazz, ClassConstant              classConstant);
-    public void visitMethodTypeConstant(        Clazz clazz, MethodTypeConstant         methodTypeConstant);
-    public void visitNameAndTypeConstant(       Clazz clazz, NameAndTypeConstant        nameAndTypeConstant);
-    public void visitModuleConstant(            Clazz clazz, ModuleConstant             moduleConstant);
-    public void visitPackageConstant(           Clazz clazz, PackageConstant            packageConstant);
+    /**
+     * Visits any Constant instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyConstant(Clazz clazz, Constant constant)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+constant.getClass().getName());
+    }
+
+
+    default void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant)
+    {
+        visitAnyConstant(clazz, integerConstant);
+    }
+
+
+    default void visitLongConstant(Clazz clazz, LongConstant longConstant)
+    {
+        visitAnyConstant(clazz, longConstant);
+    }
+
+
+    default void visitFloatConstant(Clazz clazz, FloatConstant floatConstant)
+    {
+        visitAnyConstant(clazz, floatConstant);
+    }
+
+
+    default void visitDoubleConstant(Clazz clazz, DoubleConstant doubleConstant)
+    {
+        visitAnyConstant(clazz, doubleConstant);
+    }
+
+
+    default void visitPrimitiveArrayConstant(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant)
+    {
+        visitAnyConstant(clazz, primitiveArrayConstant);
+    }
+
+
+    default void visitStringConstant(Clazz clazz, StringConstant stringConstant)
+    {
+        visitAnyConstant(clazz, stringConstant);
+    }
+
+
+    default void visitUtf8Constant(Clazz clazz, Utf8Constant utf8Constant)
+    {
+        visitAnyConstant(clazz, utf8Constant);
+    }
+
+
+    default void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant)
+    {
+        visitAnyConstant(clazz, dynamicConstant);
+    }
+
+
+    default void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant)
+    {
+        visitAnyConstant(clazz, invokeDynamicConstant);
+    }
+
+
+    default void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant)
+    {
+        visitAnyConstant(clazz, methodHandleConstant);
+    }
+
+    default void visitModuleConstant(Clazz clazz, ModuleConstant moduleConstant)
+    {
+        visitAnyConstant(clazz, moduleConstant);
+    }
+
+    default void visitPackageConstant(Clazz clazz, PackageConstant packageConstant)
+    {
+        visitAnyConstant(clazz, packageConstant);
+    }
+
+
+
+    /**
+     * Visits any RefConstant instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyRefConstant(Clazz clazz, RefConstant refConstant)
+    {
+        visitAnyConstant(clazz, refConstant);
+    }
+
+
+    default void visitFieldrefConstant(Clazz clazz, FieldrefConstant fieldrefConstant)
+    {
+        visitAnyRefConstant(clazz, fieldrefConstant);
+    }
+
+
+
+    /**
+     * Visits any RefConstant instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant)
+    {
+        visitAnyRefConstant(clazz, anyMethodrefConstant);
+    }
+
+
+    default void visitInterfaceMethodrefConstant(Clazz clazz, InterfaceMethodrefConstant interfaceMethodrefConstant)
+    {
+        visitAnyMethodrefConstant(clazz, interfaceMethodrefConstant);
+    }
+
+
+    default void visitMethodrefConstant(Clazz clazz, MethodrefConstant methodrefConstant)
+    {
+        visitAnyMethodrefConstant(clazz, methodrefConstant);
+    }
+
+
+    default void visitClassConstant(Clazz clazz, ClassConstant classConstant)
+    {
+        visitAnyConstant(clazz, classConstant);
+    }
+
+
+    default void visitMethodTypeConstant(Clazz clazz, MethodTypeConstant methodTypeConstant)
+    {
+        visitAnyConstant(clazz, methodTypeConstant);
+    }
+
+
+    default void visitNameAndTypeConstant(Clazz clazz, NameAndTypeConstant nameAndTypeConstant)
+    {
+        visitAnyConstant(clazz, nameAndTypeConstant);
+    }
 }

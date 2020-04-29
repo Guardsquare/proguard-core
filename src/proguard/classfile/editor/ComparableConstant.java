@@ -20,7 +20,6 @@ package proguard.classfile.editor;
 import proguard.classfile.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.util.ArrayUtil;
 
 
@@ -34,7 +33,6 @@ import proguard.util.ArrayUtil;
  * @author Eric Lafortune
  */
 class      ComparableConstant
-extends    SimplifiedVisitor
 implements Comparable, ConstantVisitor
 {
     private static final int[] PRIORITIES = new int[22];

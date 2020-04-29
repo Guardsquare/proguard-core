@@ -30,7 +30,6 @@ import proguard.evaluation.value.*;
  * @author Eric Lafortune
  */
 public class ConstantValueFactory
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     protected final ValueFactory valueFactory;

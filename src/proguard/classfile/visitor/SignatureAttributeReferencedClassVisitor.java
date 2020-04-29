@@ -20,7 +20,6 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} lets a given {@link ClassVisitor} visit all the
@@ -29,7 +28,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Joachim Vandersmissen
  */
 public class SignatureAttributeReferencedClassVisitor
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private final ClassVisitor classVisitor;

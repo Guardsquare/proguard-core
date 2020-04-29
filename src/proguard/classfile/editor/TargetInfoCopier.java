@@ -22,7 +22,6 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.annotation.TypeAnnotation;
 import proguard.classfile.attribute.annotation.target.*;
 import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link TargetInfoVisitor} copies the target info instances that it visits to
@@ -31,7 +30,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class TargetInfoCopier
-extends      SimplifiedVisitor
 implements   TargetInfoVisitor
 {
     private final ProgramClass   targetClass;

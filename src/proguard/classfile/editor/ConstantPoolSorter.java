@@ -19,7 +19,6 @@ package proguard.classfile.editor;
 
 import proguard.classfile.*;
 import proguard.classfile.constant.Constant;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 
 import java.util.Arrays;
@@ -32,7 +31,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class ConstantPoolSorter
-extends      SimplifiedVisitor
 implements   ClassVisitor
 {
     private int[]                constantIndexMap       = new int[ClassEstimates.TYPICAL_CONSTANT_POOL_SIZE];

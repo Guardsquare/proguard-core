@@ -30,7 +30,6 @@ import proguard.classfile.util.*;
  * @author Eric Lafortune
  */
 public class DynamicReturnedClassVisitor
-extends      SimplifiedVisitor
 implements   ConstantVisitor
 {
     protected final ClassVisitor classVisitor;

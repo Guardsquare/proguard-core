@@ -31,75 +31,376 @@ import proguard.classfile.attribute.preverification.*;
  */
 public interface AttributeVisitor
 {
-    // Attributes that are attached to classes.
+    /**
+     * Visits any Attribute instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyAttribute(Clazz clazz, Attribute attribute)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attribute.getClass().getName());
+    }
 
-    public void visitUnknownAttribute(               Clazz clazz,                UnknownAttribute              unknownAttribute);
-    public void visitBootstrapMethodsAttribute(      Clazz clazz,                BootstrapMethodsAttribute     bootstrapMethodsAttribute);
-    public void visitSourceFileAttribute(            Clazz clazz,                SourceFileAttribute           sourceFileAttribute);
-    public void visitSourceDirAttribute(             Clazz clazz,                SourceDirAttribute            sourceDirAttribute);
-    public void visitSourceDebugExtensionAttribute(  Clazz clazz,                SourceDebugExtensionAttribute sourceDebugExtensionAttribute);
-    public void visitInnerClassesAttribute(          Clazz clazz,                InnerClassesAttribute         innerClassesAttribute);
-    public void visitEnclosingMethodAttribute(       Clazz clazz,                EnclosingMethodAttribute      enclosingMethodAttribute);
-    public void visitNestHostAttribute(              Clazz clazz,                NestHostAttribute             nestHostAttribute);
-    public void visitNestMembersAttribute(           Clazz clazz,                NestMembersAttribute          nestMembersAttribute);
-    public void visitModuleAttribute(                Clazz clazz,                ModuleAttribute               moduleAttribute);
-    public void visitModuleMainClassAttribute(       Clazz clazz,                ModuleMainClassAttribute      moduleMainClassAttribute);
-    public void visitModulePackagesAttribute(        Clazz clazz,                ModulePackagesAttribute       modulePackagesAttribute);
 
-    // Attributes that are attached to classes, fields, or methods.
+    default void visitUnknownAttribute(Clazz clazz, UnknownAttribute unknownAttribute)
+    {
+        visitAnyAttribute(clazz, unknownAttribute);
+    }
 
-    public void visitDeprecatedAttribute(            Clazz clazz,                DeprecatedAttribute deprecatedAttribute);
-    public void visitDeprecatedAttribute(            Clazz clazz, Field  field,  DeprecatedAttribute deprecatedAttribute);
-    public void visitDeprecatedAttribute(            Clazz clazz, Method method, DeprecatedAttribute deprecatedAttribute);
 
-    public void visitSyntheticAttribute(             Clazz clazz,                SyntheticAttribute  syntheticAttribute);
-    public void visitSyntheticAttribute(             Clazz clazz, Field  field,  SyntheticAttribute  syntheticAttribute);
-    public void visitSyntheticAttribute(             Clazz clazz, Method method, SyntheticAttribute  syntheticAttribute);
+    default void visitSourceDebugExtensionAttribute(Clazz clazz, SourceDebugExtensionAttribute sourceDebugExtensionAttribute)
+    {
+        visitAnyAttribute(clazz, sourceDebugExtensionAttribute);
+    }
 
-    public void visitSignatureAttribute(             Clazz clazz,                SignatureAttribute  signatureAttribute);
-    public void visitSignatureAttribute(             Clazz clazz, Field  field,  SignatureAttribute  signatureAttribute);
-    public void visitSignatureAttribute(             Clazz clazz, Method method, SignatureAttribute  signatureAttribute);
 
-    // Attributes that are attached to fields.
+    default void visitBootstrapMethodsAttribute(Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute)
+    {
+        visitAnyAttribute(clazz, bootstrapMethodsAttribute);
+    }
 
-    public void visitConstantValueAttribute(         Clazz clazz, Field  field,  ConstantValueAttribute constantValueAttribute);
 
-    // Attributes that are attached to methods.
+    default void visitSourceFileAttribute(Clazz clazz, SourceFileAttribute sourceFileAttribute)
+    {
+        visitAnyAttribute(clazz, sourceFileAttribute);
+    }
 
-    public void visitMethodParametersAttribute(      Clazz clazz, Method method, MethodParametersAttribute methodParametersAttribute);
-    public void visitExceptionsAttribute(            Clazz clazz, Method method, ExceptionsAttribute       exceptionsAttribute);
-    public void visitCodeAttribute(                  Clazz clazz, Method method, CodeAttribute             codeAttribute);
 
-    // Attributes that are attached to code attributes.
+    default void visitSourceDirAttribute(Clazz clazz, SourceDirAttribute sourceDirAttribute)
+    {
+        visitAnyAttribute(clazz, sourceDirAttribute);
+    }
 
-    public void visitStackMapAttribute(              Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapAttribute               stackMapAttribute);
-    public void visitStackMapTableAttribute(         Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapTableAttribute          stackMapTableAttribute);
-    public void visitLineNumberTableAttribute(       Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute        lineNumberTableAttribute);
-    public void visitLocalVariableTableAttribute(    Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTableAttribute     localVariableTableAttribute);
-    public void visitLocalVariableTypeTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeTableAttribute localVariableTypeTableAttribute);
 
-    // Annotation attributes.
+    default void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
+    {
+        visitAnyAttribute(clazz, innerClassesAttribute);
+    }
 
-    public void visitRuntimeVisibleAnnotationsAttribute(           Clazz clazz,                RuntimeVisibleAnnotationsAttribute   runtimeVisibleAnnotationsAttribute);
-    public void visitRuntimeVisibleAnnotationsAttribute(           Clazz clazz, Field  field,  RuntimeVisibleAnnotationsAttribute   runtimeVisibleAnnotationsAttribute);
-    public void visitRuntimeVisibleAnnotationsAttribute(           Clazz clazz, Method method, RuntimeVisibleAnnotationsAttribute   runtimeVisibleAnnotationsAttribute);
 
-    public void visitRuntimeInvisibleAnnotationsAttribute(         Clazz clazz,                RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute);
-    public void visitRuntimeInvisibleAnnotationsAttribute(         Clazz clazz, Field  field,  RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute);
-    public void visitRuntimeInvisibleAnnotationsAttribute(         Clazz clazz, Method method, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute);
+    default void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
+    {
+        visitAnyAttribute(clazz, enclosingMethodAttribute);
+    }
 
-    public void visitRuntimeVisibleParameterAnnotationsAttribute(  Clazz clazz, Method method, RuntimeVisibleParameterAnnotationsAttribute   runtimeVisibleParameterAnnotationsAttribute);
-    public void visitRuntimeInvisibleParameterAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleParameterAnnotationsAttribute runtimeInvisibleParameterAnnotationsAttribute);
 
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(       Clazz clazz,                                             RuntimeVisibleTypeAnnotationsAttribute   runtimeVisibleTypeAnnotationsAttribute);
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(       Clazz clazz, Field  field,                               RuntimeVisibleTypeAnnotationsAttribute   runtimeVisibleTypeAnnotationsAttribute);
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(       Clazz clazz, Method method,                              RuntimeVisibleTypeAnnotationsAttribute   runtimeVisibleTypeAnnotationsAttribute);
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(       Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeVisibleTypeAnnotationsAttribute   runtimeVisibleTypeAnnotationsAttribute);
+    default void visitNestHostAttribute(Clazz clazz, NestHostAttribute nestHostAttribute)
+    {
+        visitAnyAttribute(clazz, nestHostAttribute);
+    }
 
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(     Clazz clazz,                                             RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute);
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(     Clazz clazz, Field  field,                               RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute);
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(     Clazz clazz, Method method,                              RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute);
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(     Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute);
 
-    public void visitAnnotationDefaultAttribute(                   Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute);
+    default void visitNestMembersAttribute(Clazz clazz, NestMembersAttribute nestMembersAttribute)
+    {
+        visitAnyAttribute(clazz, nestMembersAttribute);
+    }
+
+
+    default void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
+    {
+        visitAnyAttribute(clazz, moduleAttribute);
+    }
+
+
+    default void visitModuleMainClassAttribute(Clazz clazz, ModuleMainClassAttribute moduleMainClassAttribute)
+    {
+        visitAnyAttribute(clazz, moduleMainClassAttribute);
+    }
+
+
+    default void visitModulePackagesAttribute(Clazz clazz, ModulePackagesAttribute modulePackagesAttribute)
+    {
+        visitAnyAttribute(clazz, modulePackagesAttribute);
+    }
+
+
+    default void visitDeprecatedAttribute(Clazz clazz, DeprecatedAttribute deprecatedAttribute)
+    {
+        visitAnyAttribute(clazz, deprecatedAttribute);
+    }
+
+
+
+    default void visitDeprecatedAttribute(Clazz clazz, Member member, DeprecatedAttribute deprecatedAttribute)
+    {
+        visitDeprecatedAttribute(clazz, deprecatedAttribute);
+    }
+
+
+    default void visitDeprecatedAttribute(Clazz clazz, Field field, DeprecatedAttribute deprecatedAttribute)
+    {
+        visitDeprecatedAttribute(clazz, (Member)field, deprecatedAttribute);
+    }
+
+
+    default void visitDeprecatedAttribute(Clazz clazz, Method method, DeprecatedAttribute deprecatedAttribute)
+    {
+        visitDeprecatedAttribute(clazz, (Member)method, deprecatedAttribute);
+    }
+
+
+    default void visitSyntheticAttribute(Clazz clazz, SyntheticAttribute syntheticAttribute)
+    {
+        visitAnyAttribute(clazz, syntheticAttribute);
+    }
+
+
+
+    default void visitSyntheticAttribute(Clazz clazz, Member member, SyntheticAttribute syntheticAttribute)
+    {
+        visitSyntheticAttribute(clazz, syntheticAttribute);
+    }
+
+
+    default void visitSyntheticAttribute(Clazz clazz, Field field, SyntheticAttribute syntheticAttribute)
+    {
+        visitSyntheticAttribute(clazz, (Member)field, syntheticAttribute);
+    }
+
+
+    default void visitSyntheticAttribute(Clazz clazz, Method method, SyntheticAttribute syntheticAttribute)
+    {
+        visitSyntheticAttribute(clazz, (Member)method, syntheticAttribute);
+    }
+
+
+    default void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
+    {
+        visitAnyAttribute(clazz, signatureAttribute);
+    }
+
+
+
+    default void visitSignatureAttribute(Clazz clazz, Member member, SignatureAttribute signatureAttribute)
+    {
+        visitSignatureAttribute(clazz, signatureAttribute);
+    }
+
+
+    default void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
+    {
+        visitSignatureAttribute(clazz, (Member)field, signatureAttribute);
+    }
+
+
+    default void visitSignatureAttribute(Clazz clazz, Method method, SignatureAttribute signatureAttribute)
+    {
+        visitSignatureAttribute(clazz, (Member)method, signatureAttribute);
+    }
+
+
+    default void visitConstantValueAttribute(Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute)
+    {
+        visitAnyAttribute(clazz, constantValueAttribute);
+    }
+
+
+    default void visitMethodParametersAttribute(Clazz clazz, Method method, MethodParametersAttribute methodParametersAttribute)
+    {
+        visitAnyAttribute(clazz, methodParametersAttribute);
+    }
+
+
+    default void visitExceptionsAttribute(Clazz clazz, Method method, ExceptionsAttribute exceptionsAttribute)
+    {
+        visitAnyAttribute(clazz, exceptionsAttribute);
+    }
+
+
+    default void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
+    {
+        visitAnyAttribute(clazz, codeAttribute);
+    }
+
+
+    default void visitStackMapAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapAttribute stackMapAttribute)
+    {
+        visitAnyAttribute(clazz, stackMapAttribute);
+    }
+
+
+    default void visitStackMapTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapTableAttribute stackMapTableAttribute)
+    {
+        visitAnyAttribute(clazz, stackMapTableAttribute);
+    }
+
+
+    default void visitLineNumberTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute lineNumberTableAttribute)
+    {
+        visitAnyAttribute(clazz, lineNumberTableAttribute);
+    }
+
+
+    default void visitLocalVariableTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTableAttribute localVariableTableAttribute)
+    {
+        visitAnyAttribute(clazz, localVariableTableAttribute);
+    }
+
+
+    default void visitLocalVariableTypeTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeTableAttribute localVariableTypeTableAttribute)
+    {
+        visitAnyAttribute(clazz, localVariableTypeTableAttribute);
+    }
+
+
+
+    /**
+     * Visits any AnnotationsAttribute instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyAnnotationsAttribute(Clazz clazz, AnnotationsAttribute annotationsAttribute)
+    {
+        visitAnyAttribute(clazz, annotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        visitAnyAnnotationsAttribute(clazz, runtimeVisibleAnnotationsAttribute);
+    }
+
+
+
+    default void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Member member, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        visitRuntimeVisibleAnnotationsAttribute(clazz, runtimeVisibleAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        visitRuntimeVisibleAnnotationsAttribute(clazz, (Member)field, runtimeVisibleAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        visitRuntimeVisibleAnnotationsAttribute(clazz, (Member)method, runtimeVisibleAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        visitAnyAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+    }
+
+
+
+    default void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Member member, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleAnnotationsAttribute(clazz, (Member)field, runtimeInvisibleAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleAnnotationsAttribute(clazz, (Member)method, runtimeInvisibleAnnotationsAttribute);
+    }
+
+
+
+    /**
+     * Visits any ParameterAnnotationsAttribute instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyParameterAnnotationsAttribute(Clazz clazz, Method method, ParameterAnnotationsAttribute parameterAnnotationsAttribute)
+    {
+        visitAnyAttribute(clazz, parameterAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleParameterAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleParameterAnnotationsAttribute runtimeVisibleParameterAnnotationsAttribute)
+    {
+        visitAnyParameterAnnotationsAttribute(clazz, method, runtimeVisibleParameterAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleParameterAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleParameterAnnotationsAttribute runtimeInvisibleParameterAnnotationsAttribute)
+    {
+        visitAnyParameterAnnotationsAttribute(clazz, method, runtimeInvisibleParameterAnnotationsAttribute);
+    }
+
+
+
+    /**
+     * Visits any TypeAnnotationsAttribute instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyTypeAnnotationsAttribute(Clazz clazz, TypeAnnotationsAttribute typeAnnotationsAttribute)
+    {
+        visitAnyAnnotationsAttribute(clazz, typeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        visitAnyTypeAnnotationsAttribute(clazz, runtimeVisibleTypeAnnotationsAttribute);
+    }
+
+
+
+    default void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Member member, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeVisibleTypeAnnotationsAttribute(clazz, runtimeVisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeVisibleTypeAnnotationsAttribute(clazz, (Member)field, runtimeVisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeVisibleTypeAnnotationsAttribute(clazz, (Member)method, runtimeVisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, runtimeVisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        visitAnyTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+    }
+
+
+
+    default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Member member, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, (Member)field, runtimeInvisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, (Member)method, runtimeInvisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, runtimeInvisibleTypeAnnotationsAttribute);
+    }
+
+
+    default void visitAnnotationDefaultAttribute(Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute)
+    {
+        visitAnyAttribute(clazz, annotationDefaultAttribute);
+    }
 }

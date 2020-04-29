@@ -29,9 +29,50 @@ import proguard.classfile.*;
  */
 public interface MemberVisitor
 {
-    public void visitProgramField( ProgramClass programClass, ProgramField  programField);
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod);
+    /**
+     * Visits any Member instance. The more specific default implementations of
+     * this interface delegate to this method.
+     */
+    default void visitAnyMember(Clazz clazz, Member member)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+member.getClass().getName());
+    }
 
-    public void visitLibraryField( LibraryClass libraryClass, LibraryField  libraryField);
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod);
+
+
+    default void visitProgramMember(ProgramClass programClass, ProgramMember programMember)
+    {
+        visitAnyMember(programClass, programMember);
+    }
+
+
+    default void visitProgramField(ProgramClass programClass, ProgramField programField)
+    {
+        visitProgramMember(programClass, programField);
+    }
+
+
+    default void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
+    {
+        visitProgramMember(programClass, programMethod);
+    }
+
+
+
+    default void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember)
+    {
+        visitAnyMember(libraryClass, libraryMember);
+    }
+
+
+    default void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
+    {
+        visitLibraryMember(libraryClass, libraryField);
+    }
+
+
+    default void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
+    {
+        visitLibraryMember(libraryClass, libraryMethod);
+    }
 }

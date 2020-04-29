@@ -28,7 +28,6 @@ import proguard.classfile.visitor.*;
  * @author Eric Lafortune
  */
 public class NestHostFinder
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              AttributeVisitor
 {

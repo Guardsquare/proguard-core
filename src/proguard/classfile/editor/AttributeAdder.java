@@ -22,7 +22,6 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.preverification.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.ReferencedClassVisitor;
 
 import java.util.Arrays;
@@ -34,7 +33,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class AttributeAdder
-extends      SimplifiedVisitor
 implements   AttributeVisitor
 {
     private static final byte[]          EMPTY_BYTES       = new byte[0];

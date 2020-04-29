@@ -47,7 +47,6 @@ import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
  * @author Eric Lafortune
  */
 public class ClassReferenceFixer
-extends      SimplifiedVisitor
 implements   ClassVisitor,
 
              // Implementation interfaces.

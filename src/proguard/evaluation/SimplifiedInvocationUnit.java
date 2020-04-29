@@ -34,7 +34,6 @@ import proguard.evaluation.value.*;
  * @author Eric Lafortune
  */
 public abstract class SimplifiedInvocationUnit
-extends               SimplifiedVisitor
 implements            InvocationUnit,
                       ParameterVisitor,
                       ConstantVisitor

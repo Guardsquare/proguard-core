@@ -60,7 +60,6 @@ import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_METHOD_SUFFIX;
  * @author Eric Lafortune
  */
 public class ClassReferenceInitializer
-extends      SimplifiedVisitor
 implements   ClassVisitor,
 
              // Implementation interfaces.
@@ -1464,7 +1463,6 @@ implements   ClassVisitor,
      * This KotlinFunctionVisitor tries to initialize missing function references.
      */
     private static class KotlinInterClassSyntheticFunctionInitializer
-    extends              SimplifiedVisitor
     implements           KotlinFunctionVisitor,
                          AttributeVisitor
     {
@@ -1508,7 +1506,6 @@ implements   ClassVisitor,
      * and passes it to a KotlinInterClassPropertyReferenceInitializer.
      */
     private class KotlinCompanionParentPropertyInitializer
-    extends       SimplifiedVisitor
     implements    AttributeVisitor,
                   InnerClassesInfoVisitor,
                   ConstantVisitor

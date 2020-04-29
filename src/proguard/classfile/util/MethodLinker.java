@@ -39,7 +39,6 @@ import java.util.*;
  * @author Eric Lafortune
  */
 public class MethodLinker
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              MemberVisitor
 {
@@ -166,7 +165,6 @@ implements   ClassVisitor,
 
 
     private static class KotlinMultiFileFacadeMethodLinker
-    extends              SimplifiedVisitor
     implements           KotlinMetadataVisitor,
                          MemberVisitor,
                          ConstantVisitor
@@ -203,9 +201,9 @@ implements   ClassVisitor,
         public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
         @Override
-        public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant refConstant)
+        public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant)
         {
-            link(multiFileFacadeMember, refConstant.referencedMethod);
+            link(multiFileFacadeMember, anyMethodrefConstant.referencedMethod);
         }
     }
 }

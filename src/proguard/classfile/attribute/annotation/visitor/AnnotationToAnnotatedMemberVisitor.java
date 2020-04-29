@@ -19,7 +19,6 @@ package proguard.classfile.attribute.annotation.visitor;
 
 import proguard.classfile.*;
 import proguard.classfile.attribute.annotation.Annotation;
-import proguard.classfile.util.SimplifiedVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
 
@@ -31,7 +30,6 @@ import proguard.classfile.visitor.MemberVisitor;
  * @author Eric Lafortune
  */
 public class AnnotationToAnnotatedMemberVisitor
-extends      SimplifiedVisitor
 implements   AnnotationVisitor
 {
     private final MemberVisitor memberVisitor;

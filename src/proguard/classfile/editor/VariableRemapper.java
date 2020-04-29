@@ -26,7 +26,6 @@ import proguard.classfile.attribute.annotation.visitor.TypeAnnotationVisitor;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.SimplifiedVisitor;
 
 /**
  * This {@link AttributeVisitor} remaps variable indexes in all attributes that it
@@ -35,7 +34,6 @@ import proguard.classfile.util.SimplifiedVisitor;
  * @author Eric Lafortune
  */
 public class VariableRemapper
-extends      SimplifiedVisitor
 implements   AttributeVisitor,
              InstructionVisitor,
              LocalVariableInfoVisitor,

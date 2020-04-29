@@ -63,7 +63,6 @@ import proguard.classfile.util.*;
  * @author Eric Lafortune
  */
 public class InstructionSequenceReplacer
-extends      SimplifiedVisitor
 implements   InstructionVisitor,
              ConstantVisitor
 {

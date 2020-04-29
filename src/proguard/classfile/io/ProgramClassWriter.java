@@ -43,7 +43,6 @@ import java.io.*;
  * @author Eric Lafortune
  */
 public class ProgramClassWriter
-extends      SimplifiedVisitor
 implements   ClassVisitor,
              MemberVisitor,
              ConstantVisitor,
@@ -168,7 +167,6 @@ implements   ClassVisitor,
 
 
     private class ConstantBodyWriter
-    extends       SimplifiedVisitor
     implements    ConstantVisitor,
                   PrimitiveArrayConstantElementVisitor
     {
@@ -368,7 +366,6 @@ implements   ClassVisitor,
 
 
     private class AttributeBodyWriter
-    extends       SimplifiedVisitor
     implements    AttributeVisitor,
                   BootstrapMethodInfoVisitor,
                   InnerClassesInfoVisitor,
@@ -925,7 +922,6 @@ implements   ClassVisitor,
 
 
     private class StackMapFrameBodyWriter
-    extends       SimplifiedVisitor
     implements    StackMapFrameVisitor,
                   VerificationTypeVisitor
     {
@@ -993,7 +989,6 @@ implements   ClassVisitor,
 
 
     private class VerificationTypeBodyWriter
-    extends       SimplifiedVisitor
     implements    VerificationTypeVisitor
     {
         // Implementations for VerificationTypeVisitor.
@@ -1018,7 +1013,6 @@ implements   ClassVisitor,
 
 
     private class ElementValueBodyWriter
-    extends       SimplifiedVisitor
     implements    ElementValueVisitor
     {
         // Implementations for ElementValueVisitor.

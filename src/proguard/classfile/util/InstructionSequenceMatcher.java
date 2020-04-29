@@ -36,7 +36,6 @@ import java.util.Arrays;
  * @author Eric Lafortune
  */
 public class InstructionSequenceMatcher
-extends      SimplifiedVisitor
 implements   InstructionVisitor,
              ConstantVisitor
 {
@@ -869,7 +868,7 @@ implements   InstructionVisitor,
                                            builder.instructions());
 
         // Find the match in the code and print it out.
-        class MatchPrinter extends SimplifiedVisitor implements InstructionVisitor
+        class MatchPrinter implements InstructionVisitor
         {
             public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
             {
