@@ -821,11 +821,14 @@ implements   ClassVisitor,
             kotlinDefaultMethodInitializer.isInterface = false;
             kotlinMultiFilePartKindMetadata.functionsAccept(clazz, kotlinDefaultMethodInitializer);
 
-            // Initialize missing references from properties in multi-file parts
-            // that have their backing field on the multi-file facade class.
-            kotlinMultiFilePartKindMetadata.accept(clazz,
-                                                   new AllKotlinPropertiesVisitor(
-                                                   new KotlinInterClassPropertyReferenceInitializer(kotlinMultiFilePartKindMetadata.referencedFacadeClass)));
+            if (kotlinMultiFilePartKindMetadata.referencedFacadeClass != null)
+            {
+                // Initialize missing references from properties in multi-file parts
+                // that have their backing field on the multi-file facade class.
+                kotlinMultiFilePartKindMetadata.accept(clazz,
+                                                       new AllKotlinPropertiesVisitor(
+                                                       new KotlinInterClassPropertyReferenceInitializer(kotlinMultiFilePartKindMetadata.referencedFacadeClass)));
+            }
         }
 
         // Implementations for KotlinPropertyVisitor.
