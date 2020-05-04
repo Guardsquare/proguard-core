@@ -308,14 +308,36 @@ implements AnnotationVisitor,
     }
 
 
-    private class SimpleKotlinMetadataSetter
-    implements ClassVisitor
+    private static class SimpleKotlinMetadataSetter
+    implements           ClassVisitor
     {
         private final KotlinMetadata kmd;
-        SimpleKotlinMetadataSetter(KotlinMetadata kmd) { this.kmd = kmd; }
 
-        @Override public void visitProgramClass(ProgramClass programClass) { programClass.kotlinMetadata = kmd; }
-        @Override public void visitLibraryClass(LibraryClass libraryClass) { libraryClass.kotlinMetadata = kmd; }
+        SimpleKotlinMetadataSetter(KotlinMetadata kmd)
+        {
+            this.kmd = kmd;
+        }
+
+
+        @Override
+        public void visitAnyClass(Clazz clazz)
+        {
+            throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
+        }
+
+
+        @Override
+        public void visitProgramClass(ProgramClass programClass)
+        {
+            programClass.kotlinMetadata = kmd;
+        }
+
+
+        @Override
+        public void visitLibraryClass(LibraryClass libraryClass)
+        {
+            libraryClass.kotlinMetadata = kmd;
+        }
     }
 
 

@@ -60,7 +60,7 @@ implements   ClassVisitor,
     // Implementations for ClassVisitor.
 
     @Override
-    public void visitLibraryClass(LibraryClass libaryClass) {}
+    public void visitAnyClass(Clazz clazz) { }
 
 
     @Override
@@ -246,6 +246,8 @@ implements   ClassVisitor,
 
         return counter;
     }
+
+
 
     private class MethodHandlesLookupInnerClassRemover
     implements AttributeVisitor,

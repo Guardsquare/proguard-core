@@ -27,11 +27,12 @@ import java.util.Set;
  *
  * @author Eric Lafortune
  */
-public class ClassVersionSetter implements ClassVisitor
+public class ClassVersionSetter
+implements   ClassVisitor
 {
     private final int classVersion;
 
-    private final Set newerClassVersions;
+    private final Set<Integer> newerClassVersions;
 
 
     /**
@@ -51,8 +52,8 @@ public class ClassVersionSetter implements ClassVisitor
      * @param newerClassVersions the <code>Set</code> in which newer class
      *                           version numbers can be collected.
      */
-    public ClassVersionSetter(int classVersion,
-                              Set newerClassVersions)
+    public ClassVersionSetter(int          classVersion,
+                              Set<Integer> newerClassVersions)
     {
         this.classVersion       = classVersion;
         this.newerClassVersions = newerClassVersions;
@@ -61,20 +62,21 @@ public class ClassVersionSetter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
+        // Only ProgramClasses have version numbers.
+
         if (programClass.u4version > classVersion &&
             newerClassVersions != null)
         {
-            newerClassVersions.add(new Integer(programClass.u4version));
+            newerClassVersions.add(programClass.u4version);
         }
 
         programClass.u4version = classVersion;
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        // Library classes don't have version numbers.
     }
 }

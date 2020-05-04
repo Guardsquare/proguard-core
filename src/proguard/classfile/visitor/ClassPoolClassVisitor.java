@@ -31,7 +31,7 @@ implements   ClassPoolVisitor,
              ClassVisitor
 {
     private ClassPoolVisitor classPoolVisitor;
-    private ClassPool classPool;
+    private ClassPool        classPool;
 
 
     /**
@@ -54,13 +54,8 @@ implements   ClassPoolVisitor,
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        classPoolVisitor.visitClassPool(classPool);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
         classPoolVisitor.visitClassPool(classPool);
     }

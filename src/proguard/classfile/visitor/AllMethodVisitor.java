@@ -26,7 +26,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class AllMethodVisitor implements ClassVisitor
+public class AllMethodVisitor
+implements   ClassVisitor
 {
     private final MemberVisitor memberVisitor;
 
@@ -39,14 +40,9 @@ public class AllMethodVisitor implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        programClass.methodsAccept(memberVisitor);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.methodsAccept(memberVisitor);
+        clazz.methodsAccept(memberVisitor);
     }
 }

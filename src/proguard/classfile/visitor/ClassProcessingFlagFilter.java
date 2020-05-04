@@ -17,8 +17,7 @@
  */
 package proguard.classfile.visitor;
 
-import proguard.classfile.LibraryClass;
-import proguard.classfile.ProgramClass;
+import proguard.classfile.*;
 
 
 /**
@@ -28,7 +27,8 @@ import proguard.classfile.ProgramClass;
  *
  * @author Johan Leys
  */
-public class ClassProcessingFlagFilter implements ClassVisitor
+public class ClassProcessingFlagFilter
+implements   ClassVisitor
 {
     private final int          requiredSetProcessingFlags;
     private final int          requiredUnsetProcessingFlags;
@@ -54,20 +54,12 @@ public class ClassProcessingFlagFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        if (accepted(programClass.getProcessingFlags()))
+        if (accepted(clazz.getProcessingFlags()))
         {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        if (accepted(libraryClass.getProcessingFlags()))
-        {
-            classVisitor.visitLibraryClass(libraryClass);
+            clazz.accept(classVisitor);
         }
     }
 

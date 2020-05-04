@@ -32,10 +32,7 @@ public interface ClassVisitor
      * Visits any Clazz instance. The more specific default implementations of
      * this interface delegate to this method.
      */
-    default void visitAnyClass(Clazz clazz)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+clazz.getClass().getName());
-    }
+    void visitAnyClass(Clazz clazz);
 
 
     default void visitProgramClass(ProgramClass programClass)

@@ -25,7 +25,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class ExceptClassesFilter implements ClassVisitor
+public class ExceptClassesFilter
+implements   ClassVisitor
 {
     private final Clazz[]      exceptClasses;
     private final ClassVisitor classVisitor;
@@ -47,20 +48,12 @@ public class ExceptClassesFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        if (!present(programClass))
+        if (!present(clazz))
         {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        if (!present(libraryClass))
-        {
-            classVisitor.visitLibraryClass(libraryClass);
+            clazz.accept(classVisitor);
         }
     }
 
@@ -74,9 +67,9 @@ public class ExceptClassesFilter implements ClassVisitor
             return false;
         }
 
-        for (int index = 0; index < exceptClasses.length; index++)
+        for (Clazz exceptClass : exceptClasses)
         {
-            if (exceptClasses[index].equals(clazz))
+            if (exceptClass.equals(clazz))
             {
                 return true;
             }

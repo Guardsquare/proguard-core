@@ -26,7 +26,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class SubclassTraveler implements ClassVisitor
+public class SubclassTraveler
+implements   ClassVisitor
 {
     private final ClassVisitor classVisitor;
 
@@ -44,14 +45,9 @@ public class SubclassTraveler implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        programClass.subclassesAccept(classVisitor);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.subclassesAccept(classVisitor);
+        clazz.subclassesAccept(classVisitor);
     }
 }

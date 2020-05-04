@@ -99,6 +99,14 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
+    }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         println("_____________________________________________________________________");
@@ -153,6 +161,7 @@ implements   ClassVisitor,
     }
 
 
+    @Override
     public void visitLibraryClass(LibraryClass libraryClass)
     {
         println("_____________________________________________________________________");
@@ -419,9 +428,9 @@ implements   ClassVisitor,
         outdent();
     }
 
-
     // Implementations for AttributeVisitor.
     // Note that attributes are typically only referenced once, so we don't
+
     // test if they are marked already.
 
     public void visitUnknownAttribute(Clazz clazz, UnknownAttribute unknownAttribute)

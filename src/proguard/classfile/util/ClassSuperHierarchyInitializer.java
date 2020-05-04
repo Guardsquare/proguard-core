@@ -75,6 +75,14 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
+    }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Link to the super class.
@@ -85,6 +93,7 @@ implements   ClassVisitor,
     }
 
 
+    @Override
     public void visitLibraryClass(LibraryClass libraryClass)
     {
         String className = libraryClass.getName();

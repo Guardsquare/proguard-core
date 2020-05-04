@@ -42,13 +42,8 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
-    public synchronized void visitLibraryClass(LibraryClass libraryClass)
-    {
-        count++;
-    }
-
-
-    public synchronized void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz) 
     {
         count++;
     }

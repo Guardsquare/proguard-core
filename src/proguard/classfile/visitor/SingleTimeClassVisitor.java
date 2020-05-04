@@ -25,7 +25,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class SingleTimeClassVisitor implements ClassVisitor
+public class SingleTimeClassVisitor
+implements   ClassVisitor
 {
     private final ClassVisitor classVisitor;
 
@@ -40,24 +41,14 @@ public class SingleTimeClassVisitor implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        if (!programClass.equals(lastVisitedClass))
+        if (!clazz.equals(lastVisitedClass))
         {
-            classVisitor.visitProgramClass(programClass);
+            clazz.accept(classVisitor);
 
-            lastVisitedClass = programClass;
-        }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        if (!libraryClass.equals(lastVisitedClass))
-        {
-            classVisitor.visitLibraryClass(libraryClass);
-
-            lastVisitedClass = libraryClass;
+            lastVisitedClass = clazz;
         }
     }
 }

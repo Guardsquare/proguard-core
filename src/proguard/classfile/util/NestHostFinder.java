@@ -75,19 +75,19 @@ implements   ClassVisitor,
     // Implementations for ClassVisitor.
 
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
+        // Only program classes store their versions and attributes.
         // The nest host attribute only exists since Java 10.
         if (programClass.u4version >= VersionConstants.CLASS_VERSION_10)
         {
             programClass.attributesAccept(this);
         }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        // Library classes don't store their versions or attributes.
     }
 
 

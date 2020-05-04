@@ -29,14 +29,8 @@ implements ClassVisitor
     // Implementations for ClassVisitor.
 
     @Override
-    public void visitProgramClass(ProgramClass programClass)
+    public void visitAnyClass(Clazz clazz)
     {
-        programClass.accept(filteredDelegate);
-    }
-
-    @Override
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.accept(filteredDelegate);
+        clazz.accept(filteredDelegate);
     }
 }

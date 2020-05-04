@@ -31,10 +31,18 @@ import java.util.*;
  * @author Eric Lafortune
  */
 public class AttributeSorter
-implements   ClassVisitor, MemberVisitor, AttributeVisitor, Comparator
+implements   ClassVisitor,
+             MemberVisitor,
+             AttributeVisitor,
+             Comparator
 {
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Sort the attributes.
@@ -81,4 +89,5 @@ implements   ClassVisitor, MemberVisitor, AttributeVisitor, Comparator
                attribute1.u2attributeNameIndex > attribute2.u2attributeNameIndex ?  1 :
                                                                                     0;
     }
+
 }

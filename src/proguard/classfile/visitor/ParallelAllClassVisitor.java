@@ -153,11 +153,11 @@ implements   ClassPoolVisitor
 
 
     private static class MyThreadedClassVisitor
-    implements ClassVisitor
+    implements           ClassVisitor
     {
         private final ExecutorService executorService;
 
-        private final List<Future> futures = new ArrayList<Future>();
+        private final List<Future> futures = new ArrayList<>();
 
         public MyThreadedClassVisitor(ExecutorService executorService)
         {
@@ -174,27 +174,17 @@ implements   ClassPoolVisitor
 
         // Implementations for ClassVisitor.
 
-        public void visitLibraryClass(LibraryClass libraryClass)
+        @Override
+        public void visitAnyClass(Clazz clazz)
         {
-            submitClassToExecutorService(libraryClass);
+            submitClassToExecutorService(clazz);
         }
-
-
-        public void visitProgramClass(ProgramClass programClass)
-        {
-            submitClassToExecutorService(programClass);
-        }
-
 
         private void submitClassToExecutorService(final Clazz clazz)
         {
-            futures.add(executorService.submit(new Runnable()
-            {
-                public void run()
-                {
-                    MyClassVisitorThread thread = (MyClassVisitorThread)Thread.currentThread();
-                    clazz.accept(thread.classVisitor);
-                }
+            futures.add(executorService.submit(() -> {
+                MyClassVisitorThread thread = (MyClassVisitorThread)Thread.currentThread();
+                clazz.accept(thread.classVisitor);
             }));
         }
     }

@@ -46,11 +46,21 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
+    }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         programClass.u2accessFlags &= ~accessFlags;
     }
 
+
+    @Override
     public void visitLibraryClass(LibraryClass libraryClass)
     {
         libraryClass.u2accessFlags &= ~accessFlags;
@@ -58,8 +68,8 @@ implements   ClassVisitor,
 
 
     // Implementations for MemberVisitor.
-
     public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
+
     public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {}
 
 

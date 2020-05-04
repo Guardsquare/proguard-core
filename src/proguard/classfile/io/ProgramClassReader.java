@@ -94,6 +94,11 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Read and check the magic number.
@@ -171,11 +176,6 @@ implements   ClassVisitor,
             attribute.accept(programClass, this);
             programClass.attributes[index] = attribute;
         }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
     }
 
 

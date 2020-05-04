@@ -26,7 +26,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class ClassPresenceFilter implements ClassVisitor
+public class ClassPresenceFilter
+implements   ClassVisitor
 {
     private final ClassPool    classPool;
     private final ClassVisitor presentClassVisitor;
@@ -54,24 +55,14 @@ public class ClassPresenceFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        ClassVisitor classFileVisitor = classFileVisitor(programClass);
+        ClassVisitor classFileVisitor = classFileVisitor(clazz);
 
         if (classFileVisitor != null)
         {
-            classFileVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        ClassVisitor classFileVisitor = classFileVisitor(libraryClass);
-
-        if (classFileVisitor != null)
-        {
-            classFileVisitor.visitLibraryClass(libraryClass);
+            clazz.accept(classFileVisitor);
         }
     }
 

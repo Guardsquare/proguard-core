@@ -67,9 +67,11 @@ implements   InnerClassesInfoVisitor,
 
     // Implementations for ClassVisitor.
 
-    public void visitLibraryClass(LibraryClass libraryClass) {}
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
 
 
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         innerClassAccessFlags =

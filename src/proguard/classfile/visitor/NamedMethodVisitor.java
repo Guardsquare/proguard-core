@@ -26,7 +26,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class NamedMethodVisitor implements ClassVisitor
+public class NamedMethodVisitor
+implements   ClassVisitor
 {
     private final String        name;
     private final String        descriptor;
@@ -45,14 +46,9 @@ public class NamedMethodVisitor implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        programClass.methodAccept(name, descriptor, memberVisitor);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.methodAccept(name, descriptor, memberVisitor);
+        clazz.methodAccept(name, descriptor, memberVisitor);
     }
 }

@@ -29,10 +29,17 @@ import java.util.*;
  *
  * @author Eric Lafortune
  */
-public class ClassMemberSorter implements ClassVisitor, Comparator
+public class ClassMemberSorter
+implements   ClassVisitor,
+             Comparator
 {
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Sort the fields.
@@ -40,11 +47,6 @@ public class ClassMemberSorter implements ClassVisitor, Comparator
 
         // Sort the methods.
         Arrays.sort(programClass.methods, 0, programClass.u2methodsCount, this);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
     }
 
 
@@ -63,4 +65,5 @@ public class ClassMemberSorter implements ClassVisitor, Comparator
                member1.u2descriptorIndex > member2.u2descriptorIndex ?  1 :
                                                                         0;
     }
+
 }

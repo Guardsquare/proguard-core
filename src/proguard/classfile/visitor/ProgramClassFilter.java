@@ -26,7 +26,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class ProgramClassFilter implements ClassVisitor
+public class ProgramClassFilter
+implements   ClassVisitor
 {
     private final ClassVisitor classVisitor;
 
@@ -44,14 +45,13 @@ public class ProgramClassFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         classVisitor.visitProgramClass(programClass);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        // Don't delegate visits to library classes.
     }
 }

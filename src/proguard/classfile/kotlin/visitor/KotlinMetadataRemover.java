@@ -13,6 +13,12 @@ public class KotlinMetadataRemover
 implements   ClassVisitor
 {
     @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
+    }
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         programClass.kotlinMetadata = null;

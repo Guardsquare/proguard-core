@@ -43,14 +43,9 @@ implements   ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        programClass.addSubClass(subclass);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.addSubClass(subclass);
+        clazz.addSubClass(subclass);
     }
 }

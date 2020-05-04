@@ -26,7 +26,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class ClassVersionFilter implements ClassVisitor
+public class ClassVersionFilter
+implements   ClassVisitor
 {
     private final int          minimumClassVersion;
     private final int          maximumClassVersion;
@@ -65,18 +66,19 @@ public class ClassVersionFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
+        // Only ProgramClasses have version numbers.
+
         if (programClass.u4version >= minimumClassVersion &&
             programClass.u4version <= maximumClassVersion)
         {
             classVisitor.visitProgramClass(programClass);
         }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        // Library classes don't have version numbers.
     }
 }

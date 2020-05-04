@@ -19,7 +19,6 @@ package proguard.classfile.editor;
 
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.visitor.ClassVisitor;
@@ -66,6 +65,7 @@ implements   ConstantVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
     public void visitAnyClass(Clazz clazz)
     {
         targetNestMembersAttribute.u2classes =

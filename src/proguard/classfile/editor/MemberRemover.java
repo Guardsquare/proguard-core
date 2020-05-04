@@ -48,15 +48,17 @@ public class MemberRemover
 implements   ClassVisitor,
              MemberVisitor
 {
-    private Set<Method> methodsToRemove = new HashSet<Method>();
-    private Set<Field>  fieldsToRemove  = new HashSet<Field>();
+    private Set<Method> methodsToRemove = new HashSet<>();
+    private Set<Field>  fieldsToRemove  = new HashSet<>();
 
 
     // Implementations for ClassVisitor.
 
+    @Override
     public void visitAnyClass(Clazz clazz) {}
 
 
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         ClassEditor classEditor = new ClassEditor(programClass);

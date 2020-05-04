@@ -58,6 +58,11 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Mark the UTF-8 entries referenced by the other constant pool entries.

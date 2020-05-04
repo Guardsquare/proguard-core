@@ -27,7 +27,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class BottomClassFilter implements ClassVisitor
+public class BottomClassFilter
+implements   ClassVisitor
 {
     private final ClassVisitor bottomClassVisitor;
     private final ClassVisitor otherClassVisitor;
@@ -60,6 +61,14 @@ public class BottomClassFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
+    }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Is this a bottom class in the class hierarchy?
@@ -74,6 +83,7 @@ public class BottomClassFilter implements ClassVisitor
     }
 
 
+    @Override
     public void visitLibraryClass(LibraryClass libraryClass)
     {
         // Is this a bottom class in the class hierarchy?

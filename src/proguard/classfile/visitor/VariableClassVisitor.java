@@ -56,20 +56,12 @@ public class VariableClassVisitor implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
         if (classVisitor != null)
         {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        if (classVisitor != null)
-        {
-            classVisitor.visitLibraryClass(libraryClass);
+            clazz.accept(classVisitor);
         }
     }
 }

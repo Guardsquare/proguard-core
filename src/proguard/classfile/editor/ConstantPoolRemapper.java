@@ -79,6 +79,11 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Remap the local constant pool references.
@@ -95,11 +100,6 @@ implements   ClassVisitor,
         programClass.fieldsAccept(this);
         programClass.methodsAccept(this);
         programClass.attributesAccept(this);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
     }
 
 

@@ -74,9 +74,11 @@ implements   ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitLibraryClass(LibraryClass libraryClass) {}
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
 
 
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Remember the referencing class.
@@ -185,9 +187,11 @@ implements   ClassVisitor
     {
         // Implementations for ClassVisitor.
 
-        public void visitLibraryClass(LibraryClass libraryClass) {}
+        @Override
+        public void visitAnyClass(Clazz clazz) { }
 
 
+        @Override
         public void visitProgramClass(ProgramClass programClass)
         {
             // Do we need to update the access flags?
@@ -259,6 +263,7 @@ implements   ClassVisitor
                 }
             }
         }
+
     }
 
 

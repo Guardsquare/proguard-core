@@ -64,11 +64,11 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass libraryClass)
-    {
-    }
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
 
 
+    @Override
     public void visitLibraryClass(LibraryClass libraryClass)
     {
         // Read and check the magic number.

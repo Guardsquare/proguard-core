@@ -27,7 +27,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class ClassHierarchyTraveler implements ClassVisitor
+public class ClassHierarchyTraveler
+implements   ClassVisitor
 {
     private final boolean visitThisClass;
     private final boolean visitSuperClass;
@@ -67,22 +68,13 @@ public class ClassHierarchyTraveler implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        programClass.hierarchyAccept(visitThisClass,
-                                     visitSuperClass,
-                                     visitInterfaces,
-                                     visitSubclasses,
-                                     classVisitor);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.hierarchyAccept(visitThisClass,
-                                     visitSuperClass,
-                                     visitInterfaces,
-                                     visitSubclasses,
-                                     classVisitor);
+        clazz.hierarchyAccept(visitThisClass,
+                              visitSuperClass,
+                              visitInterfaces,
+                              visitSubclasses,
+                              classVisitor);
     }
 }

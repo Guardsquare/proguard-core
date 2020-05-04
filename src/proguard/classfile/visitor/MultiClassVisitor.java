@@ -27,7 +27,8 @@ import proguard.util.ArrayUtil;
  *
  * @author Eric Lafortune
  */
-public class MultiClassVisitor implements ClassVisitor
+public class MultiClassVisitor
+implements   ClassVisitor
 {
     private ClassVisitor[] classVisitors;
     private int            classVisitorCount;
@@ -57,20 +58,12 @@ public class MultiClassVisitor implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
         for (int index = 0; index < classVisitorCount; index++)
         {
-            classVisitors[index].visitProgramClass(programClass);
-        }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        for (int index = 0; index < classVisitorCount; index++)
-        {
-            classVisitors[index].visitLibraryClass(libraryClass);
+            clazz.accept(classVisitors[index]);
         }
     }
 }

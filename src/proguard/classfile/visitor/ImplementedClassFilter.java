@@ -67,24 +67,15 @@ public class ImplementedClassFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        ClassVisitor visitor = delegateVisitor(programClass);
+        ClassVisitor visitor = delegateVisitor(clazz);
         if (visitor != null)
         {
-            visitor.visitProgramClass(programClass);
+            clazz.accept(visitor);
         }
     }
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        ClassVisitor visitor = delegateVisitor(libraryClass);
-        if (visitor != null)
-        {
-            visitor.visitLibraryClass(libraryClass);
-        }
-    }
-
 
     // Small utility methods.
 

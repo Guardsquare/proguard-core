@@ -28,7 +28,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class ClassAccessFilter implements ClassVisitor
+public class ClassAccessFilter
+implements   ClassVisitor
 {
     private final int          requiredSetAccessFlags;
     private final int          requiredUnsetAccessFlags;
@@ -56,23 +57,14 @@ public class ClassAccessFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        if (accepted(programClass.getAccessFlags()))
+        if (accepted(clazz.getAccessFlags()))
         {
-            classVisitor.visitProgramClass(programClass);
+            clazz.accept(classVisitor);
         }
     }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        if (accepted(libraryClass.getAccessFlags()))
-        {
-            classVisitor.visitLibraryClass(libraryClass);
-        }
-    }
-
 
     // Small utility methods.
 

@@ -230,23 +230,12 @@ public class ClassNameFilter implements ClassVisitor
     // Implementations for ClassVisitor.
 
     @Override
-    public void visitProgramClass(ProgramClass programClass)
+    public void visitAnyClass(Clazz clazz)
     {
-        ClassVisitor delegate = getDelegateVisitor(programClass);
+        ClassVisitor delegate = getDelegateVisitor(clazz);
         if (delegate != null)
         {
-            delegate.visitProgramClass(programClass);
-        }
-    }
-
-
-    @Override
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        ClassVisitor delegate = getDelegateVisitor(libraryClass);
-        if (delegate != null)
-        {
-            delegate.visitLibraryClass(libraryClass);
+            clazz.accept(delegate);
         }
     }
 

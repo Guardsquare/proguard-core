@@ -68,6 +68,11 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         // Write the magic number.
@@ -107,11 +112,6 @@ implements   ClassVisitor,
         dataOutput.writeUnsignedShort(programClass.u2attributesCount);
 
         programClass.attributesAccept(this);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
     }
 
 

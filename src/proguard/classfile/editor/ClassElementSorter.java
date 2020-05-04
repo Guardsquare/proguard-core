@@ -17,7 +17,7 @@
  */
 package proguard.classfile.editor;
 
-import proguard.classfile.ProgramClass;
+import proguard.classfile.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
@@ -37,6 +37,12 @@ implements   ClassVisitor
 
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+    }
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         programClass.accept(constantPoolSorter);

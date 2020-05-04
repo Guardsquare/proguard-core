@@ -58,8 +58,14 @@ implements   ClassVisitor,
     private int                arrayInitializationEnd;
 
 
+
     // Implementations for ClassVisitor.
 
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
+
+    @Override
     public void visitProgramClass(ProgramClass programClass)
     {
         constantPoolEditor = new ConstantPoolEditor(programClass);
@@ -145,6 +151,7 @@ implements   ClassVisitor,
         lastInstructionOffset         = offset;
         lastInstructionStackPushCount = instruction.stackPushCount(clazz);
     }
+
 
 
     /**

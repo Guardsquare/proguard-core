@@ -48,20 +48,12 @@ public class FunctionalInterfaceFilter implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        if (isFunctionalInterface(programClass))
+        if (isFunctionalInterface(clazz))
         {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        if (isFunctionalInterface(libraryClass))
-        {
-            classVisitor.visitLibraryClass(libraryClass);
+            clazz.accept(classVisitor);
         }
     }
 
@@ -78,8 +70,8 @@ public class FunctionalInterfaceFilter implements ClassVisitor
 
         // Count the abstract methods and the default methods in the
         // interface hierarchy (including Object).
-        Set abstractMethods = new HashSet();
-        Set defaultMethods  = new HashSet();
+        Set<Method> abstractMethods = new HashSet<>();
+        Set<Method> defaultMethods  = new HashSet<>();
 
         clazz.hierarchyAccept(true, true, true, false,
                               new AllMethodVisitor(

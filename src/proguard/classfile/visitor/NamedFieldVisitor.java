@@ -26,7 +26,8 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class NamedFieldVisitor implements ClassVisitor
+public class NamedFieldVisitor
+implements   ClassVisitor
 {
     private final String        name;
     private final String        descriptor;
@@ -45,14 +46,9 @@ public class NamedFieldVisitor implements ClassVisitor
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
-        programClass.fieldAccept(name, descriptor, memberVisitor);
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.fieldAccept(name, descriptor, memberVisitor);
+        clazz.fieldAccept(name, descriptor, memberVisitor);
     }
 }

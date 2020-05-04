@@ -65,23 +65,14 @@ implements   ClassVisitor,
 
     // Implementations for ClassVisitor.
 
-    public void visitProgramClass(ProgramClass programClass)
+    @Override
+    public void visitAnyClass(Clazz clazz)
     {
         pw.println(ClassUtil.externalFullClassDescription(
                        printAccessModifiers ?
-                           programClass.getAccessFlags() :
+                           clazz.getAccessFlags() :
                            0,
-                       programClass.getName()));
-    }
-
-
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        pw.println(ClassUtil.externalFullClassDescription(
-                       printAccessModifiers ?
-                           libraryClass.getAccessFlags() :
-                           0,
-                       libraryClass.getName()));
+                       clazz.getName()));;
     }
 
 
