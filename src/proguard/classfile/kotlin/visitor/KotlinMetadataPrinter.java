@@ -1017,9 +1017,9 @@ implements KotlinMetadataVisitor,
                         "" :
                         externalMethodReturnType(jvmMethodSignature.getDesc()) + ' ') +
                    jvmMethodSignature.getName() +
-                   JavaConstants.METHOD_ARGUMENTS_OPEN +
+                   TypeConstants.METHOD_ARGUMENTS_OPEN +
                    externalMethodArguments(jvmMethodSignature.getDesc()) +
-                   JavaConstants.METHOD_ARGUMENTS_CLOSE;
+                   TypeConstants.METHOD_ARGUMENTS_CLOSE;
         }
         catch (StringIndexOutOfBoundsException |
                IllegalArgumentException e)
