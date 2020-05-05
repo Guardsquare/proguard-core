@@ -355,7 +355,7 @@ public class SignedJarWriter extends JarWriter
      * Arguments:
      *     keystore keystore_password alias password jar_filename
      * Create a keystore with:
-     *     keytool -genkey -dname 'CN=John Doe, OU=Development, O=GuardSquare, STREET=Tervuursevest, L=Leuven, ST=Brabant, C=Belgium' -keystore /tmp/test.keystore -storepass android -alias AndroidDebugKey -keypass android -keyalg RSA -keysize 512
+     *     keytool -genkey -dname 'CN=John Doe, OU=Development, O=Guardsquare, STREET=Tervuursevest, L=Leuven, ST=Brabant, C=Belgium' -keystore /tmp/test.keystore -storepass android -alias AndroidDebugKey -keypass android -keyalg RSA -keysize 512
      * List the contents of the keystore with
      *     keytool -v -list -keystore /tmp/test.keystore -alias androiddebugkey -storepass android
      * Verify the signed jar with:
