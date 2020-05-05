@@ -42,6 +42,8 @@ public class KotlinConstants
     public static final String DEFAULT_IMPLEMENTATIONS_SUFFIX        = "$DefaultImpls";
     public static final String WHEN_MAPPINGS_SUFFIX                  = "$WhenMappings";
 
+    public static final String KOTLIN_OBJECT_INSTANCE_FIELD_NAME     = "INSTANCE";
+
     public static final String KOTLIN_INTRINSICS_CLASS               = "kotlin/jvm/internal/Intrinsics";
 
     public static final class REFLECTION
