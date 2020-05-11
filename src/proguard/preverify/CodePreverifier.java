@@ -327,7 +327,7 @@ implements   AttributeVisitor
 
             // Is the value not null and alive (or uninitialized "this")?
             if (value != null &&
-                (offset == AT_METHOD_ENTRY ||
+                (offset == AT_METHOD_ENTRY                     ||
                  livenessAnalyzer.isAliveBefore(offset, index) ||
                  isUninitalizedThis(offset, index)))
             {
