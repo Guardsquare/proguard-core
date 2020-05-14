@@ -45,4 +45,5 @@ public class JavaVersionConstants
     public static final String CLASS_VERSION_11        = "11";
     public static final String CLASS_VERSION_12        = "12";
     public static final String CLASS_VERSION_13        = "13";
+    public static final String CLASS_VERSION_14        = "14";
 }
