@@ -68,6 +68,7 @@ publishing {
                         id = 'lafortune'
                         name = 'Eric Lafortune'
                         email = 'eric.lafortune@guardsquare.com'
+                        roles = ['Project Administrator', 'Developer']
                     }
                 }
                 scm {
