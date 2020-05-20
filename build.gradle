@@ -9,6 +9,9 @@ wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
+group = 'net.sf.proguard'
+version = '7.0.0'
+
 repositories {
     jcenter()
 }
