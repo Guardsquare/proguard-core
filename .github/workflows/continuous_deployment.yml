@@ -1,0 +1,20 @@
+name: Continuous Integration
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PROGUARD_CORE_PERSONAL_ACCESS_TOKEN }}
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: eskatos/gradle-command-action@v1
+        env:
+          ORG_GRADLE_PROJECT_PROGUARD_STAGING_USERNAME: ${{ secrets.PROGUARD_STAGING_USERNAME }}
+          ORG_GRADLE_PROJECT_PROGUARD_STAGING_PASSWORD: ${{ secrets.PROGUARD_STAGING_PASSWORD }}
+          ORG_GRADLE_PROJECT_PROGUARD_SIGNING_KEY: ${{ secrets.PROGUARD_GPG_ARMORED_KEY }}
+          ORG_GRADLE_PROJECT_PROGUARD_SIGNING_PASSWORD: ${{ secrets.PROGUARD_GPG_PASSWORD }}
+        with:
+          arguments: publish

@@ -1,0 +1,15 @@
+name: Continuous Integration
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PROGUARD_CORE_PERSONAL_ACCESS_TOKEN }}
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: build
