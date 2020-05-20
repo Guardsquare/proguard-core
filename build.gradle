@@ -52,7 +52,7 @@ publishing {
             from components.java
             pom {
                 name = "[$group] $artifactId"
-                description = 'ProGuard Core.'
+                description = 'ProGuard Core is a free library to read, analyze, modify, and write Java class files.'
                 url = 'https://www.guardsquare.com/proguard'
                 properties = [
                         'project.build.sourceEncoding': 'UTF-8'
