@@ -1,8 +1,8 @@
-import org.gradle.api.tasks.wrapper.Wrapper
-
-// Gradle build script for ProGuard.
-
-apply plugin: 'java'
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'signing'
+}
 
 wrapper {
     gradleVersion = '6.4'
@@ -44,4 +44,56 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
     compile "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
+}
+
+publishing {
+    publications {
+        create('proguardCore', MavenPublication) {
+            from components.java
+            pom {
+                name = "[$group] $artifactId"
+                description = 'ProGuard Core.'
+                url = 'https://www.guardsquare.com/proguard'
+                properties = [
+                        'project.build.sourceEncoding': 'UTF-8'
+                ]
+                licenses {
+                    license {
+                        name = 'GNU General Public License, Version 2'
+                        url = 'https://www.gnu.org/licenses/gpl-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'lafortune'
+                        name = 'Eric Lafortune'
+                        email = 'eric.lafortune@guardsquare.com'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/Guardsquare/proguard-core.git'
+                    connection = 'scm:git:https://github.com/Guardsquare/proguard-core.git'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+            credentials(PasswordCredentials) {
+                username = findProperty('PROGUARD_STAGING_USERNAME')
+                password = findProperty('PROGUARD_STAGING_PASSWORD')
+            }
+        }
+    }
+}
+
+// We use in-memory ascii-armored keys
+// See https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
+
+signing {
+    String key = findProperty('PROGUARD_SIGNING_KEY')
+    String password = findProperty('PROGUARD_SIGNING_PASSWORD')
+    useInMemoryPgpKeys(key, password)
+    sign publishing.publications.proguardCore
 }
