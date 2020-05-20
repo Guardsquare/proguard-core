@@ -54,16 +54,6 @@ publishing {
                 name = "[$group] $artifactId"
                 description = 'ProGuard Core is a free library to read, analyze, modify, and write Java class files.'
                 url = 'https://www.guardsquare.com/proguard'
-                properties = [
-                        'project.build.sourceEncoding': 'UTF-8'
-                ]
-                licenses {
-                    license {
-                        name = 'Apache License Version 2.0'
-                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution = 'repo'
-                    }
-                }
                 developers {
                     developer {
                         id = 'lafortune'
@@ -74,10 +64,26 @@ publishing {
                         roles = ['Project Administrator', 'Developer']
                     }
                 }
+                licenses {
+                    license {
+                        name = 'Apache License Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+                issueManagement {
+                    system = 'Github Tracker'
+                    url = 'https://github.com/Guardsquare/proguard-core/issues'
+                }
                 scm {
                     url = 'https://github.com/Guardsquare/proguard-core.git'
                     connection = 'scm:git:https://github.com/Guardsquare/proguard-core.git'
                 }
+                properties = [
+                        'project.build.sourceEncoding': 'UTF-8'
+                ]
+                // todo: Add <repositories>
+                // todo: Add <distributionManagement>
             }
         }
     }
