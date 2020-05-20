@@ -68,7 +68,9 @@ publishing {
                     developer {
                         id = 'lafortune'
                         name = 'Eric Lafortune'
-                        email = 'eric.lafortune@guardsquare.com'
+                        url = 'https://www.guardsquare.com/proguard'
+                        organization = 'Guardsquare'
+                        organizationUrl = 'https://www.guardsquare.com/'
                         roles = ['Project Administrator', 'Developer']
                     }
                 }
