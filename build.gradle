@@ -1,6 +1,13 @@
+import org.gradle.api.tasks.wrapper.Wrapper
+
 // Gradle build script for ProGuard.
 
 apply plugin: 'java'
+
+wrapper {
+    gradleVersion = '6.4'
+    distributionType = Wrapper.DistributionType.ALL
+}
 
 repositories {
     jcenter()
