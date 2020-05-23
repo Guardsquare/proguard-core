@@ -63,7 +63,6 @@ public class VisualizeControlFlow
      * each code attribute that it visits and then visualizes the control flow.
      */
     private static class MyMethodAnalyzer
-    extends              SimplifiedVisitor
     implements           AttributeVisitor,
                          InstructionVisitor
     {

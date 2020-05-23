@@ -60,7 +60,6 @@ public class CyclomaticComplexity
      * complexity.
      */
     private static class ControlFlowAnalyzer
-    extends              SimplifiedVisitor
     implements           AttributeVisitor,
                          InstructionVisitor,
                          ExceptionInfoVisitor
