@@ -19,7 +19,7 @@ package proguard.classfile.kotlin;
 
 import kotlinx.metadata.*;
 import proguard.classfile.*;
-import proguard.classfile.util.ClassUtil;
+import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
 import proguard.util.*;
 
 import java.util.Map;
@@ -40,10 +40,27 @@ implements   Processable
     }
 
 
+    public void accept(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata, KotlinAnnotationVisitor kotlinAnnotationVisitor)
+    {
+        kotlinAnnotationVisitor.visitTypeAnnotation(clazz, kotlinTypeMetadata, this);
+    }
+
+
+    public void accept(Clazz clazz, KotlinTypeAliasMetadata kotlinTypeAliasMetadata, KotlinAnnotationVisitor kotlinAnnotationVisitor)
+    {
+        kotlinAnnotationVisitor.visitTypeAliasAnnotation(clazz, kotlinTypeAliasMetadata, this);
+    }
+
+
+    public void accept(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata, KotlinAnnotationVisitor kotlinAnnotationVisitor)
+    {
+        kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, kotlinTypeParameterMetadata, this);
+    }
+
     // Implementations for Object.
     @Override
     public String toString()
     {
-        return ClassUtil.externalClassName(kmAnnotation.getClassName()) + "(" + kmAnnotation.getArguments() + ")";
+        return kmAnnotation.getClassName() + "(" + kmAnnotation.getArguments() + ")";
     }
 }

@@ -50,7 +50,7 @@ implements   KotlinMetadataVisitor
     {
         if (this.predicate.test(kotlinSyntheticClassKindMetadata))
         {
-            this.kotlinMetadataVisitor.visitKotlinSyntheticClassMetadata(clazz, kotlinSyntheticClassKindMetadata);
+            kotlinSyntheticClassKindMetadata.accept(clazz, kotlinMetadataVisitor);
         }
     }
 

@@ -84,6 +84,10 @@ implements Processable
         }
     }
 
+    public boolean isParameterless()
+    {
+        return this.valueParameters.isEmpty();
+    }
 
     // Implementations for Object.
     @Override
