@@ -33,8 +33,8 @@ public class KotlinDeclarationContainerFilter
 implements   KotlinMetadataVisitor
 {
     private final Predicate<KotlinDeclarationContainerMetadata> predicate;
-    private final KotlinMetadataVisitor                         acceptedVisitor;
-    private final KotlinMetadataVisitor                         rejectedVisitor;
+    private final KotlinMetadataVisitor acceptedVisitor;
+    private final KotlinMetadataVisitor rejectedVisitor;
 
 
     public KotlinDeclarationContainerFilter(KotlinMetadataVisitor acceptedVisitor)
