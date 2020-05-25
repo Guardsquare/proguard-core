@@ -72,7 +72,7 @@ implements   ClassVisitor
     public void visitProgramClass(ProgramClass programClass)
     {
         // Is this a bottom class in the class hierarchy?
-        ClassVisitor classVisitor = programClass.subClasses == null ?
+        ClassVisitor classVisitor = programClass.subClassCount == 0 ?
             bottomClassVisitor :
             otherClassVisitor;
 
@@ -87,7 +87,7 @@ implements   ClassVisitor
     public void visitLibraryClass(LibraryClass libraryClass)
     {
         // Is this a bottom class in the class hierarchy?
-        ClassVisitor classVisitor = libraryClass.subClasses == null ?
+        ClassVisitor classVisitor = libraryClass.subClassCount == 0 ?
             bottomClassVisitor :
             otherClassVisitor;
 

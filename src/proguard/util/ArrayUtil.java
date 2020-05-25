@@ -26,6 +26,195 @@ import java.util.Arrays;
 public class ArrayUtil
 {
     /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(boolean[] array, int size, boolean value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(byte[] array, int size, byte value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(char[] array, int size, char value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(short[] array, int size, short value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(int[] array, int size, int value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(long[] array, int size, long value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(float[] array, int size, float value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(double[] array, int size, double value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index] == value)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
+     * Returns the index of the given value in the given array.
+     * @param array the array.
+     * @param size  the size of the array to be checked.
+     * @param value the value to look for.
+     * @return the index of the value, or -1 if the value is not present.
+     */
+    public static int indexOf(Object[] array, int size, Object value)
+    {
+        for (int index = 0; index < size; index++)
+        {
+            if (array[index].equals(value))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+
+    /**
      * Returns whether the elements of the two given arrays are the same.
      * @param array1 the first array.
      * @param array2 the second array.
@@ -1601,8 +1790,8 @@ public class ArrayUtil
      *                     extended.
      */
     public static double[] ensureArraySize(double[] array,
-                                         int    size,
-                                         double   initialValue)
+                                           int      size,
+                                           double   initialValue)
     {
         // Is the existing array large enough?
         if (array.length >= size)

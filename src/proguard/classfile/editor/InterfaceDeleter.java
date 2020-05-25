@@ -36,7 +36,11 @@ public class InterfaceDeleter
 implements   ClassVisitor,
              AttributeVisitor
 {
+    /*
     private static final boolean DEBUG = false;
+    /*/
+    private static       boolean DEBUG = System.getProperty("id") != null;
+    //*/
 
 
     private final boolean[] delete;

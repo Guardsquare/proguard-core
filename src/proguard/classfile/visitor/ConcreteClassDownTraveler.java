@@ -62,13 +62,11 @@ implements   ClassVisitor
               AccessConstants.ABSTRACT)) != 0)
         {
             // Travel down the hierarchy.
-            Clazz[] subClasses = programClass.subClasses;
-            if (subClasses != null)
+            int     subClassCount = programClass.subClassCount;
+            Clazz[] subClasses    = programClass.subClasses;
+            for (int index = 0; index < subClassCount; index++)
             {
-                for (int index = 0; index < subClasses.length; index++)
-                {
-                    subClasses[index].accept(this);
-                }
+                subClasses[index].accept(this);
             }
         }
         else
@@ -88,13 +86,11 @@ implements   ClassVisitor
               AccessConstants.ABSTRACT)) != 0)
         {
             // Travel down the hierarchy.
-            Clazz[] subClasses = libraryClass.subClasses;
-            if (subClasses != null)
+            int     subClassCount = libraryClass.subClassCount;
+            Clazz[] subClasses    = libraryClass.subClasses;
+            for (int index = 0; index < subClassCount; index++)
             {
-                for (int index = 0; index < subClasses.length; index++)
-                {
-                    subClasses[index].accept(this);
-                }
+                subClasses[index].accept(this);
             }
         }
         else

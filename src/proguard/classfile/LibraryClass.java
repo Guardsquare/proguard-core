@@ -25,6 +25,8 @@ import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 import proguard.util.*;
 
+import java.util.Arrays;
+
 /**
  * This {@link Clazz} is a compact representation of the essential data in a Java class.
  *
@@ -34,6 +36,8 @@ public class LibraryClass
 extends      SimpleFeatureNamedProcessable
 implements   Clazz
 {
+    private static final Clazz[] EMPTY_CLASSES = new Clazz[0];
+
     public int             u2accessFlags;
     public String          thisClassName;
     public String          superClassName;
@@ -52,13 +56,14 @@ implements   Clazz
      * An extra field pointing to the interfaces of this class.
      * This field is filled out by the {@link ClassSuperHierarchyInitializer}.
      */
-    public Clazz[] interfaceClasses;
+    public Clazz[] interfaceClasses = EMPTY_CLASSES;
 
     /**
      * An extra field pointing to the subclasses of this class.
      * This field is filled out by the {@link ClassSubHierarchyInitializer}.
      */
-    public Clazz[] subClasses;
+    public Clazz[] subClasses = EMPTY_CLASSES;
+    public int     subClassCount;
 
     /**
      * Creates an empty LibraryClass.
@@ -164,44 +169,25 @@ implements   Clazz
 
     public void addSubClass(Clazz clazz)
     {
-        if (subClasses == null)
-        {
-            subClasses = new Clazz[1];
-        }
-        else
-        {
-            // Copy the old elements into new larger array.
-            Clazz[] newSubClasses = new Clazz[subClasses.length+1];
-            System.arraycopy(subClasses, 0, newSubClasses, 0, subClasses.length);
-            subClasses = newSubClasses;
-        }
-
-        subClasses[subClasses.length-1] = clazz;
+        subClasses = ArrayUtil.add(subClasses, subClassCount++, clazz);
     }
 
 
     public void removeSubClass(Clazz clazz)
     {
-        if (subClasses.length == 1)
+        int newIndex = 0;
+        for (int index = 0; index < subClassCount; index++)
         {
-            subClasses = null;
-        }
-        else
-        {
-            // Copy the old elements into new smaller array.
-            Clazz[] newSubClasses = new Clazz[subClasses.length-1];
-
-            int newIndex = 0;
-            for (int index = 0; index < subClasses.length; index++)
+            if (!subClasses[index].equals(clazz))
             {
-                if (!subClasses[index].equals(clazz))
-                {
-                    newSubClasses[newIndex++] = subClasses[index];
-                }
+                subClasses[newIndex++] = subClasses[index];
             }
-
-            subClasses = newSubClasses;
         }
+
+        // Clear the remaining elements.
+        Arrays.fill(subClasses, newIndex, subClassCount, null);
+
+        subClassCount = newIndex;
     }
 
 
@@ -347,7 +333,7 @@ implements   Clazz
                                 boolean      visitSubclasses,
                                 ClassVisitor classVisitor)
     {
-        // First visit the current classfile.
+        // First visit the current class.
         if (visitThisClass)
         {
             accept(classVisitor);
@@ -403,16 +389,13 @@ implements   Clazz
         // Then visit its subclasses, recursively.
         if (visitSubclasses)
         {
-            if (subClasses != null)
+            for (int index = 0; index < subClassCount; index++)
             {
-                for (int index = 0; index < subClasses.length; index++)
-                {
-                    subClasses[index].hierarchyAccept(true,
-                                                      false,
-                                                      false,
-                                                      true,
-                                                      classVisitor);
-                }
+                subClasses[index].hierarchyAccept(true,
+                                                  false,
+                                                  false,
+                                                  true,
+                                                  classVisitor);
             }
         }
     }
@@ -455,12 +438,9 @@ implements   Clazz
 
     public void subclassesAccept(ClassVisitor classVisitor)
     {
-        if (subClasses != null)
+        for (int index = 0; index < subClassCount; index++)
         {
-            for (int index = 0; index < subClasses.length; index++)
-            {
-                subClasses[index].accept(classVisitor);
-            }
+            subClasses[index].accept(classVisitor);
         }
     }
 
