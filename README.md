@@ -12,7 +12,7 @@
 <p align="center">
   <!-- CI -->
   <a href="https://github.com/Guardsquare/proguard-core/actions?query=workflow%3A%22Continuous+Integration%22">
-    <img src="https://github.com/Guardsquare/proguard-core/workflows/Continuous%20Deployment/badge.svg?branch=github-workflow">
+    <img src="https://github.com/Guardsquare/proguard-core/workflows/Continuous%20Integration/badge.svg?branch=github-workflow">
   </a>
 
   <!-- Github version -->
@@ -54,7 +54,7 @@ Assembler and Disassembler](https://github.com/guardsquare/proguard-assembler).
 
 Typical applications:
 
-- Read an write class files, including any Kotlin metadata.
+- Read and write class files, including any Kotlin metadata.
 - Search for instruction patterns.
 - Create byte code instrumentation tools.
 - Analyze code with abstract evaluation.
@@ -62,12 +62,12 @@ Typical applications:
 - Optimize and obfuscate, like ProGuard itself.
 - ... and so much more!
 
-You can find the complete documentation in [here](docs/md).
+You can find the complete documentation [here](docs/md).
 
 ## 🚀 Quick Start
 
 **ProGuard Core** requires Java 1.8 or higher and can be obtained as a pre-built
-artefact from either
+artifact from either
 
 - [JCenter](https://bintray.com/guardsquare/proguard) or
 - [Maven Central](https://search.maven.org/search?q=g:net.sf.proguard).
@@ -107,7 +107,7 @@ of the library and its features in detail:
 👉👉👉<a href="">&nbsp;&nbsp;&nbsp; Manual Pages &nbsp;&nbsp;&nbsp;</a>👈 👈 👈 
 </h3>
 
-Below we'll highlight just a few them in order to better showcase the
+Below we'll highlight just a few of them in order to better showcase the
 capabilities.
 
 - [Creating classes programmatically](#creating-classes-programmatically-manual)
@@ -117,11 +117,11 @@ capabilities.
 
 ### Creating classes programmatically [(manual)](blaat)
 
-Using the fluent style API, it becomes very easy to programmatically create
+Using the fluent API, it becomes very easy to programmatically create
 classes from scratch. The data structures directly correspond to the bytecode
 specifications and ProGuard Core can even preverify the code for you.
 
-You can create classes, with fields and methods, with sequences of
+You can create classes, with fields, methods and sequences of
 instructions. The following concise code creates the iconic `HelloWorld` class:
 
 ```java
@@ -132,8 +132,7 @@ ProgramClass programClass =
         "HelloWorld",
         ClassConstants.NAME_JAVA_LANG_OBJECT)
         .addMethod(
-            AccessConstants.PUBLIC |
-            AccessConstants.STATIC,
+            AccessConstants.PUBLIC | AccessConstants.STATIC,
             "main",
             "([Ljava/lang/String;)V",
             50,
@@ -147,8 +146,8 @@ ProgramClass programClass =
 
 ### Replacing instruction sequences ([manual](blaat))
 
-ProGuard Core has an excellent instruction pattern matching engine able to
-replace specific bytecode instruction sequences.
+ProGuard Core has an excellent instruction pattern matching engine, which is
+able to replace specific bytecode instruction sequences.
 
 For example, the snippet below defines an instruction sequence, including a
 wildcard, and then applies the replacements to all code attributes of all
@@ -167,7 +166,7 @@ programClassPool.classesAccept(
 	new AllMethodVisitor(new AllAttributeVisitor(
 	new PeepholeEditor(branchTargetFinder, codeAttributeEditor,
 	new InstructionSequenceReplacer(constants, replacements, branchTargetFinder,
-                                    codeAttributeEditor)))));
+                                      codeAttributeEditor)))));
 ```
 
 ### Kotlin Metadata [(manual)](blaat)
@@ -186,12 +185,12 @@ programClassPool.classesAccept(
 
 ### Abstract Evaluation [(manual)](blaat)
 
-ProGuard Core provides a number of ways to analyze code, one of the most
+ProGuard Core provides a number of ways to analyze code. One of the most
 powerful techniques is abstract evaluation (closely related to symbolic
 execution). It **executes the code**, but instead of computing with concrete values
-it can compute **with abstract values**.
+it can compute with **abstract values**.
 
-Consider the `getAnswer` method:
+Consider the following `getAnswer` method:
 
 ```java
 private static int getAnswer(int a, int b)
@@ -219,20 +218,20 @@ if possible and requested, the concrete results.
 
 ## 🚧 Projects
 
-Some of the project using ProGuard Core:
+Some of the projects using ProGuard Core:
 
 - [ProGuard]()
 - [Kotlin Metadata Printer]()
 - [ProGuard Assembler/Disassembler]()
 
-If you created your own, make sure to reach out through `github _ at _
+If you've created your own, make sure to reach out through `github _ at _
 guardsquare.com` and we'll add it to the list!
 
 ## 🤝 Contributing
 
-Contributions, issues and feature requests are welcome.  
-Feel free to check [issues](./issues) page if you want to contribute and check
-the [contributing guide](./blob/master/CONTRIBUTING.md).
+Contributions, issues and feature requests are welcome.
+Feel free to check the [issues](./issues) page and the [contributing
+guide](./blob/master/CONTRIBUTING.md) if you would like to contribute.
 
 ## 📝 License
 
