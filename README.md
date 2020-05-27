@@ -62,11 +62,12 @@ Typical applications:
 - Optimize and obfuscate, like ProGuard itself.
 - ... and so much more!
 
-You can find the complete documentation [here](docs/md).
+ProGuard core comes with a short [manual](docs/md) and pretty nice
+[API documentation](src).
 
 ## 🚀 Quick Start
 
-**ProGuard Core** requires Java 1.8 or higher and can be obtained as a pre-built
+**ProGuard Core** requires Java 1.8 or higher. You can download it as a pre-built
 artifact from either
 
 - [JCenter](https://bintray.com/guardsquare/proguard) or
@@ -90,6 +91,7 @@ or Maven:
 ```
 
 ### Building Locally
+
 You can of course also clone and build this repository manually. Using Gradle,
 just execute the assemble task in the project root:
 
@@ -99,12 +101,12 @@ gradle clean assemble
 
 ## ✨ Features
 
-The repository contains some sample code in the [examples]() directory.
+The repository contains some sample code in the [examples](examples) directory.
 Together with the complete set of manual pages they extensively cover the usage
-of the library and its features in detail:
+of the library and its features in more detail:
 
 <h3 align="center">
-👉👉👉<a href="">&nbsp;&nbsp;&nbsp; Manual Pages &nbsp;&nbsp;&nbsp;</a>👈 👈 👈 
+👉👉👉<a href="docs/md">&nbsp;&nbsp;&nbsp; Manual Pages &nbsp;&nbsp;&nbsp;</a>👈 👈 👈
 </h3>
 
 Below we'll highlight just a few of them in order to better showcase the
@@ -115,7 +117,7 @@ capabilities.
 - [Kotlin metadata](#kotlin-metadata-manual)
 - [Code analysis with abstract evaluation](#abstract-evaluation-manual)
 
-### Creating classes programmatically [(manual)](blaat)
+### Creating classes programmatically ([manual](docs/md/creating.md))
 
 Using the fluent API, it becomes very easy to programmatically create
 classes from scratch. The data structures directly correspond to the bytecode
@@ -144,32 +146,33 @@ ProgramClass programClass =
         .getProgramClass();
 ```
 
-### Replacing instruction sequences ([manual](blaat))
+### Replacing instruction sequences ([manual](docs/md/patternmatching.md))
 
-ProGuard Core has an excellent instruction pattern matching engine, which is
-able to replace specific bytecode instruction sequences.
+ProGuard Core has an excellent instruction pattern matching engine, which
+can also replace matched bytecode instruction sequences.
 
 For example, the snippet below defines an instruction sequence, including a
-wildcard, and then applies the replacements to all code attributes of all
-methods of all classes in a class pool.
+wildcard, and replaces it with an equivalent instruction sequence, in all code
+attributes of all methods of all classes in a class pool.
 
 ```java
 Instruction[][] replacements =
 {
-	____.putstatic(X)
-          .getstatic(X).__(),
-	____.dup()
-    	    .putstatic(X).__()
+    ____.putstatic(X)
+        .getstatic(X).__(),
+    ____.dup()
+        .putstatic(X).__()
 };
 ...
 programClassPool.classesAccept(
-	new AllMethodVisitor(new AllAttributeVisitor(
-	new PeepholeEditor(branchTargetFinder, codeAttributeEditor,
-	new InstructionSequenceReplacer(constants, replacements, branchTargetFinder,
-                                      codeAttributeEditor)))));
+    new AllMethodVisitor(
+    new AllAttributeVisitor(
+    new PeepholeEditor(branchTargetFinder, codeAttributeEditor,
+    new InstructionSequenceReplacer(constants, replacements, branchTargetFinder,
+                                    codeAttributeEditor)))));
 ```
 
-### Kotlin Metadata [(manual)](blaat)
+### Kotlin Metadata ([manual](docs/md))
 
 The library makes it easy to read, write and modify the Kotlin metadata that is
 attached to Java classes. The following example prints all the names of Kotlin
@@ -183,7 +186,7 @@ programClassPool.classesAccept(
        (clazz, container, function) -> System.out.println(function.name)))));
 ```
 
-### Abstract Evaluation [(manual)](blaat)
+### Abstract Evaluation ([manual](docs/md/analyzing.md)
 
 ProGuard Core provides a number of ways to analyze code. One of the most
 powerful techniques is abstract evaluation (closely related to symbolic
@@ -206,23 +209,23 @@ slot has a numerical value and its origin (an instruction offset), presented as
 
 | Instruction      | Stack             | v0    | v1    |
 |------------------|-------------------|-------|-------|
-| [0] iconst_2     | [0:2]             | P0:i0 | P1:i1 |
-| [1] iload_0 v0   | [0:2][1:i0]       | P0:i0 | P1:i1 |
+| [0] iconst\_2    | [0:2]             | P0:i0 | P1:i1 |
+| [1] iload\_0 v0  | [0:2][1:i0]       | P0:i0 | P1:i1 |
 | [2] imul         | [2:(2*i0)]        | P0:i0 | P1:i1 |
-| [3] iload_1 v1   | [2:(2*i0)] [3:i1] | P0:i0 | P1:i1 |
+| [3] iload\_1 v1  | [2:(2*i0)] [3:i1] | P0:i0 | P1:i1 |
 | [4] iadd         | [4:((2*i0)+i1)]   | P0:i0 | P1:i1 |
 | [5] ireturn      |                   | P0:i0 | P1:i1 |
 
 At every point ProGuard Core provides access to the symbolic expressions, or
 if possible and requested, the concrete results.
 
-## 🚧 Projects
+## ⚙️ Projects
 
 Some of the projects using ProGuard Core:
 
-- [ProGuard]()
-- [Kotlin Metadata Printer]()
-- [ProGuard Assembler/Disassembler]()
+- [ProGuard](https://gihub.com/Guardsquare/proguard)
+- [Kotlin Metadata Printer](https://gihub.com/Guardsquare/kotlin-metadata-printer)
+- [ProGuard Assembler/Disassembler](https://gihub.com/Guardsquare/proguard-assembler)
 
 If you've created your own, make sure to reach out through `github _ at _
 guardsquare.com` and we'll add it to the list!
@@ -235,5 +238,4 @@ guide](./blob/master/CONTRIBUTING.md) if you would like to contribute.
 
 ## 📝 License
 
-Copyright (c) 2002-2020 [Guardsquare NV](https://www.guardsquare.com/)  
-ProGuard Core is [Apache 2](./blob/master/LICENSE) licensed.
+Copyright (c) 2002-2020 [Guardsquare NV](https://www.guardsquare.com/).  ProGuard Core comes with an [Apache 2 license](LICENSE).
