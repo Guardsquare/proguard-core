@@ -41,6 +41,11 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 ext {
     configureDefaultPublication = {
         groupId = 'net.sf.proguard'
