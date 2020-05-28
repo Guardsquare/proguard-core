@@ -11,7 +11,7 @@ You can download the library in various forms:
 
         :::groovy
         dependencies {
-            compile project(':com.guardsquare:core:7.0.0')
+            compile project(':com.guardsquare:proguard-core:7.0.0')
         }
 
     or
@@ -24,7 +24,7 @@ You can download the library in various forms:
 
     or
 
-        https://jcenter.bintray.com/net/sf/proguard/proguard-core/7.0.0/proguard-core-7.0.0.jar
+        https://jcenter.bintray.com/com/guardsquare/proguard-core/7.0.0/proguard-core-7.0.0.jar
 
 - [Pre-built artifacts](https://search.maven.org/search?q=g:com.guardsquare) at Maven Central
 
