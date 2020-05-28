@@ -23,8 +23,8 @@
   </a>
 
   <!-- Maven -->
-  <a href="https://search.maven.org/search?q=g:net.sf.proguard">
-    <img src="https://img.shields.io/maven-central/v/net.sf.proguard/proguard-parent">
+  <a href="https://search.maven.org/search?q=g:com.guardsquare">
+    <img src="https://img.shields.io/maven-central/v/com.guardsquare/proguard-parent">
   </a>
 
   <!-- License -->
