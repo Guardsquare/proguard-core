@@ -1,3 +1,5 @@
+![Continuous Deployment](https://github.com/Guardsquare/proguard-core/workflows/Continuous%20Deployment/badge.svg?branch=github-workflow)
+
 ProGuard Core
 =============
 
