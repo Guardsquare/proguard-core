@@ -9,7 +9,7 @@ wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
-group = 'net.sf.proguard'
+group = 'com.guardsquare'
 version = '7.0.0'
 
 repositories {

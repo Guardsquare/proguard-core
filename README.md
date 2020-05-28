@@ -30,13 +30,13 @@ You can download the library in various forms:
 - [Pre-built artifacts](https://bintray.com/guardsquare/proguard) at JCenter
 
         dependencies {
-            compile project(':net.sf.proguard:core:7.0.0')
+            compile project(':com.guardsquare:core:7.0.0')
         }
 
     or
 
         <dependency>
-            <groupId>net.sf.proguard</groupId>
+            <groupId>com.guardsquare</groupId>
             <artifactId>proguard-core</artifactId>
             <version>7.0.0</version>
         </dependency>
@@ -45,7 +45,7 @@ You can download the library in various forms:
 
         https://jcenter.bintray.com/net/sf/proguard/proguard-core/7.0.0/proguard-core-7.0.0.jar
 
-- [Pre-built artifacts](https://search.maven.org/search?q=g:net.sf.proguard) at Maven Central
+- [Pre-built artifacts](https://search.maven.org/search?q=g:com.guardsquare) at Maven Central
 
 - A [Git repository of the source code](https://github.com/Guardsquare/proguard-core) at Github
 
