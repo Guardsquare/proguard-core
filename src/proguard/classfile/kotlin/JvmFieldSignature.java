@@ -47,7 +47,7 @@ public class JvmFieldSignature
 
     public String asString()
     {
-        return name + desc;
+        return name + ":" + desc;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class JvmFieldSignature
     @Override
     public String toString()
     {
-        return name + desc;
+        return name + ":" + desc;
     }
 
     // Helper methods to convert from/to Kotlin metadata classes.

@@ -18,7 +18,7 @@
   </a>
 
   <!-- Github version -->
-  <a href="./releases">
+  <a href="releases">
     <img src="https://img.shields.io/github/v/release/guardsquare/proguard-core">
   </a>
 
@@ -28,7 +28,7 @@
   </a>
 
   <!-- License -->
-  <a href="./LICENSE">
+  <a href="LICENSE">
     <img src="https://img.shields.io/github/license/guardsquare/proguard-core">
   </a>
 
@@ -73,20 +73,20 @@ ProGuard core comes with a short [manual](docs/md) and pretty nice
 artifact from either
 
 - [JCenter](https://bintray.com/guardsquare/proguard) or
-- [Maven Central](https://search.maven.org/search?q=g:net.sf.proguard).
+- [Maven Central](https://search.maven.org/search?q=g:com.guardsquare).
 
 Just add it to your project dependencies, e.g. Gradle:
 
 ```gradle
 dependencies {
-    compile project(':net.sf.proguard:core:7.0.0')
+    compile project('com.guardsquare:proguard-core:7.0.0')
 }
 ```
 or Maven:
 
 ```xml
 <dependency>
-    <groupId>net.sf.proguard</groupId>
+    <groupId>com.guardsquare</groupId>
     <artifactId>proguard-core</artifactId>
     <version>7.0.0</version>
 </dependency>
@@ -235,9 +235,10 @@ guardsquare.com` and we'll add it to the list!
 ## 🤝 Contributing
 
 Contributions, issues and feature requests are welcome.
-Feel free to check the [issues](./issues) page and the [contributing
-guide](./blob/master/CONTRIBUTING.md) if you would like to contribute.
+Feel free to check the [issues](issues) page and the [contributing
+guide](blob/master/CONTRIBUTING.md) if you would like to contribute.
 
 ## 📝 License
 
-Copyright (c) 2002-2020 [Guardsquare NV](https://www.guardsquare.com/).  ProGuard Core comes with an [Apache 2 license](LICENSE).
+Copyright (c) 2002-2020 [Guardsquare NV](https://www.guardsquare.com/).
+ProGuard Core is released under the [Apache 2 license](LICENSE).

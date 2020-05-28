@@ -1,0 +1,4 @@
+rootProject.name = 'proguard-core'
+
+include 'pub-github'
+include 'pub-sonatype'

@@ -59,7 +59,6 @@ public class FindBranches
      * may return.
      */
     private static class MyMethodAnalyzer
-    extends              SimplifiedVisitor
     implements           AttributeVisitor,
                          InstructionVisitor
     {

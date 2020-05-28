@@ -1,6 +1,16 @@
-// Gradle build script for ProGuard.
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'signing'
+}
 
-apply plugin: 'java'
+wrapper {
+    gradleVersion = '6.4'
+    distributionType = Wrapper.DistributionType.ALL
+}
+
+group = 'net.sf.proguard'
+version = '7.0.0'
 
 repositories {
     jcenter()
@@ -34,4 +44,78 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
     compile "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        create('proguardCore', MavenPublication) {
+            from components.java
+            pom {
+                name = "[$groupId] $artifactId"
+                description = 'ProGuard Core is a free library to read, analyze, modify, and write Java class files.'
+                url = 'https://www.guardsquare.com/proguard'
+                developers {
+                    developer {
+                        id = 'lafortune'
+                        name = 'Eric Lafortune'
+                        url = 'https://www.guardsquare.com/proguard'
+                        organization = 'Guardsquare'
+                        organizationUrl = 'https://www.guardsquare.com/'
+                        roles = ['Project Administrator', 'Developer']
+                    }
+                }
+                licenses {
+                    license {
+                        name = 'Apache License Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+                issueManagement {
+                    system = 'Github Tracker'
+                    url = 'https://github.com/Guardsquare/proguard-core/issues'
+                }
+                scm {
+                    url = 'https://github.com/Guardsquare/proguard-core.git'
+                    connection = 'scm:git:https://github.com/Guardsquare/proguard-core.git'
+                }
+                properties = [
+                        'project.build.sourceEncoding': 'UTF-8'
+                ]
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'Github'
+            url = uri('https://maven.pkg.github.com/guardsquare/proguard-core')
+            credentials {
+                username = project.findProperty('PROGUARD_GITHUB_USERNAME')
+                password = project.findProperty('PROGUARD_GITHUB_TOKEN')
+            }
+        }
+        maven {
+            name = 'Sonatype'
+            url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+            credentials(PasswordCredentials) {
+                username = findProperty('PROGUARD_STAGING_USERNAME')
+                password = findProperty('PROGUARD_STAGING_PASSWORD')
+            }
+        }
+    }
+}
+
+// We use in-memory ascii-armored keys
+// See https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
+
+signing {
+    String key = findProperty('PROGUARD_SIGNING_KEY')
+    String password = findProperty('PROGUARD_SIGNING_PASSWORD')
+    useInMemoryPgpKeys(key, password)
+    sign publishing.publications.proguardCore
 }

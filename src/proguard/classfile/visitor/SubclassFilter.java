@@ -18,6 +18,7 @@
 package proguard.classfile.visitor;
 
 import proguard.classfile.*;
+import proguard.util.ArrayUtil;
 
 /**
  * This {@link ClassVisitor} delegates its visits to another given
@@ -58,7 +59,8 @@ public class SubclassFilter implements ClassVisitor
     @Override
     public void visitProgramClass(ProgramClass programClass)
     {
-        if (!present(programClass.subClasses))
+        if (!present(programClass.subClasses,
+                     programClass.subClassCount))
         {
             classVisitor.visitProgramClass(programClass);
         }
@@ -68,7 +70,8 @@ public class SubclassFilter implements ClassVisitor
     @Override
     public void visitLibraryClass(LibraryClass libraryClass)
     {
-        if (!present(libraryClass.subClasses))
+        if (!present(libraryClass.subClasses,
+                     libraryClass.subClassCount))
         {
             classVisitor.visitLibraryClass(libraryClass);
         }
@@ -77,21 +80,9 @@ public class SubclassFilter implements ClassVisitor
 
     // Small utility methods.
 
-    private boolean present(Clazz[] subclasses)
+    private boolean present(Clazz[] subClasses,
+                            int     subClassCount)
     {
-        if (subclasses == null)
-        {
-            return false;
-        }
-
-        for (int index = 0; index < subclasses.length; index++)
-        {
-            if (subclasses[index].equals(subclass))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return ArrayUtil.indexOf(subClasses, subClassCount, subclass) >= 0;
     }
 }

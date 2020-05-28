@@ -23,8 +23,13 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.kotlin.KotlinConstants;
 import proguard.classfile.visitor.ClassVisitor;
 
+/**
+ * Delegates to the given {@link ClassVisitor} if the class has the
+ * kotlin.Metadata annotation.
+ *
+ */
 public class KotlinClassFilter
-implements ClassVisitor
+implements   ClassVisitor
 {
     private final ClassVisitor filteredDelegate;
 

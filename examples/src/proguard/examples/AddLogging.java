@@ -71,7 +71,6 @@ public class AddLogging
      * code attribute that it visits.
      */
     private static class MyLoggingAdder
-    extends              SimplifiedVisitor
     implements           AttributeVisitor
     {
         private CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor(true, true);

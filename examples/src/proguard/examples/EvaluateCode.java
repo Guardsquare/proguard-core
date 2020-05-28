@@ -138,7 +138,6 @@ public class EvaluateCode
      * about the its stack and local variables after each instruction.
      */
     private static class MyEvaluationResultPrinter
-    extends              SimplifiedVisitor
     implements           AttributeVisitor,
                          InstructionVisitor
     {

@@ -20,8 +20,9 @@ package proguard.classfile.kotlin;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.KotlinClassFlags;
 import proguard.classfile.kotlin.visitor.*;
+import proguard.classfile.visitor.ClassVisitor;
 
-import java.util.*;
+import java.util.List;
 
 import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_CLASS;
 
@@ -36,7 +37,7 @@ extends KotlinDeclarationContainerMetadata
 
     public String companionObjectName;
     public Clazz  referencedCompanionClass;
-    public Field referencedCompanionField;
+    public Field  referencedCompanionField;
 
     public List<KotlinConstructorMetadata> constructors;
 
@@ -90,6 +91,31 @@ extends KotlinDeclarationContainerMetadata
     }
 
 
+    public void nestedClassesAccept(boolean visitCompanion, ClassVisitor classVisitor)
+    {
+        for (Clazz nestedClazz : referencedNestedClasses) {
+            if (!visitCompanion && nestedClazz == referencedCompanionClass)
+            {
+                continue;
+            }
+
+            if (nestedClazz != null)
+            {
+                nestedClazz.accept(classVisitor);
+            }
+        }
+    }
+
+
+    public void sealedSubclassesAccept(ClassVisitor classVisitor)
+    {
+        for (Clazz sealedSubclass : referencedSealedSubClasses)
+        {
+            sealedSubclass.accept(classVisitor);
+        }
+    }
+
+
     public void superTypesAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor)
     {
         for (KotlinTypeMetadata superType : superTypes)
@@ -117,7 +143,7 @@ extends KotlinDeclarationContainerMetadata
     }
 
 
-    public void versionRequirementAccept(Clazz                                   clazz,
+    public void versionRequirementAccept(Clazz                           clazz,
                                          KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor)
     {
         if (versionRequirement != null)

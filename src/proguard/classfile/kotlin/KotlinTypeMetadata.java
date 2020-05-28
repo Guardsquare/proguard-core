@@ -177,7 +177,7 @@ implements   Processable
     }
 
 
-    protected boolean isStarProjection()
+    public boolean isStarProjection()
     {
         return false;
     }
@@ -198,7 +198,7 @@ implements   Processable
         KotlinStarProjectionMetadata() { super(0); }
 
         @Override
-        protected boolean isStarProjection()
+        public boolean isStarProjection()
         {
             return true;
         }

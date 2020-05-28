@@ -153,6 +153,11 @@ implements   Processable
     }
 
 
+    public boolean isVarArg()
+    {
+        return this.varArgElementType != null;
+    }
+
     // Implementations for Object.
     @Override
     public String toString()

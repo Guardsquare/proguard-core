@@ -33,10 +33,17 @@ public class KotlinConstants
 
     public static final char INNER_CLASS_SEPARATOR = '.';
 
-    public static final String NAME_KOTLIN_METADATA                  = "kotlin/Metadata";
-    public static final String NAME_KOTLIN_COROUTINES_DEBUG_METADATA = "kotlin/coroutines/jvm/internal/DebugMetadata";
-    public static final String TYPE_KOTLIN_METADATA                  = "Lkotlin/Metadata;";
-    public static final String TYPE_KOTLIN_JVM_JVMNAME               = "Lkotlin/jvm/JvmName;";
+    public static final String NAME_KOTLIN_METADATA                   = "kotlin/Metadata";
+    public static final String TYPE_KOTLIN_METADATA                   = "Lkotlin/Metadata;";
+    public static final String NAME_KOTLIN_ANY                        = "kotlin/Any";
+    public static final String NAME_KOTLIN_UNIT                       = "kotlin/Unit";
+    public static final String NAME_KOTLIN_ENUM                       = "kotlin/Enum";
+    public static final String NAME_KOTLIN_FUNCTION                   = "kotlin/Function"; // kotlin/Function and also kotlin/FunctionN
+    public static final String NAME_KOTLIN_EXTENSION_FUNCTION         = "kotlin/ExtensionFunctionType";
+    public static final String NAME_KOTLIN_PARAMETER_NAME             = "kotlin/ParameterName";
+    public static final String NAME_KOTLIN_COROUTINES_DEBUG_METADATA  = "kotlin/coroutines/jvm/internal/DebugMetadata";
+    public static final String TYPE_KOTLIN_JVM_JVMNAME                = "Lkotlin/jvm/JvmName;";
+    public static final String TYPE_KOTLIN_DEFAULT_CONSTRUCTOR_MARKER = "Lkotlin/jvm/internal/DefaultConstructorMarker;";
 
     public static final String DEFAULT_METHOD_SUFFIX                 = "$default";
     public static final String DEFAULT_IMPLEMENTATIONS_SUFFIX        = "$DefaultImpls";
@@ -186,6 +193,21 @@ public class KotlinConstants
         javaToKotlinTypeMap.put("java/util/Map",          "kotlin/collections/Map");
         javaToKotlinTypeMap.put("java/util/Map$Entry",    "kotlin/collections/Map$Entry");
     }
+
+
+    public static String metadataKindToString(int kind)
+    {
+        switch (kind)
+        {
+            case METADATA_KIND_CLASS:                   return "class";
+            case METADATA_KIND_FILE_FACADE:             return "file facade";
+            case METADATA_KIND_SYNTHETIC_CLASS:         return "synthetic class";
+            case METADATA_KIND_MULTI_FILE_CLASS_FACADE: return "multi-file class facade";
+            case METADATA_KIND_MULTI_FILE_CLASS_PART:   return "multi-file class part";
+            default:                                    return "unknown";
+        }
+    }
+
 
     public static final ClassPool dummyClassPool = new ClassPool()
     {

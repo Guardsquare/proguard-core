@@ -177,7 +177,7 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitKotlinMultiFilePartMetadata(Clazz clazz,
+    public void visitKotlinMultiFilePartMetadata(Clazz                           clazz,
                                                  KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata)
     {
         println("_____________________________________________________________________");
@@ -197,8 +197,8 @@ implements KotlinMetadataVisitor,
 
 
     @Override
-    public void visitConstructor(Clazz clazz,
-                                 KotlinClassKindMetadata kotlinClassKindMetadata,
+    public void visitConstructor(Clazz                     clazz,
+                                 KotlinClassKindMetadata   kotlinClassKindMetadata,
                                  KotlinConstructorMetadata kotlinConstructorMetadata)
     {
         print("[CTOR] ");
@@ -264,10 +264,10 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitPropertyValParameter(Clazz clazz,
+    public void visitPropertyValParameter(Clazz                              clazz,
                                           KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                          KotlinPropertyMetadata kotlinPropertyMetadata,
-                                          KotlinValueParameterMetadata kotlinValueParameterMetadata)
+                                          KotlinPropertyMetadata             kotlinPropertyMetadata,
+                                          KotlinValueParameterMetadata       kotlinValueParameterMetadata)
     {
         visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
 
@@ -277,9 +277,9 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitFunctionValParameter(Clazz clazz,
-                                          KotlinMetadata kotlinMetadata,
-                                          KotlinFunctionMetadata kotlinFunctionMetadata,
+    public void visitFunctionValParameter(Clazz                        clazz,
+                                          KotlinMetadata               kotlinMetadata,
+                                          KotlinFunctionMetadata       kotlinFunctionMetadata,
                                           KotlinValueParameterMetadata kotlinValueParameterMetadata)
     {
         visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
@@ -290,9 +290,9 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitConstructorValParameter(Clazz clazz,
-                                             KotlinClassKindMetadata kotlinClassKindMetadata,
-                                             KotlinConstructorMetadata kotlinConstructorMetadata,
+    public void visitConstructorValParameter(Clazz                        clazz,
+                                             KotlinClassKindMetadata      kotlinClassKindMetadata,
+                                             KotlinConstructorMetadata    kotlinConstructorMetadata,
                                              KotlinValueParameterMetadata kotlinValueParameterMetadata)
     {
         visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
@@ -305,9 +305,9 @@ implements KotlinMetadataVisitor,
     // Implementations for KotlinPropertyVisitor
 
     @Override
-    public void visitAnyProperty(Clazz clazz,
+    public void visitAnyProperty(Clazz                              clazz,
                                  KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                 KotlinPropertyMetadata kotlinPropertyMetadata)
+                                 KotlinPropertyMetadata             kotlinPropertyMetadata)
     {
         print(
             propertyFlags(kotlinPropertyMetadata.flags) +
@@ -387,9 +387,9 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitProperty(Clazz clazz,
+    public void visitProperty(Clazz                              clazz,
                               KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                              KotlinPropertyMetadata kotlinPropertyMetadata)
+                              KotlinPropertyMetadata             kotlinPropertyMetadata)
     {
         print("[PROP] ");
 
@@ -397,9 +397,9 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitDelegatedProperty(Clazz clazz,
+    public void visitDelegatedProperty(Clazz                              clazz,
                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                       KotlinPropertyMetadata kotlinPropertyMetadata)
+                                       KotlinPropertyMetadata             kotlinPropertyMetadata)
     {
         print("[DPRP] ");
 
@@ -418,7 +418,7 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitAbbreviation(Clazz clazz,
+    public void visitAbbreviation(Clazz              clazz,
                                   KotlinTypeMetadata kotlinTypeMetadata,
                                   KotlinTypeMetadata abbreviation)
     {
@@ -429,7 +429,7 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitOuterClass(Clazz clazz,
+    public void visitOuterClass(Clazz              clazz,
                                 KotlinTypeMetadata innerClass,
                                 KotlinTypeMetadata outerClass)
     {
@@ -440,7 +440,7 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitTypeArgument(Clazz clazz,
+    public void visitTypeArgument(Clazz              clazz,
                                   KotlinTypeMetadata kotlinTypeMetadata,
                                   KotlinTypeMetadata typeArgument)
     {
@@ -451,14 +451,14 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitStarProjection(Clazz clazz,
+    public void visitStarProjection(Clazz              clazz,
                                     KotlinTypeMetadata typeWithStarArg)
     {
         println("[SARG] *");
     }
 
     @Override
-    public void visitTypeUpperBound(Clazz clazz,
+    public void visitTypeUpperBound(Clazz              clazz,
                                     KotlinTypeMetadata boundedType,
                                     KotlinTypeMetadata upperBound)
     {
@@ -531,10 +531,10 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitAliasUnderlyingType(Clazz clazz,
+    public void visitAliasUnderlyingType(Clazz                              clazz,
                                          KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                         KotlinTypeAliasMetadata kotlinTypeAliasMetadata,
-                                         KotlinTypeMetadata kotlinTypeMetadata)
+                                         KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
+                                         KotlinTypeMetadata                 kotlinTypeMetadata)
     {
         print("[UNDR] ");
         indent();
@@ -543,10 +543,10 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitAliasExpandedType(Clazz clazz,
+    public void visitAliasExpandedType(Clazz                              clazz,
                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                       KotlinTypeAliasMetadata kotlinTypeAliasMetadata,
-                                       KotlinTypeMetadata kotlinTypeMetadata)
+                                       KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
+                                       KotlinTypeMetadata                 kotlinTypeMetadata)
     {
         print("[XPAN] ");
         indent();
@@ -579,9 +579,9 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitParameterUpperBound(Clazz clazz,
+    public void visitParameterUpperBound(Clazz                       clazz,
                                          KotlinTypeParameterMetadata boundedTypeParameter,
-                                         KotlinTypeMetadata upperBound)
+                                         KotlinTypeMetadata          upperBound)
     {
         print("[UPPB] ");
         indent();
@@ -593,9 +593,9 @@ implements KotlinMetadataVisitor,
     // Implementations for KotlinTypeAliasVisitor.
 
     @Override
-    public void visitTypeAlias(Clazz clazz,
+    public void visitTypeAlias(Clazz                              clazz,
                                KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                               KotlinTypeAliasMetadata kotlinTypeAliasMetadata)
+                               KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
     {
         println("[ALIA] " + hasAnnotationsFlag(kotlinTypeAliasMetadata.flags.common) +
                             hasRefIndicator(kotlinTypeAliasMetadata.referencedDeclarationContainer) +
@@ -643,8 +643,8 @@ implements KotlinMetadataVisitor,
     // Implementations for KotlinFunctionVisitor.
 
     @Override
-    public void visitAnyFunction(Clazz clazz,
-                                 KotlinMetadata kotlinMetadata,
+    public void visitAnyFunction(Clazz                  clazz,
+                                 KotlinMetadata         kotlinMetadata,
                                  KotlinFunctionMetadata kotlinFunctionMetadata)
     {
         String referencedMethodClassNamePrefix =
@@ -713,7 +713,7 @@ implements KotlinMetadataVisitor,
     // Implementations for KotlinAnnotationVisitor.
 
     @Override
-    public void visitAnyAnnotation(Clazz clazz,
+    public void visitAnyAnnotation(Clazz                    clazz,
                                    KotlinMetadataAnnotation annotation)
     {
         println("[ANTN] " +
@@ -740,11 +740,11 @@ implements KotlinMetadataVisitor,
     // Implementations for KotlinEffectVisitor.
 
     @Override
-    public void visitEffect(Clazz clazz,
-                            KotlinMetadata kotlinMetadata,
+    public void visitEffect(Clazz                  clazz,
+                            KotlinMetadata         kotlinMetadata,
                             KotlinFunctionMetadata kotlinFunctionMetadata,
                             KotlinContractMetadata kotlinContractMetadata,
-                            KotlinEffectMetadata kotlinEffectMetadata)
+                            KotlinEffectMetadata   kotlinEffectMetadata)
     {
         print("[EFFT] ");
         pw.print(kotlinEffectMetadata.effectType);
@@ -768,8 +768,8 @@ implements KotlinMetadataVisitor,
     // Implementations for KotlinEffectExprVisitor.
 
     @Override
-    public void visitAnyEffectExpression(Clazz clazz,
-                                         KotlinEffectMetadata kotlinEffectMetadata,
+    public void visitAnyEffectExpression(Clazz                          clazz,
+                                         KotlinEffectMetadata           kotlinEffectMetadata,
                                          KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
     {
         boolean hasRightHandSides = !kotlinEffectExpressionMetadata.orRightHandSides.isEmpty() ||
@@ -821,8 +821,8 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitAndRHSExpression(Clazz clazz,
-                                      KotlinEffectMetadata kotlinEffectMetadata,
+    public void visitAndRHSExpression(Clazz                          clazz,
+                                      KotlinEffectMetadata           kotlinEffectMetadata,
                                       KotlinEffectExpressionMetadata lhs,
                                       KotlinEffectExpressionMetadata rhs)
     {
@@ -831,8 +831,8 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitOrRHSExpression(Clazz clazz,
-                                     KotlinEffectMetadata kotlinEffectMetadata,
+    public void visitOrRHSExpression(Clazz                          clazz,
+                                     KotlinEffectMetadata           kotlinEffectMetadata,
                                      KotlinEffectExpressionMetadata lhs,
                                      KotlinEffectExpressionMetadata rhs)
     {

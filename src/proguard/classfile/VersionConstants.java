@@ -52,6 +52,8 @@ public class VersionConstants
     public static final int CLASS_VERSION_12_MINOR  = 0;
     public static final int CLASS_VERSION_13_MAJOR  = 57;
     public static final int CLASS_VERSION_13_MINOR  = 0;
+    public static final int CLASS_VERSION_14_MAJOR  = 58;
+    public static final int CLASS_VERSION_14_MINOR  = 0;
 
     public static final int CLASS_VERSION_1_0 = (CLASS_VERSION_1_0_MAJOR << 16) | CLASS_VERSION_1_0_MINOR;
     public static final int CLASS_VERSION_1_2 = (CLASS_VERSION_1_2_MAJOR << 16) | CLASS_VERSION_1_2_MINOR;
@@ -66,4 +68,5 @@ public class VersionConstants
     public static final int CLASS_VERSION_11  = (CLASS_VERSION_11_MAJOR  << 16) | CLASS_VERSION_11_MINOR;
     public static final int CLASS_VERSION_12  = (CLASS_VERSION_12_MAJOR  << 16) | CLASS_VERSION_12_MINOR;
     public static final int CLASS_VERSION_13  = (CLASS_VERSION_13_MAJOR  << 16) | CLASS_VERSION_13_MINOR;
+    public static final int CLASS_VERSION_14  = (CLASS_VERSION_14_MAJOR  << 16) | CLASS_VERSION_14_MINOR;
 }
