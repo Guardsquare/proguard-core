@@ -1,7 +1,9 @@
 <p align="center">
+  <br />
+  <br />
   <a href="https://www.guardsquare.com/en/products/proguard">
     <img
-      src="https://mma.prnewswire.com/media/750323/ProGuard_Logo.jpg?p=publish"
+      src="https://www.guardsquare.com/sites/default/files/media/ProGuard-CORE-logo.png"
       alt="ProGuard Core" width="400">
   </a>
 </p>
