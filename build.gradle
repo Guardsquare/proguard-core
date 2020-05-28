@@ -46,6 +46,24 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
 }
 
+task buildReleasePackage(type: Copy) {
+    from compileJava
+    from processResources
+    from('examples') {
+        into 'examples'
+    }
+    destinationDir = file("$buildDir/release")
+}
+
+task buildZipPackage(type: Zip) {
+    from buildReleasePackage
+}
+
+task buildTarPackage(type: Tar) {
+    from buildReleasePackage
+    compression = Compression.GZIP
+}
+
 java {
     withSourcesJar()
     withJavadocJar()
