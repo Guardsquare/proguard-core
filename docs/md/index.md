@@ -1,4 +1,4 @@
-**ProGuard Core** is a free library to read, analyze, modify, and write Java
+**ProGuardCORE** is a free library to read, analyze, modify, and write Java
 class files. It is the core of the well-known shrinker, optimizer, and
 obfuscator [ProGuard](https://www.guardsquare.com/proguard) and of the
 [ProGuard Assembler and
@@ -67,5 +67,5 @@ can execute such commands by applying the visitors to the data classes.
 
 ## API
 
-You can find the complete API in the [ProGuard Core
+You can find the complete API in the [ProGuardCORE
 javadoc](../api/index.html).

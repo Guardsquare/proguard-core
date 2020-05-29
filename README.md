@@ -4,7 +4,7 @@
   <a href="https://www.guardsquare.com/en/products/proguard">
     <img
       src="https://www.guardsquare.com/sites/default/files/media/ProGuard-CORE-logo.png"
-      alt="ProGuard Core" width="400">
+      alt="ProGuardCORE" width="400">
   </a>
 </p>
 
@@ -49,7 +49,7 @@
 </p>
 <br />
 
-ProGuard Core is a free library to read, analyze, modify, and write Java class
+ProGuardCORE is a free library to read, analyze, modify, and write Java class
 files. It is the core of the well-known shrinker, optimizer, and obfuscator
 [ProGuard](https://www.guardsquare.com/proguard) and of the [ProGuard
 Assembler and Disassembler](https://github.com/guardsquare/proguard-assembler).
@@ -69,7 +69,7 @@ ProGuard core comes with a short [manual](docs/md) and pretty nice
 
 ## 🚀 Quick Start
 
-**ProGuard Core** requires Java 1.8 or higher. You can download it as a pre-built
+**ProGuardCORE** requires Java 1.8 or higher. You can download it as a pre-built
 artifact from either
 
 - [JCenter](https://bintray.com/guardsquare/proguard) or
@@ -123,7 +123,7 @@ capabilities.
 
 Using the fluent API, it becomes very easy to programmatically create
 classes from scratch. The data structures directly correspond to the bytecode
-specifications and ProGuard Core can even preverify the code for you.
+specifications and ProGuardCORE can even preverify the code for you.
 
 You can create classes, with fields, methods and sequences of
 instructions. The following concise code creates the iconic `HelloWorld` class:
@@ -150,7 +150,7 @@ ProgramClass programClass =
 
 ### Replacing instruction sequences ([manual](docs/md/patternmatching.md))
 
-ProGuard Core has an excellent instruction pattern matching engine, which
+ProGuardCORE has an excellent instruction pattern matching engine, which
 can also replace matched bytecode instruction sequences.
 
 For example, the snippet below defines an instruction sequence, including a
@@ -190,7 +190,7 @@ programClassPool.classesAccept(
 
 ### Abstract Evaluation ([manual](docs/md/analyzing.md)
 
-ProGuard Core provides a number of ways to analyze code. One of the most
+ProGuardCORE provides a number of ways to analyze code. One of the most
 powerful techniques is abstract evaluation (closely related to symbolic
 execution). It **executes the code**, but instead of computing with concrete values
 it can compute with **abstract values**.
@@ -218,12 +218,12 @@ slot has a numerical value and its origin (an instruction offset), presented as
 | [4] iadd         | [4:((2*i0)+i1)]   | P0:i0 | P1:i1 |
 | [5] ireturn      |                   | P0:i0 | P1:i1 |
 
-At every point ProGuard Core provides access to the symbolic expressions, or
+At every point ProGuardCORE provides access to the symbolic expressions, or
 if possible and requested, the concrete results.
 
 ## ⚙️ Projects
 
-Some of the projects using ProGuard Core:
+Some of the projects using ProGuardCORE:
 
 - [ProGuard](https://gihub.com/Guardsquare/proguard)
 - [Kotlin Metadata Printer](https://gihub.com/Guardsquare/kotlin-metadata-printer)
@@ -241,4 +241,4 @@ guide](blob/master/CONTRIBUTING.md) if you would like to contribute.
 ## 📝 License
 
 Copyright (c) 2002-2020 [Guardsquare NV](https://www.guardsquare.com/).
-ProGuard Core is released under the [Apache 2 license](LICENSE).
+ProGuardCORE is released under the [Apache 2 license](LICENSE).

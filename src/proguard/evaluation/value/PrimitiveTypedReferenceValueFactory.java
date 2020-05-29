@@ -1,5 +1,5 @@
 /*
- * ProGuard Core -- library to process Java bytecode.
+ * ProGuardCORE -- library to process Java bytecode.
  *
  * Copyright (c) 2002-2020 Guardsquare NV
  *

@@ -1,8 +1,8 @@
-The **ProGuard Core** library is distributed under the terms of the Apache
+The **ProGuardCORE** library is distributed under the terms of the Apache
 License Version 2.0. Please consult the [license page](license.md) for more
 details.
 
-ProGuard Core is written in Java, so it requires a Java Runtime Environment
+ProGuardCORE is written in Java, so it requires a Java Runtime Environment
 (JRE 1.8 or higher).
 
 You can download the library in various forms:

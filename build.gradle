@@ -33,7 +33,7 @@ sourceSets.main {
 }
 
 javadoc {
-    title          = 'ProGuard Core'
+    title          = 'ProGuardCORE'
     source         = sourceSets.main.allJava
     classpath      = configurations.compile
     destinationDir = file('docs/api')
@@ -57,7 +57,7 @@ publishing {
             from components.java
             pom {
                 name = "[$groupId] $artifactId"
-                description = 'ProGuard Core is a free library to read, analyze, modify, and write Java class files.'
+                description = 'ProGuardCORE is a free library to read, analyze, modify, and write Java class files.'
                 url = 'https://www.guardsquare.com/proguard'
                 developers {
                     developer {

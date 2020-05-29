@@ -1,4 +1,4 @@
-If you've downloaded the source code of the **ProGuard Core** library, you can
+If you've downloaded the source code of the **ProGuardCORE** library, you can
 build it in a number of ways:
 
 - build.gradle : a Gradle build file for all platforms.

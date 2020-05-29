@@ -1,8 +1,8 @@
 ###################################################################
 # Project information
 ###################################################################
-site_name:        ProGuard Core
-site_description: The ProGuard Core library
+site_name:        ProGuardCORE
+site_description: The ProGuardCORE library
 site_author:      Guardsquare NV
 copyright:        Copyright &copy; 2002-2020 Guardsquare NV
 
