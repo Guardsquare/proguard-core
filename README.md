@@ -24,7 +24,7 @@
 
   <!-- Maven -->
   <a href="https://search.maven.org/search?q=g:com.guardsquare">
-    <img src="https://img.shields.io/maven-central/v/com.guardsquare/proguard-parent">
+    <img src="https://img.shields.io/maven-central/v/com.guardsquare/proguard-core">
   </a>
 
   <!-- License -->
