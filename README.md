@@ -54,7 +54,7 @@ files. It is the core of the well-known shrinker, optimizer, and obfuscator
 [ProGuard](https://www.guardsquare.com/proguard), the [ProGuard
 Assembler and Disassembler](https://github.com/guardsquare/proguard-assembler),
 and the [Kotlin Metadata
-Printer](https://gihub.com/Guardsquare/kotlin-metadata-printer).
+Printer](https://github.com/Guardsquare/kotlin-metadata-printer).
 
 Typical applications:
 
@@ -227,9 +227,9 @@ if possible and requested, the concrete results.
 
 Some of the projects using ProGuardCORE:
 
-- [ProGuard](https://gihub.com/Guardsquare/proguard)
-- [Kotlin Metadata Printer](https://gihub.com/Guardsquare/kotlin-metadata-printer)
-- [ProGuard Assembler/Disassembler](https://gihub.com/Guardsquare/proguard-assembler)
+- [ProGuard](https://github.com/Guardsquare/proguard)
+- [Kotlin Metadata Printer](https://github.com/Guardsquare/kotlin-metadata-printer)
+- [ProGuard Assembler/Disassembler](https://github.com/Guardsquare/proguard-assembler)
 
 If you've created your own, make sure to reach out through `github _ at _
 guardsquare.com` and we'll add it to the list!
