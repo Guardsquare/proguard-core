@@ -9,8 +9,8 @@ jobs:
         working-directory: docs/html
         run: |
           git init
-          git config user.name "guardsquare-ci"
-          git config user.email "guardsquare-ci@guardsquare.com"
+          git config user.name "Eric Salemi"
+          git config user.email "eric.salemi@guardsquare.com"
           git add .
           git commit -m "Deploy documentation to Github pages"
-          git push --force --quiet https://${{secrets.PROGUARD_GITHUB_TOKEN}}@github.com/Guardsquare/proguard-core master:gh-pages
+          git push --force --quiet https://${{secrets.ERIC_SALEMI_TOKEN}}@github.com/Guardsquare/proguard-core master:gh-pages
