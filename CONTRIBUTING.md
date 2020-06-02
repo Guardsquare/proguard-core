@@ -1,4 +1,4 @@
-# Contributing to ProGuard Core
+# Contributing to ProGuardCORE
 
 Thank you for contributing!
 

@@ -1,4 +1,4 @@
-The ProGuard Core library is licensed under the Apache License Version 2.0.
+The ProGuardCORE library is licensed under the Apache License Version 2.0.
 
 Copyright 2002-2020 Guardsquare NV
 
