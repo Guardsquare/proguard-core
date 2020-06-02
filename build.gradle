@@ -40,6 +40,11 @@ javadoc {
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
+task buildDocumentation(type: Exec) {
+    executable 'sh'
+    args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:5.2.2 build"
+}
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
