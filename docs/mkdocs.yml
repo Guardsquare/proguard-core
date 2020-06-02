@@ -10,14 +10,11 @@ copyright:        Copyright &copy; 2002-2020 Guardsquare NV
 # Options
 ###################################################################
 theme:
-  name:       null
-  custom_dir: ../../../mkdocs/material
-  logo:       img/core.png
-  favicon:    img/guardsquare.png
-  language:   en
-  palette:    blue
-  font:
-  feature:
+  name: material
+  logo: img/core.png
+  favicon: img/guardsquare.png
+  language: en
+  palette: blue
 
 docs_dir: md
 site_dir: html
@@ -36,12 +33,12 @@ extra:
   #  text: 'Droid Sans'
   #  code: 'Ubuntu Mono'
   social:
-  - type: 'twitter'
-    link: 'https://twitter.com/guardsquare'
-  - type: 'linkedin'
-    link: 'https://www.linkedin.com/company/guardsquare-nv'
-  - type: 'facebook'
-    link: 'https://www.facebook.com/guardsquare'
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/guardsquare
+  - icon: fontawesome/brands/linkedin
+    link: https://www.linkedin.com/company/guardsquare-nv
+  - icon: fontawesome/brands/facebook
+    link: https://www.facebook.com/guardsquare
   #feature:
   #  tabs: true
 

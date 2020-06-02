@@ -2,3 +2,5 @@ build
 .gradle
 *.iml
 /docs/api/
+/docs/html/
+/venv/
