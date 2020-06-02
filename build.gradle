@@ -36,7 +36,7 @@ javadoc {
     title          = 'ProGuardCORE'
     source         = sourceSets.main.allJava
     classpath      = configurations.compile
-    destinationDir = file('docs/api')
+    destinationDir = file('docs/md/api')
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
