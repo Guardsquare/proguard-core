@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - run: docker run --user `id -u` --volume $GITHUB_WORKSPACE/docs:/docs squidfunk/mkdocs-material:5.2.2 build
       - name: Publish to Github pages
         working-directory: docs/html
