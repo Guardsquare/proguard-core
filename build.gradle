@@ -41,6 +41,7 @@ javadoc {
 }
 
 task buildDocumentation(type: Exec) {
+    dependsOn javadoc
     executable 'sh'
     args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:5.2.2 build"
 }
