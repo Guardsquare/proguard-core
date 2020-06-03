@@ -42,6 +42,9 @@ javadoc {
 
 task buildDocumentation(type: Exec) {
     dependsOn javadoc
+    inputs.dir 'docs/md'
+    inputs.file 'docs/mkdocs.yml'
+    outputs.dir 'docs/html'
     executable 'sh'
     args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:5.2.2 build"
 }
