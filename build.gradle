@@ -49,6 +49,11 @@ task buildDocumentation(type: Exec) {
     args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:5.2.2 build"
 }
 
+clean {
+    delete javadoc.outputs
+    delete buildDocumentation.outputs
+}
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
