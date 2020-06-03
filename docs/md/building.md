@@ -20,4 +20,4 @@ You can also build the complete API documentation with
 
     gradle javadoc
 
-You can then find the [API documentation](../api/index.html) in `docs/api`.
+You can then find the [API documentation](api/index.html) in `docs/api`.

@@ -68,4 +68,4 @@ can execute such commands by applying the visitors to the data classes.
 ## API
 
 You can find the complete API in the [ProGuardCORE
-javadoc](../api/index.html).
+javadoc](api/index.html).

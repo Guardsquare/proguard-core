@@ -36,8 +36,22 @@ javadoc {
     title          = 'ProGuardCORE'
     source         = sourceSets.main.allJava
     classpath      = configurations.compile
-    destinationDir = file('docs/api')
+    destinationDir = file('docs/md/api')
     options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+task buildDocumentation(type: Exec) {
+    dependsOn javadoc
+    inputs.dir 'docs/md'
+    inputs.file 'docs/mkdocs.yml'
+    outputs.dir 'docs/html'
+    executable 'sh'
+    args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:5.2.2 build"
+}
+
+clean {
+    delete javadoc.outputs
+    delete buildDocumentation.outputs
 }
 
 dependencies {

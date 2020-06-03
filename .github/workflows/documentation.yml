@@ -1,3 +1,4 @@
+name: Documentation
 on:
   pull_request:
     branches:
@@ -9,9 +10,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - run: docker run --user `id -u` --volume $GITHUB_WORKSPACE/docs:/docs squidfunk/mkdocs-material:5.2.2 build
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: buildDocumentation
       - name: Publish to Github pages
+        if: github.event_name == 'push'
         working-directory: docs/html
         run: |
           git init
