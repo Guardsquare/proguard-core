@@ -23,6 +23,5 @@ sourceSets.main {
 }
 
 dependencies {
-    //compile project('com.guardsquare:proguard-core:7.0.0')
-    compile files("../../core/build/classes/java/main")
+    compile 'com.guardsquare:proguard-core:7.0.0'
 }
