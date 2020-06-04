@@ -19,8 +19,8 @@ theme:
 docs_dir: md
 site_dir: html
 
-#extra_css:
-#  - extra.css
+extra_css:
+  - extra.css
 
 use_directory_urls: false
 #strict: true # broken links are errors
@@ -33,6 +33,8 @@ extra:
   #  text: 'Droid Sans'
   #  code: 'Ubuntu Mono'
   social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/Guardsquare/proguard-core
   - icon: fontawesome/brands/twitter
     link: https://twitter.com/guardsquare
   - icon: fontawesome/brands/linkedin
