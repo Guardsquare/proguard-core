@@ -70,7 +70,9 @@ distributions {
     main {
         contents {
             into('docs') {
-                from('docs/md')
+                from('docs/md') {
+                    include '*.md'
+                }
             }
             from(rootDir) {
                 include 'examples/'
