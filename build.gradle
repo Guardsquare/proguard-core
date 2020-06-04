@@ -1,4 +1,5 @@
 plugins {
+    id 'distribution'
     id 'java'
     id 'maven-publish'
     id 'signing'
@@ -63,6 +64,19 @@ dependencies {
 java {
     withSourcesJar()
     withJavadocJar()
+}
+
+distributions {
+    main {
+        contents {
+            into('docs') {
+                from(buildDocumentation)
+            }
+            from(rootDir) {
+                include 'examples/'
+            }
+        }
+    }
 }
 
 publishing {
