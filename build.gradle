@@ -70,7 +70,7 @@ distributions {
     main {
         contents {
             into('docs') {
-                from(buildDocumentation)
+                from('docs/md')
             }
             from(rootDir) {
                 include 'examples/'
