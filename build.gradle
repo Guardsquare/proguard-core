@@ -83,6 +83,11 @@ distributions {
     }
 }
 
+distTar {
+    compression = Compression.GZIP
+    archiveExtension.set('tar.gz')
+}
+
 publishing {
     publications {
         create('proguardCore', MavenPublication) {
