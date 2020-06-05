@@ -68,6 +68,7 @@ java {
 
 distributions {
     main {
+        distributionBaseName.set('proguard-core')
         contents {
             into('docs') {
                 from('docs/md') {
