@@ -77,6 +77,7 @@ distributions {
             }
             from(rootDir) {
                 include 'examples/'
+                include 'LICENSE'
             }
         }
     }
