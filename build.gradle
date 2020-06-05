@@ -1,4 +1,5 @@
 plugins {
+    id 'distribution'
     id 'java'
     id 'maven-publish'
     id 'signing'
@@ -63,6 +64,29 @@ dependencies {
 java {
     withSourcesJar()
     withJavadocJar()
+}
+
+distributions {
+    main {
+        distributionBaseName.set('proguard-core')
+        contents {
+            into('docs') {
+                from('docs/md') {
+                    includeEmptyDirs = false
+                    include '**/*.md'
+                }
+            }
+            from(rootDir) {
+                include 'examples/'
+                include 'LICENSE'
+            }
+        }
+    }
+}
+
+distTar {
+    compression = Compression.GZIP
+    archiveExtension.set('tar.gz')
 }
 
 publishing {
