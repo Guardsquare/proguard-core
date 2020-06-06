@@ -1,23 +1,20 @@
 If you've downloaded the source code of the **ProGuardCORE** library, you can
-build it in a number of ways:
+build it yourself with Gradle:
 
-- build.gradle : a Gradle build file for all platforms.
+- Build the artifacts:
 
-        gradle clean assemble
+        ./gradlew assemble
+    
+- Publish the artifacts to your local Maven cache (something like `~/.m2/`):
 
-- pom.xml: a Maven POM for all platforms.
+        ./gradlew publishToMavenLocal
+    
+- Build tar and zip archives with the binaries and documentation:
 
-        mvn clean package
+        ./gradlew distTar distZip
 
-- build.sh: a simple and fast shell script for GNU/Linux.
+- Build the complete API documentation with
 
-        ./build.sh
+        ./gradlew javadoc
 
-Once built, you can include the library and its dependencies in your own
-projects.
-
-You can also build the complete API documentation with
-
-    gradle javadoc
-
-You can then find the [API documentation](api/index.html) in `docs/api`.
+You can then find the [API documentation](api/index.html) in `docs/md/api`.
