@@ -64,6 +64,7 @@ nav:
 - Editing classes:     editing.md
 - Pattern matching:    patternmatching.md
 - Analyzing code:      analyzing.md
+- Kotlin metadata:     kotlin.md
 - License:             license.md
 - Downloads:           downloads.md
 - Building:            building.md
