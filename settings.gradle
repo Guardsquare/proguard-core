@@ -1,1 +1,10 @@
+pluginManagement {
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == 'com.jfrog.bintray') {
+                useVersion '1.8.5'
+            }
+        }
+    }
+}
 rootProject.name = 'proguard-core'

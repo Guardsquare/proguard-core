@@ -1,4 +1,5 @@
 plugins {
+    id 'com.jfrog.bintray'
     id 'distribution'
     id 'java'
     id 'maven-publish'
@@ -96,7 +97,7 @@ publishing {
             pom {
                 name = "[$groupId] $artifactId"
                 description = 'ProGuardCORE is a free library to read, analyze, modify, and write Java class files.'
-                url = 'https://www.guardsquare.com/proguard'
+                url = 'https://guardsquare.github.io/proguard-core'
                 developers {
                     developer {
                         id = 'lafortune'
@@ -156,4 +157,27 @@ signing {
     String password = findProperty('PROGUARD_SIGNING_PASSWORD')
     useInMemoryPgpKeys(key, password)
     sign publishing.publications.proguardCore
+}
+
+bintray {
+    Publication pub = project.publishing.publications.proguardCore
+    user = findProperty('PROGUARD_BINTRAY_USER')
+    key = findProperty('PROGUARD_BINTRAY_KEY')
+    publications = ['proguardCore']
+    dryRun = false
+    override = true
+    pkg {
+        repo = 'proguard'
+        name = "$project.group:$pub.artifactId"
+        desc = pub.artifactId
+        licenses = ['Apache-2.0']
+        websiteUrl = pub.pom.url.get()
+        issueTrackerUrl = pub.pom.issueManagement.url.get()
+        vcsUrl = pub.pom.scm.url.get()
+        version {
+            name = project.version
+            gpg.sign = true
+            released = new Date()
+        }
+    }
 }
