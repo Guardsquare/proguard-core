@@ -176,7 +176,7 @@ programClassPool.classesAccept(
                                     codeAttributeEditor)))));
 ```
 
-### Kotlin Metadata ([manual](https://guardsquare.github.io/proguard-core/))
+### Kotlin Metadata ([manual](https://guardsquare.github.io/proguard-core/kotlin.html))
 
 The library makes it easy to read, write and modify the Kotlin metadata that is
 attached to Java classes. The following example prints all the names of Kotlin
