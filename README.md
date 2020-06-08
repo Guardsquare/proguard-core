@@ -190,7 +190,7 @@ programClassPool.classesAccept(
        (clazz, container, function) -> System.out.println(function.name)))));
 ```
 
-### Abstract Evaluation ([manual](docs/md/analyzing.md)
+### Abstract Evaluation ([manual](https://guardsquare.github.io/proguard-core/analyzing.html))
 
 ProGuardCORE provides a number of ways to analyze code. One of the most
 powerful techniques is abstract evaluation (closely related to symbolic
