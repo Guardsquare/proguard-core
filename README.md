@@ -66,8 +66,8 @@ Typical applications:
 - Optimize and obfuscate, like ProGuard itself.
 - ... and so much more!
 
-ProGuard core comes with a short [manual](docs/md) and pretty nice
-[API documentation](src).
+ProGuard core comes with a short [manual](https://guardsquare.github.io/proguard-core/) and pretty nice
+[API documentation](https://guardsquare.github.io/proguard-core/api/).
 
 ## 🚀 Quick Start
 
