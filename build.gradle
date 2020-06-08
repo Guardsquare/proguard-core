@@ -88,14 +88,13 @@ publishing {
         create('proguardCore', MavenPublication) {
             from components.java
             pom {
-                name = "[$groupId] $artifactId"
+                name = "$groupId:$artifactId"
                 description = 'ProGuardCORE is a free library to read, analyze, modify, and write Java class files.'
                 url = 'https://guardsquare.github.io/proguard-core'
                 developers {
                     developer {
                         id = 'lafortune'
                         name = 'Eric Lafortune'
-                        url = 'https://www.guardsquare.com/proguard'
                         organization = 'Guardsquare'
                         organizationUrl = 'https://www.guardsquare.com/'
                         roles = ['Project Administrator', 'Developer']
