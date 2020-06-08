@@ -110,7 +110,7 @@ Together with the complete set of manual pages they extensively cover the usage
 of the library and its features in more detail:
 
 <h3 align="center">
-👉👉👉<a href="docs/md">&nbsp;&nbsp;&nbsp; Manual Pages &nbsp;&nbsp;&nbsp;</a>👈 👈 👈
+👉👉👉<a href="https://guardsquare.github.io/proguard-core/">&nbsp;&nbsp;&nbsp; Manual Pages &nbsp;&nbsp;&nbsp;</a>👈 👈 👈
 </h3>
 
 Below we'll highlight just a few of them in order to better showcase the
@@ -121,7 +121,7 @@ capabilities.
 - [Kotlin metadata](#kotlin-metadata-manual)
 - [Code analysis with abstract evaluation](#abstract-evaluation-manual)
 
-### Creating classes programmatically ([manual](docs/md/creating.md))
+### Creating classes programmatically ([manual](https://guardsquare.github.io/proguard-core/creating.html))
 
 Using the fluent API, it becomes very easy to programmatically create
 classes from scratch. The data structures directly correspond to the bytecode
@@ -150,7 +150,7 @@ ProgramClass programClass =
         .getProgramClass();
 ```
 
-### Replacing instruction sequences ([manual](docs/md/patternmatching.md))
+### Replacing instruction sequences ([manual](https://guardsquare.github.io/proguard-core/patternmatching.html))
 
 ProGuardCORE has an excellent instruction pattern matching engine, which
 can also replace matched bytecode instruction sequences.
@@ -176,7 +176,7 @@ programClassPool.classesAccept(
                                     codeAttributeEditor)))));
 ```
 
-### Kotlin Metadata ([manual](docs/md))
+### Kotlin Metadata ([manual](https://guardsquare.github.io/proguard-core/))
 
 The library makes it easy to read, write and modify the Kotlin metadata that is
 attached to Java classes. The following example prints all the names of Kotlin
