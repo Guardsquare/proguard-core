@@ -73,20 +73,23 @@ public class FileDataEntry implements DataEntry
     public String getName()
     {
         // Chop the directory name from the file name and get the right separators.
-        return directory == null      ? file.getPath() :
-               file.equals(directory) ? ""             :
+        return directory == null ||
+               file.equals(directory) ? file.getName() :
                                         getRelativeFilePath();
     }
 
 
     /**
-     * Returns the file path relative to the base directory.
+     * Returns the file path of this data entry, relative to the base directory.
+     * If the file equals the base directory, an empty string is returned.
      */
     private String getRelativeFilePath()
     {
-        return file.getPath()
-                   .substring(directory.getPath().length() + File.separator.length())
-                   .replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
+        return directory == null ||
+               file.equals(directory) ? "" :
+                                        file.getPath()
+                                            .substring(directory.getPath().length() + File.separator.length())
+                                            .replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
     }
 
 

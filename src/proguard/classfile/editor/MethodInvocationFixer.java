@@ -236,13 +236,13 @@ implements   AttributeVisitor,
         System.out.println("MethodInvocationFixer:");
         System.out.println("  Class       = "+clazz.getName());
         System.out.println("  Method      = "+method.getName(clazz)+method.getDescriptor(clazz));
-        System.out.println("  Instruction = "+constantInstruction.toString(offset));
+        System.out.println("  Instruction = "+constantInstruction.toString(clazz, offset));
         System.out.println("  -> Class    = "+referencedClass);
         System.out.println("     Method   = "+referencedMethod);
         if ((referencedClass.getAccessFlags() & AccessConstants.INTERFACE) != 0)
         {
             System.out.println("     Parameter size   = "+(ClassUtil.internalMethodParameterSize(referencedMethod.getDescriptor(referencedMethodClass), false)));
         }
-        System.out.println("  Replacement instruction = "+replacementInstruction.toString(offset));
+        System.out.println("  Replacement instruction = "+replacementInstruction.toString(clazz, offset));
     }
 }

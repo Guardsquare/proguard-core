@@ -74,15 +74,16 @@ implements   InstructionVisitor,
     protected final Constant[]    patternConstants;
     protected final Instruction[] patternInstructions;
 
-    private boolean      matching;
-    private int          patternInstructionIndex;
-    private final int[]  matchedInstructionOffsets;
-    private int          matchedArgumentFlags;
-    private final int[]  matchedArguments = new int[21];
-    private final long[] matchedConstantFlags;
-    private final int[]  matchedConstantIndices;
-    private int          constantFlags;
-    private int          previousConstantFlags;
+    private       boolean matching;
+    private       int     patternInstructionIndex;
+    private final int[]   matchedInstructionOffsets;
+    private       int     matchedArgumentFlags;
+    private final int[]   matchedArguments = new int[21];
+    private final long[]  matchedConstantFlags;
+    private final int[]   matchedConstantIndices;
+    private       int     constantFlags;
+    private       int     previousConstantFlags;
+    private final boolean matchSubclasses;
 
     // Fields acting as a parameter and a return value for visitor methods.
     protected Constant patternConstant;
@@ -98,13 +99,31 @@ implements   InstructionVisitor,
     public InstructionSequenceMatcher(Constant[]    patternConstants,
                                       Instruction[] patternInstructions)
     {
+        this(patternConstants, patternInstructions, false);
+    }
+
+
+    /**
+     * Creates a new InstructionSequenceMatcher.
+     * @param patternConstants        any constants referenced by the pattern
+     *                                instruction.
+     * @param patternInstructions     the pattern instruction sequence.
+     * @param matchSubclasses         whether constant references on subclasses are matching when the pattern contains
+     *                                a constant of a superclass. (default: false)
+     */
+    public InstructionSequenceMatcher(Constant[]    patternConstants,
+                                      Instruction[] patternInstructions,
+                                      boolean       matchSubclasses)
+    {
         this.patternConstants    = patternConstants;
         this.patternInstructions = patternInstructions;
 
         matchedInstructionOffsets = new int[patternInstructions.length];
         matchedConstantFlags      = new long[(patternConstants.length + 63) / 64];
         matchedConstantIndices    = new int[patternConstants.length];
+        this.matchSubclasses      = matchSubclasses;
     }
+
 
 
     /**
@@ -500,14 +519,29 @@ implements   InstructionVisitor,
     {
         RefConstant refPatternConstant = (RefConstant)patternConstant;
 
-        // Check the class and the name and type.
-        matchingConstant =
-            matchingConstantIndices(clazz,
-                                    refConstant.getClassIndex(),
-                                    refPatternConstant.getClassIndex()) &&
-            matchingConstantIndices(clazz,
-                                    refConstant.getNameAndTypeIndex(),
-                                    refPatternConstant.getNameAndTypeIndex());
+        // Check the class first.
+        matchingConstant = matchingConstantIndices(clazz,
+                                                   refConstant.getClassIndex(),
+                                                   refPatternConstant.getClassIndex());
+
+        // If the InstructionSequenceMatcher is configured to match also subclasses
+        // check if the actual referencedClass extends the one specified in the pattern.
+        if (!matchingConstant                          &&
+            matchSubclasses                            &&
+            refConstant.referencedClass        != null &&
+            refPatternConstant.referencedClass != null)
+        {
+            matchingConstant =
+                refConstant.referencedClass.extendsOrImplements(refPatternConstant.referencedClass);
+        }
+
+        if (matchingConstant)
+        {
+            // Check the name and type at last.
+            matchingConstant = matchingConstantIndices(clazz,
+                                                       refConstant.getNameAndTypeIndex(),
+                                                       refPatternConstant.getNameAndTypeIndex());
+        }
     }
 
 
@@ -744,7 +778,7 @@ implements   InstructionVisitor,
     {
         if (DEBUG_MORE)
         {
-            System.out.println("InstructionSequenceMatcher: ["+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz)+"]: "+instruction.toString(offset)+(condition?"\t== ":"\t   ")+patternInstructions[patternInstructionIndex].toString(patternInstructionIndex));
+            System.out.println("InstructionSequenceMatcher: ["+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz)+"]: "+instruction.toString(clazz, offset)+(condition?"\t== ":"\t   ")+patternInstructions[patternInstructionIndex].toString(patternInstructionIndex));
         }
 
         // Did the instruction match?
@@ -872,7 +906,7 @@ implements   InstructionVisitor,
         {
             public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
             {
-                System.out.println(instruction.toString(offset));
+                System.out.println(instruction.toString(clazz, offset));
                 instruction.accept(clazz, method, codeAttribute, offset, matcher);
                 if (matcher.isMatching())
                 {

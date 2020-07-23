@@ -602,7 +602,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("Label ["+label+"] A "+instruction.toString(offset));
+                System.out.println("Label ["+label+"] A "+instruction.toString(clazz, offset));
             }
 
             reset();
@@ -614,7 +614,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("Label ["+label+"] V "+variableInstruction.toString(offset));
+                System.out.println("Label ["+label+"] V "+variableInstruction.toString(clazz, offset));
             }
 
             switch (variableInstruction.canonicalOpcode())
@@ -635,7 +635,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("Label ["+label+"] S "+simpleInstruction.toString(offset));
+                System.out.println("Label ["+label+"] S "+simpleInstruction.toString(clazz, offset));
             }
 
             int transition = label | simpleInstruction.canonicalOpcode() << 8;
@@ -702,7 +702,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("Label ["+label+"] C "+constantInstruction.toString(offset));
+                System.out.println("Label ["+label+"] C "+constantInstruction.toString(clazz, offset));
             }
 
             // Let the constant figure out the transition.

@@ -20,7 +20,7 @@ package proguard.io;
 import proguard.classfile.*;
 import proguard.classfile.io.*;
 import proguard.classfile.util.*;
-import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.*;
 
 import java.io.*;
 
@@ -116,6 +116,39 @@ public class ClassReader implements DataEntryReader
         catch (Exception ex)
         {
             throw (IOException)new IOException("Can't process class ["+dataEntry.getName()+"] ("+ex.getMessage()+")").initCause(ex);
+        }
+    }
+
+
+    /**
+     * This main method illustrates the use of this class.
+     *
+     * It writes out the structure of the specified classes (packaged
+     * in jar, zip, or class files).
+     */
+    public static void main(String[] args)
+    {
+        for (String fileName : args)
+        {
+            try
+            {
+                DataEntryReader dataEntryReader =
+                    new ClassFilter(
+                    new ClassReader(false, false, false, false, null,
+                    new ClassPrinter()));
+
+                if (fileName.endsWith(".jar") ||
+                    fileName.endsWith(".zip"))
+                {
+                    dataEntryReader = new JarReader(dataEntryReader);
+                }
+
+                new FileSource(new File(fileName)).pumpDataEntries(dataEntryReader);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -52,7 +52,7 @@ import java.util.*;
  *
  *     InstructionSequenceBuilder builder =
  *         new InstructionSequenceBuilder(clazz);
- *	
+ *
  *     // Create labels and instructions.
  *     final CodeAttributeEditor.Label TRY_START = codeAttributeEditor.label();
  *     final CodeAttributeEditor.Label TRY_END   = codeAttributeEditor.label();
@@ -890,7 +890,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("  Pre-inserted  ["+oldOffset+"] -> "+preOffsetInstruction.toString(newOffset));
+                System.out.println("  Pre-inserted  ["+oldOffset+"] -> "+preOffsetInstruction.toString(clazz, newOffset));
             }
 
             // Update the instruction.
@@ -903,7 +903,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("  Pre-inserted  ["+oldOffset+"] -> "+preInstruction.toString(newOffset));
+                System.out.println("  Pre-inserted  ["+oldOffset+"] -> "+preInstruction.toString(clazz, newOffset));
             }
 
             // Update the instruction.
@@ -917,7 +917,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("  Replaced      ["+oldOffset+"] -> "+replacementInstruction.toString(newOffset));
+                System.out.println("  Replaced      ["+oldOffset+"] -> "+replacementInstruction.toString(clazz, newOffset));
             }
 
             // Update the instruction.
@@ -927,7 +927,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("  Copied        ["+oldOffset+"] -> "+instruction.toString(newOffset));
+                System.out.println("  Copied        ["+oldOffset+"] -> "+instruction.toString(clazz, newOffset));
             }
 
             // Update the instruction.
@@ -940,7 +940,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("  Post-inserted ["+oldOffset+"] -> "+postInstruction.toString(newOffset));
+                System.out.println("  Post-inserted ["+oldOffset+"] -> "+postInstruction.toString(clazz, newOffset));
             }
 
             // Update the instruction.
@@ -1348,7 +1348,10 @@ implements   AttributeVisitor,
         {
             for (int index = 0; index < instructions.length; index++)
             {
-                instructions[index] = instructions[index].shrink();
+                if (canShrink(instructions[index]))
+                {
+                    instructions[index] = instructions[index].shrink();
+                }
             }
 
             return this;
@@ -1683,5 +1686,18 @@ implements   AttributeVisitor,
                    (isLabel(endOffset)    ? "label_" : "") + endOffset    + ", #" +
                    catchType;
         }
+    }
+
+    /**
+     * calling shrink() on a branch instruction that branches to a label throws
+     * an exception, because BranchInstruction doesn't know about labels.
+     *
+     * @param instruction An instruction.
+     * @return true if shrink() can be called on the instruction
+     */
+    private boolean canShrink(Instruction instruction)
+    {
+        return shrinkInstructions &&
+               !(instruction instanceof BranchInstruction && isLabel(((BranchInstruction)instruction).branchOffset));
     }
 }

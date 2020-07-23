@@ -21,6 +21,7 @@ import proguard.classfile.*;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.instruction.*;
 import proguard.classfile.util.ClassUtil;
+import proguard.resources.file.ResourceFile;
 
 import java.util.*;
 
@@ -123,7 +124,7 @@ public class InstructionSequenceBuilder
      */
     public InstructionSequenceBuilder label(Instruction instruction)
     {
-        return appendInstruction(instruction);
+        return add(instruction);
     }
 
 
@@ -134,7 +135,7 @@ public class InstructionSequenceBuilder
      */
     public InstructionSequenceBuilder catch_(Instruction instruction)
     {
-        return appendInstruction(instruction);
+        return add(instruction);
     }
 
 
@@ -331,89 +332,217 @@ public class InstructionSequenceBuilder
         return add(new SimpleInstruction(Instruction.OP_SIPUSH, constant));
     }
 
+    /**
+     * Appends an ldc instruction that loads an integer constant with the given value.
+     */
     public InstructionSequenceBuilder ldc(int value)
     {
         return ldc_(constantPoolEditor.addIntegerConstant(value));
     }
 
+    /**
+     * Appends an ldc instruction that loads a float constant with the given value.
+     */
     public InstructionSequenceBuilder ldc(float value)
     {
         return ldc_(constantPoolEditor.addFloatConstant(value));
     }
 
-    public InstructionSequenceBuilder ldc(Object primitiveArray)
-    {
-        return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
-    }
-
+    /**
+     * Appends an ldc instruction that loads a string constant with the given value.
+     */
     public InstructionSequenceBuilder ldc(String string)
     {
         return ldc(string, null, null);
     }
 
-    public InstructionSequenceBuilder ldc(String string, Clazz referencedClass, Method referencedMember)
+    /**
+     * Appends an ldc instruction that loads an (internal) primitive array constant with the given value.
+     */
+    public InstructionSequenceBuilder ldc(Object primitiveArray)
+    {
+        return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
+    }
+
+    /**
+     * Appends an ldc instruction that loads a string constant with the given class member name.
+     */
+    public InstructionSequenceBuilder ldc(Clazz  clazz,
+                                          Member member)
+    {
+        return ldc(member.getName(clazz), clazz, member);
+    }
+
+    /**
+     * Appends an ldc instruction that loads a string constant with the given value,
+     * that references the given class member.
+     */
+    public InstructionSequenceBuilder ldc(String string,
+                                          Clazz  referencedClass,
+                                          Member referencedMember)
     {
         return ldc_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
     }
 
+    /**
+     * Appends an ldc instruction that loads a string constant with the given resource file name.
+     */
+    public InstructionSequenceBuilder ldc(ResourceFile resourceFile)
+    {
+        return ldc(resourceFile.getFileName(), resourceFile);
+    }
+
+    /**
+     * Appends an ldc instruction that loads a string constant with the given value,
+     * that references the given resource file.
+     */
+    public InstructionSequenceBuilder ldc(String       string,
+                                          ResourceFile referencedResourceFile)
+    {
+        return ldc_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
+    }
+
+    /**
+     * Appends an ldc instruction that loads a class constant for the given class.
+     */
     public InstructionSequenceBuilder ldc(Clazz clazz)
     {
         return ldc(clazz.getName(), clazz);
     }
 
-    public InstructionSequenceBuilder ldc(String className, Clazz referencedClass)
+    /**
+     * Appends an ldc instruction that loads a class constant for the given type name,
+     * that references the given class.
+     */
+    public InstructionSequenceBuilder ldc(String typeName,
+                                          Clazz  referencedClass)
     {
-        return ldc_(constantPoolEditor.addClassConstant(className, referencedClass));
+        return ldc_(constantPoolEditor.addClassConstant(typeName, referencedClass));
     }
 
+    /**
+     * Appends an ldc instruction that loads the constant at the given index.
+     */
     public InstructionSequenceBuilder ldc_(int constantIndex)
     {
-        return add(new ConstantInstruction(Instruction.OP_LDC, constantIndex));
+        return appendInstruction(new ConstantInstruction(Instruction.OP_LDC, constantIndex));
     }
 
+    /**
+     * Appends an ldc_w instruction that loads an integer constant with the given value.
+     */
     public InstructionSequenceBuilder ldc_w(int value)
     {
-        return ldc_w_(constantPoolEditor.addIntegerConstant(value));
+        return ldc_(constantPoolEditor.addIntegerConstant(value));
     }
 
+    /**
+     * Appends an ldc_w instruction that loads a float constant with the given value.
+     */
     public InstructionSequenceBuilder ldc_w(float value)
     {
-        // If we can shrink the instruction, we may not need to create a constant.
-        return ldc_w_(constantPoolEditor.addFloatConstant(value));
+        return ldc_(constantPoolEditor.addFloatConstant(value));
     }
 
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given value.
+     */
     public InstructionSequenceBuilder ldc_w(String string)
     {
         return ldc_w(string, null, null);
     }
 
-    public InstructionSequenceBuilder ldc_w(String string, Clazz referencedClass, Method referencedMember)
+    /**
+     * Appends an ldc_w instruction that loads an (internal) primitive array constant with the given value.
+     */
+    public InstructionSequenceBuilder ldc_w(Object primitiveArray)
     {
-        return ldc_w_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
+        return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
     }
 
-    public InstructionSequenceBuilder ldc_w(String className, Clazz referencedClass)
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given class member name.
+     */
+    public InstructionSequenceBuilder ldc_w(Clazz  clazz,
+                                            Member member)
     {
-        return ldc_w_(constantPoolEditor.addClassConstant(className, referencedClass));
+        return ldc_w(member.getName(clazz), clazz, member);
     }
 
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given value,
+     * that references the given class member.
+     */
+    public InstructionSequenceBuilder ldc_w(String string,
+                                            Clazz  referencedClass,
+                                            Member referencedMember)
+    {
+        return ldc_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given resource file name.
+     */
+    public InstructionSequenceBuilder ldc_w(ResourceFile resourceFile)
+    {
+        return ldc_w(resourceFile.getFileName(), resourceFile);
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given value,
+     * that references the given resource file.
+     */
+    public InstructionSequenceBuilder ldc_w(String       string,
+                                            ResourceFile referencedResourceFile)
+    {
+        return ldc_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a class constant for the given class.
+     */
+    public InstructionSequenceBuilder ldc_w(Clazz clazz)
+    {
+        return ldc_w(clazz.getName(), clazz);
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a class constant for the given type name,
+     * that references the given class.
+     */
+    public InstructionSequenceBuilder ldc_w(String typeName,
+                                            Clazz  referencedClass)
+    {
+        return ldc_(constantPoolEditor.addClassConstant(typeName, referencedClass));
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads the constant at the given index.
+     */
     public InstructionSequenceBuilder ldc_w_(int constantIndex)
     {
-        return add(new ConstantInstruction(Instruction.OP_LDC_W, constantIndex));
+        return appendInstruction(new ConstantInstruction(Instruction.OP_LDC_W, constantIndex));
     }
 
+    /**
+     * Appends an ldc2_w instruction that loads a long constant with the given value.
+     */
     public InstructionSequenceBuilder ldc2_w(long value)
     {
-        // If we can shrink the instruction, we may not need to create a constant.
         return ldc2_w(constantPoolEditor.addLongConstant(value));
     }
 
+    /**
+     * Appends an ldc2_w instruction that loads a double constant with the given value.
+     */
     public InstructionSequenceBuilder ldc2_w(double value)
     {
-        // If we can shrink the instruction, we may not need to create a constant.
         return ldc2_w(constantPoolEditor.addDoubleConstant(value));
     }
 
+    /**
+     * Appends an ldc2_w instruction that loads the Category 2 constant at the given index.
+     */
     public InstructionSequenceBuilder ldc2_w(int constantIndex)
     {
         return add(new ConstantInstruction(Instruction.OP_LDC2_W, constantIndex));
@@ -1768,6 +1897,82 @@ public class InstructionSequenceBuilder
 
 
     /**
+     * Pushes the given string or primitive on the stack.
+     *
+     * @param value the primitive value to be pushed - should never be null.
+     * @param type  the internal type of the primitive ('Z','B','I',...)
+     *
+     * @throws IllegalArgumentException if the type is neither primitive or Ljava/lang/String;
+     */
+    public InstructionSequenceBuilder pushPrimitiveOrString(Object value, String type)
+    {
+        return pushPrimitiveOrString(value, type, true);
+    }
+
+
+    /**
+     * Pushes the given string or primitive on the stack.
+     *
+     * @param value the primitive value to be pushed - should never be null.
+     * @param type  the internal type of the primitive ('Z','B','I',...)
+     * @param allowBoxing If the type is a primitive wrapper class, set allowBoxing = true, to push a boxed primitive.
+     *
+     * @throws IllegalArgumentException if the type is neither primitive or Ljava/lang/String;
+     */
+    public InstructionSequenceBuilder pushPrimitiveOrString(Object value, String type, boolean allowBoxing)
+    {
+        if (type == null)
+        {
+            throw new IllegalArgumentException("Null type found for value: " + value);
+        }
+
+        char primitiveType = type.charAt(0);
+
+        if (type.equals(ClassConstants.TYPE_JAVA_LANG_STRING))
+        {
+            return ldc((String)value);
+        }
+        else if (allowBoxing && primitiveType == TypeConstants.CLASS_START)
+        {
+            return pushBoxedPrimitive(value, type);
+        }
+        else
+        {
+            if (!allowBoxing && primitiveType == TypeConstants.CLASS_START)
+            {
+                String internalPrimitiveClassName = ClassUtil.internalClassNameFromType(type);
+                if (internalPrimitiveClassName == null)
+                {
+                    throw new IllegalArgumentException("Invalid type: " + type);
+                }
+                primitiveType = ClassUtil.internalPrimitiveTypeFromNumericClassName(internalPrimitiveClassName);
+            }
+            return pushPrimitive(value, primitiveType);
+        }
+    }
+
+
+    /**
+     * Push a primitive on the stack followed by a call to it's boxed valueOf method.
+     *
+     * @param value the value.
+     * @param type the type e.g. Ljava/lang/Integer;
+     */
+    public InstructionSequenceBuilder pushBoxedPrimitive(Object value, String type)
+    {
+        String internalPrimitiveClassName = ClassUtil.internalClassNameFromType(type);
+        if (internalPrimitiveClassName == null)
+        {
+            throw new IllegalArgumentException("Invalid type: " + type);
+        }
+        char   primitiveType = ClassUtil.internalPrimitiveTypeFromNumericClassName(internalPrimitiveClassName);
+        String className     = ClassUtil.internalClassNameFromType(type);
+        pushPrimitive(value, primitiveType);
+        return invokestatic(className, "valueOf", String.format("(%c)%s", primitiveType, type));
+    }
+
+
+    /**
      * Pushes the given primitive int on the stack in the most efficient way
      * (as an iconst, bipush, sipush, or ldc instruction).
      *
@@ -1775,12 +1980,19 @@ public class InstructionSequenceBuilder
      */
     public InstructionSequenceBuilder pushInt(int value)
     {
-        return
-            value >= -1 &&
-            value <= 5            ? iconst(value) :
-            value == (byte)value  ? bipush(value) :
-            value == (short)value ? sipush(value) :
-                                    ldc(value);
+        switch (value)
+        {
+            case -1: return iconst_m1();
+            case  0: return iconst_0();
+            case  1: return iconst_1();
+            case  2: return iconst_2();
+            case  3: return iconst_3();
+            case  4: return iconst_4();
+            case  5: return iconst_5();
+            default: return value == (byte)value  ? bipush(value) :
+                            value == (short)value ? sipush(value) :
+                                                    ldc(value);
+        }
     }
 
 
@@ -1788,13 +2000,14 @@ public class InstructionSequenceBuilder
      * Pushes the given primitive float on the stack in the most efficient way
      * (as an fconst or ldc instruction).
      *
-     * @param value the int value to be pushed.
+     * @param value the float value to be pushed.
      */
     public InstructionSequenceBuilder pushFloat(float value)
     {
         return
-            value == 0f ||
-            value == 1f ? fconst((int)value) :
+            value == 0f ? fconst_0() :
+            value == 1f ? fconst_1() :
+            value == 2f ? fconst_2() :
                           ldc(value);
     }
 
@@ -1803,13 +2016,13 @@ public class InstructionSequenceBuilder
      * Pushes the given primitive long on the stack in the most efficient way
      * (as an lconst or ldc instruction).
      *
-     * @param value the int value to be pushed.
+     * @param value the inlongue to be pushed.
      */
     public InstructionSequenceBuilder pushLong(long value)
     {
         return
-            value == 0L ||
-            value == 1L ? lconst((int)value) :
+            value == 0L ? lconst_0() :
+            value == 1L ? lconst_1() :
                           ldc2_w(value);
     }
 
@@ -1818,13 +2031,13 @@ public class InstructionSequenceBuilder
      * Pushes the given primitive double on the stack in the most efficient way
      * (as a dconst or ldc instruction).
      *
-     * @param value the int value to be pushed.
+     * @param value the double value to be pushed.
      */
     public InstructionSequenceBuilder pushDouble(double value)
     {
         return
-            value == 0. ||
-            value == 1. ? dconst((int)value) :
+            value == 0. ? dconst_0() :
+            value == 1. ? dconst_1() :
                           ldc2_w(value);
     }
 
@@ -1847,6 +2060,62 @@ public class InstructionSequenceBuilder
         return ClassUtil.isInternalPrimitiveType(type) ?
             newarray(InstructionUtil.arrayTypeFromInternalType(type.charAt(0))) :
             anewarray(type, null);
+    }
+
+
+    /**
+     * Pushes a new array with given values onto the stack.
+     *
+     * For primitives you can specify, for example, either I or Ljava/lang/Integer; to create an
+     * object array or a primitive array.
+     *
+     * Operand stack:
+     * ... -> ..., array
+     *
+     * @param type   the array element type (or class name in case of objects).
+     * @param values the array values.
+     */
+    public InstructionSequenceBuilder pushPrimitiveOrStringArray(String type, Object[] values)
+    {
+        String internalClassType = ClassUtil.internalClassTypeFromType(type);
+        pushNewArray(internalClassType, values.length);
+        dup();
+        for (int i = 0; i < values.length; i++)
+        {
+            pushInt(i);
+            pushPrimitiveOrString(values[i], type);
+            storeToArray(internalClassType);
+            if (i != values.length - 1)
+            {
+                dup();
+            }
+        }
+
+        return nop();
+    }
+
+
+    /**
+     * Pushes a default value onto the stack.
+     *
+     * Either 0 for primitives or null for objects.
+     *
+     * @param type the type.
+     */
+    public InstructionSequenceBuilder pushDefault(String type)
+    {
+        switch (type.charAt(0))
+        {
+            case TypeConstants.CHAR:
+            case TypeConstants.BOOLEAN:
+            case TypeConstants.BYTE:
+            case TypeConstants.SHORT:
+            case TypeConstants.INT:    return iconst_0();
+            case TypeConstants.LONG:   return lconst_0();
+            case TypeConstants.FLOAT:  return fconst_0();
+            case TypeConstants.DOUBLE: return dconst_0();
+            default:                   return aconst_null();
+        }
     }
 
 

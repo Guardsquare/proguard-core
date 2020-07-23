@@ -136,6 +136,15 @@ public class ClassPool
     }
 
 
+    /**
+     * Checks whether the given class exists in the class pool.
+     */
+    public boolean contains(Clazz clazz)
+    {
+        return classes.containsValue(clazz);
+    }
+
+
     // Note: for consistency, use visitors whenever possible.
     /**
      * Returns an Iterator of all class names in the class pool.

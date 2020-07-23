@@ -20,7 +20,7 @@ package proguard.classfile.instruction;
 import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.constant.*;
-import proguard.classfile.constant.visitor.ConstantVisitor;
+import proguard.classfile.constant.visitor.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.ClassUtil;
 
@@ -152,6 +152,17 @@ implements   ConstantVisitor
     public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, InstructionVisitor instructionVisitor)
     {
         instructionVisitor.visitConstantInstruction(clazz, method, codeAttribute, offset, this);
+    }
+
+
+    public String toString(Clazz clazz, int offset)
+    {
+        StringBuilder builder = new StringBuilder("[" + offset + "] " + this.toString()+" = ");
+
+        // Append the constant in readable form.
+        clazz.constantPoolEntryAccept(constantIndex, new ConstantStringBuilder(builder));
+
+        return builder.toString();
     }
 
 

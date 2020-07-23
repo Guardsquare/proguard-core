@@ -34,7 +34,7 @@ import java.security.cert.X509Certificate;
  * <p/>
  * You'll typically wrap a {@link ZipWriter} or one of its extensions:
  * <pre>
- *     new SignedJarWriter(privateKeyEntry, new ZipWriter(...))
+ *     new SignedApkWriter(privateKeyEntry, new ZipWriter(...))
  * </pre>
  *
  * @author Eric Lafortune
@@ -73,6 +73,29 @@ public class SignedJarWriter extends JarWriter
         this(privateKeyEntry,
              new String[] { DEFAULT_DIGEST_ALGORITHM },
              null,
+             zipEntryWriter);
+    }
+
+
+    /**
+     * Creates a new SignedJarWriter with the given settings.
+     * @param privateKeyEntry       the private key to be used for signing the
+     *                              zip entries.
+     * @param digestAlgorithms      the manifest digest algorithms, e.g.
+     *                              "SHA-256".
+     * @param creator               the creator to mention in the manifest
+     *                              file.
+     * @param zipEntryWriter        the data entry writer that can provide
+     *                              output streams for the jar entries.
+     */
+    public SignedJarWriter(KeyStore.PrivateKeyEntry privateKeyEntry,
+                           String[]                 digestAlgorithms,
+                           String                   creator,
+                           DataEntryWriter          zipEntryWriter)
+    {
+        this(privateKeyEntry,
+             new String[] { DEFAULT_DIGEST_ALGORITHM },
+             creator,
              null,
              zipEntryWriter);
     }

@@ -95,7 +95,7 @@ implements   AttributeVisitor,
 
             if (DEBUG)
             {
-                System.out.println("  Max locals: "+codeAttribute.u2maxLocals+" <- "+variableInstruction.toString(offset));
+                System.out.println("  Max locals: "+codeAttribute.u2maxLocals+" <- "+variableInstruction.toString(clazz, offset));
             }
         }
     }

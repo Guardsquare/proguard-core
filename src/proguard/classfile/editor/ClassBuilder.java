@@ -238,6 +238,33 @@ public class ClassBuilder
                                  String        fieldDescriptor,
                                  MemberVisitor extraMemberVisitor)
     {
+        // Create the field.
+        ProgramField programField = addAndReturnField(u2accessFlags,
+                                                      fieldName,
+                                                      fieldDescriptor);
+
+        // Let the optional visitor visit the new field.
+        if (extraMemberVisitor != null)
+        {
+            extraMemberVisitor.visitProgramField(programClass, programField);
+        }
+
+        return this;
+    }
+
+
+    /**
+     * Adds a new field to the edited class, and returns it.
+     *
+     * @param u2accessFlags    access flags for the new field.
+     * @param fieldName        name of the new field.
+     * @param fieldDescriptor  descriptor of the new field.
+     * @return the newly created field.
+     */
+    public ProgramField addAndReturnField(int     u2accessFlags,
+                                           String fieldName,
+                                           String fieldDescriptor)
+    {
         // Create a simple field.
         ProgramField programField =
             new ProgramField(u2accessFlags,
@@ -248,13 +275,7 @@ public class ClassBuilder
         // Add it to the class.
         classEditor.addField(programField);
 
-        // Let the optional visitor visit the new field.
-        if (extraMemberVisitor != null)
-        {
-            extraMemberVisitor.visitProgramField(programClass, programField);
-        }
-
-        return this;
+        return programField;
     }
 
 
@@ -292,12 +313,39 @@ public class ClassBuilder
                                   String        methodDescriptor,
                                   MemberVisitor extraMemberVisitor)
     {
-        return addMethod(u2accessFlags,
-                         methodName,
-                         methodDescriptor,
-                         0,
-                         null,
-                         extraMemberVisitor);
+        // Create the method.
+        ProgramMethod programMethod =
+            addAndReturnMethod(u2accessFlags,
+                               methodName,
+                               methodDescriptor);
+
+        // Let the optional visitor visit the new method.
+        if (extraMemberVisitor != null)
+        {
+            extraMemberVisitor.visitProgramMethod(programClass, programMethod);
+        }
+
+        return this;
+    }
+
+
+    /**
+     * Adds a new method to the edited class, and returns it.
+     *
+     * @param u2accessFlags      the access flags of the new method.
+     * @param methodName         the name of the new method.
+     * @param methodDescriptor   the descriptor of the new method.
+     * @return the newly created method.
+     */
+    public ProgramMethod addAndReturnMethod(int    u2accessFlags,
+                                            String methodName,
+                                            String methodDescriptor)
+    {
+        return addAndReturnMethod(u2accessFlags,
+                                  methodName,
+                                  methodDescriptor,
+                                  0,
+                                  null);
     }
 
 
@@ -347,6 +395,42 @@ public class ClassBuilder
                                   CodeBuilder   codeBuilder,
                                   MemberVisitor extraMemberVisitor)
     {
+        // Create the method.
+        ProgramMethod programMethod =
+            addAndReturnMethod(u2accessFlags,
+                               methodName,
+                               methodDescriptor,
+                               maxCodeFragmentLength,
+                               codeBuilder);
+
+        // Let the optional visitor visit the new method.
+        if (extraMemberVisitor != null)
+        {
+            extraMemberVisitor.visitProgramMethod(programClass, programMethod);
+        }
+
+        return this;
+    }
+
+
+    /**
+     * Adds a new method with a code attribute to the edited class, and returns
+     * it.
+     *
+     * @param u2accessFlags         the access flags of the new method.
+     * @param methodName            the name of the new method.
+     * @param methodDescriptor      the descriptor of the new method.
+     * @param maxCodeFragmentLength the maximum length for the code fragment.
+     * @param codeBuilder           the provider of a composer to create code
+     *                              attributes.
+     * @return the newly created method.
+     */
+    public ProgramMethod addAndReturnMethod(int           u2accessFlags,
+                                            String        methodName,
+                                            String        methodDescriptor,
+                                            int           maxCodeFragmentLength,
+                                            CodeBuilder   codeBuilder)
+    {
         // Create an empty method.
         ProgramMethod programMethod =
             new ProgramMethod(u2accessFlags,
@@ -382,185 +466,8 @@ public class ClassBuilder
         // Add the method to the class.
         classEditor.addMethod(programMethod);
 
-        // Let the optional visitor visit the new method.
-        if (extraMemberVisitor != null)
-        {
-            extraMemberVisitor.visitProgramMethod(programClass, programMethod);
-        }
-
-        return this;
+        return programMethod;
     }
-
-
-//    /**
-//     * Adds the given static initializer instructions to the edited class.
-//     * If the class already contains a static initializer, the new instructions
-//     * will be appended to the existing initializer.
-//     *
-//     * @param instructions                 the instructions to be added.
-//     * @param mergeIntoExistingInitializer indicates whether the instructions should
-//     *                                     be added to the existing static initializer
-//     *                                     (if it exists), or if a new method should
-//     *                                     be created, which is then called from the
-//     *                                     existing initializer.
-//     */
-//    public void addStaticInitializerInstructions(Instruction[] instructions,
-//                                                 boolean       mergeIntoExistingInitializer)
-//    {
-//        Method method = programClass.findMethod(METHOD_NAME_CLINIT, METHOD_TYPE_CLINIT);
-//
-//        if (method == null)
-//        {
-//            addMethod(ACC_STATIC,
-//                      METHOD_NAME_CLINIT,
-//                      METHOD_TYPE_CLINIT,
-//                      0,
-//                      instructions,
-//                      null,
-//                      new SimpleInstruction(Instruction.OP_RETURN));
-//        }
-//        else
-//        {
-//            if (!mergeIntoExistingInitializer)
-//            {
-//                // Create a new static initializer.
-//                ProgramMethod newMethod =
-//                    addMethod(ACC_STATIC,
-//                              EXTRA_CLINIT_METHOD_PREFIX + staticInitializerCounter++,
-//                              EXTRA_CLINIT_METHOD_DESCRIPTOR,
-//                              // Make sure that such methods are not optimized (inlined)
-//                              // to prevent potential overflow errors during conversion.
-//                              ProcessingFlags.DONT_OPTIMIZE,
-//                              instructions,
-//                              null,
-//                              new SimpleInstruction(Instruction.OP_RETURN));
-//
-//                // Call the new initializer from the existing one.
-//                InstructionSequenceBuilder builder = new InstructionSequenceBuilder(programClass);
-//                builder.invokestatic(programClass.getName(),
-//                                      newMethod.getName(programClass),
-//                                      "()V",
-//                                      programClass,
-//                                      newMethod);
-//                instructions = builder.instructions();
-//            }
-//            CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor();
-//            ((ProgramMethod) method).attributesAccept(programClass,
-//                                                      new CodeAttributeEditorResetter(codeAttributeEditor));
-//            codeAttributeEditor.insertBeforeOffset(0, instructions);
-//            ((ProgramMethod) method).attributesAccept(programClass,
-//                                                      codeAttributeEditor);
-//        }
-//    }
-//
-//
-//    /**
-//     * Adds the given initialization instructions to the edited class.
-//     *
-//     * - If the class doesn't contain a constructor yet, it will be created,
-//     *   and the instructions will be added to this constructor.
-//     * - If there is a single super-calling constructor, the instructions will
-//     *   be added at the beginning of it's code attribute.
-//     * - If there are multiple super-calling constructors, a new private
-//     *   parameterless helper method will be created, to which the instructions
-//     *   will be added. An invocation to this new method will be added at the
-//     *   beginning of the code attribute of all super-calling constructors.
-//     *
-//     * @param instructions the instructions to be added.
-//     */
-//    public void addInitializerInstructions(Instruction[] instructions)
-//    {
-//        Method method = programClass.findMethod(METHOD_NAME_INIT, null);
-//
-//        if (method == null)
-//        {
-//            // First call the super constructor.
-//            Instruction[] firstInstruction =
-//            {
-//                new VariableInstruction(Instruction.OP_ALOAD_0),
-//                new ConstantInstruction(
-//                    Instruction.OP_INVOKESPECIAL,
-//                    constantPoolEditor.addMethodrefConstant(programClass.getSuperName(),
-//                                                            METHOD_NAME_INIT,
-//                                                            METHOD_TYPE_INIT,
-//                                                            null,
-//                                                            null))
-//            };
-//
-//            // End by calling return.
-//            SimpleInstruction lastInstruction =
-//                new SimpleInstruction(Instruction.OP_RETURN);
-//
-//            addMethod(ACC_PUBLIC,
-//                      METHOD_NAME_INIT,
-//                      METHOD_TYPE_INIT,
-//                      0,
-//                      instructions,
-//                      firstInstruction,
-//                      lastInstruction);
-//        }
-//        else
-//        {
-//            // Find all super-calling constructors.
-//            Set<Method> constructors =  new HashSet<Method>();
-//            programClass.methodsAccept(
-//                new ConstructorMethodFilter(
-//                new MethodCollector(constructors), null, null));
-//
-//            if (constructors.size() == 1)
-//            {
-//                // There is only one supper-calling constructor.
-//                // Add the code to this constructor.
-//                constructors.iterator().next().accept(programClass,
-//                    new AllAttributeVisitor(
-//                    new MyInstructionInserter(instructions)));
-//            }
-//            else
-//            {
-//                // There are multiple super-calling constructors. Add the
-//                // instructions to a separate, parameterless initialization
-//                // method, and invoke this method from all super-calling
-//                // constructors.
-//                ProgramMethod initMethod = (ProgramMethod) programClass.findMethod(EXTRA_INIT_METHOD_NAME,
-//                                                                                   EXTRA_INIT_METHOD_DESCRIPTOR);
-//                if (initMethod == null)
-//                {
-//                    // There is no init$ method yet. Create it now, and add the
-//                    // given instructions to it.
-//                    initMethod = addMethod(ACC_PRIVATE,
-//                                           EXTRA_INIT_METHOD_NAME,
-//                                           EXTRA_INIT_METHOD_DESCRIPTOR,
-//                                           // Make sure that such methods are not optimized (inlined)
-//                                           // to prevent potential overflow errors during conversion.
-//                                           ProcessingFlags.DONT_OPTIMIZE,
-//                                           instructions,
-//                                           null,
-//                                           new SimpleInstruction(Instruction.OP_RETURN));
-//
-//                    // Insert a call to the new init$ method in all super-calling constructors.
-//                    InstructionSequenceBuilder builder = new InstructionSequenceBuilder(programClass);
-//                    builder.aload_0();
-//                    builder.invokespecial(programClass.getName(),
-//                                          EXTRA_INIT_METHOD_NAME,
-//                                          EXTRA_INIT_METHOD_DESCRIPTOR,
-//                                          programClass,
-//                                          initMethod);
-//
-//                    programClass.methodsAccept(
-//                        new ConstructorMethodFilter(
-//                        new AllAttributeVisitor(
-//                        new MyInstructionInserter(instructions)), null, null));
-//                }
-//                else
-//                {
-//                    // There is already an init$ method. Add the instructions to this method.
-//                    initMethod.accept(programClass,
-//                        new AllAttributeVisitor(
-//                        new MyInstructionInserter(instructions)));
-//                }
-//            }
-//        }
-//    }
 
 
     /**

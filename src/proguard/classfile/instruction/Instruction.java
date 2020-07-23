@@ -1379,6 +1379,15 @@ public abstract class Instruction
     /**
      * Returns a description of the instruction, at the given offset.
      */
+    public String toString(Clazz clazz, int offset)
+    {
+        return this.toString(offset);
+    }
+
+
+    /**
+     * Returns a description of the instruction, at the given offset.
+     */
     public String toString(int offset)
     {
         return "["+offset+"] "+ this.toString();
@@ -1430,6 +1439,26 @@ public abstract class Instruction
     public int stackPushCount(Clazz clazz)
     {
         return STACK_PUSH_COUNTS[opcode & 0xff];
+    }
+
+
+    /**
+     * Returns the stack entry index from which the specified stack entry is
+     * copied by a dup/swap/checkcast instruction, or -1 otherwise. Stack entry
+     * indices are counted from the top of the stack.
+     * <ul>
+     * <li>checkcast: after: 0           (before: 0      ) -- not anymore
+     * <li>dup:       after: 0 0         (before: 0      )
+     * <li>dup_x1:    after: 0 1 0       (before: 1 0    )
+     * <li>dup_x2:    after: 0 2 1 0     (before: 2 1 0  )
+     * <li>dup2:      after: 1 0 1 0     (before: 1 0    )
+     * <li>dup2_x1:   after: 1 0 2 1 0   (before: 2 1 0  )
+     * <li>dup2_x2:   after: 1 0 3 2 1 0 (before: 3 2 1 0)
+     * </ul>
+     */
+    public int stackEntryIndexBefore(Clazz clazz, int stackEntryIndexAfter)
+    {
+        return -1;
     }
 
 

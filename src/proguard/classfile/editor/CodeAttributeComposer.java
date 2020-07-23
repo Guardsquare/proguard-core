@@ -82,7 +82,7 @@ import java.util.Arrays;
  *     composer.appendInstruction(new SimpleInstruction(Instruction.OP_ICONST_1));
  *     composer.appendInstruction(new SimpleInstruction(Instruction.OP_ICONST_2));
  *     composer.appendLabel(IF_LABEL);
- *     composer.appendInstruction(new BranchInstruction(Instruction.OP_IFICMPLT, 20-1));
+ *     composer.appendInstruction(new BranchInstruction(Instruction.OP_IFICMPLT, ELSE_LABEL - IF_LABEL));
  *
  *     composer.appendLabel(THEN_LABEL);
  *     composer.appendInstruction(new SimpleInstruction(Instruction.OP_ICONST_1));
@@ -137,6 +137,7 @@ implements   AttributeVisitor,
     private final boolean allowExternalBranchTargets;
     private final boolean allowExternalExceptionOffsets;
     private final boolean shrinkInstructions;
+    private final boolean absoluteBranchOffsets;
 
     private int maximumCodeLength;
     private int codeLength;
@@ -174,24 +175,58 @@ implements   AttributeVisitor,
 
     /**
      * Creates a new CodeAttributeComposer.
-     * @param allowExternalBranchTargets     specifies whether branch targets
-     *                                       can lie outside the code fragment
-     *                                       of the branch instructions.
-     * @param allowExternalExceptionOffsets  specifies whether exception
-     *                                       offsets can lie outside the code
-     *                                       fragment in which exceptions are
-     *                                       defined.
-     * @param shrinkInstructions             specifies whether instructions
-     *                                       should automatically be shrunk
-     *                                       before being written.
+     * @param allowExternalBranchTargets    specifies whether branch targets
+     *                                      can lie outside the code fragment
+     *                                      of the branch instructions.
+     * @param allowExternalExceptionOffsets specifies whether exception
+     *                                      offsets can lie outside the code
+     *                                      fragment in which exceptions are
+     *                                      defined.
+     * @param shrinkInstructions            specifies whether instructions
+     *                                      should automatically be shrunk
+     *                                      before being written.
      */
     public CodeAttributeComposer(boolean allowExternalBranchTargets,
                                  boolean allowExternalExceptionOffsets,
                                  boolean shrinkInstructions)
     {
+        this(allowExternalBranchTargets,
+             allowExternalExceptionOffsets,
+             shrinkInstructions,
+             false);
+    }
+
+
+    /**
+     * Creates a new CodeAttributeComposer.
+     * @param allowExternalBranchTargets    specifies whether branch targets
+     *                                      can lie outside the code fragment
+     *                                      of the branch instructions.
+     * @param allowExternalExceptionOffsets specifies whether exception
+     *                                      offsets can lie outside the code
+     *                                      fragment in which exceptions are
+     *                                      defined.
+     * @param shrinkInstructions            specifies whether instructions
+     *                                      should automatically be shrunk
+     *                                      before being written.
+     * @param absoluteBranchOffsets         specifies whether offsets of
+     *                                      appended branch instructions and
+     *                                      switch instructions are absolute,
+     *                                      that is, relative to the start of
+     *                                      the code, instead of relative to
+     *                                      the instructions. This may simplify
+     *                                      creating code manually, assuming
+     *                                      the offsets don't overflow.
+     */
+    public CodeAttributeComposer(boolean allowExternalBranchTargets,
+                                 boolean allowExternalExceptionOffsets,
+                                 boolean shrinkInstructions,
+                                 boolean absoluteBranchOffsets)
+    {
         this.allowExternalBranchTargets     = allowExternalBranchTargets;
         this.allowExternalExceptionOffsets  = allowExternalExceptionOffsets;
         this.shrinkInstructions             = shrinkInstructions;
+        this.absoluteBranchOffsets          = absoluteBranchOffsets;
     }
 
 
@@ -1037,10 +1072,13 @@ implements   AttributeVisitor,
             throw new IllegalArgumentException("Invalid instruction offset ["+newInstructionOffset +"] in code with length ["+codeLength+"]");
         }
 
-        int oldInstructionOffset = oldInstructionOffsets[newInstructionOffset];
+        // Are the input branch offsets relative to the start of the code
+        // or relative to the instruction?
+        int oldInstructionOffset = absoluteBranchOffsets ?
+            0 :
+            oldInstructionOffsets[newInstructionOffset];
 
-        // For ordinary branch instructions, we can compute the offset
-        // relative to the instruction itself.
+        // Compute the new branch offset, always relative to the instruction.
         return newInstructionOffset(oldInstructionOffset + oldBranchOffset) -
                newInstructionOffset;
     }
@@ -1337,7 +1375,7 @@ implements   AttributeVisitor,
         composer.appendInstruction(new SimpleInstruction(Instruction.OP_ICONST_1));
         composer.appendInstruction(new SimpleInstruction(Instruction.OP_ICONST_2));
         composer.appendLabel(IF_LABEL);
-        composer.appendInstruction(new BranchInstruction(Instruction.OP_IFICMPLT, 20-1));
+        composer.appendInstruction(new BranchInstruction(Instruction.OP_IFICMPLT, ELSE_LABEL - IF_LABEL));
 
         composer.appendLabel(THEN_LABEL);
         composer.appendInstruction(new SimpleInstruction(Instruction.OP_ICONST_1));

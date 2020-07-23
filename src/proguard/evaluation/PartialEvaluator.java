@@ -252,7 +252,7 @@ implements   AttributeVisitor,
 
                     Instruction instruction = InstructionFactory.create(codeAttribute.code,
                                                                         offset);
-                    System.out.println(instruction.toString(offset));
+                    System.out.println(instruction.toString(clazz, offset));
 
                     if (isTraced(offset))
                     {
@@ -336,7 +336,7 @@ implements   AttributeVisitor,
 
                 Instruction instruction = InstructionFactory.create(codeAttribute.code,
                                                                     offset);
-                System.out.println(instruction.toString(offset));
+                System.out.println(instruction.toString(clazz, offset));
 
                 if (isTraced(offset))
                 {
@@ -851,7 +851,7 @@ implements   AttributeVisitor,
 
             if (DEBUG)
             {
-                System.out.println(instruction.toString(instructionOffset));
+                System.out.println(instruction.toString(clazz, instructionOffset));
             }
 
             if (extraInstructionVisitor != null)
@@ -880,7 +880,7 @@ implements   AttributeVisitor,
                 System.err.println("Unexpected error while evaluating instruction:");
                 System.err.println("  Class       = ["+clazz.getName()+"]");
                 System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-                System.err.println("  Instruction = "+instruction.toString(instructionOffset));
+                System.err.println("  Instruction = "+instruction.toString(clazz, instructionOffset));
                 System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
 
                 throw ex;

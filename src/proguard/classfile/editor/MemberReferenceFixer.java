@@ -115,8 +115,11 @@ implements   ClassVisitor,
         {
             Clazz referencedClass = stringConstant.referencedClass;
 
+            // Is it a descriptor or member name?
             // Does it have a new name?
-            String newName = referencedMember.getName(referencedClass);
+            String newName = stringConstant.getString(clazz).startsWith("(") ?
+                referencedMember.getDescriptor(referencedClass) :
+                referencedMember.getName(referencedClass)       ;
 
             if (!stringConstant.getString(clazz).equals(newName))
             {

@@ -53,6 +53,7 @@ public class ClassConstants
     public static final String NAME_JAVA_LANG_BYTE                          = "java/lang/Byte";
     public static final String NAME_JAVA_LANG_SHORT                         = "java/lang/Short";
     public static final String NAME_JAVA_LANG_CHARACTER                     = "java/lang/Character";
+    public static final String NAME_JAVA_LANG_NUMBER                        = "java/lang/Number";
     public static final String NAME_JAVA_LANG_INTEGER                       = "java/lang/Integer";
     public static final String NAME_JAVA_LANG_LONG                          = "java/lang/Long";
     public static final String NAME_JAVA_LANG_FLOAT                         = "java/lang/Float";

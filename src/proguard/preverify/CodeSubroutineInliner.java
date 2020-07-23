@@ -120,7 +120,7 @@ implements   AttributeVisitor,
                 // Skip the subroutine.
                 if (DEBUG)
                 {
-                    System.out.println("  Skipping original subroutine instruction "+instruction.toString(offset));
+                    System.out.println("  Skipping original subroutine instruction "+instruction.toString(clazz, offset));
                 }
 
                 // Append a label at this offset instead.
@@ -226,7 +226,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("    Replacing first subroutine instruction "+instruction.toString(offset)+" by a label");
+                System.out.println("    Replacing first subroutine instruction "+instruction.toString(clazz, offset)+" by a label");
             }
 
             // Append a label at this offset instead of saving the subroutine
@@ -276,7 +276,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG)
             {
-                System.out.println("    Replacing first subroutine instruction "+variableInstruction.toString(offset)+" by a label");
+                System.out.println("    Replacing first subroutine instruction "+variableInstruction.toString(clazz, offset)+" by a label");
             }
 
             // Append a label at this offset instead of saving the subroutine

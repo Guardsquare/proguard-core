@@ -20,6 +20,7 @@ package proguard.classfile.instruction.visitor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.Instruction;
+import proguard.util.Counter;
 
 /**
  * This {@link InstructionVisitor} counts the number of instructions that has been visited.
@@ -27,14 +28,14 @@ import proguard.classfile.instruction.Instruction;
  * @author Eric Lafortune
  */
 public class InstructionCounter
-implements   InstructionVisitor
+implements   InstructionVisitor,
+             Counter
 {
     private int count;
 
 
-    /**
-     * Returns the number of instructions that has been visited so far.
-     */
+    // Implementations for Counter.
+
     public synchronized int getCount()
     {
         return count;

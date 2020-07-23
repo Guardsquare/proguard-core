@@ -23,6 +23,9 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.instruction.*;
 import proguard.classfile.util.*;
+import proguard.resources.file.ResourceFile;
+
+import static proguard.classfile.ClassConstants.*;
 
 /**
  * This {@link AttributeVisitor} accumulates instructions, exceptions and line numbers,
@@ -106,7 +109,7 @@ implements   AttributeVisitor
      */
     public CompactCodeAttributeComposer(ProgramClass targetClass)
     {
-        this(targetClass, false, false, true);
+        this(targetClass, null, null);
     }
 
 
@@ -124,7 +127,7 @@ implements   AttributeVisitor
                                         ClassPool    programClassPool,
                                         ClassPool    libraryClassPool)
     {
-        this(targetClass, false, false, true, programClassPool, libraryClassPool);
+        this(targetClass, false, true, true, programClassPool, libraryClassPool);
     }
 
 
@@ -184,7 +187,8 @@ implements   AttributeVisitor
         codeAttributeComposer =
             new CodeAttributeComposer(allowExternalBranchTargets,
                                       allowExternalExceptionOffsets,
-                                      shrinkInstructions);
+                                      shrinkInstructions,
+                                      true);
     }
 
 
@@ -194,6 +198,315 @@ implements   AttributeVisitor
     public ProgramClass getTargetClass()
     {
         return constantPoolEditor.getTargetClass();
+    }
+
+
+    /**
+     * Returns the current length (in bytes) of the code attribute being composed.
+     */
+    public int getCodeLength()
+    {
+        return codeAttributeComposer.getCodeLength();
+    }
+
+
+    /**
+     * Adds the required instructions to the provided CodeAttributeComposer
+     * to convert the current value on the stack to the given targetType.
+     */
+    public void convertToTargetType(String sourceType, String targetType)
+    {
+        if (ClassUtil.isInternalPrimitiveType(sourceType) &&
+            !ClassUtil.isInternalPrimitiveType(targetType))
+        {
+            this.boxPrimitiveType(sourceType.charAt(0));
+        }
+        else if (!ClassUtil.isInternalPrimitiveType(sourceType) &&
+                 ClassUtil.isInternalPrimitiveType(targetType))
+        {
+            this.unboxPrimitiveType(sourceType, targetType);
+        }
+        else if (ClassUtil.isInternalClassType(sourceType) &&
+                 (ClassUtil.isInternalClassType(targetType) ||
+                  ClassUtil.isInternalArrayType(targetType)) &&
+                 !sourceType.equals(targetType) &&
+                 // No need to cast to java/lang/Object.
+                 !TYPE_JAVA_LANG_OBJECT.equals(targetType))
+        {
+            // Cast to target type.
+            this.checkcast(ClassUtil.internalClassTypeFromType(targetType));
+        }
+        else if (ClassUtil.isInternalPrimitiveType(sourceType)
+                 && ClassUtil.isInternalPrimitiveType(targetType) &&
+                 !sourceType.equals(targetType))
+        {
+            char source = sourceType.charAt(0);
+            char target = targetType.charAt(0);
+            this.convertPrimitiveType(source, target);
+        }
+    }
+
+
+    public void boxPrimitiveType(char sourceType)
+    {
+        // Perform auto-boxing.
+        switch (sourceType)
+        {
+            case TypeConstants.INT:
+                this.invokestatic(NAME_JAVA_LANG_INTEGER,
+                                  "valueOf",
+                                  "(I)Ljava/lang/Integer;");
+                break;
+
+            case TypeConstants.BYTE:
+                this.invokestatic(NAME_JAVA_LANG_BYTE,
+                                  "valueOf",
+                                  "(B)Ljava/lang/Byte;");
+                break;
+
+            case TypeConstants.CHAR:
+                this.invokestatic(NAME_JAVA_LANG_CHARACTER,
+                                  "valueOf",
+                                  "(C)Ljava/lang/Character;");
+                break;
+
+            case TypeConstants.SHORT:
+                this.invokestatic(NAME_JAVA_LANG_SHORT,
+                                  "valueOf",
+                                  "(S)Ljava/lang/Short;");
+                break;
+
+            case TypeConstants.BOOLEAN:
+                this.invokestatic(NAME_JAVA_LANG_BOOLEAN,
+                                  "valueOf",
+                                  "(Z)Ljava/lang/Boolean;");
+                break;
+
+            case TypeConstants.LONG:
+                this.invokestatic(NAME_JAVA_LANG_LONG,
+                                  "valueOf",
+                                  "(J)Ljava/lang/Long;");
+                break;
+
+            case TypeConstants.FLOAT:
+                this.invokestatic(NAME_JAVA_LANG_FLOAT,
+                                  "valueOf",
+                                  "(F)Ljava/lang/Float;");
+                break;
+
+            case TypeConstants.DOUBLE:
+                this.invokestatic(NAME_JAVA_LANG_DOUBLE,
+                                  "valueOf",
+                                  "(D)Ljava/lang/Double;");
+                break;
+        }
+    }
+
+
+    public void convertPrimitiveType(char source, char target)
+    {
+        //If we start from a short, byte or char, we can treat it as an int without instructions
+        if (source == TypeConstants.SHORT ||
+            source == TypeConstants.BYTE ||
+            source == TypeConstants.CHAR)
+        {
+            source = TypeConstants.INT;
+        }
+
+        switch (source)
+        {
+            case TypeConstants.INT:
+                switch (target)
+                {
+                    case TypeConstants.DOUBLE:
+                        this.i2d();
+                        break;
+                    case TypeConstants.BYTE:
+                        this.i2b();
+                        break;
+                    case TypeConstants.CHAR:
+                        this.i2c();
+                        break;
+                    case TypeConstants.FLOAT:
+                        this.i2f();
+                        break;
+                    case TypeConstants.LONG:
+                        this.i2l();
+                        break;
+                    case TypeConstants.SHORT:
+                        this.i2s();
+                        break;
+                }
+                break;
+            case TypeConstants.FLOAT:
+                switch (target)
+                {
+                    case TypeConstants.DOUBLE:
+                        this.f2d();
+                        break;
+                    case TypeConstants.BYTE:
+                        this.f2i();
+                        this.i2b();
+                        break;
+                    case TypeConstants.CHAR:
+                        this.f2i();
+                        this.i2c();
+                        break;
+                    case TypeConstants.INT:
+                        this.f2i();
+                        break;
+                    case TypeConstants.LONG:
+                        this.f2l();
+                        break;
+                    case TypeConstants.SHORT:
+                        this.f2i();
+                        this.i2s();
+                        break;
+                }
+                break;
+            case TypeConstants.DOUBLE:
+                switch (target)
+                {
+                    case TypeConstants.INT:
+                        this.d2i();
+                        break;
+                    case TypeConstants.BYTE:
+                        this.d2i();
+                        this.i2b();
+                        break;
+                    case TypeConstants.CHAR:
+                        this.d2i();
+                        this.i2c();
+                        break;
+                    case TypeConstants.FLOAT:
+                        this.d2f();
+                        break;
+                    case TypeConstants.LONG:
+                        this.d2l();
+                        break;
+                    case TypeConstants.SHORT:
+                        this.d2i();
+                        this.i2s();
+                        break;
+                }
+                break;
+            case TypeConstants.LONG:
+                switch (target)
+                {
+                    case TypeConstants.DOUBLE:
+                        this.l2d();
+                        break;
+                    case TypeConstants.BYTE:
+                        this.l2i();
+                        this.i2b();
+                        break;
+                    case TypeConstants.CHAR:
+                        this.l2i();
+                        this.i2c();
+                        break;
+                    case TypeConstants.FLOAT:
+                        this.l2f();
+                        break;
+                    case TypeConstants.INT:
+                        this.l2i();
+                        break;
+                    case TypeConstants.SHORT:
+                        this.l2i();
+                        this.i2s();
+                        break;
+                }
+                break;
+        }
+    }
+
+
+    public void unboxPrimitiveType(String sourceType, String targetType)
+    {
+        boolean castRequired = sourceType.equals(TYPE_JAVA_LANG_OBJECT);
+
+        // Perform auto-unboxing.
+        switch (targetType.charAt(0))
+        {
+            case TypeConstants.INT:
+                if (castRequired)
+                {
+                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                }
+                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
+                                   "intValue",
+                                   "()I");
+                break;
+
+            case TypeConstants.BYTE:
+                if (castRequired)
+                {
+                    this.checkcast(NAME_JAVA_LANG_BYTE);
+                }
+                this.invokevirtual(NAME_JAVA_LANG_BYTE,
+                                   "byteValue",
+                                   "()B");
+                break;
+
+            case TypeConstants.CHAR:
+                if (castRequired)
+                {
+                    this.checkcast(NAME_JAVA_LANG_CHARACTER);
+                }
+                this.invokevirtual(NAME_JAVA_LANG_CHARACTER,
+                                   "charValue",
+                                   "()C");
+                break;
+
+            case TypeConstants.SHORT:
+                if (castRequired)
+                {
+                    this.checkcast(NAME_JAVA_LANG_SHORT);
+                }
+                this.invokevirtual(NAME_JAVA_LANG_SHORT,
+                                   "shortValue",
+                                   "()S");
+                break;
+
+            case TypeConstants.BOOLEAN:
+                if (castRequired)
+                {
+                    this.checkcast(NAME_JAVA_LANG_BOOLEAN);
+                }
+                this.invokevirtual(NAME_JAVA_LANG_BOOLEAN,
+                                   "booleanValue",
+                                   "()Z");
+                break;
+
+            case TypeConstants.LONG:
+                if (castRequired)
+                {
+                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                }
+                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
+                                   "longValue",
+                                   "()J");
+                break;
+
+            case TypeConstants.FLOAT:
+                if (castRequired)
+                {
+                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                }
+                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
+                                   "floatValue",
+                                   "()F");
+                break;
+
+            case TypeConstants.DOUBLE:
+                if (castRequired)
+                {
+                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                }
+                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
+                                   "doubleValue",
+                                   "()D");
+                break;
+        }
     }
 
 
@@ -278,6 +591,19 @@ implements   AttributeVisitor
 
 
     /**
+     * Starts a catch-all handler
+     * @param startLabel the start label of the try block.
+     * @param endLabel   the end label of the try block.
+     * @return this instance of CompactCodeAttributeComposer.
+     */
+    public CompactCodeAttributeComposer catchAll(Label startLabel,
+                                                 Label endLabel)
+    {
+        return catch_(startLabel, endLabel, null, null);
+    }
+
+
+    /**
      * Starts a catch handler.
      * @param startLabel      the start label of the try block.
      * @param endLabel        the end label of the try block.
@@ -296,7 +622,8 @@ implements   AttributeVisitor
         codeAttributeComposer.appendLabel(handlerLabel.offset);
 
         // Create and append the exception.
-        int u2catchType =
+        int u2catchType = (catchType == null) ?
+            0 :
             constantPoolEditor.addClassConstant(catchType, referencedClass);
 
         codeAttributeComposer.appendException(new ExceptionInfo(startLabel.offset,
@@ -453,32 +780,51 @@ implements   AttributeVisitor
         return appendInstruction(new SimpleInstruction(Instruction.OP_SIPUSH, constant));
     }
 
+    /**
+     * Appends an ldc instruction that loads an integer constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc(int value)
     {
         return ldc_(constantPoolEditor.addIntegerConstant(value));
     }
 
+    /**
+     * Appends an ldc instruction that loads a float constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc(float value)
     {
         return ldc_(constantPoolEditor.addFloatConstant(value));
     }
 
+    /**
+     * Appends an ldc instruction that loads a string constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc(String string)
     {
         return ldc(string, null, null);
     }
 
+    /**
+     * Appends an ldc instruction that loads an (internal) primitive array constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc(Object primitiveArray)
     {
         return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
     }
 
+    /**
+     * Appends an ldc instruction that loads a string constant with the given class member name.
+     */
     public CompactCodeAttributeComposer ldc(Clazz  clazz,
                                             Member member)
     {
         return ldc(member.getName(clazz), clazz, member);
     }
 
+    /**
+     * Appends an ldc instruction that loads a string constant with the given value,
+     * that references the given class member.
+     */
     public CompactCodeAttributeComposer ldc(String string,
                                             Clazz  referencedClass,
                                             Member referencedMember)
@@ -486,62 +832,165 @@ implements   AttributeVisitor
         return ldc_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
     }
 
+    /**
+     * Appends an ldc instruction that loads a string constant with the given resource file name.
+     */
+    public CompactCodeAttributeComposer ldc(ResourceFile resourceFile)
+    {
+        return ldc(resourceFile.getFileName(), resourceFile);
+    }
+
+    /**
+     * Appends an ldc instruction that loads a string constant with the given value,
+     * that references the given resource file.
+     */
+    public CompactCodeAttributeComposer ldc(String       string,
+                                            ResourceFile referencedResourceFile)
+    {
+        return ldc_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
+    }
+
+    /**
+     * Appends an ldc instruction that loads a class constant for the given class.
+     */
     public CompactCodeAttributeComposer ldc(Clazz clazz)
     {
         return ldc(clazz.getName(), clazz);
     }
 
-    public CompactCodeAttributeComposer ldc(String className,
+    /**
+     * Appends an ldc instruction that loads a class constant for the given type name,
+     * that references the given class.
+     */
+    public CompactCodeAttributeComposer ldc(String typeName,
                                             Clazz  referencedClass)
     {
-        return ldc_(constantPoolEditor.addClassConstant(className, referencedClass));
+        return ldc_(constantPoolEditor.addClassConstant(typeName, referencedClass));
     }
 
+    /**
+     * Appends an ldc instruction that loads the constant at the given index.
+     */
     public CompactCodeAttributeComposer ldc_(int constantIndex)
     {
         return appendInstruction(new ConstantInstruction(Instruction.OP_LDC, constantIndex));
     }
 
+    /**
+     * Appends an ldc_w instruction that loads an integer constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc_w(int value)
     {
-        return ldc_w_(constantPoolEditor.addIntegerConstant(value));
+        return ldc_(constantPoolEditor.addIntegerConstant(value));
     }
 
+    /**
+     * Appends an ldc_w instruction that loads a float constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc_w(float value)
     {
-        return ldc_w_(constantPoolEditor.addFloatConstant(value));
+        return ldc_(constantPoolEditor.addFloatConstant(value));
     }
 
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc_w(String string)
     {
         return ldc_w(string, null, null);
     }
 
-    public CompactCodeAttributeComposer ldc_w(String string, Clazz referencedClass, Method referencedMember)
+    /**
+     * Appends an ldc_w instruction that loads an (internal) primitive array constant with the given value.
+     */
+    public CompactCodeAttributeComposer ldc_w(Object primitiveArray)
     {
-        return ldc_w_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
+        return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
     }
 
-    public CompactCodeAttributeComposer ldc_w(String className, Clazz referencedClass)
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given class member name.
+     */
+    public CompactCodeAttributeComposer ldc_w(Clazz  clazz,
+                                              Member member)
     {
-        return ldc_w_(constantPoolEditor.addClassConstant(className, referencedClass));
+        return ldc_w(member.getName(clazz), clazz, member);
     }
 
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given value,
+     * that references the given class member.
+     */
+    public CompactCodeAttributeComposer ldc_w(String string,
+                                              Clazz  referencedClass,
+                                              Member referencedMember)
+    {
+        return ldc_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given resource file name.
+     */
+    public CompactCodeAttributeComposer ldc_w(ResourceFile resourceFile)
+    {
+        return ldc_w(resourceFile.getFileName(), resourceFile);
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a string constant with the given value,
+     * that references the given resource file.
+     */
+    public CompactCodeAttributeComposer ldc_w(String       string,
+                                              ResourceFile referencedResourceFile)
+    {
+        return ldc_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a class constant for the given class.
+     */
+    public CompactCodeAttributeComposer ldc_w(Clazz clazz)
+    {
+        return ldc_w(clazz.getName(), clazz);
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads a class constant for the given type name,
+     * that references the given class.
+     */
+    public CompactCodeAttributeComposer ldc_w(String typeName,
+                                              Clazz  referencedClass)
+    {
+        return ldc_(constantPoolEditor.addClassConstant(typeName, referencedClass));
+    }
+
+    /**
+     * Appends an ldc_w instruction that loads the constant at the given index.
+     */
     public CompactCodeAttributeComposer ldc_w_(int constantIndex)
     {
         return appendInstruction(new ConstantInstruction(Instruction.OP_LDC_W, constantIndex));
     }
 
+    /**
+     * Appends an ldc2_w instruction that loads a long constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc2_w(long value)
     {
         return ldc2_w(constantPoolEditor.addLongConstant(value));
     }
 
+    /**
+     * Appends an ldc2_w instruction that loads a double constant with the given value.
+     */
     public CompactCodeAttributeComposer ldc2_w(double value)
     {
         return ldc2_w(constantPoolEditor.addDoubleConstant(value));
     }
 
+    /**
+     * Appends an ldc2_w instruction that loads the Category 2 constant at the given index.
+     */
     public CompactCodeAttributeComposer ldc2_w(int constantIndex)
     {
         return appendInstruction(new ConstantInstruction(Instruction.OP_LDC2_W, constantIndex));
@@ -1829,12 +2278,19 @@ implements   AttributeVisitor
      */
     public CompactCodeAttributeComposer pushInt(int value)
     {
-        return
-            value >= -1 &&
-            value <= 5            ? iconst(value) :
-            value == (byte)value  ? bipush(value) :
-            value == (short)value ? sipush(value) :
-                                    ldc(value);
+        switch (value)
+        {
+            case -1: return iconst_m1();
+            case  0: return iconst_0();
+            case  1: return iconst_1();
+            case  2: return iconst_2();
+            case  3: return iconst_3();
+            case  4: return iconst_4();
+            case  5: return iconst_5();
+            default: return value == (byte)value  ? bipush(value) :
+                            value == (short)value ? sipush(value) :
+                                                    ldc(value);
+        }
     }
 
 
@@ -1842,13 +2298,14 @@ implements   AttributeVisitor
      * Pushes the given primitive float on the stack in the most efficient way
      * (as an fconst or ldc instruction).
      *
-     * @param value the int value to be pushed.
+     * @param value the float value to be pushed.
      */
     public CompactCodeAttributeComposer pushFloat(float value)
     {
         return
-            value == 0f ||
-            value == 1f ? fconst((int)value) :
+            value == 0f ? fconst_0() :
+            value == 1f ? fconst_1() :
+            value == 2f ? fconst_2() :
                           ldc(value);
     }
 
@@ -1857,13 +2314,13 @@ implements   AttributeVisitor
      * Pushes the given primitive long on the stack in the most efficient way
      * (as an lconst or ldc instruction).
      *
-     * @param value the int value to be pushed.
+     * @param value the long value to be pushed.
      */
     public CompactCodeAttributeComposer pushLong(long value)
     {
         return
-            value == 0L ||
-            value == 1L ? lconst((int)value) :
+            value == 0L ? lconst_0() :
+            value == 1L ? lconst_1() :
                           ldc2_w(value);
     }
 
@@ -1872,13 +2329,13 @@ implements   AttributeVisitor
      * Pushes the given primitive double on the stack in the most efficient way
      * (as a dconst or ldc instruction).
      *
-     * @param value the int value to be pushed.
+     * @param value the double value to be pushed.
      */
     public CompactCodeAttributeComposer pushDouble(double value)
     {
         return
-            value == 0. ||
-            value == 1. ? dconst((int)value) :
+            value == 0. ? dconst_0() :
+            value == 1. ? dconst_1() :
                           ldc2_w(value);
     }
 

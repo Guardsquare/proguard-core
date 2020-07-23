@@ -330,7 +330,7 @@ implements   AttributeVisitor,
                                    stackPopCount+" + "+
                                    stackPushCount+" = "+
                                    (stackSize+stackPushCount-stackPopCount)+": "+
-                                   instruction.toString(instructionOffset));
+                                   instruction.toString(clazz, instructionOffset));
             }
 
             // Compute the instruction's effect on the stack size.
@@ -339,7 +339,7 @@ implements   AttributeVisitor,
             if (stackSize < 0)
             {
                 throw new IllegalArgumentException("Stack size becomes negative after instruction "+
-                                                   instruction.toString(instructionOffset)+" in ["+
+                                                   instruction.toString(clazz, instructionOffset)+" in ["+
                                                    clazz.getName()+"."+
                                                    method.getName(clazz)+
                                                    method.getDescriptor(clazz)+"]");

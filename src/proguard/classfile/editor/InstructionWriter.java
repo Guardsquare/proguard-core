@@ -106,7 +106,7 @@ implements   InstructionVisitor,
 
             if (DEBUG)
             {
-                System.out.println("  "+constantInstruction.toString(offset)+" will be widened to "+replacementInstruction.toString());
+                System.out.println("  "+constantInstruction.toString(clazz, offset)+" will be widened to "+replacementInstruction.toString());
             }
 
             replaceInstruction(offset, replacementInstruction);
@@ -138,7 +138,7 @@ implements   InstructionVisitor,
 
             if (DEBUG)
             {
-                System.out.println("  "+variableInstruction.toString(offset)+" will be widened to "+replacementInstruction.toString());
+                System.out.println("  "+variableInstruction.toString(clazz, offset)+" will be widened to "+replacementInstruction.toString());
             }
 
             // Write out a dummy variable instruction for now.
@@ -220,7 +220,7 @@ implements   InstructionVisitor,
 
             if (DEBUG)
             {
-                System.out.println("  "+branchInstruction.toString(offset)+" will be widened to "+replacementInstruction.toString());
+                System.out.println("  "+branchInstruction.toString(clazz, offset)+" will be widened to "+replacementInstruction.toString());
             }
 
             replaceInstruction(offset, replacementInstruction);

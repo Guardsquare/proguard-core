@@ -51,6 +51,7 @@ extends      SimpleFeatureNamedProcessable
         this.fileName        = fileName;
         this.fileSize        = fileSize;
         this.processingFlags = processingFlags;
+        this.references      = new HashSet<>();
     }
 
 

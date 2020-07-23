@@ -79,7 +79,7 @@ public class ExceptionInfoEditor
     /**
      * Appends the given exception to the exception table.
      */
-    void appendException(ExceptionInfo exceptionInfo)
+    public void appendException(ExceptionInfo exceptionInfo)
     {
         codeAttribute.exceptionTable =
             ArrayUtil.add(codeAttribute.exceptionTable,

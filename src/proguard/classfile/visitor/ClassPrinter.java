@@ -840,23 +840,19 @@ implements   ClassVisitor,
 
     public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
     {
-        println(instruction.toString(offset));
+        println(instruction.toString(clazz, offset));
     }
 
 
     public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
     {
-        println(constantInstruction.toString(offset));
-
-        indent();
-        clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
-        outdent();
+        println(constantInstruction.toString(clazz, offset));
     }
 
 
     public void visitTableSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, TableSwitchInstruction tableSwitchInstruction)
     {
-        println(tableSwitchInstruction.toString(offset));
+        println(tableSwitchInstruction.toString(clazz, offset));
 
         indent();
 
@@ -877,7 +873,7 @@ implements   ClassVisitor,
 
     public void visitLookUpSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, LookUpSwitchInstruction lookUpSwitchInstruction)
     {
-        println(lookUpSwitchInstruction.toString(offset));
+        println(lookUpSwitchInstruction.toString(clazz, offset));
 
         indent();
 

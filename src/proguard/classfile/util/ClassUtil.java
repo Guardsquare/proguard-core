@@ -351,7 +351,7 @@ public class ClassUtil
      */
     public static boolean isInternalPrimitiveTypeOrString(String internalType)
     {
-        return internalType.equals(ClassConstants.NAME_JAVA_LANG_STRING) ||
+        return internalType.equals(ClassConstants.TYPE_JAVA_LANG_STRING) ||
                isInternalPrimitiveType(internalType.charAt(0));
     }
 

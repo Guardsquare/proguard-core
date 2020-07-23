@@ -270,6 +270,12 @@ public class ArrayInitializationMatcher
     }
 
 
+    // Small utility methods.
+
+
+    /**
+     * Returns the Value type that corresponds to the given array type.
+     */
     private byte internalType(int newArrayType)
     {
         switch (newArrayType)
@@ -288,6 +294,10 @@ public class ArrayInitializationMatcher
     }
 
 
+    /**
+     * Returns the _astore instruction opcode that corresponds to the given
+     * array type.
+     */
     private byte arrayStoreOpcode(int newArrayType)
     {
         switch (newArrayType)
@@ -306,6 +316,9 @@ public class ArrayInitializationMatcher
     }
 
 
+    /**
+     * Returns am array of the given array type and with the given length.
+     */
     private Object newArray(int newArrayType, int arrayLength)
     {
         switch (newArrayType)
@@ -324,6 +337,10 @@ public class ArrayInitializationMatcher
     }
 
 
+    /**
+     * Fills out the given value at the given index in the given array of the
+     * given array type.
+     */
     private void arrayStore(int newArrayType, Object array, int index, Value value)
     {
         switch (newArrayType)
