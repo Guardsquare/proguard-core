@@ -1,5 +1,6 @@
 build
 .gradle
+.idea/
 *.iml
 /docs/md/api/
 /docs/html/
