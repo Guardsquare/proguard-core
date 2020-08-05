@@ -230,16 +230,19 @@ public class ZipWriter implements DataEntryWriter
         String name         = dataEntry.getName();
         String originalName = dataEntry.getOriginalName();
 
+        // Only compress if both filters allow it.
         boolean compress1 = uncompressedFilter               == null || !uncompressedFilter.matches(originalName);
         boolean compress2 = extraUncompressedAlignmentFilter == null || !extraUncompressedAlignmentFilter.matches(originalName);
 
-        int uncompressedAlignment = compress2 ?
+        // Set the alignment, or the extra alignment if the extra filter
+        // matched.
+        int uncompressedAlignment = extraUncompressedAlignmentFilter == null || compress2 ?
             this.uncompressedAlignment :
             this.extraUncompressedAlignment;
 
         return
             currentZipOutput.createOutputStream(name,
-                                                compress1 || compress2,
+                                                compress1 && compress2,
                                                 uncompressedAlignment,
                                                 modificationTime);
     }
