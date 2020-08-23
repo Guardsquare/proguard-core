@@ -47,7 +47,7 @@ public abstract class Constant extends SimpleProcessable
     public static final int MODULE              = 19;
     public static final int PACKAGE             = 20;
 
-    public static final int PRIMITIVE_ARRAY     = 21;
+    public static final int PRIMITIVE_ARRAY     = 99;
 
 
     //public int  u1tag;
