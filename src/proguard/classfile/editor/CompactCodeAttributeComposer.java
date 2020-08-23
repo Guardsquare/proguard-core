@@ -591,7 +591,7 @@ implements   AttributeVisitor
 
 
     /**
-     * Starts a catch-all handler
+     * Starts a catch-all handler at the current offset.
      * @param startLabel the start label of the try block.
      * @param endLabel   the end label of the try block.
      * @return this instance of CompactCodeAttributeComposer.
@@ -604,7 +604,22 @@ implements   AttributeVisitor
 
 
     /**
-     * Starts a catch handler.
+     * Adds a catch-all handler.
+     * @param startLabel   the start label of the try block.
+     * @param endLabel     the end label of the try block.
+     * @param handlerLabel the label of the exception handler.
+     * @return this instance of CompactCodeAttributeComposer.
+     */
+    public CompactCodeAttributeComposer catchAll(Label startLabel,
+                                                 Label endLabel,
+                                                 Label handlerLabel)
+    {
+        return catch_(startLabel, endLabel, handlerLabel, null, null);
+    }
+
+
+    /**
+     * Starts a catch handler at the current offset.
      * @param startLabel      the start label of the try block.
      * @param endLabel        the end label of the try block.
      * @param catchType       the exception type.
@@ -621,6 +636,25 @@ implements   AttributeVisitor
 
         codeAttributeComposer.appendLabel(handlerLabel.offset);
 
+        return catch_(startLabel, endLabel, handlerLabel, catchType, referencedClass);
+    }
+
+
+    /**
+     * Adds a catch handler.
+     * @param startLabel      the start label of the try block.
+     * @param endLabel        the end label of the try block.
+     * @param handlerLabel    the label of the exception handler.
+     * @param catchType       the exception type.
+     * @param referencedClass the exception class, if known.
+     * @return this instance of CompactCodeAttributeComposer.
+     */
+    public CompactCodeAttributeComposer catch_(Label  startLabel,
+                                               Label  endLabel,
+                                               Label  handlerLabel,
+                                               String catchType,
+                                               Clazz  referencedClass)
+    {
         // Create and append the exception.
         int u2catchType = (catchType == null) ?
             0 :
