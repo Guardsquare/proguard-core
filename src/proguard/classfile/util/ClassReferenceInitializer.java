@@ -24,6 +24,7 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
+import proguard.classfile.editor.NamedAttributeDeleter;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.reflect.util.KotlinCallableReferenceInitializer;
 import proguard.classfile.kotlin.visitor.*;
@@ -200,7 +201,7 @@ implements   ClassVisitor,
 
 
     // Implementations for MemberVisitor.
-
+    @Override
     public void visitProgramField(ProgramClass programClass, ProgramField programField)
     {
         programField.referencedClass =
@@ -211,7 +212,7 @@ implements   ClassVisitor,
         programField.attributesAccept(programClass, this);
     }
 
-
+    @Override
     public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
     {
         programMethod.referencedClasses =
@@ -222,7 +223,7 @@ implements   ClassVisitor,
         programMethod.attributesAccept(programClass, this);
     }
 
-
+    @Override
     public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
     {
         libraryField.referencedClass =
@@ -230,7 +231,7 @@ implements   ClassVisitor,
                                 libraryField.getDescriptor(libraryClass));
     }
 
-
+    @Override
     public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
     {
         libraryMethod.referencedClasses =
@@ -240,10 +241,10 @@ implements   ClassVisitor,
 
 
     // Implementations for ConstantVisitor.
-
+    @Override
     public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-
+    @Override
     public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
     {
         // Fill out the String class.
@@ -251,7 +252,7 @@ implements   ClassVisitor,
             findClass(clazz, ClassConstants.NAME_JAVA_LANG_STRING);
     }
 
-
+    @Override
     public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant)
     {
         dynamicConstant.referencedClasses =
@@ -259,7 +260,7 @@ implements   ClassVisitor,
                                   dynamicConstant.getType(clazz));
     }
 
-
+    @Override
     public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant)
     {
         invokeDynamicConstant.referencedClasses =
@@ -267,7 +268,7 @@ implements   ClassVisitor,
                                   invokeDynamicConstant.getType(clazz));
     }
 
-
+    @Override
     public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant)
     {
         // Fill out the MethodHandle class.
@@ -275,7 +276,7 @@ implements   ClassVisitor,
             findClass(clazz, ClassConstants.NAME_JAVA_LANG_INVOKE_METHOD_HANDLE);
     }
 
-
+    @Override
     public void visitFieldrefConstant(Clazz clazz, FieldrefConstant fieldrefConstant)
     {
         String className = fieldrefConstant.getClassName(clazz);
@@ -334,7 +335,7 @@ implements   ClassVisitor,
         }
     }
 
-
+    @Override
     public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant)
     {
         String className = anyMethodrefConstant.getClassName(clazz);
@@ -395,7 +396,7 @@ implements   ClassVisitor,
         }
     }
 
-
+    @Override
     public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
     {
         // Fill out the referenced class.
@@ -407,7 +408,7 @@ implements   ClassVisitor,
             findClass(clazz, ClassConstants.NAME_JAVA_LANG_CLASS);
     }
 
-
+    @Override
     public void visitMethodTypeConstant(Clazz clazz, MethodTypeConstant methodTypeConstant)
     {
         // Fill out the MethodType class.
@@ -421,10 +422,10 @@ implements   ClassVisitor,
 
 
     // Implementations for AttributeVisitor.
-
+    @Override
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-
+    @Override
     public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
     {
         String enclosingClassName = enclosingMethodAttribute.getClassName(clazz);
@@ -491,21 +492,21 @@ implements   ClassVisitor,
         }
     }
 
-
+    @Override
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         // Initialize the nested attributes.
         codeAttribute.attributesAccept(clazz, method, this);
     }
 
-
+    @Override
     public void visitLocalVariableTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTableAttribute localVariableTableAttribute)
     {
         // Initialize the local variables.
         localVariableTableAttribute.localVariablesAccept(clazz, method, codeAttribute, this);
     }
 
-
+    @Override
     public void visitLocalVariableTypeTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeTableAttribute localVariableTypeTableAttribute)
     {
         // Initialize the local variable types.
@@ -513,6 +514,23 @@ implements   ClassVisitor,
     }
 
 
+    @Override
+    public void visitSignatureAttribute(Clazz clazz, Member member, SignatureAttribute signatureAttribute)
+    {
+        try
+        {
+            visitSignatureAttribute(clazz, signatureAttribute);
+        }
+        catch (Exception corruptSignature)
+        {
+            // #2468: delete corrupt signature attributes, since they
+            // cannot be otherwise worked around.
+            member.accept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
+        }
+    }
+
+
+    @Override
     public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
     {
         signatureAttribute.referencedClasses =
@@ -520,21 +538,21 @@ implements   ClassVisitor,
                                   signatureAttribute.getSignature(clazz));
     }
 
-
+    @Override
     public void visitAnyAnnotationsAttribute(Clazz clazz, AnnotationsAttribute annotationsAttribute)
     {
         // Initialize the annotations.
         annotationsAttribute.annotationsAccept(clazz, this);
     }
 
-
+    @Override
     public void visitAnyParameterAnnotationsAttribute(Clazz clazz, Method method, ParameterAnnotationsAttribute parameterAnnotationsAttribute)
     {
         // Initialize the annotations.
         parameterAnnotationsAttribute.annotationsAccept(clazz, method, this);
     }
 
-
+    @Override
     public void visitAnnotationDefaultAttribute(Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute)
     {
         // Initialize the annotation.
@@ -543,7 +561,7 @@ implements   ClassVisitor,
 
 
     // Implementations for LocalVariableInfoVisitor.
-
+    @Override
     public void visitLocalVariableInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableInfo localVariableInfo)
     {
         localVariableInfo.referencedClass =
@@ -553,7 +571,7 @@ implements   ClassVisitor,
 
 
     // Implementations for LocalVariableTypeInfoVisitor.
-
+    @Override
     public void visitLocalVariableTypeInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeInfo localVariableTypeInfo)
     {
         localVariableTypeInfo.referencedClasses =
@@ -563,7 +581,7 @@ implements   ClassVisitor,
 
 
     // Implementations for AnnotationVisitor.
-
+    @Override
     public void visitAnnotation(Clazz clazz, Annotation annotation)
     {
         annotation.referencedClasses =
@@ -576,13 +594,13 @@ implements   ClassVisitor,
 
 
     // Implementations for ElementValueVisitor.
-
+    @Override
     public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
     {
         initializeElementValue(clazz, annotation, constantElementValue);
     }
 
-
+    @Override
     public void visitEnumConstantElementValue(Clazz clazz, Annotation annotation, EnumConstantElementValue enumConstantElementValue)
     {
         initializeElementValue(clazz, annotation, enumConstantElementValue);
@@ -592,7 +610,7 @@ implements   ClassVisitor,
                                   enumConstantElementValue.getTypeName(clazz));
     }
 
-
+    @Override
     public void visitClassElementValue(Clazz clazz, Annotation annotation, ClassElementValue classElementValue)
     {
         initializeElementValue(clazz, annotation, classElementValue);
@@ -602,7 +620,7 @@ implements   ClassVisitor,
                                   classElementValue.getClassName(clazz));
     }
 
-
+    @Override
     public void visitAnnotationElementValue(Clazz clazz, Annotation annotation, AnnotationElementValue annotationElementValue)
     {
         initializeElementValue(clazz, annotation, annotationElementValue);
@@ -611,7 +629,7 @@ implements   ClassVisitor,
         annotationElementValue.annotationAccept(clazz, this);
     }
 
-
+    @Override
     public void visitArrayElementValue(Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue)
     {
         initializeElementValue(clazz, annotation, arrayElementValue);
