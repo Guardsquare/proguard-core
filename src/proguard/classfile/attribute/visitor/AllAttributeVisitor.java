@@ -22,7 +22,8 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.visitor.*;
 
 /**
- * This {@link ClassVisitor}, {@link MemberVisitor}, and {@link AttributeVisitor} lets a given
+ * This {@link ClassVisitor}, {@link MemberVisitor}, {@link
+ * RecordComponentInfoVisitor} and {@link AttributeVisitor} lets a given
  * {@link AttributeVisitor} visit all Attribute instances of the program classes,
  * program class members, or code attributes, respectively, that it visits.
  *
@@ -31,6 +32,7 @@ import proguard.classfile.visitor.*;
 public class AllAttributeVisitor
 implements   ClassVisitor,
              MemberVisitor,
+             RecordComponentInfoVisitor,
              AttributeVisitor
 {
     private final boolean          deep;
@@ -107,8 +109,26 @@ implements   ClassVisitor,
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        // Visit the attributes further down the components, if required.
+        if (deep)
+        {
+            recordAttribute.componentsAccept(clazz, this);
+        }
+    }
+
+
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         codeAttribute.attributesAccept(clazz, method, attributeVisitor);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        recordComponentInfo.attributesAccept(clazz, attributeVisitor);
     }
 }

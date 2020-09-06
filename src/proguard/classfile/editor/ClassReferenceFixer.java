@@ -53,6 +53,7 @@ implements   ClassVisitor,
              ConstantVisitor,
              MemberVisitor,
              AttributeVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              LocalVariableInfoVisitor,
              LocalVariableTypeInfoVisitor,
@@ -305,6 +306,13 @@ implements   ClassVisitor,
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        // Fix the components.
+        recordAttribute.componentsAccept(clazz, this);
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         // Fix the inner class names.
@@ -367,6 +375,15 @@ implements   ClassVisitor,
     {
         // Fix the annotation.
         annotationDefaultAttribute.defaultValueAccept(clazz, this);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        // Fix the attributes.
+        recordComponentInfo.attributesAccept(clazz, this);
     }
 
 

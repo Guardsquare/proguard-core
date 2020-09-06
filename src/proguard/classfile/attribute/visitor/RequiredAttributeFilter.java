@@ -114,6 +114,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        if (optionalAttributeVisitor != null)
+        {
+            optionalAttributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+        }
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         if (optionalAttributeVisitor != null)
@@ -240,6 +249,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        if (optionalAttributeVisitor != null)
+        {
+            optionalAttributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+        }
+    }
+
+
     public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
     {
         if (optionalAttributeVisitor != null)
@@ -348,6 +366,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        if (optionalAttributeVisitor != null)
+        {
+            optionalAttributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
+        }
+    }
+
+
     public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         if (optionalAttributeVisitor != null)
@@ -371,6 +398,15 @@ implements   AttributeVisitor
         if (optionalAttributeVisitor != null)
         {
             optionalAttributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        if (optionalAttributeVisitor != null)
+        {
+            optionalAttributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
         }
     }
 
@@ -420,6 +456,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        if (optionalAttributeVisitor != null)
+        {
+            optionalAttributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
     public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
     {
         if (optionalAttributeVisitor != null)
@@ -452,6 +497,15 @@ implements   AttributeVisitor
         if (optionalAttributeVisitor != null)
         {
             optionalAttributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        if (optionalAttributeVisitor != null)
+        {
+            optionalAttributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
         }
     }
 

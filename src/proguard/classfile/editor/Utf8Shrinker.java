@@ -42,6 +42,7 @@ implements   ClassVisitor,
              MemberVisitor,
              ConstantVisitor,
              AttributeVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              ParameterInfoVisitor,
              LocalVariableInfoVisitor,
@@ -159,6 +160,15 @@ implements   ClassVisitor,
                                                    SourceDebugExtensionAttribute sourceDebugExtensionAttribute)
     {
         markCpUtf8Entry(clazz, sourceDebugExtensionAttribute.u2attributeNameIndex);
+    }
+
+
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        markCpUtf8Entry(clazz, recordAttribute.u2attributeNameIndex);
+
+        // Mark the UTF-8 entries referenced by the components.
+        recordAttribute.componentsAccept(clazz, this);
     }
 
 
@@ -321,6 +331,18 @@ implements   ClassVisitor,
 
         // Mark the UTF-8 entries referenced by the element value.
         annotationDefaultAttribute.defaultValueAccept(clazz, this);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        markCpUtf8Entry(clazz, recordComponentInfo.u2nameIndex);
+        markCpUtf8Entry(clazz, recordComponentInfo.u2descriptorIndex);
+
+        // Mark the UTF-8 entries referenced by the attributes.
+        recordComponentInfo.attributesAccept(clazz, this);
     }
 
 

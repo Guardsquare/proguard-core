@@ -368,6 +368,7 @@ implements   ClassVisitor,
     private class AttributeBodyWriter
     implements    AttributeVisitor,
                   BootstrapMethodInfoVisitor,
+                  RecordComponentInfoVisitor,
                   InnerClassesInfoVisitor,
                   ExceptionInfoVisitor,
                   StackMapFrameVisitor,
@@ -420,6 +421,15 @@ implements   ClassVisitor,
         public void visitSourceDebugExtensionAttribute(Clazz clazz, SourceDebugExtensionAttribute sourceDebugExtensionAttribute)
         {
             dataOutput.write(sourceDebugExtensionAttribute.info);
+        }
+
+
+        public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+        {
+            // Write the components.
+            dataOutput.writeUnsignedShort(recordAttribute.u2componentsCount);
+
+            recordAttribute.componentsAccept(clazz, this);
         }
 
 
@@ -702,6 +712,20 @@ implements   ClassVisitor,
             // Write the bootstrap method arguments.
             writeUnsignedShorts(bootstrapMethodInfo.u2methodArguments,
                                 bootstrapMethodInfo.u2methodArgumentCount);
+        }
+
+
+        // Implementations for RecordComponentInfoVisitor.
+
+        public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+        {
+            dataOutput.writeUnsignedShort(recordComponentInfo.u2nameIndex);
+            dataOutput.writeUnsignedShort(recordComponentInfo.u2descriptorIndex);
+
+            // Write the record attributes.
+            dataOutput.writeUnsignedShort(recordComponentInfo.u2attributesCount);
+
+            recordComponentInfo.attributesAccept(clazz, ProgramClassWriter.this);
         }
 
 

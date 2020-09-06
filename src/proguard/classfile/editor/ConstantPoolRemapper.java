@@ -47,6 +47,7 @@ implements   ClassVisitor,
              MemberVisitor,
              AttributeVisitor,
              BootstrapMethodInfoVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              ExceptionInfoVisitor,
              InstructionVisitor,
@@ -253,7 +254,7 @@ implements   ClassVisitor,
         programMember.u2descriptorIndex =
             remapConstantIndex(programMember.u2descriptorIndex);
 
-        // Remap the constant pool references of the remaining attributes.
+        // Remap the constant pool references of the attributes.
         programMember.attributesAccept(programClass, this);
     }
 
@@ -314,6 +315,16 @@ implements   ClassVisitor,
     {
         sourceDebugExtensionAttribute.u2attributeNameIndex =
             remapConstantIndex(sourceDebugExtensionAttribute.u2attributeNameIndex);
+    }
+
+
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        recordAttribute.u2attributeNameIndex =
+            remapConstantIndex(recordAttribute.u2attributeNameIndex);
+
+        // Remap the constant pool references of the components.
+        recordAttribute.componentsAccept(clazz, this);
     }
 
 
@@ -555,9 +566,23 @@ implements   ClassVisitor,
         bootstrapMethodInfo.u2methodHandleIndex =
             remapConstantIndex(bootstrapMethodInfo.u2methodHandleIndex);
 
-        // Remap the constant pool references of the bootstrap methods..
+        // Remap the constant pool references of the bootstrap methods.
         remapConstantIndexArray(bootstrapMethodInfo.u2methodArguments,
                                 bootstrapMethodInfo.u2methodArgumentCount);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        recordComponentInfo.u2nameIndex =
+            remapConstantIndex(recordComponentInfo.u2nameIndex);
+        recordComponentInfo.u2descriptorIndex =
+            remapConstantIndex(recordComponentInfo.u2descriptorIndex);
+
+        // Remap the constant pool references of the attributes.
+        recordComponentInfo.attributesAccept(clazz, this);
     }
 
 

@@ -104,6 +104,15 @@ public class MultiAttributeVisitor implements AttributeVisitor
     }
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitRecordAttribute(clazz, recordAttribute);
+        }
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         for (int index = 0; index < attributeVisitorCount; index++)
@@ -176,47 +185,11 @@ public class MultiAttributeVisitor implements AttributeVisitor
     }
 
 
-    public void visitSyntheticAttribute(Clazz clazz, SyntheticAttribute syntheticAttribute)
-    {
-        for (int index = 0; index < attributeVisitorCount; index++)
-        {
-            attributeVisitors[index].visitSyntheticAttribute(clazz, syntheticAttribute);
-        }
-    }
-
-
-    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute syntheticAttribute)
-    {
-        for (int index = 0; index < attributeVisitorCount; index++)
-        {
-            attributeVisitors[index].visitSignatureAttribute(clazz, syntheticAttribute);
-        }
-    }
-
-
     public void visitDeprecatedAttribute(Clazz clazz, Field field, DeprecatedAttribute deprecatedAttribute)
     {
         for (int index = 0; index < attributeVisitorCount; index++)
         {
             attributeVisitors[index].visitDeprecatedAttribute(clazz, field, deprecatedAttribute);
-        }
-    }
-
-
-    public void visitSyntheticAttribute(Clazz clazz, Field field, SyntheticAttribute syntheticAttribute)
-    {
-        for (int index = 0; index < attributeVisitorCount; index++)
-        {
-            attributeVisitors[index].visitSyntheticAttribute(clazz, field, syntheticAttribute);
-        }
-    }
-
-
-    public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute syntheticAttribute)
-    {
-        for (int index = 0; index < attributeVisitorCount; index++)
-        {
-            attributeVisitors[index].visitSignatureAttribute(clazz, field, syntheticAttribute);
         }
     }
 
@@ -230,11 +203,56 @@ public class MultiAttributeVisitor implements AttributeVisitor
     }
 
 
+    public void visitSyntheticAttribute(Clazz clazz, SyntheticAttribute syntheticAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitSyntheticAttribute(clazz, syntheticAttribute);
+        }
+    }
+
+
+    public void visitSyntheticAttribute(Clazz clazz, Field field, SyntheticAttribute syntheticAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitSyntheticAttribute(clazz, field, syntheticAttribute);
+        }
+    }
+
+
     public void visitSyntheticAttribute(Clazz clazz, Method method, SyntheticAttribute syntheticAttribute)
     {
         for (int index = 0; index < attributeVisitorCount; index++)
         {
             attributeVisitors[index].visitSyntheticAttribute(clazz, method, syntheticAttribute);
+        }
+    }
+
+
+    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute syntheticAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitSignatureAttribute(clazz, syntheticAttribute);
+        }
+    }
+
+
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute syntheticAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitSignatureAttribute(clazz, recordComponentInfo, syntheticAttribute);
+        }
+    }
+
+
+    public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute syntheticAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitSignatureAttribute(clazz, field, syntheticAttribute);
         }
     }
 
@@ -338,11 +356,11 @@ public class MultiAttributeVisitor implements AttributeVisitor
     }
 
 
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         for (int index = 0; index < attributeVisitorCount; index++)
         {
-            attributeVisitors[index].visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+            attributeVisitors[index].visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
         }
     }
 
@@ -356,20 +374,38 @@ public class MultiAttributeVisitor implements AttributeVisitor
     }
 
 
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        for (int index = 0; index < attributeVisitorCount; index++)
-        {
-            attributeVisitors[index].visitRuntimeInvisibleAnnotationsAttribute(clazz, field, runtimeInvisibleAnnotationsAttribute);
-        }
-    }
-
-
     public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         for (int index = 0; index < attributeVisitorCount; index++)
         {
             attributeVisitors[index].visitRuntimeVisibleAnnotationsAttribute(clazz, method, runtimeVisibleAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitRuntimeInvisibleAnnotationsAttribute(clazz, field, runtimeInvisibleAnnotationsAttribute);
         }
     }
 
@@ -410,6 +446,15 @@ public class MultiAttributeVisitor implements AttributeVisitor
     }
 
 
+    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        for (int index = 0; index < attributeVisitors.length; index++)
+        {
+            attributeVisitors[index].visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
     public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
     {
         for (int index = 0; index < attributeVisitors.length; index++)
@@ -442,6 +487,15 @@ public class MultiAttributeVisitor implements AttributeVisitor
         for (int index = 0; index < attributeVisitors.length; index++)
         {
             attributeVisitors[index].visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        for (int index = 0; index < attributeVisitors.length; index++)
+        {
+            attributeVisitors[index].visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
         }
     }
 

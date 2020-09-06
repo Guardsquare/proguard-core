@@ -48,6 +48,7 @@ implements   ClassVisitor,
              ConstantVisitor,
              AttributeVisitor,
              BootstrapMethodInfoVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              ExceptionInfoVisitor,
              StackMapFrameVisitor,
@@ -479,6 +480,21 @@ implements   ClassVisitor,
     }
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        // Read the components.
+        recordAttribute.u2componentsCount = dataInput.readUnsignedShort();
+
+        recordAttribute.components = new RecordComponentInfo[recordAttribute.u2componentsCount];
+        for (int index = 0; index < recordAttribute.u2componentsCount; index++)
+        {
+            RecordComponentInfo recordComponentInfo = new RecordComponentInfo();
+            visitRecordComponentInfo(clazz, recordComponentInfo);
+            recordAttribute.components[index] = recordComponentInfo;
+        }
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         // Read the inner classes.
@@ -819,6 +835,26 @@ implements   ClassVisitor,
         // Read the bootstrap method arguments.
         bootstrapMethodInfo.u2methodArgumentCount = dataInput.readUnsignedShort();
         bootstrapMethodInfo.u2methodArguments     = readUnsignedShorts(bootstrapMethodInfo.u2methodArgumentCount);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        recordComponentInfo.u2nameIndex       = dataInput.readUnsignedShort();
+        recordComponentInfo.u2descriptorIndex = dataInput.readUnsignedShort();
+
+        // Read the component attributes.
+        recordComponentInfo.u2attributesCount = dataInput.readUnsignedShort();
+
+        recordComponentInfo.attributes = new Attribute[recordComponentInfo.u2attributesCount];
+        for (int index = 0; index < recordComponentInfo.u2attributesCount; index++)
+        {
+            Attribute attribute = createAttribute(clazz);
+            attribute.accept(clazz, this);
+            recordComponentInfo.attributes[index] = attribute;
+        }
     }
 
 
@@ -1252,6 +1288,7 @@ implements   ClassVisitor,
             attributeName.equals(Attribute.SOURCE_FILE)                                  ? new SourceFileAttribute()                                     :
             attributeName.equals(Attribute.SOURCE_DIR)                                   ? new SourceDirAttribute()                                      :
             attributeName.equals(Attribute.SOURCE_DEBUG_EXTENSION)                       ? new SourceDebugExtensionAttribute(0, u4attributeLength, null) :
+            attributeName.equals(Attribute.RECORD)                                       ? new RecordAttribute()                                         :
             attributeName.equals(Attribute.INNER_CLASSES)                                ? new InnerClassesAttribute()                                   :
             attributeName.equals(Attribute.ENCLOSING_METHOD)                             ? new EnclosingMethodAttribute()                                :
             attributeName.equals(Attribute.NEST_HOST)                                    ? new NestHostAttribute()                                       :

@@ -18,7 +18,7 @@
 package proguard.classfile.attribute.annotation;
 
 import proguard.classfile.*;
-import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 
 /**
@@ -70,5 +70,11 @@ public class RuntimeInvisibleTypeAnnotationsAttribute extends TypeAnnotationsAtt
     public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, AttributeVisitor attributeVisitor)
     {
         attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, codeAttribute, this);
+    }
+
+
+    public void accept(Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor)
+    {
+        attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, this);
     }
 }

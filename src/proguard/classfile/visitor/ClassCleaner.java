@@ -43,6 +43,7 @@ implements   ClassVisitor,
              AttributeVisitor,
              BootstrapMethodInfoVisitor,
              ExceptionInfoVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              StackMapFrameVisitor,
              VerificationTypeVisitor,
@@ -130,6 +131,14 @@ implements   ClassVisitor,
         clean(bootstrapMethodsAttribute);
 
         bootstrapMethodsAttribute.bootstrapMethodEntriesAccept(clazz, this);
+    }
+
+
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        clean(recordAttribute);
+
+        recordAttribute.componentsAccept(clazz, this);
     }
 
 
@@ -235,6 +244,16 @@ implements   ClassVisitor,
     public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo)
     {
         clean(bootstrapMethodInfo);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        clean(recordComponentInfo);
+
+        recordComponentInfo.attributesAccept(clazz, this);
     }
 
 

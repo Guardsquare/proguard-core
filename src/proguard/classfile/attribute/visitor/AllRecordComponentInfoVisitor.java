@@ -15,38 +15,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package proguard.classfile.visitor;
+package proguard.classfile.attribute.visitor;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
 import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.visitor.*;
 
 /**
- * This {@link AttributeVisitor} lets a given {@link ClassVisitor} visit all the
- * classes referenced by the type descriptors of the signatures that it visits.
+ * This {@link AttributeVisitor} lets a given {@link RecordComponentInfoVisitor} visit all
+ * {@link RecordComponentInfo} instances of the {@link RecordAttribute} instances it visits.
  *
- * @author Joachim Vandersmissen
+ * @author Eric Lafortune
  */
-public class SignatureAttributeReferencedClassVisitor
+public class AllRecordComponentInfoVisitor
 implements   AttributeVisitor
 {
-    private final ClassVisitor classVisitor;
+    private final RecordComponentInfoVisitor recordComponentInfoVisitor;
 
 
-    public SignatureAttributeReferencedClassVisitor(ClassVisitor classVisitor)
+    public AllRecordComponentInfoVisitor(RecordComponentInfoVisitor recordComponentInfoVisitor)
     {
-        this.classVisitor = classVisitor;
+        this.recordComponentInfoVisitor = recordComponentInfoVisitor;
     }
 
 
-    // Implementations for AttributeVisitor
+    // Implementations for AttributeVisitor.
 
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
 
-    public void visitSignatureAttribute(Clazz clazz,
-                                        SignatureAttribute signatureAttribute)
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
     {
-        signatureAttribute.referencedClassesAccept(classVisitor);
+        recordAttribute.componentsAccept(clazz, recordComponentInfoVisitor);
     }
 }

@@ -39,6 +39,7 @@ implements   ClassVisitor,
              MemberVisitor,
              AttributeVisitor,
              ExceptionInfoVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              StackMapFrameVisitor,
              VerificationTypeVisitor,
@@ -90,6 +91,14 @@ implements   ClassVisitor,
     public void visitAnyAttribute(Clazz clazz, Attribute attribute)
     {
         attribute.setProcessingInfo(processingInfo);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        recordComponentInfo.setProcessingInfo(processingInfo);
     }
 
 

@@ -71,6 +71,12 @@ public interface AttributeVisitor
     }
 
 
+    default void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        visitAnyAttribute(clazz, recordAttribute);
+    }
+
+
     default void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         visitAnyAttribute(clazz, innerClassesAttribute);
@@ -170,6 +176,12 @@ public interface AttributeVisitor
 
 
 
+    default void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        visitSignatureAttribute(clazz, signatureAttribute);
+    }
+
+
     default void visitSignatureAttribute(Clazz clazz, Member member, SignatureAttribute signatureAttribute)
     {
         visitSignatureAttribute(clazz, signatureAttribute);
@@ -260,6 +272,12 @@ public interface AttributeVisitor
 
 
 
+    default void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        visitRuntimeVisibleAnnotationsAttribute(clazz, runtimeVisibleAnnotationsAttribute);
+    }
+
+
     default void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Member member, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         visitRuntimeVisibleAnnotationsAttribute(clazz, runtimeVisibleAnnotationsAttribute);
@@ -283,6 +301,12 @@ public interface AttributeVisitor
         visitAnyAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
     }
 
+
+
+    default void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+    }
 
 
     default void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Member member, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
@@ -344,6 +368,12 @@ public interface AttributeVisitor
 
 
 
+    default void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeVisibleTypeAnnotationsAttribute(clazz, runtimeVisibleTypeAnnotationsAttribute);
+    }
+
+
     default void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Member member, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
     {
         visitRuntimeVisibleTypeAnnotationsAttribute(clazz, runtimeVisibleTypeAnnotationsAttribute);
@@ -373,6 +403,12 @@ public interface AttributeVisitor
         visitAnyTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
     }
 
+
+
+    default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
+    }
 
 
     default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Member member, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)

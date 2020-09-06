@@ -83,6 +83,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        if (recordAttribute.u2componentsCount > 0)
+        {
+            attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+        }
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         if (innerClassesAttribute.u2classesCount > 0)
@@ -183,6 +192,12 @@ implements   AttributeVisitor
     }
 
 
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+    }
+
+
     public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
     {
         attributeVisitor.visitSignatureAttribute(clazz, field, signatureAttribute);
@@ -279,6 +294,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0)
+        {
+            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
+        }
+    }
+
+
     public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0)
@@ -302,6 +326,15 @@ implements   AttributeVisitor
         if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0)
         {
             attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0)
+        {
+            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
         }
     }
 
@@ -351,6 +384,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
+        {
+            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
     public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
     {
         if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
@@ -383,6 +425,15 @@ implements   AttributeVisitor
         if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
         {
             attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
+        {
+            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
         }
     }
 

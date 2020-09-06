@@ -144,6 +144,15 @@ implements   AttributeVisitor
         checkTime(clazz, sourceDebugExtensionAttribute, startTime);
     }
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        long startTime = startTime();
+
+        attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+
+        checkTime(clazz, recordAttribute, startTime);
+    }
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         long startTime = startTime();
@@ -276,6 +285,15 @@ implements   AttributeVisitor
         checkTime(clazz, signatureAttribute, startTime);
     }
 
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        long startTime = startTime();
+
+        attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+
+        checkTime(clazz, signatureAttribute, startTime);
+    }
+
     public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
     {
         long startTime = startTime();
@@ -384,6 +402,15 @@ implements   AttributeVisitor
         checkTime(clazz, runtimeVisibleAnnotationsAttribute, startTime);
     }
 
+    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        long startTime = startTime();
+
+        attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
+
+        checkTime(clazz, runtimeVisibleAnnotationsAttribute, startTime);
+    }
+
     public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         long startTime = startTime();
@@ -407,6 +434,15 @@ implements   AttributeVisitor
         long startTime = startTime();
 
         attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+
+        checkTime(clazz, runtimeInvisibleAnnotationsAttribute, startTime);
+    }
+
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        long startTime = startTime();
+
+        attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
 
         checkTime(clazz, runtimeInvisibleAnnotationsAttribute, startTime);
     }
@@ -457,6 +493,15 @@ implements   AttributeVisitor
         checkTime(clazz, runtimeVisibleTypeAnnotationsAttribute, startTime);
     }
 
+    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        long startTime = startTime();
+
+        attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
+
+        checkTime(clazz, runtimeVisibleTypeAnnotationsAttribute, startTime);
+    }
+
     public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
     {
         long startTime = startTime();
@@ -489,6 +534,15 @@ implements   AttributeVisitor
         long startTime = startTime();
 
         attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+
+        checkTime(clazz, runtimeInvisibleTypeAnnotationsAttribute, startTime);
+    }
+
+    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        long startTime = startTime();
+
+        attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
 
         checkTime(clazz, runtimeInvisibleTypeAnnotationsAttribute, startTime);
     }

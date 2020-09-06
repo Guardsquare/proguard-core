@@ -21,7 +21,7 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.annotation.visitor.*;
-import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.*;
@@ -37,6 +37,7 @@ public class MemberReferenceFixer
 implements   ClassVisitor,
              ConstantVisitor,
              MemberVisitor,
+             RecordComponentInfoVisitor,
              AttributeVisitor,
              AnnotationVisitor,
              ElementValueVisitor
@@ -309,6 +310,13 @@ implements   ClassVisitor,
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        // Fix the components.
+        recordAttribute.componentsAccept(clazz, this);
+    }
+
+
     public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
     {
         Member referencedMember = enclosingMethodAttribute.referencedMethod;
@@ -363,6 +371,48 @@ implements   ClassVisitor,
     {
         // Fix the annotation.
         annotationDefaultAttribute.defaultValueAccept(clazz, this);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        // Do we know the referenced field?
+        Field referencedField = recordComponentInfo.referencedField;
+        if (referencedField != null)
+        {
+            // Does it have a new name?
+            String newName = referencedField.getName(clazz);
+            if (!recordComponentInfo.getName(clazz).equals(newName))
+            {
+                if (DEBUG)
+                {
+                    debug(clazz, recordComponentInfo, referencedField);
+                }
+
+                // Update the nameindex.
+                recordComponentInfo.u2nameIndex =
+                    new ConstantPoolEditor((ProgramClass)clazz).addUtf8Constant(newName);
+            }
+
+            // Does it have a new descriptor?
+            String newDescriptor = referencedField.getDescriptor(clazz);
+            if (!recordComponentInfo.getDescriptor(clazz).equals(newDescriptor))
+            {
+                if (DEBUG)
+                {
+                    debug(clazz, recordComponentInfo, referencedField);
+                }
+
+                // Update the descriptor index.
+                recordComponentInfo.u2descriptorIndex =
+                    new ConstantPoolEditor((ProgramClass)clazz).addUtf8Constant(newDescriptor);
+            }
+        }
+
+        // Fix the attributes.
+        recordComponentInfo.attributesAccept(clazz, this);
     }
 
 
@@ -485,5 +535,16 @@ implements   ClassVisitor,
         System.out.println("  ["+clazz.getName()+"]: ["+
                            refConstant.getClassName(clazz)+"."+refConstant.getName(clazz)+" "+refConstant.getType(clazz)+"] -> ["+
                            referencedClass.getName()+"."+referencedMember.getName(referencedClass)+" "+referencedMember.getDescriptor(referencedClass)+"]");
+    }
+
+
+    private void debug(Clazz               clazz,
+                       RecordComponentInfo recordComponentInfo,
+                       Field               referencedField)
+    {
+        System.out.println("MemberReferenceFixer:");
+        System.out.println("  ["+clazz.getName()+"]: ["+
+                           recordComponentInfo.getName(clazz)+" "+recordComponentInfo.getDescriptor(clazz)+"] -> ["+
+                           referencedField.getName(clazz)+" "+referencedField.getDescriptor(clazz)+"]");
     }
 }

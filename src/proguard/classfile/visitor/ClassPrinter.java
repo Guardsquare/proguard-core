@@ -50,6 +50,7 @@ implements   ClassVisitor,
              MemberVisitor,
              AttributeVisitor,
              BootstrapMethodInfoVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              ExceptionInfoVisitor,
              StackMapFrameVisitor,
@@ -480,6 +481,17 @@ implements   ClassVisitor,
     }
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttributeAttribute)
+    {
+        println(processingInfo(recordAttributeAttribute) +
+                " Record attribute (count = " + recordAttributeAttribute.u2componentsCount + "):");
+
+        indent();
+        recordAttributeAttribute.componentsAccept(clazz, this);
+        outdent();
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         println(processingInfo(innerClassesAttribute) +
@@ -815,6 +827,27 @@ implements   ClassVisitor,
         indent();
         clazz.constantPoolEntryAccept(bootstrapMethodInfo.u2methodHandleIndex, this);
         bootstrapMethodInfo.methodArgumentsAccept(clazz, this);
+        outdent();
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        println(processingInfo(recordComponentInfo) +
+                " RecordComponentInfo: " +
+                recordComponentInfo.getName(clazz) + " " +
+                recordComponentInfo.getDescriptor(clazz));
+
+        indent();
+        if (recordComponentInfo.u2attributesCount > 0)
+        {
+            println("Record component attributes (attribute count = " +
+                    recordComponentInfo.u2attributesCount + "):");
+
+            recordComponentInfo.attributesAccept(clazz, this);
+        }
         outdent();
     }
 

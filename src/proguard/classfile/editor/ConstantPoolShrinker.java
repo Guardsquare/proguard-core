@@ -48,6 +48,7 @@ implements   ClassVisitor,
              ConstantVisitor,
              AttributeVisitor,
              BootstrapMethodInfoVisitor,
+             RecordComponentInfoVisitor,
              InnerClassesInfoVisitor,
              ExceptionInfoVisitor,
              StackMapFrameVisitor,
@@ -257,6 +258,15 @@ implements   ClassVisitor,
     }
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        markConstant(clazz, recordAttribute.u2attributeNameIndex);
+
+        // Mark the component entries.
+        recordAttribute.componentsAccept(clazz, this);
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         markConstant(clazz, innerClassesAttribute.u2attributeNameIndex);
@@ -439,6 +449,18 @@ implements   ClassVisitor,
 
         // Mark the constant pool entries referenced by the arguments.
         bootstrapMethodInfo.methodArgumentsAccept(clazz, this);
+    }
+
+
+    // Implementations for RecordComponentInfoVisitor.
+
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        markConstant(clazz, recordComponentInfo.u2nameIndex);
+        markConstant(clazz, recordComponentInfo.u2descriptorIndex);
+
+        // Mark the constant pool entries referenced by the attributes.
+        recordComponentInfo.attributesAccept(clazz, this);
     }
 
 

@@ -34,6 +34,7 @@ public abstract class Attribute extends SimpleProcessable
     public static final String BOOTSTRAP_METHODS                       = "BootstrapMethods";
     public static final String SOURCE_FILE                             = "SourceFile";
     public static final String SOURCE_DIR                              = "SourceDir";
+    public static final String RECORD                                  = "Record";
     public static final String INNER_CLASSES                           = "InnerClasses";
     public static final String ENCLOSING_METHOD                        = "EnclosingMethod";
     public static final String NEST_HOST                               = "NestHost";
@@ -119,7 +120,7 @@ public abstract class Attribute extends SimpleProcessable
         }
         else
         {
-            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+"] on a field");
+            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+" on a field");
         }
     }
 
@@ -135,7 +136,7 @@ public abstract class Attribute extends SimpleProcessable
         }
         else
         {
-            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+"] on a method");
+            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+" on a method");
         }
     }
 
@@ -152,7 +153,24 @@ public abstract class Attribute extends SimpleProcessable
         }
         else
         {
-            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+"] on code");
+            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+" on code");
+        }
+    }
+
+    /**
+     * Accepts the given visitor in the context of the given record component.
+     */
+    public void accept(Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor)
+    {
+        // Delegate to the default invocation if the record component is null
+        // anyway.
+        if (recordComponentInfo == null)
+        {
+            accept(clazz, attributeVisitor);
+        }
+        else
+        {
+            throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+attributeVisitor.getClass().getName()+" on a record component");
         }
     }
 }

@@ -18,6 +18,7 @@
 package proguard.classfile.attribute.annotation;
 
 import proguard.classfile.*;
+import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 
 /**
@@ -63,5 +64,11 @@ public class RuntimeVisibleAnnotationsAttribute extends AnnotationsAttribute
     public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
     {
         attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, method, this);
+    }
+
+
+    public void accept(Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor)
+    {
+        attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, this);
     }
 }

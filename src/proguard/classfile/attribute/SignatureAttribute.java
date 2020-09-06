@@ -105,4 +105,9 @@ public class SignatureAttribute extends Attribute
     {
         attributeVisitor.visitSignatureAttribute(clazz, method, this);
     }
- }
+
+    public void accept(Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor)
+    {
+        attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, this);
+    }
+}

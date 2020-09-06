@@ -104,6 +104,17 @@ implements   AttributeVisitor
     }
 
     @Override
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        if (!recordAttribute.equals(lastVisitedAttribute))
+        {
+            attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+
+            lastVisitedAttribute = recordAttribute;
+        }
+    }
+
+    @Override
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         if (!innerClassesAttribute.equals(lastVisitedAttribute))
@@ -258,6 +269,17 @@ implements   AttributeVisitor
     }
 
     @Override
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        if (!signatureAttribute.equals(lastVisitedAttribute))
+        {
+            attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+
+            lastVisitedAttribute = signatureAttribute;
+        }
+    }
+
+    @Override
     public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
     {
         if (!signatureAttribute.equals(lastVisitedAttribute))
@@ -390,6 +412,17 @@ implements   AttributeVisitor
     }
 
     @Override
+    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute))
+        {
+            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
+
+            lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
+        }
+    }
+
+    @Override
     public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute))
@@ -417,6 +450,17 @@ implements   AttributeVisitor
         if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute))
         {
             attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+
+            lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
+        }
+    }
+
+    @Override
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute))
+        {
+            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
 
             lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
         }
@@ -478,6 +522,17 @@ implements   AttributeVisitor
     }
 
     @Override
+    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
+        {
+            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
+
+            lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
+        }
+    }
+
+    @Override
     public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
     {
         if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
@@ -516,6 +571,17 @@ implements   AttributeVisitor
         if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
         {
             attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+
+            lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
+        }
+    }
+
+    @Override
+    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
+        {
+            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
 
             lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
         }

@@ -133,6 +133,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
+    {
+        if (accepted(clazz, recordAttribute))
+        {
+            attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+        }
+    }
+
+
     public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
     {
         if (accepted(clazz, innerClassesAttribute))
@@ -259,6 +268,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        if (accepted(clazz, signatureAttribute))
+        {
+            attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+        }
+    }
+
+
     public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
     {
         if (accepted(clazz, signatureAttribute))
@@ -367,6 +385,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
+    {
+        if (accepted(clazz, runtimeVisibleAnnotationsAttribute))
+        {
+            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
+        }
+    }
+
+
     public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
     {
         if (accepted(clazz, runtimeVisibleAnnotationsAttribute))
@@ -390,6 +417,15 @@ implements   AttributeVisitor
         if (accepted(clazz, runtimeInvisibleAnnotationsAttribute))
         {
             attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
+    {
+        if (accepted(clazz, runtimeInvisibleAnnotationsAttribute))
+        {
+            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
         }
     }
 
@@ -448,6 +484,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+    {
+        if (accepted(clazz, runtimeVisibleTypeAnnotationsAttribute))
+        {
+            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
     public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
     {
         if (accepted(clazz, runtimeVisibleTypeAnnotationsAttribute))
@@ -471,6 +516,15 @@ implements   AttributeVisitor
         if (accepted(clazz, runtimeInvisibleTypeAnnotationsAttribute))
         {
             attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+        }
+    }
+
+
+    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
+    {
+        if (accepted(clazz, runtimeInvisibleTypeAnnotationsAttribute))
+        {
+            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
         }
     }
 

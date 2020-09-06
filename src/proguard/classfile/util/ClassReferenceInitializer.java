@@ -67,6 +67,7 @@ implements   ClassVisitor,
              MemberVisitor,
              ConstantVisitor,
              AttributeVisitor,
+             RecordComponentInfoVisitor,
              LocalVariableInfoVisitor,
              LocalVariableTypeInfoVisitor,
              AnnotationVisitor,
@@ -161,6 +162,7 @@ implements   ClassVisitor,
         this.dependencyWarningPrinter           = dependencyWarningPrinter;
     }
 
+
     // Implementations for ClassVisitor.
 
     @Override
@@ -201,6 +203,7 @@ implements   ClassVisitor,
 
 
     // Implementations for MemberVisitor.
+
     @Override
     public void visitProgramField(ProgramClass programClass, ProgramField programField)
     {
@@ -241,6 +244,7 @@ implements   ClassVisitor,
 
 
     // Implementations for ConstantVisitor.
+
     @Override
     public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
@@ -422,8 +426,15 @@ implements   ClassVisitor,
 
 
     // Implementations for AttributeVisitor.
+
     @Override
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+    @Override
+    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttributeAttribute)
+    {
+        recordAttributeAttribute.componentsAccept(clazz, this);
+    }
 
     @Override
     public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
@@ -560,7 +571,25 @@ implements   ClassVisitor,
     }
 
 
+    // Implementations for RecordComponentInfoVisitor.
+
+    @Override
+    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
+    {
+        String name = recordComponentInfo.getName(clazz);
+        String type = recordComponentInfo.getDescriptor(clazz);
+
+        recordComponentInfo.referencedField = memberFinder.findField(clazz,
+                                                                     name,
+                                                                     type);
+
+        // Initialize the attributes.
+        recordComponentInfo.attributesAccept(clazz, this);
+    }
+
+
     // Implementations for LocalVariableInfoVisitor.
+
     @Override
     public void visitLocalVariableInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableInfo localVariableInfo)
     {
@@ -571,6 +600,7 @@ implements   ClassVisitor,
 
 
     // Implementations for LocalVariableTypeInfoVisitor.
+
     @Override
     public void visitLocalVariableTypeInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeInfo localVariableTypeInfo)
     {
@@ -581,6 +611,7 @@ implements   ClassVisitor,
 
 
     // Implementations for AnnotationVisitor.
+
     @Override
     public void visitAnnotation(Clazz clazz, Annotation annotation)
     {
@@ -594,6 +625,7 @@ implements   ClassVisitor,
 
 
     // Implementations for ElementValueVisitor.
+
     @Override
     public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
     {
@@ -676,6 +708,7 @@ implements   ClassVisitor,
         private final KotlinCallableReferenceInitializer           callableReferenceInitializer           = new KotlinCallableReferenceInitializer();
 
         // Implementations for KotlinMetadataVisitor.
+
         @Override
         public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
@@ -850,6 +883,7 @@ implements   ClassVisitor,
         }
 
         // Implementations for KotlinPropertyVisitor.
+
         @Override
         public void visitAnyProperty(Clazz                              clazz,
                                      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
@@ -899,6 +933,7 @@ implements   ClassVisitor,
 
 
         // Implementations for KotlinFunctionVisitor.
+
         @Override
         public void visitAnyFunction(Clazz                  clazz,
                                      KotlinMetadata         kotlinMetadata,
@@ -932,7 +967,9 @@ implements   ClassVisitor,
             kotlinFunctionMetadata.returnTypeAccept(     clazz, kotlinMetadata, this);
         }
 
-        // Implementations for KotlinConstructorVisitor
+
+        // Implementations for KotlinConstructorVisitor.
+
         @Override
         public void visitConstructor(Clazz                     clazz,
                                      KotlinClassKindMetadata   kotlinClassKindMetadata,
@@ -950,7 +987,9 @@ implements   ClassVisitor,
             kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
         }
 
+
         // Implementations for KotlinTypeVisitor.
+
         @Override
         public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata)
         {
@@ -1006,6 +1045,7 @@ implements   ClassVisitor,
 
 
         // Implementations for KotlinTypeAliasVisitor.
+
         @Override
         public void visitTypeAlias(Clazz                              clazz,
                                    KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
@@ -1022,6 +1062,7 @@ implements   ClassVisitor,
 
 
         // Implementations for KotlinValueParameterVisitor.
+
         @Override
         public void visitAnyValueParameter(Clazz                        clazz,
                                            KotlinValueParameterMetadata kotlinValueParameterMetadata) {}
@@ -1054,7 +1095,7 @@ implements   ClassVisitor,
         }
 
 
-        // Implementations for KotlinTypeParameterVisitor
+        // Implementations for KotlinTypeParameterVisitor.
 
         @Override
         public void visitAnyTypeParameter(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
@@ -1089,6 +1130,7 @@ implements   ClassVisitor,
             }
         }
     }
+
 
     // Small utility methods.
 
