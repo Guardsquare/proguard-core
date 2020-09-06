@@ -90,7 +90,7 @@ Just add it to your project dependencies, e.g. Gradle:
 
 ```gradle
 dependencies {
-    compile project('com.guardsquare:proguard-core:7.0.0')
+    compile 'com.guardsquare:proguard-core:7.0.0'
 }
 ```
 or Maven:
