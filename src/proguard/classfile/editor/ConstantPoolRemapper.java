@@ -368,6 +368,16 @@ implements   ClassVisitor,
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        permittedSubclassesAttribute.u2attributeNameIndex =
+            remapConstantIndex(permittedSubclassesAttribute.u2attributeNameIndex);
+
+        remapConstantIndexArray(permittedSubclassesAttribute.u2classes,
+                                permittedSubclassesAttribute.u2classesCount);
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         moduleAttribute.u2attributeNameIndex =

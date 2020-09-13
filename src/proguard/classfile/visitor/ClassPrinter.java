@@ -541,6 +541,17 @@ implements   ClassVisitor,
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        println(processingInfo(permittedSubclassesAttribute) +
+                " Permitted subclasses attribute:");
+
+        indent();
+        permittedSubclassesAttribute.permittedSubclassConstantsAccept(clazz, this);
+        outdent();
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         println(processingInfo(moduleAttribute) +

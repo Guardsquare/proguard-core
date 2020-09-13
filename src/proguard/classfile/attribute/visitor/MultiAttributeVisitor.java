@@ -149,6 +149,15 @@ public class MultiAttributeVisitor implements AttributeVisitor
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        for (int index = 0; index < attributeVisitorCount; index++)
+        {
+            attributeVisitors[index].visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
+        }
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         for (int index = 0; index < attributeVisitors.length; index++)

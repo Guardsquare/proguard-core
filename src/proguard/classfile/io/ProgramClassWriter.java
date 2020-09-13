@@ -463,6 +463,14 @@ implements   ClassVisitor,
         }
 
 
+        public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+        {
+            // Write the permitted classes.
+            writeUnsignedShorts(permittedSubclassesAttribute.u2classes,
+                                permittedSubclassesAttribute.u2classesCount);
+        }
+
+
         public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
         {
             dataOutput.writeUnsignedShort(moduleAttribute.u2moduleNameIndex);

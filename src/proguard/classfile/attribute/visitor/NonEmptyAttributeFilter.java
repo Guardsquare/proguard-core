@@ -122,6 +122,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        if (permittedSubclassesAttribute.u2classesCount > 0)
+        {
+            attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
+        }
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         if (moduleAttribute.u2requiresCount > 0 ||

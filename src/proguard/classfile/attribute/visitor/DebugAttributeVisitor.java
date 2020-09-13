@@ -192,6 +192,16 @@ implements   AttributeVisitor
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        long startTime = startTime();
+
+        attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
+
+        checkTime(clazz, permittedSubclassesAttribute, startTime);
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         long startTime = startTime();

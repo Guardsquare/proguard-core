@@ -178,6 +178,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        if (accepted(clazz, permittedSubclassesAttribute))
+        {
+            attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
+        }
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         if (accepted(clazz, moduleAttribute))

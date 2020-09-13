@@ -101,6 +101,12 @@ public interface AttributeVisitor
     }
 
 
+    default void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        visitAnyAttribute(clazz, permittedSubclassesAttribute);
+    }
+
+
     default void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         visitAnyAttribute(clazz, moduleAttribute);

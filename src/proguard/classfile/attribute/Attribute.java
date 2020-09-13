@@ -39,6 +39,7 @@ public abstract class Attribute extends SimpleProcessable
     public static final String ENCLOSING_METHOD                        = "EnclosingMethod";
     public static final String NEST_HOST                               = "NestHost";
     public static final String NEST_MEMBERS                            = "NestMembers";
+    public static final String PERMITTED_SUBCLASSES                    = "PermittedSubclasses";
     public static final String DEPRECATED                              = "Deprecated";
     public static final String SYNTHETIC                               = "Synthetic";
     public static final String SIGNATURE                               = "Signature";

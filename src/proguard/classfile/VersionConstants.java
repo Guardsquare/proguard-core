@@ -55,7 +55,7 @@ public class VersionConstants
     public static final int CLASS_VERSION_14_MAJOR  = 58;
     public static final int CLASS_VERSION_14_MINOR  = 0;
     public static final int CLASS_VERSION_15_MAJOR  = 59;
-    public static final int CLASS_VERSION_15_MINOR  = 0;
+    public static final int CLASS_VERSION_15_MINOR  = 65535; // Includes preview versions.
 
     public static final int CLASS_VERSION_1_0 = (CLASS_VERSION_1_0_MAJOR << 16) | CLASS_VERSION_1_0_MINOR;
     public static final int CLASS_VERSION_1_2 = (CLASS_VERSION_1_2_MAJOR << 16) | CLASS_VERSION_1_2_MINOR;

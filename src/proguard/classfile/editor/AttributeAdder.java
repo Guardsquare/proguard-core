@@ -222,6 +222,26 @@ implements   AttributeVisitor
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        // Create a copy of the attribute.
+        PermittedSubclassesAttribute newPermittedSubclassesAttribute =
+            new PermittedSubclassesAttribute(constantAdder.addConstant(clazz, permittedSubclassesAttribute.u2attributeNameIndex),
+                                             0,
+                                             permittedSubclassesAttribute.u2classesCount > 0 ?
+                                                 new int[permittedSubclassesAttribute.u2classesCount] :
+                                                 EMPTY_INTS);
+
+        // Add the permitted subclasses.
+        permittedSubclassesAttribute.permittedSubclassConstantsAccept(targetClass,
+                                                                      new PermittedSubclassAdder(targetClass,
+                                                                                                 newPermittedSubclassesAttribute));
+
+        // Add it to the target class.
+        attributesEditor.addAttribute(newPermittedSubclassesAttribute);
+    }
+
+
     public void visitDeprecatedAttribute(Clazz clazz, DeprecatedAttribute deprecatedAttribute)
     {
         // Create a copy of the attribute.

@@ -159,6 +159,15 @@ implements   AttributeVisitor
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        if (requiredAttributeVisitor != null)
+        {
+            requiredAttributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
+        }
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         if (optionalAttributeVisitor != null)

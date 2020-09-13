@@ -531,6 +531,14 @@ implements   ClassVisitor,
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        // Read the nest host classes.
+        permittedSubclassesAttribute.u2classesCount = dataInput.readUnsignedShort();
+        permittedSubclassesAttribute.u2classes      = readUnsignedShorts(permittedSubclassesAttribute.u2classesCount);
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         moduleAttribute.u2moduleNameIndex    = dataInput.readUnsignedShort();
@@ -1293,6 +1301,7 @@ implements   ClassVisitor,
             attributeName.equals(Attribute.ENCLOSING_METHOD)                             ? new EnclosingMethodAttribute()                                :
             attributeName.equals(Attribute.NEST_HOST)                                    ? new NestHostAttribute()                                       :
             attributeName.equals(Attribute.NEST_MEMBERS)                                 ? new NestMembersAttribute()                                    :
+            attributeName.equals(Attribute.PERMITTED_SUBCLASSES)                         ? new PermittedSubclassesAttribute()                            :
             attributeName.equals(Attribute.DEPRECATED)                                   ? new DeprecatedAttribute()                                     :
             attributeName.equals(Attribute.SYNTHETIC)                                    ? new SyntheticAttribute()                                      :
             attributeName.equals(Attribute.SIGNATURE)                                    ? new SignatureAttribute()                                      :

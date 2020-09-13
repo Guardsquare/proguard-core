@@ -300,6 +300,15 @@ implements   ClassVisitor,
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        markConstant(clazz, permittedSubclassesAttribute.u2attributeNameIndex);
+
+        // Mark the nest member class constants.
+        permittedSubclassesAttribute.permittedSubclassConstantsAccept(clazz, this);
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         markConstant(        clazz, moduleAttribute.u2attributeNameIndex);

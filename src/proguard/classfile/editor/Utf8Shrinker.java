@@ -203,6 +203,12 @@ implements   ClassVisitor,
     }
 
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        markCpUtf8Entry(clazz, permittedSubclassesAttribute.u2attributeNameIndex);
+    }
+
+
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
         markCpUtf8Entry(clazz, moduleAttribute.u2attributeNameIndex);

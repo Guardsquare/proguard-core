@@ -158,6 +158,16 @@ implements   AttributeVisitor
         }
     }
 
+    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
+    {
+        if (!permittedSubclassesAttribute.equals(lastVisitedAttribute))
+        {
+            attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
+
+            lastVisitedAttribute = permittedSubclassesAttribute;
+        }
+    }
+
     @Override
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
