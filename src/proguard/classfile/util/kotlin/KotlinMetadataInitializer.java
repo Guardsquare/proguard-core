@@ -48,6 +48,7 @@ implements AnnotationVisitor,
            ElementValueVisitor,
            ConstantVisitor
 {
+    // For original definitions see https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/jvm/runtime/kotlin/Metadata.kt
     private int      k;
     private int[]    mv;
     private int[]    bv;
@@ -78,7 +79,7 @@ implements AnnotationVisitor,
         this.bv = null; //new int[] { 1, 0, 0 };
         this.d1 = null; //new String[0];
         this.d2 = null; //new String[0];
-        this.xi = -1;
+        this.xi = 0; // Optional flags, the `xi` annotation field may not be present so default to none set.
         this.xs = null;
         this.pn = null;
 
