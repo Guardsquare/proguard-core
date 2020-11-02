@@ -35,6 +35,27 @@ public class InnerClassesInfo extends SimpleProcessable
 
 
     /**
+     * Creates an uninitialized InnerClassesInfo.
+     */
+    public InnerClassesInfo() {}
+
+
+    /**
+     * Creates an InnerClassesInfo with the given properties.
+     */
+    public InnerClassesInfo(int u2innerClassIndex,
+                            int u2outerClassIndex,
+                            int u2innerNameIndex,
+                            int u2innerClassAccessFlags)
+    {
+        this.u2innerClassIndex       = u2innerClassIndex;
+        this.u2outerClassIndex       = u2outerClassIndex;
+        this.u2innerNameIndex        = u2innerNameIndex;
+        this.u2innerClassAccessFlags = u2innerClassAccessFlags;
+    }
+
+
+    /**
      * Applies the given constant pool visitor to the class constant of the
      * inner class, if any.
      */
