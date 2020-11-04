@@ -12,7 +12,7 @@ wrapper {
 }
 
 group = 'com.guardsquare'
-version = '7.0.0'
+version = proguardCoreVersion
 
 repositories {
     jcenter()
