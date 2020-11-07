@@ -17,7 +17,7 @@ jobs:
         with:
           java-version: 8
       - name: Sonar
-        run: gradle -Dsonar.host=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN sonarqube
+        run: gradle -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN sonarqube
         env:
           GITHUB_TOKEN: ${{ secrets.PROGUARD_GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.PROGUARD_SONAR_TOKEN }}   
