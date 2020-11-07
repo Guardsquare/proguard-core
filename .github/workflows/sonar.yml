@@ -23,9 +23,9 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:  
         projectBaseDir: src 
-          args: >
-            -Dsonar.organization=guardsquare
-            -Dsonar.projectKey=Guardsquare_proguard-core
+        args: >
+          -Dsonar.organization=guardsquare
+          -Dsonar.projectKey=Guardsquare_proguard-core
 
        
 
