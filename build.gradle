@@ -12,6 +12,14 @@ plugins {
     id "org.sonarqube" version "3.0"
 }
 
+sonarqube {
+    properties {
+        property "sonar.sources", "src"
+        property "sonar.projectKey", "Guardsquare_proguard-core"
+        property "sonar.organization", "guardsquare"
+    }
+}
+
 group = 'com.guardsquare'
 version = proguardCoreVersion
 

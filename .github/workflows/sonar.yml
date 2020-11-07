@@ -1,31 +1,23 @@
+name: Continuous Integration
 on:
-  # Trigger analysis when pushing in master or pull requests, and when creating
-  # a pull request.
-  push:
+  pull_request:
     branches:
       - master
       - sonar-test   
-  pull_request:
-      types: [opened, synchronize, reopened]
-name: Main Workflow
+  push:
+    branches:
+      - master
+      - sonar-test
 jobs:
-  sonarcloud:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        # Disabling shallow clone is recommended for improving relevancy of reporting
-        fetch-depth: 0
-    - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.PROGUARD_GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.PROGUARD_SONAR_TOKEN }}
-      with:  
-        projectBaseDir: src 
-        args: >
-          -Dsonar.organization=guardsquare
-          -Dsonar.projectKey=Guardsquare_proguard-core
-
-       
-
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Sonar
+        run: gradle -Dsonar.login=$SONAR_TOKEN sonarqube
+        env:
+          GITHUB_TOKEN: ${{ secrets.PROGUARD_GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.PROGUARD_SONAR_TOKEN }}   
