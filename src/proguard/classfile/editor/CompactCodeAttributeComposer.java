@@ -2244,14 +2244,14 @@ implements   AttributeVisitor
         return appendInstruction(new SimpleInstruction(Instruction.OP_WIDE));
     }
 
-    public CompactCodeAttributeComposer multianewarray(String className, Clazz referencedClass)
+    public CompactCodeAttributeComposer multianewarray(String className, Clazz referencedClass, int dimensions)
     {
-        return multianewarray(constantPoolEditor.addClassConstant(className, referencedClass));
+        return multianewarray(constantPoolEditor.addClassConstant(className, referencedClass), dimensions);
     }
 
-    public CompactCodeAttributeComposer multianewarray(int constantIndex)
+    public CompactCodeAttributeComposer multianewarray(int constantIndex, int dimensions)
     {
-        return appendInstruction(new ConstantInstruction(Instruction.OP_MULTIANEWARRAY, constantIndex));
+        return appendInstruction(new ConstantInstruction(Instruction.OP_MULTIANEWARRAY, constantIndex, dimensions));
     }
 
     public CompactCodeAttributeComposer ifnull(Label branchLabel)

@@ -2,6 +2,7 @@
 
 | Version| Issue    | Module   | Explanation
 |--------|----------|----------|----------------------------------
+| 7.x.x  |          | CORE     | Added missing dimensions argument to CompactCodeAttributeComposer.multianewarray.
 | 7.0.1  | DGD-2382 | CORE     | Fixed processing of Kotlin 1.4 metadata annotations.
 | 7.0.1  | DGD-2390 | CORE     | Fixed storage and alignment of uncompressed zip entries.
 | 7.0.1  | DGD-2338 | CORE     | Fixed processing of constant boolean arrays.
