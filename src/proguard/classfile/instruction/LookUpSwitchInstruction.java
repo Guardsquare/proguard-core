@@ -21,6 +21,8 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
+import java.util.Arrays;
+
 /**
  * This {@link Instruction} represents a lookup switch instruction.
  *
@@ -128,5 +130,24 @@ public class LookUpSwitchInstruction extends SwitchInstruction
     public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, InstructionVisitor instructionVisitor)
     {
         instructionVisitor.visitLookUpSwitchInstruction(clazz, method, codeAttribute, offset, this);
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!super.equals(o)) return false;
+        LookUpSwitchInstruction that = (LookUpSwitchInstruction)o;
+        return Arrays.equals(cases, that.cases);
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(cases);
+        return result;
     }
 }

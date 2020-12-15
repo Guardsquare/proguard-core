@@ -21,6 +21,8 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
+import java.util.Objects;
+
 /**
  * This {@link Instruction} represents an instruction that refers to a variable on the
  * local variable stack.
@@ -306,12 +308,33 @@ public class VariableInstruction extends Instruction
 
     // Implementations for Object.
 
+    @Override
     public String toString()
     {
         return getName() +
                (wide ? "_w" : "") +
                " v"+variableIndex +
                (constantSize() > 0 ? ", "+constant : "");
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VariableInstruction that = (VariableInstruction)o;
+        return opcode == that.opcode &&
+               wide == that.wide &&
+               variableIndex == that.variableIndex &&
+               constant == that.constant;
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(opcode, wide, variableIndex, constant);
     }
 
 

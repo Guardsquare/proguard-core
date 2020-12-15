@@ -21,6 +21,8 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
+import java.util.Objects;
+
 /**
  * This interface describes an instruction that branches to a given offset in
  * the code.
@@ -151,9 +153,28 @@ public class BranchInstruction extends Instruction
 
     // Implementations for Object.
 
+    @Override
     public String toString()
     {
         return getName()+" "+(branchOffset >= 0 ? "+" : "")+branchOffset;
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BranchInstruction that = (BranchInstruction)o;
+        return opcode == that.opcode &&
+               branchOffset == that.branchOffset;
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(opcode, branchOffset);
     }
 
 

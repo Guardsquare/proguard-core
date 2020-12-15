@@ -1414,6 +1414,7 @@ implements   AttributeVisitor,
 
         // Implementations for Object.
 
+        @Override
         public String toString()
         {
             StringBuffer stringBuffer = new StringBuffer();
@@ -1424,6 +1425,31 @@ implements   AttributeVisitor,
             }
 
             return stringBuffer.toString();
+        }
+
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CompositeInstruction that = (CompositeInstruction)o;
+            if (opcode != that.opcode) return false;
+            if (instructions.length != that.instructions.length) return false;
+            for (int index = 0; index < instructions.length; index++)
+            {
+                if (!instructions[index].equals(that.instructions[index])) return false;
+            }
+            return true;
+        }
+
+
+        @Override
+        public int hashCode()
+        {
+            int result = Objects.hash(opcode);
+            result = 31 * result + Arrays.hashCode(instructions);
+            return result;
         }
     }
 
@@ -1590,9 +1616,29 @@ implements   AttributeVisitor,
 
         // Implementations for Object.
 
+        @Override
         public String toString()
         {
             return "label_"+offset();
+        }
+
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Label label = (Label)o;
+            return opcode == label.opcode &&
+                   identifier == label.identifier &&
+                   newOffset == label.newOffset;
+        }
+
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(opcode, identifier, newOffset);
         }
     }
 
@@ -1604,7 +1650,7 @@ implements   AttributeVisitor,
     private static class Catch
     extends              Label
     {
-        private final int startOfffset;
+        private final int startOffset;
         private final int endOffset;
         private final int catchType;
 
@@ -1623,7 +1669,7 @@ implements   AttributeVisitor,
         {
             super(identifier);
 
-            this.startOfffset = startOffset;
+            this.startOffset = startOffset;
             this.endOffset    = endOffset;
             this.catchType    = catchType;
         }
@@ -1670,7 +1716,7 @@ implements   AttributeVisitor,
             // Add the exception. Its offsets will still be updated later on,
             // like any other exception.
             new ExceptionInfoEditor(codeAttribute).prependException(
-                new ExceptionInfo(startOfffset,
+                new ExceptionInfo(startOffset,
                                   endOffset,
                                   offset(),
                                   catchType));
@@ -1679,12 +1725,32 @@ implements   AttributeVisitor,
 
         // Implementations for Object.
 
+        @Override
         public String toString()
         {
             return "catch " +
-                   (isLabel(startOfffset) ? "label_" : "") + startOfffset + ", " +
-                   (isLabel(endOffset)    ? "label_" : "") + endOffset    + ", #" +
+                   (isLabel(startOffset) ? "label_" : "") + startOffset + ", " +
+                   (isLabel(endOffset)   ? "label_" : "") + endOffset    + ", #" +
                    catchType;
+        }
+
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (!super.equals(o)) return false;
+            Catch aCatch = (Catch)o;
+            return startOffset == aCatch.startOffset &&
+                   endOffset == aCatch.endOffset &&
+                   catchType == aCatch.catchType;
+        }
+
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(super.hashCode(), startOffset, endOffset, catchType);
         }
     }
 

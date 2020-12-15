@@ -21,6 +21,8 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
+import java.util.Objects;
+
 /**
  * Base class for representing instructions.
  *
@@ -1284,6 +1286,10 @@ public abstract class Instruction
 
 
     public byte opcode;
+
+
+    @Override public abstract boolean equals(Object o);
+    @Override public abstract int hashCode();
 
 
     /**

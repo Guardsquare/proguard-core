@@ -21,6 +21,8 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
+import java.util.Objects;
+
 /**
  * This {@link Instruction} represents a table switch instruction.
  *
@@ -132,5 +134,23 @@ public class TableSwitchInstruction extends SwitchInstruction
     public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, InstructionVisitor instructionVisitor)
     {
         instructionVisitor.visitTableSwitchInstruction(clazz, method, codeAttribute, offset, this);
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!super.equals(o)) return false;
+        TableSwitchInstruction that = (TableSwitchInstruction)o;
+        return lowCase == that.lowCase &&
+               highCase == that.highCase;
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(super.hashCode(), lowCase, highCase);
     }
 }

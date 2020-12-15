@@ -21,6 +21,8 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
+import java.util.Objects;
+
 /**
  * This {@link Instruction} represents a simple instruction without variable arguments
  * or constant pool references.
@@ -294,10 +296,29 @@ public class SimpleInstruction extends Instruction
 
     // Implementations for Object.
 
+    @Override
     public String toString()
     {
         return getName() +
                (constantSize() > 0 || constant != embeddedConstant(opcode) ? " "+constant : "");
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleInstruction that = (SimpleInstruction)o;
+        return opcode == that.opcode &&
+               constant == that.constant;
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(opcode, constant);
     }
 
 

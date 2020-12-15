@@ -24,6 +24,8 @@ import proguard.classfile.constant.visitor.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.ClassUtil;
 
+import java.util.Objects;
+
 /**
  * This {@link Instruction} represents an instruction that refers to an entry in the
  * constant pool.
@@ -283,9 +285,29 @@ implements   ConstantVisitor
 
     // Implementations for Object.
 
+    @Override
     public String toString()
     {
         return getName()+" #"+constantIndex+(constantSize() == 0 ? "" : ", "+constant);
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ConstantInstruction that = (ConstantInstruction)o;
+        return opcode == that.opcode &&
+               constantIndex == that.constantIndex &&
+               constant == that.constant;
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(opcode, constantIndex, constant);
     }
 
 

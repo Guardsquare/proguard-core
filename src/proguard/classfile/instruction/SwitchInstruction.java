@@ -17,6 +17,8 @@
  */
 package proguard.classfile.instruction;
 
+import java.util.*;
+
 /**
  * This {@link Instruction} represents a switch instruction.
  *
@@ -73,8 +75,30 @@ public abstract class SwitchInstruction extends Instruction
 
     // Implementations for Object.
 
+    @Override
     public String toString()
     {
         return getName()+" ("+jumpOffsets.length+" offsets, default="+defaultOffset+")";
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SwitchInstruction that = (SwitchInstruction)o;
+        return opcode == that.opcode &&
+               defaultOffset == that.defaultOffset &&
+               Arrays.equals(jumpOffsets, that.jumpOffsets);
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        int result = Objects.hash(opcode, defaultOffset);
+        result = 31 * result + Arrays.hashCode(jumpOffsets);
+        return result;
     }
 }

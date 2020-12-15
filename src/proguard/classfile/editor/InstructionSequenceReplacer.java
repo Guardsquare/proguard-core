@@ -26,6 +26,8 @@ import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.*;
 
+import java.util.Objects;
+
 /**
  * This {@link InstructionVisitor} replaces a given pattern instruction sequence by
  * another given replacement instruction sequence. The arguments of the
@@ -465,7 +467,7 @@ implements   InstructionVisitor,
             // because there may be other matching sequences.
             replacementInstruction =
                 codeAttributeEditor.catch_(uniqueLabel(catch_.identifier),
-                                           uniqueLabel(catch_.startOfffset),
+                                           uniqueLabel(catch_.startOffset),
                                            uniqueLabel(catch_.endOffset),
                                            matchedConstantIndex((ProgramClass)clazz,
                                                                 catch_.catchType));
@@ -791,9 +793,28 @@ implements   InstructionVisitor,
 
         // Implementations for Object.
 
+        @Override
         public String toString()
         {
             return "label_"+offset();
+        }
+
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Label label = (Label)o;
+            return opcode == label.opcode &&
+                   identifier == label.identifier;
+        }
+
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(opcode, identifier);
         }
     }
 
@@ -805,7 +826,7 @@ implements   InstructionVisitor,
     private static class Catch
     extends              Label
     {
-        private final int startOfffset;
+        private final int startOffset;
         private final int endOffset;
         private final int catchType;
 
@@ -824,7 +845,7 @@ implements   InstructionVisitor,
         {
             super(identifier);
 
-            this.startOfffset = startOffset;
+            this.startOffset = startOffset;
             this.endOffset    = endOffset;
             this.catchType    = catchType;
         }
@@ -878,12 +899,32 @@ implements   InstructionVisitor,
 
         // Implementations for Object.
 
+        @Override
         public String toString()
         {
             return "catch " +
-                   (isLabel(startOfffset) ? "label_" : "") + startOfffset + ", " +
-                   (isLabel(endOffset)    ? "label_" : "") + endOffset    + ", #" +
+                   (isLabel(startOffset) ? "label_" : "") + startOffset + ", " +
+                   (isLabel(endOffset)   ? "label_" : "") + endOffset    + ", #" +
                    catchType;
+        }
+
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (!super.equals(o)) return false;
+            Catch that = (Catch)o;
+            return startOffset == that.startOffset &&
+                   endOffset == that.endOffset &&
+                   catchType == that.catchType;
+        }
+
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(super.hashCode(), startOffset, endOffset, catchType);
         }
     }
 }
