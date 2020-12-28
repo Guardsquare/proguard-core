@@ -19,7 +19,6 @@ package proguard.classfile.constant;
 
 import proguard.classfile.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.visitor.MemberVisitor;
 
 /**
  * This {@link Constant} represents a method reference constant in the constant pool.
@@ -58,13 +57,30 @@ public class MethodrefConstant extends AnyMethodrefConstant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.METHODREF;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitMethodrefConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public String toString()
+    {
+        return "Methodref(" + u2classIndex + "," + u2nameAndTypeIndex + ")";
     }
 }

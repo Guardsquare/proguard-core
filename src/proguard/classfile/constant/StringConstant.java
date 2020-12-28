@@ -143,11 +143,19 @@ public class StringConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.STRING;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitStringConstant(clazz, this);
@@ -188,5 +196,47 @@ public class StringConstant extends Constant
         {
             referencedResourceFile.accept(resourceFileVisitor);
         }
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        StringConstant other = (StringConstant)object;
+
+        // We're also taking into account the references here, so similar
+        // constants can still be manipulated in different ways.
+        return
+            this.u2stringIndex          == other.u2stringIndex        &&
+            this.referencedClass        == other.referencedClass      &&
+            this.referencedMember       == other.referencedMember     &&
+            this.referencedResourceId   == other.referencedResourceId &&
+            this.referencedResourceFile == other.referencedResourceFile;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.STRING ^
+            (u2stringIndex << 5);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "String(" + u2stringIndex + ")";
     }
 }

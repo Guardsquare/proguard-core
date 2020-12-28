@@ -17,11 +17,9 @@
  */
 package proguard.classfile.constant;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.util.StringUtil;
-
-import java.io.UnsupportedEncodingException;
 
 /**
  * This {@link Constant} represents a UTF-8 constant in the constant pool.
@@ -104,11 +102,19 @@ public class Utf8Constant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.UTF8;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitUtf8Constant(clazz, this);
@@ -140,5 +146,48 @@ public class Utf8Constant extends Constant
             string = StringUtil.getString(bytes);
             bytes  = null;
         }
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        Utf8Constant other = (Utf8Constant)object;
+
+        this.switchToStringRepresentation();
+        other.switchToStringRepresentation();
+
+        return
+            this.string.equals(other.string);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        switchToStringRepresentation();
+
+        return
+            Constant.UTF8 ^
+            string.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        switchToStringRepresentation();
+
+        return "Utf8(" + string + ")";
     }
 }

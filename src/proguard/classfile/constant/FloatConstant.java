@@ -67,13 +67,57 @@ public class FloatConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.FLOAT;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitFloatConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        FloatConstant other = (FloatConstant)object;
+
+        return
+            this.f4value == other.f4value;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.FLOAT ^
+            Float.floatToIntBits(f4value);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Float(" + f4value + ")";
     }
 }

@@ -6,6 +6,7 @@
 | 7.1.x  | PGD-0064 | CORE     | Added support for Java 14 and 15.
 | 7.1.x  | PGD-0064 | CORE     | Added support for sealed classes (permitted subclasses attributes).
 | 7.1.x  | PGD-0064 | CORE     | Added support for record attributes.
+| 7.1.x  | PGD-5    | CORE     | Improved efficiency of building classes, methods and constant pools.
 | 7.1.x  | DGD-2390 | CORE     | Fixed storage and alignment of uncompressed zip entries.
 | 7.1.x  | DGD-2338 | CORE     | Fixed processing of constant boolean arrays.
 | 7.1.x  |          | CORE     | Fixed adding branch instructions with labels in CompactCodeAttributeComposer.

@@ -79,9 +79,7 @@ public abstract class AnyMethodrefConstant extends RefConstant
 
     // Implementations for RefConstant.
 
-    /**
-     * Lets the referenced class member accept the given visitor.
-     */
+    @Override
     public void referencedMemberAccept(MemberVisitor memberVisitor)
     {
         if (referencedMethod != null)

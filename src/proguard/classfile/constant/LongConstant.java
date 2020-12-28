@@ -67,13 +67,58 @@ public class LongConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.LONG;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return true;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitLongConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        LongConstant other = (LongConstant)object;
+
+        return
+            this.u8value == other.u8value;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.LONG        ^
+            (int)(u8value >> 32) ^
+            (int)u8value;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Long(" + u8value + ")";
     }
 }

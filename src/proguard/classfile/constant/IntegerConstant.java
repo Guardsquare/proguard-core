@@ -17,7 +17,7 @@
  */
 package proguard.classfile.constant;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 
 /**
@@ -67,13 +67,57 @@ public class IntegerConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.INTEGER;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitIntegerConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        IntegerConstant other = (IntegerConstant)object;
+
+        return
+            this.u4value == other.u4value;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.INTEGER ^
+            u4value;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Integer(" + u4value + ")";
     }
 }

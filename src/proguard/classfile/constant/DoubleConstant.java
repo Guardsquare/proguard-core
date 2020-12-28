@@ -67,13 +67,59 @@ public class DoubleConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.DOUBLE;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return true;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitDoubleConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        DoubleConstant other = (DoubleConstant)object;
+
+        return
+            this.f8value == other.f8value;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        long bits = Double.doubleToLongBits(f8value);
+        return
+            Constant.DOUBLE      ^
+            (int)(bits >> 32) ^
+            (int)bits;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Double(" + f8value + ")";
     }
 }

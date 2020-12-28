@@ -104,13 +104,59 @@ public class NameAndTypeConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.NAME_AND_TYPE;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitNameAndTypeConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        NameAndTypeConstant other = (NameAndTypeConstant)object;
+
+        return
+            this.u2nameIndex       == other.u2nameIndex &&
+            this.u2descriptorIndex == other.u2descriptorIndex;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.NAME_AND_TYPE    ^
+            (u2nameIndex       <<  5) ^
+            (u2descriptorIndex << 16);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "NameAndType(" + u2nameIndex + "," + u2descriptorIndex + ")";
     }
 }

@@ -22,9 +22,15 @@ import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.*;
 import proguard.resources.file.ResourceFile;
+import proguard.util.ArrayUtil;
+
+import java.util.HashMap;
 
 /**
  * This class can add constant pool entries to a given class.
+ * <p/>
+ * If you're building a class from scratch, it is more efficient to reuse
+ * a single instance of this editor for all constants that you add.
  *
  * @author Eric Lafortune
  */
@@ -32,8 +38,13 @@ public class ConstantPoolEditor
 {
     private static final boolean DEBUG = false;
 
-    private final ProgramClass    targetClass;
-    private final ConstantVisitor constantReferenceInitializer;
+    private static final int SIZE_INCREMENT = 16;
+
+
+    private final ProgramClass              targetClass;
+    private final ConstantVisitor           constantReferenceInitializer;
+    private       HashMap<Constant,Integer> cachedIndices;
+    private       int                       cachedCount;
 
 
     /**
@@ -60,11 +71,61 @@ public class ConstantPoolEditor
                               ClassPool    programClassPool,
                               ClassPool    libraryClassPool)
     {
+        // Automatically start caching indices of constants if we're creating
+        // a class from scratch.
+        this(targetClass,
+             programClassPool,
+             libraryClassPool,
+             targetClass.u2constantPoolCount <= 1);
+    }
+
+
+    /**
+     * Creates a new ConstantPoolEditor that automatically initializes class
+     * references and class member references in new constants.
+     * @param targetClass      the target class in which constants are to be
+     *                         edited.
+     * @param programClassPool the program class pool from which new constants
+     *                         can be initialized.
+     * @param libraryClassPool the library class pool from which new constants
+     *                         can be initialized.
+     * @param cacheIndices     specifies whether indices of constants should
+     *                         be cached.
+     */
+    ConstantPoolEditor(ProgramClass targetClass,
+                       ClassPool    programClassPool,
+                       ClassPool    libraryClassPool,
+                       boolean      cacheIndices)
+    {
         this.targetClass = targetClass;
 
         constantReferenceInitializer = programClassPool == null ? null :
             new WildcardConstantFilter(
             new ClassReferenceInitializer(programClassPool, libraryClassPool));
+
+        // Should we maintain a cache, for efficiency, if this editor will be
+        // used to add many constants?
+        if (cacheIndices)
+        {
+            if (DEBUG)
+            {
+                System.out.println("ConstantPoolEditor: starting with cache");
+            }
+
+            cachedIndices = new HashMap<>();
+            cachedCount   = targetClass.u2constantPoolCount;
+
+            // Initialize the cache, should the constant pool already contain
+            // any elements (always starting at index 1).
+            for (int index = 1; index < cachedCount; index++)
+            {
+                Constant constant = targetClass.constantPool[index];
+                if (constant != null)
+                {
+                    cachedIndices.put(constant, Integer.valueOf(index));
+                }
+            }
+        }
     }
 
 
@@ -84,26 +145,7 @@ public class ConstantPoolEditor
      */
     public int addIntegerConstant(int value)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.INTEGER)
-            {
-                IntegerConstant integerConstant = (IntegerConstant)constant;
-                if (integerConstant.getValue() == value)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new IntegerConstant(value));
+        return findOrAddConstant(new IntegerConstant(value));
     }
 
 
@@ -113,26 +155,7 @@ public class ConstantPoolEditor
      */
     public int addLongConstant(long value)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.LONG)
-            {
-                LongConstant longConstant = (LongConstant)constant;
-                if (longConstant.getValue() == value)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new LongConstant(value));
+        return findOrAddConstant(new LongConstant(value));
     }
 
 
@@ -143,26 +166,7 @@ public class ConstantPoolEditor
      */
     public int addFloatConstant(float value)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.FLOAT)
-            {
-                FloatConstant floatConstant = (FloatConstant)constant;
-                if (floatConstant.getValue() == value)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new FloatConstant(value));
+        return findOrAddConstant(new FloatConstant(value));
     }
 
 
@@ -173,26 +177,7 @@ public class ConstantPoolEditor
      */
     public int addDoubleConstant(double value)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.DOUBLE)
-            {
-                DoubleConstant doubleConstant = (DoubleConstant)constant;
-                if (doubleConstant.getValue() == value)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new DoubleConstant(value));
+        return findOrAddConstant(new DoubleConstant(value));
     }
 
 
@@ -203,7 +188,7 @@ public class ConstantPoolEditor
      */
     public int addPrimitiveArrayConstant(Object values)
     {
-        return addConstant(new PrimitiveArrayConstant(values));
+        return findOrAddConstant(new PrimitiveArrayConstant(values));
     }
 
 
@@ -255,31 +240,26 @@ public class ConstantPoolEditor
                                  int          resourceFileId,
                                  ResourceFile resourceFile)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
+        return  addStringConstant(addUtf8Constant(string),
+                                  referencedClass,
+                                  referencedMember,
+                                  resourceFileId,
+                                  resourceFile);
+    }
 
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
 
-            if (constant != null &&
-                constant.getTag() == Constant.STRING)
-            {
-                StringConstant stringConstant = (StringConstant)constant;
-                if (stringConstant.u2stringIndex < constantPoolCount          &&
-                    stringConstant.getString(targetClass).equals(string)      &&
-                    stringConstant.referencedClass        == referencedClass  &&
-                    stringConstant.referencedMember       == referencedMember &&
-                    stringConstant.referencedResourceId   == resourceFileId   &&
-                    stringConstant.referencedResourceFile == resourceFile)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new StringConstant(addUtf8Constant(string),
+    /**
+     * Finds or creates a StringConstant constant pool entry with the given
+     * UTF-8 constant index.
+     * @return the constant pool index of the StringConstant.
+     */
+    public int addStringConstant(int          utf8index,
+                                 Clazz        referencedClass,
+                                 Member       referencedMember,
+                                 int          resourceFileId,
+                                 ResourceFile resourceFile)
+    {
+        return findOrAddConstant(new StringConstant(utf8index,
                                               referencedClass,
                                               referencedMember,
                                               resourceFileId,
@@ -314,27 +294,7 @@ public class ConstantPoolEditor
                                   int     nameAndTypeIndex,
                                   Clazz[] referencedClasses)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.DYNAMIC)
-            {
-                DynamicConstant dynamicConstant = (DynamicConstant)constant;
-                if (dynamicConstant.u2bootstrapMethodAttributeIndex == bootstrapMethodIndex &&
-                    dynamicConstant.u2nameAndTypeIndex              == nameAndTypeIndex)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new DynamicConstant(bootstrapMethodIndex,
+        return findOrAddConstant(new DynamicConstant(bootstrapMethodIndex,
                                                nameAndTypeIndex,
                                                referencedClasses));
     }
@@ -350,27 +310,7 @@ public class ConstantPoolEditor
                                         int     nameAndTypeIndex,
                                         Clazz[] referencedClasses)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.INVOKE_DYNAMIC)
-            {
-                InvokeDynamicConstant invokeDynamicConstant = (InvokeDynamicConstant)constant;
-                if (invokeDynamicConstant.u2bootstrapMethodAttributeIndex == bootstrapMethodIndex &&
-                    invokeDynamicConstant.u2nameAndTypeIndex              == nameAndTypeIndex)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new InvokeDynamicConstant(bootstrapMethodIndex,
+        return findOrAddConstant(new InvokeDynamicConstant(bootstrapMethodIndex,
                                                      nameAndTypeIndex,
                                                      referencedClasses));
     }
@@ -385,29 +325,10 @@ public class ConstantPoolEditor
     public int addMethodHandleConstant(int referenceKind,
                                        int referenceIndex)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.METHOD_HANDLE)
-            {
-                MethodHandleConstant methodHandleConstant = (MethodHandleConstant)constant;
-                if (methodHandleConstant.u1referenceKind  == referenceKind &&
-                    methodHandleConstant.u2referenceIndex == referenceIndex)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new MethodHandleConstant(referenceKind,
+        return findOrAddConstant(new MethodHandleConstant(referenceKind,
                                                     referenceIndex));
     }
+
 
     /**
      * Finds or creates a ModuleConstant constant pool entry with the given name.
@@ -415,29 +336,20 @@ public class ConstantPoolEditor
      */
     public int addModuleConstant(String name)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.MODULE)
-            {
-                ModuleConstant moduleConstant = (ModuleConstant)constant;
-                if (moduleConstant.getName(targetClass).equals(name))
-                {
-                    return index;
-                }
-            }
-        }
-
-        int nameIndex = addUtf8Constant(name);
-
-        return addConstant(new ModuleConstant(nameIndex));
+        return  addModuleConstant(addUtf8Constant(name));
     }
+
+
+    /**
+     * Finds or creates a ModuleConstant constant pool entry with the given name
+     * constant pool index.
+     * @return the constant pool index of the ModuleConstant.
+     */
+    public int addModuleConstant(int nameIndex)
+    {
+        return findOrAddConstant(new ModuleConstant(nameIndex));
+    }
+
 
     /**
      * Finds or creates a PackageConstant constant pool entry with the given name.
@@ -445,28 +357,18 @@ public class ConstantPoolEditor
      */
     public int addPackageConstant(String name)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
+        return addPackageConstant(addUtf8Constant(name));
+    }
 
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
 
-            if (constant != null &&
-                constant.getTag() == Constant.PACKAGE)
-            {
-                PackageConstant packageConstant = (PackageConstant)constant;
-                if (packageConstant.getName(targetClass).equals(name))
-                {
-                    return index;
-                }
-            }
-        }
-
-        int nameIndex = addUtf8Constant(name);
-
-        return addConstant(new PackageConstant(nameIndex));
+    /**
+     * Finds or creates a PackageConstant constant pool entry with the given name
+     * constant pool index.
+     * @return the constant pool index of the PackageConstant.
+     */
+    public int addPackageConstant(int nameIndex)
+    {
+        return findOrAddConstant(new PackageConstant(nameIndex));
     }
 
 
@@ -550,27 +452,7 @@ public class ConstantPoolEditor
                                    Clazz referencedClass,
                                    Field referencedField)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.FIELDREF)
-            {
-                FieldrefConstant fieldrefConstant = (FieldrefConstant)constant;
-                if (fieldrefConstant.u2classIndex       == classIndex &&
-                    fieldrefConstant.u2nameAndTypeIndex == nameAndTypeIndex)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new FieldrefConstant(classIndex,
+        return findOrAddConstant(new FieldrefConstant(classIndex,
                                                 nameAndTypeIndex,
                                                 referencedClass,
                                                 referencedField));
@@ -657,27 +539,7 @@ public class ConstantPoolEditor
                                              Clazz  referencedClass,
                                              Method referencedMethod)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.INTERFACE_METHODREF)
-            {
-                InterfaceMethodrefConstant methodrefConstant = (InterfaceMethodrefConstant)constant;
-                if (methodrefConstant.u2classIndex       == classIndex &&
-                    methodrefConstant.u2nameAndTypeIndex == nameAndTypeIndex)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new InterfaceMethodrefConstant(classIndex,
+        return findOrAddConstant(new InterfaceMethodrefConstant(classIndex,
                                                           nameAndTypeIndex,
                                                           referencedClass,
                                                           referencedMethod));
@@ -764,27 +626,7 @@ public class ConstantPoolEditor
                                     Clazz  referencedClass,
                                     Method referencedMethod)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
-
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
-
-            if (constant != null &&
-                constant.getTag() == Constant.METHODREF)
-            {
-                MethodrefConstant methodrefConstant = (MethodrefConstant)constant;
-                if (methodrefConstant.u2classIndex       == classIndex &&
-                    methodrefConstant.u2nameAndTypeIndex == nameAndTypeIndex)
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new MethodrefConstant(classIndex,
+        return findOrAddConstant(new MethodrefConstant(classIndex,
                                                  nameAndTypeIndex,
                                                  referencedClass,
                                                  referencedMethod));
@@ -809,97 +651,72 @@ public class ConstantPoolEditor
     public int addClassConstant(String name,
                                 Clazz  referencedClass)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
+        return addClassConstant(addUtf8Constant(name),
+                                referencedClass);
+    }
 
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
 
-            if (constant != null &&
-                constant.getTag() == Constant.CLASS)
-            {
-                ClassConstant classConstant = (ClassConstant)constant;
-                if (classConstant.u2nameIndex < constantPoolCount &&
-                    classConstant.getName(targetClass).equals(name))
-                {
-                    return index;
-                }
-            }
-        }
-
-        int nameIndex = addUtf8Constant(name);
-
-        return addConstant(new ClassConstant(nameIndex, referencedClass));
+    /**
+     * Finds or creates a ClassConstant constant pool entry with the given name
+     * UTF-8 constant pool index.
+     * @return the constant pool index of the ClassConstant.
+     */
+    public int addClassConstant(int    nameIndex,
+                                Clazz  referencedClass)
+    {
+        return findOrAddConstant(new ClassConstant(nameIndex, referencedClass));
     }
 
 
     /**
      * Finds or creates a MethodTypeConstant constant pool entry with the given
-     * type.
+     * descriptor.
      * @return the constant pool index of the MethodTypeConstant.
      */
-    public int addMethodTypeConstant(String  type,
+    public int addMethodTypeConstant(String  descriptor,
                                      Clazz[] referencedClasses)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
+        return addMethodTypeConstant(addUtf8Constant(descriptor),
+                                     referencedClasses);
+    }
 
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
 
-            if (constant != null &&
-                constant.getTag() == Constant.METHOD_TYPE)
-            {
-                MethodTypeConstant methodTypeConstant = (MethodTypeConstant)constant;
-                if (methodTypeConstant.u2descriptorIndex < constantPoolCount &&
-                    methodTypeConstant.getType(targetClass).equals(type))
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new MethodTypeConstant(addUtf8Constant(type),
+    /**
+     * Finds or creates a MethodTypeConstant constant pool entry with the given
+     * descriptor UTF-8 constant pool index.
+     * @return the constant pool index of the MethodTypeConstant.
+     */
+    public int addMethodTypeConstant(int     descriptorIndex,
+                                     Clazz[] referencedClasses)
+    {
+        return findOrAddConstant(new MethodTypeConstant(descriptorIndex,
                                                   referencedClasses));
     }
 
 
     /**
      * Finds or creates a NameAndTypeConstant constant pool entry with the given
-     * name and type.
+     * name and descriptor.
      * @return the constant pool index of the NameAndTypeConstant.
      */
     public int addNameAndTypeConstant(String name,
-                                      String type)
+                                      String descriptor)
     {
-        int        constantPoolCount = targetClass.u2constantPoolCount;
-        Constant[] constantPool      = targetClass.constantPool;
+        return  addNameAndTypeConstant(addUtf8Constant(name),
+                                       addUtf8Constant(descriptor));
+    }
 
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
-        {
-            Constant constant = constantPool[index];
 
-            if (constant != null &&
-                constant.getTag() == Constant.NAME_AND_TYPE)
-            {
-                NameAndTypeConstant nameAndTypeConstant = (NameAndTypeConstant)constant;
-                if (nameAndTypeConstant.u2nameIndex       < constantPoolCount &&
-                    nameAndTypeConstant.u2descriptorIndex < constantPoolCount &&
-                    nameAndTypeConstant.getName(targetClass).equals(name)     &&
-                    nameAndTypeConstant.getType(targetClass).equals(type))
-                {
-                    return index;
-                }
-            }
-        }
-
-        return addConstant(new NameAndTypeConstant(addUtf8Constant(name),
-                                                   addUtf8Constant(type)));
+    /**
+     * Finds or creates a NameAndTypeConstant constant pool entry with the given
+     * name and descriptor UTF-8 constant pool indices.
+     * @return the constant pool index of the NameAndTypeConstant.
+     */
+    public int addNameAndTypeConstant(int nameIndex,
+                                      int descriptorIndex)
+    {
+        return findOrAddConstant(new NameAndTypeConstant(nameIndex,
+                                                   descriptorIndex));
     }
 
 
@@ -909,68 +726,116 @@ public class ConstantPoolEditor
      */
     public int addUtf8Constant(String string)
     {
+        return findOrAddConstant(new Utf8Constant(string));
+    }
+
+
+    /**
+     * Finds or adds a given constant pool entry.
+     * @return the index of the entry in the constant pool.
+     */
+    public int findOrAddConstant(Constant constant)
+    {
         int        constantPoolCount = targetClass.u2constantPoolCount;
         Constant[] constantPool      = targetClass.constantPool;
 
-        // Check if the entry already exists.
-        for (int index = 1; index < constantPoolCount; index++)
+        if (DEBUG)
         {
-            Constant constant = constantPool[index];
+            System.out.println("ConstantPoolEditor: ["+(targetClass.u2thisClass > 0 ? targetClass.getName() : "(dummy)")+", "+constantPoolCount+" entries] looking for "+constant);
+        }
 
-            if (constant != null &&
-                constant.getTag() == Constant.UTF8)
+        // Clear the cache if another editor has added any constants behind our back.
+        if (cachedCount > 0 &&
+            cachedCount != constantPoolCount)
+        {
+            if (DEBUG)
             {
-                Utf8Constant utf8Constant = (Utf8Constant)constant;
-                if (utf8Constant.getString().equals(string))
+                System.out.println("ConstantPoolEditor: ["+(targetClass.u2thisClass > 0 ? targetClass.getName() : "(dummy)")+", "+constantPoolCount+" entries, "+cachedCount+" cached] clearing cache");
+            }
+
+            cachedIndices = null;
+        }
+
+        // Do we have a cache with constant indices?
+        if (cachedIndices != null)
+        {
+            // Look for the index in the hash map.
+            Integer index = cachedIndices.get(constant);
+            if (index != null)
+            {
+                if (DEBUG)
                 {
+                    System.out.println("ConstantPoolEditor: ["+(targetClass.u2thisClass > 0 ? targetClass.getName() : "(dummy)")+", "+constantPoolCount+" entries] cached ["+index+"] "+constant);
+                }
+
+                return index.intValue();
+            }
+
+            // It's not in the map yet. Add it now.
+            cachedIndices.put(constant, Integer.valueOf(constantPoolCount));
+        }
+        else
+        {
+            // Look for the constant in the array (always starting at index 1).
+            for (int index = 1; index < constantPoolCount; index++)
+            {
+                if (constant.equals(constantPool[index]))
+                {
+                    if (DEBUG)
+                    {
+                        System.out.println("ConstantPoolEditor: ["+(targetClass.u2thisClass > 0 ? targetClass.getName() : "(dummy)")+", "+constantPoolCount+" entries] found ["+index+"] "+constant);
+                    }
+
                     return index;
                 }
             }
         }
 
-        return addConstant(new Utf8Constant(string));
+        // We haven't found the constant in the pool. Just add it.
+        return addConstant(constant);
     }
 
 
     /**
      * Adds a given constant pool entry to the end of the constant pool.
      * @return the constant pool index for the added entry.
+     *
+     * @see #findOrAddConstant(Constant)
      */
     public int addConstant(Constant constant)
     {
         int        constantPoolCount = targetClass.u2constantPoolCount;
         Constant[] constantPool      = targetClass.constantPool;
 
-        // Make sure there is enough space for another constant pool entry.
-        if (constantPool.length < constantPoolCount+2)
-        {
-            Constant[] newConstantPool = new Constant[constantPoolCount+2];
-            System.arraycopy(constantPool, 0,
-                             newConstantPool, 0,
-                             constantPoolCount);
-
-            // Assign the newly created constant pool after all entries
-            // have been copied to avoid race-conditions.
-            targetClass.constantPool = newConstantPool;
-            constantPool             = targetClass.constantPool;
-        }
-
         if (DEBUG)
         {
-            System.out.println("ConstantPoolEditor: ["+(targetClass.u2thisClass > 0 ? targetClass.getName() : "(dummy)")+"] adding ["+constant.getClass().getName()+"] at index "+targetClass.u2constantPoolCount);
+            System.out.println("ConstantPoolEditor: ["+(targetClass.u2thisClass > 0 ? targetClass.getName() : "(dummy)")+", "+constantPoolCount+" entries] adding "+constant);
+        }
+
+        // Make sure there is enough space for another constant pool entry.
+        // Category 2 constants (long and double) take up two entries in the
+        // constant pool.
+        int constantSize = constant.isCategory2() ? 2 : 1;
+
+        if (constantPool.length < constantPoolCount + constantSize)
+        {
+            if (DEBUG)
+            {
+                System.out.println("ConstantPoolEditor: ["+(targetClass.u2thisClass > 0 ? targetClass.getName() : "(dummy)")+", "+constantPoolCount+" entries] extending to "+(constantPoolCount+SIZE_INCREMENT)+" entries");
+            }
+
+            targetClass.constantPool =
+            constantPool             =
+                ArrayUtil.extendArray(constantPool,
+                                      constantPoolCount + SIZE_INCREMENT);
         }
 
         // Add the new entry to the end of the constant pool.
-        constantPool[targetClass.u2constantPoolCount++] = constant;
+        constantPool[constantPoolCount] = constant;
 
-        // Long constants and double constants take up two entries in the
-        // constant pool.
-        int tag = constant.getTag();
-        if (tag == Constant.LONG ||
-            tag == Constant.DOUBLE)
-        {
-            constantPool[targetClass.u2constantPoolCount++] = null;
-        }
+        // Update the counts.
+        targetClass.u2constantPoolCount =
+        cachedCount                     = constantPoolCount + constantSize;
 
         // Initialize the class references and class member references in the
         // constant, if necessary.
@@ -979,6 +844,7 @@ public class ConstantPoolEditor
             constant.accept(targetClass, constantReferenceInitializer);
         }
 
+        // Return the old count as the index.
         return constantPoolCount;
     }
 }

@@ -110,13 +110,57 @@ public class MethodTypeConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.METHOD_TYPE;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitMethodTypeConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        MethodTypeConstant other = (MethodTypeConstant)object;
+
+        return
+            this.u2descriptorIndex == other.u2descriptorIndex;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.METHOD_TYPE ^
+            (u2descriptorIndex << 5);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "MethodType(" + u2descriptorIndex + ")";
     }
 }

@@ -117,4 +117,42 @@ public abstract class RefConstant extends Constant
      * Lets the referenced class member accept the given visitor.
      */
     public abstract void referencedMemberAccept(MemberVisitor memberVisitor);
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        RefConstant other = (RefConstant)object;
+
+        return
+            this.u2classIndex       == other.u2classIndex &&
+            this.u2nameAndTypeIndex == other.u2nameAndTypeIndex;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            getTag()                   ^
+            (u2classIndex       <<  5) ^
+            (u2nameAndTypeIndex << 16);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Ref(" + u2classIndex + "," + u2nameAndTypeIndex + ")";
+    }
 }

@@ -82,6 +82,7 @@ public class FieldrefConstant extends RefConstant
     /**
      * Lets the referenced class member accept the given visitor.
      */
+    @Override
     public void referencedMemberAccept(MemberVisitor memberVisitor)
     {
         if (referencedField != null)
@@ -94,13 +95,30 @@ public class FieldrefConstant extends RefConstant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.FIELDREF;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitFieldrefConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public String toString()
+    {
+        return "Fieldref(" + u2classIndex + "," + u2nameAndTypeIndex + ")";
     }
 }

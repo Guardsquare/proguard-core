@@ -133,13 +133,59 @@ public class InvokeDynamicConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.INVOKE_DYNAMIC;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitInvokeDynamicConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        InvokeDynamicConstant other = (InvokeDynamicConstant)object;
+
+        return
+            this.u2bootstrapMethodAttributeIndex == other.u2bootstrapMethodAttributeIndex &&
+            this.u2nameAndTypeIndex              == other.u2nameAndTypeIndex;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.INVOKE_DYNAMIC                        ^
+            (u2bootstrapMethodAttributeIndex <<  5) ^
+            (u2nameAndTypeIndex              << 16);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "InvokeDynamic(" + u2bootstrapMethodAttributeIndex + "," + u2nameAndTypeIndex + ")";
     }
 }

@@ -57,13 +57,30 @@ public class InterfaceMethodrefConstant extends AnyMethodrefConstant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.INTERFACE_METHODREF;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitInterfaceMethodrefConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public String toString()
+    {
+        return "InterfaceMethodref(" + u2classIndex + "," + u2nameAndTypeIndex + ")";
     }
 }

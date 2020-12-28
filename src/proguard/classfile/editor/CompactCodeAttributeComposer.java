@@ -23,14 +23,15 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.instruction.*;
 import proguard.classfile.util.*;
+import proguard.classfile.visitor.ClassPrinter;
 import proguard.resources.file.ResourceFile;
 
 import static proguard.classfile.ClassConstants.*;
 
 /**
  * This {@link AttributeVisitor} accumulates instructions, exceptions and line numbers,
- * in a compact and fluent style, and then copies them into code attributes
- * that it visits.
+ * in a compact and fluent style, and then adds them to a method or copies them into
+ * code attributes that it visits.
  * <p/>
  * The class supports composing
  *   instructions       ({@link #appendInstruction(Instruction)}),
@@ -52,7 +53,6 @@ import static proguard.classfile.ClassConstants.*;
  * <pre>
  *     ProgramClass  programClass  = ...
  *     ProgramMethod programMethod = ...
- *     CodeAttribute codeAttribute = ...
  *
  *     // Compose the code.
  *     CompactCodeAttributeComposer composer =
@@ -82,13 +82,16 @@ import static proguard.classfile.ClassConstants.*;
  *         .ireturn()
  *         .endCodeFragment();
  *
- *     // Put the code in the given code attribute.
- *     composer.visitCodeAttribute(programClass, programMethod, codeAttribute);
+ *      // Add the code as a code attribute to the given method.
+ *      composer.addCodeAttribute(programClass, programMethod);
  * </pre>
  * <p/>
  * This class is mostly convenient to compose code programmatically from
  * scratch. To compose code based on existing code, where the instructions
- * are already available, see {@link CompactCodeAttributeComposer}.
+ * are already available, see {@link CodeAttributeComposer}.
+ * <p/>
+ * If you're building many method bodies, it is more efficient to reuse
+ * a single instance of this composer for all methods that you add.
  *
  * @author Eric Lafortune
  */
@@ -179,16 +182,53 @@ implements   AttributeVisitor
                                         ClassPool    programClassPool,
                                         ClassPool    libraryClassPool)
     {
-        constantPoolEditor =
-            new ConstantPoolEditor(targetClass,
-                                   programClassPool,
-                                   libraryClassPool);
+        this(new ConstantPoolEditor(targetClass,
+                                    programClassPool,
+                                    libraryClassPool),
+             allowExternalBranchTargets,
+             allowExternalExceptionOffsets,
+             shrinkInstructions);
+    }
 
-        codeAttributeComposer =
-            new CodeAttributeComposer(allowExternalBranchTargets,
-                                      allowExternalExceptionOffsets,
-                                      shrinkInstructions,
-                                      true);
+
+    /**
+     * Creates a new CompactCodeAttributeComposer.
+     * @param constantPoolEditor            an editor for the constants in the
+     *                                      class.
+     * @param allowExternalBranchTargets    specifies whether branch targets
+     *                                      can lie outside the code fragment
+     *                                      of the branch instructions.
+     * @param allowExternalExceptionOffsets specifies whether exception
+     *                                      offsets can lie outside the code
+     *                                      fragment in which exceptions are
+     *                                      defined.
+     * @param shrinkInstructions            specifies whether instructions
+     *                                      should automatically be shrunk
+     *                                      before being written.
+     */
+    public CompactCodeAttributeComposer(ConstantPoolEditor constantPoolEditor,
+                                        boolean            allowExternalBranchTargets,
+                                        boolean            allowExternalExceptionOffsets,
+                                        boolean            shrinkInstructions)
+    {
+        this(constantPoolEditor,
+             new CodeAttributeComposer(allowExternalBranchTargets,
+                                       allowExternalExceptionOffsets,
+                                       shrinkInstructions,
+                                       true));
+    }
+
+
+    /**
+     * Creates a new CompactCodeAttributeComposer.
+     * @param constantPoolEditor    an editor for the constants in the class.
+     * @param codeAttributeComposer an composer for the instructions in the method.
+     */
+    public CompactCodeAttributeComposer(ConstantPoolEditor    constantPoolEditor,
+                                        CodeAttributeComposer codeAttributeComposer)
+    {
+        this.constantPoolEditor    = constantPoolEditor;
+        this.codeAttributeComposer = codeAttributeComposer;
     }
 
 
@@ -198,6 +238,17 @@ implements   AttributeVisitor
     public ProgramClass getTargetClass()
     {
         return constantPoolEditor.getTargetClass();
+    }
+
+
+    /**
+     * Returns a ConstantPoolEditor instance for the created or edited class
+     * instance. Reusing this instance is more efficient for classes that are
+     * created from scratch.
+     */
+    public ConstantPoolEditor getConstantPoolEditor()
+    {
+        return constantPoolEditor;
     }
 
 
@@ -2684,11 +2735,26 @@ implements   AttributeVisitor
     }
 
 
+    /**
+     * Adds the code that has been built as a code attribute to the given method.
+     */
+    public void addCodeAttribute(ProgramClass  programClass,
+                                 ProgramMethod programMethod)
+    {
+        codeAttributeComposer.addCodeAttribute(programClass,
+                                               programMethod,
+                                               constantPoolEditor);
+    }
+
+
     // Implementations for AttributeVisitor.
 
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
 
+    /**
+     * Sets the code that has been built in the given code attribute.
+     */
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         codeAttributeComposer.visitCodeAttribute(clazz, method, codeAttribute);
@@ -2757,16 +2823,6 @@ implements   AttributeVisitor
                               constantPoolEditor.addUtf8Constant("()I"),
                               null);
 
-        // Create an empty code attribute.
-        CodeAttribute codeAttribute =
-            new CodeAttribute(constantPoolEditor.addUtf8Constant(Attribute.CODE));
-
-        // Add the code attribute to the method.
-        AttributesEditor attributesEditor =
-            new AttributesEditor(programClass, programMethod, false);
-
-        attributesEditor.addAttribute(codeAttribute);
-
         // Add the method to the class.
         ClassEditor classEditor =
             new ClassEditor(programClass);
@@ -2809,7 +2865,10 @@ implements   AttributeVisitor
             .ireturn()
             .endCodeFragment();
 
-        // Put the code in the given code attribute.
-        composer.visitCodeAttribute(programClass, programMethod, codeAttribute);
+        // Add the code as a code attribute to the given method.
+        composer.addCodeAttribute(programClass, programMethod);
+
+        // Print out the result.
+        programClass.accept(new ClassPrinter());
     }
 }

@@ -29,22 +29,23 @@ import java.io.*;
  * This editor allows to build or extend classes (ProgramClass instances).
  * It provides methods to easily add interfaces, fields, and methods,
  * optionally with method bodies.
+ * <p/>
+ * If you're adding many fields and methods, it is more efficient to reuse
+ * a single instance of this builder for all fields and methods that you add.
  *
  * @author Johan Leys
  * @author Eric Lafortune
  */
 public class ClassBuilder
 {
-    //private static final String EXTRA_CLINIT_METHOD_PREFIX     = "clinit$";
-    //private static final String EXTRA_CLINIT_METHOD_DESCRIPTOR = "()V";
-    //private static final String EXTRA_INIT_METHOD_NAME         = "init$";
-    //private static final String EXTRA_INIT_METHOD_DESCRIPTOR   = "()V";
+    private final ProgramClass                 programClass;
+    private final ClassEditor                  classEditor;
+    private final ConstantPoolEditor           constantPoolEditor;
+    private final CompactCodeAttributeComposer compactCodeAttributeComposer;
 
-    private final ProgramClass       programClass;
-    private final ClassEditor        classEditor;
-    private final ConstantPoolEditor constantPoolEditor;
-
-    //private int staticInitializerCounter;
+    // A flag to make sure we don't use our shared instance of the compact code
+    // attribute composer for different code at the same time.
+    private boolean compactCodeAttributeComposerInUse;
 
 
     /**
@@ -145,11 +146,14 @@ public class ClassBuilder
                         ClassPool    libraryClassPool)
 
     {
-        this.programClass  = programClass;
-        classEditor        = new ClassEditor(programClass);
-        constantPoolEditor = new ConstantPoolEditor(programClass,
-                                                    programClassPool,
-                                                    libraryClassPool);
+        this.programClass = programClass;
+
+        classEditor                  = new ClassEditor(programClass);
+        constantPoolEditor           = new ConstantPoolEditor(programClass,
+                                                              programClassPool,
+                                                              libraryClassPool);
+        compactCodeAttributeComposer = new CompactCodeAttributeComposer(constantPoolEditor,
+                                       new CodeAttributeComposer(false, true, true));
     }
 
 
@@ -161,6 +165,17 @@ public class ClassBuilder
     public ProgramClass getProgramClass()
     {
         return programClass;
+    }
+
+
+    /**
+     * Returns a ConstantPoolEditor instance for the created or edited class
+     * instance. Reusing this instance is more efficient for newly created
+     * classes.
+     */
+    public ConstantPoolEditor getConstantPoolEditor()
+    {
+        return constantPoolEditor;
     }
 
 
@@ -440,14 +455,28 @@ public class ClassBuilder
 
         if (codeBuilder != null)
         {
-            // Create an empty code attribute.
-            CodeAttribute codeAttribute =
-                new CodeAttribute(constantPoolEditor.addUtf8Constant(Attribute.CODE));
+            // Is our shared composer in use? This would have to be in a
+            // recursive call, inside the compose method below, so it won't
+            // be common.
+            CompactCodeAttributeComposer compactCodeAttributeComposer;
+            if (compactCodeAttributeComposerInUse)
+            {
+                // Create a new composer that we'll just use temporarily.
+                compactCodeAttributeComposer =
+                    new CompactCodeAttributeComposer(constantPoolEditor,
+                    new CodeAttributeComposer(false, true, true));
+            }
+            else
+            {
+                // Reuse our shared composer, for efficiency.
+                compactCodeAttributeComposer = this.compactCodeAttributeComposer;
+                compactCodeAttributeComposer.reset();
 
-            // Create and set up a composer for the caller.
-            CompactCodeAttributeComposer compactCodeAttributeComposer =
-                new CompactCodeAttributeComposer(programClass);
+                // Remember that we're using it.
+                compactCodeAttributeComposerInUse = true;
+            }
 
+            // Start composing the contents.
             compactCodeAttributeComposer.beginCodeFragment(maxCodeFragmentLength);
 
             // Let the caller add its instructions, exceptions, etc.
@@ -457,10 +486,13 @@ public class ClassBuilder
             compactCodeAttributeComposer.endCodeFragment();
 
             // Copy the accumulated code into the attribute.
-            compactCodeAttributeComposer.visitCodeAttribute(programClass, programMethod, codeAttribute);
+            compactCodeAttributeComposer.addCodeAttribute(programClass, programMethod);
 
-            // Add the code attribute to the method.
-            new AttributesEditor(programClass, programMethod, false).addAttribute(codeAttribute);
+            // Release our shared composer for the next caller.
+            if (compactCodeAttributeComposer == this.compactCodeAttributeComposer)
+            {
+                compactCodeAttributeComposerInUse = false;
+            }
         }
 
         // Add the method to the class.
@@ -472,7 +504,7 @@ public class ClassBuilder
 
     /**
      * This functional interface provides a code attribute composer to
-     * its caller.
+     * its implementation.
      */
     public interface CodeBuilder
     {

@@ -138,13 +138,59 @@ public class MethodHandleConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.METHOD_HANDLE;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitMethodHandleConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        MethodHandleConstant other = (MethodHandleConstant)object;
+
+        return
+            this.u1referenceKind  == other.u1referenceKind &&
+            this.u2referenceIndex == other.u2referenceIndex;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.METHOD_HANDLE  ^
+            (u1referenceKind <<  5) ^
+            (u2referenceIndex<< 16);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "MethodHandle(" + u1referenceKind + "," + u2referenceIndex + ")";
     }
 }

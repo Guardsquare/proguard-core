@@ -59,13 +59,57 @@ public class PackageConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.PACKAGE;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitPackageConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        PackageConstant other = (PackageConstant)object;
+
+        return
+            this.u2nameIndex == other.u2nameIndex;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.PACKAGE ^
+            (u2nameIndex << 5);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Package(" + u2nameIndex + ")";
     }
 }

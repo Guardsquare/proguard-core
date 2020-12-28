@@ -62,6 +62,14 @@ public abstract class Constant extends SimpleProcessable
 
 
     /**
+     * Returns whether the constant is of category 2. This means that it takes
+     * up the space of two category 1 types in the constant pool or on the
+     * stack, for instance.
+     */
+    public abstract boolean isCategory2();
+
+
+    /**
      * Accepts the given visitor.
      */
     public abstract void accept(Clazz clazz, ConstantVisitor constantVisitor);

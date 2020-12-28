@@ -212,13 +212,57 @@ public class PrimitiveArrayConstant extends Constant
 
     // Implementations for Constant.
 
+    @Override
     public int getTag()
     {
         return Constant.PRIMITIVE_ARRAY;
     }
 
+    @Override
+    public boolean isCategory2()
+    {
+        return false;
+    }
+
+    @Override
     public void accept(Clazz clazz, ConstantVisitor constantVisitor)
     {
         constantVisitor.visitPrimitiveArrayConstant(clazz, this);
+    }
+
+
+    // Implementations for Object.
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (object == null || !this.getClass().equals(object.getClass()))
+        {
+            return false;
+        }
+
+        if (this == object)
+        {
+            return true;
+        }
+
+        PrimitiveArrayConstant other = (PrimitiveArrayConstant)object;
+
+        return
+            this.values == other.values;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return
+            Constant.PRIMITIVE_ARRAY ^
+            values.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "PrimitiveArray(" + getPrimitiveType() + "[" + getLength() + "])";
     }
 }

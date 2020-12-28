@@ -36,7 +36,7 @@ import java.util.Arrays;
 
 /**
  * This {@link AttributeVisitor} accumulates instructions, exceptions and line numbers,
- * and then copies them into code attributes that it visits.
+ * and then adds them to a method or copies them into code attributes that it visits.
  * <p/>
  * The class supports composing
  *   instructions       ({@link #appendInstruction(Instruction)}),
@@ -58,7 +58,6 @@ import java.util.Arrays;
  * <pre>
  *     ProgramClass  programClass  = ...
  *     ProgramMethod programMethod = ...
- *     CodeAttribute codeAttribute = ...
  *
  *     // Create any constants for the code.
  *     ConstantPoolEditor constantPoolEditor =
@@ -98,14 +97,17 @@ import java.util.Arrays;
  *     composer.appendInstruction(new SimpleInstruction(Instruction.OP_IRETURN));
  *     composer.endCodeFragment();
  *
- *     // Put the code in the given code attribute.
- *     composer.visitCodeAttribute(programClass, programMethod, codeAttribute);
+ *      // Add the code as a code attribute to the given method.
+ *      composer.addCodeAttribute(programClass, programMethod, constantPoolEditor);
  * </pre>
  * <p/>
  * This class is mostly convenient to compose code based on existing code,
  * where the instructions are already available. For a more compact and
  * readable alternative to compose code programmatically from scratch,
  * see {@link CompactCodeAttributeComposer}.
+ * <p/>
+ * If you're building many method bodies, it is more efficient to reuse
+ * a single instance of this composer for all methods that you add.
  *
  * @author Eric Lafortune
  * @author Joachim Vandersmissen
@@ -150,7 +152,7 @@ implements   AttributeVisitor,
 
     private final int[]   codeFragmentOffsets  = new int[MAXIMUM_LEVELS];
     private final int[]   codeFragmentLengths  = new int[MAXIMUM_LEVELS];
-    private final int[][] instructionOffsetMap = new int[MAXIMUM_LEVELS][ClassEstimates.TYPICAL_CODE_LENGTH + 1];
+    private final int[][] instructionOffsetMap = new int[MAXIMUM_LEVELS][];
 
     private ExceptionInfo[]  exceptionTable  = new ExceptionInfo[ClassEstimates.TYPICAL_EXCEPTION_TABLE_LENGTH];
     private LineNumberInfo[] lineNumberTable = new LineNumberInfo[ClassEstimates.TYPICAL_LINE_NUMBER_TABLE_LENGTH];
@@ -160,6 +162,10 @@ implements   AttributeVisitor,
     private final StackSizeUpdater    stackSizeUpdater    = new StackSizeUpdater();
     private final VariableSizeUpdater variableSizeUpdater = new VariableSizeUpdater();
     private final InstructionWriter   instructionWriter   = new InstructionWriter();
+
+    // This field acts as a parameter for the visitor methods that construct
+    // the code, so a given constant pool editor can be reused, for efficiency.
+    private ConstantPoolEditor constantPoolEditor;
 
 
     /**
@@ -273,16 +279,19 @@ implements   AttributeVisitor,
         ensureCodeLength(maximumCodeLength);
 
         // Try to reuse the previous array for this code fragment.
-        if (instructionOffsetMap[level].length <= maximumCodeFragmentLength)
+        if (instructionOffsetMap[level]        == null ||
+            instructionOffsetMap[level].length <= maximumCodeFragmentLength)
         {
+            if (maximumCodeFragmentLength < ClassEstimates.TYPICAL_CODE_LENGTH)
+            {
+                maximumCodeFragmentLength = ClassEstimates.TYPICAL_CODE_LENGTH;
+            }
+
             instructionOffsetMap[level] = new int[maximumCodeFragmentLength + 1];
         }
 
         // Initialize the offset map.
-        for (int index = 0; index <= maximumCodeFragmentLength; index++)
-        {
-            instructionOffsetMap[level][index] = INVALID;
-        }
+        Arrays.fill(instructionOffsetMap[level], 0, maximumCodeFragmentLength + 1, INVALID);
 
         // Remember the location of the code fragment.
         codeFragmentOffsets[level] = codeLength;
@@ -407,6 +416,9 @@ implements   AttributeVisitor,
         int newCodeLength = codeLength + instruction.length(codeLength);
 
         ensureCodeLength(newCodeLength);
+
+        // Clear the old offset of the appended instruction.
+        oldInstructionOffsets[codeLength] = 0;
 
         // Write the instruction. The instruction writer may widen it later on,
         // if necessary.
@@ -606,11 +618,48 @@ implements   AttributeVisitor,
     }
 
 
+    /**
+     * Adds the code that has been built as a code attribute to the given method.
+     */
+    public void addCodeAttribute(ProgramClass  programClass,
+                                 ProgramMethod programMethod)
+    {
+        addCodeAttribute(programClass,
+                         programMethod,
+                         new ConstantPoolEditor(programClass));
+    }
+
+
+    /**
+     * Adds the code that has been built as a code attribute to the given method.
+     * Reuses the given constant pool editor, which may be more efficient.
+     */
+    public void addCodeAttribute(ProgramClass       programClass,
+                                 ProgramMethod      programMethod,
+                                 ConstantPoolEditor constantPoolEditor)
+    {
+        CodeAttribute codeAttribute =
+            new CodeAttribute(constantPoolEditor.addUtf8Constant(Attribute.CODE));
+
+        // Pass the given constant pool editor. for efficiency, and fill out
+        // the attribute.
+        this.constantPoolEditor = constantPoolEditor;
+        visitCodeAttribute(programClass, programMethod, codeAttribute);
+        this.constantPoolEditor = null;
+
+        new AttributesEditor(programClass, programMethod, false)
+            .addAttribute(codeAttribute);
+    }
+
+
     // Implementations for AttributeVisitor.
 
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
 
+    /**
+     * Sets the code that has been built in the given code attribute.
+     */
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         if (DEBUG)
@@ -659,8 +708,16 @@ implements   AttributeVisitor,
         if (lineNumberTableLength > 0 &&
             codeAttribute.getAttribute(clazz, Attribute.LINE_NUMBER_TABLE) == null)
         {
+            // This class generally doesn't interact with the constant pool
+            // (its callers do), but unfortunately we now need to add the name
+            // of the line number table attribute. Reuse the passed constant
+            // pool editor if possible.
+            ConstantPoolEditor constantPoolEditor = this.constantPoolEditor != null ?
+                this.constantPoolEditor :
+                new ConstantPoolEditor((ProgramClass)clazz);
+
             int attributeNameIndex =
-                new ConstantPoolEditor((ProgramClass)clazz)
+                constantPoolEditor
                     .addUtf8Constant(Attribute.LINE_NUMBER_TABLE);
 
             new AttributesEditor((ProgramClass)clazz, (ProgramMember)method, codeAttribute, false)
@@ -1332,16 +1389,6 @@ implements   AttributeVisitor,
                               constantPoolEditor.addUtf8Constant("()I"),
                               null);
 
-        // Create an empty code attribute.
-        CodeAttribute codeAttribute =
-            new CodeAttribute(constantPoolEditor.addUtf8Constant(Attribute.CODE));
-
-        // Add the code attribute to the method.
-        AttributesEditor attributesEditor =
-            new AttributesEditor(programClass, programMethod, false);
-
-        attributesEditor.addAttribute(codeAttribute);
-
         // Add the method to the class.
         ClassEditor classEditor =
             new ClassEditor(programClass);
@@ -1391,7 +1438,10 @@ implements   AttributeVisitor,
         composer.appendInstruction(new SimpleInstruction(Instruction.OP_IRETURN));
         composer.endCodeFragment();
 
-        // Put the code in the given code attribute.
-        composer.visitCodeAttribute(programClass, programMethod, codeAttribute);
+        // Add the code as a code attribute to the given method.
+        composer.addCodeAttribute(programClass, programMethod, constantPoolEditor);
+
+        // Print out the result.
+        programClass.accept(new ClassPrinter());
     }
 }
