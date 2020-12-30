@@ -1121,10 +1121,10 @@ implements   ClassVisitor,
                 " RequiresInfo:");
 
         indent();
-        clazz.constantPoolEntryAccept(requiresInfo.u2requiresIndex, this);
+        requiresInfo.moduleAccept(clazz, this);
         println("Access flags:  0x" + Integer.toHexString(requiresInfo.u2requiresFlags) + " = " +
                 ClassUtil.externalRequiresAccessFlags(requiresInfo.u2requiresFlags));
-        clazz.constantPoolEntryAccept(requiresInfo.u2requiresVersionIndex, this);
+        requiresInfo.versionAccept(clazz, this);
         outdent();
     }
 
@@ -1138,7 +1138,7 @@ implements   ClassVisitor,
                 exportsInfo.u2exportsToCount + "):");
 
         indent();
-        clazz.constantPoolEntryAccept(exportsInfo.u2exportsIndex, this);
+        exportsInfo.packageAccept(clazz, this);
         println("Access flags:  0x" + Integer.toHexString(exportsInfo.u2exportsFlags) + " = " +
                 ClassUtil.externalExportsAccessFlags(exportsInfo.u2exportsFlags));
 
