@@ -87,24 +87,6 @@ implements            Member
 
 
     /**
-     * Returns the (first) attribute with the given name.
-     */
-    private Attribute getAttribute(Clazz clazz, String name)
-    {
-        for (int index = 0; index < u2attributesCount; index++)
-        {
-            Attribute attribute = attributes[index];
-            if (attribute.getAttributeName(clazz).equals(name))
-            {
-                return attribute;
-            }
-        }
-
-        return null;
-    }
-
-
-    /**
      * Accepts the given member info visitor.
      */
     public abstract void accept(ProgramClass  programClass,
@@ -122,21 +104,25 @@ implements            Member
 
     // Implementations for Member.
 
+    @Override
     public int getAccessFlags()
     {
         return u2accessFlags;
     }
 
+    @Override
     public String getName(Clazz clazz)
     {
         return clazz.getString(u2nameIndex);
     }
 
+    @Override
     public String getDescriptor(Clazz clazz)
     {
         return clazz.getString(u2descriptorIndex);
     }
 
+    @Override
     public void accept(Clazz clazz, MemberVisitor memberVisitor)
     {
         accept((ProgramClass)clazz, memberVisitor);
