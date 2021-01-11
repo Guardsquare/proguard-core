@@ -7,7 +7,11 @@
 
 package proguard.testutils
 
-import java.io.*
+import java.io.File
+import java.io.PipedInputStream
+import java.io.PipedOutputStream
+import java.io.PrintWriter
+import java.io.StringReader
 import org.codehaus.janino.SimpleCompiler
 import org.intellij.lang.annotations.Language
 import proguard.classfile.ClassPool
@@ -17,7 +21,12 @@ import proguard.classfile.util.ClassSubHierarchyInitializer
 import proguard.classfile.util.ClassSuperHierarchyInitializer
 import proguard.classfile.util.WarningPrinter
 import proguard.classfile.visitor.ClassPoolFiller
-import proguard.io.*
+import proguard.io.ClassFilter
+import proguard.io.ClassReader
+import proguard.io.DataEntryReader
+import proguard.io.FileDataEntry
+import proguard.io.JarReader
+import proguard.io.StreamingDataEntry
 
 class ClassPoolBuilder {
     companion object {
