@@ -115,7 +115,7 @@ implements   MemberVisitor,
         instruction.accept(clazz, method, codeAttribute, offset, invokeMatcher);
         if (invokeMatcher.isMatching())
         {
-            MethodrefConstant methodrefConstant = (MethodrefConstant)((ProgramClass)clazz).getConstant(invokeMatcher.matchedArgument(FIELD_INDEX));
+            AnyMethodrefConstant methodrefConstant = (AnyMethodrefConstant)((ProgramClass)clazz).getConstant(invokeMatcher.matchedArgument(FIELD_INDEX));
             if (ClassConstants.METHOD_NAME_INIT.equals(methodrefConstant.getName(clazz)))
             {
                 isSuperConstructorCalled |=
