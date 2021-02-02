@@ -32,7 +32,7 @@ sourceSets.test {
         srcDirs = ['src']
     }
     resources {
-        srcDirs = ['src']
+        srcDirs = ['resources']
     }
 }
 

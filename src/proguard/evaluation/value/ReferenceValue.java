@@ -220,6 +220,26 @@ public abstract class ReferenceValue extends Category1Value
         return equal((ReferenceValue)other);
     }
 
+    // Similar binary methods, but this time with reference arguments that can have multiple possible types.
+    /**
+     * Returns the generalization of this {@link ReferenceValue} and the given other
+     * {@link MultiTypedReferenceValue}.
+     */
+    public ReferenceValue generalize(MultiTypedReferenceValue other)
+    {
+        return generalize((ReferenceValue) other);
+    }
+
+    /**
+     * Returns whether this {@link ReferenceValue} is equal to the given other
+     * {@link MultiTypedReferenceValue}.
+     * @return <code>NEVER</code>, <code>MAYBE</code>, or <code>ALWAYS</code>.
+     */
+    public int equal(MultiTypedReferenceValue other)
+    {
+        return equal((ReferenceValue) other);
+    }
+
 
     // Similar binary methods, but this time with identified reference
     // arguments.
