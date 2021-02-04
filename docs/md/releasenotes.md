@@ -2,6 +2,7 @@
 
 | Version| Issue    | Module   | Explanation
 |--------|----------|----------|----------------------------------
+| 7.1.x  | DGD-3231 | CORE     | Add missing method reference in injected static initializer instructions.
 | 7.1.x  | PGC-0016 | CORE     | Fixed potential `ClassCastException` in `ConstructorMethodFilter`.
 | 7.1.x  | PGC-0015 | CORE     | Allowing Java 16.
 | 7.1.x  | PGD-0064 | CORE     | Added support for Java 14 and 15.

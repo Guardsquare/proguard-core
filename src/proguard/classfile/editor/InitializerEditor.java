@@ -137,12 +137,14 @@ implements
                 // to prevent potential overflow errors during conversion.
                 new ProcessingFlagSetter(ProcessingFlags.DONT_OPTIMIZE));
 
+            // Retrieve the newly created extra initialization method
+            Method extraInitMethod = programClass.findMethod(methodName, ClassConstants.METHOD_TYPE_CLINIT);
+
             // Call the static method from the static initializer.
             insertInstructions =
                 new InstructionSequenceBuilder(programClass)
-                    .invokestatic(programClass.getName(),
-                                  methodName,
-                                  ClassConstants.METHOD_TYPE_CLINIT)
+                    .invokestatic(programClass,
+                                  extraInitMethod)
                     .instructions();
 
             method.accept(programClass, new AllAttributeVisitor(this));
