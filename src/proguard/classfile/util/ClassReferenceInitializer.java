@@ -530,7 +530,9 @@ implements   ClassVisitor,
     {
         try
         {
-            visitSignatureAttribute(clazz, signatureAttribute);
+            signatureAttribute.referencedClasses =
+                findReferencedClasses(clazz,
+                                      signatureAttribute.getSignature(clazz));
         }
         catch (Exception corruptSignature)
         {
@@ -544,9 +546,16 @@ implements   ClassVisitor,
     @Override
     public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
     {
-        signatureAttribute.referencedClasses =
-            findReferencedClasses(clazz,
-                                  signatureAttribute.getSignature(clazz));
+        if (isValidClassSignature(clazz, signatureAttribute.getSignature(clazz)))
+        {
+            signatureAttribute.referencedClasses =
+                findReferencedClasses(clazz,
+                                      signatureAttribute.getSignature(clazz));
+        }
+        else
+        {
+            clazz.accept(new NamedAttributeDeleter(Attribute.SIGNATURE));
+        }
     }
 
     @Override
@@ -1609,6 +1618,57 @@ implements   ClassVisitor,
         {
             clazz.kotlinMetadataAccept(new AllKotlinPropertiesVisitor(
                                        new KotlinInterClassPropertyReferenceInitializer(classConstant.referencedClass)));
+        }
+    }
+
+
+    /**
+     * Perform some sanity checks on the Signature and whether it follows
+     * the JVM specification.
+     */
+    private boolean isValidClassSignature(Clazz clazz, String signature)
+    {
+        try
+        {
+            // Loop through the signature to if it can be parsed.
+            new DescriptorClassEnumeration(signature).classCount();
+
+            // Then check whether the listed types are as expected.
+            InternalTypeEnumeration internalTypeEnumeration = new InternalTypeEnumeration(signature);
+
+            if (!internalTypeEnumeration.hasMoreTypes())
+            {
+                return false;
+            }
+
+            String superName     = clazz.getSuperName();
+            String signSuperName = ClassUtil.internalClassNameFromClassType(internalTypeEnumeration.nextType());
+            if (superName != null &&
+                !signSuperName.startsWith(superName))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < clazz.getInterfaceCount(); i++)
+            {
+                if (!internalTypeEnumeration.hasMoreTypes())
+                {
+                    return false;
+                }
+
+                String intfName     = clazz.getInterfaceName(i);
+                String signIntfName = ClassUtil.internalClassNameFromClassType(internalTypeEnumeration.nextType());
+                if (!signIntfName.startsWith(intfName))
+                {
+                    return false;
+                }
+            }
+
+            return !internalTypeEnumeration.hasMoreTypes();
+        }
+        catch (Exception corruptedSignature)
+        {
+            return false;
         }
     }
 }
