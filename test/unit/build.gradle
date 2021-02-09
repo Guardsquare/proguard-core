@@ -6,7 +6,7 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.3.70'
+    ext.kotlin_version = '1.3.72'
     repositories {
         mavenCentral()
         maven {
@@ -18,10 +18,12 @@ buildscript {
         classpath "org.jlleitschuh.gradle:ktlint-gradle:9.2.1"
     }
 }
+
 plugins {
     id 'com.adarshr.test-logger' version '2.0.0'
     id 'de.jansauer.printcoverage' version '2.0.0'
 }
+
 apply plugin: 'kotlin'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 apply plugin: 'java'
@@ -42,7 +44,7 @@ dependencies {
     testImplementation 'io.kotest:kotest-assertions-core-jvm:4.3.2' // for kotest core jvm assertions
     testImplementation 'io.kotest:kotest-property-jvm:4.3.2' // for kotest property test
     testImplementation "io.mockk:mockk:1.10.0" // for mocking
-    compile rootProject // the code we're testing
+    testImplementation rootProject // the code we're testing
 }
 
 test {

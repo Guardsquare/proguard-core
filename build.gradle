@@ -1,14 +1,9 @@
 plugins {
     id 'com.jfrog.bintray'
     id 'distribution'
-    id 'java'
+    id 'java-library'
     id 'maven-publish'
     id 'signing'
-}
-
-wrapper {
-    gradleVersion = '6.4'
-    distributionType = Wrapper.DistributionType.ALL
 }
 
 group = 'com.guardsquare'
@@ -17,9 +12,6 @@ version = proguardCoreVersion
 repositories {
     jcenter()
 }
-
-sourceCompatibility = "${target}"
-targetCompatibility = "${target}"
 
 sourceSets.main {
     java {
@@ -37,7 +29,6 @@ sourceSets.main {
 javadoc {
     title          = 'ProGuardCORE'
     source         = sourceSets.main.allJava
-    classpath      = configurations.compile
     destinationDir = file('docs/md/api')
     options.addStringOption('Xdoclint:none', '-quiet')
 }
@@ -57,12 +48,14 @@ clean {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
-    compile "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
+    api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+    api "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
+    api "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
 }
 
 java {
+    sourceCompatibility = JavaVersion.toVersion("${target}")
+    targetCompatibility = JavaVersion.toVersion("${target}")
     withSourcesJar()
     withJavadocJar()
 }
