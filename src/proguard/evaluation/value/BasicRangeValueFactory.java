@@ -49,11 +49,11 @@ implements   ValueFactory
 
     /**
      * Creates a new BasicRangeValueFactory that delegates to the given
-     * value factory for creating reference values.
+     * value factories for creating reference values.
      */
-    public BasicRangeValueFactory(ValueFactory referenceValueFactory)
+    public BasicRangeValueFactory(ValueFactory arrayReferenceValueFactory, ValueFactory referenceValueFactory)
     {
-        super(referenceValueFactory);
+        super(arrayReferenceValueFactory, referenceValueFactory);
     }
 
 

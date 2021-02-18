@@ -138,6 +138,14 @@ implements   ValueFactory
         return createReferenceValue();
     }
 
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               Object  value)
+    {
+        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
 
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,

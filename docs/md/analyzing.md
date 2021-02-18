@@ -449,3 +449,55 @@ Instruction | Stack | v0 |
 The array is now traced as having length 2 and elements 6 and 7.
 
 Useful application: simplification of code with enum types.
+
+## Evaluation with particular reference values {: #particularreference}
+
+The values of references can also be of interest.
+
+Consider the following code:
+
+    :::java
+    public StringBuilder append()
+    {
+        StringBuilder s = new StringBuilder("asd");
+        s.append("fgh");
+        return s;
+    }
+
+If the value of `s` is of interest, this can be retrieved using a `ParticularValueFactory`. To also keep track of the references as they flow through method calls (in the example: the constructor-call, and the `append`), the InvocationUnit needs to be a `ExecutingInvocationUnit`:
+
+    :::java
+    ValueFactory            valueFactory     = new ParticularValueFactory(new BasicValueFactory(), 
+                                                                          new ReferenceValueFactory());
+    ExecutingInvocationUnit invocationUnit   = new ExecutingInvocationUnit(valueFactory);
+    PartialEvaluator        partialEvaluator = new PartialEvaluator(valueFactory, 
+                                                                    invocationUnit, 
+                                                                    false);
+
+
+
+The results of the evaluation then become:
+
+Instruction | Stack (before the Instruction) | v0 (before the Instruction) |
+------------|-------|----|
+[0] new StringBuilder    |   | [empty:empty]
+[3] dup |  [0:StringBuilder=!#0] | [empty:empty]
+[4] ldc "asd"    |  [3:0:StringBuilder=!#0]<br>[3:0:StringBuilder=!#0] | [empty:empty]
+[6] invokespecial StringBuilder.&lt;init&gt;(String)V  |  [4:String?=#1(asd)]<br>[3:0:StringBuilder=!#0]<br>[3:0:StringBuilder=!#0] | [empty:empty]
+[9] astore_0 v0 |  [3:0:StringBuilder=#2(asd)] | [empty:empty]
+[10] aload_0 v0 |   | [9:StringBuilder=#2(asd)]
+[11] ldc "fgh"    |  [10:StringBuilder=#2(asd)] | [9:StringBuilder=#2(asd)]
+[13] invokevirtual StringBuilder.append(String)StringBuilder  |  [11:String?=#3(fgh)]<br>[10:StringBuilder=#2(asd)] | [9:StringBuilder=#2(asd)]
+[16] pop    |  [13:StringBuilder=#4(asdfgh)] | [13:StringBuilder=#4(asdfgh)]
+[17] aload_0 v0 |   | [13:StringBuilder=#4(asdfgh)]
+[18] areturn    |  [17:StringBuilder=#4(asdfgh)] | [13:StringBuilder=#4(asdfgh)]
+
+(Class/String constants are added to the instruction, and `java/lang/` is ommited from the class names for clarity)
+
+
+The `StringBuilder` is now traced through the method, the value of the reference can be retrieved before and after each location. The value of the reference is printed in this output in the finishing brackets. The notation before the bracket is the notation of a `TypedReference` ([TypedReference](#typed))
+
+### Limitations
+
+- Only `String`, `StringBuilder`, and `StringBuffer` are currently supported.
+- The `ParticularValueFactory` keeps track of one specific value of a reference. If more values would be possible (e.g., due to a branch), the result will be an `UnknownReferenceValue`

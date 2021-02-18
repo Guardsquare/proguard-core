@@ -29,6 +29,14 @@ public abstract class ReferenceValue extends Category1Value
     // Basic unary methods.
 
     /**
+     * Returns the value.
+     */
+    public Object value()
+    {
+        return null;
+    }
+
+    /**
      * Returns the type.
      */
     public abstract String getType();
@@ -358,6 +366,24 @@ public abstract class ReferenceValue extends Category1Value
         return equal((ReferenceValue)other);
     }
 
+    /**
+     * Returns the generalization of this ReferenceValue and the given other
+     * ParticularReferenceValue.
+     */
+    public ReferenceValue generalize(ParticularReferenceValue other)
+    {
+        return generalize((ReferenceValue) other);
+    }
+
+    /**
+     * Returns whether this ReferenceValue is equal to the given other
+     * ParticularReferenceValue.
+     * @return <code>NEVER</code>, <code>MAYBE</code>, or <code>ALWAYS</code>.
+     */
+    public int equal(ParticularReferenceValue other)
+    {
+        return equal((ReferenceValue)other);
+    }
 
     // Implementations for Value.
 

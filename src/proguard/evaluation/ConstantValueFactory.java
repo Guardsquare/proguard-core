@@ -91,7 +91,8 @@ implements   ConstantVisitor
         value = valueFactory.createReferenceValue(ClassConstants.NAME_JAVA_LANG_STRING,
                                                   stringConstant.javaLangStringClass,
                                                   false,
-                                                  false);
+                                                  false,
+                                                  stringConstant.getString(clazz));
     }
 
     public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant)

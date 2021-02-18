@@ -44,7 +44,7 @@ implements   ClassVisitor,
              AttributeVisitor,
              InstructionVisitor
 {
-    private final ValueFactory               valueFactory               = new ParticularValueFactory(new BasicValueFactory());
+    private final ValueFactory               valueFactory               = new ParticularValueFactory(new BasicValueFactory(), new BasicValueFactory());
     private final PartialEvaluator           partialEvaluator           = new PartialEvaluator(valueFactory,
                                                                                                new BasicInvocationUnit(valueFactory),
                                                                                                true);

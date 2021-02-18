@@ -255,6 +255,20 @@ implements   InstructionVisitor,
                                                        mayBeNull));
     }
 
+    public ReferenceValue createReferenceValue(String type,
+                                               Clazz referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               Object value)
+    {
+        return trace(valueFactory.createReferenceValue(type,
+                                                       referencedClass,
+                                                       mayBeExtension,
+                                                       mayBeNull,
+                                                       value
+        ));
+    }
+
 
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,

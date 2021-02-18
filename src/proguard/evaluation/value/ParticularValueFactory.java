@@ -18,6 +18,7 @@
 package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
+import proguard.classfile.util.ClassUtil;
 
 /**
  * This class provides methods to create and reuse Value instances that have
@@ -50,27 +51,37 @@ implements   ValueFactory
     private static long POS_ZERO_DOUBLE_BITS = Double.doubleToLongBits(0.0);
 
 
+    private final ValueFactory arrayReferenceValueFactory;
+    // if set to true, a ParticularReferenceValue will be created for each reference. Otherwise, this will be delegated to the referenceValueFactory.
     private final ValueFactory referenceValueFactory;
+
+    /**
+     * Creates a new ParticularValueFactory which does not keep track of particular references.
+     */
+    public ParticularValueFactory()
+    {
+        this(new ArrayReferenceValueFactory(), new TypedReferenceValueFactory());
+    }
+
+    /**
+     * Creates a new ParticularValueFactory, which uses the given valuefactory for both array and non-array reference construction.
+     */
+    public ParticularValueFactory(ValueFactory referenceValueFactory)
+    {
+        this(referenceValueFactory, referenceValueFactory);
+    }
 
 
     /**
      * Creates a new ParticularValueFactory.
+     * @param arrayReferenceValueFactory the valuefactory to delegate new array references to.
+     * @param referenceValueFactory the valuefactory to delegate new references to.
      */
-    public ParticularValueFactory()
+    public ParticularValueFactory(ValueFactory arrayReferenceValueFactory, ValueFactory referenceValueFactory)
     {
-        this(new ArrayReferenceValueFactory());
-    }
-
-
-    /**
-     * Creates a new ParticularValueFactory that delegates to the given
-     * value factory for creating reference values.
-     */
-    public ParticularValueFactory(ValueFactory referenceValueFactory)
-    {
+        this.arrayReferenceValueFactory = arrayReferenceValueFactory;
         this.referenceValueFactory = referenceValueFactory;
     }
-
 
     // Implementations for ValueFactory.
 
@@ -121,13 +132,13 @@ implements   ValueFactory
 
     public ReferenceValue createReferenceValue()
     {
-        return referenceValueFactory.createReferenceValue();
+        return super.createReferenceValue();
     }
 
 
     public ReferenceValue createReferenceValueNull()
     {
-        return referenceValueFactory.createReferenceValueNull();
+        return super.createReferenceValueNull();
     }
 
 
@@ -142,12 +153,26 @@ implements   ValueFactory
                                                           mayBeNull);
     }
 
+    @Override
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               Object  value)
+    {
+        return referenceValueFactory.createReferenceValue(type,
+                                                          referencedClass,
+                                                          mayBeExtension,
+                                                          mayBeNull,
+                                                          value);
+    }
+
 
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength)
     {
-        return referenceValueFactory.createArrayReferenceValue(type,
+        return arrayReferenceValueFactory.createArrayReferenceValue(type,
                                                                referencedClass,
                                                                arrayLength);
     }
@@ -158,9 +183,42 @@ implements   ValueFactory
                                                     IntegerValue arrayLength,
                                                     Value        elementValue)
     {
-        return referenceValueFactory.createArrayReferenceValue(type,
-                                                               referencedClass,
-                                                               arrayLength,
-                                                               elementValue);
+        return arrayReferenceValueFactory.createArrayReferenceValue(type,
+                                                                    referencedClass,
+                                                                    arrayLength,
+                                                                    elementValue);
+    }
+
+
+    /**
+     * This Reference value factory creates reference values that also represent their content.
+     *
+     * @author Dennis Titze
+     */
+    public static class ReferenceValueFactory
+        extends TypedReferenceValueFactory
+    {
+
+        protected int referenceID = 0;
+
+        // Implementations for ReferenceValue.
+        @Override
+        public ReferenceValue createReferenceValue(String type,
+                                                   Clazz referencedClass,
+                                                   boolean mayBeExtension,
+                                                   boolean mayBeNull)
+        {
+            return new IdentifiedReferenceValue(ClassUtil.internalTypeFromClassType(type), referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
+        }
+
+        @Override
+        public ReferenceValue createReferenceValue(String type,
+                                                   Clazz referencedClass,
+                                                   boolean mayBeExtension,
+                                                   boolean mayBeNull,
+                                                   Object value)
+        {
+            return new ParticularReferenceValue(ClassUtil.internalTypeFromClassType(type), referencedClass, this, referenceID++, value);
+        }
     }
 }

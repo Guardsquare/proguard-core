@@ -591,7 +591,7 @@ implements   InstructionVisitor
             case Instruction.OP_INVOKESTATIC:
             case Instruction.OP_INVOKEINTERFACE:
             case Instruction.OP_INVOKEDYNAMIC:
-                invocationUnit.invokeMember(clazz, method, codeAttribute, offset, constantInstruction, stack);
+                invocationUnit.invokeMember(clazz, method, codeAttribute, offset, constantInstruction, stack, variables);
                 break;
 
             case Instruction.OP_NEW:

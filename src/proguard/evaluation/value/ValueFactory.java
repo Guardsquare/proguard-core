@@ -113,6 +113,17 @@ public interface ValueFactory
                                                boolean mayBeExtension,
                                                boolean mayBeNull);
 
+    /**
+     * Creates a new ReferenceValue that represents the given type. The type
+     * must be an internal class name or an array type. If the type is
+     * <code>null</code>, the ReferenceValue represents <code>null</code>.
+     * The object is the actual value of the reference during execution (can be null).
+     */
+    public ReferenceValue createReferenceValue(String type,
+                                               Clazz referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean maybeNull,
+                                               Object value);
 
     /**
      * Creates a new ReferenceValue that represents a non-null array with

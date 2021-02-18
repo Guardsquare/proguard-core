@@ -66,5 +66,6 @@ public interface InvocationUnit
                              CodeAttribute       codeAttribute,
                              int                 offset,
                              ConstantInstruction constantInstruction,
-                             Stack               stack);
+                             Stack               stack,
+                             Variables           variables);
 }

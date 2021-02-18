@@ -73,7 +73,13 @@ extends      SimplifiedInvocationUnit
     }
 
 
-    public void invokeMember(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction, Stack stack)
+    public void invokeMember(Clazz clazz,
+                             Method method,
+                             CodeAttribute codeAttribute,
+                             int offset,
+                             ConstantInstruction constantInstruction,
+                             Stack stack,
+                             Variables variables)
     {
         this.offset = offset;
 
@@ -82,7 +88,8 @@ extends      SimplifiedInvocationUnit
                            codeAttribute,
                            offset,
                            constantInstruction,
-                           stack);
+                           stack,
+                           variables);
     }
 
 

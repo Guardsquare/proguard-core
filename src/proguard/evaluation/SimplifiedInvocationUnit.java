@@ -41,11 +41,11 @@ implements            InvocationUnit,
     private final MemberVisitor parameterInitializer = new AllParameterVisitor(true, this);
 
     // Fields acting as parameters between the visitor methods.
-    private   Variables variables;
+    protected Variables variables;
     protected boolean   isStatic;
     protected boolean   isLoad;
     protected Stack     stack;
-
+    protected Method    method;
 
     // Implementations for InvocationUnit.
 
@@ -104,7 +104,7 @@ implements            InvocationUnit,
     }
 
 
-    public void invokeMember(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction, Stack stack)
+    public void invokeMember(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction, Stack stack, Variables variables)
     {
         int constantIndex = constantInstruction.constantIndex;
 
@@ -144,7 +144,11 @@ implements            InvocationUnit,
 
         // Pop the parameters and push the return value.
         this.stack = stack;
+        this.variables = variables;
+        this.method = method;
         clazz.constantPoolEntryAccept(constantIndex, this);
+        this.method = null;
+        this.variables = null;
         this.stack = null;
     }
 
@@ -190,9 +194,20 @@ implements            InvocationUnit,
 
         // Push the return value, if applicable.
         String returnType = ClassUtil.internalMethodReturnType(type);
+
+        Value returnValue = null;
+
+        // Check if the methodReturnValue needs to be calculated, i.e., if the function needs to be executed.
+        if (returnType.charAt(0) != TypeConstants.VOID
+            || methodMayHaveSideEffects(clazz, anyMethodrefConstant, returnType))
+        {
+            returnValue = getMethodReturnValue(clazz, anyMethodrefConstant, returnType);
+        }
+
+        // Only push the value on the stack if the method actually returns something.
         if (returnType.charAt(0) != TypeConstants.VOID)
         {
-            stack.push(getMethodReturnValue(clazz, anyMethodrefConstant, returnType));
+            stack.push(returnValue);
         }
     }
 
@@ -299,4 +314,15 @@ implements            InvocationUnit,
     public abstract Value getMethodReturnValue(Clazz                 clazz,
                                                InvokeDynamicConstant invokeDynamicConstant,
                                                String                type);
+
+    /**
+     * Returns true if the method itself can modify the stack/variables and therefore
+     * needs to be executed even if it returns void.
+     */
+    protected boolean methodMayHaveSideEffects(Clazz clazz,
+                                               AnyMethodrefConstant anyMethodrefConstant,
+                                               String returnType)
+    {
+        return false;
+    }
 }
