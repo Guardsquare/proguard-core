@@ -170,27 +170,27 @@ implements   AttributeVisitor
 
     public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
     {
-        if (optionalAttributeVisitor != null)
+        if (requiredAttributeVisitor != null)
         {
-            optionalAttributeVisitor.visitModuleAttribute(clazz, moduleAttribute);
+            requiredAttributeVisitor.visitModuleAttribute(clazz, moduleAttribute);
         }
     }
 
 
     public void visitModuleMainClassAttribute(Clazz clazz, ModuleMainClassAttribute moduleMainClassAttribute)
     {
-        if (optionalAttributeVisitor != null)
+        if (requiredAttributeVisitor != null)
         {
-            optionalAttributeVisitor.visitModuleMainClassAttribute(clazz, moduleMainClassAttribute);
+            requiredAttributeVisitor.visitModuleMainClassAttribute(clazz, moduleMainClassAttribute);
         }
     }
 
 
     public void visitModulePackagesAttribute(Clazz clazz, ModulePackagesAttribute modulePackagesAttribute)
     {
-        if (optionalAttributeVisitor != null)
+        if (requiredAttributeVisitor != null)
         {
-            optionalAttributeVisitor.visitModulePackagesAttribute(clazz, modulePackagesAttribute);
+            requiredAttributeVisitor.visitModulePackagesAttribute(clazz, modulePackagesAttribute);
         }
     }
 

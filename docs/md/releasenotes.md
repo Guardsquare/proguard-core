@@ -2,6 +2,7 @@
 
 | Version| Issue    | Module   | Explanation
 |--------|----------|----------|----------------------------------
+| 7.1.x  | PDG-127  | CORE     | Marked `Module`, `ModuleMainClass` and `ModulePackages` attributes as required.
 | 7.1.x  |          | CORE     | Add support for partial evaluation with particular reference values.
 | 7.1.x  | DGD-3231 | CORE     | Add missing method reference in injected static initializer instructions.
 | 7.1.x  | PGC-0016 | CORE     | Fixed potential `ClassCastException` in `ConstructorMethodFilter`.
