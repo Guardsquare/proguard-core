@@ -13,11 +13,10 @@ import proguard.classfile.util.ClassUtil
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.value.ArrayReferenceValueFactory
+import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.Value
 import proguard.evaluation.value.ValueFactory
-import proguard.evaluation.value.ParticularReferenceValue
-
 
 class PartialEvaluatorHelper {
     companion object {
