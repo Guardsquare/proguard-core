@@ -12,7 +12,6 @@ import proguard.classfile.instruction.InstructionFactory
 import proguard.classfile.util.ClassUtil
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
-import proguard.evaluation.ReferenceTracingValueFactory
 import proguard.evaluation.value.*
 
 class PartialEvaluatorHelper {
