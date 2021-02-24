@@ -18,7 +18,6 @@
 package proguard.classfile.editor;
 
 import kotlinx.metadata.*;
-import kotlinx.metadata.jvm.*;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
@@ -36,6 +35,8 @@ import proguard.classfile.visitor.*;
 
 import java.util.*;
 
+import static proguard.classfile.TypeConstants.INNER_CLASS_SEPARATOR;
+import static proguard.classfile.TypeConstants.PACKAGE_SEPARATOR;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
 
 /**
@@ -570,7 +571,7 @@ implements   ClassVisitor,
             for (int k = 0; k < kotlinClassKindMetadata.nestedClassNames.size(); k++)
             {
                 kotlinClassKindMetadata.nestedClassNames.set(k,
-                     newNestedClassName(clazz.getName(),
+                     shortKotlinNestedClassName(clazz.getName(),
                                         kotlinClassKindMetadata.nestedClassNames       .get(k),
                                         kotlinClassKindMetadata.referencedNestedClasses.get(k)));
             }
@@ -792,17 +793,53 @@ implements   ClassVisitor,
     // Small utility methods.
 
     /**
-     * Returns the inner-most class name based on the obfuscated fully qualified name.
+     * Returns the short classname to be used as the nested classname.
      */
-    private static String newNestedClassName(String enclosingClassName,
-                                             String shortInnerClassName,
-                                             Clazz referencedClass)
+    public static String shortKotlinNestedClassName(String enclosingClassName,
+                                                    String shortInnerClassName,
+                                                    Clazz  referencedClass)
     {
         String newFulllName = newClassName(enclosingClassName + "$" + shortInnerClassName,
                                            referencedClass);
 
-        // Nested class names contain only the simple name, not the full name.
-        return ClassUtil.internalSimpleClassName(newFulllName);
+        // Take into account potential $ characters in the original name.
+        int originalDollarCount = 0;
+
+        for (int i = 0; i < shortInnerClassName.length(); i++)
+        {
+            if (shortInnerClassName.charAt(i) == INNER_CLASS_SEPARATOR)
+            {
+                originalDollarCount++;
+            }
+        }
+
+        int beginIndex = 0;
+
+        for (int i = newFulllName.length() - 1; i >= 0; i--)
+        {
+            char ch = newFulllName.charAt(i);
+
+            if (ch == INNER_CLASS_SEPARATOR)
+            {
+                // Skip the same number of $ symbols as in the original string
+                if (originalDollarCount > 0)
+                {
+                    originalDollarCount--;
+                }
+                else
+                {
+                    beginIndex = i + 1;
+                    break;
+                }
+            }
+            else if (ch == PACKAGE_SEPARATOR)
+            {
+                beginIndex = i + 1;
+                break;
+            }
+        }
+
+        return newFulllName.substring(beginIndex);
     }
 
     /**
