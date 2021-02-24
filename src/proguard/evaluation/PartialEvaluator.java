@@ -1346,7 +1346,7 @@ implements   AttributeVisitor,
         {
             if (isTraced(index) &&
                 (evaluateAllCode ||
-                 InstructionFactory.create(codeAttribute.code, index).mayThrowExceptions()))
+                 InstructionFactory.create(codeAttribute.code, index).mayInstanceThrowExceptions(clazz)))
             {
                 return true;
             }

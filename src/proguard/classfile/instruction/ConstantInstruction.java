@@ -89,6 +89,31 @@ implements   ConstantVisitor
 
     // Implementations for Instruction.
 
+
+    /**
+     * Returns whether a particular instance of an instruction may throw
+     * an exception.
+     *
+     * In particular, this takes into account that an ldc with a class,
+     * method type or method ref constant operand may throw exceptions
+     * while other constants may not.
+     */
+    @Override
+    public boolean mayInstanceThrowExceptions(Clazz clazz)
+    {
+        if (this.canonicalOpcode() == Instruction.OP_LDC)
+        {
+            ConstantMayThrowChecker classConstantChecker = new ConstantMayThrowChecker();
+            clazz.constantPoolEntryAccept(this.constantIndex, classConstantChecker);
+            return classConstantChecker.mayThrow;
+        }
+        else
+        {
+            return super.mayInstanceThrowExceptions(clazz);
+        }
+    }
+
+
     public byte canonicalOpcode()
     {
         // Remove the _w extension, if any.
@@ -344,5 +369,35 @@ implements   ConstantVisitor
         return (constantIndex &   0xff) == constantIndex ? 1 :
                (constantIndex & 0xffff) == constantIndex ? 2 :
                                                            4;
+    }
+
+
+    private static class ConstantMayThrowChecker implements ConstantVisitor
+    {
+        public boolean mayThrow = false;
+
+        @Override
+        public void visitAnyConstant(Clazz clazz, Constant constant) { }
+
+
+        @Override
+        public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
+        {
+            this.mayThrow = true;
+        }
+
+
+        @Override
+        public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant)
+        {
+            this.mayThrow = true;
+        }
+
+
+        @Override
+        public void visitMethodTypeConstant(Clazz clazz, MethodTypeConstant methodTypeConstant)
+        {
+            this.mayThrow = true;
+        }
     }
 }

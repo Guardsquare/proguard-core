@@ -472,8 +472,13 @@ public abstract class Instruction
         false, // dconst_1
         false, // bipush
         false, // sipush
-        false, // ldc
-        false, // ldc_w
+
+        // Conservatively mark ldc as throwing even though only ldc with class, method type or method handler constants
+        // operands may throw, we cannot know the operand type at this point.
+        // ClassConstant.mayInstanceThrowExceptions(Clazz) has access to the context necessary to determine this.
+        true,  // ldc
+        true,  // ldc_w
+
         false, // ldc2_w
         false, // iload
         false, // lload
@@ -1410,11 +1415,21 @@ public abstract class Instruction
 
 
     /**
-     * Returns whether the instruction may throw exceptions.
+     * Returns whether the instruction may conservatively throw exceptions.
      */
     public boolean mayThrowExceptions()
     {
         return MAY_THROW_EXCEPTIONS[opcode & 0xff];
+    }
+
+
+    /**
+     * Returns whether a particular instance of an instruction may throw
+     * exceptions.
+     */
+    public boolean mayInstanceThrowExceptions(Clazz clazz)
+    {
+        return this.mayThrowExceptions();
     }
 
 

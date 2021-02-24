@@ -2,6 +2,7 @@
 
 | Version| Issue    | Module   | Explanation
 |--------|----------|----------|----------------------------------
+| 7.1.x  | DGD-3036 | CORE     | Improved code analysis by taking into account potentially throwing `ldc` instructions.
 | 7.1.x  | DGD-3317 | CORE     | Fixed handling of Kotlin nested class names which contain `$`.
 | 7.1.x  | PDG-127  | CORE     | Marked `Module`, `ModuleMainClass` and `ModulePackages` attributes as required.
 | 7.1.x  |          | CORE     | Add support for partial evaluation with particular reference values.
