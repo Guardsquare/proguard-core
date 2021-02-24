@@ -802,44 +802,17 @@ implements   ClassVisitor,
         String newFulllName = newClassName(enclosingClassName + "$" + shortInnerClassName,
                                            referencedClass);
 
-        // Take into account potential $ characters in the original name.
-        int originalDollarCount = 0;
-
-        for (int i = 0; i < shortInnerClassName.length(); i++)
+        if (newFulllName.equals(enclosingClassName + "$" + shortInnerClassName))
         {
-            if (shortInnerClassName.charAt(i) == INNER_CLASS_SEPARATOR)
-            {
-                originalDollarCount++;
-            }
+            // If the name has not changed, no need to recompute the short name.
+            // Original names may contain `$` so reusing the name here avoids the problem of
+            // finding the short name from the full name.
+            return shortInnerClassName;
         }
-
-        int beginIndex = 0;
-
-        for (int i = newFulllName.length() - 1; i >= 0; i--)
+        else
         {
-            char ch = newFulllName.charAt(i);
-
-            if (ch == INNER_CLASS_SEPARATOR)
-            {
-                // Skip the same number of $ symbols as in the original string
-                if (originalDollarCount > 0)
-                {
-                    originalDollarCount--;
-                }
-                else
-                {
-                    beginIndex = i + 1;
-                    break;
-                }
-            }
-            else if (ch == PACKAGE_SEPARATOR)
-            {
-                beginIndex = i + 1;
-                break;
-            }
+            return ClassUtil.internalShortClassName(newFulllName);
         }
-
-        return newFulllName.substring(beginIndex);
     }
 
     /**
