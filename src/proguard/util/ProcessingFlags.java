@@ -50,7 +50,7 @@ public class ProcessingFlags
     public static final int ENCRYPTED_CLASS_LOADER        = 0x00000400; // Marks whether a class is an encrypted class loader, injected by DexGuard.
     public static final int ENCRYPTED_RESOURCE_FILE_NAMES = 0x00000800; // Marks whether resource file names in a method should be encrypted.
     public static final int DONT_PROCESS_KOTLIN_MODULE    = 0x00002000; // Marks whethe to processing a Kotlin module file.
-
+    public static final int MODIFIED                      = 0x00004000; // Marks whether an entity has been modified.
 
     // A mask for processing flags that can be copied as well when e.g. inlining a method / merging a class.
     // TODO: needs to be extended, e.g. with OBFUSCATE_CODE.
