@@ -16,13 +16,13 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.instruction.Instruction.OP_LDC
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.instruction.visitor.InstructionVisitor
-import proguard.testutils.ClassPoolBuilder
+import proguard.util.ClassPoolBuilder.fromStrings as ClassPool
 
 class ConstantInstructionTest : FreeSpec({
 
     "Constant instructions should be" - {
         "throwing if they have a class constant operand" {
-            val classPool = ClassPoolBuilder.fromSource("""
+            val classPool = ClassPool("""
                 public class Foo {
                     public void bar() {
                         System.out.println(Foo.class);
@@ -48,7 +48,7 @@ class ConstantInstructionTest : FreeSpec({
         }
 
         "not be throwing if they don't have a class constant operand" {
-            val classPool = ClassPoolBuilder.fromSource("""
+            val classPool = ClassPool("""
                 public class Foo {
                     public void bar() {
                         System.out.println("constant");
