@@ -2,9 +2,9 @@ package proguard.classfile.editor
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import proguard.classfile.AccessConstants.*
-import proguard.classfile.ClassConstants.*
-import proguard.classfile.editor.ClassReferenceFixer.*
+import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.ClassConstants.NAME_JAVA_LANG_OBJECT
+import proguard.classfile.editor.ClassReferenceFixer.shortKotlinNestedClassName
 
 class ClassReferenceFixerTest : FreeSpec({
     "Kotlin nested class short names should be generated correctly" - {
