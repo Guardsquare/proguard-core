@@ -811,7 +811,7 @@ implements   ClassVisitor,
         }
         else
         {
-            return ClassUtil.internalShortClassName(newFulllName);
+            return ClassUtil.internalSimpleClassName(newFulllName);
         }
     }
 
