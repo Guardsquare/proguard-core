@@ -191,7 +191,7 @@ public class MultiTypedReferenceValue
     public int equal(MultiTypedReferenceValue other)
     {
         return conditionMatches(potentialTypes.stream()
-                                              .map(t -> t.equal(other))
+                                              .map(t -> t.equal(other.generalizedType))
                                               .collect(Collectors.toSet()));
     }
 
