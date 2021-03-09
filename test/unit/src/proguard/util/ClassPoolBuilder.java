@@ -145,8 +145,25 @@ public class ClassPoolBuilder
         return compile(options, compilationUnits);
     }
 
-    private static ClassPool compile(Iterable<String> options, List<JavaFileObject> compilationUnits) throws CompilerException, IOException
+    private static ClassPool compile(Iterable<String> optionsIterable, List<JavaFileObject> compilationUnits) throws CompilerException, IOException
     {
+        List<String> options = new ArrayList<>();
+        boolean sourceIsSet = false;
+        boolean targetIsSet = false;
+        for (String option : optionsIterable)
+        {
+            options.add(option);
+            sourceIsSet |= option.equals("-source");
+            targetIsSet |= option.equals("-target");
+        }
+        if (!sourceIsSet && !targetIsSet)
+        {
+            options.add("-source");
+            options.add("1.8");
+            options.add("-target");
+            options.add("1.8");
+        }
+
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
         SimpleJavaFileManager fileManager = new SimpleJavaFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
