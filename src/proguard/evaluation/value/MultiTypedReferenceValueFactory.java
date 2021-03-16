@@ -26,8 +26,7 @@ import proguard.classfile.Clazz;
  *
  * @author Samuel Hopstock
  */
-public class MultiTypedReferenceValueFactory
-    extends TypedReferenceValueFactory
+public class MultiTypedReferenceValueFactory extends TypedReferenceValueFactory
 {
 
     private MultiTypedReferenceValue wrap(ReferenceValue base)

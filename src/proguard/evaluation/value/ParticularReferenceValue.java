@@ -27,8 +27,7 @@ import proguard.classfile.util.ClassUtil;
  *
  * @author Dennis Titze
  */
-public class ParticularReferenceValue
-    extends IdentifiedReferenceValue
+public class ParticularReferenceValue extends IdentifiedReferenceValue
 {
 
     // The actual value of the object.

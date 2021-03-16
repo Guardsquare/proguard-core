@@ -32,8 +32,7 @@ import proguard.classfile.Clazz;
  *
  * @author Samuel Hopstock
  */
-public class MultiTypedReferenceValue
-    extends ReferenceValue
+public class MultiTypedReferenceValue extends ReferenceValue
 {
 
     /**

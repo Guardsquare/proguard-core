@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package proguard.evaluation.value;
  *
  * @author Eric Lafortune
  */
-final class CompositeLongValue extends SpecificLongValue
+public final class CompositeLongValue extends SpecificLongValue
 {
     public static final byte ADD                  = '+';
     public static final byte SUBTRACT             = '-';
