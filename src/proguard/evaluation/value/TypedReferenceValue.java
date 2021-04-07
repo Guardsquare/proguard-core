@@ -20,8 +20,12 @@ package proguard.evaluation.value;
 import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
+import proguard.evaluation.IncompleteClassHierarchyException;
 
 import java.util.*;
+
+import static java.util.stream.Collectors.*;
+import static proguard.classfile.util.ClassUtil.*;
 
 /**
  * This {@link ReferenceValue} represents a partially evaluated reference value.
@@ -338,7 +342,7 @@ public class TypedReferenceValue extends ReferenceValue
                                                    mayBeExtension,
                                                    mayBeNull);
                 }
-                catch (IllegalArgumentException e)
+                catch (IncompleteClassHierarchyException e)
                 {
                     // The class hierarchy seems to be incomplete.
                     if (ALLOW_INCOMPLETE_CLASS_HIERARCHY)
@@ -398,13 +402,14 @@ public class TypedReferenceValue extends ReferenceValue
      * @param interfaces specifies whether to look for a superclass or for an
      *                   interface.
      * @return the common class.
+     * @throws IncompleteClassHierarchyException if a common class cannot be found.
      */
     private Clazz findCommonClass(Clazz   class1,
                                   Clazz   class2,
                                   boolean interfaces)
     {
         // Collect the superclasses or the interfaces of this class.
-        Set superClasses1 = new HashSet();
+        Set<Clazz> superClasses1 = new HashSet<>();
         class1.hierarchyAccept(!interfaces,
                                !interfaces,
                                interfaces,
@@ -420,12 +425,12 @@ public class TypedReferenceValue extends ReferenceValue
             }
             else if (class1.getSuperName() != null)
             {
-                throw new IllegalArgumentException("Can't find any super classes of ["+class1.getName()+"] (not even immediate super class ["+class1.getSuperName()+"])");
+                throw new IncompleteClassHierarchyException("Can't find any super classes of ["+class1.getName()+"] (not even immediate super class ["+class1.getSuperName()+"])");
             }
         }
 
         // Collect the superclasses or the interfaces of the other class.
-        Set superClasses2 = new HashSet();
+        Set<Clazz> superClasses2 = new HashSet<>();
         class2.hierarchyAccept(!interfaces,
                                !interfaces,
                                interfaces,
@@ -441,7 +446,7 @@ public class TypedReferenceValue extends ReferenceValue
             }
             else if (class2.getSuperName() != null)
             {
-                throw new IllegalArgumentException("Can't find any super classes of ["+class2.getName()+"] (not even immediate super class ["+class2.getSuperName()+"])");
+                throw new IncompleteClassHierarchyException("Can't find any super classes of ["+class2.getName()+"] (not even immediate super class ["+class2.getSuperName()+"])");
             }
         }
 
@@ -453,14 +458,15 @@ public class TypedReferenceValue extends ReferenceValue
         }
 
         // Find the common superclasses.
-        superClasses1.retainAll(superClasses2);
+        Set<Clazz> commonClasses = new HashSet<>(superClasses1);
+        commonClasses.retainAll(superClasses2);
 
         if (DEBUG)
         {
-            System.out.println("  Common super classes: "+superClasses1);
+            System.out.println("  Common super classes: "+commonClasses);
         }
 
-        if (interfaces && superClasses1.isEmpty())
+        if (interfaces && commonClasses.isEmpty())
         {
             return null;
         }
@@ -474,12 +480,9 @@ public class TypedReferenceValue extends ReferenceValue
         // Go over all common superclasses to find it. In case of
         // multiple subclasses, keep the lowest one alphabetically,
         // in order to ensure that the choice is deterministic.
-        Iterator commonSuperClasses = superClasses1.iterator();
-        while (commonSuperClasses.hasNext())
+        for (Clazz commonSuperClass : commonClasses)
         {
-            Clazz commonSuperClass = (Clazz)commonSuperClasses.next();
-
-            int superClassCount = superClassCount(commonSuperClass, superClasses1);
+            int superClassCount = superClassCount(commonSuperClass, commonClasses);
             if (maximumSuperClassCount < superClassCount ||
                 (maximumSuperClassCount == superClassCount &&
                  commonClass != null                       &&
@@ -519,9 +522,11 @@ public class TypedReferenceValue extends ReferenceValue
 
         if (commonClass == null)
         {
-            throw new IllegalArgumentException("Can't find common super class of ["+
-                                               class1.getName() +"] (with "+superClasses1Count +" known super classes) and ["+
-                                               class2.getName()+"] (with "+superClasses2Count+" known super classes)");
+            throw new IncompleteClassHierarchyException("Can't find common super class of ["+
+                                                        externalClassName(class1.getName()) +"] (with "+superClasses1Count +" known super classes: " +
+                                                        superClasses1.stream().map(clazz -> externalClassName(clazz.getName())).collect(joining(", ")) + ") and ["+
+                                                        externalClassName(class2.getName())+"] (with "+superClasses2Count+" known super classes: " +
+                                                        superClasses2.stream().map(clazz -> externalClassName(clazz.getName())).collect(joining(", ")) + ")");
         }
 
         if (DEBUG)

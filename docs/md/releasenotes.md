@@ -2,6 +2,7 @@
 
 | Version| Issue    | Module   | Explanation
 |--------|----------|----------|----------------------------------
+| 7.1.0  |          | CORE     | The `PartialEvaluator` now throws `IncompleteClassHierarchyException` instead of `IllegalArgumentException` when an incomplete hierarchy is encountered.
 | 7.1.0  |          | CORE     | Fixed potential `StackOverflowException` when comparing multi-typed reference values.
 | 7.1.0  | DGD-3036 | CORE     | Improved code analysis by taking into account potentially throwing `ldc` instructions.
 | 7.1.0  | DGD-3317 | CORE     | Fixed handling of Kotlin nested class names which contain `$`.

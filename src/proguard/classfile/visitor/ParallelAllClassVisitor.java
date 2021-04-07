@@ -122,7 +122,8 @@ implements   ClassPoolVisitor
             }
             catch (ExecutionException e)
             {
-                throw new RuntimeException(e.getCause());
+                throw e.getCause() instanceof RuntimeException ?
+                        (RuntimeException)e.getCause() : new RuntimeException(e.getCause());
             }
         }
     }
