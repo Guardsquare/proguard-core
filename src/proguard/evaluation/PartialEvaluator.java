@@ -47,7 +47,12 @@ implements   AttributeVisitor,
     public static boolean DEBUG_RESULTS = DEBUG;
     //*/
 
-    private static final int MAXIMUM_EVALUATION_COUNT = 5;
+    // The analysis will generalize stack/vars after visiting an instruction this many times.
+    private static final int GENERALIZE_AFTER_N_EVALUATIONS = 5;
+    // If the analysis visits an instruction this many times (this can happen e.g. for big switches),
+    // the analysis of this method is forcibly stopped and a ExcessiveComplexityException is thrown.
+    // By default (value set to -1), the analysis is not forcibly stopped.
+    private int              stopAnalysisAfterNEvaluations  = -1;
 
     public static final int NONE            = -2;
     public static final int AT_METHOD_ENTRY = -1;
@@ -203,6 +208,120 @@ implements   AttributeVisitor,
         this.callingInstructionBlockStack = callingInstructionBlockStack == null ?
             this.instructionBlockStack :
             callingInstructionBlockStack;
+    }
+
+    /**
+     * Builds this PartialEvaluator using the (partly) filled Builder.
+     */
+    private PartialEvaluator(Builder builder)
+    {
+        this.valueFactory                 = builder.valueFactory == null ? new BasicValueFactory(): builder.valueFactory;
+        this.invocationUnit               = builder.invocationUnit == null ? new BasicInvocationUnit(valueFactory) : builder.invocationUnit;
+        this.evaluateAllCode              = builder.evaluateAllCode;
+        this.extraInstructionVisitor      = builder.extraInstructionVisitor;
+        this.branchUnit                   = builder.branchUnit == null ? ( evaluateAllCode ?
+                                                                           new BasicBranchUnit() :
+                                                                           new TracedBranchUnit())
+                                                                        : builder.branchUnit;
+        this.branchTargetFinder           = builder.branchTargetFinder == null ? new BranchTargetFinder() : builder.branchTargetFinder;
+        this.callingInstructionBlockStack = builder.callingInstructionBlockStack == null ? this.instructionBlockStack : builder.callingInstructionBlockStack;
+        this.stopAnalysisAfterNEvaluations = builder.stopAnalysisAfterNEvaluations;
+    }
+
+    public static class Builder {
+        private ValueFactory       valueFactory;
+        private InvocationUnit     invocationUnit;
+        private boolean            evaluateAllCode               = true;
+        private InstructionVisitor extraInstructionVisitor;
+        private BasicBranchUnit    branchUnit;
+        private BranchTargetFinder branchTargetFinder;
+        private java.util.Stack    callingInstructionBlockStack;
+        private int                stopAnalysisAfterNEvaluations = -1; // disabled by default
+
+        public static Builder create()
+        {
+            return new Builder();
+        }
+        private Builder() {}
+
+        public PartialEvaluator build()
+        {
+            return new PartialEvaluator(this);
+        }
+
+        /**
+         * the value factory that will create all values during evaluation.
+         */
+        public Builder setValueFactory(ValueFactory valueFactory)
+        {
+            this.valueFactory = valueFactory;
+            return this;
+        }
+
+        /**
+         * The invocation unit that will handle all communication with other fields and methods.
+         */
+        public Builder setInvocationUnit(InvocationUnit invocationUnit)
+        {
+            this.invocationUnit = invocationUnit;
+            return this;
+        }
+
+        /**
+         * Specifies whether all casts, branch targets, and exceptionhandlers should be evaluated,
+         * even if they are unnecessary or unreachable.
+         */
+        public Builder setEvaluateAllCode(boolean evaluateAllCode)
+        {
+            this.evaluateAllCode = evaluateAllCode;
+            return this;
+        }
+
+        /**
+         *  an optional extra visitor for all instructions right before they are executed.
+         */
+        public Builder setExtraInstructionVisitor(InstructionVisitor extraInstructionVisitor)
+        {
+            this.extraInstructionVisitor = extraInstructionVisitor;
+            return this;
+        }
+
+        /**
+         * The branch unit that will handle all branches.
+         */
+        public Builder setBranchUnit(BasicBranchUnit branchUnit)
+        {
+            this.branchUnit = branchUnit;
+            return this;
+        }
+
+        /**
+         *  The utility class that will find all branches.
+         */
+        public Builder setBranchTargetFinder(BranchTargetFinder branchTargetFinder)
+        {
+            this.branchTargetFinder = branchTargetFinder;
+            return this;
+        }
+
+        /**
+         * the stack of instruction blocks to be evaluated.
+         */
+        public Builder setCallingInstructionBlockStack(java.util.Stack callingInstructionBlockStack)
+        {
+            this.callingInstructionBlockStack = callingInstructionBlockStack;
+            return this;
+        }
+
+        /**
+         * The analysis of one method will forcibly stop (throwing a ExcessiveComplexityException)
+         * after this many evaluations of a single instruction.
+         */
+        public Builder stopAnalysisAfterNEvaluations(int stopAnalysisAfterNEvaluations)
+        {
+            this.stopAnalysisAfterNEvaluations = stopAnalysisAfterNEvaluations;
+            return this;
+        }
     }
 
 
@@ -814,9 +933,14 @@ implements   AttributeVisitor,
 
                 // See if this instruction has been evaluated an excessive number
                 // of times.
-                if (evaluationCount >= MAXIMUM_EVALUATION_COUNT)
+                if (evaluationCount >= GENERALIZE_AFTER_N_EVALUATIONS)
                 {
                     if (DEBUG) System.out.println("Generalizing current context after "+evaluationCount+" evaluations");
+
+                    if (stopAnalysisAfterNEvaluations != -1 && evaluationCount >= stopAnalysisAfterNEvaluations)
+                    {
+                        throw new ExcessiveComplexityException("Stopping evaluation after " + evaluationCount + " evaluations.");
+                    }
 
                     // Continue, but generalize the current context.
                     // Note that the most recent variable values have to remain
@@ -1422,6 +1546,15 @@ implements   AttributeVisitor,
         }
     }
 
+    /**
+     * It the analysis visits an instruction this many times (this can happen e.g. for big switches),
+     * the analysis of this method is forcibly stopped and a ExcessiveComplexityException is thrown.
+     */
+    public PartialEvaluator stopAnalysisAfterNEvaluations(int stopAnalysisAfterNEvaluations)
+    {
+        this.stopAnalysisAfterNEvaluations = stopAnalysisAfterNEvaluations;
+        return this;
+    }
 
     /**
      * This class represents an instruction block that has to be executed,
