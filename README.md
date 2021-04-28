@@ -79,9 +79,8 @@ Please use <a href="https://github.com/guardsquare/proguard-core/issues">**the i
 ## 🚀 Quick Start
 
 **ProGuardCORE** requires Java 1.8 or higher. You can download it as a pre-built
-artifact from either
+artifact from:
 
-- [JCenter](https://bintray.com/guardsquare/proguard) or
 - [Maven Central](https://search.maven.org/search?q=g:com.guardsquare).
 
 Just add it to your project dependencies, e.g. Gradle:

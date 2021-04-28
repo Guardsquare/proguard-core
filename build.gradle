@@ -10,7 +10,7 @@ group = 'com.guardsquare'
 version = proguardCoreVersion
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 sourceSets.main {
