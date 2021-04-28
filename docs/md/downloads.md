@@ -7,7 +7,7 @@ ProGuardCORE is written in Java, so it requires a Java Runtime Environment
 
 You can download the library in various forms:
 
-- [Pre-built artifacts](https://bintray.com/guardsquare/proguard) at JCenter
+- [Pre-built artifacts](https://search.maven.org/search?q=g:com.guardsquare) at Maven Central
 
         :::groovy
         dependencies {
@@ -21,12 +21,6 @@ You can download the library in various forms:
             <artifactId>proguard-core</artifactId>
             <version>7.0.1</version>
         </dependency>
-
-    or
-
-        https://jcenter.bintray.com/com/guardsquare/proguard-core/7.0.1/proguard-core-7.0.1.jar
-
-- [Pre-built artifacts](https://search.maven.org/search?q=g:com.guardsquare) at Maven Central
 
 - A [Git repository of the source code](https://github.com/Guardsquare/proguard-core) at Github
 

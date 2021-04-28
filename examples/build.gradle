@@ -3,7 +3,7 @@
 apply plugin: 'java'
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 sourceCompatibility = "${target}"
