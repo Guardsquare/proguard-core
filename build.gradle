@@ -81,6 +81,11 @@ distributions {
 distTar {
     compression = Compression.GZIP
     archiveExtension.set('tar.gz')
+    dependsOn('javadoc')
+}
+
+distZip {
+    dependsOn('javadoc')
 }
 
 nexusPublishing {
