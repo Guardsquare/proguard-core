@@ -64,6 +64,9 @@ distributions {
     main {
         distributionBaseName.set('proguard-core')
         contents {
+            into('lib') {
+                from tasks.getByName('jar').outputs
+            }
             into('docs') {
                 from('docs/md') {
                     includeEmptyDirs = false
