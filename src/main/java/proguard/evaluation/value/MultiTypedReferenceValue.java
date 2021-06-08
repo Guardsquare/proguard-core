@@ -160,6 +160,24 @@ public class MultiTypedReferenceValue extends ReferenceValue
     }
 
     @Override
+    public ReferenceValue referenceArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        Set<TypedReferenceValue> potentialTypes = this.potentialTypes.stream()
+                                                                     .map(t -> t.referenceArrayLoad(indexValue, valueFactory))
+                                                                     .filter(MultiTypedReferenceValue.class::isInstance)
+                                                                     .map(MultiTypedReferenceValue.class::cast)
+                                                                     .flatMap(t -> t.potentialTypes.stream())
+                                                                     .collect(Collectors.toSet());
+
+        if (potentialTypes.isEmpty())
+        {
+            return valueFactory.createReferenceValue();
+        }
+
+        return new MultiTypedReferenceValue(potentialTypes, mayBeUnknown);
+    }
+
+    @Override
     public ReferenceValue generalize(ReferenceValue other)
     {
         return other.generalize(this);

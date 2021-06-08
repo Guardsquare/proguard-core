@@ -35,6 +35,7 @@ ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:
  - Fix storage and alignment of uncompressed zip entries. (`DGD-2390`)
  - Fix processing of constant boolean arrays. (`DGD-2338`)
  - Fix adding branch instructions with labels in `CompactCodeAttributeComposer`.
+ - Fix handling of array dereferencing in `MultiTypedReferenceValue`.
 
 ## Version 7.0 (Jan 2020)
 
