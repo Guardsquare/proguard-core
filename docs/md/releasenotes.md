@@ -1,27 +1,40 @@
-## Version 7.1
+## Version 7.1 (June 2021)
 
-| Version| Issue    | Module   | Explanation
-|--------|----------|----------|----------------------------------
-| 7.1.0  |          | CORE     | The `PartialEvaluator` now throws `ExcessiveComplexityException` if an instruction is visited more than `stopAnalysisAfterNEvaluations` times.
-| 7.1.0  |          | CORE     | The `PartialEvaluator` now throws `IncompleteClassHierarchyException` instead of `IllegalArgumentException` when an incomplete hierarchy is encountered.
-| 7.1.0  |          | CORE     | Fix potential `StackOverflowException` when comparing multi-typed reference values.
-| 7.1.0  | DGD-3036 | CORE     | Improve code analysis by taking into account potentially throwing `ldc` instructions.
-| 7.1.0  | DGD-3317 | CORE     | Fix handling of Kotlin nested class names which contain `$`.
-| 7.1.0  | PDG-127  | CORE     | Mark `Module`, `ModuleMainClass` and `ModulePackages` attributes as required.
-| 7.1.0  |          | CORE     | Add support for partial evaluation with particular reference values.
-| 7.1.0  | DGD-3231 | CORE     | Add missing method reference in injected static initializer instructions.
-| 7.1.0  |          | CORE     | Add support for multiple possible types during partial evaluation.
-| 7.1.0  | PGC-0016 | CORE     | Fix potential `ClassCastException` in `ConstructorMethodFilter`.
-| 7.1.0  | PGC-0015 | CORE     | Add support Java 16.
-| 7.1.0  | PGD-0064 | CORE     | Add support for Java 14 and 15.
-| 7.1.0  | PGD-0064 | CORE     | Add support for sealed classes (permitted subclasses attributes).
-| 7.1.0  | PGD-0064 | CORE     | Add support for record attributes.
-| 7.1.0  |          | CORE     | Fix potential NullPointerException for module classes in ClassPrinter.
-| 7.1.0  | PGD-5    | CORE     | Improve efficiency of building classes, methods and constant pools.
-| 7.1.0  | DGD-2390 | CORE     | Fix storage and alignment of uncompressed zip entries.
-| 7.1.0  | DGD-2338 | CORE     | Fix processing of constant boolean arrays.
-| 7.1.0  |          | CORE     | Fix adding branch instructions with labels in CompactCodeAttributeComposer.
-| 7.1.0  |          | CORE     | Add missing dimensions argument to CompactCodeAttributeComposer.multianewarray.
+### Java support
+
+ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:
+
+ - Add support for reading & writing Java 14, 15 and 16 class files. (`PGC-0015`, `PGD-0064`)
+ - Add support for Java 14 sealed classes (permitted subclasses attributes). (`PGD-0064`)
+ - Add support for record attributes (previewed in Java 15/16, targeted for Java 17). (`PGD-0064`)
+
+### Improved code analysis
+
+- The partial evaluator can now be used to reconstruct the specific values of `String`, `StringBuilder` and `StringBuffer` type objects. 
+  See [analyzing code manual page](analyzing.md#particularreference) for more information.
+- The partial evaluator will now throw an `IncompleteClassHierarchyException` instead of
+  `IllegalArgumentException` when an incomplete hierarchy is encountered.
+- The partial evaluator will now throw an `ExcessiveComplexityException` if an instruction is visited more than `stopAnalysisAfterNEvaluations` times.
+- Potentially throwing `ldc` instructions are now taken into account during partial evaluation,
+  improving the accuracy of code analysis. (`DGD-3036`)
+- Add support for multiple possible types during partial evaluation.
+
+### Performance improvements
+
+ - Improve efficiency of building classes, methods and constant pools (`PGD-5`).
+
+### Bug fixes
+
+ - Add missing method reference in injected static initializer instructions. (`DGD-3231`)
+ - Add missing dimensions argument to `CompactCodeAttributeComposer.multianewarray`.
+ - Fix potential `StackOverflowException` when comparing multi-typed reference values.
+ - Fix handling of Kotlin nested class names which contain `$`. (`DGD-3317`)
+ - Mark `Module`, `ModuleMainClass` and `ModulePackages` attributes as required. (`PDG-127`)
+ - Fix potential `ClassCastException` in `ConstructorMethodFilter`. (`PGC-0016`)
+ - Fix potential `NullPointerException` for module classes in ClassPrinter.
+ - Fix storage and alignment of uncompressed zip entries. (`DGD-2390`)
+ - Fix processing of constant boolean arrays. (`DGD-2338`)
+ - Fix adding branch instructions with labels in `CompactCodeAttributeComposer`.
 
 ## Version 7.0 (Jan 2020)
 
