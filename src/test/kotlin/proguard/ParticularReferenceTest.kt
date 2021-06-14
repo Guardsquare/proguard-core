@@ -12,7 +12,6 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlin.collections.HashMap
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
@@ -23,7 +22,8 @@ import proguard.util.PartialEvaluatorHelper
 class ParticularReferenceTest : FreeSpec({
 
     "Unknown value if different possibilities exist - loop" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void loop(){
                     StringBuilder sb = new StringBuilder();
@@ -34,7 +34,8 @@ class ParticularReferenceTest : FreeSpec({
                     System.out.println(sb.toString());
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "loop", "()V", programClassPool)
 
@@ -52,7 +53,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Unknown value if different possibilities exist - branch" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void branch(int i){
                     StringBuilder sb = new StringBuilder();
@@ -67,7 +69,8 @@ class ParticularReferenceTest : FreeSpec({
                     System.out.println(sb.toString());
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "branch", "(I)V", programClassPool)
 
@@ -83,7 +86,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Unknown value for non-final field" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public String SOME_STRING = "ASDF";
                 public void field(){
@@ -91,7 +95,8 @@ class ParticularReferenceTest : FreeSpec({
                     System.out.println(sb.toString());
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "field", "()V", programClassPool)
 
@@ -109,14 +114,16 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple usage" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void append()
                 {
                     System.out.println("StringValue");
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
 
@@ -131,7 +138,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple concat" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void append()
                 {
@@ -140,7 +148,8 @@ class ParticularReferenceTest : FreeSpec({
                     System.out.println(s);
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
 
@@ -155,7 +164,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple append" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void append()
                 {
@@ -165,7 +175,8 @@ class ParticularReferenceTest : FreeSpec({
                     System.out.println(sb.toString());
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
 
@@ -180,7 +191,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Append length" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void stringLength()
                 {
@@ -191,7 +203,8 @@ class ParticularReferenceTest : FreeSpec({
                     System.out.println(sb.toString());
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "stringLength", "()V", programClassPool)
 
@@ -206,7 +219,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple String concat" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void concat()
                 {
@@ -217,7 +231,8 @@ class ParticularReferenceTest : FreeSpec({
                 }
 
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool)
 
@@ -231,7 +246,8 @@ class ParticularReferenceTest : FreeSpec({
         }
     }
     "Static final field" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public static final String SECRET = " world";
                 public void concat()
@@ -241,7 +257,8 @@ class ParticularReferenceTest : FreeSpec({
                 }
 
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool)
 
@@ -256,7 +273,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "StringBuilder functions" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void functions()
                 {
@@ -269,7 +287,8 @@ class ParticularReferenceTest : FreeSpec({
                 }
 
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
 
@@ -284,7 +303,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "StringBuffer functions" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void functions()
                 {
@@ -297,7 +317,8 @@ class ParticularReferenceTest : FreeSpec({
                 }
 
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
 
@@ -312,7 +333,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "String functions" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public final String REGEXP = "[0-9]+";
     
@@ -329,7 +351,8 @@ class ParticularReferenceTest : FreeSpec({
                 }
 
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
 
@@ -344,7 +367,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Failed casting" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void cast()
                 {
@@ -352,7 +376,8 @@ class ParticularReferenceTest : FreeSpec({
                     System.out.println((String) o);
                 }
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "cast", "()V", programClassPool)
 
@@ -370,7 +395,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Correct internal stack state after partial evaluation - StringBuilder" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void functions() 
                 {
@@ -383,7 +409,8 @@ class ParticularReferenceTest : FreeSpec({
                 }
 
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
 
@@ -433,7 +460,8 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Correct internal stack state after partial evaluation - StringBuffer" - {
-        val programClassPool = ClassPoolBuilder.fromStrings("""
+        val programClassPool = ClassPoolBuilder.fromStrings(
+            """
             class A {
                 public void functions() 
                 {
@@ -446,7 +474,8 @@ class ParticularReferenceTest : FreeSpec({
                 }
 
             }
-        """)
+        """
+        )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
 

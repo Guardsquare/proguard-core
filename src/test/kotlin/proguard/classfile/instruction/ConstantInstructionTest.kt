@@ -22,53 +22,63 @@ class ConstantInstructionTest : FreeSpec({
 
     "Constant instructions should be" - {
         "throwing if they have a class constant operand" {
-            val classPool = ClassPool("""
+            val classPool = ClassPool(
+                """
                 public class Foo {
                     public void bar() {
                         System.out.println(Foo.class);
                     }
                 }
-            """.trimIndent())
+                """.trimIndent()
+            )
 
             val clazz = classPool.getClass("Foo")
             val method = clazz.findMethod("bar", "()V")
             var throwingLdcCount = 0
 
-            method.accept(clazz,
+            method.accept(
+                clazz,
                 AllAttributeVisitor(
-                AllInstructionVisitor(
-                object : InstructionVisitor {
-                    override fun visitAnyInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, instruction: Instruction?) { }
-                    override fun visitConstantInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, constantInstruction: ConstantInstruction?) {
-                        if (constantInstruction?.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
-                    }
-                })))
+                    AllInstructionVisitor(
+                        object : InstructionVisitor {
+                            override fun visitAnyInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, instruction: Instruction?) { }
+                            override fun visitConstantInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, constantInstruction: ConstantInstruction?) {
+                                if (constantInstruction?.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
+                            }
+                        })
+                )
+            )
 
             throwingLdcCount shouldBe 1
         }
 
         "not be throwing if they don't have a class constant operand" {
-            val classPool = ClassPool("""
+            val classPool = ClassPool(
+                """
                 public class Foo {
                     public void bar() {
                         System.out.println("constant");
                     }
                 }
-            """.trimIndent())
+                """.trimIndent()
+            )
 
             val clazz = classPool.getClass("Foo")
             val method = clazz.findMethod("bar", "()V")
             var throwingLdcCount = 0
 
-            method.accept(clazz,
+            method.accept(
+                clazz,
                 AllAttributeVisitor(
-                AllInstructionVisitor(
-                object : InstructionVisitor {
-                    override fun visitAnyInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, instruction: Instruction?) { }
-                    override fun visitConstantInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, constantInstruction: ConstantInstruction?) {
-                        if (constantInstruction?.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
-                    }
-                })))
+                    AllInstructionVisitor(
+                        object : InstructionVisitor {
+                            override fun visitAnyInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, instruction: Instruction?) { }
+                            override fun visitConstantInstruction(clazz: Clazz?, method: Method?, codeAttribute: CodeAttribute?, offset: Int, constantInstruction: ConstantInstruction?) {
+                                if (constantInstruction?.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
+                            }
+                        })
+                )
+            )
 
             throwingLdcCount shouldBe 0
         }

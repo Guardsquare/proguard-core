@@ -342,17 +342,20 @@ fun evaluate(
         codeAttribute.attributes.find { it.getAttributeName(clazz) == Attribute.LOCAL_VARIABLE_TABLE } as LocalVariableTableAttribute?
 
     val instructions = ArrayList<Pair<Int, Instruction>>()
-    codeAttribute.instructionsAccept(clazz, method, object : InstructionVisitor {
-        override fun visitAnyInstruction(
-            clazz: Clazz?,
-            method: Method?,
-            codeAttribute: CodeAttribute?,
-            offset: Int,
-            instruction: Instruction?
-        ) {
-            instruction?.let { instructions.add(Pair(offset, it)) }
+    codeAttribute.instructionsAccept(
+        clazz, method,
+        object : InstructionVisitor {
+            override fun visitAnyInstruction(
+                clazz: Clazz?,
+                method: Method?,
+                codeAttribute: CodeAttribute?,
+                offset: Int,
+                instruction: Instruction?
+            ) {
+                instruction?.let { instructions.add(Pair(offset, it)) }
+            }
         }
-    })
+    )
 
     val variableTable = HashMap<String, Int>()
     localVarTableAttribute?.localVariablesAccept(

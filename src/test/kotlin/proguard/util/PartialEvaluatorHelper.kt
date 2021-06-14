@@ -88,9 +88,11 @@ class PartialEvaluatorHelper {
 
                 println("[$offset]\t${methodWithStack.methodSignature}")
                 for (s in methodWithStack.stack) {
-                    println("\t" + s.javaClass.simpleName +
+                    println(
+                        "\t" + s.javaClass.simpleName +
                             "\t" + (if (s is ParticularReferenceValue) s.type else "") +
-                            "\t" + (if (s is ParticularReferenceValue) s.value()?.toString() else ""))
+                            "\t" + (if (s is ParticularReferenceValue) s.value()?.toString() else "")
+                    )
                 }
             }
         }
