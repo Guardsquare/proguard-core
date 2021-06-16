@@ -27,7 +27,8 @@ import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownReferenceValue
 import proguard.evaluation.value.Value
-import proguard.util.ClassPoolBuilder
+import testutils.ClassPoolBuilder
+import testutils.JavaSource
 
 class MultiTypeTest : FreeSpec({
 
@@ -35,70 +36,82 @@ class MultiTypeTest : FreeSpec({
     val invocationUnit = BasicInvocationUnit(valueFactory)
     val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, true)
 
-    val codeSuper = """
-            public class Super {
-                public void call() {}
-            }
+    val codeSuper = JavaSource(
+        "Super.java",
         """
-    val codeA = """
-            public class A extends Super {
-                @Override
-                public void call() {}
-            }
+        public class Super {
+            public void call() {}
+        }
         """
-    val codeB = """
-            public class B extends Super {
-                @Override
-                public void call() {}
-            }
+    )
+    val codeA = JavaSource(
+        "A.java",
         """
-    val codeTarget = """
-            public class Target {
-                public void ternary(boolean flag) {
-                    Super s = flag ? new A() : new B();
-                    // s is A or B
+        public class A extends Super {
+            @Override
+            public void call() {}
+        }
+        """
+    )
+    val codeB = JavaSource(
+        "B.java",
+        """
+        public class B extends Super {
+            @Override
+            public void call() {}
+        }
+        """
+    )
+    val codeTarget = JavaSource(
+        "Target.java",
+        """
+        public class Target {
+            public void ternary(boolean flag) {
+                Super s = flag ? new A() : new B();
+                // s is A or B
+            }
+
+            public void ifElse(boolean flag) {
+                Super s;
+                if (flag) {
+                    s = new A();
+                } else {
+                    s = new B();
                 }
-                
-                public void ifElse(boolean flag) {
-                    Super s;
-                    if (flag) {
+                // s is A or B
+            }
+
+            public void switchStmt(String flag) {
+                Super s;
+                switch(flag) {
+                    case "Super":
+                        s = new Super();
+                        break;
+                    case "A":
                         s = new A();
-                    } else {
+                        break;
+                    case "B":
                         s = new B();
-                    }
-                    // s is A or B
+                        break;
+                    default:
+                        s = null;
                 }
-                
-                public void switchStmt(String flag) {
-                    Super s;
-                    switch(flag) {
-                        case "Super":
-                            s = new Super();
-                            break;
-                        case "A":
-                            s = new A();
-                            break;
-                        case "B":
-                            s = new B();
-                            break;
-                        default:
-                            s = null;
-                    }
-                    // s is Super, A, B or null
-                }
-                
-                public void exact() {
-                    Super s = new Super();
-                    // s is always Super
-                }
-                
-                public void array() {
-                    A[] array = new A[10];
-                    A a = array[3];
-                }
+                // s is Super, A, B or null
             }
+
+            public void exact() {
+                Super s = new Super();
+                // s is always Super
+            }
+
+            public void array() {
+                A[] array = new A[10];
+                A a = array[3];
+            }
+        }
         """
-    val classPool = ClassPoolBuilder.fromStrings(listOf("-g"), codeSuper, codeA, codeB, codeTarget)
+    )
+    val classPool = ClassPoolBuilder.fromSource(codeSuper, codeA, codeB, codeTarget, javacArguments = listOf("-g"))
 
     "Code examples" - {
         "Exact type" {
