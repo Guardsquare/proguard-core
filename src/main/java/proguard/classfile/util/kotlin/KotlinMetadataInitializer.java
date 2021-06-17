@@ -1552,4 +1552,26 @@ implements AnnotationVisitor,
         list.trimToSize();
         return list;
     }
+
+
+    private static proguard.classfile.kotlin.JvmMethodSignature fromKotlinJvmMethodSignature(kotlinx.metadata.jvm.JvmMethodSignature jvmMethodSignature)
+    {
+        if (jvmMethodSignature == null)
+        {
+            return null;
+        }
+
+        return new proguard.classfile.kotlin.JvmMethodSignature(jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
+    }
+
+
+    private static proguard.classfile.kotlin.JvmFieldSignature fromKotlinJvmFieldSignature(kotlinx.metadata.jvm.JvmFieldSignature jvmFieldSignature)
+    {
+        if (jvmFieldSignature == null)
+        {
+            return null;
+        }
+
+        return new proguard.classfile.kotlin.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+    }
 }

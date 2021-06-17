@@ -75,26 +75,4 @@ public class JvmMethodSignature
     {
         return this.name + this.desc;
     }
-
-    // Helper methods to convert from/to Kotlin metadata classes.
-
-    public static JvmMethodSignature fromKotlinJvmMethodSignature(kotlinx.metadata.jvm.JvmMethodSignature jvmMethodSignature)
-    {
-        if (jvmMethodSignature == null)
-        {
-            return null;
-        }
-
-        return new JvmMethodSignature(jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
-    }
-
-    public static kotlinx.metadata.jvm.JvmMethodSignature toKotlinJvmMethodSignature(JvmMethodSignature jvmMethodSignature)
-    {
-        if (jvmMethodSignature == null)
-        {
-            return null;
-        }
-
-        return new kotlinx.metadata.jvm.JvmMethodSignature(jvmMethodSignature.name, jvmMethodSignature.desc);
-    }
 }

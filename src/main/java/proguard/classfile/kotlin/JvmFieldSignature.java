@@ -77,26 +77,4 @@ public class JvmFieldSignature
     {
         return name + ":" + desc;
     }
-
-    // Helper methods to convert from/to Kotlin metadata classes.
-
-    public static JvmFieldSignature fromKotlinJvmFieldSignature(kotlinx.metadata.jvm.JvmFieldSignature jvmFieldSignature)
-    {
-        if (jvmFieldSignature == null)
-        {
-            return null;
-        }
-
-        return new JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
-    }
-
-    public static kotlinx.metadata.jvm.JvmFieldSignature toKotlinJvmFieldSignature(JvmFieldSignature jvmFieldSignature)
-    {
-        if (jvmFieldSignature == null)
-        {
-            return null;
-        }
-
-        return new kotlinx.metadata.jvm.JvmFieldSignature(jvmFieldSignature.name, jvmFieldSignature.desc);
-    }
 }

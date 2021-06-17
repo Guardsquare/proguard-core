@@ -392,12 +392,9 @@ implements KotlinMetadataVisitor,
             JvmPropertyExtensionVisitor ext =
                 (JvmPropertyExtensionVisitor) kmdPropertyVisitor.visitExtensions(JvmPropertyExtensionVisitor.TYPE);
 
-            JvmMethodSignature getterSignature =
-                proguard.classfile.kotlin.JvmMethodSignature.toKotlinJvmMethodSignature(kotlinPropertyMetadata.getterSignature);
-            JvmMethodSignature setterSignature =
-                proguard.classfile.kotlin.JvmMethodSignature.toKotlinJvmMethodSignature(kotlinPropertyMetadata.setterSignature);
-            JvmFieldSignature backingFieldSignature =
-                proguard.classfile.kotlin.JvmFieldSignature.toKotlinJvmFieldSignature(kotlinPropertyMetadata.backingFieldSignature);
+            JvmMethodSignature getterSignature = toKotlinJvmMethodSignature(kotlinPropertyMetadata.getterSignature);
+            JvmMethodSignature setterSignature = toKotlinJvmMethodSignature(kotlinPropertyMetadata.setterSignature);
+            JvmFieldSignature backingFieldSignature = toKotlinJvmFieldSignature(kotlinPropertyMetadata.backingFieldSignature);
 
             ext.visit(kotlinPropertyMetadata.flags.jvmFlagsAsInt(),
                       backingFieldSignature,
@@ -407,7 +404,7 @@ implements KotlinMetadataVisitor,
             if (kotlinPropertyMetadata.syntheticMethodForAnnotations != null)
             {
                 ext.visitSyntheticMethodForAnnotations(
-                    proguard.classfile.kotlin.JvmMethodSignature.toKotlinJvmMethodSignature(kotlinPropertyMetadata.syntheticMethodForAnnotations)
+                        toKotlinJvmMethodSignature(kotlinPropertyMetadata.syntheticMethodForAnnotations)
                 );
             }
 
@@ -480,8 +477,7 @@ implements KotlinMetadataVisitor,
             JvmFunctionExtensionVisitor ext =
                 (JvmFunctionExtensionVisitor) kmdFunctionVisitor.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
 
-            JvmMethodSignature jvmMethodSignature =
-                proguard.classfile.kotlin.JvmMethodSignature.toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
+            JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
 
             ext.visit(jvmMethodSignature);
 
@@ -648,8 +644,7 @@ implements KotlinMetadataVisitor,
                 JvmConstructorExtensionVisitor constExtVis =
                     (JvmConstructorExtensionVisitor)constructorVis.visitExtensions(JvmConstructorExtensionVisitor.TYPE);
 
-                JvmMethodSignature jvmMethodSignature =
-                    proguard.classfile.kotlin.JvmMethodSignature.toKotlinJvmMethodSignature(kotlinConstructorMetadata.jvmSignature);
+                JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinConstructorMetadata.jvmSignature);
 
                 constExtVis.visit(jvmMethodSignature);
             }
@@ -1272,8 +1267,7 @@ implements KotlinMetadataVisitor,
             JvmFunctionExtensionVisitor ext =
                 (JvmFunctionExtensionVisitor) kmdFunctionVisitor.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
 
-            JvmMethodSignature jvmMethodSignature =
-                proguard.classfile.kotlin.JvmMethodSignature.toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
+            JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
 
             ext.visit(jvmMethodSignature);
 
@@ -1469,5 +1463,29 @@ implements KotlinMetadataVisitor,
 
             versionReqVis.visitEnd();
         }
+    }
+
+
+    // Small helper methods.
+
+    private static kotlinx.metadata.jvm.JvmMethodSignature toKotlinJvmMethodSignature(proguard.classfile.kotlin.JvmMethodSignature jvmMethodSignature)
+    {
+        if (jvmMethodSignature == null)
+        {
+            return null;
+        }
+
+        return new kotlinx.metadata.jvm.JvmMethodSignature(jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
+    }
+
+
+    private static kotlinx.metadata.jvm.JvmFieldSignature toKotlinJvmFieldSignature(proguard.classfile.kotlin.JvmFieldSignature jvmFieldSignature)
+    {
+        if (jvmFieldSignature == null)
+        {
+            return null;
+        }
+
+        return new kotlinx.metadata.jvm.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
     }
 }
