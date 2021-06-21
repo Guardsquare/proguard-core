@@ -95,11 +95,11 @@ class ClassPoolBuilder {
                 classReader.read(FileDataEntry(it))
             }
 
+            if (source.count { it is KotlinSource } > 0) initializeKotlinMetadata(programClassPool)
+
             programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
             programClassPool.classesAccept(ClassSuperHierarchyInitializer(programClassPool, libraryClassPool))
             programClassPool.accept(ClassSubHierarchyInitializer())
-
-            if (source.count { it is KotlinSource } > 0) initializeKotlinMetadata(programClassPool)
 
             return programClassPool
         }
