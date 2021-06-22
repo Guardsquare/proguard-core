@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package testutils.classfile.util;
+package proguard.classfile.util;
 
 import proguard.classfile.*;
 import proguard.classfile.constant.ClassConstant;
@@ -31,8 +31,6 @@ import java.util.function.Function;
 /**
  * This <code>ClassVisitor</code> renames the class names and class member
  * names of the classes it visits.
- *
- * // TODO(T5302): Move class to ProGuardCORE API.
  *
  * @author Eric Lafortune
  */

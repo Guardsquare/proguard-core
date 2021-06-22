@@ -23,6 +23,10 @@ ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:
 
  - Improve efficiency of building classes, methods and constant pools (`PGD-5`).
 
+### API improvements
+
+- Add `ClassRenamer` to allow renaming classes and members easily. (`T5302`)
+
 ### Bug fixes
 
  - Add missing method reference in injected static initializer instructions. (`DGD-3231`)

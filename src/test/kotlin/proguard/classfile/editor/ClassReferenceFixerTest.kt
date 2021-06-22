@@ -13,12 +13,12 @@ import proguard.classfile.kotlin.KotlinTypeMetadata
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
+import proguard.classfile.util.ClassRenamer
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
-import testutils.classfile.util.ClassRenamer
 
 class ClassReferenceFixerTest : FreeSpec({
     "Kotlin nested class short names should be generated correctly" - {
