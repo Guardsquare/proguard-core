@@ -48,7 +48,7 @@ public class NameFilteredDataEntryReader extends FilteredDataEntryReader
                                        DataEntryReader acceptedDataEntryReader,
                                        DataEntryReader rejectedDataEntryReader)
     {
-        super(new DataEntryNameFilter(new ListParser(new FileNameParser()).parse(regularExpression)),
+        this(new ListParser(new FileNameParser()).parse(regularExpression),
               acceptedDataEntryReader,
               rejectedDataEntryReader);
     }
@@ -73,7 +73,32 @@ public class NameFilteredDataEntryReader extends FilteredDataEntryReader
                                        DataEntryReader acceptedDataEntryReader,
                                        DataEntryReader rejectedDataEntryReader)
     {
-        super(new DataEntryNameFilter(new ListParser(new FileNameParser()).parse(regularExpressions)),
+        this(new ListParser(new FileNameParser()).parse(regularExpressions),
+              acceptedDataEntryReader,
+              rejectedDataEntryReader);
+    }
+
+
+    /**
+     * Creates a new NameFilteredDataEntryReader that delegates to the given
+     * reader, depending on the given string matcher.
+     */
+    public NameFilteredDataEntryReader(StringMatcher   stringMatcher,
+                                       DataEntryReader acceptedDataEntryReader)
+    {
+        this(stringMatcher, acceptedDataEntryReader, null);
+    }
+
+
+    /**
+     * Creates a new NameFilteredDataEntryReader that delegates to either of
+     * the two given readers, depending on the given string matcher.
+     */
+    public NameFilteredDataEntryReader(StringMatcher   stringMatcher,
+                                       DataEntryReader acceptedDataEntryReader,
+                                       DataEntryReader rejectedDataEntryReader)
+    {
+        super(new DataEntryNameFilter(stringMatcher),
               acceptedDataEntryReader,
               rejectedDataEntryReader);
     }
