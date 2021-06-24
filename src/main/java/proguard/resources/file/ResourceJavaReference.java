@@ -19,6 +19,8 @@ package proguard.resources.file;
 
 import proguard.classfile.Clazz;
 
+import java.util.Objects;
+
 /**
  * Represents a reference to a Java class from a resource file.
  *
@@ -33,5 +35,22 @@ public class ResourceJavaReference
     public ResourceJavaReference(String externalClassName)
     {
         this.externalClassName = externalClassName;
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ResourceJavaReference that = (ResourceJavaReference)o;
+        return externalClassName.equals(that.externalClassName);
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(externalClassName);
     }
 }
