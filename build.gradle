@@ -61,6 +61,8 @@ java {
 
 test {
     useJUnitPlatform()
+
+    finalizedBy jacocoTestReport
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
