@@ -40,6 +40,7 @@ ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:
  - Fix processing of constant boolean arrays. (`DGD-2338`)
  - Fix adding branch instructions with labels in `CompactCodeAttributeComposer`.
  - Fix handling of array dereferencing in `MultiTypedReferenceValue`.
+ - Fix `AllKotlinAnnotationVisitor` so that it visits type alias annotations defined in any kind of declaration container.
 
 ## Version 7.0 (Jan 2020)
 

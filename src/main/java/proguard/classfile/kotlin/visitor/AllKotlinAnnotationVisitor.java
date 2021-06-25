@@ -44,11 +44,11 @@ implements   KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
+    public void visitKotlinDeclarationContainerMetadata(Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
     {
-        kotlinClassKindMetadata.typeAliasesAccept(clazz, this);
+        kotlinDeclarationContainerMetadata.typeAliasesAccept(clazz, this);
 
-        visitAnyKotlinMetadata(clazz, kotlinClassKindMetadata);
+        visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);
     }
 
 
