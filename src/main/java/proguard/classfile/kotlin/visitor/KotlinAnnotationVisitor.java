@@ -23,6 +23,7 @@ import proguard.classfile.kotlin.*;
 public interface KotlinAnnotationVisitor
 {
     void visitAnyAnnotation(Clazz                    clazz,
+                            KotlinAnnotatable        annotatable,
                             KotlinMetadataAnnotation annotation);
 
 
@@ -30,20 +31,20 @@ public interface KotlinAnnotationVisitor
                                      KotlinTypeMetadata       kotlinTypeMetadata,
                                      KotlinMetadataAnnotation annotation)
     {
-        visitAnyAnnotation(clazz, annotation);
+        visitAnyAnnotation(clazz, kotlinTypeMetadata, annotation);
     }
 
     default void visitTypeParameterAnnotation(Clazz                       clazz,
                                               KotlinTypeParameterMetadata kotlinTypeParameterMetadata,
                                               KotlinMetadataAnnotation    annotation)
     {
-        visitAnyAnnotation(clazz, annotation);
+        visitAnyAnnotation(clazz, kotlinTypeParameterMetadata, annotation);
     }
 
     default void visitTypeAliasAnnotation(Clazz                    clazz,
                                           KotlinTypeAliasMetadata  kotlinTypeAliasMetadata,
                                           KotlinMetadataAnnotation annotation)
     {
-        visitAnyAnnotation(clazz, annotation);
+        visitAnyAnnotation(clazz, kotlinTypeAliasMetadata, annotation);
     }
 }

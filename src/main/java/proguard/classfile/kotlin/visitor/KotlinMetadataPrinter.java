@@ -714,6 +714,7 @@ implements KotlinMetadataVisitor,
 
     @Override
     public void visitAnyAnnotation(Clazz                    clazz,
+                                   KotlinAnnotatable        annotatable,
                                    KotlinMetadataAnnotation annotation)
     {
         println("[ANTN] " +

@@ -42,6 +42,11 @@ implements   Processable
     }
 
 
+    public void accept(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotationVisitor kotlinAnnotationVisitor)
+    {
+        kotlinAnnotationVisitor.visitAnyAnnotation(clazz, annotatable, this);
+    }
+
     public void accept(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata, KotlinAnnotationVisitor kotlinAnnotationVisitor)
     {
         kotlinAnnotationVisitor.visitTypeAnnotation(clazz, kotlinTypeMetadata, this);

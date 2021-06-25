@@ -53,7 +53,7 @@ implements   KotlinAnnotationVisitor
     }
 
     @Override
-    public void visitAnyAnnotation(Clazz clazz, KotlinMetadataAnnotation annotation) { }
+    public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinMetadataAnnotation annotation) { }
 
 
     @Override

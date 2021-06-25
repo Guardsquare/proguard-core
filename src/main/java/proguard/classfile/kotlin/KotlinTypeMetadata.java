@@ -28,7 +28,8 @@ import java.util.*;
 
 public class KotlinTypeMetadata
 extends      SimpleProcessable
-implements   Processable
+implements   Processable,
+             KotlinAnnotatable
 {
     public KmVariance variance;
 

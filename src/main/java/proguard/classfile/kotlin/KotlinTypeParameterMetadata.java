@@ -27,7 +27,8 @@ import java.util.*;
 
 public class KotlinTypeParameterMetadata
 extends      SimpleProcessable
-implements   Processable
+implements   Processable,
+             KotlinAnnotatable
 {
     public String name;
 
