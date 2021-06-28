@@ -1006,13 +1006,7 @@ implements   ClassVisitor,
 
             if (className != null)
             {
-                // If this is a dummy Kotlin type, assign a dummy referenced class.
-                kotlinTypeMetadata.referencedClass = KotlinConstants.dummyClassPool.getClass(className);
-
-                if (kotlinTypeMetadata.referencedClass == null)
-                {
-                    kotlinTypeMetadata.referencedClass = findClass(clazz, className);
-                }
+                kotlinTypeMetadata.referencedClass = findKotlinClass(clazz, className);
             }
             else if (kotlinTypeMetadata.aliasName != null)
             {
@@ -1202,6 +1196,24 @@ implements   ClassVisitor,
         }
 
         return null;
+    }
+
+
+    /**
+     * Returns the class with the given name, either for the dummy Kotlin class pool,
+     * program class pool or from the library class pool, or <code>null</code> if it can't be found.
+     */
+    private Clazz findKotlinClass(Clazz referencingClass, String name)
+    {
+        // If this is a dummy Kotlin type, assign a dummy referenced class.
+        Clazz clazz = KotlinConstants.dummyClassPool.getClass(name);
+
+        if (clazz == null)
+        {
+            clazz = findClass(referencingClass, name);
+        }
+
+        return clazz;
     }
 
 
