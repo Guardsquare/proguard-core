@@ -1533,16 +1533,6 @@ implements KotlinMetadataVisitor,
         return new kotlinx.metadata.jvm.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
     }
 
-    private static KmVariance toKmVariance(KotlinTypeVariance variance)
-    {
-        switch(variance)
-        {
-            case IN:        return KmVariance.IN;
-            case INVARIANT: return KmVariance.INVARIANT;
-            case OUT:       return KmVariance.OUT;
-            default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
-        }
-    }
 
     private static KmVersionRequirementVersionKind toKmVersionRequirementVersionKind(KotlinVersionRequirementVersionKind kotlinVersionRequirementVersionKind)
     {
@@ -1817,6 +1807,18 @@ implements KotlinMetadataVisitor,
                     new AnnotationArgumentConstructor((__, element) -> elements.add(element))
             );
             this.consumer.accept(argument.name, new KmAnnotationArgument.ArrayValue(elements));
+        }
+    }
+
+
+    private static KmVariance toKmVariance(KotlinTypeVariance variance)
+    {
+        switch(variance)
+        {
+            case IN:        return KmVariance.IN;
+            case INVARIANT: return KmVariance.INVARIANT;
+            case OUT:       return KmVariance.OUT;
+            default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
         }
     }
 

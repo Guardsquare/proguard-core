@@ -1981,5 +1981,4 @@ implements AnnotationVisitor,
 
         return flags;
     }
-
 }
