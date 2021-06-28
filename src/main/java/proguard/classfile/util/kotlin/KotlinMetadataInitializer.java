@@ -32,8 +32,10 @@ import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static proguard.classfile.kotlin.KotlinConstants.*;
+import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
 
 /**
  * Initializes the kotlin metadata for each Kotlin class. After initialization, all
@@ -855,7 +857,7 @@ implements AnnotationVisitor,
         @Override
         public void visitAnnotation(KmAnnotation annotation)
         {
-            annotations.add(new KotlinAnnotation(annotation.getClassName(), annotation.getArguments()));
+            annotations.add(convertAnnotation(annotation));
         }
 
         /**
@@ -1503,7 +1505,7 @@ implements AnnotationVisitor,
             public void visitAnnotation(KmAnnotation annotation)
             {
                 // e.g. @ParameterName("prefix") [map, throw away if shrunk], @UnsafeVariance [throw away?]
-                annotations.add(new KotlinAnnotation(annotation.getClassName(), annotation.getArguments()));
+                annotations.add(convertAnnotation(annotation));
             }
 
             @Override
@@ -1553,7 +1555,7 @@ implements AnnotationVisitor,
             @Override
             public void visitAnnotation(KmAnnotation annotation)
             {
-                annotations.add(new KotlinAnnotation(annotation.getClassName(), annotation.getArguments()));
+                annotations.add(convertAnnotation(annotation));
             }
 
             @Override
@@ -1637,6 +1639,7 @@ implements AnnotationVisitor,
         return new proguard.classfile.kotlin.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
     }
 
+
     private static KotlinTypeVariance fromKmVariance(KmVariance variance)
     {
         switch(variance)
@@ -1645,6 +1648,116 @@ implements AnnotationVisitor,
             case INVARIANT: return KotlinTypeVariance.INVARIANT;
             case OUT:       return KotlinTypeVariance.OUT;
             default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
+        }
+    }
+
+
+    // Helper methods to convert Kotlin annotations
+
+    private static KotlinAnnotation convertAnnotation(KmAnnotation kmAnnotation)
+    {
+        return new KotlinAnnotation(kmAnnotation.getClassName(), convertAnnotationArguments(kmAnnotation.getArguments()));
+    }
+
+
+    private static List<KotlinAnnotationArgument> convertAnnotationArguments(Map<String, KmAnnotationArgument<?>> arguments)
+    {
+        return arguments
+                .entrySet()
+                .stream()
+                .map(e -> convertAnnotationArgument(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+    }
+
+
+    private static KotlinAnnotationArgument convertAnnotationArgument(String name, KmAnnotationArgument<?> argument)
+    {
+        return new KotlinAnnotationArgument(name, convertAnnotationArgumentValue(argument));
+    }
+
+
+    private static Value convertAnnotationArgumentValue(KmAnnotationArgument<?> argument)
+    {
+        if (argument instanceof KmAnnotationArgument.ByteValue)
+        {
+            return new ByteValue((Byte) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.CharValue)
+        {
+            return new CharValue((Character) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.ShortValue)
+        {
+            return new ShortValue((Short) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.IntValue)
+        {
+            return new IntValue((Integer) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.LongValue)
+        {
+            return new LongValue((Long) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.FloatValue)
+        {
+            return new FloatValue((Float) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.DoubleValue)
+        {
+            return new DoubleValue((Double) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.BooleanValue)
+        {
+            return new BooleanValue((Boolean) argument.getValue());
+        }
+        // TODO(T5405): metadata library 0.3 will use unsigned types e.g. UByte instead of Byte as the value type
+        else if (argument instanceof KmAnnotationArgument.UByteValue)
+        {
+            return new UByteValue((Byte) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.UShortValue)
+        {
+            return new UShortValue((Short) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.UIntValue)
+        {
+            return new UIntValue((Integer) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.ULongValue)
+        {
+            return new ULongValue((Long) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.StringValue)
+        {
+            return new StringValue((String) argument.getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.KClassValue)
+        {
+            return new KotlinAnnotationArgument.ClassValue(((KmAnnotationArgument.KClassValue) argument).getValue());
+        }
+        else if (argument instanceof KmAnnotationArgument.EnumValue)
+        {
+            KmAnnotationArgument.EnumValue arg = (KmAnnotationArgument.EnumValue) argument;
+            return new EnumValue(arg.getEnumClassName(), arg.getEnumEntryName());
+        }
+        else if (argument instanceof KmAnnotationArgument.AnnotationValue)
+        {
+            return new AnnotationValue(convertAnnotation((KmAnnotation) argument.getValue()));
+        }
+        else if (argument instanceof KmAnnotationArgument.ArrayValue)
+        {
+            KmAnnotationArgument.ArrayValue arrayValue = (KmAnnotationArgument.ArrayValue)argument;
+            List<? extends KmAnnotationArgument<?>> values = arrayValue.getValue();
+
+            return new ArrayValue(values
+                    .stream()
+                    .map(KotlinMetadataInitializer::convertAnnotationArgumentValue)
+                    .collect(Collectors.toList())
+            );
+        }
+        else
+        {
+            throw new RuntimeException("Invalid Kotlin metadata annotation argument type: " + argument.getClass());
         }
     }
 

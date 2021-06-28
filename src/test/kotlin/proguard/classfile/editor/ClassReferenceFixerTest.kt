@@ -26,9 +26,13 @@ import io.mockk.verify
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.ClassConstants.NAME_JAVA_LANG_OBJECT
 import proguard.classfile.editor.ClassReferenceFixer.shortKotlinNestedClassName
+import proguard.classfile.kotlin.KotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation
+import proguard.classfile.kotlin.KotlinAnnotationArgument
 import proguard.classfile.kotlin.KotlinTypeMetadata
+import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
+import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.util.ClassRenamer
@@ -37,6 +41,7 @@ import proguard.classfile.visitor.ClassNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
+import java.lang.RuntimeException
 
 class ClassReferenceFixerTest : FreeSpec({
     "Kotlin nested class short names should be generated correctly" - {
@@ -91,7 +96,7 @@ class ClassReferenceFixerTest : FreeSpec({
                     val uLong: ULong,
                     val kClass: KClass<*>,
                     val enum: MyEnum,
-                    val array: Array<String>,
+                    val array: Array<Foo>,
                     val annotation: Foo
                 )
 
@@ -111,7 +116,7 @@ class ClassReferenceFixerTest : FreeSpec({
                     uLong = 1uL,
                     kClass = String::class,
                     enum = MyEnum.FOO,
-                    array = arrayOf("foo", "bar"),
+                    array = arrayOf(Foo("foo"), Foo("bar")),
                     annotation = Foo("foo")) String = "foo"
 
                 // extra helpers
@@ -166,26 +171,50 @@ class ClassReferenceFixerTest : FreeSpec({
             annotation.captured.referencedAnnotationClass shouldBe programClassPool.getClass("MyTypeAnnotation")
         }
 
-        "the annotation field references should be correctly set" {
-            with(programClassPool.getClass("MyTypeAnnotation")) {
-                annotation.captured.referencedArgumentMethods shouldBe mapOf(
-                    "renamedString" to findMethod("renamedString", "()Ljava/lang/String;"),
-                    "renamedByte" to findMethod("renamedByte", "()B"),
-                    "renamedChar" to findMethod("renamedChar", "()C"),
-                    "renamedShort" to findMethod("renamedShort", "()S"),
-                    "renamedInt" to findMethod("renamedInt", "()I"),
-                    "renamedLong" to findMethod("renamedLong", "()J"),
-                    "renamedFloat" to findMethod("renamedFloat", "()F"),
-                    "renamedDouble" to findMethod("renamedDouble", "()D"),
-                    "renamedBoolean" to findMethod("renamedBoolean", "()Z"),
-                    "renamedUByte" to findMethod("renamedUByte", "()B"),
-                    "renamedUShort" to findMethod("renamedUShort", "()S"),
-                    "renamedUInt" to findMethod("renamedUInt", "()I"),
-                    "renamedULong" to findMethod("renamedULong", "()J"),
-                    "renamedEnum" to findMethod("renamedEnum", "()LMyRenamedEnum;"),
-                    "renamedArray" to findMethod("renamedArray", "()[Ljava/lang/String;"),
-                    "renamedAnnotation" to findMethod("renamedAnnotation", "()LRenamedFoo;"),
-                    "renamedKClass" to findMethod("renamedKClass", "()Ljava/lang/Class;")
+        "the annotation argument value references should be correctly set" {
+
+            val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
+
+            programClassPool.classesAccept(
+                ReferencedKotlinMetadataVisitor(
+                    AllKotlinAnnotationVisitor(
+                        AllKotlinAnnotationArgumentVisitor(
+                            annotationArgVisitor
+                        )
+                    )
+                )
+            )
+
+            verify(exactly = 17) {
+                annotationArgVisitor.visitAnyArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { argument ->
+                        with(programClassPool.getClass("MyTypeAnnotation")) {
+                            when (argument.name) {
+                                "renamedString" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedString", "()Ljava/lang/String;")
+                                "renamedByte" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedByte", "()B")
+                                "renamedChar" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedChar", "()C")
+                                "renamedShort" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedShort", "()S")
+                                "renamedInt" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedInt", "()I")
+                                "renamedLong" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedLong", "()J")
+                                "renamedFloat" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedFloat", "()F")
+                                "renamedDouble" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedDouble", "()D")
+                                "renamedBoolean" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedBoolean", "()Z")
+                                "renamedUByte" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedUByte", "()B")
+                                "renamedUShort" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedUShort", "()S")
+                                "renamedUInt" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedUInt", "()I")
+                                "renamedULong" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedULong", "()J")
+                                "renamedEnum" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedEnum", "()LMyRenamedEnum;")
+                                "renamedArray" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedArray", "()[LRenamedFoo;")
+                                "renamedAnnotation" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedAnnotation", "()LRenamedFoo;")
+                                "renamedKClass" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedKClass", "()Ljava/lang/Class;")
+                                else -> RuntimeException("Unexpected argument $argument")
+                            }
+                        }
+                    },
+                    ofType<KotlinAnnotationArgument.Value>()
                 )
             }
         }

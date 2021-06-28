@@ -17,7 +17,6 @@
  */
 package proguard.classfile.editor;
 
-import kotlinx.metadata.*;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
@@ -33,8 +32,7 @@ import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
 
-import java.util.*;
-
+import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
 
 /**
@@ -523,7 +521,9 @@ implements   ClassVisitor,
                          KotlinTypeVisitor,
                          KotlinTypeAliasVisitor,
                          KotlinValueParameterVisitor,
-                         KotlinTypeParameterVisitor
+                         KotlinTypeParameterVisitor,
+                         KotlinAnnotationVisitor,
+                         KotlinAnnotationArgumentVisitor
     {
         // Implementations for KotlinMetadataVisitor.
         @Override
@@ -715,7 +715,6 @@ implements   ClassVisitor,
         @Override
         public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata)
         {
-            fixKotlinAnnotations(kotlinTypeMetadata.annotations);
 
             if (kotlinTypeMetadata.className != null)
             {
@@ -724,6 +723,7 @@ implements   ClassVisitor,
 
             // We fix aliasName using KotlinAliasReferenceFixer after ClassReferenceFixer is finished.
 
+            kotlinTypeMetadata.annotationsAccept(  clazz, this);
             kotlinTypeMetadata.typeArgumentsAccept(clazz, this);
             kotlinTypeMetadata.outerClassAccept(   clazz, this);
             kotlinTypeMetadata.upperBoundsAccept(  clazz, this);
@@ -737,8 +737,8 @@ implements   ClassVisitor,
                                    KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                    KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
         {
-            fixKotlinAnnotations(kotlinTypeAliasMetadata.annotations);
 
+            kotlinTypeAliasMetadata.annotationsAccept(   clazz, this);
             kotlinTypeAliasMetadata.underlyingTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
             kotlinTypeAliasMetadata.expandedTypeAccept(  clazz, kotlinDeclarationContainerMetadata, this);
             kotlinTypeAliasMetadata.typeParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
@@ -782,9 +782,56 @@ implements   ClassVisitor,
         @Override
         public void visitAnyTypeParameter(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
-            fixKotlinAnnotations(kotlinTypeParameterMetadata.annotations);
-
+            kotlinTypeParameterMetadata.annotationsAccept(clazz, this);
             kotlinTypeParameterMetadata.upperBoundsAccept(clazz, this);
+        }
+
+
+        // Implementations for KotlinAnnotationVisitor
+
+        @Override
+        public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation)
+        {
+            annotation.className = annotation.referencedAnnotationClass.getName();
+
+            annotation.argumentsAccept(clazz, annotatable, this);
+        }
+
+        // Implementation for KotlinAnnotationArgumentVisitor
+
+        @Override
+        public void visitAnyArgument(Clazz                    clazz,
+                                     KotlinAnnotatable        annotatable,
+                                     KotlinAnnotation         annotation,
+                                     KotlinAnnotationArgument argument,
+                                     Value                    value)
+        {
+            argument.name =
+                    argument.referencedAnnotationMethod.getName(annotation.referencedAnnotationClass);
+        }
+
+        @Override
+        public void visitClassArgument(Clazz                               clazz,
+                                       KotlinAnnotatable                   annotatable,
+                                       KotlinAnnotation                    annotation,
+                                       KotlinAnnotationArgument            argument,
+                                       KotlinAnnotationArgument.ClassValue value)
+        {
+            this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
+
+            value.className = value.referencedClass.getName();
+        }
+
+        @Override
+        public void visitEnumArgument(Clazz                    clazz,
+                                      KotlinAnnotatable        annotatable,
+                                      KotlinAnnotation         annotation,
+                                      KotlinAnnotationArgument argument,
+                                      EnumValue                value)
+        {
+            this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
+
+            value.className = value.referencedClass.getName();
         }
     }
 
@@ -972,28 +1019,6 @@ implements   ClassVisitor,
 
 
     // Small utility helper methods for KotlinReferenceFixer.
-
-    private static void fixKotlinAnnotations(List<KotlinAnnotation> annotations)
-    {
-        for (KotlinAnnotation annotation : annotations)
-        {
-            Map<String, KmAnnotationArgument<?>> newKeys = new HashMap<>();
-
-            for (Map.Entry<String, KmAnnotationArgument<?>> entry : annotation.arguments.entrySet())
-            {
-                String originalName = entry.getKey();
-                Method refMethod    = annotation.referencedArgumentMethods.get(originalName);
-                String newName      = refMethod.getName(annotation.referencedAnnotationClass);
-                newKeys.put(newName, entry.getValue());
-                // Update the new name in the referencedKeys as well.
-                annotation.referencedArgumentMethods.remove(originalName);
-                annotation.referencedArgumentMethods.put(newName, refMethod);
-            }
-
-            annotation.className = annotation.referencedAnnotationClass.getName();
-            annotation.arguments = newKeys;
-        }
-    }
 
     private static JvmMethodSignature fixPropertyMethod(Clazz                       referencedMethodClass,
                                                         Method                      referencedMethod,

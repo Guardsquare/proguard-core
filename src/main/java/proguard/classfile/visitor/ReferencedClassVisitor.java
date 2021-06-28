@@ -27,8 +27,6 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.visitor.*;
 
-import java.util.*;
-
 /**
  * This {@link ClassVisitor}, {@link MemberVisitor}, {@link ConstantVisitor}, {@link AttributeVisitor}, etc.
  * lets a given {@link ClassVisitor} visit all the referenced classes of the elements
@@ -327,12 +325,13 @@ implements   ClassVisitor,
     private class KotlinReferencedClassVisitor
     implements    KotlinMetadataVisitor,
                   KotlinTypeVisitor,
-                  KotlinAnnotationVisitor,
                   KotlinTypeAliasVisitor,
                   KotlinFunctionVisitor,
                   KotlinTypeParameterVisitor,
                   KotlinValueParameterVisitor,
-                  KotlinPropertyVisitor
+                  KotlinPropertyVisitor,
+                  KotlinAnnotationVisitor,
+                  KotlinAnnotationArgumentVisitor
     {
 
         // Implementations for KotlinTypeVisitor.
@@ -344,21 +343,8 @@ implements   ClassVisitor,
             {
                 kotlinTypeMetadata.referencedClass.accept(classVisitor);
             }
-        }
 
-
-        // Implementations for KotlinAnnotationVisitor.
-
-        @Override
-        public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation)
-        {
-            if (annotation.referencedAnnotationClass != null)
-            {
-                annotation.referencedAnnotationClass.accept(classVisitor);
-                annotation.referencedArgumentMethods.values().stream()
-                    .filter(Objects::nonNull)
-                    .forEach(method -> method.referencedClassesAccept(classVisitor));
-            }
+            kotlinTypeMetadata.annotationsAccept(clazz, this);
         }
 
 
@@ -472,6 +458,49 @@ implements   ClassVisitor,
             kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
+        }
+
+
+        // Implementations for KotlinAnnotationVisitor.
+
+        @Override
+        public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation)
+        {
+            annotation.referencedClassAccept(classVisitor);
+            annotation.argumentsAccept(clazz, annotatable, this);
+        }
+
+
+        // Implementations for KotlinAnnotationArgumentVisitor
+
+        @Override
+        public void visitAnyArgument(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation, KotlinAnnotationArgument argument, KotlinAnnotationArgument.Value value)
+        {
+            argument.referencedMethodAccept(new ReferencedClassVisitor(classVisitor));
+        }
+
+
+        @Override
+        public void visitClassArgument(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation, KotlinAnnotationArgument argument, KotlinAnnotationArgument.ClassValue value)
+        {
+            this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
+            value.referencedClassAccept(classVisitor);
+        }
+
+
+        @Override
+        public void visitEnumArgument(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation, KotlinAnnotationArgument argument, KotlinAnnotationArgument.EnumValue value)
+        {
+            this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
+            value.referencedClassAccept(classVisitor);
+        }
+
+
+        @Override
+        public void visitArrayArgument(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation, KotlinAnnotationArgument argument, KotlinAnnotationArgument.ArrayValue value)
+        {
+            this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
+            value.elementsAccept(clazz, annotatable, annotation, argument, this);
         }
     }
 }

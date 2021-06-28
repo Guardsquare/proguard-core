@@ -38,6 +38,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static kotlinx.metadata.FlagsKt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 
 /**
@@ -518,11 +526,8 @@ implements KotlinMetadataVisitor,
             kotlinTypeAliasMetadata.versionRequirementAccept(clazz,
                                                              kotlinDeclarationContainerMetadata,
                                                              new VersionRequirementConstructor(kmdAliasVisitor));
-
-            for (KotlinAnnotation antn : kotlinTypeAliasMetadata.annotations)
-            {
-                kmdAliasVisitor.visitAnnotation(new KmAnnotation(antn.className, antn.arguments));
-            }
+            kotlinTypeAliasMetadata.annotationsAccept(clazz,
+                                                      new AnnotationConstructor(kmdAliasVisitor::visitAnnotation));
 
             kmdAliasVisitor.visitEnd();
         }
@@ -1058,10 +1063,8 @@ implements KotlinMetadataVisitor,
 
             typeExtVis.visit(kotlinTypeMetadata.isRaw);
 
-            for (KotlinAnnotation kman : kotlinTypeMetadata.annotations)
-            {
-                typeExtVis.visitAnnotation(new KmAnnotation(kman.className, kman.arguments));
-            }
+            kotlinTypeMetadata.annotationsAccept(clazz,
+                                                 new AnnotationConstructor(typeExtVis::visitAnnotation));
 
             typeExtVis.visitEnd();
 
@@ -1157,10 +1160,8 @@ implements KotlinMetadataVisitor,
             JvmTypeParameterExtensionVisitor typeParamExtVis =
                 (JvmTypeParameterExtensionVisitor)typeParamVis.visitExtensions(JvmTypeParameterExtensionVisitor.TYPE);
 
-            for (KotlinAnnotation kman : kotlinTypeParameterMetadata.annotations)
-            {
-                typeParamExtVis.visitAnnotation(new KmAnnotation(kman.className, kman.arguments));
-            }
+            kotlinTypeParameterMetadata.annotationsAccept(clazz,
+                                                         new AnnotationConstructor(typeParamExtVis::visitAnnotation));
 
             typeParamExtVis.visitEnd();
 
@@ -1541,6 +1542,234 @@ implements KotlinMetadataVisitor,
             case INVARIANT: return KmVariance.INVARIANT;
             case OUT:       return KmVariance.OUT;
             default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
+        }
+    }
+
+
+    // Helper classes to convert Kotlin annotations
+
+
+    private static class AnnotationConstructor implements KotlinAnnotationVisitor
+    {
+        private final Consumer<KmAnnotation> consumer;
+
+        public AnnotationConstructor(Consumer<KmAnnotation> consumer)
+        {
+            this.consumer = consumer;
+        }
+
+
+        @Override
+        public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation)
+        {
+            Map<String, KmAnnotationArgument<?>> arguments = new HashMap<>();
+            annotation.argumentsAccept(clazz, annotatable, new AnnotationArgumentConstructor(arguments::put));
+            this.consumer.accept(new KmAnnotation(annotation.className, arguments));
+        }
+    }
+
+    private static class AnnotationArgumentConstructor implements KotlinAnnotationArgumentVisitor
+    {
+        private final BiConsumer<String, KmAnnotationArgument<?>> consumer;
+
+        public AnnotationArgumentConstructor(BiConsumer<String, KmAnnotationArgument<?>> consumer)
+        {
+            this.consumer = consumer;
+        }
+
+
+        @Override
+        public void visitAnyArgument(Clazz                    clazz,
+                                     KotlinAnnotatable        annotatable,
+                                     KotlinAnnotation         annotation,
+                                     KotlinAnnotationArgument argument,
+                                     Value                    value) { }
+
+        @Override
+        public void visitByteArgument(Clazz                    clazz,
+                                      KotlinAnnotatable        annotatable,
+                                      KotlinAnnotation         annotation,
+                                      KotlinAnnotationArgument argument,
+                                      ByteValue                value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.ByteValue(value.value));
+        }
+
+        @Override
+        public void visitCharArgument(Clazz                    clazz,
+                                      KotlinAnnotatable        annotatable,
+                                      KotlinAnnotation         annotation,
+                                      KotlinAnnotationArgument argument,
+                                      CharValue                value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.CharValue(value.value));
+        }
+
+        @Override
+        public void visitShortArgument(Clazz                    clazz,
+                                       KotlinAnnotatable        annotatable,
+                                       KotlinAnnotation         annotation,
+                                       KotlinAnnotationArgument argument,
+                                       ShortValue               value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.ShortValue(value.value));
+        }
+
+        @Override
+        public void visitIntArgument(Clazz                    clazz,
+                                     KotlinAnnotatable        annotatable,
+                                     KotlinAnnotation         annotation,
+                                     KotlinAnnotationArgument argument,
+                                     IntValue                 value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.IntValue(value.value));
+        }
+
+        @Override
+        public void visitLongArgument(Clazz                    clazz,
+                                      KotlinAnnotatable        annotatable,
+                                      KotlinAnnotation         annotation,
+                                      KotlinAnnotationArgument argument,
+                                      LongValue                value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.LongValue(value.value));
+        }
+
+        @Override
+        public void visitFloatArgument(Clazz                    clazz,
+                                       KotlinAnnotatable        annotatable,
+                                       KotlinAnnotation         annotation,
+                                       KotlinAnnotationArgument argument,
+                                       FloatValue               value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.FloatValue(value.value));
+        }
+
+        @Override
+        public void visitDoubleArgument(Clazz                    clazz,
+                                        KotlinAnnotatable        annotatable,
+                                        KotlinAnnotation         annotation,
+                                        KotlinAnnotationArgument argument,
+                                        DoubleValue              value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.DoubleValue(value.value));
+        }
+
+        @Override
+        public void visitBooleanArgument(Clazz                    clazz,
+                                         KotlinAnnotatable        annotatable,
+                                         KotlinAnnotation         annotation,
+                                         KotlinAnnotationArgument argument,
+                                         BooleanValue             value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.BooleanValue(value.value));
+        }
+
+
+        @Override
+        public void visitUByteArgument(Clazz                    clazz,
+                                       KotlinAnnotatable        annotatable,
+                                       KotlinAnnotation         annotation,
+                                       KotlinAnnotationArgument argument,
+                                       UByteValue               value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.UByteValue(value.value));
+        }
+
+        @Override
+        public void visitUShortArgument(Clazz                    clazz,
+                                        KotlinAnnotatable        annotatable,
+                                        KotlinAnnotation         annotation,
+                                        KotlinAnnotationArgument argument,
+                                        UShortValue              value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.UShortValue(value.value));
+        }
+
+        @Override
+        public void visitUIntArgument(Clazz                    clazz,
+                                      KotlinAnnotatable        annotatable,
+                                      KotlinAnnotation         annotation,
+                                      KotlinAnnotationArgument argument,
+                                      UIntValue                value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.UIntValue(value.value));
+        }
+
+        @Override
+        public void visitULongArgument(Clazz                    clazz,
+                                       KotlinAnnotatable        annotatable,
+                                       KotlinAnnotation         annotation,
+                                       KotlinAnnotationArgument argument,
+                                       ULongValue               value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.ULongValue(value.value));
+        }
+
+        @Override
+        public void visitStringArgument(Clazz                    clazz,
+                                        KotlinAnnotatable        annotatable,
+                                        KotlinAnnotation         annotation,
+                                        KotlinAnnotationArgument argument,
+                                        StringValue              value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.StringValue(value.value));
+        }
+
+        @Override
+        public void visitClassArgument(Clazz                               clazz,
+                                       KotlinAnnotatable                   annotatable,
+                                       KotlinAnnotation                    annotation,
+                                       KotlinAnnotationArgument            argument,
+                                       KotlinAnnotationArgument.ClassValue value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.KClassValue(value.className));
+        }
+
+        @Override
+        public void visitEnumArgument(Clazz                    clazz,
+                                      KotlinAnnotatable        annotatable,
+                                      KotlinAnnotation         annotation,
+                                      KotlinAnnotationArgument argument,
+                                      EnumValue                value)
+        {
+            this.consumer.accept(argument.name, new KmAnnotationArgument.EnumValue(value.className, value.enumEntryName));
+        }
+
+        @Override
+        public void visitAnnotationArgument(Clazz                    clazz,
+                                            KotlinAnnotatable        annotatable,
+                                            KotlinAnnotation         annotation,
+                                            KotlinAnnotationArgument argument,
+                                            AnnotationValue          value)
+        {
+            value.annotationAccept(
+                clazz,
+                annotatable,
+                new AnnotationConstructor(
+                    kmAnnotation -> this.consumer.accept(
+                            argument.name, new KmAnnotationArgument.AnnotationValue(kmAnnotation)
+                    )
+                )
+            );
+        }
+
+        @Override
+        public void visitArrayArgument(Clazz                    clazz,
+                                       KotlinAnnotatable        annotatable,
+                                       KotlinAnnotation         annotation,
+                                       KotlinAnnotationArgument argument,
+                                       ArrayValue               value)
+        {
+            List<KmAnnotationArgument<?>> elements = new ArrayList<>();
+            value.elementsAccept(
+                    clazz,
+                    annotatable,
+                    annotation,
+                    argument,
+                    new AnnotationArgumentConstructor((__, element) -> elements.add(element))
+            );
+            this.consumer.accept(argument.name, new KmAnnotationArgument.ArrayValue(elements));
         }
     }
 

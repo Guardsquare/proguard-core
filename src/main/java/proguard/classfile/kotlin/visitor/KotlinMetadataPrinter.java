@@ -718,8 +718,7 @@ implements KotlinMetadataVisitor,
     {
         println("[ANTN] " +
                 hasRefIndicator(annotation.referencedAnnotationClass) +
-                annotation.toString() +
-                (annotation.referencedArgumentMethods != null ? hasRefIndicator(annotation.referencedArgumentMethods.values()) : ""));
+                annotation);
     }
 
     // Implementations for KotlinContractVisitor.

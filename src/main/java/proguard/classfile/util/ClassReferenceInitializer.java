@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import static proguard.classfile.TypeConstants.INNER_CLASS_SEPARATOR;
 import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_IMPLEMENTATIONS_SUFFIX;
 import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_METHOD_SUFFIX;
+import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
 
 /**
  * This {@link ClassVisitor} initializes the references of all classes that
@@ -710,7 +711,9 @@ implements   ClassVisitor,
                   KotlinTypeVisitor,
                   KotlinTypeAliasVisitor,
                   KotlinValueParameterVisitor,
-                  KotlinTypeParameterVisitor
+                  KotlinTypeParameterVisitor,
+                  KotlinAnnotationVisitor,
+                  KotlinAnnotationArgumentVisitor
     {
         private final KotlinDefaultImplsInitializer                kotlinDefaultImplsInitializer          = new KotlinDefaultImplsInitializer();
         private final KotlinDefaultMethodInitializer               kotlinDefaultMethodInitializer         = new KotlinDefaultMethodInitializer();
@@ -1038,8 +1041,7 @@ implements   ClassVisitor,
                 );
             }
 
-            initializeAnnotations(clazz, kotlinTypeMetadata.annotations);
-
+            kotlinTypeMetadata.annotationsAccept(  clazz, this);
             kotlinTypeMetadata.typeArgumentsAccept(clazz, this);
             kotlinTypeMetadata.outerClassAccept(   clazz, this);
             kotlinTypeMetadata.upperBoundsAccept(  clazz, this);
@@ -1054,10 +1056,9 @@ implements   ClassVisitor,
                                    KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                    KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
         {
-            initializeAnnotations(clazz, kotlinTypeAliasMetadata.annotations);
-
             kotlinTypeAliasMetadata.referencedDeclarationContainer = kotlinDeclarationContainerMetadata;
 
+            kotlinTypeAliasMetadata.annotationsAccept(   clazz, this);
             kotlinTypeAliasMetadata.underlyingTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
             kotlinTypeAliasMetadata.expandedTypeAccept(  clazz, kotlinDeclarationContainerMetadata, this);
             kotlinTypeAliasMetadata.typeParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
@@ -1103,34 +1104,59 @@ implements   ClassVisitor,
         @Override
         public void visitAnyTypeParameter(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
-            initializeAnnotations(clazz, kotlinTypeParameterMetadata.annotations);
-
+            kotlinTypeParameterMetadata.annotationsAccept(clazz, this);
             kotlinTypeParameterMetadata.upperBoundsAccept(clazz, this);
         }
 
-        /**
-         * Initialize Kotlin annotations.
-         */
-        private void initializeAnnotations(Clazz clazz, List<KotlinAnnotation> annotations)
+        // Implementations for KotlinMetadataAnnotationVisitor
+
+        @Override
+        public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation)
         {
-            for (KotlinAnnotation annotation : annotations)
-            {
-                annotation.referencedAnnotationClass = findClass(clazz, annotation.className);
-                if (annotation.referencedAnnotationClass != null)
-                {
-                    Set<String> argumentNames            = annotation.arguments.keySet();
-                    Map<String, Method> referencedKeys   = new HashMap<String, Method>();
-                    for (String argumentName : argumentNames)
-                    {
-                        referencedKeys.put(argumentName, strictMemberFinder.findMethod(annotation.referencedAnnotationClass, argumentName, null));
-                    }
-                    annotation.referencedArgumentMethods = referencedKeys;
-                }
-                else
-                {
-                    annotation.referencedArgumentMethods = new HashMap<>();
-                }
-            }
+            annotation.referencedAnnotationClass = findClass(clazz, annotation.className);
+            annotation.argumentsAccept(clazz, annotatable,this);
+        }
+
+        // Implementations for KotlinMetadataAnnotationArgumentVisitor
+
+        @Override
+        public void visitAnyArgument(Clazz                    clazz,
+                                     KotlinAnnotatable        annotatable,
+                                     KotlinAnnotation         annotation,
+                                     KotlinAnnotationArgument argument,
+                                     Value                    value)
+        {
+            argument.referencedAnnotationMethodClass =
+                    annotation.referencedAnnotationClass;
+            argument.referencedAnnotationMethod =
+                    strictMemberFinder.findMethod(
+                            annotation.referencedAnnotationClass,
+                            argument.name,
+                            null);
+        }
+
+        @Override
+        public void visitClassArgument(Clazz                               clazz,
+                                       KotlinAnnotatable                   annotatable,
+                                       KotlinAnnotation                    annotation,
+                                       KotlinAnnotationArgument            argument,
+                                       KotlinAnnotationArgument.ClassValue value)
+        {
+            this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
+
+            value.referencedClass = findKotlinClass(clazz, value.className);
+        }
+
+        @Override
+        public void visitEnumArgument(Clazz                    clazz,
+                                      KotlinAnnotatable        annotatable,
+                                      KotlinAnnotation         annotation,
+                                      KotlinAnnotationArgument argument,
+                                      EnumValue                value)
+        {
+            this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
+
+            value.referencedClass = findClass(clazz, value.className);
         }
     }
 
