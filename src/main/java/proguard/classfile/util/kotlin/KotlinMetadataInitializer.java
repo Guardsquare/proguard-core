@@ -102,6 +102,7 @@ implements AnnotationVisitor,
 
                     ((KotlinClassMetadata.Class)md).accept(new ClassReader(kotlinClassKindMetadata));
 
+                    kotlinClassKindMetadata.ownerClassName = clazz.getName();
                     clazz.accept(new SimpleKotlinMetadataSetter(kotlinClassKindMetadata));
                     break;
 
@@ -114,6 +115,7 @@ implements AnnotationVisitor,
 
                     ((KotlinClassMetadata.FileFacade)md).accept(new PackageReader(kotlinFileFacadeKindMetadata));
 
+                    kotlinFileFacadeKindMetadata.ownerClassName = clazz.getName();
                     clazz.accept(new SimpleKotlinMetadataSetter(kotlinFileFacadeKindMetadata));
                     break;
 
@@ -168,6 +170,7 @@ implements AnnotationVisitor,
                     ((KotlinClassMetadata.MultiFileClassPart)md).accept(new PackageReader(
                         kotlinMultiFilePartKindMetadata));
 
+                    kotlinMultiFilePartKindMetadata.ownerClassName = clazz.getName();
                     clazz.accept(new SimpleKotlinMetadataSetter(kotlinMultiFilePartKindMetadata));
                     break;
 

@@ -17,7 +17,6 @@
  */
 package proguard.classfile.kotlin
 
-import io.kotest.assertions.shouldFail
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.slot
@@ -97,18 +96,13 @@ class KotlinMetadataWriterTest : FreeSpec({
         )
 
         "Then the ownerClassName shouldBe correct" {
-            shouldFail {
-                // TODO(T5348): this currently fails because the ownerClassName
-                //              should be set in the initializer not only in ClassReferenceInitializer
-
-                verify(exactly = 1) {
-                    metadataVisitor.visitKotlinFileFacadeMetadata(
-                        programClassPool.getClass("TestKt"),
-                        withArg {
-                            it.ownerClassName shouldBe "TestKt"
-                        }
-                    )
-                }
+            verify(exactly = 1) {
+                metadataVisitor.visitKotlinFileFacadeMetadata(
+                    programClassPool.getClass("TestKt"),
+                    withArg {
+                        it.ownerClassName shouldBe "TestKt"
+                    }
+                )
             }
         }
 

@@ -725,7 +725,6 @@ implements   ClassVisitor,
         public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
                                                             KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
         {
-            kotlinDeclarationContainerMetadata.ownerClassName       = clazz.getName();
             kotlinDeclarationContainerMetadata.ownerReferencedClass = clazz;
 
             kotlinDeclarationContainerMetadata.propertiesAccept(         clazz, this);

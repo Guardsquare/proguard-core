@@ -41,6 +41,7 @@ ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:
  - Fix adding branch instructions with labels in `CompactCodeAttributeComposer`.
  - Fix handling of array dereferencing in `MultiTypedReferenceValue`.
  - Fix `AllKotlinAnnotationVisitor` so that it visits type alias annotations defined in any kind of declaration container.
+ - Move initialization of Kotlin declaration container's `ownerClassName` field from `ClassReferenceInitializer` to `KotlinMetadataInitializer`. (`T5348`)
 
 ## Version 7.0 (Jan 2020)
 
