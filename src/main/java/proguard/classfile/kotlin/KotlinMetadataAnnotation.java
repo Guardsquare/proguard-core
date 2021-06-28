@@ -24,6 +24,7 @@ import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class KotlinMetadataAnnotation
 extends      SimpleProcessable
@@ -69,6 +70,24 @@ implements   Processable
 
 
     // Implementations for Object.
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        KotlinMetadataAnnotation that = (KotlinMetadataAnnotation) o;
+        return kmAnnotation.equals(that.kmAnnotation);
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(kmAnnotation);
+    }
+
+
     @Override
     public String toString()
     {

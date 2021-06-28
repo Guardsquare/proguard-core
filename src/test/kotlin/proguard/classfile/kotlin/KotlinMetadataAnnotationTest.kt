@@ -10,6 +10,7 @@ package proguard.classfile.kotlin
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
@@ -217,6 +218,131 @@ class KotlinMetadataAnnotationTest : FreeSpec({
             val classVisitor = spyk<ClassVisitor>()
             annotation.referencedClassAccept(classVisitor)
             verify(exactly = 0) { classVisitor.visitAnyClass(ofType<Clazz>()) }
+        }
+    }
+
+    // Basic equality tests
+
+    "Given an annotation" - {
+        val annotation1 = KotlinMetadataAnnotation(
+            KmAnnotation(
+                "A",
+                mapOf("arg1" to StringValue("foo"))
+            )
+        )
+
+        "Then the toString should printed a string representation" {
+            annotation1.toString() shouldBe "A({arg1=StringValue(value=foo)})"
+        }
+
+        "Then it should not be equal to null" {
+            annotation1.equals(null) shouldBe false
+        }
+
+        "Then it should not be equal to a different object" {
+            (annotation1.equals("String")) shouldBe false
+        }
+
+        "Then it should be equal to itself" {
+            (annotation1 == annotation1) shouldBe true
+        }
+    }
+
+    "Given 2 annotations with the same name" - {
+        val annotation1 = KotlinMetadataAnnotation(KmAnnotation("A", emptyMap()))
+        val annotation2 = KotlinMetadataAnnotation(KmAnnotation("A", emptyMap()))
+
+        "Then they should be equal" {
+            annotation1 shouldBe annotation2
+        }
+
+        "Then they should have the same hashCode" {
+            annotation1.hashCode() shouldBe annotation2.hashCode()
+        }
+    }
+
+    "Given 2 annotations with the same name and arguments" - {
+        val annotation1 = KotlinMetadataAnnotation(
+            KmAnnotation(
+                "A",
+                mapOf("arg1" to StringValue("foo"))
+            )
+        )
+
+        val annotation2 = KotlinMetadataAnnotation(
+            KmAnnotation(
+                "A",
+                mapOf("arg1" to StringValue("foo"))
+            )
+        )
+
+        "Then they should be equal" {
+            annotation1 shouldBe annotation2
+        }
+
+        "Then they should have the same hashCode" {
+            annotation1.hashCode() shouldBe annotation2.hashCode()
+        }
+    }
+
+    "Given 2 annotations with the same name and different arguments" - {
+        val annotation1 = KotlinMetadataAnnotation(
+            KmAnnotation(
+                "A",
+                mapOf("arg1" to StringValue("foo"))
+            )
+        )
+
+        val annotation2 = KotlinMetadataAnnotation(
+            KmAnnotation(
+                "A",
+                mapOf("arg1" to StringValue("bar"))
+            )
+        )
+
+        "Then they should not be equal" {
+            annotation1 shouldNotBe annotation2
+        }
+
+        "Then they should not have the same hashCode" {
+            annotation1.hashCode() shouldNotBe annotation2.hashCode()
+        }
+    }
+
+    "Given 2 annotations with different names" - {
+        val annotation1 = KotlinMetadataAnnotation(KmAnnotation("A", emptyMap()))
+        val annotation2 = KotlinMetadataAnnotation(KmAnnotation("B", emptyMap()))
+
+        "Then they should not be equal" {
+            annotation1 shouldNotBe annotation2
+        }
+
+        "Then they should not have the same hashCode" {
+            annotation1.hashCode() shouldNotBe annotation2.hashCode()
+        }
+    }
+
+    "Given 2 annotations with different name and arguments" - {
+        val annotation1 = KotlinMetadataAnnotation(
+            KmAnnotation(
+                "A",
+                mapOf("arg1" to StringValue("foo"))
+            )
+        )
+
+        val annotation2 = KotlinMetadataAnnotation(
+            KmAnnotation(
+                "B",
+                mapOf("arg1" to StringValue("bar"))
+            )
+        )
+
+        "Then they should not be equal" {
+            annotation1 shouldNotBe annotation2
+        }
+
+        "Then they should not have the same hashCode" {
+            annotation1.hashCode() shouldNotBe annotation2.hashCode()
         }
     }
 })
