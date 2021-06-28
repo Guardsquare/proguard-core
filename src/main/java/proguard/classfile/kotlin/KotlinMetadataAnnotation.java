@@ -20,6 +20,7 @@ package proguard.classfile.kotlin;
 import kotlinx.metadata.*;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
+import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.*;
 
 import java.util.Map;
@@ -56,6 +57,16 @@ implements   Processable
     {
         kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, kotlinTypeParameterMetadata, this);
     }
+
+
+    public void referencedClassAccept(ClassVisitor classVisitor)
+    {
+        if (this.referencedAnnotationClass != null)
+        {
+            this.referencedAnnotationClass.accept(classVisitor);
+        }
+    }
+
 
     // Implementations for Object.
     @Override

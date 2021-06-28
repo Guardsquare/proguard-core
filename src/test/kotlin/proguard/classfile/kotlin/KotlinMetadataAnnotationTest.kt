@@ -31,6 +31,8 @@ import kotlinx.metadata.KmAnnotationArgument.UByteValue
 import kotlinx.metadata.KmAnnotationArgument.UIntValue
 import kotlinx.metadata.KmAnnotationArgument.ULongValue
 import kotlinx.metadata.KmAnnotationArgument.UShortValue
+import proguard.classfile.Clazz
+import proguard.classfile.ProgramClass
 import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.AllTypeAliasVisitor
@@ -38,6 +40,7 @@ import proguard.classfile.kotlin.visitor.AllTypeParameterVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
+import proguard.classfile.visitor.ClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 import java.util.function.Predicate
@@ -133,6 +136,12 @@ class KotlinMetadataAnnotationTest : FreeSpec({
             annotation.captured.kmAnnotation.className shouldBe "MyTypeAliasAnnotation"
         }
 
+        "Then the referenced class should be visited" {
+            val classVisitor = spyk<ClassVisitor>()
+            annotation.captured.referencedClassAccept(classVisitor)
+            verify(exactly = 1) { classVisitor.visitProgramClass(programClassPool.getClass("MyTypeAliasAnnotation") as ProgramClass) }
+        }
+
         "Then the field values should be correct" {
             annotation.captured.kmAnnotation.arguments shouldContainExactly mapOf(
                 "string" to StringValue("foo"),
@@ -198,6 +207,16 @@ class KotlinMetadataAnnotationTest : FreeSpec({
 
         "Then the annotation class name should be correct" {
             annotation.captured.kmAnnotation.className shouldBe "MyTypeParamAnnotation"
+        }
+    }
+
+    "Given an annotation without the referenced class initialized" - {
+        val annotation = KotlinMetadataAnnotation(KmAnnotation("A", emptyMap()))
+
+        "Then the referenced class should not be visited" {
+            val classVisitor = spyk<ClassVisitor>()
+            annotation.referencedClassAccept(classVisitor)
+            verify(exactly = 0) { classVisitor.visitAnyClass(ofType<Clazz>()) }
         }
     }
 })
