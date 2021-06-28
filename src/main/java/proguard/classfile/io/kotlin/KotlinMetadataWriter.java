@@ -34,7 +34,6 @@ import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -852,7 +851,7 @@ implements KotlinMetadataVisitor,
                                       KotlinTypeMetadata kotlinTypeMetadata,
                                       KotlinTypeMetadata typeArgument)
         {
-            typeVis = nestedTypeVis.visitArgument(convertTypeFlags(typeArgument.flags), typeArgument.variance);
+            typeVis = nestedTypeVis.visitArgument(convertTypeFlags(typeArgument.flags), toKmVariance(typeArgument.variance));
 
             visitAnyType(clazz, typeArgument);
         }
@@ -1099,7 +1098,7 @@ implements KotlinMetadataVisitor,
             typeParamVis = classVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                        kotlinTypeParameterMetadata.name,
                                                        kotlinTypeParameterMetadata.id,
-                                                       kotlinTypeParameterMetadata.variance);
+                                                       toKmVariance(kotlinTypeParameterMetadata.variance));
 
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
         }
@@ -1113,7 +1112,7 @@ implements KotlinMetadataVisitor,
             typeParamVis = propertyVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                           kotlinTypeParameterMetadata.name,
                                                           kotlinTypeParameterMetadata.id,
-                                                          kotlinTypeParameterMetadata.variance);
+                                                          toKmVariance(kotlinTypeParameterMetadata.variance));
 
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
         }
@@ -1127,7 +1126,7 @@ implements KotlinMetadataVisitor,
             typeParamVis = functionVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                           kotlinTypeParameterMetadata.name,
                                                           kotlinTypeParameterMetadata.id,
-                                                          kotlinTypeParameterMetadata.variance);
+                                                          toKmVariance(kotlinTypeParameterMetadata.variance));
 
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
         }
@@ -1141,7 +1140,7 @@ implements KotlinMetadataVisitor,
             typeParamVis = aliasVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                        kotlinTypeParameterMetadata.name,
                                                        kotlinTypeParameterMetadata.id,
-                                                       kotlinTypeParameterMetadata.variance);
+                                                       toKmVariance(kotlinTypeParameterMetadata.variance));
 
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
         }
@@ -1531,6 +1530,18 @@ implements KotlinMetadataVisitor,
         }
 
         return new kotlinx.metadata.jvm.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+    }
+
+
+    private static KmVariance toKmVariance(KotlinTypeVariance variance)
+    {
+        switch(variance)
+        {
+            case IN:        return KmVariance.IN;
+            case INVARIANT: return KmVariance.INVARIANT;
+            case OUT:       return KmVariance.OUT;
+            default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
+        }
     }
 
 

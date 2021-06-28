@@ -17,7 +17,6 @@
  */
 package proguard.classfile.kotlin;
 
-import kotlinx.metadata.*;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.KotlinTypeParameterFlags;
 import proguard.classfile.kotlin.visitor.*;
@@ -34,7 +33,7 @@ implements   Processable,
 
     public int id;
 
-    public KmVariance variance;
+    public KotlinTypeVariance variance;
 
     public List<KotlinTypeMetadata> upperBounds;
 
@@ -44,7 +43,7 @@ implements   Processable,
     public List<KotlinAnnotation> annotations;
 
 
-    public KotlinTypeParameterMetadata(KotlinTypeParameterFlags flags, String name, int id, KmVariance variance)
+    public KotlinTypeParameterMetadata(KotlinTypeParameterFlags flags, String name, int id, KotlinTypeVariance variance)
     {
         this.name     = name;
         this.id       = id;

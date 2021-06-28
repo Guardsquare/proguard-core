@@ -17,7 +17,6 @@
  */
 package proguard.classfile.kotlin;
 
-import kotlinx.metadata.*;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.flags.KotlinCommonFlags;
 import proguard.classfile.kotlin.flags.KotlinTypeFlags;
@@ -31,7 +30,7 @@ extends      SimpleProcessable
 implements   Processable,
              KotlinAnnotatable
 {
-    public KmVariance variance;
+    public KotlinTypeVariance variance;
 
     public List<KotlinTypeMetadata> typeArguments;
 
@@ -75,7 +74,7 @@ implements   Processable,
     }
 
 
-    public KotlinTypeMetadata(KotlinTypeFlags flags, KmVariance variance)
+    public KotlinTypeMetadata(KotlinTypeFlags flags, KotlinTypeVariance variance)
     {
         this.variance = variance;
         this.flags    = flags;

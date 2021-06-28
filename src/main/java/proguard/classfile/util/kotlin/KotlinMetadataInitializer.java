@@ -462,7 +462,7 @@ implements AnnotationVisitor,
         public KmTypeParameterVisitor visitTypeParameter(int flags, String parameterName, int id, KmVariance variance)
         {
             KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), parameterName, id, variance);
+                new KotlinTypeParameterMetadata(flags, parameterName, id, fromKmVariance(variance));
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -772,7 +772,7 @@ implements AnnotationVisitor,
         public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
         {
             KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, variance);
+                new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, fromKmVariance(variance));
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -867,7 +867,7 @@ implements AnnotationVisitor,
         public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
         {
             KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, variance);
+                new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, fromKmVariance(variance));
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -1054,7 +1054,7 @@ implements AnnotationVisitor,
         public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
         {
             KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, variance);
+                new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, fromKmVariance(variance));
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -1436,7 +1436,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitArgument(int flags, KmVariance variance)
         {
-            KotlinTypeMetadata typeArgument = new KotlinTypeMetadata(convertTypeFlags(flags), variance);
+            KotlinTypeMetadata typeArgument = new KotlinTypeMetadata(convertTypeFlags(flags), fromKmVariance(variance));
             typeArguments.add(typeArgument);
 
             return new TypeReader(typeArgument);
@@ -1635,6 +1635,17 @@ implements AnnotationVisitor,
         }
 
         return new proguard.classfile.kotlin.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+    }
+
+    private static KotlinTypeVariance fromKmVariance(KmVariance variance)
+    {
+        switch(variance)
+        {
+            case IN:        return KotlinTypeVariance.IN;
+            case INVARIANT: return KotlinTypeVariance.INVARIANT;
+            case OUT:       return KotlinTypeVariance.OUT;
+            default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
+        }
     }
 
 

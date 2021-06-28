@@ -17,7 +17,6 @@
  */
 package proguard.classfile.kotlin.visitor;
 
-import kotlinx.metadata.KmVariance;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.flags.*;
@@ -232,7 +231,7 @@ implements KotlinMetadataVisitor,
     {
         print("[TPRM] " + kotlinTypeParameterMetadata.id + ": ");
 
-        if (!KmVariance.INVARIANT.equals(kotlinTypeParameterMetadata.variance))
+        if (!KotlinTypeVariance.INVARIANT.equals(kotlinTypeParameterMetadata.variance))
         {
             pw.print(kotlinTypeParameterMetadata.variance + " ");
         }
@@ -862,7 +861,7 @@ implements KotlinMetadataVisitor,
         }
 
         if ( kotlinTypeMetadata.variance != null &&
-            !kotlinTypeMetadata.variance.equals(KmVariance.INVARIANT))
+            !kotlinTypeMetadata.variance.equals(KotlinTypeVariance.INVARIANT))
         {
             pw.print(kotlinTypeMetadata.variance + " ");
         }

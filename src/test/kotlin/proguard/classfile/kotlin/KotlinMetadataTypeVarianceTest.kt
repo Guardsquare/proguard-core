@@ -1,19 +1,8 @@
 /*
- * ProGuardCORE -- library to process Java bytecode.
+ * ProGuard -- shrinking, optimization, obfuscation, and preverification
+ *             of Java bytecode.
  *
  * Copyright (c) 2002-2021 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package proguard.classfile.kotlin
@@ -22,9 +11,6 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.metadata.KmVariance.IN
-import kotlinx.metadata.KmVariance.INVARIANT
-import kotlinx.metadata.KmVariance.OUT
 import proguard.classfile.kotlin.visitor.AllTypeParameterVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
@@ -32,7 +18,7 @@ import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 
 class KotlinMetadataTypeVarianceTest : FreeSpec({
-    val (programClassPool, _) = ClassPoolBuilder.fromSource(
+    val programClassPool = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
             """           
@@ -56,7 +42,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
                     programClassPool.getClass("FooInvariant"),
                     withArg {
                         it.name shouldBe "T"
-                        it.variance shouldBe INVARIANT
+                        it.variance shouldBe KotlinTypeVariance.INVARIANT
                     }
                 )
             }
@@ -76,7 +62,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
                     programClassPool.getClass("FooIn"),
                     withArg {
                         it.name shouldBe "T"
-                        it.variance shouldBe IN
+                        it.variance shouldBe KotlinTypeVariance.IN
                     }
                 )
             }
@@ -96,7 +82,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
                     programClassPool.getClass("FooOut"),
                     withArg {
                         it.name shouldBe "T"
-                        it.variance shouldBe OUT
+                        it.variance shouldBe KotlinTypeVariance.OUT
                     }
                 )
             }
