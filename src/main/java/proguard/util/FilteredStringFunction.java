@@ -31,14 +31,20 @@ implements StringFunction
     private final StringFunction rejectedFunction;
 
 
+    public FilteredStringFunction(StringMatcher  nameFilter,
+                                  StringFunction acceptedFunction,
+                                  StringFunction rejectedFunction)
+    {
+        this.nameFilter       = nameFilter;
+        this.acceptedFunction = acceptedFunction;
+        this.rejectedFunction = rejectedFunction;
+    }
+
     public FilteredStringFunction(String         nameFilter,
                                   StringFunction acceptedFunction,
                                   StringFunction rejectedFunction)
     {
-        this.nameFilter   = new ListParser(new NameParser()).parse(nameFilter);
-
-        this.acceptedFunction = acceptedFunction;
-        this.rejectedFunction = rejectedFunction;
+        this(new ListParser(new NameParser()).parse(nameFilter), acceptedFunction, rejectedFunction);
     }
 
 
