@@ -92,7 +92,7 @@ class ClassReferenceInitializerTest : FreeSpec({
         }
 
         "the annotation referenced class should be correct" {
-            annotation.captured.kmAnnotation.className shouldBe "MyTypeAnnotation"
+            annotation.captured.className shouldBe "MyTypeAnnotation"
             annotation.captured.referencedAnnotationClass shouldBe programClassPool.getClass("MyTypeAnnotation")
         }
 

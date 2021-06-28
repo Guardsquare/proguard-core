@@ -979,7 +979,7 @@ implements   ClassVisitor,
         {
             Map<String, KmAnnotationArgument<?>> newKeys = new HashMap<>();
 
-            for (Map.Entry<String, KmAnnotationArgument<?>> entry : annotation.kmAnnotation.getArguments().entrySet())
+            for (Map.Entry<String, KmAnnotationArgument<?>> entry : annotation.arguments.entrySet())
             {
                 String originalName = entry.getKey();
                 Method refMethod    = annotation.referencedArgumentMethods.get(originalName);
@@ -990,7 +990,8 @@ implements   ClassVisitor,
                 annotation.referencedArgumentMethods.put(newName, refMethod);
             }
 
-            annotation.kmAnnotation = new KmAnnotation(annotation.referencedAnnotationClass.getName(), newKeys);
+            annotation.className = annotation.referencedAnnotationClass.getName();
+            annotation.arguments = newKeys;
         }
     }
 

@@ -855,7 +855,7 @@ implements AnnotationVisitor,
         @Override
         public void visitAnnotation(KmAnnotation annotation)
         {
-            annotations.add(new KotlinAnnotation(annotation));
+            annotations.add(new KotlinAnnotation(annotation.getClassName(), annotation.getArguments()));
         }
 
         /**
@@ -1503,7 +1503,7 @@ implements AnnotationVisitor,
             public void visitAnnotation(KmAnnotation annotation)
             {
                 // e.g. @ParameterName("prefix") [map, throw away if shrunk], @UnsafeVariance [throw away?]
-                annotations.add(new KotlinAnnotation(annotation));
+                annotations.add(new KotlinAnnotation(annotation.getClassName(), annotation.getArguments()));
             }
 
             @Override
@@ -1553,7 +1553,7 @@ implements AnnotationVisitor,
             @Override
             public void visitAnnotation(KmAnnotation annotation)
             {
-                annotations.add(new KotlinAnnotation(annotation));
+                annotations.add(new KotlinAnnotation(annotation.getClassName(), annotation.getArguments()));
             }
 
             @Override

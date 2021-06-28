@@ -65,7 +65,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(
                     AllKotlinAnnotationVisitor(
                         KotlinAnnotationFilter(
-                            Predicate { it.kmAnnotation.className == "MyTypeAliasAnnotation" },
+                            Predicate { it.className == "MyTypeAliasAnnotation" },
                             annotationVisitor
                         )
                     )
@@ -77,7 +77,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     programClassPool.getClass("TestKt"),
                     ofType<KotlinTypeAliasMetadata>(),
                     withArg {
-                        it.kmAnnotation.className shouldBe "MyTypeAliasAnnotation"
+                        it.className shouldBe "MyTypeAliasAnnotation"
                     }
                 )
             }
@@ -90,7 +90,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(
                     AllKotlinAnnotationVisitor(
                         KotlinAnnotationFilter(
-                            Predicate { it.kmAnnotation.className == "MyTypeAnnotation" },
+                            Predicate { it.className == "MyTypeAnnotation" },
                             annotationVisitor
                         )
                     )
@@ -102,7 +102,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     programClassPool.getClass("TestKt"),
                     ofType<KotlinTypeMetadata>(),
                     withArg {
-                        it.kmAnnotation.className shouldBe "MyTypeAnnotation"
+                        it.className shouldBe "MyTypeAnnotation"
                     }
                 )
             }
@@ -115,7 +115,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(
                     AllKotlinAnnotationVisitor(
                         KotlinAnnotationFilter(
-                            Predicate { it.kmAnnotation.className == "MyTypeParamAnnotation" },
+                            Predicate { it.className == "MyTypeParamAnnotation" },
                             annotationVisitor
                         )
                     )
@@ -127,7 +127,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     programClassPool.getClass("TestKt"),
                     ofType<KotlinTypeParameterMetadata>(),
                     withArg {
-                        it.kmAnnotation.className shouldBe "MyTypeParamAnnotation"
+                        it.className shouldBe "MyTypeParamAnnotation"
                     }
                 )
             }

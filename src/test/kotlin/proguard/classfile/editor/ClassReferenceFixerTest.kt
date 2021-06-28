@@ -162,7 +162,7 @@ class ClassReferenceFixerTest : FreeSpec({
         }
 
         "the annotation class name should be correctly renamed" {
-            annotation.captured.kmAnnotation.className shouldBe "MyRenamedTypeAnnotation"
+            annotation.captured.className shouldBe "MyRenamedTypeAnnotation"
             annotation.captured.referencedAnnotationClass shouldBe programClassPool.getClass("MyTypeAnnotation")
         }
 

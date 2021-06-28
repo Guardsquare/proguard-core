@@ -521,7 +521,7 @@ implements KotlinMetadataVisitor,
 
             for (KotlinAnnotation antn : kotlinTypeAliasMetadata.annotations)
             {
-                kmdAliasVisitor.visitAnnotation(antn.kmAnnotation);
+                kmdAliasVisitor.visitAnnotation(new KmAnnotation(antn.className, antn.arguments));
             }
 
             kmdAliasVisitor.visitEnd();
@@ -1060,7 +1060,7 @@ implements KotlinMetadataVisitor,
 
             for (KotlinAnnotation kman : kotlinTypeMetadata.annotations)
             {
-                typeExtVis.visitAnnotation(kman.kmAnnotation);
+                typeExtVis.visitAnnotation(new KmAnnotation(kman.className, kman.arguments));
             }
 
             typeExtVis.visitEnd();
@@ -1159,7 +1159,7 @@ implements KotlinMetadataVisitor,
 
             for (KotlinAnnotation kman : kotlinTypeParameterMetadata.annotations)
             {
-                typeParamExtVis.visitAnnotation(kman.kmAnnotation);
+                typeParamExtVis.visitAnnotation(new KmAnnotation(kman.className, kman.arguments));
             }
 
             typeParamExtVis.visitEnd();

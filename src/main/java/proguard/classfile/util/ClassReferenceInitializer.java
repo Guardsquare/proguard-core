@@ -1115,10 +1115,10 @@ implements   ClassVisitor,
         {
             for (KotlinAnnotation annotation : annotations)
             {
-                annotation.referencedAnnotationClass = findClass(clazz, annotation.kmAnnotation.getClassName());
+                annotation.referencedAnnotationClass = findClass(clazz, annotation.className);
                 if (annotation.referencedAnnotationClass != null)
                 {
-                    Set<String> argumentNames            = annotation.kmAnnotation.getArguments().keySet();
+                    Set<String> argumentNames            = annotation.arguments.keySet();
                     Map<String, Method> referencedKeys   = new HashMap<String, Method>();
                     for (String argumentName : argumentNames)
                     {

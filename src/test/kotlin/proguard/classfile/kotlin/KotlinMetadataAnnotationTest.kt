@@ -134,7 +134,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         }
 
         "Then the annotation class name should be correct" {
-            annotation.captured.kmAnnotation.className shouldBe "MyTypeAliasAnnotation"
+            annotation.captured.className shouldBe "MyTypeAliasAnnotation"
         }
 
         "Then the referenced class should be visited" {
@@ -144,7 +144,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         }
 
         "Then the field values should be correct" {
-            annotation.captured.kmAnnotation.arguments shouldContainExactly mapOf(
+            annotation.captured.arguments shouldContainExactly mapOf(
                 "string" to StringValue("foo"),
                 "byte" to ByteValue(1),
                 "char" to CharValue('a'),
@@ -179,7 +179,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         }
 
         "Then the annotation class name should be correct" {
-            annotation.captured.kmAnnotation.className shouldBe "MyTypeAnnotation"
+            annotation.captured.className shouldBe "MyTypeAnnotation"
         }
     }
 
@@ -207,12 +207,13 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         }
 
         "Then the annotation class name should be correct" {
-            annotation.captured.kmAnnotation.className shouldBe "MyTypeParamAnnotation"
+            annotation.captured.className shouldBe "MyTypeParamAnnotation"
         }
     }
 
     "Given an annotation without the referenced class initialized" - {
-        val annotation = KotlinAnnotation(KmAnnotation("A", emptyMap()))
+        val kmAnnotation = KmAnnotation("A", emptyMap())
+        val annotation = KotlinAnnotation(kmAnnotation.className, kmAnnotation.arguments)
 
         "Then the referenced class should not be visited" {
             val classVisitor = spyk<ClassVisitor>()

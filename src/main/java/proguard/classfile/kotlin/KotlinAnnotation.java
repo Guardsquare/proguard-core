@@ -30,15 +30,17 @@ public class KotlinAnnotation
 extends      SimpleProcessable
 implements   Processable
 {
-    public KmAnnotation kmAnnotation;
-    public Clazz        referencedAnnotationClass;
+    public String className;
+    public Clazz  referencedAnnotationClass;
 
+    public Map<String, KmAnnotationArgument<?>> arguments;
     // Keys correspond to methods in Java class files.
     public Map<String, Method> referencedArgumentMethods;
 
-    public KotlinAnnotation(KmAnnotation kmAnnotation)
+    public KotlinAnnotation(String className, Map<String, KmAnnotationArgument<?>> arguments)
     {
-        this.kmAnnotation = kmAnnotation;
+        this.className = className;
+        this.arguments = arguments;
     }
 
 
@@ -96,6 +98,6 @@ implements   Processable
     @Override
     public String toString()
     {
-        return kmAnnotation.getClassName() + "(" + kmAnnotation.getArguments() + ")";
+        return this.className + "(" + this.arguments + ")";
     }
 }
