@@ -207,7 +207,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                 AllKotlinAnnotationVisitor(annotationVisitor)
             )
         )
-        val annotation = slot<KotlinMetadataAnnotation>()
+        val annotation = slot<KotlinAnnotation>()
 
         "Then there should be 1 annotation visited" {
             verify(exactly = 1) {
