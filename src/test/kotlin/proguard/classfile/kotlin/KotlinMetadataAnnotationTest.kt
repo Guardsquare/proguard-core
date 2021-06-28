@@ -125,15 +125,16 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         )
         val annotation = slot<KotlinMetadataAnnotation>()
 
-        "there should be 1 annotation visited" {
+        "Then there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeAliasAnnotation(fileFacadeClass, ofType(KotlinTypeAliasMetadata::class), capture(annotation)) }
         }
 
-        "the annotation class name should be correct" {
+        "Then the annotation class name should be correct" {
             annotation.captured.kmAnnotation.className shouldBe "MyTypeAliasAnnotation"
         }
 
         "the field values should be correct" {
+        "Then the field values should be correct" {
             annotation.captured.kmAnnotation.arguments shouldContainExactly mapOf(
                 "string" to StringValue("foo"),
                 "byte" to ByteValue(1),
@@ -164,11 +165,11 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         programClassPool.classesAccept(ReferencedKotlinMetadataVisitor(allAnnotationVisitor))
         val annotation = slot<KotlinMetadataAnnotation>()
 
-        "there should be 1 annotation visited" {
+        "Then there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeAnnotation(fileFacadeClass, ofType(KotlinTypeMetadata::class), capture(annotation)) }
         }
 
-        "the annotation class name should be correct" {
+        "Then the annotation class name should be correct" {
             annotation.captured.kmAnnotation.className shouldBe "MyTypeAnnotation"
         }
     }
@@ -192,11 +193,11 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         )
         val annotation = slot<KotlinMetadataAnnotation>()
 
-        "there should be 1 annotation visited" {
+        "Then there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeParameterAnnotation(fileFacadeClass, ofType(KotlinTypeParameterMetadata::class), capture(annotation)) }
         }
 
-        "the annotation class name should be correct" {
+        "Then the annotation class name should be correct" {
             annotation.captured.kmAnnotation.className shouldBe "MyTypeParamAnnotation"
         }
     }
