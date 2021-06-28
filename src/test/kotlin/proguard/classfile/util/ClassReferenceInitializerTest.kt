@@ -12,7 +12,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
-import proguard.classfile.kotlin.KotlinMetadataAnnotation
+import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinTypeMetadata
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
@@ -85,7 +85,7 @@ class ClassReferenceInitializerTest : FreeSpec({
         val fileFacadeClass = programClassPool.getClass("TestKt")
 
         programClassPool.classesAccept(ReferencedKotlinMetadataVisitor(AllKotlinAnnotationVisitor(annotationVisitor)))
-        val annotation = slot<KotlinMetadataAnnotation>()
+        val annotation = slot<KotlinAnnotation>()
 
         "there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeAnnotation(fileFacadeClass, ofType(KotlinTypeMetadata::class), capture(annotation)) }

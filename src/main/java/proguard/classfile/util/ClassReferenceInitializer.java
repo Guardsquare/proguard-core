@@ -1111,9 +1111,9 @@ implements   ClassVisitor,
         /**
          * Initialize Kotlin annotations.
          */
-        private void initializeAnnotations(Clazz clazz, List<KotlinMetadataAnnotation> annotations)
+        private void initializeAnnotations(Clazz clazz, List<KotlinAnnotation> annotations)
         {
-            for (KotlinMetadataAnnotation annotation : annotations)
+            for (KotlinAnnotation annotation : annotations)
             {
                 annotation.referencedAnnotationClass = findClass(clazz, annotation.kmAnnotation.getClassName());
                 if (annotation.referencedAnnotationClass != null)

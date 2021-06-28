@@ -26,7 +26,7 @@ import io.mockk.verify
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.ClassConstants.NAME_JAVA_LANG_OBJECT
 import proguard.classfile.editor.ClassReferenceFixer.shortKotlinNestedClassName
-import proguard.classfile.kotlin.KotlinMetadataAnnotation
+import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinTypeMetadata
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
@@ -155,7 +155,7 @@ class ClassReferenceFixerTest : FreeSpec({
         val fileFacadeClass = programClassPool.getClass("TestKt")
 
         programClassPool.classesAccept(ReferencedKotlinMetadataVisitor(AllKotlinAnnotationVisitor(annotationVisitor)))
-        val annotation = slot<KotlinMetadataAnnotation>()
+        val annotation = slot<KotlinAnnotation>()
 
         "there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeAnnotation(fileFacadeClass, ofType(KotlinTypeMetadata::class), capture(annotation)) }

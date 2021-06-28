@@ -350,7 +350,7 @@ implements   ClassVisitor,
         // Implementations for KotlinAnnotationVisitor.
 
         @Override
-        public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinMetadataAnnotation annotation)
+        public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation)
         {
             if (annotation.referencedAnnotationClass != null)
             {

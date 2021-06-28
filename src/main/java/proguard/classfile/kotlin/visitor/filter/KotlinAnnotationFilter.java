@@ -32,20 +32,20 @@ import java.util.function.Predicate;
 public class KotlinAnnotationFilter
 implements   KotlinAnnotationVisitor
 {
-    private final Predicate<KotlinMetadataAnnotation> predicate;
-    private final KotlinAnnotationVisitor             acceptedKotlinAnnotationVisitor;
-    private final KotlinAnnotationVisitor             rejectedKotlinAnnotationVisitor;
+    private final Predicate<KotlinAnnotation> predicate;
+    private final KotlinAnnotationVisitor     acceptedKotlinAnnotationVisitor;
+    private final KotlinAnnotationVisitor     rejectedKotlinAnnotationVisitor;
 
 
-    public KotlinAnnotationFilter(Predicate<KotlinMetadataAnnotation> predicate,
-                                  KotlinAnnotationVisitor             acceptedKotlinAnnotationVisitor)
+    public KotlinAnnotationFilter(Predicate<KotlinAnnotation> predicate,
+                                  KotlinAnnotationVisitor     acceptedKotlinAnnotationVisitor)
     {
         this(predicate, acceptedKotlinAnnotationVisitor, null);
     }
 
-    public KotlinAnnotationFilter(Predicate<KotlinMetadataAnnotation> predicate,
-                                  KotlinAnnotationVisitor             acceptedKotlinAnnotationVisitor,
-                                  KotlinAnnotationVisitor             rejectedKotlinAnnotationVisitor)
+    public KotlinAnnotationFilter(Predicate<KotlinAnnotation> predicate,
+                                  KotlinAnnotationVisitor     acceptedKotlinAnnotationVisitor,
+                                  KotlinAnnotationVisitor     rejectedKotlinAnnotationVisitor)
     {
         this.predicate                       = predicate;
         this.acceptedKotlinAnnotationVisitor = acceptedKotlinAnnotationVisitor;
@@ -53,13 +53,13 @@ implements   KotlinAnnotationVisitor
     }
 
     @Override
-    public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinMetadataAnnotation annotation) { }
+    public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation) { }
 
 
     @Override
-    public void visitTypeAnnotation(Clazz                    clazz,
-                                    KotlinTypeMetadata       kotlinTypeMetadata,
-                                    KotlinMetadataAnnotation annotation)
+    public void visitTypeAnnotation(Clazz              clazz,
+                                    KotlinTypeMetadata kotlinTypeMetadata,
+                                    KotlinAnnotation   annotation)
     {
         KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
         if (delegate != null)
@@ -72,7 +72,7 @@ implements   KotlinAnnotationVisitor
     @Override
     public void visitTypeParameterAnnotation(Clazz                       clazz,
                                              KotlinTypeParameterMetadata kotlinTypeParameterMetadata,
-                                             KotlinMetadataAnnotation    annotation)
+                                             KotlinAnnotation            annotation)
     {
         KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
         if (delegate != null)
@@ -85,7 +85,7 @@ implements   KotlinAnnotationVisitor
     @Override
     public void visitTypeAliasAnnotation(Clazz                    clazz,
                                          KotlinTypeAliasMetadata  kotlinTypeAliasMetadata,
-                                         KotlinMetadataAnnotation annotation)
+                                         KotlinAnnotation         annotation)
     {
         KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
         if (delegate != null)
@@ -95,7 +95,7 @@ implements   KotlinAnnotationVisitor
     }
 
 
-    private KotlinAnnotationVisitor getDelegate(KotlinMetadataAnnotation kotlinMetadataAnnotation)
+    private KotlinAnnotationVisitor getDelegate(KotlinAnnotation kotlinMetadataAnnotation)
     {
         return this.predicate.test(kotlinMetadataAnnotation)
                 ? this.acceptedKotlinAnnotationVisitor

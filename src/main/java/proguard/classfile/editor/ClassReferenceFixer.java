@@ -35,8 +35,6 @@ import proguard.classfile.visitor.*;
 
 import java.util.*;
 
-import static proguard.classfile.TypeConstants.INNER_CLASS_SEPARATOR;
-import static proguard.classfile.TypeConstants.PACKAGE_SEPARATOR;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
 
 /**
@@ -975,9 +973,9 @@ implements   ClassVisitor,
 
     // Small utility helper methods for KotlinReferenceFixer.
 
-    private static void fixKotlinAnnotations(List<KotlinMetadataAnnotation> annotations)
+    private static void fixKotlinAnnotations(List<KotlinAnnotation> annotations)
     {
-        for (KotlinMetadataAnnotation annotation : annotations)
+        for (KotlinAnnotation annotation : annotations)
         {
             Map<String, KmAnnotationArgument<?>> newKeys = new HashMap<>();
 

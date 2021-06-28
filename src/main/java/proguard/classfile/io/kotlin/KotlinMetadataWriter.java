@@ -520,7 +520,7 @@ implements KotlinMetadataVisitor,
                                                              kotlinDeclarationContainerMetadata,
                                                              new VersionRequirementConstructor(kmdAliasVisitor));
 
-            for (KotlinMetadataAnnotation antn : kotlinTypeAliasMetadata.annotations)
+            for (KotlinAnnotation antn : kotlinTypeAliasMetadata.annotations)
             {
                 kmdAliasVisitor.visitAnnotation(antn.kmAnnotation);
             }
@@ -1059,7 +1059,7 @@ implements KotlinMetadataVisitor,
 
             typeExtVis.visit(kotlinTypeMetadata.isRaw);
 
-            for (KotlinMetadataAnnotation kman : kotlinTypeMetadata.annotations)
+            for (KotlinAnnotation kman : kotlinTypeMetadata.annotations)
             {
                 typeExtVis.visitAnnotation(kman.kmAnnotation);
             }
@@ -1158,7 +1158,7 @@ implements KotlinMetadataVisitor,
             JvmTypeParameterExtensionVisitor typeParamExtVis =
                 (JvmTypeParameterExtensionVisitor)typeParamVis.visitExtensions(JvmTypeParameterExtensionVisitor.TYPE);
 
-            for (KotlinMetadataAnnotation kman : kotlinTypeParameterMetadata.annotations)
+            for (KotlinAnnotation kman : kotlinTypeParameterMetadata.annotations)
             {
                 typeParamExtVis.visitAnnotation(kman.kmAnnotation);
             }

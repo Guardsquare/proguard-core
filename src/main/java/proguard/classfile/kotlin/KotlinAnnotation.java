@@ -26,7 +26,7 @@ import proguard.util.*;
 import java.util.Map;
 import java.util.Objects;
 
-public class KotlinMetadataAnnotation
+public class KotlinAnnotation
 extends      SimpleProcessable
 implements   Processable
 {
@@ -36,7 +36,7 @@ implements   Processable
     // Keys correspond to methods in Java class files.
     public Map<String, Method> referencedArgumentMethods;
 
-    public KotlinMetadataAnnotation(KmAnnotation kmAnnotation)
+    public KotlinAnnotation(KmAnnotation kmAnnotation)
     {
         this.kmAnnotation = kmAnnotation;
     }

@@ -841,7 +841,7 @@ implements AnnotationVisitor,
     {
         private final KotlinTypeAliasMetadata kotlinTypeAliasMetadata;
 
-        private final ArrayList<KotlinMetadataAnnotation>    annotations;
+        private final ArrayList<KotlinAnnotation>            annotations;
         private final ArrayList<KotlinTypeParameterMetadata> typeParameters;
 
         TypeAliasReader(KotlinTypeAliasMetadata kotlinTypeAliasMetadata)
@@ -855,7 +855,7 @@ implements AnnotationVisitor,
         @Override
         public void visitAnnotation(KmAnnotation annotation)
         {
-            annotations.add(new KotlinMetadataAnnotation(annotation));
+            annotations.add(new KotlinAnnotation(annotation));
         }
 
         /**
@@ -1337,9 +1337,9 @@ implements AnnotationVisitor,
     {
         private KotlinTypeMetadata kotlinTypeMetadata;
 
-        private final ArrayList<KotlinTypeMetadata>       typeArguments;
-        private final ArrayList<KotlinTypeMetadata>       upperBounds;
-        private final ArrayList<KotlinMetadataAnnotation> annotations;
+        private final ArrayList<KotlinTypeMetadata> typeArguments;
+        private final ArrayList<KotlinTypeMetadata> upperBounds;
+        private final ArrayList<KotlinAnnotation>   annotations;
 
         TypeReader(KotlinTypeMetadata kotlinTypeMetadata)
         {
@@ -1503,7 +1503,7 @@ implements AnnotationVisitor,
             public void visitAnnotation(KmAnnotation annotation)
             {
                 // e.g. @ParameterName("prefix") [map, throw away if shrunk], @UnsafeVariance [throw away?]
-                annotations.add(new KotlinMetadataAnnotation(annotation));
+                annotations.add(new KotlinAnnotation(annotation));
             }
 
             @Override
@@ -1548,12 +1548,12 @@ implements AnnotationVisitor,
         private class TypeParameterExtensionReader
         extends JvmTypeParameterExtensionVisitor
         {
-            private final ArrayList<KotlinMetadataAnnotation> annotations = new ArrayList<>(1);
+            private final ArrayList<KotlinAnnotation> annotations = new ArrayList<>(1);
 
             @Override
             public void visitAnnotation(KmAnnotation annotation)
             {
-                annotations.add(new KotlinMetadataAnnotation(annotation));
+                annotations.add(new KotlinAnnotation(annotation));
             }
 
             @Override

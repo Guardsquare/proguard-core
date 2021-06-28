@@ -127,7 +127,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
                 AllTypeAliasVisitor(allAnnotationVisitor)
             )
         )
-        val annotation = slot<KotlinMetadataAnnotation>()
+        val annotation = slot<KotlinAnnotation>()
 
         "Then there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeAliasAnnotation(fileFacadeClass, ofType(KotlinTypeAliasMetadata::class), capture(annotation)) }
@@ -172,7 +172,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         val fileFacadeClass = programClassPool.getClass("TestKt")
 
         programClassPool.classesAccept(ReferencedKotlinMetadataVisitor(allAnnotationVisitor))
-        val annotation = slot<KotlinMetadataAnnotation>()
+        val annotation = slot<KotlinAnnotation>()
 
         "Then there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeAnnotation(fileFacadeClass, ofType(KotlinTypeMetadata::class), capture(annotation)) }
@@ -200,7 +200,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
                 )
             )
         )
-        val annotation = slot<KotlinMetadataAnnotation>()
+        val annotation = slot<KotlinAnnotation>()
 
         "Then there should be 1 annotation visited" {
             verify(exactly = 1) { annotationVisitor.visitTypeParameterAnnotation(fileFacadeClass, ofType(KotlinTypeParameterMetadata::class), capture(annotation)) }
@@ -212,7 +212,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
     }
 
     "Given an annotation without the referenced class initialized" - {
-        val annotation = KotlinMetadataAnnotation(KmAnnotation("A", emptyMap()))
+        val annotation = KotlinAnnotation(KmAnnotation("A", emptyMap()))
 
         "Then the referenced class should not be visited" {
             val classVisitor = spyk<ClassVisitor>()

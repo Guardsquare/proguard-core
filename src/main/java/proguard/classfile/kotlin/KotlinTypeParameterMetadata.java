@@ -41,7 +41,7 @@ implements   Processable,
     public KotlinTypeParameterFlags flags;
 
     // Extensions.
-    public List<KotlinMetadataAnnotation> annotations;
+    public List<KotlinAnnotation> annotations;
 
 
     public KotlinTypeParameterMetadata(KotlinTypeParameterFlags flags, String name, int id, KmVariance variance)
@@ -100,7 +100,7 @@ implements   Processable,
     public void annotationsAccept(Clazz                   clazz,
                                   KotlinAnnotationVisitor kotlinAnnotationVisitor)
     {
-        for (KotlinMetadataAnnotation annotation : annotations)
+        for (KotlinAnnotation annotation : annotations)
         {
             kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, this, annotation);
         }

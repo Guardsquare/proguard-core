@@ -64,7 +64,7 @@ implements   Processable,
 
     public boolean isRaw = false;
 
-    public List<KotlinMetadataAnnotation> annotations;
+    public List<KotlinAnnotation> annotations;
 
     public KotlinTypeFlags flags;
 
@@ -157,7 +157,7 @@ implements   Processable,
     public void annotationsAccept(Clazz                   clazz,
                                   KotlinAnnotationVisitor kotlinAnnotationVisitor)
     {
-        for (KotlinMetadataAnnotation annotation : annotations)
+        for (KotlinAnnotation annotation : annotations)
         {
             kotlinAnnotationVisitor.visitTypeAnnotation(clazz, this, annotation);
         }
