@@ -133,7 +133,6 @@ class KotlinMetadataAnnotationTest : FreeSpec({
             annotation.captured.kmAnnotation.className shouldBe "MyTypeAliasAnnotation"
         }
 
-        "the field values should be correct" {
         "Then the field values should be correct" {
             annotation.captured.kmAnnotation.arguments shouldContainExactly mapOf(
                 "string" to StringValue("foo"),
