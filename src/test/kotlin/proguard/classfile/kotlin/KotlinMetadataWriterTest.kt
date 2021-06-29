@@ -22,11 +22,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
-import proguard.classfile.Clazz
-import proguard.classfile.attribute.annotation.visitor.AllAnnotationVisitor
-import proguard.classfile.attribute.annotation.visitor.AnnotationTypeFilter
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.io.kotlin.KotlinMetadataWriter
 import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinPropertiesVisitor
@@ -36,17 +31,10 @@ import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeAliasVisitor
-import proguard.classfile.kotlin.visitor.MultiKotlinMetadataVisitor
-import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinClassKindFilter
-import proguard.classfile.util.WarningPrinter
-import proguard.classfile.util.kotlin.KotlinMetadataInitializer
-import proguard.classfile.visitor.ClassVisitor
-import proguard.classfile.visitor.MultiClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
-import java.io.OutputStream
-import java.io.PrintWriter
+import testutils.ReWritingMetadataVisitor
 
 /**
  * Tests that the KotlinMetadataWriter correctly writes metadata to the
@@ -234,34 +222,3 @@ class KotlinMetadataWriterTest : FreeSpec({
         // TODO(T2698): Add further annotation tests when the new model is ready
     }
 })
-
-internal class ReWritingMetadataVisitor(private vararg val visitors: KotlinMetadataVisitor) : ClassVisitor {
-    private val warningPrinter = WarningPrinter(
-        PrintWriter(object : OutputStream() {
-            // TODO: when switching to Java 11, we can use `OutputStream.nullOutputStream()`
-            override fun write(b: Int) { }
-        })
-    )
-
-    override fun visitAnyClass(clazz: Clazz?) {
-
-        clazz?.accept(
-            MultiClassVisitor(
-                ReferencedKotlinMetadataVisitor(
-                    KotlinMetadataWriter(warningPrinter)
-                ),
-                AllAttributeVisitor(
-                    AllAnnotationVisitor(
-                        AnnotationTypeFilter(
-                            KotlinConstants.TYPE_KOTLIN_METADATA,
-                            KotlinMetadataInitializer(warningPrinter)
-                        )
-                    )
-                ),
-                ReferencedKotlinMetadataVisitor(
-                    MultiKotlinMetadataVisitor(*visitors)
-                )
-            )
-        )
-    }
-}
