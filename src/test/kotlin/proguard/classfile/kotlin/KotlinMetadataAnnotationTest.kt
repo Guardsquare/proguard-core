@@ -244,7 +244,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         }
 
         "Then it should be equal to itself" {
-            (annotation1 == annotation1) shouldBe true
+            (annotation1.equals(annotation1)) shouldBe true
         }
     }
 
