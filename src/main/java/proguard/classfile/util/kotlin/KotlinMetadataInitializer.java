@@ -27,6 +27,9 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.flags.KotlinCommonFlags;
+import proguard.classfile.kotlin.flags.KotlinModalityFlags;
+import proguard.classfile.kotlin.flags.KotlinVisibilityFlags;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
@@ -1576,5 +1579,43 @@ implements AnnotationVisitor,
         }
 
         return new proguard.classfile.kotlin.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+    }
+
+
+    private KotlinCommonFlags convertCommonFlags(int kotlinFlags)
+    {
+        KotlinCommonFlags flags = new KotlinCommonFlags();
+
+        flags.hasAnnotations = Flag.HAS_ANNOTATIONS.invoke(kotlinFlags);
+
+        return flags;
+    }
+
+
+    private KotlinVisibilityFlags convertVisibilityFlags(int kotlinFlags)
+    {
+        KotlinVisibilityFlags flags = new KotlinVisibilityFlags();
+
+        flags.isInternal      = Flag.IS_INTERNAL.invoke(kotlinFlags);
+        flags.isLocal         = Flag.IS_LOCAL.invoke(kotlinFlags);
+        flags.isPrivate       = Flag.IS_PRIVATE.invoke(kotlinFlags);
+        flags.isProtected     = Flag.IS_PROTECTED.invoke(kotlinFlags);
+        flags.isPublic        = Flag.IS_PUBLIC.invoke(kotlinFlags);
+        flags.isPrivateToThis = Flag.IS_PRIVATE_TO_THIS.invoke(kotlinFlags);
+
+        return flags;
+    }
+
+
+    private KotlinModalityFlags convertModalityFlags(int kotlinFlags)
+    {
+        KotlinModalityFlags flags = new KotlinModalityFlags();
+
+        flags.isAbstract = Flag.IS_ABSTRACT.invoke(kotlinFlags);
+        flags.isFinal    = Flag.IS_FINAL.invoke(kotlinFlags);
+        flags.isOpen     = Flag.IS_OPEN.invoke(kotlinFlags);
+        flags.isSealed   = Flag.IS_SEALED.invoke(kotlinFlags);
+
+        return flags;
     }
 }

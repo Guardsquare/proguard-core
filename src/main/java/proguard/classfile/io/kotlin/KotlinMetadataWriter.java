@@ -28,10 +28,16 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.editor.*;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.flags.KotlinCommonFlags;
+import proguard.classfile.kotlin.flags.KotlinModalityFlags;
+import proguard.classfile.kotlin.flags.KotlinVisibilityFlags;
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static proguard.classfile.kotlin.KotlinConstants.*;
 
@@ -1487,5 +1493,43 @@ implements KotlinMetadataVisitor,
         }
 
         return new kotlinx.metadata.jvm.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+    }
+
+
+    private Set<Flag> convertCommonFlags(KotlinCommonFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        if (flags.hasAnnotations) flagSet.add(Flag.HAS_ANNOTATIONS);
+
+        return flagSet;
+    }
+
+
+    private Set<Flag> convertVisibilityFlags(KotlinVisibilityFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        if (flags.isInternal)      flagSet.add(Flag.IS_INTERNAL);
+        if (flags.isLocal)         flagSet.add(Flag.IS_LOCAL);
+        if (flags.isPrivate)       flagSet.add(Flag.IS_PRIVATE);
+        if (flags.isProtected)     flagSet.add(Flag.IS_PROTECTED);
+        if (flags.isPublic)        flagSet.add(Flag.IS_PUBLIC);
+        if (flags.isPrivateToThis) flagSet.add(Flag.IS_PRIVATE_TO_THIS);
+
+        return flagSet;
+    }
+
+
+    private Set<Flag> convertModalityFlags(KotlinModalityFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        if (flags.isAbstract) flagSet.add(Flag.IS_ABSTRACT);
+        if (flags.isFinal)    flagSet.add(Flag.IS_FINAL);
+        if (flags.isOpen)     flagSet.add(Flag.IS_OPEN);
+        if (flags.isSealed)   flagSet.add(Flag.IS_SEALED);
+
+        return flagSet;
     }
 }
