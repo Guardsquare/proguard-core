@@ -32,7 +32,10 @@ public abstract class KotlinFlags
     /**
      * @return The mapping between the flags specific to this KotlinFlags instance and their value
      */
-    protected abstract Map<Flag,FlagValue> getOwnProperties();
+    protected Map<Flag,FlagValue> getOwnProperties()
+    {
+        return Collections.emptyMap();
+    }
 
     /**
      * @return The list of children KotlinFlag instances (such as common or visibility)
