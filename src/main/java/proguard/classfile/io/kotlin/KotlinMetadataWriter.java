@@ -28,11 +28,16 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.editor.*;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.flags.KotlinClassFlags;
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import static kotlinx.metadata.FlagsKt.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 
 /**
@@ -556,7 +561,7 @@ implements KotlinMetadataVisitor,
         @Override
         public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
         {
-            classKmdWriter.visit(kotlinClassKindMetadata.flags.asInt(),
+            classKmdWriter.visit(convertClassFlags(kotlinClassKindMetadata.flags),
                                  kotlinClassKindMetadata.className.replace('$','.'));
 
             if (kotlinClassKindMetadata.companionObjectName != null)
@@ -651,6 +656,27 @@ implements KotlinMetadataVisitor,
 
             // Finish.
             constructorVis.visitEnd();
+        }
+
+
+        private int convertClassFlags(KotlinClassFlags flags)
+        {
+            Set<Flag> flagSet = new HashSet<>();
+
+            if (flags.isUsualClass)      flagSet.add(Flag.Class.IS_CLASS);
+            if (flags.isInterface)       flagSet.add(Flag.Class.IS_INTERFACE);
+            if (flags.isEnumClass)       flagSet.add(Flag.Class.IS_ENUM_CLASS);
+            if (flags.isEnumEntry)       flagSet.add(Flag.Class.IS_ENUM_ENTRY);
+            if (flags.isAnnotationClass) flagSet.add(Flag.Class.IS_ANNOTATION_CLASS);
+            if (flags.isObject)          flagSet.add(Flag.Class.IS_OBJECT);
+            if (flags.isCompanionObject) flagSet.add(Flag.Class.IS_COMPANION_OBJECT);
+            if (flags.isInner)           flagSet.add(Flag.Class.IS_INNER);
+            if (flags.isData)            flagSet.add(Flag.Class.IS_DATA);
+            if (flags.isExternal)        flagSet.add(Flag.Class.IS_EXTERNAL);
+            if (flags.isExpect)          flagSet.add(Flag.Class.IS_EXPECT);
+            if (flags.isInline)          flagSet.add(Flag.Class.IS_INLINE);
+
+            return flagsOf(flagSet.toArray(new Flag[0]));
         }
     }
 

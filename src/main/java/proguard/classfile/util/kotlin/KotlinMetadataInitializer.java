@@ -27,13 +27,12 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.flags.KotlinClassFlags;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 import java.util.*;
 
-import static proguard.classfile.kotlin.JvmFieldSignature.*;
-import static proguard.classfile.kotlin.JvmMethodSignature.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 
 /**
@@ -406,8 +405,8 @@ implements AnnotationVisitor,
             // of '$' (only here, not in the actual d2 array).
             className = className.replace('.', '$');
 
-            kotlinClassKindMetadata.setMetadataFlags(flags);
             kotlinClassKindMetadata.className = className;
+            kotlinClassKindMetadata.flags     = convertClassFlags(flags);
         }
 
         @Override
@@ -557,6 +556,27 @@ implements AnnotationVisitor,
 
             @Override
             public void visitEnd() {}
+        }
+
+
+        private KotlinClassFlags convertClassFlags(int kotlinFlags)
+        {
+            KotlinClassFlags flags = new KotlinClassFlags();
+
+            flags.isUsualClass      = Flag.Class.IS_CLASS.invoke(kotlinFlags);
+            flags.isInterface       = Flag.Class.IS_INTERFACE.invoke(kotlinFlags);
+            flags.isEnumClass       = Flag.Class.IS_ENUM_CLASS.invoke(kotlinFlags);
+            flags.isEnumEntry       = Flag.Class.IS_ENUM_ENTRY.invoke(kotlinFlags);
+            flags.isAnnotationClass = Flag.Class.IS_ANNOTATION_CLASS.invoke(kotlinFlags);
+            flags.isObject          = Flag.Class.IS_OBJECT.invoke(kotlinFlags);
+            flags.isCompanionObject = Flag.Class.IS_COMPANION_OBJECT.invoke(kotlinFlags);
+            flags.isInner           = Flag.Class.IS_INNER.invoke(kotlinFlags);
+            flags.isData            = Flag.Class.IS_DATA.invoke(kotlinFlags);
+            flags.isExternal        = Flag.Class.IS_EXTERNAL.invoke(kotlinFlags);
+            flags.isExpect          = Flag.Class.IS_EXPECT.invoke(kotlinFlags);
+            flags.isInline          = Flag.Class.IS_INLINE.invoke(kotlinFlags);
+
+            return flags;
         }
     }
 
