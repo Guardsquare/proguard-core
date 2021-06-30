@@ -113,10 +113,4 @@ public class KotlinClassFlags extends KotlinFlags
         this.visibility = visibility;
         this.modality   = modality;
     }
-
-
-    protected List<KotlinFlags> getChildren()
-    {
-        return Arrays.asList(common, visibility,modality);
-    }
 }
