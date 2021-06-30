@@ -17,6 +17,9 @@
  */
 package proguard.classfile.kotlin.flags;
 
+import kotlinx.metadata.Flag;
+
+import java.util.*;
 
 /**
  * Flags for Kotlin classes.
@@ -100,4 +103,37 @@ public class KotlinClassFlags extends KotlinFlags
      * Signifies that the corresponding class is `inline`.
      */
     public boolean isInline;
+
+    public KotlinClassFlags(int flags)
+    {
+        setFlags(flags);
+    }
+
+
+    protected Map<Flag, FlagValue> getOwnProperties()
+    {
+        HashMap<Flag,  FlagValue> map = new HashMap<>();
+        map.put(Flag.Class.IS_CLASS,            new FlagValue(() -> isUsualClass,      newValue -> isUsualClass = newValue));
+        map.put(Flag.Class.IS_INTERFACE,        new FlagValue(() -> isInterface,       newValue -> isInterface = newValue));
+        map.put(Flag.Class.IS_ENUM_CLASS,       new FlagValue(() -> isEnumClass,       newValue -> isEnumClass = newValue));
+        map.put(Flag.Class.IS_ENUM_ENTRY,       new FlagValue(() -> isEnumEntry,       newValue -> isEnumEntry = newValue));
+        map.put(Flag.Class.IS_ANNOTATION_CLASS, new FlagValue(() -> isAnnotationClass, newValue -> isAnnotationClass = newValue));
+        map.put(Flag.Class.IS_OBJECT,           new FlagValue(() -> isObject,          newValue -> isObject = newValue));
+        map.put(Flag.Class.IS_COMPANION_OBJECT, new FlagValue(() -> isCompanionObject, newValue -> isCompanionObject = newValue));
+        map.put(Flag.Class.IS_INNER,            new FlagValue(() -> isInner,           newValue -> isInner = newValue));
+        map.put(Flag.Class.IS_DATA,             new FlagValue(() -> isData,            newValue -> isData = newValue));
+        map.put(Flag.Class.IS_EXTERNAL,         new FlagValue(() -> isExternal,        newValue -> isExternal = newValue));
+        map.put(Flag.Class.IS_EXPECT,           new FlagValue(() -> isExpect,          newValue -> isExpect = newValue));
+        map.put(Flag.Class.IS_INLINE,           new FlagValue(() -> isInline,          newValue -> isInline = newValue));
+        return map;
+    }
+
+
+
+    protected List<KotlinFlags> getChildren()
+    {
+        return Arrays.asList(common, visibility,modality);
+    }
+
+
 }

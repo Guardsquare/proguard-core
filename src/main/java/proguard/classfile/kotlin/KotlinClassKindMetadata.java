@@ -154,6 +154,10 @@ extends KotlinDeclarationContainerMetadata
         }
     }
 
+    public void setMetadataFlags(int flags)
+    {
+        this.flags = new KotlinClassFlags(flags);
+    }
 
     // Implementations for Object.
     @Override
