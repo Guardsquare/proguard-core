@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
  * limitations under the License.
  */
 package proguard.classfile.kotlin.flags;
-
-import kotlinx.metadata.Flag;
-
-import java.util.*;
 
 /**
  * Flags for Kotlin constructors.
@@ -36,30 +32,17 @@ import java.util.*;
 public class KotlinConstructorFlags extends KotlinFlags
 {
 
-    public KotlinCommonFlags     common     = new KotlinCommonFlags();
-    public KotlinVisibilityFlags visibility = new KotlinVisibilityFlags();
-
-    protected List<KotlinFlags> getChildren()
-    {
-        return Arrays.asList(visibility, common);
-    }
-
+    public final KotlinCommonFlags     common;
+    public final KotlinVisibilityFlags visibility;
 
     /**
      * Signifies that the corresponding constructor is the primary constructor.
      */
     public boolean isPrimary;
 
-    public KotlinConstructorFlags(int flags)
+    public KotlinConstructorFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility)
     {
-        setFlags(flags);
-    }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.Constructor.IS_PRIMARY, new FlagValue(() -> isPrimary, newValue -> isPrimary = newValue));
-        return map;
+        this.common     = common;
+        this.visibility = visibility;
     }
 }

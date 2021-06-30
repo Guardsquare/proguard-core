@@ -40,9 +40,9 @@ implements Processable
     public Method             referencedMethod;
 
 
-    public KotlinConstructorMetadata(int flags)
+    public KotlinConstructorMetadata(KotlinConstructorFlags flags)
     {
-        this.flags = new KotlinConstructorFlags(flags);
+        this.flags = flags;
     }
 
 

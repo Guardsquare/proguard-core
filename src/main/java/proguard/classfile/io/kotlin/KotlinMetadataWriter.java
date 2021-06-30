@@ -633,7 +633,7 @@ implements KotlinMetadataVisitor,
                                      KotlinConstructorMetadata kotlinConstructorMetadata)
         {
             KmConstructorVisitor constructorVis =
-                classKmdWriter.visitConstructor(kotlinConstructorMetadata.flags.asInt());
+                classKmdWriter.visitConstructor(convertConstructorFlags(kotlinConstructorMetadata.flags));
 
             kotlinConstructorMetadata.valueParametersAccept(clazz,
                                                             kotlinClassKindMetadata,
@@ -679,6 +679,19 @@ implements KotlinMetadataVisitor,
             if (flags.isExternal)        flagSet.add(Flag.Class.IS_EXTERNAL);
             if (flags.isExpect)          flagSet.add(Flag.Class.IS_EXPECT);
             if (flags.isInline)          flagSet.add(Flag.Class.IS_INLINE);
+
+            return flagsOf(flagSet.toArray(new Flag[0]));
+        }
+
+
+        private int convertConstructorFlags(KotlinConstructorFlags flags)
+        {
+            Set<Flag> flagSet = new HashSet<>();
+
+            flagSet.addAll(convertCommonFlags(flags.common));
+            flagSet.addAll(convertVisibilityFlags(flags.visibility));
+
+            if (flags.isPrimary) flagSet.add(Flag.Constructor.IS_PRIMARY);
 
             return flagsOf(flagSet.toArray(new Flag[0]));
         }

@@ -429,7 +429,7 @@ implements AnnotationVisitor,
         @Override
         public KmConstructorVisitor visitConstructor(int flags)
         {
-            KotlinConstructorMetadata constructor = new KotlinConstructorMetadata(flags);
+            KotlinConstructorMetadata constructor = new KotlinConstructorMetadata(convertConstructorFlags(flags));
             constructors.add(constructor);
 
             return new ConstructorReader(!kotlinClassKindMetadata.flags.isAnnotationClass,
@@ -582,6 +582,19 @@ implements AnnotationVisitor,
             flags.isExternal        = Flag.Class.IS_EXTERNAL.invoke(kotlinFlags);
             flags.isExpect          = Flag.Class.IS_EXPECT.invoke(kotlinFlags);
             flags.isInline          = Flag.Class.IS_INLINE.invoke(kotlinFlags);
+
+            return flags;
+        }
+
+
+        private KotlinConstructorFlags convertConstructorFlags(int kotlinFlags)
+        {
+            KotlinConstructorFlags flags = new KotlinConstructorFlags(
+                convertCommonFlags(kotlinFlags),
+                convertVisibilityFlags(kotlinFlags)
+            );
+
+            flags.isPrimary = Flag.Constructor.IS_PRIMARY.invoke(kotlinFlags);
 
             return flags;
         }
