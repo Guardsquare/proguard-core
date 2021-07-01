@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package proguard.classfile.kotlin;
 
 import kotlinx.metadata.*;
 import proguard.classfile.Clazz;
+import proguard.classfile.kotlin.flags.KotlinCommonFlags;
 import proguard.classfile.kotlin.flags.KotlinTypeFlags;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
@@ -67,16 +68,16 @@ implements   Processable
     public KotlinTypeFlags flags;
 
 
-    public KotlinTypeMetadata(int flags)
+    public KotlinTypeMetadata(KotlinTypeFlags flags)
     {
         this(flags, null);
     }
 
 
-    public KotlinTypeMetadata(int flags, KmVariance variance)
+    public KotlinTypeMetadata(KotlinTypeFlags flags, KmVariance variance)
     {
         this.variance = variance;
-        this.flags    = new KotlinTypeFlags(flags);
+        this.flags    = flags;
     }
 
 
@@ -195,7 +196,7 @@ implements   Processable
     private static class KotlinStarProjectionMetadata
     extends KotlinTypeMetadata
     {
-        KotlinStarProjectionMetadata() { super(0); }
+        KotlinStarProjectionMetadata() { super(new KotlinTypeFlags(new KotlinCommonFlags())); }
 
         @Override
         public boolean isStarProjection()

@@ -798,7 +798,7 @@ implements KotlinMetadataVisitor,
                                         KotlinTypeMetadata boundedType,
                                         KotlinTypeMetadata upperBound)
         {
-            typeVis = nestedTypeVis.visitFlexibleTypeUpperBound(boundedType.flags.asInt(), upperBound.flexibilityID);
+            typeVis = nestedTypeVis.visitFlexibleTypeUpperBound(convertTypeFlags(boundedType.flags), upperBound.flexibilityID);
 
             visitAnyType(clazz, upperBound);
         }
@@ -808,7 +808,7 @@ implements KotlinMetadataVisitor,
                                       KotlinTypeMetadata abbreviatedType,
                                       KotlinTypeMetadata abbreviation)
         {
-            typeVis = nestedTypeVis.visitAbbreviatedType(abbreviatedType.flags.asInt());
+            typeVis = nestedTypeVis.visitAbbreviatedType(convertTypeFlags(abbreviatedType.flags));
 
             visitAnyType(clazz, abbreviation);
         }
@@ -818,7 +818,7 @@ implements KotlinMetadataVisitor,
                                              KotlinTypeParameterMetadata boundedTypeParameter,
                                              KotlinTypeMetadata          upperBound)
         {
-            typeVis = typeParamVis.visitUpperBound(upperBound.flags.asInt());
+            typeVis = typeParamVis.visitUpperBound(convertTypeFlags(upperBound.flags));
 
             visitAnyType(clazz, upperBound);
         }
@@ -828,7 +828,7 @@ implements KotlinMetadataVisitor,
                                             KotlinEffectExpressionMetadata kotlinEffectExprMetadata,
                                             KotlinTypeMetadata             typeOfIs)
         {
-            typeVis = effectExpressionVis.visitIsInstanceType(typeOfIs.flags.asInt());
+            typeVis = effectExpressionVis.visitIsInstanceType(convertTypeFlags(typeOfIs.flags));
 
             visitAnyType(clazz, typeOfIs);
         }
@@ -838,7 +838,7 @@ implements KotlinMetadataVisitor,
                                       KotlinTypeMetadata kotlinTypeMetadata,
                                       KotlinTypeMetadata typeArgument)
         {
-            typeVis = nestedTypeVis.visitArgument(typeArgument.flags.asInt(), typeArgument.variance);
+            typeVis = nestedTypeVis.visitArgument(convertTypeFlags(typeArgument.flags), typeArgument.variance);
 
             visitAnyType(clazz, typeArgument);
         }
@@ -855,7 +855,7 @@ implements KotlinMetadataVisitor,
                                     KotlinTypeMetadata innerClass,
                                     KotlinTypeMetadata outerClass)
         {
-            typeVis = nestedTypeVis.visitOuterType(outerClass.flags.asInt());
+            typeVis = nestedTypeVis.visitOuterType(convertTypeFlags(outerClass.flags));
 
             visitAnyType(clazz, outerClass);
         }
@@ -868,7 +868,7 @@ implements KotlinMetadataVisitor,
                                                  KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                                  KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(kotlinTypeMetadata.flags.asInt());
+            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -881,7 +881,7 @@ implements KotlinMetadataVisitor,
                                                        KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                                        KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(kotlinTypeMetadata.flags.asInt());
+            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -891,7 +891,7 @@ implements KotlinMetadataVisitor,
                                    KotlinClassKindMetadata kotlinMetadata,
                                    KotlinTypeMetadata      kotlinTypeMetadata)
         {
-            typeVis = classVis.visitSupertype(kotlinTypeMetadata.flags.asInt());
+            typeVis = classVis.visitSupertype(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -902,7 +902,7 @@ implements KotlinMetadataVisitor,
                                       KotlinPropertyMetadata             kotlinPropertyMetadata,
                                       KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = propertyVis.visitReturnType(kotlinTypeMetadata.flags.asInt());
+            typeVis = propertyVis.visitReturnType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -913,7 +913,7 @@ implements KotlinMetadataVisitor,
                                               KotlinPropertyMetadata             kotlinPropertyMetadata,
                                               KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = propertyVis.visitReceiverParameterType(kotlinTypeMetadata.flags.asInt());
+            typeVis = propertyVis.visitReceiverParameterType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -925,7 +925,7 @@ implements KotlinMetadataVisitor,
                                               KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                               KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(kotlinTypeMetadata.flags.asInt());
+            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -937,7 +937,7 @@ implements KotlinMetadataVisitor,
                                                     KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                                     KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitVarargElementType(kotlinTypeMetadata.flags.asInt());
+            typeVis = valParamVis.visitVarargElementType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -948,7 +948,7 @@ implements KotlinMetadataVisitor,
                                             KotlinFunctionMetadata kotlinFunctionMetadata,
                                             KotlinTypeMetadata     kotlinTypeMetadata)
         {
-            typeVis = functionVis.visitReturnType(kotlinTypeMetadata.flags.asInt());
+            typeVis = functionVis.visitReturnType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -959,7 +959,7 @@ implements KotlinMetadataVisitor,
                                               KotlinFunctionMetadata kotlinFunctionMetadata,
                                               KotlinTypeMetadata     kotlinTypeMetadata)
         {
-            typeVis = functionVis.visitReceiverParameterType(kotlinTypeMetadata.flags.asInt());
+            typeVis = functionVis.visitReceiverParameterType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -971,7 +971,7 @@ implements KotlinMetadataVisitor,
                                               KotlinValueParameterMetadata kotlinValueParameterMetadata,
                                               KotlinTypeMetadata           kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(kotlinTypeMetadata.flags.asInt());
+            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -983,7 +983,7 @@ implements KotlinMetadataVisitor,
                                                     KotlinValueParameterMetadata kotlinValueParameterMetadata,
                                                     KotlinTypeMetadata           kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitVarargElementType(kotlinTypeMetadata.flags.asInt());
+            typeVis = valParamVis.visitVarargElementType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -994,7 +994,7 @@ implements KotlinMetadataVisitor,
                                              KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
                                              KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = aliasVis.visitUnderlyingType(kotlinTypeMetadata.flags.asInt());
+            typeVis = aliasVis.visitUnderlyingType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -1005,7 +1005,7 @@ implements KotlinMetadataVisitor,
                                            KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
                                            KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = aliasVis.visitExpandedType(kotlinTypeMetadata.flags.asInt());
+            typeVis = aliasVis.visitExpandedType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -1555,6 +1555,19 @@ implements KotlinMetadataVisitor,
         if (flags.isSealed)   flagSet.add(Flag.IS_SEALED);
 
         return flagSet;
+    }
+
+
+    private int convertTypeFlags(KotlinTypeFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        flagSet.addAll(convertCommonFlags(flags.common));
+
+        if (flags.isNullable) flagSet.add(Flag.Type.IS_NULLABLE);
+        if (flags.isSuspend)  flagSet.add(Flag.Type.IS_SUSPEND);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
     }
 
 

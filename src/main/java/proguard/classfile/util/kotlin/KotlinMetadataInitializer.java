@@ -414,7 +414,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitSupertype(int flags)
         {
-            KotlinTypeMetadata superType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata superType = new KotlinTypeMetadata(convertTypeFlags(flags));
             superTypes.add(superType);
 
             return new TypeReader(superType);
@@ -715,7 +715,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitReceiverParameterType(int flags)
         {
-            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinPropertyMetadata.receiverType = receiverType;
 
             return new TypeReader(receiverType);
@@ -727,7 +727,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitReturnType(int flags)
         {
-            KotlinTypeMetadata returnType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata returnType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinPropertyMetadata.type = returnType;
 
             return new TypeReader(returnType);
@@ -858,7 +858,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitUnderlyingType(int flags)
         {
-            KotlinTypeMetadata underlyingType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata underlyingType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinTypeAliasMetadata.underlyingType = underlyingType;
 
             return new TypeReader(underlyingType);
@@ -870,7 +870,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitExpandedType(int flags)
         {
-            KotlinTypeMetadata expandedType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata expandedType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinTypeAliasMetadata.expandedType = expandedType;
 
             return new TypeReader(expandedType);
@@ -1007,7 +1007,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitReceiverParameterType(int flags)
         {
-            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinFunctionMetadata.receiverType = receiverType;
 
             return new TypeReader(receiverType);
@@ -1016,7 +1016,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitReturnType(int flags)
         {
-            KotlinTypeMetadata returnType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata returnType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinFunctionMetadata.returnType = returnType;
 
             return new TypeReader(returnType);
@@ -1217,7 +1217,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitIsInstanceType(int flags)
         {
-            KotlinTypeMetadata typeOfIs = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata typeOfIs = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinEffectExpressionMetadata.typeOfIs = typeOfIs;
 
             return new TypeReader(typeOfIs);
@@ -1272,7 +1272,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitType(int flags)
         {
-            KotlinTypeMetadata type = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata type = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinValueParameterMetadata.type = type;
 
             return new TypeReader(type);
@@ -1281,7 +1281,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitVarargElementType(int flags)
         {
-            KotlinTypeMetadata varArgType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata varArgType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinValueParameterMetadata.varArgElementType = varArgType;
 
             return new TypeReader(varArgType);
@@ -1333,7 +1333,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitAbbreviatedType(int flags)
         {
-            KotlinTypeMetadata abbreviatedType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata abbreviatedType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinTypeMetadata.abbreviation = abbreviatedType;
 
             return new TypeReader(abbreviatedType);
@@ -1394,7 +1394,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitOuterType(int flags)
         {
-            KotlinTypeMetadata outerType = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata outerType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinTypeMetadata.outerClassType = outerType;
 
             return new TypeReader(outerType);
@@ -1407,7 +1407,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitArgument(int flags, KmVariance variance)
         {
-            KotlinTypeMetadata typeArgument = new KotlinTypeMetadata(flags, variance);
+            KotlinTypeMetadata typeArgument = new KotlinTypeMetadata(convertTypeFlags(flags), variance);
             typeArguments.add(typeArgument);
 
             return new TypeReader(typeArgument);
@@ -1431,7 +1431,7 @@ implements AnnotationVisitor,
         {
             kotlinTypeMetadata.flexibilityID = typeFlexibilityId;
 
-            KotlinTypeMetadata upperBound = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata upperBound = new KotlinTypeMetadata(convertTypeFlags(flags));
             this.upperBounds.add(upperBound);
 
             return new TypeReader(upperBound);
@@ -1504,7 +1504,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeVisitor visitUpperBound(int flags)
         {
-            KotlinTypeMetadata upperBound = new KotlinTypeMetadata(flags);
+            KotlinTypeMetadata upperBound = new KotlinTypeMetadata(convertTypeFlags(flags));
             this.upperBounds.add(upperBound);
 
             return new TypeReader(upperBound);
@@ -1642,6 +1642,19 @@ implements AnnotationVisitor,
         flags.isFinal    = Flag.IS_FINAL.invoke(kotlinFlags);
         flags.isOpen     = Flag.IS_OPEN.invoke(kotlinFlags);
         flags.isSealed   = Flag.IS_SEALED.invoke(kotlinFlags);
+
+        return flags;
+    }
+
+
+    private KotlinTypeFlags convertTypeFlags(int kotlinFlags)
+    {
+        KotlinTypeFlags flags = new KotlinTypeFlags(
+            convertCommonFlags(kotlinFlags)
+        );
+
+        flags.isNullable = Flag.Type.IS_NULLABLE.invoke(kotlinFlags);
+        flags.isSuspend  = Flag.Type.IS_SUSPEND.invoke(kotlinFlags);
 
         return flags;
     }

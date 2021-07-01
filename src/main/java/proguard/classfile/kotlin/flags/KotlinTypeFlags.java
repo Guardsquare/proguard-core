@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
  */
 package proguard.classfile.kotlin.flags;
 
-import kotlinx.metadata.Flag;
-
-import java.util.*;
 
 /**
  * Flags for Kotlin types.
@@ -31,14 +28,7 @@ import java.util.*;
 public class KotlinTypeFlags extends KotlinFlags
 {
 
-    public KotlinCommonFlags common = new KotlinCommonFlags();
-
-
-    protected List<KotlinFlags> getChildren()
-    {
-        return Arrays.asList(common);
-    }
-
+    public final KotlinCommonFlags common;
 
     /**
      * Signifies that the corresponding type is marked as nullable, i.e. has a question mark at the end of its notation.
@@ -50,17 +40,8 @@ public class KotlinTypeFlags extends KotlinFlags
      */
     public boolean isSuspend;
 
-    public KotlinTypeFlags(int flags)
+    public KotlinTypeFlags(KotlinCommonFlags common)
     {
-        setFlags(flags);
-    }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.Type.IS_NULLABLE, new FlagValue(() -> isNullable, newValue -> isNullable = newValue));
-        map.put(Flag.Type.IS_SUSPEND,  new FlagValue(() -> isSuspend,  newValue -> isSuspend = newValue));
-        return map;
+        this.common = common;
     }
 }
