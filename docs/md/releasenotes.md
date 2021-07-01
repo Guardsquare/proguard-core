@@ -1,3 +1,9 @@
+## Version 7.1.1
+
+### Bugfixes
+
+ - Fix `AllTypeParameterVisitor` so that it visits type parameters of type aliases.
+
 ## Version 7.1 (June 2021)
 
 ### Java support

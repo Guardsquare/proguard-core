@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,12 +45,14 @@ implements   KotlinMetadataVisitor,
         kotlinDeclarationContainerMetadata.propertiesAccept(         clazz, this);
         kotlinDeclarationContainerMetadata.delegatedPropertiesAccept(clazz, this);
         kotlinDeclarationContainerMetadata.functionsAccept(          clazz, this);
+        kotlinDeclarationContainerMetadata.typeAliasesAccept(        clazz, this);
     }
 
     @Override
     public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
     {
         kotlinClassKindMetadata.typeParametersAccept(clazz, delegate);
+        visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
     }
 
     @Override
