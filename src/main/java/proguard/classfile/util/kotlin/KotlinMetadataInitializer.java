@@ -464,7 +464,7 @@ implements AnnotationVisitor,
         public KmTypeParameterVisitor visitTypeParameter(int flags, String parameterName, int id, KmVariance variance)
         {
             KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                new KotlinTypeParameterMetadata(flags, parameterName, id, fromKmVariance(variance));
+                new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), parameterName, id, fromKmVariance(variance));
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -1145,7 +1145,9 @@ implements AnnotationVisitor,
         @Override
         public KmEffectVisitor visitEffect(KmEffectType effectType, KmEffectInvocationKind invocationKind)
         {
-            KotlinEffectMetadata effect = new KotlinEffectMetadata(effectType, invocationKind);
+            KotlinEffectMetadata effect = new KotlinEffectMetadata(
+                fromKmEffectType(effectType),
+                fromKmEffectInvocationKind(invocationKind));
             effects.add(effect);
 
             return new EffectReader(effect);
@@ -1675,6 +1677,32 @@ implements AnnotationVisitor,
     }
 
 
+    private static KotlinEffectType fromKmEffectType(KmEffectType effectType)
+    {
+        switch(effectType)
+        {
+            case CALLS:             return KotlinEffectType.CALLS;
+            case RETURNS_CONSTANT:  return KotlinEffectType.RETURNS_CONSTANT;
+            case RETURNS_NOT_NULL:  return KotlinEffectType.RETURNS_NOT_NULL;
+            default: throw new UnsupportedOperationException("Encountered unknown enum value for KmEffectType.");
+        }
+    }
+
+    private static KotlinEffectInvocationKind fromKmEffectInvocationKind(KmEffectInvocationKind invocationKind)
+    {
+        if (invocationKind == null)
+        {
+            return null;
+        }
+        switch(invocationKind)
+        {
+            case AT_MOST_ONCE:  return KotlinEffectInvocationKind.AT_MOST_ONCE;
+            case EXACTLY_ONCE:  return KotlinEffectInvocationKind.EXACTLY_ONCE;
+            case AT_LEAST_ONCE: return KotlinEffectInvocationKind.AT_LEAST_ONCE;
+            default: throw new UnsupportedOperationException("Encountered unknown enum value for KmEffectInvocationKind.");
+        }
+    }
+
     // Helper methods to convert Kotlin annotations
 
     private static KotlinAnnotation convertAnnotation(KmAnnotation kmAnnotation)
@@ -1953,4 +1981,5 @@ implements AnnotationVisitor,
 
         return flags;
     }
+
 }

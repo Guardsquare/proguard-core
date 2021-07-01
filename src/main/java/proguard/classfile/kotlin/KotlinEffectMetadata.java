@@ -17,7 +17,6 @@
  */
 package proguard.classfile.kotlin;
 
-import kotlinx.metadata.*;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
@@ -29,17 +28,17 @@ public class KotlinEffectMetadata
 extends      SimpleProcessable
 implements   Processable
 {
-    public KmEffectType effectType;
+    public KotlinEffectType effectType;
 
-    public KmEffectInvocationKind invocationKind;
+    public KotlinEffectInvocationKind invocationKind;
 
     public KotlinEffectExpressionMetadata conclusionOfConditionalEffect;
 
     public List<KotlinEffectExpressionMetadata> constructorArguments;
 
 
-    public KotlinEffectMetadata(KmEffectType           effectType,
-                                KmEffectInvocationKind invocationKind)
+    public KotlinEffectMetadata(KotlinEffectType           effectType,
+                                KotlinEffectInvocationKind invocationKind)
     {
         this.effectType = effectType;
         this.invocationKind = invocationKind;

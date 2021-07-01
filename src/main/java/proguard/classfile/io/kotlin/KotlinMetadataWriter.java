@@ -269,8 +269,8 @@ implements KotlinMetadataVisitor,
                                 KotlinContractMetadata kotlinContractMetadata,
                                 KotlinEffectMetadata   kotlinEffectMetadata)
         {
-            KmEffectVisitor kmEffectVisitor = kmContractVisitor.visitEffect(kotlinEffectMetadata.effectType,
-                                                                            kotlinEffectMetadata.invocationKind);
+            KmEffectVisitor kmEffectVisitor = kmContractVisitor.visitEffect(toKmEffectType(kotlinEffectMetadata.effectType),
+                                                                            toKmEffectInvocationKind(kotlinEffectMetadata.invocationKind));
 
             kotlinEffectMetadata.conclusionOfConditionalEffectAccept(clazz,
                                                                      new EffectExprConstructor(kmEffectVisitor));
@@ -1566,6 +1566,32 @@ implements KotlinMetadataVisitor,
         }
     }
 
+
+    private static KmEffectType toKmEffectType(KotlinEffectType effectType)
+    {
+        switch(effectType)
+        {
+            case CALLS:             return KmEffectType.CALLS;
+            case RETURNS_CONSTANT:  return KmEffectType.RETURNS_CONSTANT;
+            case RETURNS_NOT_NULL:  return KmEffectType.RETURNS_NOT_NULL;
+            default: throw new UnsupportedOperationException("Encountered unknown enum value for KotlinEffectType.");
+        }
+    }
+
+    private static KmEffectInvocationKind toKmEffectInvocationKind(KotlinEffectInvocationKind invocationKind)
+    {
+        if (invocationKind == null)
+        {
+            return null;
+        }
+        switch(invocationKind)
+        {
+            case AT_MOST_ONCE:  return KmEffectInvocationKind.AT_MOST_ONCE;
+            case EXACTLY_ONCE:  return KmEffectInvocationKind.EXACTLY_ONCE;
+            case AT_LEAST_ONCE: return KmEffectInvocationKind.AT_LEAST_ONCE;
+            default: throw new UnsupportedOperationException("Encountered unknown enum value for KmEffectInvocationKind.");
+        }
+    }
 
     // Helper classes to convert Kotlin annotations
 
