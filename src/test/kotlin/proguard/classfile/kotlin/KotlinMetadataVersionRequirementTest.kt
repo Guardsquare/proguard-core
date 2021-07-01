@@ -22,9 +22,9 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.metadata.KmVersionRequirementLevel.ERROR
-import kotlinx.metadata.KmVersionRequirementVersionKind.LANGUAGE_VERSION
 import proguard.classfile.Clazz
+import proguard.classfile.kotlin.KotlinVersionRequirementLevel.ERROR
+import proguard.classfile.kotlin.KotlinVersionRequirementVersionKind.LANGUAGE_VERSION
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinVersionRequirementVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor

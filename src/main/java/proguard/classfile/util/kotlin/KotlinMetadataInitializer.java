@@ -1590,8 +1590,8 @@ implements AnnotationVisitor,
         @Override
         public void visit(KmVersionRequirementVersionKind kind, KmVersionRequirementLevel level, Integer errorCode, String message)
         {
-            kotlinVersionRequirementMetadata.kind      = kind;
-            kotlinVersionRequirementMetadata.level     = level;
+            kotlinVersionRequirementMetadata.kind      = fromKmVersionRequirementVersionKind(kind);
+            kotlinVersionRequirementMetadata.level     = fromKmVersionRequirementLevel(level);
             kotlinVersionRequirementMetadata.errorCode = errorCode;
             kotlinVersionRequirementMetadata.message   = message;
         }
@@ -1648,6 +1648,29 @@ implements AnnotationVisitor,
             case INVARIANT: return KotlinTypeVariance.INVARIANT;
             case OUT:       return KotlinTypeVariance.OUT;
             default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
+        }
+    }
+
+
+    private static KotlinVersionRequirementVersionKind fromKmVersionRequirementVersionKind(KmVersionRequirementVersionKind kotlinVersionRequirementVersionKind)
+    {
+        switch(kotlinVersionRequirementVersionKind)
+        {
+            case API_VERSION:      return KotlinVersionRequirementVersionKind.API_VERSION;
+            case COMPILER_VERSION: return KotlinVersionRequirementVersionKind.COMPILER_VERSION;
+            case LANGUAGE_VERSION: return KotlinVersionRequirementVersionKind.LANGUAGE_VERSION;
+            default: throw new UnsupportedOperationException("Encountered unknown enum value for KmVersionRequirementVersionKind.");
+        }
+    }
+
+    private static KotlinVersionRequirementLevel fromKmVersionRequirementLevel(KmVersionRequirementLevel kmVersionRequirementLevel)
+    {
+        switch(kmVersionRequirementLevel)
+        {
+            case ERROR:     return KotlinVersionRequirementLevel.ERROR;
+            case HIDDEN:    return KotlinVersionRequirementLevel.HIDDEN;
+            case WARNING:   return KotlinVersionRequirementLevel.WARNING;
+            default: throw new UnsupportedOperationException("Encountered unknown enum value for KmVersionRequirementLevel.");
         }
     }
 

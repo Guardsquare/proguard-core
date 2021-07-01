@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package proguard.classfile.kotlin;
 
-import kotlinx.metadata.*;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
@@ -26,9 +26,9 @@ public class KotlinVersionRequirementMetadata
 extends      SimpleProcessable
 implements   Processable
 {
-    public KmVersionRequirementVersionKind kind;
+    public KotlinVersionRequirementVersionKind kind;
 
-    public KmVersionRequirementLevel level;
+    public KotlinVersionRequirementLevel level;
 
     public Integer errorCode;
 
