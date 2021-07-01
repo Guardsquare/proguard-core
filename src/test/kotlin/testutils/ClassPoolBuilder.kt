@@ -31,6 +31,7 @@ import proguard.io.DataEntryReader
 import proguard.io.FileDataEntry
 import proguard.io.JarReader
 import java.io.File
+import java.io.OutputStream
 import java.io.PrintWriter
 import java.nio.file.Files
 import javax.lang.model.SourceVersion
@@ -148,7 +149,7 @@ internal fun ClassPool.fromFile(file: File) {
         false,
         false,
         true,
-        WarningPrinter(PrintWriter(System.err)),
+        null,
         ClassPoolFiller(this)
     )
 
@@ -163,7 +164,13 @@ internal fun initializeKotlinMetadata(classPool: ClassPool) {
                 AllAnnotationVisitor(
                     AnnotationTypeFilter(
                         TYPE_KOTLIN_METADATA,
-                        KotlinMetadataInitializer(WarningPrinter(PrintWriter(System.err)))
+                        KotlinMetadataInitializer(
+                            WarningPrinter(
+                                PrintWriter(object : OutputStream() {
+                                    override fun write(b: Int) { }
+                                })
+                            )
+                        )
                     )
                 )
             )
