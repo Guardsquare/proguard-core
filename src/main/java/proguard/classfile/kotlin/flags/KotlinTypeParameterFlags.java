@@ -30,30 +30,15 @@ import java.util.*;
  */
 public class KotlinTypeParameterFlags extends KotlinFlags
 {
-    public KotlinCommonFlags common = new KotlinCommonFlags();
-
-
-    protected List<KotlinFlags> getChildren()
-    {
-        return Arrays.asList(common);
-    }
-
+    public final KotlinCommonFlags common;
 
     /**
      * Signifies that the corresponding type parameter is `reified`.
      */
     public boolean isReified;
 
-    public KotlinTypeParameterFlags(int flags)
+    public KotlinTypeParameterFlags(KotlinCommonFlags common)
     {
-        setFlags(flags);
-    }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.TypeParameter.IS_REIFIED, new FlagValue(() -> isReified, newValue -> isReified = newValue));
-        return map;
+        this.common = common;
     }
 }

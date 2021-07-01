@@ -27,10 +27,7 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.flags.KotlinClassFlags;
-import proguard.classfile.kotlin.flags.KotlinCommonFlags;
-import proguard.classfile.kotlin.flags.KotlinModalityFlags;
-import proguard.classfile.kotlin.flags.KotlinVisibilityFlags;
+import proguard.classfile.kotlin.flags.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
@@ -466,7 +463,8 @@ implements AnnotationVisitor,
         @Override
         public KmTypeParameterVisitor visitTypeParameter(int flags, String parameterName, int id, KmVariance variance)
         {
-            KotlinTypeParameterMetadata kotlinTypeParameterMetadata = new KotlinTypeParameterMetadata(flags, parameterName, id, variance);
+            KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
+                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), parameterName, id, variance);
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -752,7 +750,8 @@ implements AnnotationVisitor,
         @Override
         public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
         {
-            KotlinTypeParameterMetadata kotlinTypeParameterMetadata = new KotlinTypeParameterMetadata(flags, name, id, variance);
+            KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
+                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, variance);
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -846,7 +845,8 @@ implements AnnotationVisitor,
         @Override
         public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
         {
-            KotlinTypeParameterMetadata kotlinTypeParameterMetadata = new KotlinTypeParameterMetadata(flags, name, id, variance);
+            KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
+                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, variance);
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -1025,7 +1025,8 @@ implements AnnotationVisitor,
         @Override
         public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
         {
-            KotlinTypeParameterMetadata kotlinTypeParameterMetadata = new KotlinTypeParameterMetadata(flags, name, id, variance);
+            KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
+                    new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, variance);
             typeParameters.add(kotlinTypeParameterMetadata);
 
             return new TypeParameterReader(kotlinTypeParameterMetadata);
@@ -1641,6 +1642,18 @@ implements AnnotationVisitor,
         flags.isFinal    = Flag.IS_FINAL.invoke(kotlinFlags);
         flags.isOpen     = Flag.IS_OPEN.invoke(kotlinFlags);
         flags.isSealed   = Flag.IS_SEALED.invoke(kotlinFlags);
+
+        return flags;
+    }
+
+
+    private KotlinTypeParameterFlags convertTypeParameterFlags(int kotlinFlags)
+    {
+        KotlinTypeParameterFlags flags = new KotlinTypeParameterFlags(
+            convertCommonFlags(kotlinFlags)
+        );
+
+        flags.isReified = Flag.TypeParameter.IS_REIFIED.invoke(kotlinFlags);
 
         return flags;
     }

@@ -43,12 +43,12 @@ implements   Processable
     public List<KotlinMetadataAnnotation> annotations;
 
 
-    public KotlinTypeParameterMetadata(int flags, String name, int id, KmVariance variance)
+    public KotlinTypeParameterMetadata(KotlinTypeParameterFlags flags, String name, int id, KmVariance variance)
     {
         this.name     = name;
         this.id       = id;
         this.variance = variance;
-        this.flags    = new KotlinTypeParameterFlags(flags);
+        this.flags    = flags;
     }
 
 

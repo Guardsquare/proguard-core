@@ -28,10 +28,7 @@ import proguard.classfile.attribute.annotation.visitor.*;
 import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.editor.*;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.flags.KotlinClassFlags;
-import proguard.classfile.kotlin.flags.KotlinCommonFlags;
-import proguard.classfile.kotlin.flags.KotlinModalityFlags;
-import proguard.classfile.kotlin.flags.KotlinVisibilityFlags;
+import proguard.classfile.kotlin.flags.*;
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
@@ -1085,7 +1082,7 @@ implements KotlinMetadataVisitor,
                                             KotlinMetadata              kotlinMetadata,
                                             KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
-            typeParamVis = classVis.visitTypeParameter(kotlinTypeParameterMetadata.flags.asInt(),
+            typeParamVis = classVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                        kotlinTypeParameterMetadata.name,
                                                        kotlinTypeParameterMetadata.id,
                                                        kotlinTypeParameterMetadata.variance);
@@ -1099,7 +1096,7 @@ implements KotlinMetadataVisitor,
                                                KotlinPropertyMetadata             kotlinPropertyMetadata,
                                                KotlinTypeParameterMetadata        kotlinTypeParameterMetadata)
         {
-            typeParamVis = propertyVis.visitTypeParameter(kotlinTypeParameterMetadata.flags.asInt(),
+            typeParamVis = propertyVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                           kotlinTypeParameterMetadata.name,
                                                           kotlinTypeParameterMetadata.id,
                                                           kotlinTypeParameterMetadata.variance);
@@ -1113,7 +1110,7 @@ implements KotlinMetadataVisitor,
                                                KotlinFunctionMetadata      kotlinFunctionMetadata,
                                                KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
-            typeParamVis = functionVis.visitTypeParameter(kotlinTypeParameterMetadata.flags.asInt(),
+            typeParamVis = functionVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                           kotlinTypeParameterMetadata.name,
                                                           kotlinTypeParameterMetadata.id,
                                                           kotlinTypeParameterMetadata.variance);
@@ -1127,7 +1124,7 @@ implements KotlinMetadataVisitor,
                                             KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
                                             KotlinTypeParameterMetadata        kotlinTypeParameterMetadata)
         {
-            typeParamVis = aliasVis.visitTypeParameter(kotlinTypeParameterMetadata.flags.asInt(),
+            typeParamVis = aliasVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
                                                        kotlinTypeParameterMetadata.name,
                                                        kotlinTypeParameterMetadata.id,
                                                        kotlinTypeParameterMetadata.variance);
@@ -1558,5 +1555,17 @@ implements KotlinMetadataVisitor,
         if (flags.isSealed)   flagSet.add(Flag.IS_SEALED);
 
         return flagSet;
+    }
+
+
+    private int convertTypeParameterFlags(KotlinTypeParameterFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        flagSet.addAll(convertCommonFlags(flags.common));
+
+        if (flags.isReified) flagSet.add(Flag.TypeParameter.IS_REIFIED);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
     }
 }
