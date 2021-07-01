@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,10 +48,10 @@ implements   Processable
     public List<KotlinMetadataAnnotation> annotations;
 
 
-    public KotlinTypeAliasMetadata(int flags, String name)
+    public KotlinTypeAliasMetadata(KotlinTypeAliasFlags flags, String name)
     {
-        this.name = name;
-        this.flags = new KotlinTypeAliasFlags(flags);
+        this.name  = name;
+        this.flags = flags;
     }
 
 

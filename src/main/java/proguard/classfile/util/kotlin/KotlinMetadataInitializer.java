@@ -506,7 +506,7 @@ implements AnnotationVisitor,
             // visit method will never be called but you can disable the compiler
             // error and allow typeAlias declarations here with this annotation:
             // @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
-            KotlinTypeAliasMetadata typeAlias = new KotlinTypeAliasMetadata(flags, name);
+            KotlinTypeAliasMetadata typeAlias = new KotlinTypeAliasMetadata(convertTypeAliasFlags(flags), name);
             typeAliases.add(typeAlias);
 
             return new TypeAliasReader(typeAlias);
@@ -950,7 +950,7 @@ implements AnnotationVisitor,
         @Override
         public KmTypeAliasVisitor visitTypeAlias(int flags, String name)
         {
-            KotlinTypeAliasMetadata typeAlias = new KotlinTypeAliasMetadata(flags, name);
+            KotlinTypeAliasMetadata typeAlias = new KotlinTypeAliasMetadata(convertTypeAliasFlags(flags), name);
             typeAliases.add(typeAlias);
 
             return new TypeAliasReader(typeAlias);
@@ -1682,5 +1682,14 @@ implements AnnotationVisitor,
         flags.isReified = Flag.TypeParameter.IS_REIFIED.invoke(kotlinFlags);
 
         return flags;
+    }
+
+
+    private KotlinTypeAliasFlags convertTypeAliasFlags(int kotlinFlags)
+    {
+        return new KotlinTypeAliasFlags(
+                convertCommonFlags(kotlinFlags),
+                convertVisibilityFlags(kotlinFlags)
+        );
     }
 }

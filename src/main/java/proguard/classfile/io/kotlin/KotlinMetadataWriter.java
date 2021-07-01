@@ -503,7 +503,7 @@ implements KotlinMetadataVisitor,
                                    KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
         {
             KmTypeAliasVisitor kmdAliasVisitor =
-                kmdWriter.visitTypeAlias(kotlinTypeAliasMetadata.flags.asInt(),
+                kmdWriter.visitTypeAlias(convertTypeAliasFlags(kotlinTypeAliasMetadata.flags),
                                          kotlinTypeAliasMetadata.name);
 
             kotlinTypeAliasMetadata.typeParametersAccept(clazz,
@@ -1591,6 +1591,17 @@ implements KotlinMetadataVisitor,
         flagSet.addAll(convertCommonFlags(flags.common));
 
         if (flags.isReified) flagSet.add(Flag.TypeParameter.IS_REIFIED);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
+    }
+
+
+    private int convertTypeAliasFlags(KotlinTypeAliasFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        flagSet.addAll(convertCommonFlags(flags.common));
+        flagSet.addAll(convertVisibilityFlags(flags.visibility));
 
         return flagsOf(flagSet.toArray(new Flag[0]));
     }

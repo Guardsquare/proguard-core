@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,15 @@
  */
 package proguard.classfile.kotlin.flags;
 
-import kotlinx.metadata.Flag;
-
-import java.util.*;
-
 public class KotlinTypeAliasFlags extends KotlinFlags
 {
-    public KotlinVisibilityFlags visibility = new KotlinVisibilityFlags();
-    public KotlinCommonFlags     common     = new KotlinCommonFlags();
+    public final KotlinVisibilityFlags visibility;
+    public final KotlinCommonFlags     common;
 
 
-    protected List<KotlinFlags> getChildren()
+    public KotlinTypeAliasFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility)
     {
-        return Arrays.asList(visibility, common);
-    }
-
-
-    public KotlinTypeAliasFlags(int flags)
-    {
-        setFlags(flags);
-    }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        return map;
+        this.common     = common;
+        this.visibility = visibility;
     }
 }
