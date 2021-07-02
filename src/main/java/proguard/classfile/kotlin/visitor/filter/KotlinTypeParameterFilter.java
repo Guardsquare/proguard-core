@@ -59,16 +59,14 @@ implements   KotlinTypeParameterVisitor
 
     @Override
     public void visitClassTypeParameter(Clazz                       clazz,
-                                        KotlinMetadata              kotlinMetadata,
+                                        KotlinClassKindMetadata     kotlinMetadata,
                                         KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
     {
         KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
 
         if (delegate != null)
         {
-            // TODO(T5462): the parameters for visitClassTypeParameter are wrong, so we cannot use accept without a cast here
-            //              kotlinTypeParameterMetadata.accept(clazz, kotlinMetadata, delegate);
-            delegate.visitClassTypeParameter(clazz, kotlinMetadata, kotlinTypeParameterMetadata);
+            kotlinTypeParameterMetadata.accept(clazz, kotlinMetadata, delegate);
         }
     }
 

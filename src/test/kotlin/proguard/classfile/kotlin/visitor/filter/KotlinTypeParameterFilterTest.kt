@@ -22,6 +22,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
+import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
 import proguard.classfile.kotlin.KotlinFunctionMetadata
 import proguard.classfile.kotlin.KotlinMetadata
@@ -120,7 +121,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
             verify(exactly = 1) {
                 typeParameterVisitor.visitClassTypeParameter(
                     clazz,
-                    ofType(KotlinMetadata::class),
+                    ofType(KotlinClassKindMetadata::class),
                     withArg {
                         it.name shouldBe "ClassTP"
                     }

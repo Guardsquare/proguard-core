@@ -45,12 +45,12 @@ implements   KotlinTypeParameterVisitor
 
     @Override
     public void visitClassTypeParameter(Clazz                       clazz,
-                                        KotlinMetadata              kotlinMetadata,
+                                        KotlinClassKindMetadata     kotlinClassKindMetadata,
                                         KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
     {
         for (KotlinTypeParameterVisitor kotlinTypeParameterVisitor : this.kotlinTypeParameterVisitors)
         {
-            kotlinTypeParameterVisitor.visitClassTypeParameter(clazz, kotlinMetadata, kotlinTypeParameterMetadata);
+            kotlinTypeParameterVisitor.visitClassTypeParameter(clazz, kotlinClassKindMetadata, kotlinTypeParameterMetadata);
         }
     }
 

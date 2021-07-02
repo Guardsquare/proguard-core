@@ -1095,7 +1095,7 @@ implements KotlinMetadataVisitor,
 
         @Override
         public void visitClassTypeParameter(Clazz                       clazz,
-                                            KotlinMetadata              kotlinMetadata,
+                                            KotlinClassKindMetadata     kotlinMetadata,
                                             KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
             typeParamVis = classVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
