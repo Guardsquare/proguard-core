@@ -3,6 +3,7 @@
 ### API improvements
 
 - Add `KotlinTypeParameterFilter` to allow filtering easily when visiting type parameters.
+- Add `KotlinValueParameterFilter` to allow filtering easily when visiting value parameters.
 
 ### Bug fixes
 
