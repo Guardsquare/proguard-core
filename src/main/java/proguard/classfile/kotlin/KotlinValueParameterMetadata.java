@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,13 +41,13 @@ implements   Processable
 
     public int index;
 
-    public KotlinValueParameterMetadata(int    flags,
-                                        int    index,
-                                        String parameterName)
+    public KotlinValueParameterMetadata(KotlinValueParameterFlags flags,
+                                        int                       index,
+                                        String                    parameterName)
     {
         this.parameterName = parameterName;
         this.index         = index;
-        this.flags         = new KotlinValueParameterFlags(flags);
+        this.flags         = flags;
     }
 
 

@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@
  */
 package proguard.classfile.kotlin.flags;
 
-import kotlinx.metadata.*;
-
-import java.util.*;
-
 /**
  * Flags for Kotlin value parameters.
  *
@@ -30,13 +26,7 @@ import java.util.*;
  */
 public class KotlinValueParameterFlags extends KotlinFlags
 {
-    public KotlinCommonFlags common = new KotlinCommonFlags();
-
-
-    protected List<KotlinFlags> getChildren()
-    {
-        return Arrays.asList(common);
-    }
+    public final KotlinCommonFlags common;
 
     /**
      * Signifies that the corresponding value parameter declares a default value. Note that the default value itself can be a complex
@@ -56,18 +46,8 @@ public class KotlinValueParameterFlags extends KotlinFlags
      */
     public boolean isNoInline;
 
-    public KotlinValueParameterFlags(int flags)
+    public KotlinValueParameterFlags(KotlinCommonFlags common)
     {
-        setFlags(flags);
-    }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.ValueParameter.DECLARES_DEFAULT_VALUE, new FlagValue(() -> hasDefaultValue, newValue -> hasDefaultValue = newValue));
-        map.put(Flag.ValueParameter.IS_CROSSINLINE,         new FlagValue(() -> isCrossInline,   newValue -> isCrossInline = newValue));
-        map.put(Flag.ValueParameter.IS_NOINLINE,            new FlagValue(() -> isNoInline,      newValue -> isNoInline = newValue));
-        return map;
+        this.common = common;
     }
 }

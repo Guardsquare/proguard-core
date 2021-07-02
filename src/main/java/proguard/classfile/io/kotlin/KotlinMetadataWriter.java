@@ -726,7 +726,7 @@ implements KotlinMetadataVisitor,
                                                  KotlinValueParameterMetadata kotlinValueParameterMetadata)
         {
             valParamVis =
-                constructorVis.visitValueParameter(kotlinValueParameterMetadata.flags.asInt(),
+                constructorVis.visitValueParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
                                                    kotlinValueParameterMetadata.parameterName);
 
             kotlinValueParameterMetadata.typeAccept(clazz,
@@ -744,7 +744,7 @@ implements KotlinMetadataVisitor,
                                               KotlinValueParameterMetadata       kotlinValueParameterMetadata)
         {
             valParamVis =
-                propertyVis.visitSetterParameter(kotlinValueParameterMetadata.flags.asInt(),
+                propertyVis.visitSetterParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
                                                  kotlinValueParameterMetadata.parameterName);
 
             kotlinValueParameterMetadata.typeAccept(clazz,
@@ -762,7 +762,7 @@ implements KotlinMetadataVisitor,
                                               KotlinValueParameterMetadata kotlinValueParameterMetadata)
         {
             valParamVis =
-                functionVis.visitValueParameter(kotlinValueParameterMetadata.flags.asInt(),
+                functionVis.visitValueParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
                                                 kotlinValueParameterMetadata.parameterName);
 
             kotlinValueParameterMetadata.typeAccept(clazz,
@@ -1680,4 +1680,17 @@ implements KotlinMetadataVisitor,
         return flagsOf(flagSet.toArray(new Flag[0]));
     }
 
+
+    private int convertValueParameterFlags(KotlinValueParameterFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        flagSet.addAll(convertCommonFlags(flags.common));
+
+        if (flags.hasDefaultValue) flagSet.add(Flag.ValueParameter.DECLARES_DEFAULT_VALUE);
+        if (flags.isNoInline)      flagSet.add(Flag.ValueParameter.IS_NOINLINE);
+        if (flags.isCrossInline)   flagSet.add(Flag.ValueParameter.IS_CROSSINLINE);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
+    }
 }

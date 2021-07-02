@@ -661,7 +661,8 @@ implements AnnotationVisitor,
         @Override
         public KmValueParameterVisitor visitValueParameter(int flags, String name)
         {
-            KotlinValueParameterMetadata valueParameter = new KotlinValueParameterMetadata(flags, valueParameters.size(), name);
+            KotlinValueParameterMetadata valueParameter =
+                    new KotlinValueParameterMetadata(convertValueParameterFlags(flags), valueParameters.size(), name);
             valueParameters.add(valueParameter);
 
             return new ValueParameterReader(valueParameter);
@@ -760,7 +761,8 @@ implements AnnotationVisitor,
         @Override
         public KmValueParameterVisitor visitSetterParameter(int flags, String name)
         {
-            KotlinValueParameterMetadata valueParameter = new KotlinValueParameterMetadata(flags, setterParameters.size(), name);
+            KotlinValueParameterMetadata valueParameter =
+                    new KotlinValueParameterMetadata(convertValueParameterFlags(flags), setterParameters.size(), name);
             setterParameters.add(valueParameter);
 
             return new ValueParameterReader(valueParameter);
@@ -1061,7 +1063,8 @@ implements AnnotationVisitor,
         @Override
         public KmValueParameterVisitor visitValueParameter(int flags, String name)
         {
-            KotlinValueParameterMetadata valueParameter = new KotlinValueParameterMetadata(flags, valueParameters.size(), name);
+            KotlinValueParameterMetadata valueParameter =
+                    new KotlinValueParameterMetadata(convertValueParameterFlags(flags), valueParameters.size(), name);
             valueParameters.add(valueParameter);
 
             return new ValueParameterReader(valueParameter);
@@ -1779,4 +1782,17 @@ implements AnnotationVisitor,
         return flags;
     }
 
+
+    private KotlinValueParameterFlags convertValueParameterFlags(int kotlinFlags)
+    {
+        KotlinValueParameterFlags flags = new KotlinValueParameterFlags(
+            convertCommonFlags(kotlinFlags)
+        );
+
+        flags.hasDefaultValue = Flag.ValueParameter.DECLARES_DEFAULT_VALUE.invoke(kotlinFlags);
+        flags.isCrossInline   = Flag.ValueParameter.IS_CROSSINLINE.invoke(kotlinFlags);
+        flags.isNoInline      = Flag.ValueParameter.IS_NOINLINE.invoke(kotlinFlags);
+
+        return flags;
+    }
 }
