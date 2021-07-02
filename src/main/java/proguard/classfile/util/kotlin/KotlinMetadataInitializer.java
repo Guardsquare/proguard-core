@@ -1221,7 +1221,7 @@ implements AnnotationVisitor,
         @Override
         public void visit(int flags, Integer parameterIndex)
         {
-            kotlinEffectExpressionMetadata.setMetadataFlags(flags);
+            kotlinEffectExpressionMetadata.flags = convertEffectExpressionFlags(flags);
 
             if (parameterIndex != null)
             {
@@ -1792,6 +1792,17 @@ implements AnnotationVisitor,
         flags.hasDefaultValue = Flag.ValueParameter.DECLARES_DEFAULT_VALUE.invoke(kotlinFlags);
         flags.isCrossInline   = Flag.ValueParameter.IS_CROSSINLINE.invoke(kotlinFlags);
         flags.isNoInline      = Flag.ValueParameter.IS_NOINLINE.invoke(kotlinFlags);
+
+        return flags;
+    }
+
+
+    private KotlinEffectExpressionFlags convertEffectExpressionFlags(int kotlinFlags)
+    {
+        KotlinEffectExpressionFlags flags = new KotlinEffectExpressionFlags();
+
+        flags.isNullCheckPredicate = Flag.EffectExpression.IS_NULL_CHECK_PREDICATE.invoke(kotlinFlags);
+        flags.isNegated            = Flag.EffectExpression.IS_NEGATED.invoke(kotlinFlags);
 
         return flags;
     }

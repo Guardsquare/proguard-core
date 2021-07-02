@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
  * limitations under the License.
  */
 package proguard.classfile.kotlin.flags;
-
-import kotlinx.metadata.Flag;
-
-import java.util.*;
 
 /**
  * Flags for Kotlin types.
@@ -37,19 +33,4 @@ public class KotlinEffectExpressionFlags extends KotlinFlags
      * Signifies that the corresponding effect expression checks whether a value of some variable is `null`.
      */
     public boolean isNullCheckPredicate;
-
-    public KotlinEffectExpressionFlags(int flags)
-    {
-        setFlags(flags);
-    }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.EffectExpression.IS_NEGATED,              new FlagValue(() -> isNegated,            newValue -> isNegated = newValue));
-        map.put(Flag.EffectExpression.IS_NULL_CHECK_PREDICATE, new FlagValue(() -> isNullCheckPredicate, newValue -> isNullCheckPredicate = newValue));
-        return map;
-    }
-
 }

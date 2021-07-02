@@ -293,7 +293,7 @@ implements KotlinMetadataVisitor,
                                              KotlinEffectMetadata           kotlinEffectMetadata,
                                              KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
         {
-            effectExprVis.visit(kotlinEffectExpressionMetadata.flags.asInt(),
+            effectExprVis.visit(convertEffectExpressionFlags(kotlinEffectExpressionMetadata.flags),
                                 kotlinEffectExpressionMetadata.parameterIndex);
 
             if (kotlinEffectExpressionMetadata.hasConstantValue)
@@ -1690,6 +1690,17 @@ implements KotlinMetadataVisitor,
         if (flags.hasDefaultValue) flagSet.add(Flag.ValueParameter.DECLARES_DEFAULT_VALUE);
         if (flags.isNoInline)      flagSet.add(Flag.ValueParameter.IS_NOINLINE);
         if (flags.isCrossInline)   flagSet.add(Flag.ValueParameter.IS_CROSSINLINE);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
+    }
+
+
+    private int convertEffectExpressionFlags(KotlinEffectExpressionFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        if (flags.isNullCheckPredicate) flagSet.add(Flag.EffectExpression.IS_NULL_CHECK_PREDICATE);
+        if (flags.isNegated)            flagSet.add(Flag.EffectExpression.IS_NEGATED);
 
         return flagsOf(flagSet.toArray(new Flag[0]));
     }
