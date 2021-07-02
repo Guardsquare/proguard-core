@@ -1,5 +1,9 @@
 ## Version 7.1.1
 
+### API improvements
+
+- Add `KotlinTypeParameterFilter` to allow filtering easily when visiting type parameters.
+
 ### Bug fixes
 
  - Fix `AllTypeParameterVisitor` so that it visits type parameters defined in any kind of declaration container.
