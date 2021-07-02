@@ -22,15 +22,12 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
-import proguard.classfile.Clazz
-import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
 import proguard.classfile.kotlin.KotlinFunctionMetadata
 import proguard.classfile.kotlin.KotlinMetadata
 import proguard.classfile.kotlin.KotlinPropertyMetadata
 import proguard.classfile.kotlin.KotlinTypeAliasMetadata
 import proguard.classfile.kotlin.visitor.AllTypeParameterVisitor
-import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
