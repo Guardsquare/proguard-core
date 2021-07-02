@@ -16,6 +16,7 @@ version = proguardCoreVersion
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 javadoc {
@@ -50,6 +51,11 @@ dependencies {
     testImplementation 'io.kotest:kotest-assertions-core-jvm:4.3.2' // for kotest core jvm assertions
     testImplementation 'io.kotest:kotest-property-jvm:4.3.2' // for kotest property test
     testImplementation "io.mockk:mockk:1.10.0" // for mocking
+
+    // For assembling ProGuard assembler snippets
+    testImplementation ('com.github.Guardsquare:proguard-assembler:master-SNAPSHOT') {
+        exclude group: 'com.guardsquare', module: 'proguard-core'
+    }
 }
 
 java {
