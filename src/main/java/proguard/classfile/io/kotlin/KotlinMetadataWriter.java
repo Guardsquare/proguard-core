@@ -34,6 +34,7 @@ import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -401,7 +402,7 @@ implements KotlinMetadataVisitor,
             JvmMethodSignature setterSignature = toKotlinJvmMethodSignature(kotlinPropertyMetadata.setterSignature);
             JvmFieldSignature backingFieldSignature = toKotlinJvmFieldSignature(kotlinPropertyMetadata.backingFieldSignature);
 
-            ext.visit(kotlinPropertyMetadata.flags.jvmFlagsAsInt(),
+            ext.visit(convertPropertyJvmFlags(kotlinPropertyMetadata.flags),
                       backingFieldSignature,
                       getterSignature,
                       setterSignature);
@@ -424,7 +425,7 @@ implements KotlinMetadataVisitor,
                                   KotlinPropertyMetadata             kotlinPropertyMetadata)
         {
             kmdPropertyVisitor =
-                kmdWriter.visitProperty(kotlinPropertyMetadata.flags.asInt(),
+                kmdWriter.visitProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
                                         kotlinPropertyMetadata.name,
                                         kotlinPropertyMetadata.getterFlags.asInt(),
                                         kotlinPropertyMetadata.setterFlags.asInt());
@@ -438,7 +439,7 @@ implements KotlinMetadataVisitor,
                                            KotlinPropertyMetadata             kotlinPropertyMetadata)
         {
             kmdPropertyVisitor =
-                extensionVisitor.visitLocalDelegatedProperty(kotlinPropertyMetadata.flags.asInt(),
+                extensionVisitor.visitLocalDelegatedProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
                                                              kotlinPropertyMetadata.name,
                                                              kotlinPropertyMetadata.getterFlags.asInt(),
                                                              kotlinPropertyMetadata.setterFlags.asInt());
@@ -1627,5 +1628,39 @@ implements KotlinMetadataVisitor,
         flagSet.addAll(convertVisibilityFlags(flags.visibility));
 
         return flagsOf(flagSet.toArray(new Flag[0]));
+    }
+
+
+    private int convertPropertyFlags(KotlinPropertyFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        flagSet.addAll(convertCommonFlags(flags.common));
+        flagSet.addAll(convertVisibilityFlags(flags.visibility));
+        flagSet.addAll(convertModalityFlags(flags.modality));
+
+        if (flags.isDeclared)     flagSet.add(Flag.Property.IS_DECLARATION);
+        if (flags.isFakeOverride) flagSet.add(Flag.Property.IS_FAKE_OVERRIDE);
+        if (flags.isDelegation)   flagSet.add(Flag.Property.IS_DELEGATION);
+        if (flags.isSynthesized)  flagSet.add(Flag.Property.IS_SYNTHESIZED);
+        if (flags.isVar)          flagSet.add(Flag.Property.IS_VAR);
+        if (flags.hasGetter)      flagSet.add(Flag.Property.HAS_GETTER);
+        if (flags.hasSetter)      flagSet.add(Flag.Property.HAS_SETTER);
+        if (flags.isConst)        flagSet.add(Flag.Property.IS_CONST);
+        if (flags.isLateinit)     flagSet.add(Flag.Property.IS_LATEINIT);
+        if (flags.hasConstant)    flagSet.add(Flag.Property.HAS_CONSTANT);
+        if (flags.isExternal)     flagSet.add(Flag.Property.IS_EXTERNAL);
+        if (flags.isDelegated)    flagSet.add(Flag.Property.IS_DELEGATED);
+        if (flags.isExpect)       flagSet.add(Flag.Property.IS_EXPECT);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
+    }
+
+
+    private int convertPropertyJvmFlags(KotlinPropertyFlags flags)
+    {
+        return flags.isMovedFromInterfaceCompanion ?
+                flagsOf(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION) :
+                0;
     }
 }

@@ -18,11 +18,6 @@
 package proguard.classfile.kotlin.flags;
 
 
-import kotlinx.metadata.*;
-import kotlinx.metadata.jvm.JvmFlag;
-
-import java.util.*;
-
 /**
  * Flags for Kotlin properties.
  *
@@ -42,15 +37,9 @@ import java.util.*;
 public class KotlinPropertyFlags extends KotlinFlags
 {
 
-    public KotlinCommonFlags     common     = new KotlinCommonFlags();
-    public KotlinVisibilityFlags visibility = new KotlinVisibilityFlags();
-    public KotlinModalityFlags   modality   = new KotlinModalityFlags();
-
-    protected List<KotlinFlags> getChildren()
-    {
-        return Arrays.asList(common,visibility,modality);
-    }
-
+    public final KotlinCommonFlags     common;
+    public final KotlinVisibilityFlags visibility;
+    public final KotlinModalityFlags   modality;
 
     /**
      * A member kind flag, signifying that the corresponding property is explicitly declared in the containing class.
@@ -138,45 +127,13 @@ public class KotlinPropertyFlags extends KotlinFlags
      */
     public boolean isMovedFromInterfaceCompanion;
 
-    public KotlinPropertyFlags(int flags)
+
+    public KotlinPropertyFlags(KotlinCommonFlags     common,
+                               KotlinVisibilityFlags visibility,
+                               KotlinModalityFlags   modality)
     {
-        setFlags(flags);
-    }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.Property.IS_DECLARATION,   new FlagValue(() -> isDeclared,     newValue -> isDeclared = newValue));
-        map.put(Flag.Property.IS_FAKE_OVERRIDE, new FlagValue(() -> isFakeOverride, newValue -> isFakeOverride = newValue));
-        map.put(Flag.Property.IS_DELEGATION,    new FlagValue(() -> isDelegation,   newValue -> isDelegation = newValue));
-        map.put(Flag.Property.IS_SYNTHESIZED,   new FlagValue(() -> isSynthesized,  newValue -> isSynthesized = newValue));
-        map.put(Flag.Property.IS_VAR,           new FlagValue(() -> isVar,          newValue -> isVar = newValue));
-        map.put(Flag.Property.HAS_GETTER,       new FlagValue(() -> hasGetter,      newValue -> hasGetter = newValue));
-        map.put(Flag.Property.HAS_SETTER,       new FlagValue(() -> hasSetter,      newValue -> hasSetter = newValue));
-        map.put(Flag.Property.IS_CONST,         new FlagValue(() -> isConst,        newValue -> isConst = newValue));
-        map.put(Flag.Property.IS_LATEINIT,      new FlagValue(() -> isLateinit,     newValue -> isLateinit = newValue));
-        map.put(Flag.Property.HAS_CONSTANT,     new FlagValue(() -> hasConstant,    newValue -> hasConstant = newValue));
-        map.put(Flag.Property.IS_EXTERNAL,      new FlagValue(() -> isExternal,     newValue -> isExternal = newValue));
-        map.put(Flag.Property.IS_DELEGATED,     new FlagValue(() -> isDelegated,    newValue -> isDelegated = newValue));
-        map.put(Flag.Property.IS_EXPECT,        new FlagValue(() -> isExpect,       newValue -> isExpect = newValue));
-        return map;
-    }
-
-    public final int jvmFlagsAsInt()
-    {
-        ArrayList<Flag> flags = new ArrayList<>();
-
-        if (isMovedFromInterfaceCompanion)
-        {
-            flags.add(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION);
-        }
-
-        return FlagsKt.flagsOf(flags.toArray(new Flag[0]));
-    }
-
-    public void setJvmFlags(int jvmFlags)
-    {
-        isMovedFromInterfaceCompanion = JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION.invoke(jvmFlags);
+        this.common     = common;
+        this.visibility = visibility;
+        this.modality   = modality;
     }
 }

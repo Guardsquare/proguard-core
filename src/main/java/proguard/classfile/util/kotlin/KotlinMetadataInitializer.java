@@ -493,7 +493,7 @@ implements AnnotationVisitor,
         @Override
         public KmPropertyVisitor visitProperty(int flags, String name, int getterFlags, int setterFlags)
         {
-            KotlinPropertyMetadata property = new KotlinPropertyMetadata(flags, name, getterFlags, setterFlags);
+            KotlinPropertyMetadata property = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
             properties.add(property);
 
             return new PropertyReader(property);
@@ -551,7 +551,7 @@ implements AnnotationVisitor,
             @Override
             public KmPropertyVisitor visitLocalDelegatedProperty(int flags, String name, int getterFlags, int setterFlags)
             {
-                KotlinPropertyMetadata delegatedProperty = new KotlinPropertyMetadata(flags, name, getterFlags, setterFlags);
+                KotlinPropertyMetadata delegatedProperty = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
                 localDelegatedProperties.add(delegatedProperty);
 
                 return new PropertyReader(delegatedProperty);
@@ -811,7 +811,7 @@ implements AnnotationVisitor,
                 kotlinPropertyMetadata.getterSignature = fromKotlinJvmMethodSignature(getterSignature);
                 kotlinPropertyMetadata.setterSignature = fromKotlinJvmMethodSignature(setterSignature);
 
-                kotlinPropertyMetadata.flags.setJvmFlags(jvmFlags);
+                setPropertyJvmFlags(kotlinPropertyMetadata.flags, jvmFlags);
             }
 
             /**
@@ -942,7 +942,7 @@ implements AnnotationVisitor,
         @Override
         public KmPropertyVisitor visitProperty(int flags, String name, int getterFlags, int setterFlags)
         {
-            KotlinPropertyMetadata property = new KotlinPropertyMetadata(flags, name, getterFlags, setterFlags);
+            KotlinPropertyMetadata property = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
             properties.add(property);
 
             return new PropertyReader(property);
@@ -979,7 +979,7 @@ implements AnnotationVisitor,
             @Override
             public KmPropertyVisitor visitLocalDelegatedProperty(int flags, String name, int getterFlags, int setterFlags)
             {
-                KotlinPropertyMetadata delegatedProperty = new KotlinPropertyMetadata(flags, name, getterFlags, setterFlags);
+                KotlinPropertyMetadata delegatedProperty = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
                 localDelegatedProperties.add(delegatedProperty);
 
                 return new PropertyReader(delegatedProperty);
@@ -1716,5 +1716,38 @@ implements AnnotationVisitor,
                 convertCommonFlags(kotlinFlags),
                 convertVisibilityFlags(kotlinFlags)
         );
+    }
+
+
+    private KotlinPropertyFlags convertPropertyFlags(int kotlinFlags)
+    {
+        KotlinPropertyFlags flags = new KotlinPropertyFlags(
+            convertCommonFlags(kotlinFlags),
+            convertVisibilityFlags(kotlinFlags),
+            convertModalityFlags(kotlinFlags)
+        );
+
+        flags.isDeclared     = Flag.Property.IS_DECLARATION.invoke(kotlinFlags);
+        flags.isFakeOverride = Flag.Property.IS_FAKE_OVERRIDE.invoke(kotlinFlags);
+        flags.isDelegation   = Flag.Property.IS_DELEGATION.invoke(kotlinFlags);
+        flags.isSynthesized  = Flag.Property.IS_SYNTHESIZED.invoke(kotlinFlags);
+        flags.isVar          = Flag.Property.IS_VAR.invoke(kotlinFlags);
+        flags.hasGetter      = Flag.Property.HAS_GETTER.invoke(kotlinFlags);
+        flags.hasSetter      = Flag.Property.HAS_SETTER.invoke(kotlinFlags);
+        flags.isConst        = Flag.Property.IS_CONST.invoke(kotlinFlags);
+        flags.isLateinit     = Flag.Property.IS_LATEINIT.invoke(kotlinFlags);
+        flags.hasConstant    = Flag.Property.HAS_CONSTANT.invoke(kotlinFlags);
+        flags.isExternal     = Flag.Property.IS_EXTERNAL.invoke(kotlinFlags);
+        flags.isDelegated    = Flag.Property.IS_DELEGATED.invoke(kotlinFlags);
+        flags.isExpect       = Flag.Property.IS_EXPECT.invoke(kotlinFlags);
+
+        return flags;
+    }
+
+
+    private void setPropertyJvmFlags(KotlinPropertyFlags flags, int jvmFlags)
+    {
+        flags.isMovedFromInterfaceCompanion =
+                JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION.invoke(jvmFlags);
     }
 }

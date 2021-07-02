@@ -63,13 +63,13 @@ extends      SimpleProcessable
     public Method             referencedSyntheticMethodForAnnotations;
 
 
-    public KotlinPropertyMetadata(int    flags,
-                                  String name,
-                                  int    getterFlags,
-                                  int    setterFlags)
+    public KotlinPropertyMetadata(KotlinPropertyFlags flags,
+                                  String              name,
+                                  int                 getterFlags,
+                                  int                 setterFlags)
     {
         this.name        = name;
-        this.flags       = new KotlinPropertyFlags(flags);
+        this.flags       = flags;
         this.getterFlags = new KotlinPropertyAccessorFlags(getterFlags);
         this.setterFlags = new KotlinPropertyAccessorFlags(setterFlags);
     }
