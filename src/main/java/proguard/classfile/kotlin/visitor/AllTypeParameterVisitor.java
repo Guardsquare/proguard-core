@@ -51,8 +51,9 @@ implements   KotlinMetadataVisitor,
     @Override
     public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
     {
-        kotlinClassKindMetadata.typeParametersAccept(clazz, delegate);
         visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
+
+        kotlinClassKindMetadata.typeParametersAccept(clazz, delegate);
     }
 
     @Override
