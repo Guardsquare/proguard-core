@@ -66,11 +66,10 @@ implements   Processable
     public Clazz              referencedLambdaClassOrigin;
 
 
-    public KotlinFunctionMetadata(int    flags,
-                                  String name)
+    public KotlinFunctionMetadata(KotlinFunctionFlags flags, String name)
     {
         this.name  = name;
-        this.flags = new KotlinFunctionFlags(flags);
+        this.flags = flags;
     }
 
 

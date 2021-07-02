@@ -457,7 +457,7 @@ implements KotlinMetadataVisitor,
                                   KotlinFunctionMetadata             kotlinFunctionMetadata)
         {
             KmFunctionVisitor kmdFunctionVisitor =
-                kmdWriter.visitFunction(kotlinFunctionMetadata.flags.asInt(),
+                kmdWriter.visitFunction(convertFunctionFlags(kotlinFunctionMetadata.flags),
                                         kotlinFunctionMetadata.name);
 
             kotlinFunctionMetadata.valueParametersAccept(clazz,
@@ -1285,7 +1285,7 @@ implements KotlinMetadataVisitor,
                                            KotlinFunctionMetadata           kotlinFunctionMetadata)
         {
             KmFunctionVisitor kmdFunctionVisitor =
-                kmdWriter.visitFunction(kotlinFunctionMetadata.flags.asInt(),
+                kmdWriter.visitFunction(convertFunctionFlags(kotlinFunctionMetadata.flags),
                                         kotlinFunctionMetadata.name);
 
             kotlinFunctionMetadata.valueParametersAccept(clazz,
@@ -1568,6 +1568,29 @@ implements KotlinMetadataVisitor,
         if (flags.isSealed)   flagSet.add(Flag.IS_SEALED);
 
         return flagSet;
+    }
+
+
+    private int convertFunctionFlags(KotlinFunctionFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        flagSet.addAll(convertCommonFlags(flags.common));
+        flagSet.addAll(convertVisibilityFlags(flags.visibility));
+        flagSet.addAll(convertModalityFlags(flags.modality));
+
+        if (flags.isDeclaration)  flagSet.add(Flag.Function.IS_DECLARATION);
+        if (flags.isFakeOverride) flagSet.add(Flag.Function.IS_FAKE_OVERRIDE);
+        if (flags.isDelegation)   flagSet.add(Flag.Function.IS_DELEGATION);
+        if (flags.isSynthesized)  flagSet.add(Flag.Function.IS_SYNTHESIZED);
+        if (flags.isOperator)     flagSet.add(Flag.Function.IS_OPERATOR);
+        if (flags.isInfix)        flagSet.add(Flag.Function.IS_INFIX);
+        if (flags.isInline)       flagSet.add(Flag.Function.IS_INLINE);
+        if (flags.isTailrec)      flagSet.add(Flag.Function.IS_TAILREC);
+        if (flags.isExternal)     flagSet.add(Flag.Function.IS_EXTERNAL);
+        if (flags.isSuspend)      flagSet.add(Flag.Function.IS_SUSPEND);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
     }
 
 

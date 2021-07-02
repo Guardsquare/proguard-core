@@ -17,10 +17,6 @@
  */
 package proguard.classfile.kotlin.flags;
 
-import kotlinx.metadata.*;
-
-import java.util.*;
-
 /**
  * Flags for Kotlin functions.
  *
@@ -40,14 +36,9 @@ import java.util.*;
 public class KotlinFunctionFlags extends KotlinFlags
 {
 
-    public KotlinCommonFlags     common     = new KotlinCommonFlags();
-    public KotlinVisibilityFlags visibility = new KotlinVisibilityFlags();
-    public KotlinModalityFlags   modality   = new KotlinModalityFlags();
-
-    protected List<KotlinFlags> getChildren()
-    {
-        return Arrays.asList(common,visibility,modality);
-    }
+    public final KotlinCommonFlags     common;
+    public final KotlinVisibilityFlags visibility;
+    public final KotlinModalityFlags   modality;
 
     /**
      * A member kind flag, signifying that the corresponding function is explicitly declared in the containing class.
@@ -107,27 +98,12 @@ public class KotlinFunctionFlags extends KotlinFlags
      */
     public boolean isExpect;
 
-    public KotlinFunctionFlags(int flags)
+    public KotlinFunctionFlags(KotlinCommonFlags     common,
+                               KotlinVisibilityFlags visibility,
+                               KotlinModalityFlags   modality)
     {
-        setFlags(flags);
+        this.common     = common;
+        this.visibility = visibility;
+        this.modality   = modality;
     }
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.Function.IS_DECLARATION,   new FlagValue(() -> isDeclaration,  newValue -> isDeclaration = newValue));
-        map.put(Flag.Function.IS_FAKE_OVERRIDE, new FlagValue(() -> isFakeOverride, newValue -> isFakeOverride = newValue));
-        map.put(Flag.Function.IS_DELEGATION,    new FlagValue(() -> isDelegation,   newValue -> isDelegation = newValue));
-        map.put(Flag.Function.IS_SYNTHESIZED,   new FlagValue(() -> isSynthesized,  newValue -> isSynthesized = newValue));
-        map.put(Flag.Function.IS_OPERATOR,      new FlagValue(() -> isOperator,     newValue -> isOperator = newValue));
-        map.put(Flag.Function.IS_INFIX,         new FlagValue(() -> isInfix,        newValue -> isInfix = newValue));
-        map.put(Flag.Function.IS_INLINE,        new FlagValue(() -> isInline,       newValue -> isInline = newValue));
-        map.put(Flag.Function.IS_TAILREC,       new FlagValue(() -> isTailrec,      newValue -> isTailrec = newValue));
-        map.put(Flag.Function.IS_EXTERNAL,      new FlagValue(() -> isExternal,     newValue -> isExternal = newValue));
-        map.put(Flag.Function.IS_SUSPEND,       new FlagValue(() -> isSuspend,      newValue -> isSuspend = newValue));
-        map.put(Flag.Function.IS_EXPECT,        new FlagValue(() -> isExpect,       newValue -> isExpect = newValue));
-        return map;
-    }
-
 }

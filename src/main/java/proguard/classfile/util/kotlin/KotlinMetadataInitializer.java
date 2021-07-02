@@ -484,7 +484,7 @@ implements AnnotationVisitor,
         @Override
         public KmFunctionVisitor visitFunction(int flags, String name)
         {
-            KotlinFunctionMetadata function = new KotlinFunctionMetadata(flags, name);
+            KotlinFunctionMetadata function = new KotlinFunctionMetadata(convertFunctionFlags(flags), name);
             functions.add(function);
 
             return new FunctionReader(function);
@@ -598,6 +598,7 @@ implements AnnotationVisitor,
 
             return flags;
         }
+
     }
 
 
@@ -621,7 +622,7 @@ implements AnnotationVisitor,
         @Override
         public KmFunctionVisitor visitFunction(int flags, String name)
         {
-            KotlinFunctionMetadata function = new KotlinFunctionMetadata(flags, name);
+            KotlinFunctionMetadata function = new KotlinFunctionMetadata(convertFunctionFlags(flags), name);
             functions.add(function);
 
             return new FunctionReader(function);
@@ -932,7 +933,7 @@ implements AnnotationVisitor,
         @Override
         public KmFunctionVisitor visitFunction(int flags, String name)
         {
-            KotlinFunctionMetadata function = new KotlinFunctionMetadata(flags, name);
+            KotlinFunctionMetadata function = new KotlinFunctionMetadata(convertFunctionFlags(flags), name);
             functions.add(function);
 
             return new FunctionReader(function);
@@ -1655,6 +1656,30 @@ implements AnnotationVisitor,
         flags.isFinal    = Flag.IS_FINAL.invoke(kotlinFlags);
         flags.isOpen     = Flag.IS_OPEN.invoke(kotlinFlags);
         flags.isSealed   = Flag.IS_SEALED.invoke(kotlinFlags);
+
+        return flags;
+    }
+
+
+    private KotlinFunctionFlags convertFunctionFlags(int kotlinFlags)
+    {
+        KotlinFunctionFlags flags = new KotlinFunctionFlags(
+            convertCommonFlags(kotlinFlags),
+            convertVisibilityFlags(kotlinFlags),
+            convertModalityFlags(kotlinFlags)
+        );
+
+        flags.isDeclaration  = Flag.Function.IS_DECLARATION.invoke(kotlinFlags);
+        flags.isFakeOverride = Flag.Function.IS_FAKE_OVERRIDE.invoke(kotlinFlags);
+        flags.isDelegation   = Flag.Function.IS_DELEGATION.invoke(kotlinFlags);
+        flags.isSynthesized  = Flag.Function.IS_SYNTHESIZED.invoke(kotlinFlags);
+        flags.isOperator     = Flag.Function.IS_OPERATOR.invoke(kotlinFlags);
+        flags.isInfix        = Flag.Function.IS_INFIX.invoke(kotlinFlags);
+        flags.isInline       = Flag.Function.IS_INLINE.invoke(kotlinFlags);
+        flags.isTailrec      = Flag.Function.IS_TAILREC.invoke(kotlinFlags);
+        flags.isExternal     = Flag.Function.IS_EXTERNAL.invoke(kotlinFlags);
+        flags.isSuspend      = Flag.Function.IS_SUSPEND.invoke(kotlinFlags);
+        flags.isExpect       = Flag.Function.IS_EXPECT.invoke(kotlinFlags);
 
         return flags;
     }
