@@ -15,8 +15,6 @@ plugins {
 sonarqube {
     properties {
         property "sonar.sources", "src"
-        property "sonar.projectKey", "Guardsquare_proguard-core"
-        property "sonar.organization", "guardsquare"
     }
 }
 
