@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
-          java-version: 8
+          java-version: 11
       - name: Sonar
         run: gradle -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=guardsquare -Dsonar.projectKey=Guardsquare_proguard-core sonarqube
         env:
