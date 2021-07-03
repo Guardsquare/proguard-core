@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - master
-      - sonar-test   
+      - sonar-test
   push:
     branches:
       - master
@@ -26,4 +26,4 @@ jobs:
            sonarqube
         env:
           GITHUB_TOKEN: ${{ secrets.PROGUARD_GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.PROGUARD_SONAR_TOKEN }}   
+          SONAR_TOKEN: ${{ secrets.PROGUARD_SONAR_TOKEN }}
