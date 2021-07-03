@@ -3,11 +3,11 @@ on:
   pull_request:
     branches:
       - master
-      - sonar-test
+      - setup-sonar-plugin
   push:
     branches:
       - master
-      - sonar-test
+      - setup-sonar-plugin
 jobs:
   build:
     runs-on: ubuntu-latest
