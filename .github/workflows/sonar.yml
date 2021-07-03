@@ -12,12 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: setup Java   
-        uses: actions/setup-java@v1
-          with:
-            java-version: 11
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
       - name: Sonar
         run: gradle -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=guardsquare -Dsonar.projectKey=Guardsquare_proguard-core sonarqube
         env:
