@@ -22,17 +22,11 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
-import proguard.classfile.Clazz
-import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
-import proguard.classfile.kotlin.KotlinFunctionMetadata
-import proguard.classfile.kotlin.KotlinMetadata
-import proguard.classfile.kotlin.KotlinPropertyMetadata
-import proguard.classfile.kotlin.KotlinTypeAliasMetadata
-import proguard.classfile.kotlin.KotlinTypeParameterMetadata
 import proguard.classfile.kotlin.visitor.AllTypeParameterVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
+import proguard.classfile.kotlin.visitor.filter.KotlinTypeParameterFilter
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 import testutils.ReWritingMetadataVisitor
@@ -131,66 +125,3 @@ private fun createVisitor(typeName: String, typeVisitor: KotlinTypeParameterVisi
             typeVisitor
         )
     )
-
-// TODO: temporary helper; remove when KotlinTypeParameterFilter is merged.
-private class KotlinTypeParameterFilter(private val predicate: Predicate<KotlinTypeParameterMetadata>, private val acceptedVisitor: KotlinTypeParameterVisitor) :
-    KotlinTypeParameterVisitor {
-    override fun visitAnyTypeParameter(clazz: Clazz, kotlinTypeParameterMetadata: KotlinTypeParameterMetadata) {}
-    override fun visitClassTypeParameter(
-        clazz: Clazz,
-        kotlinMetadata: KotlinMetadata,
-        kotlinTypeParameterMetadata: KotlinTypeParameterMetadata
-    ) {
-        (if (predicate.test(kotlinTypeParameterMetadata)) acceptedVisitor else null)?.visitClassTypeParameter(
-            clazz,
-            kotlinMetadata,
-            kotlinTypeParameterMetadata
-        )
-    }
-
-    override fun visitPropertyTypeParameter(
-        clazz: Clazz,
-        kotlinDeclarationContainerMetadata: KotlinDeclarationContainerMetadata,
-        kotlinPropertyMetadata: KotlinPropertyMetadata,
-        kotlinTypeParameterMetadata: KotlinTypeParameterMetadata
-    ) {
-        val delegate = if (predicate.test(kotlinTypeParameterMetadata)) acceptedVisitor else null
-        if (delegate != null) {
-            kotlinTypeParameterMetadata.accept(
-                clazz,
-                kotlinDeclarationContainerMetadata,
-                kotlinPropertyMetadata,
-                delegate
-            )
-        }
-    }
-
-    override fun visitFunctionTypeParameter(
-        clazz: Clazz,
-        kotlinMetadata: KotlinMetadata,
-        kotlinFunctionMetadata: KotlinFunctionMetadata,
-        kotlinTypeParameterMetadata: KotlinTypeParameterMetadata
-    ) {
-        val delegate = if (predicate.test(kotlinTypeParameterMetadata)) acceptedVisitor else null
-        if (delegate != null) {
-            kotlinTypeParameterMetadata.accept(clazz, kotlinMetadata, kotlinFunctionMetadata, delegate)
-        }
-    }
-
-    override fun visitAliasTypeParameter(
-        clazz: Clazz,
-        kotlinDeclarationContainerMetadata: KotlinDeclarationContainerMetadata,
-        kotlinTypeAliasMetadata: KotlinTypeAliasMetadata,
-        kotlinTypeParameterMetadata: KotlinTypeParameterMetadata
-    ) {
-        val delegate = if (predicate.test(kotlinTypeParameterMetadata)) acceptedVisitor else null
-        if (delegate != null) {
-            kotlinTypeParameterMetadata.accept(
-                clazz,
-                kotlinDeclarationContainerMetadata,
-                kotlinTypeAliasMetadata,
-                delegate
-            )
-        }
-    }
-}
