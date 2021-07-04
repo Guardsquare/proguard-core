@@ -45,7 +45,7 @@ implements   MemberVisitor
     public void visitProgramField(ProgramClass programClass, ProgramField programField)
     {
         programClass.kotlinMetadataAccept(
-            new AllKotlinPropertiesVisitor(
+            new AllPropertyVisitor(
                 new KotlinPropertyFilter(
                     prop -> prop.referencedBackingField == programField,
                     this.kotlinPropertyVisitor)));
@@ -55,7 +55,7 @@ implements   MemberVisitor
     public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
     {
         libraryClass.kotlinMetadataAccept(
-            new AllKotlinPropertiesVisitor(
+            new AllPropertyVisitor(
                 new KotlinPropertyFilter(
                     prop -> prop.referencedBackingField == libraryField,
                     this.kotlinPropertyVisitor)));
@@ -65,7 +65,7 @@ implements   MemberVisitor
     public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
     {
         programClass.kotlinMetadataAccept(
-            new AllKotlinPropertiesVisitor(
+            new AllPropertyVisitor(
                 new KotlinPropertyFilter(
                     prop -> prop.referencedGetterMethod == programMethod ||
                             prop.referencedSetterMethod == programMethod,
@@ -76,7 +76,7 @@ implements   MemberVisitor
     public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
     {
         libraryClass.kotlinMetadataAccept(
-            new AllKotlinPropertiesVisitor(
+            new AllPropertyVisitor(
                 new KotlinPropertyFilter(
                     prop -> prop.referencedGetterMethod == libraryMethod ||
                             prop.referencedSetterMethod == libraryMethod,

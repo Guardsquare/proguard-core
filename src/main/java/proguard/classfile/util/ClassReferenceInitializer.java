@@ -811,7 +811,7 @@ implements   ClassVisitor,
                     // Initialize missing references from interface properties
                     // to their backing field.
                     kotlinClassKindMetadata.accept(clazz,
-                                                   new AllKotlinPropertiesVisitor(
+                                                   new AllPropertyVisitor(
                                                    new KotlinInterClassPropertyReferenceInitializer(
                                                        kotlinClassKindMetadata.referencedDefaultImplsClass)));
                 }
@@ -889,7 +889,7 @@ implements   ClassVisitor,
                 // Initialize missing references from properties in multi-file parts
                 // that have their backing field on the multi-file facade class.
                 kotlinMultiFilePartKindMetadata.accept(clazz,
-                                                       new AllKotlinPropertiesVisitor(
+                                                       new AllPropertyVisitor(
                                                        new KotlinInterClassPropertyReferenceInitializer(kotlinMultiFilePartKindMetadata.referencedFacadeClass)));
             }
         }
@@ -1655,7 +1655,7 @@ implements   ClassVisitor,
         @Override
         public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
         {
-            clazz.kotlinMetadataAccept(new AllKotlinPropertiesVisitor(
+            clazz.kotlinMetadataAccept(new AllPropertyVisitor(
                                        new KotlinInterClassPropertyReferenceInitializer(classConstant.referencedClass)));
         }
     }

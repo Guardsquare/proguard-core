@@ -140,7 +140,7 @@ implements   KotlinMetadataVisitor
                             result.callableOwnerClass.hierarchyAccept(
                                 true, true, false, false,
                                 new ReferencedKotlinMetadataVisitor(
-                                new AllKotlinPropertiesVisitor(
+                                new AllPropertyVisitor(
                                 new KotlinPropertyFilter(
                                     prop -> prop.name.equals(result.callableName),
                                     (_clazz, declarationContainerMetadata, propertyMetadata) -> {

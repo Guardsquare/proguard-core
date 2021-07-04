@@ -26,7 +26,7 @@ import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.Clazz
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
-import proguard.classfile.kotlin.visitor.AllKotlinPropertiesVisitor
+import proguard.classfile.kotlin.visitor.AllPropertyVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
@@ -204,7 +204,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
 })
 
 private fun createVisitor(typeName: String, typeVisitor: KotlinPropertyVisitor): KotlinMetadataVisitor =
-    AllKotlinPropertiesVisitor(
+    AllPropertyVisitor(
         KotlinPropertyFilter(
             Predicate { it.name == typeName },
             typeVisitor

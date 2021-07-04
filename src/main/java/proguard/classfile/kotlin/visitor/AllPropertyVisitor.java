@@ -24,12 +24,12 @@ import proguard.classfile.kotlin.*;
  * This KotlinMetadataVisitor lets a given KotlinPropertyVisitor visit all properties
  * (regular and delegated) of visited KotlinDeclarationContainerMetadata.
  */
-public class AllKotlinPropertiesVisitor
+public class AllPropertyVisitor
 implements KotlinMetadataVisitor
 {
     private final KotlinPropertyVisitor delegatePropertyVisitor;
 
-    public AllKotlinPropertiesVisitor(KotlinPropertyVisitor kotlinPropertyVisitor)
+    public AllPropertyVisitor(KotlinPropertyVisitor kotlinPropertyVisitor)
     {
         this.delegatePropertyVisitor = kotlinPropertyVisitor;
     }

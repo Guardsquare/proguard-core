@@ -24,7 +24,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
-import proguard.classfile.kotlin.visitor.AllKotlinPropertiesVisitor
+import proguard.classfile.kotlin.visitor.AllPropertyVisitor
 import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import testutils.ClassPoolBuilder
@@ -40,7 +40,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
 
         "Then the property accessor flags should be set accordingly" {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
-            clazz.accept(ReferencedKotlinMetadataVisitor(AllKotlinPropertiesVisitor(propertyVisitor)))
+            clazz.accept(ReferencedKotlinMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
             verify {
                 propertyVisitor.visitProperty(
@@ -62,7 +62,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
 
         "Then the property accessor flags should be written and re-initialized correctly" {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
-            clazz.accept(ReWritingMetadataVisitor(AllKotlinPropertiesVisitor(propertyVisitor)))
+            clazz.accept(ReWritingMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
             verify {
                 propertyVisitor.visitProperty(
@@ -90,7 +90,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
 
         "Then the property accessor flags should be set accordingly" {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
-            clazz.accept(ReferencedKotlinMetadataVisitor(AllKotlinPropertiesVisitor(propertyVisitor)))
+            clazz.accept(ReferencedKotlinMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
             verify {
                 propertyVisitor.visitProperty(
@@ -112,7 +112,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
 
         "Then the property accessor flags should written and re-initialized correctly" {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
-            clazz.accept(ReWritingMetadataVisitor(AllKotlinPropertiesVisitor(propertyVisitor)))
+            clazz.accept(ReWritingMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
             verify {
                 propertyVisitor.visitProperty(
