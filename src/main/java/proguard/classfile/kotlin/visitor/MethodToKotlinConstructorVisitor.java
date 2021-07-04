@@ -44,7 +44,7 @@ implements   MemberVisitor
     public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
     {
         programClass.kotlinMetadataAccept(
-            new AllConstructorsVisitor(
+            new AllConstructorVisitor(
             new KotlinConstructorFilter(
                 func -> programMethod.equals(func.referencedMethod),
                 kotlinConstructorVisitor)));
@@ -54,7 +54,7 @@ implements   MemberVisitor
     public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
     {
         libraryClass.kotlinMetadataAccept(
-            new AllConstructorsVisitor(
+            new AllConstructorVisitor(
             new KotlinConstructorFilter(
                 func -> libraryMethod.equals(func.referencedMethod),
                 kotlinConstructorVisitor)));

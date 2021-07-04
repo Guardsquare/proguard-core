@@ -4,6 +4,7 @@
 
 - `KotlinTypeParameterVistor#visitClassParameter(Clazz, KotlinMetadata, KotlinTypeParameterMetadata)` now has the correct signature: `KotlinTypeParameterVistor#visitClassParameter(Clazz, KotlinClassKindMetadata, KotlinTypeParameterMetadata)`. 
 - Rename `AllKotlinPropertiesVisitor` to `AllPropertyVisitor`.
+- Rename `AllConstructorsVisitor` to `AllConstructorVisitor`.
 
 ## Version 7.1.1
 

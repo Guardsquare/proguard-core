@@ -24,7 +24,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.kotlin.KotlinClassKindMetadata
-import proguard.classfile.kotlin.visitor.AllConstructorsVisitor
+import proguard.classfile.kotlin.visitor.AllConstructorVisitor
 import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
@@ -130,7 +130,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
 })
 
 private fun createVisitor(consVisitor: KotlinConstructorVisitor, primary: Boolean): KotlinMetadataVisitor =
-    AllConstructorsVisitor(
+    AllConstructorVisitor(
         KotlinConstructorFilter(
             Predicate { if (primary) it.valueParameters.size == 1 else it.valueParameters.size > 1 },
             consVisitor

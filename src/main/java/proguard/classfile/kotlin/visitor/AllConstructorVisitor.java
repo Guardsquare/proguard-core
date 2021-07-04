@@ -23,13 +23,13 @@ import proguard.classfile.kotlin.*;
 /**
  * This KotlinMetadataVisitor lets a given KotlinConstructorVisitor visit all constructors of visited KotlinMetadata.
  */
-public class   AllConstructorsVisitor
+public class AllConstructorVisitor
     implements KotlinMetadataVisitor
 {
     private final KotlinConstructorVisitor delegateConstructorVisitor;
 
 
-    public AllConstructorsVisitor(KotlinConstructorVisitor delegateConstructorVisitor)
+    public AllConstructorVisitor(KotlinConstructorVisitor delegateConstructorVisitor)
     {
         this.delegateConstructorVisitor = delegateConstructorVisitor;
     }
