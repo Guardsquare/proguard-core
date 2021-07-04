@@ -27,7 +27,7 @@ import proguard.classfile.Clazz
 import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
 import proguard.classfile.kotlin.visitor.AllConstructorVisitor
-import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllPropertyVisitor
 import proguard.classfile.kotlin.visitor.AllTypeAliasVisitor
 import proguard.classfile.kotlin.visitor.AllTypeParameterVisitor
@@ -126,7 +126,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 kotlinClassVisitor,
                 AllConstructorVisitor(kotlinConstructorVisitor),
                 AllPropertyVisitor(kotlinPropertyVisitor),
-                AllFunctionsVisitor(
+                AllFunctionVisitor(
                     kotlinFunctionVisitor,
                     AllValueParameterVisitor(kotlinValueParamVisitor),
                     AllTypeParameterVisitor(kotlinTypeParamVisitor)

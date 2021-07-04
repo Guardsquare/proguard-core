@@ -23,7 +23,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.kotlin.KotlinMetadata
-import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
@@ -261,7 +261,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
     // TODO isExpect
 })
 
-private fun createVisitor(funcVisitor: KotlinFunctionVisitor, name: String) = AllFunctionsVisitor(
+private fun createVisitor(funcVisitor: KotlinFunctionVisitor, name: String) = AllFunctionVisitor(
     KotlinFunctionFilter(
         Predicate { it.name == name },
         funcVisitor

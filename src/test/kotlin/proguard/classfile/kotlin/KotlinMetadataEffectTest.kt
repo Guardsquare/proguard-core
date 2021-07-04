@@ -27,7 +27,7 @@ import proguard.classfile.kotlin.KotlinEffectInvocationKind.AT_MOST_ONCE
 import proguard.classfile.kotlin.KotlinEffectInvocationKind.EXACTLY_ONCE
 import proguard.classfile.kotlin.KotlinEffectType.CALLS
 import proguard.classfile.kotlin.KotlinEffectType.RETURNS_CONSTANT
-import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinEffectVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
@@ -97,7 +97,7 @@ class KotlinMetadataEffectTest : FreeSpec({
     fun visitFunctionEffectMetadata(funcName: String, effectVisitor: KotlinEffectVisitor) {
         programClassPool.classesAccept(
             ReferencedKotlinMetadataVisitor(
-                AllFunctionsVisitor(
+                AllFunctionVisitor(
                     KotlinFunctionFilter(
                         { it.name == funcName },
                         { clazz, metadata, func ->

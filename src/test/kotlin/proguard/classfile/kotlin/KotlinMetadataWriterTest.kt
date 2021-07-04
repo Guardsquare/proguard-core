@@ -40,7 +40,7 @@ import proguard.classfile.kotlin.KotlinAnnotationArgument.UByteValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.UIntValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.ULongValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.UShortValue
-import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
@@ -88,7 +88,7 @@ class KotlinMetadataWriterTest : FreeSpec({
         programClassPool.classesAccept(
             ReWritingMetadataVisitor(
                 metadataVisitor,
-                AllFunctionsVisitor(functionVisitor)
+                AllFunctionVisitor(functionVisitor)
             )
         )
 

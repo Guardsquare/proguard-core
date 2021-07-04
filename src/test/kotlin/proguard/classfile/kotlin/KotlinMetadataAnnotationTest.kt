@@ -32,7 +32,7 @@ import proguard.classfile.kotlin.KotlinAnnotationArgument.UByteValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.UIntValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.ULongValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.UShortValue
-import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.AllTypeAliasVisitor
@@ -344,7 +344,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
 
         programClassPool.classesAccept(
             ReferencedKotlinMetadataVisitor(
-                AllFunctionsVisitor(
+                AllFunctionVisitor(
                     KotlinFunctionFilter(
                         Predicate { func -> func.name == "foo" },
                         AllTypeParameterVisitor(

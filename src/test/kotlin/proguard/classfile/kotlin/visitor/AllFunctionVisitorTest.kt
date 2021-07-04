@@ -36,7 +36,7 @@ class AllFunctionVisitorTest : FreeSpec({
 
     "Given a class with 2 functions" - {
         val funcVisitor = spyk<KotlinFunctionVisitor>()
-        val allFunctionVisitor = AllFunctionsVisitor(funcVisitor)
+        val allFunctionVisitor = AllFunctionVisitor(funcVisitor)
         val fooClass = programClassPool.getClass("Foo")
 
         "then function `foo` and `bar` should be visited" {
@@ -54,7 +54,7 @@ class AllFunctionVisitorTest : FreeSpec({
 
     "Given a file facade with 2 functions" - {
         val funcVisitor = spyk<KotlinFunctionVisitor>()
-        val allFunctionVisitor = AllFunctionsVisitor(funcVisitor)
+        val allFunctionVisitor = AllFunctionVisitor(funcVisitor)
         val fooClass = programClassPool.getClass("TestKt")
 
         "then function `foo` and `bar` should be visited" {

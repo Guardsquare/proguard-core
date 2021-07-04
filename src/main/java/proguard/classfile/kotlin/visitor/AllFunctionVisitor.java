@@ -24,12 +24,12 @@ import proguard.classfile.kotlin.*;
  * This KotlinMetadataVisitor lets a given KotlinFunctionVisitor visit all functions
  * of visited KotlinMetadata.
  */
-public class AllFunctionsVisitor
+public class AllFunctionVisitor
 implements   KotlinMetadataVisitor
 {
     private final KotlinFunctionVisitor[] delegateFunctionVisitors;
 
-    public AllFunctionsVisitor(KotlinFunctionVisitor ... kotlinFunctionVisitor)
+    public AllFunctionVisitor(KotlinFunctionVisitor ... kotlinFunctionVisitor)
     {
         this.delegateFunctionVisitors = kotlinFunctionVisitor;
     }
