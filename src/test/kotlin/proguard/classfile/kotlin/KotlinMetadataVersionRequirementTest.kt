@@ -32,7 +32,7 @@ import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 
 class KotlinMetadataVersionRequirementTest : FreeSpec({
-    val programClassPool = ClassPoolBuilder.fromSource(
+    val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
             """

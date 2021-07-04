@@ -14,7 +14,7 @@ import testutils.ReWritingMetadataVisitor
 
 class KotlinClassFlagsTest : FreeSpec({
 
-    val programClassPool = ClassPoolBuilder.fromSource(
+    val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
             """

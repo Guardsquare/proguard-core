@@ -41,7 +41,7 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
             inline fun <reified ReifiedT> bar(): Int = 42
             """
         )
-    ).getClass("TestKt")
+    ).programClassPool.getClass("TestKt")
 
     "Given a non-reified type parameter" - {
 

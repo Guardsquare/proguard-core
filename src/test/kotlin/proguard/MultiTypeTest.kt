@@ -111,7 +111,7 @@ class MultiTypeTest : FreeSpec({
         }
         """
     )
-    val classPool = ClassPoolBuilder.fromSource(codeSuper, codeA, codeB, codeTarget, javacArguments = listOf("-g"))
+    val (classPool, _) = ClassPoolBuilder.fromSource(codeSuper, codeA, codeB, codeTarget, javacArguments = listOf("-g"))
 
     "Code examples" - {
         "Exact type" {

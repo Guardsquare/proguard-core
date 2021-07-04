@@ -36,7 +36,7 @@ import java.util.function.Predicate
 
 class KotlinConstructorFlagsTest : FreeSpec({
 
-    val programClassPool = ClassPoolBuilder.fromSource(
+    val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
             """

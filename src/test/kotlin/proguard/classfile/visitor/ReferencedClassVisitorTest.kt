@@ -24,14 +24,13 @@ import io.mockk.verify
 import proguard.classfile.LibraryClass
 import proguard.classfile.ProgramClass
 import testutils.ClassPoolBuilder
-import testutils.ClassPoolBuilder.Companion.libraryClassPool
 import testutils.KotlinSource
 import proguard.classfile.kotlin.KotlinConstants.dummyClassPool as kotlinDummyClassPool
 
 class ReferencedClassVisitorTest : FreeSpec({
 
     "Given Kotlin classes" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
                 """

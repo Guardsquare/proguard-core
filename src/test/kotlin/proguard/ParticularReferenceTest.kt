@@ -23,7 +23,7 @@ import testutils.JavaSource
 class ParticularReferenceTest : FreeSpec({
 
     "Unknown value if different possibilities exist - loop" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -57,7 +57,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Unknown value if different possibilities exist - branch" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -93,7 +93,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Unknown value for non-final field" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -124,7 +124,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple usage" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -151,7 +151,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple concat" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -180,7 +180,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple append" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -210,7 +210,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Append length" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -241,7 +241,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple String concat" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -271,7 +271,7 @@ class ParticularReferenceTest : FreeSpec({
         }
     }
     "Static final field" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -301,7 +301,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "StringBuilder functions" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -334,7 +334,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "StringBuffer functions" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -367,7 +367,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "String functions" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -404,7 +404,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Failed casting" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -435,7 +435,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Correct internal stack state after partial evaluation - StringBuilder" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -503,7 +503,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Correct internal stack state after partial evaluation - StringBuffer" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """

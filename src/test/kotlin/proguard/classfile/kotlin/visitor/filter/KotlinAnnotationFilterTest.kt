@@ -35,7 +35,7 @@ import java.util.function.Predicate
 class KotlinAnnotationFilterTest : FreeSpec({
 
     "Given a Kotlin file facade with annotated entities" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
                 """

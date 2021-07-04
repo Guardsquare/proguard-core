@@ -35,7 +35,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
     "Given a public type alias without annotation" - {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource("Test.kt", "typealias privateAlias = String")
-        ).getClass("TestKt")
+        ).programClassPool.getClass("TestKt")
 
         "Then the flags should be initialized correctly" {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
@@ -85,7 +85,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
     "Given a private type alias without annotation" - {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource("Test.kt", "private typealias privateAlias = String")
-        ).getClass("TestKt")
+        ).programClassPool.getClass("TestKt")
 
         "Then the flags should be initialized correctly" {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
@@ -143,7 +143,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                 typealias privateAlias = String
                 """.trimIndent()
             )
-        ).getClass("TestKt")
+        ).programClassPool.getClass("TestKt")
 
         "Then the hasAnnotation common flag should be initialized correctly" {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()

@@ -23,7 +23,7 @@ import testutils.KotlinSource
 class ClassReferenceInitializerTest : FreeSpec({
 
     "Kotlin annotations should be initialized correctly" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
                 """

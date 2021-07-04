@@ -41,6 +41,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import javax.lang.model.SourceVersion
 
+data class ClassPools(val programClassPool: ClassPool, val libraryClassPool: ClassPool)
+
 class ClassPoolBuilder {
 
     companion object {
@@ -60,7 +62,7 @@ class ClassPoolBuilder {
         }
 
         @Suppress("UNCHECKED_CAST")
-        fun fromDirectory(dir: File): ClassPool =
+        fun fromDirectory(dir: File): ClassPools =
             fromSource(
                 *Files.walk(dir.toPath())
                     .filter { it.isJavaFile() || it.isKotlinFile() }
@@ -68,14 +70,14 @@ class ClassPoolBuilder {
                     .toArray() as Array<out TestSource>
             )
 
-        fun fromFiles(vararg file: File): ClassPool =
+        fun fromFiles(vararg file: File): ClassPools =
             fromSource(*file.map { TestSource.fromFile(it) }.toTypedArray())
 
         fun fromSource(
             vararg source: TestSource,
             javacArguments: List<String> = emptyList(),
             kotlincArguments: List<String> = emptyList()
-        ): ClassPool {
+        ): ClassPools {
             compiler.apply {
                 this.sources = source.filterNot { it is AssemblerSource }.map { it.asSourceFile() }
                 this.inheritClassPath = false
@@ -115,7 +117,7 @@ class ClassPoolBuilder {
             programClassPool.classesAccept(ClassSuperHierarchyInitializer(programClassPool, libraryClassPool))
             programClassPool.accept(ClassSubHierarchyInitializer())
 
-            return programClassPool
+            return ClassPools(programClassPool, libraryClassPool)
         }
     }
 

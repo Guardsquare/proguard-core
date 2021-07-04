@@ -68,7 +68,7 @@ class ClassReferenceFixerTest : FreeSpec({
     }
 
     "Kotlin annotations should be fixed correctly" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
                 """

@@ -41,7 +41,7 @@ class KotlinTypeFlagsTest : FreeSpec({
             fun foo(bar: suspend () -> Unit, string: String): Int? = 42
             """
         )
-    ).getClass("TestKt")
+    ).programClassPool.getClass("TestKt")
 
     "Given a non-nullable type" - {
         "Then the flags should be initialized correctly" {

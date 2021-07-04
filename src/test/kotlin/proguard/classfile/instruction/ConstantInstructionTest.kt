@@ -23,7 +23,7 @@ class ConstantInstructionTest : FreeSpec({
 
     "Constant instructions should be" - {
         "throwing if they have a class constant operand" {
-            val classPool = ClassPoolBuilder.fromSource(
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
                 JavaSource(
                     "Foo.java",
                     """
@@ -36,7 +36,7 @@ class ConstantInstructionTest : FreeSpec({
                 )
             )
 
-            val clazz = classPool.getClass("Foo")
+            val clazz = programClassPool.getClass("Foo")
             val method = clazz.findMethod("bar", "()V")
             var throwingLdcCount = 0
 
@@ -57,7 +57,7 @@ class ConstantInstructionTest : FreeSpec({
         }
 
         "not be throwing if they don't have a class constant operand" {
-            val classPool = ClassPoolBuilder.fromSource(
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
                 JavaSource(
                     "Foo.java",
                     """
@@ -70,7 +70,7 @@ class ConstantInstructionTest : FreeSpec({
                 )
             )
 
-            val clazz = classPool.getClass("Foo")
+            val clazz = programClassPool.getClass("Foo")
             val method = clazz.findMethod("bar", "()V")
             var throwingLdcCount = 0
 

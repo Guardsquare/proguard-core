@@ -50,7 +50,7 @@ import testutils.ReWritingMetadataVisitor
 class KotlinMetadataWriterTest : FreeSpec({
 
     "Given a file facade" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
                 """
@@ -144,7 +144,7 @@ class KotlinMetadataWriterTest : FreeSpec({
     }
 
     "Given an annotation" - {
-        val programClassPool = ClassPoolBuilder.fromSource(
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
                 """

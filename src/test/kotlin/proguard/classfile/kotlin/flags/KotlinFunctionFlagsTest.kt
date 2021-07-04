@@ -33,7 +33,7 @@ import testutils.ReWritingMetadataVisitor
 import java.util.function.Predicate
 
 class KotlinFunctionFlagsTest : FreeSpec({
-    val programClassPool = ClassPoolBuilder.fromSource(
+    val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
             """
