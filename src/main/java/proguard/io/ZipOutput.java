@@ -594,7 +594,7 @@ public class ZipOutput
             // Overridden methods for OutputStream.
 
             @Override
-            public void write(int b)
+            public synchronized void write(int b)
             {
                 super.write(b);
 
@@ -610,7 +610,7 @@ public class ZipOutput
 
 
             @Override
-            public void write(byte[] b, int off, int len)
+            public synchronized void write(byte[] b, int off, int len)
             {
                 super.write(b, off, len);
 
