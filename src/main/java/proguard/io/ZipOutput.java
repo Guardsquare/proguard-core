@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -505,7 +505,7 @@ public class ZipOutput
             int alignmentDelta = 0;
             if (!compressed)
             {
-                long dataOffset = outputStream.size() + 2 + nameLength + extraFieldLength;
+                long dataOffset = outputStream.size() + 2L + nameLength + extraFieldLength;
                 alignmentDelta = (int)(dataOffset % uncompressedAlignment);
                 if (alignmentDelta > 0)
                 {

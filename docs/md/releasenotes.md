@@ -12,6 +12,7 @@
  - Fix potential `NullPointerException` when initializing a Kotlin default implementation class that does not contain an initialized `jvmSignature`. (`T5442`)
  - Add missing `equals` method to `ParticularReferenceValue`.
  - Fix incorrect handling of `InterruptedException` in `ParallelAllClassVisitor`.
+ - Fix potential `ZipOutput` alignment issue when writing large uncompressed zip entries.
 
 ## Version 7.1 (June 2021)
 
