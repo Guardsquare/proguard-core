@@ -14,6 +14,7 @@
  - Fix incorrect handling of `InterruptedException` in `ParallelAllClassVisitor`.
  - Fix potential `ZipOutput` alignment issue when writing large uncompressed zip entries.
  - Fix potential `ZipOutput` synchronization issue when writing uncompressed zip entries.
+ - Fix potential `NullPointerException` when comparing strings with `FixedStringMatcher`.
 
 ## Version 7.1 (June 2021)
 

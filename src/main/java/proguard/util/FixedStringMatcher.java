@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,8 @@ public class FixedStringMatcher extends StringMatcher
         return stringLength >= fixedStringLength &&
                string.startsWith(fixedString, beginOffset) &&
                ((nextMatcher == null && stringLength == fixedStringLength) ||
-                nextMatcher.matches(string,
+                (nextMatcher != null && nextMatcher.matches(string,
                                     beginOffset + fixedStringLength,
-                                    endOffset));
+                                    endOffset)));
     }
 }
