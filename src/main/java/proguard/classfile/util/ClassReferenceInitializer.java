@@ -1360,6 +1360,7 @@ implements   ClassVisitor,
                                   KotlinFunctionMetadata             kotlinFunctionMetadata)
         {
             if (defaultImplsClass != null &&
+                kotlinFunctionMetadata.jvmSignature != null &&
                 !kotlinFunctionMetadata.flags.modality.isAbstract)
             {
                 kotlinFunctionMetadata.referencedDefaultImplementationMethod =
