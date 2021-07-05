@@ -66,7 +66,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
 
             verify {
                 propertyVisitor.visitProperty(
-                    clazz,git status
+                    clazz,
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
                         // getterFlags should be set correctly
