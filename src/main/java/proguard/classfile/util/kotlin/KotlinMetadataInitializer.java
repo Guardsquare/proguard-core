@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@ import proguard.classfile.visitor.ClassVisitor;
 
 import java.util.*;
 
-import static proguard.classfile.kotlin.JvmFieldSignature.*;
-import static proguard.classfile.kotlin.JvmMethodSignature.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 
 /**
@@ -493,7 +491,10 @@ implements AnnotationVisitor,
         @Override
         public KmPropertyVisitor visitProperty(int flags, String name, int getterFlags, int setterFlags)
         {
-            KotlinPropertyMetadata property = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
+            KotlinPropertyMetadata property = new KotlinPropertyMetadata(convertPropertyFlags(flags),
+                                                                         name,
+                                                                         convertPropertyAccessorFlags(getterFlags),
+                                                                         convertPropertyAccessorFlags(setterFlags));
             properties.add(property);
 
             return new PropertyReader(property);
@@ -551,7 +552,11 @@ implements AnnotationVisitor,
             @Override
             public KmPropertyVisitor visitLocalDelegatedProperty(int flags, String name, int getterFlags, int setterFlags)
             {
-                KotlinPropertyMetadata delegatedProperty = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
+                KotlinPropertyMetadata delegatedProperty =
+                    new KotlinPropertyMetadata(convertPropertyFlags(flags),
+                                               name,
+                                               convertPropertyAccessorFlags(getterFlags),
+                                               convertPropertyAccessorFlags(setterFlags));
                 localDelegatedProperties.add(delegatedProperty);
 
                 return new PropertyReader(delegatedProperty);
@@ -942,7 +947,10 @@ implements AnnotationVisitor,
         @Override
         public KmPropertyVisitor visitProperty(int flags, String name, int getterFlags, int setterFlags)
         {
-            KotlinPropertyMetadata property = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
+            KotlinPropertyMetadata property = new KotlinPropertyMetadata(convertPropertyFlags(flags),
+                                                                         name,
+                                                                         convertPropertyAccessorFlags(getterFlags),
+                                                                         convertPropertyAccessorFlags(setterFlags));
             properties.add(property);
 
             return new PropertyReader(property);
@@ -979,7 +987,11 @@ implements AnnotationVisitor,
             @Override
             public KmPropertyVisitor visitLocalDelegatedProperty(int flags, String name, int getterFlags, int setterFlags)
             {
-                KotlinPropertyMetadata delegatedProperty = new KotlinPropertyMetadata(convertPropertyFlags(flags), name, getterFlags, setterFlags);
+                KotlinPropertyMetadata delegatedProperty =
+                    new KotlinPropertyMetadata(convertPropertyFlags(flags),
+                                               name,
+                                               convertPropertyAccessorFlags(getterFlags),
+                                               convertPropertyAccessorFlags(setterFlags));
                 localDelegatedProperties.add(delegatedProperty);
 
                 return new PropertyReader(delegatedProperty);
@@ -1748,6 +1760,23 @@ implements AnnotationVisitor,
     private void setPropertyJvmFlags(KotlinPropertyFlags flags, int jvmFlags)
     {
         flags.isMovedFromInterfaceCompanion =
-                JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION.invoke(jvmFlags);
+            JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION.invoke(jvmFlags);
     }
+
+
+    private KotlinPropertyAccessorFlags convertPropertyAccessorFlags(int kotlinFlags)
+    {
+        KotlinPropertyAccessorFlags flags = new KotlinPropertyAccessorFlags(
+            convertCommonFlags(kotlinFlags),
+            convertVisibilityFlags(kotlinFlags),
+            convertModalityFlags(kotlinFlags)
+        );
+
+        flags.isDefault  = !Flag.PropertyAccessor.IS_NOT_DEFAULT.invoke(kotlinFlags);
+        flags.isExternal = Flag.PropertyAccessor.IS_EXTERNAL.invoke(kotlinFlags);
+        flags.isInline   = Flag.PropertyAccessor.IS_INLINE.invoke(kotlinFlags);
+
+        return flags;
+    }
+
 }

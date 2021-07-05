@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package proguard.classfile.kotlin;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.*;
 import proguard.classfile.kotlin.visitor.*;
-import proguard.classfile.visitor.MemberVisitor;
 import proguard.util.*;
 
 import java.util.List;
@@ -63,15 +62,15 @@ extends      SimpleProcessable
     public Method             referencedSyntheticMethodForAnnotations;
 
 
-    public KotlinPropertyMetadata(KotlinPropertyFlags flags,
-                                  String              name,
-                                  int                 getterFlags,
-                                  int                 setterFlags)
+    public KotlinPropertyMetadata(KotlinPropertyFlags         flags,
+                                  String                      name,
+                                  KotlinPropertyAccessorFlags getterFlags,
+                                  KotlinPropertyAccessorFlags setterFlags)
     {
         this.name        = name;
         this.flags       = flags;
-        this.getterFlags = new KotlinPropertyAccessorFlags(getterFlags);
-        this.setterFlags = new KotlinPropertyAccessorFlags(setterFlags);
+        this.getterFlags = getterFlags;
+        this.setterFlags = setterFlags;
     }
 
 

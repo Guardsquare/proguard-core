@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -427,8 +427,8 @@ implements KotlinMetadataVisitor,
             kmdPropertyVisitor =
                 kmdWriter.visitProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
                                         kotlinPropertyMetadata.name,
-                                        kotlinPropertyMetadata.getterFlags.asInt(),
-                                        kotlinPropertyMetadata.setterFlags.asInt());
+                                        convertPropertyAccessorFlags(kotlinPropertyMetadata.getterFlags),
+                                        convertPropertyAccessorFlags(kotlinPropertyMetadata.setterFlags));
 
             visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
         }
@@ -441,8 +441,8 @@ implements KotlinMetadataVisitor,
             kmdPropertyVisitor =
                 extensionVisitor.visitLocalDelegatedProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
                                                              kotlinPropertyMetadata.name,
-                                                             kotlinPropertyMetadata.getterFlags.asInt(),
-                                                             kotlinPropertyMetadata.setterFlags.asInt());
+                                                             convertPropertyAccessorFlags(kotlinPropertyMetadata.getterFlags),
+                                                             convertPropertyAccessorFlags(kotlinPropertyMetadata.setterFlags));
 
             visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
         }
@@ -1660,7 +1660,24 @@ implements KotlinMetadataVisitor,
     private int convertPropertyJvmFlags(KotlinPropertyFlags flags)
     {
         return flags.isMovedFromInterfaceCompanion ?
-                flagsOf(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION) :
-                0;
+            flagsOf(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION) :
+            0;
     }
+
+
+    private int convertPropertyAccessorFlags(KotlinPropertyAccessorFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        flagSet.addAll(convertCommonFlags(flags.common));
+        flagSet.addAll(convertVisibilityFlags(flags.visibility));
+        flagSet.addAll(convertModalityFlags(flags.modality));
+
+        if (! flags.isDefault) flagSet.add(Flag.PropertyAccessor.IS_NOT_DEFAULT);
+        if (flags.isInline)    flagSet.add(Flag.PropertyAccessor.IS_INLINE);
+        if (flags.isExternal)  flagSet.add(Flag.PropertyAccessor.IS_EXTERNAL);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
+    }
+
 }
