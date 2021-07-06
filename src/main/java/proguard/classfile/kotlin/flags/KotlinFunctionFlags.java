@@ -33,7 +33,7 @@ package proguard.classfile.kotlin.flags;
  *   - isAbstract
  *   - isSealed
  */
-public class KotlinFunctionFlags extends KotlinFlags
+public class KotlinFunctionFlags implements KotlinFlags
 {
 
     public final KotlinCommonFlags     common;

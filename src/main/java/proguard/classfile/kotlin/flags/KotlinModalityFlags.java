@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,8 @@
  */
 package proguard.classfile.kotlin.flags;
 
-import kotlinx.metadata.Flag;
 
-import java.util.*;
-
-public class KotlinModalityFlags extends KotlinFlags
+public class KotlinModalityFlags implements KotlinFlags
 {
     // Valid for: class, constructor, function, synthetic function, property (including getter + setter)
 
@@ -44,16 +41,4 @@ public class KotlinModalityFlags extends KotlinFlags
      * Signifies the declaration is 'sealed'
      */
     public boolean isSealed;
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.IS_FINAL,    new FlagValue(() -> isFinal,    newValue -> isFinal = newValue));
-        map.put(Flag.IS_OPEN,     new FlagValue(() -> isOpen,     newValue -> isOpen = newValue));
-        map.put(Flag.IS_ABSTRACT, new FlagValue(() -> isAbstract, newValue -> isAbstract = newValue));
-        map.put(Flag.IS_SEALED,   new FlagValue(() -> isSealed,   newValue -> isSealed = newValue));
-        return map;
-    }
-
 }

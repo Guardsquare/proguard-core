@@ -24,7 +24,7 @@ package proguard.classfile.kotlin.flags;
  *
  * hasAnnotations is valid.
  */
-public class KotlinValueParameterFlags extends KotlinFlags
+public class KotlinValueParameterFlags implements KotlinFlags
 {
     public final KotlinCommonFlags common;
 

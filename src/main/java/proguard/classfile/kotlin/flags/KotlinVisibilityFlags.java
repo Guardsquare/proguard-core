@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,8 @@
  */
 package proguard.classfile.kotlin.flags;
 
-import kotlinx.metadata.Flag;
 
-import java.util.*;
-
-public class KotlinVisibilityFlags extends KotlinFlags
+public class KotlinVisibilityFlags implements KotlinFlags
 {
     // Valid for: class, constructor, function, synthetic function, property (including getter + setter), typeAlias
 
@@ -59,18 +56,4 @@ public class KotlinVisibilityFlags extends KotlinFlags
      * Signifies that the declaration is declared inside a code block, not visible from outside
      */
     public boolean isLocal;
-
-
-    protected Map<Flag, FlagValue> getOwnProperties()
-    {
-        HashMap<Flag, FlagValue> map = new HashMap<>();
-        map.put(Flag.IS_INTERNAL,        new FlagValue(() -> isInternal, newValue -> isInternal = newValue));
-        map.put(Flag.IS_LOCAL,           new FlagValue(() -> isLocal, newValue -> isLocal = newValue));
-        map.put(Flag.IS_PRIVATE,         new FlagValue(() -> isPrivate, newValue -> isPrivate = newValue));
-        map.put(Flag.IS_PRIVATE_TO_THIS, new FlagValue(() -> isPrivateToThis, newValue -> isPrivateToThis = newValue));
-        map.put(Flag.IS_PROTECTED,       new FlagValue(() -> isProtected, newValue -> isProtected = newValue));
-        map.put(Flag.IS_PUBLIC,          new FlagValue(() -> isPublic, newValue -> isPublic = newValue));
-        return map;
-    }
-
 }

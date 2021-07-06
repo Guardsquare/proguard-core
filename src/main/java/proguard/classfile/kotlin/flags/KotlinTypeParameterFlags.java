@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
  */
 package proguard.classfile.kotlin.flags;
 
-import kotlinx.metadata.*;
-
-import java.util.*;
 
 /**
  * Flags for Kotlin type parameters.
@@ -28,7 +25,7 @@ import java.util.*;
  *
  * hasAnnotation is valid.
  */
-public class KotlinTypeParameterFlags extends KotlinFlags
+public class KotlinTypeParameterFlags implements KotlinFlags
 {
     public final KotlinCommonFlags common;
 

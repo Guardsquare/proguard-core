@@ -29,7 +29,7 @@ package proguard.classfile.kotlin.flags;
  *   - isPrivateToThis
  *   - isLocal
  */
-public class KotlinConstructorFlags extends KotlinFlags
+public class KotlinConstructorFlags implements KotlinFlags
 {
 
     public final KotlinCommonFlags     common;

@@ -17,7 +17,7 @@
  */
 package proguard.classfile.kotlin.flags;
 
-public class KotlinTypeAliasFlags extends KotlinFlags
+public class KotlinTypeAliasFlags implements KotlinFlags
 {
     public final KotlinVisibilityFlags visibility;
     public final KotlinCommonFlags     common;

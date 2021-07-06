@@ -34,7 +34,7 @@ package proguard.classfile.kotlin.flags;
  *   - isAbstract
  *   - isSealed
  */
-public class KotlinPropertyAccessorFlags extends KotlinFlags
+public class KotlinPropertyAccessorFlags implements KotlinFlags
 {
     public KotlinCommonFlags     common;
     public KotlinVisibilityFlags visibility;

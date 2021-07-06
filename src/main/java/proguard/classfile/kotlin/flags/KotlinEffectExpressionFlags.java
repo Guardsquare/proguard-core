@@ -22,7 +22,7 @@ package proguard.classfile.kotlin.flags;
  *
  * No valid common flags.
  */
-public class KotlinEffectExpressionFlags extends KotlinFlags
+public class KotlinEffectExpressionFlags implements KotlinFlags
 {
     /**
      * Signifies that the corresponding effect expression should be negated to compute the proposition or the conclusion of an effect.
