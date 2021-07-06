@@ -26,7 +26,7 @@ import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.Clazz
 import proguard.classfile.kotlin.KotlinEffectMetadata
-import proguard.classfile.kotlin.visitor.AllFunctionsVisitor
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinEffectExprVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
@@ -113,7 +113,7 @@ class KotlinEffectExpressionFlagsTest : FreeSpec({
 })
 
 private fun createVisitor(funcName: String, effectExprVisitor: KotlinEffectExprVisitor): KotlinMetadataVisitor =
-    AllFunctionsVisitor(
+    AllFunctionVisitor(
         KotlinFunctionFilter(
             { it.name == funcName },
             { clazz, metadata, func ->
