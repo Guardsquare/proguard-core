@@ -21,6 +21,8 @@ import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 
+import java.util.Objects;
+
 /**
  * This {@link ParticularReferenceValue} represents a particular reference value, i.e. a reference with an associated value.
  * E.g., a String with the value "HelloWorld".
@@ -170,6 +172,16 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
         return this.getClass().hashCode() ^
                (value == null ? 1 : value.hashCode());
     }
+
+
+    @Override
+    public boolean equals(Object object)
+    {
+        return super.equals(object) &&
+                object instanceof ParticularReferenceValue &&
+                Objects.equals(value, ((ParticularReferenceValue) object).value);
+    }
+
 
     @Override
     public int equal(ReferenceValue other)

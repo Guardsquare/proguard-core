@@ -10,6 +10,7 @@
  - Fix `AllTypeParameterVisitor` so that it visits type parameters defined in any kind of declaration container.
  - Fix `AllTypeParameterVisitor` so that it visits type parameters of type aliases.
  - Fix potential `NullPointerException` when initializing a Kotlin default implementation class that does not contain an initialized `jvmSignature`. (`T5442`)
+ - Add missing `equals` method to `ParticularReferenceValue`.
 
 ## Version 7.1 (June 2021)
 
