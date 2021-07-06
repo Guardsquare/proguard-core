@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 
 package proguard.resources.kotlinmodule.io;
 
-import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion;
 import kotlinx.metadata.jvm.*;
 import proguard.resources.kotlinmodule.KotlinModule;
 import proguard.classfile.util.ClassUtil;
@@ -26,6 +25,7 @@ import proguard.resources.file.visitor.*;
 
 import java.io.*;
 
+import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION;
 
 /**
  * @author James Hamilton
@@ -60,7 +60,7 @@ implements   ResourceFileVisitor
 
             kmModule.accept(writer);
 
-            byte[] transformedBytes = writer.write(JvmMetadataVersion.INSTANCE.toArray()).getBytes();
+            byte[] transformedBytes = writer.write(COMPATIBLE_METADATA_VERSION).getBytes();
             outputStream.write(transformedBytes);
         }
         catch (IOException e)
