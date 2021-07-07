@@ -21,30 +21,35 @@ import kotlinx.metadata.*;
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.*;
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.TypeConstants;
 import proguard.classfile.attribute.Attribute;
-import proguard.classfile.attribute.annotation.*;
-import proguard.classfile.attribute.annotation.visitor.*;
-import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.editor.*;
+import proguard.classfile.attribute.annotation.Annotation;
+import proguard.classfile.attribute.annotation.ArrayElementValue;
+import proguard.classfile.attribute.annotation.ConstantElementValue;
+import proguard.classfile.attribute.annotation.ElementValue;
+import proguard.classfile.attribute.annotation.visitor.AllAnnotationVisitor;
+import proguard.classfile.attribute.annotation.visitor.AllElementValueVisitor;
+import proguard.classfile.attribute.annotation.visitor.AnnotationTypeFilter;
+import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeNameFilter;
+import proguard.classfile.editor.ConstantPoolEditor;
+import proguard.classfile.editor.ConstantPoolShrinker;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.flags.*;
-import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
 import proguard.classfile.kotlin.visitor.*;
-import proguard.classfile.util.*;
+import proguard.classfile.util.WarningPrinter;
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
 import proguard.classfile.visitor.ClassVisitor;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import static kotlinx.metadata.FlagsKt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static kotlinx.metadata.FlagsKt.flagsOf;
+import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION;
 import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 
@@ -616,7 +621,7 @@ implements KotlinMetadataVisitor,
             classKmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = classKmdWriter.write(kotlinClassKindMetadata.mv,
+            KotlinClassHeader header = classKmdWriter.write(COMPATIBLE_METADATA_VERSION,
                                                             kotlinClassKindMetadata.bv,
                                                             kotlinClassKindMetadata.xi).getHeader();
 
@@ -1210,7 +1215,7 @@ implements KotlinMetadataVisitor,
             facadeKmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = facadeKmdWriter.write(kotlinFileFacadeKindMetadata.mv,
+            KotlinClassHeader header = facadeKmdWriter.write(COMPATIBLE_METADATA_VERSION,
                                                              kotlinFileFacadeKindMetadata.bv,
                                                              kotlinFileFacadeKindMetadata.xi).getHeader();
 
@@ -1259,7 +1264,7 @@ implements KotlinMetadataVisitor,
             kmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = kmdWriter.write(kotlinSyntheticClassKindMetadata.mv,
+            KotlinClassHeader header = kmdWriter.write(COMPATIBLE_METADATA_VERSION,
                                                        kotlinSyntheticClassKindMetadata.bv,
                                                        kotlinSyntheticClassKindMetadata.xi).getHeader();
 
@@ -1343,7 +1348,7 @@ implements KotlinMetadataVisitor,
             KotlinClassHeader header =
                 new KotlinClassMetadata.MultiFileClassFacade.Writer()
                     .write(kotlinMultiFileFacadeKindMetadata.partClassNames,
-                           kotlinMultiFileFacadeKindMetadata.mv,
+                           COMPATIBLE_METADATA_VERSION,
                            kotlinMultiFileFacadeKindMetadata.bv,
                            kotlinMultiFileFacadeKindMetadata.xi).getHeader();
 
@@ -1400,7 +1405,7 @@ implements KotlinMetadataVisitor,
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             KotlinClassHeader header = multiPartKmdWriter.write(kotlinMultiFilePartKindMetadata.facadeName,
-                                                                kotlinMultiFilePartKindMetadata.mv,
+                                                                COMPATIBLE_METADATA_VERSION,
                                                                 kotlinMultiFilePartKindMetadata.bv,
                                                                 kotlinMultiFilePartKindMetadata.xi).getHeader();
 
