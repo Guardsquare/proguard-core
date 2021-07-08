@@ -66,8 +66,10 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("${target}")
-    targetCompatibility = JavaVersion.toVersion("${target}")
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+
     withSourcesJar()
     withJavadocJar()
 }
@@ -80,7 +82,7 @@ test {
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
-        jvmTarget = "${target}"
+        jvmTarget = '1.8'
     }
 }
 
