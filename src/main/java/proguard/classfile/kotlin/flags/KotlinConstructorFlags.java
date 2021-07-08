@@ -48,6 +48,13 @@ public class KotlinConstructorFlags implements KotlinFlags
      */
     public boolean isSecondary;
 
+
+    /**
+     * Signifies that the corresponding constructor has non-stable parameter names,
+     * i.e. cannot be called with named arguments.
+     */
+    public boolean hasNonStableParameterNames;
+
     public KotlinConstructorFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility)
     {
         this.common     = common;

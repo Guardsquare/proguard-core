@@ -614,6 +614,8 @@ implements AnnotationVisitor,
                 flags.isSecondary = Flag.Constructor.IS_SECONDARY.invoke(kotlinFlags);
             }
 
+            flags.hasNonStableParameterNames = Flag.Constructor.HAS_NON_STABLE_PARAMETER_NAMES.invoke(kotlinFlags);
+
             return flags;
         }
     }

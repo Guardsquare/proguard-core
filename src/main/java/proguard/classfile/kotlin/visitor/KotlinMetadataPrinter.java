@@ -1070,7 +1070,9 @@ implements KotlinMetadataVisitor,
 
     private String constructorFlags(KotlinConstructorFlags flags)
     {
-        return visibilityFlags(flags.visibility) + (flags.isPrimary ? "primary " : "secondary ");
+        return visibilityFlags(flags.visibility) +
+               (flags.isPrimary                 ? "primary "   : "secondary ") +
+               (flags.hasNonStableParameterNames? "nonstable " : "stable ");
     }
 
     private String effectExpressionFlags(KotlinEffectExpressionFlags flags)

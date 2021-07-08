@@ -42,7 +42,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
             """
             // The tests will identify the constructors by the number of params.
             @Suppress("UNUSED_PARAMETER")
-            class Foo constructor(val param: String) {
+            class Foo constructor(param: String) {
                 constructor(param: String, param2: String) : this(param) { }
                 constructor(param: String, param2: String, param3: String) : this(param) { }
                 constructor(param: String, param2: String, param3: String, param4: String) : this(param) { }
@@ -207,6 +207,8 @@ class KotlinConstructorFlagsTest : FreeSpec({
             }
         }
     }
+
+    // TODO(T5550) Add test for hasNonStableParameterNames
 })
 
 private fun createVisitor(consVisitor: KotlinConstructorVisitor, primary: Boolean): KotlinMetadataVisitor =
