@@ -622,7 +622,6 @@ implements KotlinMetadataVisitor,
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             KotlinClassHeader header = classKmdWriter.write(COMPATIBLE_METADATA_VERSION,
-                                                            kotlinClassKindMetadata.bv,
                                                             kotlinClassKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1216,7 +1215,6 @@ implements KotlinMetadataVisitor,
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             KotlinClassHeader header = facadeKmdWriter.write(COMPATIBLE_METADATA_VERSION,
-                                                             kotlinFileFacadeKindMetadata.bv,
                                                              kotlinFileFacadeKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1265,7 +1263,6 @@ implements KotlinMetadataVisitor,
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             KotlinClassHeader header = kmdWriter.write(COMPATIBLE_METADATA_VERSION,
-                                                       kotlinSyntheticClassKindMetadata.bv,
                                                        kotlinSyntheticClassKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1349,7 +1346,6 @@ implements KotlinMetadataVisitor,
                 new KotlinClassMetadata.MultiFileClassFacade.Writer()
                     .write(kotlinMultiFileFacadeKindMetadata.partClassNames,
                            COMPATIBLE_METADATA_VERSION,
-                           kotlinMultiFileFacadeKindMetadata.bv,
                            kotlinMultiFileFacadeKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1406,7 +1402,6 @@ implements KotlinMetadataVisitor,
             // Finally store the protobuf contents in the fields of the enclosing class.
             KotlinClassHeader header = multiPartKmdWriter.write(kotlinMultiFilePartKindMetadata.facadeName,
                                                                 COMPATIBLE_METADATA_VERSION,
-                                                                kotlinMultiFilePartKindMetadata.bv,
                                                                 kotlinMultiFilePartKindMetadata.xi).getHeader();
 
             k  = header.getKind();

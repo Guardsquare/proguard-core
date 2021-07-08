@@ -52,14 +52,12 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
     api "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
 
-    // Kotlin version for tests should be the same as the dependencies
-    // of the kotlin-compile-testing and kotest.
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.32"
-    testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.4.32"
-    testImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.3.0'
-    testImplementation 'io.kotest:kotest-runner-junit5-jvm:4.5.0' // for kotest framework
-    testImplementation 'io.kotest:kotest-assertions-core-jvm:4.5.0' // for kotest core jvm assertions
-    testImplementation 'io.kotest:kotest-property-jvm:4.5.0' // for kotest property test
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    testImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.2'
+    testImplementation 'io.kotest:kotest-runner-junit5-jvm:4.6.0' // for kotest framework
+    testImplementation 'io.kotest:kotest-assertions-core-jvm:4.6.0' // for kotest core jvm assertions
+    testImplementation 'io.kotest:kotest-property-jvm:4.6.0' // for kotest property test
     testImplementation "io.mockk:mockk:1.12.0" // for mocking
 
     // For assembling ProGuard assembler snippets
