@@ -119,34 +119,47 @@ class KotlinMetadataAnnotationTest : FreeSpec({
     )
 
     "Given a type alias with 1 annotation" - {
-        val annotationVisitor = spyk<KotlinAnnotationVisitor>()
-        val allAnnotationVisitor = AllKotlinAnnotationVisitor(annotationVisitor)
         val fileFacadeClass = programClassPool.getClass("TestKt")
-        programClassPool.classesAccept(
-            ReferencedKotlinMetadataVisitor(
-                AllTypeAliasVisitor(allAnnotationVisitor)
-            )
-        )
-        val annotation = slot<KotlinAnnotation>()
 
         "Then there should be 1 annotation visited" {
+            val annotationVisitor = spyk<KotlinAnnotationVisitor>()
+            val allAnnotationVisitor = AllKotlinAnnotationVisitor(annotationVisitor)
+
+            programClassPool.classesAccept(
+                ReferencedKotlinMetadataVisitor(
+                    AllTypeAliasVisitor(allAnnotationVisitor)
+                )
+            )
+
             verify(exactly = 1) {
                 annotationVisitor.visitTypeAliasAnnotation(
                     fileFacadeClass,
                     ofType(KotlinTypeAliasMetadata::class),
-                    capture(annotation)
+                    withArg {
+                        it.className shouldBe "MyTypeAliasAnnotation"
+                    }
                 )
             }
         }
 
-        "Then the annotation class name should be correct" {
-            annotation.captured.className shouldBe "MyTypeAliasAnnotation"
-        }
-
         "Then the referenced class should be visitable" {
             val classVisitor = spyk<ClassVisitor>()
-            annotation.captured.referencedClassAccept(classVisitor)
-            verify(exactly = 1) { classVisitor.visitProgramClass(programClassPool.getClass("MyTypeAliasAnnotation") as ProgramClass) }
+            val annotationVisitor = KotlinAnnotationVisitor { _, _, annotation ->
+                annotation.referencedClassAccept(classVisitor)
+            }
+            val allAnnotationVisitor = AllKotlinAnnotationVisitor(annotationVisitor)
+
+            programClassPool.classesAccept(
+                ReferencedKotlinMetadataVisitor(
+                    AllTypeAliasVisitor(allAnnotationVisitor)
+                )
+            )
+
+            verify(exactly = 1) {
+                classVisitor.visitProgramClass(
+                    programClassPool.getClass("MyTypeAliasAnnotation") as ProgramClass
+                )
+            }
         }
 
         "Then the argument values should be correct" {
