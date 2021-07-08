@@ -700,7 +700,8 @@ implements KotlinMetadataVisitor,
             flagSet.addAll(convertCommonFlags(flags.common));
             flagSet.addAll(convertVisibilityFlags(flags.visibility));
 
-            if (flags.isPrimary) flagSet.add(Flag.Constructor.IS_PRIMARY);
+            if (flags.isPrimary)   flagSet.add(Flag.Constructor.IS_PRIMARY);
+            if (flags.isSecondary) flagSet.add(Flag.Constructor.IS_SECONDARY);
 
             return flagsOf(flagSet.toArray(new Flag[0]));
         }

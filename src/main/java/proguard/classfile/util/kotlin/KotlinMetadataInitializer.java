@@ -603,9 +603,19 @@ implements AnnotationVisitor,
 
             flags.isPrimary = Flag.Constructor.IS_PRIMARY.invoke(kotlinFlags);
 
+            // When reading older metadata where the isSecondary flag was not yet introduced,
+            // we initialize isSecondary based on isPrimary.
+            if (this.kotlinClassKindMetadata.mv[0] == 1 && this.kotlinClassKindMetadata.mv[1] == 1)
+            {
+                flags.isSecondary = !flags.isPrimary;
+            }
+            else
+            {
+                flags.isSecondary = Flag.Constructor.IS_SECONDARY.invoke(kotlinFlags);
+            }
+
             return flags;
         }
-
     }
 
 

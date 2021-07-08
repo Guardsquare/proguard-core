@@ -18,7 +18,7 @@
 
 package proguard.classfile.kotlin.flags
 
-import io.kotest.assertions.shouldFail
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
@@ -65,7 +65,10 @@ class KotlinConstructorFlagsTest : FreeSpec({
                     clazz,
                     ofType(KotlinClassKindMetadata::class),
                     withArg {
-                        it.flags.isPrimary shouldBe true
+                        withClue("Init: isPrimary shouldBe true") {
+                            @Suppress("DEPRECATION")
+                            it.flags.isPrimary shouldBe true
+                        }
                     }
                 )
             }
@@ -81,7 +84,46 @@ class KotlinConstructorFlagsTest : FreeSpec({
                     clazz,
                     ofType(KotlinClassKindMetadata::class),
                     withArg {
-                        it.flags.isPrimary shouldBe true
+                        withClue("Rewrite: isPrimary shouldBe true") {
+                            @Suppress("DEPRECATION")
+                            it.flags.isPrimary shouldBe true
+                        }
+                    }
+                )
+            }
+        }
+
+        "Then the isSecondary flag should be initialized to false" {
+            val consVisitor = spyk<KotlinConstructorVisitor>()
+
+            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, primary = true)))
+
+            verify(exactly = 1) {
+                consVisitor.visitConstructor(
+                    clazz,
+                    ofType(KotlinClassKindMetadata::class),
+                    withArg {
+                        withClue("Init: isSecondary shouldBe false") {
+                            it.flags.isSecondary shouldBe false
+                        }
+                    }
+                )
+            }
+        }
+
+        "Then the isSecondary flag should be written and re-initialized to false" {
+            val consVisitor = spyk<KotlinConstructorVisitor>()
+
+            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, primary = true)))
+
+            verify(exactly = 1) {
+                consVisitor.visitConstructor(
+                    clazz,
+                    ofType(KotlinClassKindMetadata::class),
+                    withArg {
+                        withClue("Rewrite: isSecondary shouldBe false") {
+                            it.flags.isSecondary shouldBe false
+                        }
                     }
                 )
             }
@@ -101,7 +143,8 @@ class KotlinConstructorFlagsTest : FreeSpec({
                     clazz,
                     ofType(KotlinClassKindMetadata::class),
                     withArg {
-                        shouldFail { // KT-42429: isPrimary is not correctly initialized by the kotlin metadata library
+                        withClue("Init: isPrimary shouldBe false") {
+                            @Suppress("DEPRECATION")
                             it.flags.isPrimary shouldBe false
                         }
                     }
@@ -119,8 +162,45 @@ class KotlinConstructorFlagsTest : FreeSpec({
                     clazz,
                     ofType(KotlinClassKindMetadata::class),
                     withArg {
-                        shouldFail { // KT-42429: isPrimary is not correctly initialized by the kotlin metadata library
+                        withClue("Rewrite: isPrimary shouldBe false") {
+                            @Suppress("DEPRECATION")
                             it.flags.isPrimary shouldBe false
+                        }
+                    }
+                )
+            }
+        }
+
+        "Then the isSecondary flag should be initialized to true" {
+            val consVisitor = spyk<KotlinConstructorVisitor>()
+
+            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, primary = false)))
+
+            verify(exactly = 4) {
+                consVisitor.visitConstructor(
+                    clazz,
+                    ofType(KotlinClassKindMetadata::class),
+                    withArg {
+                        withClue("Init: isSecondary shouldBe true") {
+                            it.flags.isSecondary shouldBe true
+                        }
+                    }
+                )
+            }
+        }
+
+        "Then the isSecondary flag should be written and re-initialized to true" {
+            val consVisitor = spyk<KotlinConstructorVisitor>()
+
+            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, primary = false)))
+
+            verify(exactly = 4) {
+                consVisitor.visitConstructor(
+                    clazz,
+                    ofType(KotlinClassKindMetadata::class),
+                    withArg {
+                        withClue("Rewrite: isSecondary shouldBe true") {
+                            it.flags.isSecondary shouldBe true
                         }
                     }
                 )

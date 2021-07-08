@@ -37,8 +37,16 @@ public class KotlinConstructorFlags implements KotlinFlags
 
     /**
      * Signifies that the corresponding constructor is the primary constructor.
+     * @deprecated Use {@link #isSecondary} instead.
      */
+    @Deprecated
     public boolean isPrimary;
+
+    /**
+     * Signifies that the corresponding constructor is secondary,
+     * i.e. declared not in the class header, but in the class body.
+     */
+    public boolean isSecondary;
 
     public KotlinConstructorFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility)
     {

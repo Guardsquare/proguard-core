@@ -42,6 +42,7 @@ import proguard.classfile.visitor.MultiClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 import java.lang.RuntimeException
+import java.util.Locale
 
 class ClassReferenceFixerTest : FreeSpec({
     "Kotlin nested class short names should be generated correctly" - {
@@ -145,7 +146,7 @@ class ClassReferenceFixerTest : FreeSpec({
                         AllMethodVisitor(
                             ClassRenamer(
                                 { it.name },
-                                { clazz, member -> "renamed${member.getName(clazz).capitalize()}" }
+                                { clazz, member -> "renamed${member.getName(clazz).replaceFirstChar(Char::uppercase)}" }
                             )
                         )
                     )
