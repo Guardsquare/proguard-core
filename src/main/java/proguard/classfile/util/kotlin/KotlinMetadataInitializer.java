@@ -589,6 +589,7 @@ implements AnnotationVisitor,
             flags.isExternal        = Flag.Class.IS_EXTERNAL.invoke(kotlinFlags);
             flags.isExpect          = Flag.Class.IS_EXPECT.invoke(kotlinFlags);
             flags.isInline          = Flag.Class.IS_INLINE.invoke(kotlinFlags);
+            flags.isFun             = Flag.Class.IS_FUN.invoke(kotlinFlags);
 
             return flags;
         }

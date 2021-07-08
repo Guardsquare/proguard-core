@@ -101,6 +101,12 @@ public class KotlinClassFlags implements KotlinFlags
      */
     public boolean isInline;
 
+    /**
+     * Signifies that the corresponding class is a functional interface,
+     * i.e. marked with the keyword `fun`.
+     */
+    public boolean isFun;
+
 
     public KotlinClassFlags(KotlinCommonFlags     common,
                             KotlinVisibilityFlags visibility,

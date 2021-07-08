@@ -28,6 +28,7 @@ class KotlinClassFlagsTest : FreeSpec({
             enum class EnumClass(val param:String) { EnumEntry("foo") }
             annotation class AnnotationClass
             object ObjectClass
+            fun interface funInterfaceClass { fun invoke() }
             """.trimIndent()
         )
     )
@@ -45,6 +46,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
     )
 
@@ -61,6 +63,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe true
+            it.isFun shouldBe false
         }
     )
 
@@ -77,6 +80,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
     )
 
@@ -93,6 +97,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
     )
 
@@ -109,6 +114,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe true
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
     )
 
@@ -125,6 +131,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
     )
 
@@ -141,6 +148,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
     )
 
@@ -159,6 +167,7 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
     )
 
@@ -175,7 +184,25 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isInline shouldBe false
+            it.isFun shouldBe false
         }
+    )
+
+    include(
+            testClassFlags(programClassPool.getClass("funInterfaceClass")) {
+                it.isUsualClass shouldBe false
+                it.isInterface shouldBe true
+                it.isEnumClass shouldBe false
+                it.isEnumEntry shouldBe false
+                it.isAnnotationClass shouldBe false
+                it.isObject shouldBe false
+                it.isCompanionObject shouldBe false
+                it.isInner shouldBe false
+                it.isData shouldBe false
+                it.isExternal shouldBe false
+                it.isInline shouldBe false
+                it.isFun shouldBe true
+            }
     )
 
     // TODO isExpect

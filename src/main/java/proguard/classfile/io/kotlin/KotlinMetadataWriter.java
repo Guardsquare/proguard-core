@@ -688,6 +688,7 @@ implements KotlinMetadataVisitor,
             if (flags.isExternal)        flagSet.add(Flag.Class.IS_EXTERNAL);
             if (flags.isExpect)          flagSet.add(Flag.Class.IS_EXPECT);
             if (flags.isInline)          flagSet.add(Flag.Class.IS_INLINE);
+            if (flags.isFun)             flagSet.add(Flag.Class.IS_FUN);
 
             return flagsOf(flagSet.toArray(new Flag[0]));
         }

@@ -1056,7 +1056,6 @@ implements KotlinMetadataVisitor,
            visibilityFlags(flags.visibility) + modalityFlags(flags.modality) +
            (flags.isAnnotationClass ? "annotation "       : "") +
            (flags.isUsualClass      ? "usual "            : "") +
-           (flags.isInterface       ? "interface "        : "") +
            (flags.isObject          ? "object "           : "") +
            (flags.isData            ? "data "             : "") +
            (flags.isInline          ? "inline "           : "") +
@@ -1065,7 +1064,9 @@ implements KotlinMetadataVisitor,
            (flags.isExternal        ? "external "         : "") +
            (flags.isCompanionObject ? "companion object " : "") +
            (flags.isEnumEntry       ? "enum entry "       : "") +
-           (flags.isEnumClass       ? "enum "             : "");
+           (flags.isEnumClass       ? "enum "             : "") +
+           (flags.isFun             ? "fun interface "    :
+                (flags.isInterface  ? "interface "        : ""));
     }
 
     private String constructorFlags(KotlinConstructorFlags flags)
