@@ -12,14 +12,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup Java  
+      - name: Setup Java
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      - name: Assemble    
+      - name: Assemble
         uses: eskatos/gradle-command-action@v1
         with:
-          arguments: assemble    
+          arguments: assemble
       - name: Check
         uses: eskatos/gradle-command-action@v1
         with:
