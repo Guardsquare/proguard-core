@@ -20,6 +20,7 @@ package proguard.classfile.kotlin;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
+import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.*;
 
@@ -27,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static proguard.classfile.util.ClassUtil.*;
 
 public class KotlinAnnotation
 extends      SimpleProcessable
@@ -112,10 +115,10 @@ implements   Processable
     @Override
     public String toString()
     {
-        return this.className + "(" +
+        return externalClassName(this.className) + "(" +
                this.arguments.stream()
                         .map(Objects::toString)
-                        .collect(Collectors.joining(", ", "{", "}")) +
+                        .collect(Collectors.joining(", ")) +
                 ")";
     }
 }

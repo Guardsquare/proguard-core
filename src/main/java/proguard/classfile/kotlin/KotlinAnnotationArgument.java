@@ -22,6 +22,7 @@ import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
+import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 import proguard.util.Processable;
@@ -33,6 +34,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
+import static proguard.classfile.util.ClassUtil.*;
 
 /**
  * Represents an argument of a {@link KotlinAnnotation} e.g.
@@ -411,7 +413,7 @@ implements   Processable
         @Override
         public String toString()
         {
-            return String.join("", nCopies(this.arrayDimensionsCount, "[")) + this.className;
+            return String.join("", nCopies(this.arrayDimensionsCount, "[")) + externalClassName(this.className);
         }
 
 
@@ -466,7 +468,7 @@ implements   Processable
         @Override
         public String toString()
         {
-            return this.className + "." + this.enumEntryName;
+            return externalClassName(this.className) + "." + this.enumEntryName;
         }
 
 
