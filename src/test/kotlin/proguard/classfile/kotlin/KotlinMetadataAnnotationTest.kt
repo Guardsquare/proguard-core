@@ -397,7 +397,7 @@ class KotlinMetadataAnnotationTest : FreeSpec({
         )
 
         "Then the toString should printed a string representation" {
-            annotation1.toString() shouldBe "A({arg1 = foo})"
+            annotation1.toString() shouldBe "A(arg1 = foo)"
         }
 
         "Then it should not be equal to null" {
