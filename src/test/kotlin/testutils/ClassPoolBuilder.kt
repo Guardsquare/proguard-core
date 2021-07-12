@@ -110,11 +110,20 @@ class ClassPoolBuilder private constructor() {
                 classReader.read(StreamingDataEntry(it.filename, it.getInputStream()))
             }
 
+            val classReferenceInitializer = ClassReferenceInitializer(programClassPool, libraryClassPool)
+            val classSuperHierarchyInitializer = ClassSuperHierarchyInitializer(programClassPool, libraryClassPool)
+            val classSubHierarchyInitializer = ClassSubHierarchyInitializer()
+
+            programClassPool.classesAccept(classSuperHierarchyInitializer)
+            libraryClassPool.classesAccept(classSuperHierarchyInitializer)
+
             if (source.count { it is KotlinSource } > 0) initializeKotlinMetadata(programClassPool)
 
-            programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
-            programClassPool.classesAccept(ClassSuperHierarchyInitializer(programClassPool, libraryClassPool))
-            programClassPool.accept(ClassSubHierarchyInitializer())
+            programClassPool.classesAccept(classReferenceInitializer)
+            libraryClassPool.classesAccept(classReferenceInitializer)
+
+            programClassPool.accept(classSubHierarchyInitializer)
+            libraryClassPool.accept(classSubHierarchyInitializer)
 
             return ClassPools(programClassPool, libraryClassPool)
         }
