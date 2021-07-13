@@ -19,11 +19,7 @@
 package testutils
 
 import proguard.classfile.Clazz
-import proguard.classfile.attribute.annotation.visitor.AllAnnotationVisitor
-import proguard.classfile.attribute.annotation.visitor.AnnotationTypeFilter
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.io.kotlin.KotlinMetadataWriter
-import proguard.classfile.kotlin.KotlinConstants
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.MultiKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
@@ -57,14 +53,7 @@ class ReWritingMetadataVisitor(private vararg val visitors: KotlinMetadataVisito
                 ReferencedKotlinMetadataVisitor(
                     KotlinMetadataWriter(warningPrinter)
                 ),
-                AllAttributeVisitor(
-                    AllAnnotationVisitor(
-                        AnnotationTypeFilter(
-                            KotlinConstants.TYPE_KOTLIN_METADATA,
-                            KotlinMetadataInitializer(warningPrinter)
-                        )
-                    )
-                ),
+                KotlinMetadataInitializer(warningPrinter),
                 ReferencedKotlinMetadataVisitor(
                     MultiKotlinMetadataVisitor(*visitors)
                 )

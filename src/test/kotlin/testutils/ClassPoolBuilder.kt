@@ -14,12 +14,6 @@ import io.kotest.core.test.TestCase
 import proguard.JbcReader
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
-import proguard.classfile.attribute.Attribute.RUNTIME_VISIBLE_ANNOTATIONS
-import proguard.classfile.attribute.annotation.visitor.AllAnnotationVisitor
-import proguard.classfile.attribute.annotation.visitor.AnnotationTypeFilter
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.attribute.visitor.AttributeNameFilter
-import proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_METADATA
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.ClassSubHierarchyInitializer
 import proguard.classfile.util.ClassSuperHierarchyInitializer
@@ -50,6 +44,11 @@ class ClassPoolBuilder private constructor() {
     companion object {
         private val compiler = KotlinCompilation()
         private val libraryClassPool by LibraryClassPoolBuilder(compiler)
+        private val nullWarningPrinter = WarningPrinter(
+            PrintWriter(object : OutputStream() {
+                override fun write(b: Int) { }
+            })
+        )
 
         fun fromClasses(vararg clazz: Clazz): ClassPool {
             return ClassPool().apply {
@@ -118,7 +117,8 @@ class ClassPoolBuilder private constructor() {
             programClassPool.classesAccept(classSuperHierarchyInitializer)
             libraryClassPool.classesAccept(classSuperHierarchyInitializer)
 
-            if (source.count { it is KotlinSource } > 0) initializeKotlinMetadata(programClassPool)
+            if (source.count { it is KotlinSource } > 0)
+                programClassPool.classesAccept(KotlinMetadataInitializer(nullWarningPrinter))
 
             programClassPool.classesAccept(classReferenceInitializer)
             libraryClassPool.classesAccept(classReferenceInitializer)
@@ -131,29 +131,6 @@ class ClassPoolBuilder private constructor() {
             return ClassPools(programClassPool, libraryClassPool)
         }
     }
-}
-
-private fun initializeKotlinMetadata(classPool: ClassPool) {
-    val kotlinMetadataInitializer =
-        AllAttributeVisitor(
-            AttributeNameFilter(
-                RUNTIME_VISIBLE_ANNOTATIONS,
-                AllAnnotationVisitor(
-                    AnnotationTypeFilter(
-                        TYPE_KOTLIN_METADATA,
-                        KotlinMetadataInitializer(
-                            WarningPrinter(
-                                PrintWriter(object : OutputStream() {
-                                    override fun write(b: Int) { }
-                                })
-                            )
-                        )
-                    )
-                )
-            )
-        )
-
-    classPool.classesAccept(kotlinMetadataInitializer)
 }
 
 private fun AssemblerSource.getInputStream() =

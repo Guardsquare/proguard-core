@@ -24,6 +24,8 @@ import kotlinx.metadata.jvm.*;
 import proguard.classfile.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.annotation.visitor.*;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeNameFilter;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
@@ -34,6 +36,7 @@ import proguard.classfile.visitor.ClassVisitor;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static proguard.classfile.attribute.Attribute.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
 
@@ -43,7 +46,8 @@ import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
  * lists in kotlinMetadata are initialized, even if empty.
  */
 public class KotlinMetadataInitializer
-implements AnnotationVisitor,
+implements ClassVisitor,
+           AnnotationVisitor,
 
            // Implementation interfaces.
            ElementValueVisitor,
@@ -67,6 +71,19 @@ implements AnnotationVisitor,
     public KotlinMetadataInitializer(WarningPrinter warningPrinter)
     {
         this.warningPrinter = warningPrinter;
+    }
+
+    // Implementations for ClassVisitor
+
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        clazz.accept(
+                new AllAttributeVisitor(
+                new AttributeNameFilter(RUNTIME_VISIBLE_ANNOTATIONS,
+                new AllAnnotationVisitor(
+                new AnnotationTypeFilter(TYPE_KOTLIN_METADATA,
+                        this)))));
     }
 
 

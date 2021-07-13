@@ -13,6 +13,7 @@
 
 - Add `KotlinTypeParameterFilter` to allow filtering easily when visiting type parameters.
 - Add `KotlinValueParameterFilter` to allow filtering easily when visiting value parameters.
+- Implement `ClassVisitor` in `KotlinMetadataInitializer` to allow easier initialization of Kotlin metadata.
 
 ### Bug fixes
 
