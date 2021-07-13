@@ -189,20 +189,20 @@ class KotlinClassFlagsTest : FreeSpec({
     )
 
     include(
-            testClassFlags(programClassPool.getClass("funInterfaceClass")) {
-                it.isUsualClass shouldBe false
-                it.isInterface shouldBe true
-                it.isEnumClass shouldBe false
-                it.isEnumEntry shouldBe false
-                it.isAnnotationClass shouldBe false
-                it.isObject shouldBe false
-                it.isCompanionObject shouldBe false
-                it.isInner shouldBe false
-                it.isData shouldBe false
-                it.isExternal shouldBe false
-                it.isInline shouldBe false
-                it.isFun shouldBe true
-            }
+        testClassFlags(programClassPool.getClass("funInterfaceClass")) {
+            it.isUsualClass shouldBe false
+            it.isInterface shouldBe true
+            it.isEnumClass shouldBe false
+            it.isEnumEntry shouldBe false
+            it.isAnnotationClass shouldBe false
+            it.isObject shouldBe false
+            it.isCompanionObject shouldBe false
+            it.isInner shouldBe false
+            it.isData shouldBe false
+            it.isExternal shouldBe false
+            it.isInline shouldBe false
+            it.isFun shouldBe true
+        }
     )
 
     // TODO isExpect
