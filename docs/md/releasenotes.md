@@ -16,6 +16,7 @@
  - Fix potential `ZipOutput` synchronization issue when writing uncompressed zip entries.
  - Fix potential `NullPointerException` when comparing strings with `FixedStringMatcher`.
  - Fix potential `NullPointerException` when comparing strings with `MatchedStringMatcher`.
+ - Fix initialization of Kotlin callable references when using Kotlin >= 1.4.
 
 ## Version 7.1 (June 2021)
 
