@@ -20,15 +20,24 @@ package proguard.classfile.kotlin.reflect.util;
 
 import proguard.classfile.*;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
-import proguard.classfile.constant.*;
+import proguard.classfile.constant.ClassConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.StringConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.instruction.visitor.*;
-import proguard.classfile.kotlin.*;
+import proguard.classfile.instruction.visitor.AllInstructionVisitor;
+import proguard.classfile.instruction.visitor.InstructionConstantVisitor;
+import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
+import proguard.classfile.kotlin.KotlinFunctionMetadata;
+import proguard.classfile.kotlin.KotlinMetadata;
+import proguard.classfile.kotlin.KotlinSyntheticClassKindMetadata;
 import proguard.classfile.kotlin.reflect.*;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.kotlin.visitor.filter.KotlinPropertyFilter;
-import proguard.classfile.util.*;
-import proguard.classfile.visitor.*;
+import proguard.classfile.util.MemberFinder;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberVisitor;
+
+import java.util.function.Consumer;
 
 import static proguard.classfile.kotlin.KotlinConstants.REFLECTION;
 
@@ -66,32 +75,27 @@ implements   KotlinMetadataVisitor
     {
         if (clazz.extendsOrImplements(REFLECTION.CALLABLE_REFERENCE_CLASS_NAME))
         {
-            CallableReferenceInfoLoader infoLoader = new CallableReferenceInfoLoader();
-
-            clazz.accept(infoLoader);
-
-            if (infoLoader.hasResult())
-            {
-                // First try to initialize a Kotlin reference (requires the owner Kotlin metadata)
+            Consumer<InfoLoaderResult> loader = result -> {
+                 // First try to initialize a Kotlin reference (requires the owner Kotlin metadata)
                 // otherwise try to initialize a Java reference.
 
                 if (clazz.extendsOrImplements(REFLECTION.FUNCTION_REFERENCE_CLASS_NAME))
                 {
                     Method method =
-                        memberFinder.findMethod(infoLoader.callableOwnerClass,
-                                                infoLoader.callableName,
-                                                infoLoader.callableSignature.substring(infoLoader.callableSignature.indexOf('(')));
+                        memberFinder.findMethod(result.callableOwnerClass,
+                                                result.callableName,
+                                                result.callableSignature.substring(result.callableSignature.indexOf('(')));
 
                     if (method != null)
                     {
                         Clazz methodReferencedClass = memberFinder.correspondingClass();
 
-                        if (infoLoader.hasOwnerMetadata())
+                        if (result.callableOwnerMetadata != null)
                         {
                             method.accept(methodReferencedClass,
                                 new MethodToKotlinFunctionVisitor(
-                                new FunctionReferenceInfoInitializer(infoLoader.callableOwnerClass,
-                                                                     infoLoader.callableOwnerMetadata,
+                                new FunctionReferenceInfoInitializer(result.callableOwnerClass,
+                                                                     result.callableOwnerMetadata,
                                                                      syntheticClassKindMetadata)));
                         }
 
@@ -100,44 +104,44 @@ implements   KotlinMetadataVisitor
                             // The class didn't have any Kotlin metadata attached
                             // so let's instead initialize a Java reference.
                             syntheticClassKindMetadata.callableReferenceInfo =
-                                new JavaMethodReferenceInfo(infoLoader.callableOwnerClass, methodReferencedClass, method);
+                                new JavaMethodReferenceInfo(result.callableOwnerClass, methodReferencedClass, method);
                         }
                     }
                 }
                 else if (clazz.extendsOrImplements(REFLECTION.LOCALVAR_REFERENCE_CLASS_NAME))
                 {
                     // Note: LocalVariableReference extends PropertyReference.
-                    if (infoLoader.hasOwnerMetadata())
+                    if (result.callableOwnerMetadata != null)
                     {
-                        infoLoader.callableOwnerClass.kotlinMetadataAccept(
+                        result.callableOwnerClass.kotlinMetadataAccept(
                             new LocalVariableReferenceInfoInitializer(
-                                infoLoader.callableOwnerClass,
-                                infoLoader.callableOwnerMetadata,
+                                result.callableOwnerClass,
+                                result.callableOwnerMetadata,
                                 syntheticClassKindMetadata,
-                                infoLoader.callableName,
-                                infoLoader.callableSignature));
+                                result.callableName,
+                                result.callableSignature));
                     }
                 }
                 else if (clazz.extendsOrImplements(REFLECTION.PROPERTY_REFERENCE_CLASS_NAME))
                 {
                     // Search the Kotlin hierarchy for the property, by name.
 
-                    if (infoLoader.hasOwnerMetadata())
+                    if (result.callableOwnerMetadata != null)
                     {
                         try
                         {
-                            infoLoader.callableOwnerClass.hierarchyAccept(
+                            result.callableOwnerClass.hierarchyAccept(
                                 true, true, false, false,
                                 new ReferencedKotlinMetadataVisitor(
                                 new AllKotlinPropertiesVisitor(
                                 new KotlinPropertyFilter(
-                                    prop -> prop.name.equals(infoLoader.callableName),
+                                    prop -> prop.name.equals(result.callableName),
                                     (_clazz, declarationContainerMetadata, propertyMetadata) -> {
                                         if (syntheticClassKindMetadata.callableReferenceInfo == null)
                                         {
                                             syntheticClassKindMetadata.callableReferenceInfo
-                                                = new PropertyReferenceInfo(infoLoader.callableOwnerClass,
-                                                                            infoLoader.callableOwnerMetadata,
+                                                = new PropertyReferenceInfo(result.callableOwnerClass,
+                                                                            result.callableOwnerMetadata,
                                                                             propertyMetadata);
                                             // Exit the search.
                                             throw new PropertyFoundException();
@@ -155,31 +159,26 @@ implements   KotlinMetadataVisitor
                         // If we couldn't find any in the Kotlin metadata, we can search for the field by name/descriptor (assuming there is a backing field).
 
                         Field field =
-                            memberFinder.findField(infoLoader.callableOwnerClass,
-                                                   infoLoader.callableName,
-                                                   infoLoader.callableSignature.substring(infoLoader.callableSignature.lastIndexOf(')') + 1));
+                            memberFinder.findField(result.callableOwnerClass,
+                                                   result.callableName,
+                                                   result.callableSignature.substring(result.callableSignature.lastIndexOf(')') + 1));
 
                         if (field != null)
                         {
                             syntheticClassKindMetadata.callableReferenceInfo =
-                                new JavaFieldReferenceInfo(infoLoader.callableOwnerClass, memberFinder.correspondingClass(), field);
+                                new JavaFieldReferenceInfo(result.callableOwnerClass, memberFinder.correspondingClass(), field);
                         }
                     }
                 }
-            }
+            };
+
+            clazz.accept(syntheticClassKindMetadata.mv[0] == 1 && syntheticClassKindMetadata.mv[1] <= 3 ?
+                            new CallableReferenceInfoLoader1dot3(loader) :
+                            clazz1 -> { /* not yet supported */ });
         }
     }
 
-
-    /**
-     * Helper class to load the callable reference information from the existing
-     * implementations in a class i.e. a class that implements CallableReference.
-     */
-    private static class CallableReferenceInfoLoader
-    implements           ClassVisitor,
-                         MemberVisitor,
-                         ConstantVisitor,
-                         KotlinMetadataVisitor
+    private static class InfoLoaderResult
     {
         // the "owner" (for the getOwner() method) is not necessarily
         // where the function/property is declared (e.g. could be in a superclass)
@@ -192,8 +191,26 @@ implements   KotlinMetadataVisitor
         // For properties it's the getter signature (even if a getter doesn't exist)
         // For local variables it's like <v#0>
         String callableSignature;
+    }
 
+    /**
+     * Helper class to load the callable reference information from the existing
+     * implementations in a class generated by Kotlin <= 1.3.
+     */
+    private static class CallableReferenceInfoLoader1dot3
+    implements           ClassVisitor,
+                         MemberVisitor,
+                         ConstantVisitor,
+                         KotlinMetadataVisitor
+    {
+        private final Consumer<InfoLoaderResult> infoLoaderResultConsumer;
+        private final InfoLoaderResult result = new InfoLoaderResult();
         private String currentMethod;
+
+        public CallableReferenceInfoLoader1dot3(Consumer<InfoLoaderResult> infoLoaderResultConsumer)
+        {
+            this.infoLoaderResultConsumer = infoLoaderResultConsumer;
+        }
 
         // Implementations for ClassVisitor.
 
@@ -201,10 +218,13 @@ implements   KotlinMetadataVisitor
         public void visitAnyClass(Clazz clazz)
         {
             clazz.methodsAccept(this);
-            if (this.callableOwnerClass != null)
+
+            if (result.callableOwnerClass != null)
             {
-                this.callableOwnerClass.kotlinMetadataAccept(this);
+                result.callableOwnerClass.kotlinMetadataAccept(this);
             }
+
+            this.infoLoaderResultConsumer.accept(result);
         }
 
         // Implementations for MemberVisitor.
@@ -232,11 +252,11 @@ implements   KotlinMetadataVisitor
         {
             if (currentMethod.equals(REFLECTION.GETSIGNATURE_METHOD_NAME + REFLECTION.GETSIGNATURE_METHOD_DESC))
             {
-                this.callableSignature = stringConstant.getString(clazz);
+                result.callableSignature = stringConstant.getString(clazz);
             }
             else if (currentMethod.equals(REFLECTION.GETNAME_METHOD_NAME + REFLECTION.GETNAME_METHOD_DESC))
             {
-                this.callableName = stringConstant.getString(clazz);
+                result.callableName = stringConstant.getString(clazz);
             }
         }
 
@@ -247,7 +267,7 @@ implements   KotlinMetadataVisitor
             {
                 // There is a class ref (+ possibly a string for the module name but that's not required
                 // because we know the module from the Kotlin class).
-                this.callableOwnerClass = classConstant.referencedClass;
+                result.callableOwnerClass = classConstant.referencedClass;
             }
         }
 
@@ -260,21 +280,7 @@ implements   KotlinMetadataVisitor
         public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
                                                             KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
         {
-            this.callableOwnerMetadata = kotlinDeclarationContainerMetadata;
-        }
-
-        // Helper methods.
-
-        boolean hasResult()
-        {
-            return this.callableOwnerClass != null &&
-                   this.callableName       != null &&
-                   this.callableSignature  != null;
-        }
-
-        boolean hasOwnerMetadata()
-        {
-            return this.callableOwnerMetadata != null;
+            result.callableOwnerMetadata = kotlinDeclarationContainerMetadata;
         }
     }
 
