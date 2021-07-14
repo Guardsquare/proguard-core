@@ -77,6 +77,80 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
         }
     }
 
+    "Given a extension function bound callable reference" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun String.foo() = "bar"
+                fun ref() = "hello"::foo
+                """.trimIndent()
+            )
+        )
+
+        val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
+        val ownerVisitor = spyk< KotlinMetadataVisitor>()
+        val testVisitor = createVisitor(callableRefInfoVisitor, ownerVisitor)
+
+        programClassPool.classesAccept("TestKt\$ref\$1", testVisitor)
+
+        "Then the callableReferenceInfo should be initialized" {
+            verify(exactly = 1) {
+                callableRefInfoVisitor.visitFunctionReferenceInfo(
+                    withArg {
+                        it.name shouldBe "foo"
+                        it.signature shouldBe "foo(Ljava/lang/String;)Ljava/lang/String;"
+                        it.owner shouldNotBe null
+                    }
+                )
+            }
+
+            verify(exactly = 1) {
+                ownerVisitor.visitKotlinFileFacadeMetadata(
+                    programClassPool.getClass("TestKt"),
+                    ofType(KotlinFileFacadeKindMetadata::class)
+                )
+            }
+        }
+    }
+
+    "Given a extension function callable reference" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun String.foo() = "bar"
+                fun ref() = String::foo
+                """.trimIndent()
+            )
+        )
+
+        val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
+        val ownerVisitor = spyk< KotlinMetadataVisitor>()
+        val testVisitor = createVisitor(callableRefInfoVisitor, ownerVisitor)
+
+        programClassPool.classesAccept("TestKt\$ref\$1", testVisitor)
+
+        "Then the callableReferenceInfo should be initialized" {
+            verify(exactly = 1) {
+                callableRefInfoVisitor.visitFunctionReferenceInfo(
+                    withArg {
+                        it.name shouldBe "foo"
+                        it.signature shouldBe "foo(Ljava/lang/String;)Ljava/lang/String;"
+                        it.owner shouldNotBe null
+                    }
+                )
+            }
+
+            verify(exactly = 1) {
+                ownerVisitor.visitKotlinFileFacadeMetadata(
+                    programClassPool.getClass("TestKt"),
+                    ofType(KotlinFileFacadeKindMetadata::class)
+                )
+            }
+        }
+    }
+
     "Given a property callable reference" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
@@ -112,6 +186,88 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 ownerVisitor.visitKotlinClassMetadata(
                     programClassPool.getClass("Foo"),
                     ofType(KotlinClassKindMetadata::class)
+                )
+            }
+        }
+    }
+
+    "Given a extension property bound callable reference" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                @Suppress("UNUSED_PARAMETER")
+                var String.foo: String
+                    get() = "bar"
+                    set(value) {}
+
+                fun ref() = "hello"::foo
+                """.trimIndent()
+            )
+        )
+
+        val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
+        val ownerVisitor = spyk< KotlinMetadataVisitor>()
+        val testVisitor = createVisitor(callableRefInfoVisitor, ownerVisitor)
+
+        programClassPool.classesAccept("TestKt\$ref\$1", testVisitor)
+
+        "Then the callableReferenceInfo should be initialized" {
+            verify(exactly = 1) {
+                callableRefInfoVisitor.visitPropertyReferenceInfo(
+                    withArg {
+                        it.name shouldBe "foo"
+                        it.signature shouldBe "getFoo(Ljava/lang/String;)Ljava/lang/String;"
+                        it.owner shouldNotBe null
+                    }
+                )
+            }
+
+            verify(exactly = 1) {
+                ownerVisitor.visitKotlinFileFacadeMetadata(
+                    programClassPool.getClass("TestKt"),
+                    ofType(KotlinFileFacadeKindMetadata::class)
+                )
+            }
+        }
+    }
+
+    "Given a extension property callable reference" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                @Suppress("UNUSED_PARAMETER")
+                var String.foo: String
+                    get() = "bar"
+                    set(value) {}
+
+                fun ref() = String::foo
+                """.trimIndent()
+            )
+        )
+
+        val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
+        val ownerVisitor = spyk< KotlinMetadataVisitor>()
+        val testVisitor = createVisitor(callableRefInfoVisitor, ownerVisitor)
+
+        programClassPool.classesAccept("TestKt\$ref\$1", testVisitor)
+
+        "Then the callableReferenceInfo should be initialized" {
+            verify(exactly = 1) {
+                callableRefInfoVisitor.visitPropertyReferenceInfo(
+                    withArg {
+                        it.name shouldBe "foo"
+                        it.signature shouldBe "getFoo(Ljava/lang/String;)Ljava/lang/String;"
+                        it.owner shouldNotBe null
+                    }
+                )
+            }
+
+            verify(exactly = 1) {
+                ownerVisitor.visitKotlinFileFacadeMetadata(
+                    programClassPool.getClass("TestKt"),
+                    ofType(KotlinFileFacadeKindMetadata::class)
                 )
             }
         }
