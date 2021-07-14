@@ -84,7 +84,7 @@ implements   ClassVisitor,
     private final MemberFinder memberFinder       = new MemberFinder();
     private final MemberFinder strictMemberFinder = new MemberFinder(false);
 
-    private final KotlinReferenceInitializer kotlinReferenceInitializer = new KotlinReferenceInitializer();
+    private final KotlinReferenceInitializer kotlinReferenceInitializer;
 
 
     /**
@@ -160,6 +160,7 @@ implements   ClassVisitor,
         this.missingProgramMemberWarningPrinter = missingProgramMemberWarningPrinter;
         this.missingLibraryMemberWarningPrinter = missingLibraryMemberWarningPrinter;
         this.dependencyWarningPrinter           = dependencyWarningPrinter;
+        this.kotlinReferenceInitializer         = new KotlinReferenceInitializer();
     }
 
 
@@ -714,7 +715,7 @@ implements   ClassVisitor,
         private final KotlinDefaultImplsInitializer                kotlinDefaultImplsInitializer          = new KotlinDefaultImplsInitializer();
         private final KotlinDefaultMethodInitializer               kotlinDefaultMethodInitializer         = new KotlinDefaultMethodInitializer();
         private final KotlinInterClassSyntheticFunctionInitializer interClassSyntheticFunctionInitializer = new KotlinInterClassSyntheticFunctionInitializer();
-        private final KotlinCallableReferenceInitializer           callableReferenceInitializer           = new KotlinCallableReferenceInitializer();
+        private final KotlinCallableReferenceInitializer           callableReferenceInitializer           = new KotlinCallableReferenceInitializer(programClassPool, libraryClassPool);
 
         // Implementations for KotlinMetadataVisitor.
 

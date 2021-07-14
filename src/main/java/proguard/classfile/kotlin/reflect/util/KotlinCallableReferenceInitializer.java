@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,16 @@ public class KotlinCallableReferenceInitializer
 implements   KotlinMetadataVisitor
 {
     private static final MemberFinder memberFinder = new MemberFinder();
+
+    private final ClassPool programClassPool;
+    private final ClassPool libraryClassPool;
+
+
+    public KotlinCallableReferenceInitializer(ClassPool programClassPool, ClassPool libraryClassPool)
+    {
+        this.programClassPool = programClassPool;
+        this.libraryClassPool = libraryClassPool;
+    }
 
     @Override
     public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
