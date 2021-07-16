@@ -130,13 +130,13 @@ class ClassPoolBuilder private constructor() {
     }
 }
 
-internal fun isJava9OrLater(): Boolean = SourceVersion.latestSupported() > SourceVersion.RELEASE_8
+private fun isJava9OrLater(): Boolean = SourceVersion.latestSupported() > SourceVersion.RELEASE_8
 
-internal fun getCurrentJavaHome(): File =
+private fun getCurrentJavaHome(): File =
     if (isJava9OrLater()) File(System.getProperty("java.home"))
     else File(System.getProperty("java.home")).parentFile
 
-internal fun initializeKotlinMetadata(classPool: ClassPool) {
+private fun initializeKotlinMetadata(classPool: ClassPool) {
     val kotlinMetadataInitializer =
         AllAttributeVisitor(
             AttributeNameFilter(
