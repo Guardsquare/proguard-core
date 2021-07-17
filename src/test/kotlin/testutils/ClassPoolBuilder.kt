@@ -39,6 +39,7 @@ import java.io.OutputStream
 import java.io.PrintWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Files.createTempDirectory
 import java.util.Objects
 import javax.lang.model.SourceVersion
 import kotlin.reflect.KProperty
@@ -79,6 +80,7 @@ class ClassPoolBuilder private constructor() {
             compiler.apply {
                 this.sources = source.filterNot { it is AssemblerSource }.map { it.asSourceFile() }
                 this.inheritClassPath = false
+                this.workingDir = createTempDirectory("ClassPoolBuilder").toFile()
                 this.javacArguments = javacArguments.toMutableList()
                 this.kotlincArguments = kotlincArguments
                 this.verbose = false
@@ -124,6 +126,8 @@ class ClassPoolBuilder private constructor() {
 
             programClassPool.accept(classSubHierarchyInitializer)
             libraryClassPool.accept(classSubHierarchyInitializer)
+
+            compiler.workingDir.deleteRecursively()
 
             return ClassPools(programClassPool, libraryClassPool)
         }
