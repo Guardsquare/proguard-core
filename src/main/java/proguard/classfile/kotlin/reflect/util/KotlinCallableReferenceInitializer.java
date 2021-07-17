@@ -40,6 +40,8 @@ import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberNameFilter;
 import proguard.classfile.visitor.MemberVisitor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
@@ -211,8 +213,8 @@ implements   KotlinMetadataVisitor
         private static final int SIGNATURE_INDEX = C;
         private static final int FLAGS_INDEX     = D;
 
-        private final InstructionSequenceMatcher matcher;
-        private final Consumer<InfoLoaderResult> consumer;
+        private final List<InstructionSequenceMatcher> matchers = new ArrayList<>();
+        private final Consumer<InfoLoaderResult>       consumer;
 
         public CallableReferenceInfoLoader1dot4(Consumer<InfoLoaderResult> consumer)
         {
@@ -224,14 +226,27 @@ implements   KotlinMetadataVisitor
                 .ldc_(FLAGS_INDEX)
                 .invokespecial(X);
 
-            this.matcher = new InstructionSequenceMatcher(builder.constants(), builder.instructions());
+            this.matchers.add(new InstructionSequenceMatcher(builder.constants(), builder.instructions()));
+
+            builder
+                .ldc_(OWNER_INDEX)
+                .ldc_(NAME_INDEX)
+                .ldc_(SIGNATURE_INDEX)
+                .iconst(I)
+                .invokespecial(X);
+
+            this.matchers.add(new InstructionSequenceMatcher(builder.constants(), builder.instructions()));
         }
 
 
         @Override
         public void visitAnyClass(Clazz clazz)
         {
-            matcher.reset();
+            for (InstructionSequenceMatcher matcher : matchers)
+            {
+                matcher.reset();
+            }
+
             clazz.methodsAccept(
                     new MemberNameFilter(METHOD_NAME_INIT,
                     new AllAttributeVisitor(
@@ -246,54 +261,58 @@ implements   KotlinMetadataVisitor
                                         int           offset,
                                         Instruction instruction)
         {
-            instruction.accept(clazz, method, codeAttribute, offset, matcher);
-
-            if (matcher.isMatching())
+            for (InstructionSequenceMatcher matcher : matchers)
             {
-                InfoLoaderResult result = new InfoLoaderResult();
-                clazz.constantPoolEntryAccept(matcher.matchedConstantIndex(OWNER_INDEX), new ConstantVisitor() {
-                    @Override
-                    public void visitAnyConstant(Clazz clazz, Constant constant) { }
+                instruction.accept(clazz, method, codeAttribute, offset, matcher);
 
-                    @Override
-                    public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
-                        result.callableOwnerClass = classConstant.referencedClass;
-                    }
-                });
-
-                clazz.constantPoolEntryAccept(matcher.matchedConstantIndex(NAME_INDEX), new ConstantVisitor() {
-                    @Override
-                    public void visitAnyConstant(Clazz clazz, Constant constant) { }
-
-                    @Override
-                    public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
-                        result.callableName = stringConstant.getString(clazz);
-                    }
-                });
-
-                clazz.constantPoolEntryAccept(matcher.matchedConstantIndex(SIGNATURE_INDEX), new ConstantVisitor() {
-                    @Override
-                    public void visitAnyConstant(Clazz clazz, Constant constant) { }
-
-                    @Override
-                    public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
-                        result.callableSignature = stringConstant.getString(clazz);
-                    }
-                });
-
-                if (result.callableOwnerClass != null) {
-                    result.callableOwnerClass.kotlinMetadataAccept(new KotlinMetadataVisitor() {
+                if (matcher.isMatching())
+                {
+                    InfoLoaderResult result = new InfoLoaderResult();
+                    clazz.constantPoolEntryAccept(matcher.matchedConstantIndex(OWNER_INDEX), new ConstantVisitor() {
                         @Override
-                        public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) { }
+                        public void visitAnyConstant(Clazz clazz, Constant constant) { }
 
                         @Override
-                        public void visitKotlinDeclarationContainerMetadata(Clazz clazz, KotlinDeclarationContainerMetadata declarationContainer) {
-                            result.callableOwnerMetadata = declarationContainer;
+                        public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+                            result.callableOwnerClass = classConstant.referencedClass;
                         }
                     });
-                }
 
-                this.consumer.accept(result);
+                    clazz.constantPoolEntryAccept(matcher.matchedConstantIndex(NAME_INDEX), new ConstantVisitor() {
+                        @Override
+                        public void visitAnyConstant(Clazz clazz, Constant constant) { }
+
+                        @Override
+                        public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
+                            result.callableName = stringConstant.getString(clazz);
+                        }
+                    });
+
+                    clazz.constantPoolEntryAccept(matcher.matchedConstantIndex(SIGNATURE_INDEX), new ConstantVisitor() {
+                        @Override
+                        public void visitAnyConstant(Clazz clazz, Constant constant) { }
+
+                        @Override
+                        public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
+                            result.callableSignature = stringConstant.getString(clazz);
+                        }
+                    });
+
+                    if (result.callableOwnerClass != null) {
+                        result.callableOwnerClass.kotlinMetadataAccept(new KotlinMetadataVisitor() {
+                            @Override
+                            public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) { }
+
+                            @Override
+                            public void visitKotlinDeclarationContainerMetadata(Clazz clazz, KotlinDeclarationContainerMetadata declarationContainer) {
+                                result.callableOwnerMetadata = declarationContainer;
+                            }
+                        });
+                    }
+
+                    this.consumer.accept(result);
+                    break;
+                }
             }
         }
     }
