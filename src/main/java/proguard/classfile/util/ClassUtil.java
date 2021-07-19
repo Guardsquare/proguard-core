@@ -111,6 +111,7 @@ public class ClassUtil
             externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_14)  ? VersionConstants.CLASS_VERSION_14  :
             externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_15)  ? VersionConstants.CLASS_VERSION_15  :
             externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_16)  ? VersionConstants.CLASS_VERSION_16  :
+            externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_17)  ? VersionConstants.CLASS_VERSION_17  :
                                                                                   0;
     }
 
@@ -140,6 +141,7 @@ public class ClassUtil
             case VersionConstants.CLASS_VERSION_14:  return JavaVersionConstants.CLASS_VERSION_14;
             case VersionConstants.CLASS_VERSION_15:  return JavaVersionConstants.CLASS_VERSION_15;
             case VersionConstants.CLASS_VERSION_16:  return JavaVersionConstants.CLASS_VERSION_16;
+            case VersionConstants.CLASS_VERSION_17:  return JavaVersionConstants.CLASS_VERSION_17;
             default:                                 return null;
         }
     }
@@ -153,14 +155,14 @@ public class ClassUtil
     public static void checkVersionNumbers(int internalClassVersion) throws UnsupportedOperationException
     {
         if (internalClassVersion < VersionConstants.CLASS_VERSION_1_0 ||
-            internalClassVersion > VersionConstants.CLASS_VERSION_16)
+            internalClassVersion > VersionConstants.MAX_SUPPORTED_VERSION)
         {
             throw new UnsupportedOperationException("Unsupported version number ["+
                                                     internalMajorClassVersion(internalClassVersion)+"."+
                                                     internalMinorClassVersion(internalClassVersion)+"] (maximum "+
-                                                    VersionConstants.CLASS_VERSION_16_MAJOR+"."+
-                                                    VersionConstants.CLASS_VERSION_16_MINOR+", Java "+
-                                                    JavaVersionConstants.CLASS_VERSION_16+")");
+                                                    internalMajorClassVersion(VersionConstants.MAX_SUPPORTED_VERSION) + "." +
+                                                    internalMinorClassVersion(VersionConstants.MAX_SUPPORTED_VERSION) + ", Java " +
+                                                    externalClassVersion(VersionConstants.MAX_SUPPORTED_VERSION) + ")");
         }
     }
 

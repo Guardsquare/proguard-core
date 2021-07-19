@@ -1,5 +1,9 @@
 ## Version 7.2.0-development
 
+### Java support
+
+- Update maximum supported Java class version to 61.0 (Java 17). (`PGD-132`)
+
 ### API changes
 
 - `KotlinTypeParameterVistor#visitClassParameter(Clazz, KotlinMetadata, KotlinTypeParameterMetadata)` now has the correct signature: `KotlinTypeParameterVistor#visitClassParameter(Clazz, KotlinClassKindMetadata, KotlinTypeParameterMetadata)`. 
