@@ -1,0 +1,1787 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="The ProGuardCORE library">
+      
+      
+      
+        <meta name="author" content="Guardsquare NV">
+      
+      <link rel="shortcut icon" href="img/guardsquare.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.2.2">
+    
+    
+      
+        <title>Analyzing code - ProGuardCORE</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.a2408e81.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#analyzing-all-instructions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="." title="ProGuardCORE" class="md-header-nav__button md-logo" aria-label="ProGuardCORE">
+      
+  <img src="img/core.png" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            ProGuardCORE
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Analyzing code
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/guardsquare/proguard-core/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    guardsquare/proguard-core
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="ProGuardCORE" class="md-nav__button md-logo" aria-label="ProGuardCORE">
+      
+  <img src="img/core.png" alt="logo">
+
+    </a>
+    ProGuardCORE
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/guardsquare/proguard-core/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    guardsquare/proguard-core
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="index.html" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="reading.html" title="Reading classes" class="md-nav__link">
+      Reading classes
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="creating.html" title="Creating classes" class="md-nav__link">
+      Creating classes
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="editing.html" title="Editing classes" class="md-nav__link">
+      Editing classes
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="patternmatching.html" title="Pattern matching" class="md-nav__link">
+      Pattern matching
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Analyzing code
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="analyzing.html" title="Analyzing code" class="md-nav__link md-nav__link--active">
+      Analyzing code
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#analyzing-all-instructions" class="md-nav__link">
+    Analyzing all instructions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    Collecting basic branching information
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#partial-evaluation" class="md-nav__link">
+    Partial evaluation
+  </a>
+  
+    <nav class="md-nav" aria-label="Partial evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#control-flow-analysis" class="md-nav__link">
+    Control flow analysis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-analysis" class="md-nav__link">
+    Data flow analysis
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#numerical" class="md-nav__link">
+    More precise numerical evaluation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#range" class="md-nav__link">
+    Evaluation with numeric ranges
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symbolic" class="md-nav__link">
+    Symbolic numerical evaluation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tracing" class="md-nav__link">
+    Evaluation with reference types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed" class="md-nav__link">
+    Evaluation with more precise reference types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#array" class="md-nav__link">
+    Evaluation with primitive arrays
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#particularreference" class="md-nav__link">
+    Evaluation with particular reference values
+  </a>
+  
+    <nav class="md-nav" aria-label="Evaluation with particular reference values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    Limitations
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="kotlin.html" title="Kotlin metadata" class="md-nav__link">
+      Kotlin metadata
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="license.html" title="License" class="md-nav__link">
+      License
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="downloads.html" title="Downloads" class="md-nav__link">
+      Downloads
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="building.html" title="Building" class="md-nav__link">
+      Building
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="releasenotes.html" title="Release notes" class="md-nav__link">
+      Release notes
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#analyzing-all-instructions" class="md-nav__link">
+    Analyzing all instructions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    Collecting basic branching information
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#partial-evaluation" class="md-nav__link">
+    Partial evaluation
+  </a>
+  
+    <nav class="md-nav" aria-label="Partial evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#control-flow-analysis" class="md-nav__link">
+    Control flow analysis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-analysis" class="md-nav__link">
+    Data flow analysis
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#numerical" class="md-nav__link">
+    More precise numerical evaluation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#range" class="md-nav__link">
+    Evaluation with numeric ranges
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symbolic" class="md-nav__link">
+    Symbolic numerical evaluation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tracing" class="md-nav__link">
+    Evaluation with reference types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed" class="md-nav__link">
+    Evaluation with more precise reference types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#array" class="md-nav__link">
+    Evaluation with primitive arrays
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#particularreference" class="md-nav__link">
+    Evaluation with particular reference values
+  </a>
+  
+    <nav class="md-nav" aria-label="Evaluation with particular reference values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    Limitations
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/guardsquare/proguard-core/edit/master/docs/md/analyzing.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                  <h1>Analyzing code</h1>
+                
+                <h2 id="analyzing-all-instructions" instructions="instructions">Analyzing all instructions</h2>
+<p>If you want to analyze bytecode, you'll probably want to visit specified
+instructions of specified code attributes of specified methods of specified
+classes. The visitor classes and filters quickly get you to the right place:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">programClassPool</span><span class="p">.</span><span class="na">classesAccept</span><span class="p">(</span>
+    <span class="k">new</span> <span class="n">AllMethodVisitor</span><span class="p">(</span>
+    <span class="k">new</span> <span class="n">AllAttributeVisitor</span><span class="p">(</span>
+    <span class="k">new</span> <span class="n">AllInstructionVisitor</span><span class="p">(</span>
+    <span class="k">new</span> <span class="n">MyInstructionAnalyzer</span><span class="p">()))));</span>
+</code></pre></div>
+
+
+<p>You then only need to implement the visitor methods to analyze the
+instructions:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">class</span>      <span class="nc">MyInstructionAnalyzer</span>
+<span class="kd">implements</span> <span class="n">InstructionVisitor</span>
+<span class="p">{</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">visitSimpleInstruction</span><span class="p">(</span><span class="n">Clazz</span> <span class="n">clazz</span><span class="p">,</span> <span class="p">.....)</span> <span class="p">...</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">visitVariableInstruction</span><span class="p">(</span><span class="n">Clazz</span> <span class="n">clazz</span><span class="p">,</span> <span class="p">.....)</span> <span class="p">...</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">visitConstantInstruction</span><span class="p">(</span><span class="n">Clazz</span> <span class="n">clazz</span><span class="p">,</span> <span class="p">.....)</span> <span class="p">...</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">visitBranchInstruction</span><span class="p">(</span><span class="n">Clazz</span> <span class="n">clazz</span><span class="p">,</span> <span class="p">.....)</span> <span class="p">...</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">visitTableSwitchInstruction</span><span class="p">(</span><span class="n">Clazz</span> <span class="n">clazz</span><span class="p">,</span> <span class="p">.....)</span> <span class="p">...</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">visitLookUpSwitchInstruction</span><span class="p">(</span><span class="n">Clazz</span> <span class="n">clazz</span><span class="p">,</span> <span class="p">.....)</span> <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>The library already provides classes to analyze the code for you, finding
+branching information, performing partial evaluation, finding the control flow
+and data flow, etc, as introduced in the following sections.</p>
+<p>Complete example: EvaluateReturnValues.java</p>
+<h2 id="branching">Collecting basic branching information</h2>
+<p>You can extract basic information about branches in a method with the class
+BranchTargetFinder. The results are defined at the instruction level: each
+instruction is properly labeled as a branch target, branch origin, exception
+handler, etc.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">BranchTargetFinder</span> <span class="n">branchTargetFinder</span> <span class="o">=</span>
+    <span class="k">new</span> <span class="n">BranchTargetFinder</span><span class="p">();</span>
+
+<span class="n">branchTargetFinder</span><span class="p">.</span><span class="na">visitCodeAttribute</span><span class="p">(</span><span class="n">clazz</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">codeAttribute</span><span class="p">);</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">branchTargetFinder</span><span class="p">.</span><span class="na">isBranchOrigin</span><span class="p">(</span><span class="n">offset</span><span class="p">))</span> <span class="p">...</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">branchTargetFinder</span><span class="p">.</span><span class="na">isBranchTarget</span><span class="p">(</span><span class="n">offset</span><span class="p">))</span> <span class="p">...</span>
+</code></pre></div>
+
+
+<p>Complete example: ApplyPeepholeOptimizations.java</p>
+<h2 id="partial-evaluation">Partial evaluation</h2>
+<p>You can extract more information about the code with partial evaluation (often
+called abstract evaluation or symbolic evaluation). Its analysis provides a
+global view of the control flow and data flow in a method.</p>
+<p>The core class is PartialEvaluator. It can work at different levels of
+precision &mdash; the more abstract, the less precise. You can control the
+precision with different value factories and different invocation units:</p>
+<ul>
+<li>
+<p>A ValueFactory defines the level of detail in representing values like
+  integers or reference types. The values can be very abstract (any primitive
+  integer, a reference to any object) or more precise (the integer 42, or an
+  integer between 0 and 5, or a non-null reference to an instance of
+  java/lang/String).</p>
+</li>
+<li>
+<p>An InvocationUnit defines the values returned from retrieved fields and
+  invoked methods. The values can again be very generic (any integer) or they
+  can also be values that were cached in prior evaluations of the code base.</p>
+</li>
+</ul>
+<p>Complete example: EvaluateCode.java, which provides options to analyze code
+with different levels of precision. It prints out its results in markdown
+format, which is also used in the examples below.</p>
+<h3 id="control-flow-analysis">Control flow analysis</h3>
+<p>You can set up basic evaluation with a BasicValueFactory and
+a BasicInvocationUnit:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ValueFactory</span>     <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">BasicValueFactory</span><span class="p">();</span>
+<span class="n">InvocationUnit</span>   <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">BasicInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">);</span>
+<span class="n">PartialEvaluator</span> <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span>
+                                                         <span class="n">invocationUnit</span><span class="p">,</span>
+                                                         <span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>The analysis provides a control flow graph of the instructions in a method.
+Each instruction is labeled with potential branch targets and branch origins:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">InstructionOffsetValue</span> <span class="n">branchOrigins</span> <span class="o">=</span> <span class="n">partialEvaluator</span><span class="p">.</span><span class="na">branchOrigins</span><span class="p">(</span><span class="n">offset</span><span class="p">));</span>
+<span class="n">InstructionOffsetValue</span> <span class="n">branchTargets</span> <span class="o">=</span> <span class="n">partialEvaluator</span><span class="p">.</span><span class="na">branchTargets</span><span class="p">(</span><span class="n">offset</span><span class="p">));</span>
+</code></pre></div>
+
+
+<p>Complete example: VisualizeControlFlow.java</p>
+<h3 id="data-flow-analysis">Data flow analysis</h3>
+<p>You can also insprect the data flow between the instructions in a method by
+looking at the stack and the local variables:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">TracedStack</span>     <span class="n">stack</span>     <span class="o">=</span> <span class="n">partialEvaluator</span><span class="p">.</span><span class="na">getStackAfter</span><span class="p">(</span><span class="n">offset</span><span class="p">);</span>
+<span class="n">TracedVariables</span> <span class="n">variables</span> <span class="o">=</span> <span class="n">partialEvaluator</span><span class="p">.</span><span class="na">getVariablesAfter</span><span class="p">(</span><span class="n">offset</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>Consider the following code:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">getAnswer</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">f1</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">f2</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">f1</span> <span class="o">*</span> <span class="n">f2</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>Applying the above partial evaluator to this code yields this overall result:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+<th>v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] bipush 6</td>
+<td>[0:i]</td>
+<td>empty</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[2] istore_0 v0</td>
+<td></td>
+<td>2:i</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[3] bipush 7</td>
+<td>[3:i]</td>
+<td>2:i</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[5] istore_1 v1</td>
+<td></td>
+<td>2:i</td>
+<td>5:i</td>
+</tr>
+<tr>
+<td>[6] iload_0 v0</td>
+<td>[6:i]</td>
+<td>2:i</td>
+<td>5:i</td>
+</tr>
+<tr>
+<td>[7] iload_1 v1</td>
+<td>[6:i] [7:i]</td>
+<td>2:i</td>
+<td>5:i</td>
+</tr>
+<tr>
+<td>[8] imul</td>
+<td>[8:i]</td>
+<td>2:i</td>
+<td>5:i</td>
+</tr>
+<tr>
+<td>[9] ireturn</td>
+<td></td>
+<td>2:i</td>
+<td>5:i</td>
+</tr>
+</tbody>
+</table>
+<p>Each integer value followed by a colon indicates the offset of the instruction
+that stored or pushed the value. Each 'i' indicates an unknown primitive
+integer value.</p>
+<p>Useful applications: dependency analysis at an instruction level, for example
+to remove unused instructions.</p>
+<p>Complete example: EvaluateCode.java</p>
+<h2 id="numerical">More precise numerical evaluation</h2>
+<p>The above basic evaluation doesn't tell you much about any numerical results.
+You can set up more precise numerical evaluation with a
+ParticularValueFactory:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ValueFactory</span>     <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">ParticularValueFactory</span><span class="p">(</span><span class="k">new</span> <span class="n">BasicValueFactory</span><span class="p">());</span>
+<span class="n">InvocationUnit</span>   <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">BasicInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">);</span>
+<span class="n">PartialEvaluator</span> <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span>
+                                                         <span class="n">invocationUnit</span><span class="p">,</span>
+                                                         <span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>For the same code as in the previous section:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+<th>v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] bipush 6</td>
+<td>[0:6]</td>
+<td>empty</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[2] istore_0 v0</td>
+<td></td>
+<td>2:6</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[3] bipush 7</td>
+<td>[3:7]</td>
+<td>2:6</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[5] istore_1 v1</td>
+<td></td>
+<td>2:6</td>
+<td>5:7</td>
+</tr>
+<tr>
+<td>[6] iload_0 v0</td>
+<td>[6:6]</td>
+<td>2:6</td>
+<td>5:7</td>
+</tr>
+<tr>
+<td>[7] iload_1 v1</td>
+<td>[6:6] [7:7]</td>
+<td>2:6</td>
+<td>5:7</td>
+</tr>
+<tr>
+<td>[8] imul</td>
+<td>[8:42]</td>
+<td>2:6</td>
+<td>5:7</td>
+</tr>
+<tr>
+<td>[9] ireturn</td>
+<td></td>
+<td>2:6</td>
+<td>5:7</td>
+</tr>
+</tbody>
+</table>
+<p>In this trivial example, the previously unknown integers are now all concrete
+values. The last instruction pops the computed result 42 from the stack and
+returns it.</p>
+<p>Useful application: constant propagation.</p>
+<h2 id="range">Evaluation with numeric ranges</h2>
+<p>Consider the following code:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">getAnswer</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">answer</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">counter</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="o">&amp;&amp;</span> <span class="n">Math</span><span class="p">.</span><span class="na">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5f</span><span class="p">;</span> <span class="n">counter</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">answer</span> <span class="o">+=</span> <span class="mi">14</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">answer</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>The possible answer isn't a single value. You can let the evaluation work with
+integer ranges with a RangeValueFactory:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ValueFactory</span>     <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">RangeValueFactory</span><span class="p">();</span>
+<span class="n">InvocationUnit</span>   <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">BasicInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">);</span>
+<span class="n">PartialEvaluator</span> <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span>
+                                                         <span class="n">invocationUnit</span><span class="p">,</span>
+                                                         <span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>The overall result of the analysis of the sample method is:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+<th>v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] iconst_0</td>
+<td>[0:0]</td>
+<td>empty</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[1] istore_0 v0</td>
+<td></td>
+<td>1:0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[2] iconst_0</td>
+<td>[2:0]</td>
+<td>1:0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[3] istore_1 v1</td>
+<td></td>
+<td>1:0</td>
+<td>3:0</td>
+</tr>
+<tr>
+<td>[4] iload_1 v1</td>
+<td>[4:0..3]</td>
+<td>1,19:0..42</td>
+<td>3,22:0..3</td>
+</tr>
+<tr>
+<td>[5] iconst_3</td>
+<td>[4:0..3] [5:3]</td>
+<td>1,19:0..42</td>
+<td>3,22:0..3</td>
+</tr>
+<tr>
+<td>[6] if_icmpge +22 (target=28)</td>
+<td></td>
+<td>1,19:0..42</td>
+<td>3,22:0..3</td>
+</tr>
+<tr>
+<td>[9] invokestatic #2</td>
+<td>[9:T] [9:d]</td>
+<td>1,19:0..28</td>
+<td>3,22:0..2</td>
+</tr>
+<tr>
+<td>[12] ldc2_w #3</td>
+<td>[9:T] [9:d] [12:T] [12:0.5d]</td>
+<td>1,19:0..28</td>
+<td>3,22:0..2</td>
+</tr>
+<tr>
+<td>[15] dcmpg</td>
+<td>[15:i]</td>
+<td>1,19:0..28</td>
+<td>3,22:0..2</td>
+</tr>
+<tr>
+<td>[16] ifge +12 (target=28)</td>
+<td></td>
+<td>1,19:0..28</td>
+<td>3,22:0..2</td>
+</tr>
+<tr>
+<td>[19] iinc v0, 14</td>
+<td></td>
+<td>19:14..42</td>
+<td>3,22:0..2</td>
+</tr>
+<tr>
+<td>[22] iinc v1, 1</td>
+<td></td>
+<td>19:14..42</td>
+<td>22:1..3</td>
+</tr>
+<tr>
+<td>[25] goto -21 (target=4)</td>
+<td></td>
+<td>19:14..42</td>
+<td>22:1..3</td>
+</tr>
+<tr>
+<td>[28] iload_0 v0</td>
+<td>[28:0..42]</td>
+<td>1,19:0..42</td>
+<td>3,22:0..3</td>
+</tr>
+<tr>
+<td>[29] ireturn</td>
+<td></td>
+<td>1,19:0..42</td>
+<td>3,22:0..3</td>
+</tr>
+</tbody>
+</table>
+<p>Not all values are entirely concrete; they can have a range (with ".."). The
+method can return a value between 0 and 42.</p>
+<p>Useful applications: simplification of range checks.</p>
+<h2 id="symbolic">Symbolic numerical evaluation</h2>
+<p>Consider the following code:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">private</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">getAnswer</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>The numerical evaluation of the previous sections doesn't get you very far,
+since the parameters are unknown, so all computations produce unknown values:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+<th>v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] iconst_2</td>
+<td>[0:2]</td>
+<td>P0:i</td>
+<td>P1:i</td>
+</tr>
+<tr>
+<td>[1] iload_0 v0</td>
+<td>[0:2] [1:i]</td>
+<td>P0:i</td>
+<td>P1:i</td>
+</tr>
+<tr>
+<td>[2] imul</td>
+<td>[2:i]</td>
+<td>P0:i</td>
+<td>P1:i</td>
+</tr>
+<tr>
+<td>[3] iload_1 v1</td>
+<td>[2:i] [3:i]</td>
+<td>P0:i</td>
+<td>P1:i</td>
+</tr>
+<tr>
+<td>[4] iadd</td>
+<td>[4:i]</td>
+<td>P0:i</td>
+<td>P1:i</td>
+</tr>
+<tr>
+<td>[5] ireturn</td>
+<td></td>
+<td>P0:i</td>
+<td>P1:i</td>
+</tr>
+</tbody>
+</table>
+<p>You can set up symbolic evaluation with an IdentifiedValueFactory:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ValueFactory</span>     <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">IdentifiedValueFactory</span><span class="p">();</span>
+<span class="n">InvocationUnit</span>   <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">BasicInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">);</span>
+<span class="n">PartialEvaluator</span> <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span>
+                                                         <span class="n">invocationUnit</span><span class="p">,</span>
+                                                         <span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>The overall result of the analysis of the sample method is:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+<th>v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] iconst_2</td>
+<td>[0:2]</td>
+<td>P0:i0</td>
+<td>P1:i1</td>
+</tr>
+<tr>
+<td>[1] iload_0 v0</td>
+<td>[0:2] [1:i0]</td>
+<td>P0:i0</td>
+<td>P1:i1</td>
+</tr>
+<tr>
+<td>[2] imul</td>
+<td>[2:(2*i0)]</td>
+<td>P0:i0</td>
+<td>P1:i1</td>
+</tr>
+<tr>
+<td>[3] iload_1 v1</td>
+<td>[2:(2*i0)] [3:i1]</td>
+<td>P0:i0</td>
+<td>P1:i1</td>
+</tr>
+<tr>
+<td>[4] iadd</td>
+<td>[4:((2*i0)+i1)]</td>
+<td>P0:i0</td>
+<td>P1:i1</td>
+</tr>
+<tr>
+<td>[5] ireturn</td>
+<td></td>
+<td>P0:i0</td>
+<td>P1:i1</td>
+</tr>
+</tbody>
+</table>
+<p>The unknown values now have symbolic names (IDs): "i0" and "i1". Any
+computations result in symbolic expressions, such as "((2*i0)+i1)".</p>
+<p>Useful applications: a basis for symbolic simplification, static single
+assignment, further analysis with SMT solvers (satisfiability modulo
+theories).</p>
+<h2 id="tracing">Evaluation with reference types</h2>
+<p>The previous sections only showed examples with primitive types. Consider the following code with reference types:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">public</span> <span class="kd">static</span> <span class="n">Number</span> <span class="nf">getAnswer</span><span class="p">(</span><span class="n">Number</span> <span class="n">answer</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">answer</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Integer</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">answer</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>The basic or numeric evaluation of the previuous sections don't tell much
+about the non-primitive types:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] aload_0 v0</td>
+<td>[0:a]</td>
+<td>P0:a</td>
+</tr>
+<tr>
+<td>[1] ifnonnull +13 (target=14)</td>
+<td></td>
+<td>P0:a</td>
+</tr>
+<tr>
+<td>[4] new #2</td>
+<td>[4:a]</td>
+<td>P0:a</td>
+</tr>
+<tr>
+<td>[7] dup</td>
+<td>[4:7:a] [4:7:a]</td>
+<td>P0:a</td>
+</tr>
+<tr>
+<td>[8] bipush 42</td>
+<td>[4:7:a] [4:7:a] [8:42]</td>
+<td>P0:a</td>
+</tr>
+<tr>
+<td>[10] invokespecial #3</td>
+<td>[4:7:a]</td>
+<td>P0:a</td>
+</tr>
+<tr>
+<td>[13] astore_0 v0</td>
+<td></td>
+<td>13:a</td>
+</tr>
+<tr>
+<td>[14] aload_0 v0</td>
+<td>[14:a]</td>
+<td>P0,13:a</td>
+</tr>
+<tr>
+<td>[15] areturn</td>
+<td></td>
+<td>P0,13:a</td>
+</tr>
+</tbody>
+</table>
+<p>Unknown reference types are shown as "a".</p>
+<p>You can keep track of origins of references in more detail with a
+ReferenceTracingValueFactory and a ReferenceTracingInvocationUnit. The
+PartialEvaluator is set up slightly differently from the earlier examples:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ReferenceTracingValueFactory</span> <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">ReferenceTracingValueFactory</span><span class="p">(</span><span class="k">new</span> <span class="n">BasicValueFactory</span><span class="p">())</span> <span class="p">:</span>
+<span class="n">InvocationUnit</span>               <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">ReferenceTracingInvocationUnit</span><span class="p">(</span><span class="k">new</span> <span class="n">BasicInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">));</span>
+<span class="n">PartialEvaluator</span>             <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span>
+                                                                     <span class="n">invocationUnit</span><span class="p">,</span>
+                                                                     <span class="kc">false</span><span class="p">,</span>
+                                                                     <span class="n">valueFactory</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>The results then show the origins of non-primitive types:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] aload_0 v0</td>
+<td>[0:P0:a]</td>
+<td>P0:P0:a</td>
+</tr>
+<tr>
+<td>[1] ifnonnull +13 (target=14)</td>
+<td></td>
+<td>P0:P0:a</td>
+</tr>
+<tr>
+<td>[4] new #2</td>
+<td>[4:N4:a]</td>
+<td>P0:P0:a</td>
+</tr>
+<tr>
+<td>[7] dup</td>
+<td>[4:7:N4:a] [4:7:N4:a]</td>
+<td>P0:P0:a</td>
+</tr>
+<tr>
+<td>[8] bipush 42</td>
+<td>[4:7:N4:a] [4:7:N4:a] [8:i]</td>
+<td>P0:P0:a</td>
+</tr>
+<tr>
+<td>[10] invokespecial #3</td>
+<td>[4:7:N4:a]</td>
+<td>P0:P0:a</td>
+</tr>
+<tr>
+<td>[13] astore_0 v0</td>
+<td></td>
+<td>13:N4:a</td>
+</tr>
+<tr>
+<td>[14] aload_0 v0</td>
+<td>[14:N4,P0:a]</td>
+<td>P0,13:N4,P0:a</td>
+</tr>
+<tr>
+<td>[15] areturn</td>
+<td></td>
+<td>P0,13:N4,P0:a</td>
+</tr>
+</tbody>
+</table>
+<p>For example, the method pops and returns either a new instance ("N4") that
+was created at offset 4, or parameter 0 ("P0").</p>
+<p>Useful applications: define/use analysis, a basis for escape analysis or taint
+analysis.</p>
+<h2 id="typed">Evaluation with more precise reference types</h2>
+<p>You can keep track of non-primitive types in more detail with a
+TypedReferenceValueFactory:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ValueFactory</span>     <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">TypedReferenceValueFactory</span><span class="p">();</span>
+<span class="n">InvocationUnit</span>   <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">BasicInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">);</span>
+<span class="n">PartialEvaluator</span> <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span>
+                                                         <span class="n">invocationUnit</span><span class="p">,</span>
+                                                         <span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>The results then show the types:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] aload_0 v0</td>
+<td>[0:java/lang/Number]</td>
+<td>P0:java/lang/Number</td>
+</tr>
+<tr>
+<td>[1] ifnonnull +13 (target=14)</td>
+<td></td>
+<td>P0:java/lang/Number</td>
+</tr>
+<tr>
+<td>[4] new #2</td>
+<td>[4:java/lang/Integer=!]</td>
+<td>P0:java/lang/Number</td>
+</tr>
+<tr>
+<td>[7] dup</td>
+<td>[4:7:java/lang/Integer=!] [4:7:java/lang/Integer=!]</td>
+<td>P0:java/lang/Number</td>
+</tr>
+<tr>
+<td>[8] bipush 42</td>
+<td>[4:7:java/lang/Integer=!] [4:7:java/lang/Integer=!] [8:i]</td>
+<td>P0:java/lang/Number</td>
+</tr>
+<tr>
+<td>[10] invokespecial #3</td>
+<td>[4:7:java/lang/Integer=!]</td>
+<td>P0:java/lang/Number</td>
+</tr>
+<tr>
+<td>[13] astore_0 v0</td>
+<td></td>
+<td>13:java/lang/Integer=!</td>
+</tr>
+<tr>
+<td>[14] aload_0 v0</td>
+<td>[14:java/lang/Number]</td>
+<td>P0,13:java/lang/Number</td>
+</tr>
+<tr>
+<td>[15] areturn</td>
+<td></td>
+<td>P0,13:java/lang/Number</td>
+</tr>
+</tbody>
+</table>
+<p>The types here are "java/lang/Number" and "java/lang/Integer". The types
+respect the type hierarchy, for example when the branches join and the type is
+"java/lang/Number". A mark "=" means that the type is the exact type, not an
+extension. A mark "!" means that the value is definitely not null.</p>
+<p>Useful applications: preverification of the type safety of bytecode.</p>
+<h2 id="array">Evaluation with primitive arrays</h2>
+<p>Primitive arrays may be of special interest, for example when performing
+optimizations.</p>
+<p>Consider the following code:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">getAnswer</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span><span class="o">[]</span> <span class="n">array</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="o">[]</span> <span class="p">{</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span> <span class="p">};</span>
+
+    <span class="k">return</span> <span class="n">array</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">*</span> <span class="n">array</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>Even though this is a trivial example, the previous evaluations
+wouldn't provide much useful information:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] iconst_2</td>
+<td>[0:i]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[1] newarray 10</td>
+<td>[1:[I?=![i]]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[3] dup</td>
+<td>[1:3:[I?=![i]] [1:3:[I?=![i]]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[4] iconst_0</td>
+<td>[1:3:[I?=![i]] [1:3:[I?=![i]] [4:i]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[5] bipush 6</td>
+<td>[1:3:[I?=![i]] [1:3:[I?=![i]] [4:i] [5:i]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[7] iastore</td>
+<td>[1:3:[I?=![i]]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[8] dup</td>
+<td>[1:8:[I?=![i]] [1:8:[I?=![i]]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[9] iconst_1</td>
+<td>[1:8:[I?=![i]] [1:8:[I?=![i]] [9:i]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[10] bipush 7</td>
+<td>[1:8:[I?=![i]] [1:8:[I?=![i]] [9:i] [10:i]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[12] iastore</td>
+<td>[1:8:[I?=![i]]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[13] astore_0 v0</td>
+<td></td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[14] aload_0 v0</td>
+<td>[14:[I?=![i]]</td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[15] iconst_0</td>
+<td>[14:[I?=![i]] [15:i]</td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[16] iaload</td>
+<td>[16:i]</td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[17] aload_0 v0</td>
+<td>[16:i] [17:[I?=![i]]</td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[18] iconst_1</td>
+<td>[16:i] [17:[I?=![i]] [18:i]</td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[19] iaload</td>
+<td>[16:i] [19:i]</td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[20] imul</td>
+<td>[20:i]</td>
+<td>13:[I?=![i]</td>
+</tr>
+<tr>
+<td>[21] ireturn</td>
+<td></td>
+<td>13:[I?=![i]</td>
+</tr>
+</tbody>
+</table>
+<p>The array type is "[I", which is the standard notation for an array of
+primitive integers.</p>
+<p>You can keep track of the lengths of arrays with ArrayReferenceValueFactory
+and even of the contents of primitive arrays with
+DetailedArrayValueFactory:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ValueFactory</span>     <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">DetailedArrayValueFactory</span><span class="p">();</span>
+<span class="n">InvocationUnit</span>   <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">BasicInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">);</span>
+<span class="n">PartialEvaluator</span> <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span>
+                                                         <span class="n">invocationUnit</span><span class="p">,</span>
+                                                         <span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>The results of the evaluation then become:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack</th>
+<th>v0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] iconst_2</td>
+<td>[0:2]</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[1] newarray 10</td>
+<td 6_7="6,7">[1:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[3] dup</td>
+<td 6_7="6,7">[1:3:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[4] iconst_0</td>
+<td 6_7="6,7">[1:3:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[5] bipush 6</td>
+<td 6_7="6,7">[1:3:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[7] iastore</td>
+<td 6_7="6,7">[1:3:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[8] dup</td>
+<td 6_7="6,7">[1:8:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[9] iconst_1</td>
+<td 6_7="6,7">[1:8:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[10] bipush 7</td>
+<td 6_7="6,7">[1:8:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[12] iastore</td>
+<td 6_7="6,7">[1:8:[I?=![2]#0</td>
+<td>empty</td>
+</tr>
+<tr>
+<td>[13] astore_0 v0</td>
+<td></td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[14] aload_0 v0</td>
+<td 6_7="6,7">[14:[I?=![2]#0</td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[15] iconst_0</td>
+<td 6_7="6,7">[14:[I?=![2]#0</td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[16] iaload</td>
+<td>[16:6]</td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[17] aload_0 v0</td>
+<td 6_7="6,7">[16:6] [17:[I?=![2]#0</td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[18] iconst_1</td>
+<td 6_7="6,7">[16:6] [17:[I?=![2]#0</td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[19] iaload</td>
+<td>[16:6] [19:7]</td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[20] imul</td>
+<td>[20:42]</td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+<tr>
+<td>[21] ireturn</td>
+<td></td>
+<td 6_7="6,7">13:[I?=![2]#0</td>
+</tr>
+</tbody>
+</table>
+<p>The array is now traced as having length 2 and elements 6 and 7.</p>
+<p>Useful application: simplification of code with enum types.</p>
+<h2 id="particularreference">Evaluation with particular reference values</h2>
+<p>The values of references can also be of interest.</p>
+<p>Consider the following code:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">public</span> <span class="n">StringBuilder</span> <span class="nf">append</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">StringBuilder</span> <span class="n">s</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="p">(</span><span class="s">&quot;asd&quot;</span><span class="p">);</span>
+    <span class="n">s</span><span class="p">.</span><span class="na">append</span><span class="p">(</span><span class="s">&quot;fgh&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>If the value of <code>s</code> is of interest, this can be retrieved using a <code>ParticularValueFactory</code>. To also keep track of the references as they flow through method calls (in the example: the constructor-call, and the <code>append</code>), the InvocationUnit needs to be a <code>ExecutingInvocationUnit</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">ValueFactory</span>            <span class="n">valueFactory</span>     <span class="o">=</span> <span class="k">new</span> <span class="n">ParticularValueFactory</span><span class="p">(</span><span class="k">new</span> <span class="n">BasicValueFactory</span><span class="p">(),</span> 
+                                                                      <span class="k">new</span> <span class="n">ReferenceValueFactory</span><span class="p">());</span>
+<span class="n">ExecutingInvocationUnit</span> <span class="n">invocationUnit</span>   <span class="o">=</span> <span class="k">new</span> <span class="n">ExecutingInvocationUnit</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">);</span>
+<span class="n">PartialEvaluator</span>        <span class="n">partialEvaluator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PartialEvaluator</span><span class="p">(</span><span class="n">valueFactory</span><span class="p">,</span> 
+                                                                <span class="n">invocationUnit</span><span class="p">,</span> 
+                                                                <span class="kc">false</span><span class="p">);</span>
+</code></pre></div>
+
+
+<p>The results of the evaluation then become:</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Stack (before the Instruction)</th>
+<th>v0 (before the Instruction)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[0] new StringBuilder</td>
+<td></td>
+<td>[empty:empty]</td>
+</tr>
+<tr>
+<td>[3] dup</td>
+<td>[0:StringBuilder=!#0]</td>
+<td>[empty:empty]</td>
+</tr>
+<tr>
+<td>[4] ldc "asd"</td>
+<td>[3:0:StringBuilder=!#0]<br>[3:0:StringBuilder=!#0]</td>
+<td>[empty:empty]</td>
+</tr>
+<tr>
+<td>[6] invokespecial StringBuilder.&lt;init&gt;(String)V</td>
+<td>[4:String?=#1(asd)]<br>[3:0:StringBuilder=!#0]<br>[3:0:StringBuilder=!#0]</td>
+<td>[empty:empty]</td>
+</tr>
+<tr>
+<td>[9] astore_0 v0</td>
+<td>[3:0:StringBuilder=#2(asd)]</td>
+<td>[empty:empty]</td>
+</tr>
+<tr>
+<td>[10] aload_0 v0</td>
+<td></td>
+<td>[9:StringBuilder=#2(asd)]</td>
+</tr>
+<tr>
+<td>[11] ldc "fgh"</td>
+<td>[10:StringBuilder=#2(asd)]</td>
+<td>[9:StringBuilder=#2(asd)]</td>
+</tr>
+<tr>
+<td>[13] invokevirtual StringBuilder.append(String)StringBuilder</td>
+<td>[11:String?=#3(fgh)]<br>[10:StringBuilder=#2(asd)]</td>
+<td>[9:StringBuilder=#2(asd)]</td>
+</tr>
+<tr>
+<td>[16] pop</td>
+<td>[13:StringBuilder=#4(asdfgh)]</td>
+<td>[13:StringBuilder=#4(asdfgh)]</td>
+</tr>
+<tr>
+<td>[17] aload_0 v0</td>
+<td></td>
+<td>[13:StringBuilder=#4(asdfgh)]</td>
+</tr>
+<tr>
+<td>[18] areturn</td>
+<td>[17:StringBuilder=#4(asdfgh)]</td>
+<td>[13:StringBuilder=#4(asdfgh)]</td>
+</tr>
+</tbody>
+</table>
+<p>(Class/String constants are added to the instruction, and <code>java/lang/</code> is ommited from the class names for clarity)</p>
+<p>The <code>StringBuilder</code> is now traced through the method, the value of the reference can be retrieved before and after each location. The value of the reference is printed in this output in the finishing brackets. The notation before the bracket is the notation of a <code>TypedReference</code> (<a href="#typed">TypedReference</a>)</p>
+<h3 id="limitations">Limitations</h3>
+<ul>
+<li>Only <code>String</code>, <code>StringBuilder</code>, and <code>StringBuffer</code> are currently supported.</li>
+<li>The <code>ParticularValueFactory</code> keeps track of one specific value of a reference. If more values would be possible (e.g., due to a branch), the result will be an <code>UnknownReferenceValue</code></li>
+</ul>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="patternmatching.html" title="Pattern matching" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Pattern matching
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="kotlin.html" title="Kotlin metadata" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Kotlin metadata
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; 2002-2020 Guardsquare NV
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/Guardsquare/proguard-core" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://twitter.com/guardsquare" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://www.linkedin.com/company/guardsquare-nv" target="_blank" rel="noopener" title="www.linkedin.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://www.facebook.com/guardsquare" target="_blank" rel="noopener" title="www.facebook.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="assets/javascripts/bundle.5f27aba8.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: ".",
+          features: [],
+          search: Object.assign({
+            worker: "assets/javascripts/worker/search.27c6a5e6.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
