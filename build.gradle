@@ -77,10 +77,30 @@ java {
     withJavadocJar()
 }
 
+// Early access automatic downloads are not yet supported:
+// https://github.com/gradle/gradle/issues/14814
+// But it will work if e.g. Java 17-ea is pre-installed
+def javaVersionsForTest = 9..16
+
 test {
     useJUnitPlatform()
+}
 
-    finalizedBy jacocoTestReport
+task testAllJavaVersions() { testAllTask ->
+    dependsOn(test) // the usual test runs on Java 8
+
+    javaVersionsForTest.each {version ->
+        task("testJava$version", type: Test) {
+            useJUnitPlatform()
+            ignoreFailures = true
+
+            testAllTask.dependsOn(it)
+
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(version)
+            }
+        }
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -97,7 +117,7 @@ jacocoTestReport {
     sourceDirectories.setFrom(sources)
     def classes = files(rootProject.sourceSets.main.output.classesDirs)
     classDirectories.setFrom(classes)
-
+    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/*.exec')
     reports {
         xml.enabled true
         csv.enabled false

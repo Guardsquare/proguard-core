@@ -41,7 +41,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Files.createTempDirectory
 import java.util.Objects
-import javax.lang.model.SourceVersion
 import kotlin.reflect.KProperty
 
 data class ClassPools(val programClassPool: ClassPool, val libraryClassPool: ClassPool)
@@ -72,7 +71,7 @@ class ClassPoolBuilder private constructor() {
 
         fun fromSource(
             vararg source: TestSource,
-            javacArguments: List<String> = listOf("-source", "8", "-target", "8"),
+            javacArguments: List<String> = emptyList(),
             kotlincArguments: List<String> = emptyList(),
             jdkHome: File = getCurrentJavaHome()
         ): ClassPools {
@@ -133,12 +132,6 @@ class ClassPoolBuilder private constructor() {
         }
     }
 }
-
-private fun isJava9OrLater(): Boolean = SourceVersion.latestSupported() > SourceVersion.RELEASE_8
-
-private fun getCurrentJavaHome(): File =
-    if (isJava9OrLater()) File(System.getProperty("java.home"))
-    else File(System.getProperty("java.home")).parentFile
 
 private fun initializeKotlinMetadata(classPool: ClassPool) {
     val kotlinMetadataInitializer =

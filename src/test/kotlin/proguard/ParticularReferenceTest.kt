@@ -38,7 +38,8 @@ class ParticularReferenceTest : FreeSpec({
                     }
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "loop", "()V", programClassPool)
@@ -76,7 +77,8 @@ class ParticularReferenceTest : FreeSpec({
                     }
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "branch", "(I)V", programClassPool)
@@ -105,7 +107,8 @@ class ParticularReferenceTest : FreeSpec({
                     }
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "field", "()V", programClassPool)
@@ -135,7 +138,8 @@ class ParticularReferenceTest : FreeSpec({
                         }
                     }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
@@ -164,7 +168,8 @@ class ParticularReferenceTest : FreeSpec({
                     }
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
@@ -194,7 +199,8 @@ class ParticularReferenceTest : FreeSpec({
                     }
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
@@ -225,7 +231,8 @@ class ParticularReferenceTest : FreeSpec({
                     }
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "stringLength", "()V", programClassPool)
@@ -256,7 +263,8 @@ class ParticularReferenceTest : FreeSpec({
 
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool)
@@ -285,7 +293,8 @@ class ParticularReferenceTest : FreeSpec({
 
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool)
@@ -318,7 +327,8 @@ class ParticularReferenceTest : FreeSpec({
 
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
@@ -351,7 +361,8 @@ class ParticularReferenceTest : FreeSpec({
 
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
@@ -388,7 +399,8 @@ class ParticularReferenceTest : FreeSpec({
 
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
@@ -416,7 +428,8 @@ class ParticularReferenceTest : FreeSpec({
                     }
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "cast", "()V", programClassPool)
@@ -452,7 +465,8 @@ class ParticularReferenceTest : FreeSpec({
 
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
@@ -520,7 +534,8 @@ class ParticularReferenceTest : FreeSpec({
 
                 }
                 """
-            )
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)

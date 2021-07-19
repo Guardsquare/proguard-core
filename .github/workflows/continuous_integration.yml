@@ -23,7 +23,7 @@ jobs:
       - name: Build
         uses: eskatos/gradle-command-action@v1
         with:
-          arguments: build
+          arguments: build testAllJavaVersions jacocoTestReport
       - name: Sonar
         run: gradle -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=guardsquare -Dsonar.projectKey=Guardsquare_proguard-core sonarqube
         env:
