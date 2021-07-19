@@ -58,7 +58,8 @@ import static proguard.classfile.kotlin.KotlinConstants.*;
  * to a @kotlin/Metadata annotation on the class.
  */
 public class KotlinMetadataWriter
-implements KotlinMetadataVisitor,
+implements ClassVisitor,
+           KotlinMetadataVisitor,
 
            // Implementation interfaces.
            ElementValueVisitor
@@ -93,6 +94,12 @@ implements KotlinMetadataVisitor,
     {
         this.extraClassVisitor = extraClassVisitor;
         this.warningPrinter    = warningPrinter;
+    }
+
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        clazz.kotlinMetadataAccept(this);
     }
 
 
