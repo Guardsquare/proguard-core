@@ -1114,7 +1114,10 @@ implements   ClassVisitor,
         public void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation)
         {
             annotation.referencedAnnotationClass = findClass(clazz, annotation.className);
-            annotation.argumentsAccept(clazz, annotatable,this);
+            if (annotation.referencedAnnotationClass != null)
+            {
+                annotation.argumentsAccept(clazz, annotatable, this);
+            }
         }
 
         // Implementations for KotlinMetadataAnnotationArgumentVisitor

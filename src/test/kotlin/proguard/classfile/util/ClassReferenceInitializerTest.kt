@@ -7,11 +7,13 @@
 
 package proguard.classfile.util
 
+import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import proguard.classfile.ClassPool
 import proguard.classfile.kotlin.KotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinAnnotationArgument
@@ -246,6 +248,26 @@ class ClassReferenceInitializerTest : FreeSpec({
                             )
                     }
                 )
+            }
+        }
+    }
+
+    "Given a Kotlin function with named types" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                // This snippet generates types annotated with `kotlin.ParameterName`:
+                // the `ClassReferenceInitializer` should not crash when it cannot find
+                // library classes.
+                fun foo(p: (x: Int, y: Int) -> Unit) = p(1, 2)
+                """.trimIndent()
+            )
+        )
+
+        "Then an exception should not be thrown when library classes are missing" {
+            shouldNotThrow<Exception> {
+                programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, ClassPool()))
             }
         }
     }
