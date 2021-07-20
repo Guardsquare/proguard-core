@@ -21,6 +21,7 @@
 - Implement `ClassVisitor` in `KotlinMetadataWriter` to allow easier writing of Kotlin metadata.
 - Add error handler callback to `KotlinMetadataInitializer`.
 - Add error handler callback to `KotlinMetadataWriter`.
+- Add error handler callback to `KotlinModuleReader`.
 
 ### Bug fixes
 

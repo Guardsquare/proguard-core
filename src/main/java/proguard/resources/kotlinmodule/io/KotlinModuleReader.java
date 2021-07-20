@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import proguard.resources.kotlinmodule.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 import static java.util.Objects.requireNonNull;
 
@@ -36,10 +37,17 @@ import static java.util.Objects.requireNonNull;
 public class KotlinModuleReader
 implements   ResourceFileVisitor
 {
-    private final InputStream inputStream;
+    private final BiConsumer<KotlinModule, String> errorHandler;
+    private final InputStream                      inputStream;
 
-    public KotlinModuleReader(InputStream inputStream) {
-        this.inputStream = inputStream;
+    public KotlinModuleReader(InputStream inputStream)
+    {
+        this(null, inputStream);
+    }
+
+    public KotlinModuleReader(BiConsumer<KotlinModule, String> errorHandler, InputStream inputStream) {
+        this.errorHandler = errorHandler;
+        this.inputStream  = inputStream;
     }
 
     @Override
@@ -81,7 +89,14 @@ implements   ResourceFileVisitor
         }
         catch (NullPointerException | IOException e)
         {
-            throw new RuntimeException("Error while reading Kotlin module file", e);
+            if (this.errorHandler != null)
+            {
+                this.errorHandler.accept(kotlinModule, e.getMessage());
+            }
+            else
+            {
+                throw new RuntimeException("Error while reading Kotlin module file", e);
+            }
         }
     }
 }
