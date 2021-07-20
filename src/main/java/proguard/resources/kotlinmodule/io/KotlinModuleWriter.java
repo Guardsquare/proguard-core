@@ -24,6 +24,7 @@ import proguard.classfile.util.ClassUtil;
 import proguard.resources.file.visitor.*;
 
 import java.io.*;
+import java.util.function.BiConsumer;
 
 import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION;
 
@@ -33,9 +34,17 @@ import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION
 public class KotlinModuleWriter
 implements   ResourceFileVisitor
 {
-    private final OutputStream outputStream;
+    private final OutputStream                     outputStream;
+    private final BiConsumer<KotlinModule, String> errorHandler;
 
-    public KotlinModuleWriter(OutputStream outputStream) {
+    public KotlinModuleWriter(OutputStream outputStream)
+    {
+        this(null, outputStream);
+    }
+
+    public KotlinModuleWriter(BiConsumer<KotlinModule, String> errorHandler, OutputStream outputStream)
+    {
+        this.errorHandler = errorHandler;
         this.outputStream = outputStream;
     }
 
@@ -65,7 +74,14 @@ implements   ResourceFileVisitor
         }
         catch (IOException e)
         {
-            throw new RuntimeException("Error while writing module file", e);
+            if (this.errorHandler != null)
+            {
+                this.errorHandler.accept(kotlinModule, e.getMessage());
+            }
+            else
+            {
+                throw new RuntimeException("Error while writing module file", e);
+            }
         }
     }
 }

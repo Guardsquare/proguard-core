@@ -22,6 +22,7 @@
 - Add error handler callback to `KotlinMetadataInitializer`.
 - Add error handler callback to `KotlinMetadataWriter`.
 - Add error handler callback to `KotlinModuleReader`.
+- Add error handler callback to `KotlinModuleWriter`.
 
 ### Bug fixes
 
