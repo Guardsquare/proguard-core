@@ -48,6 +48,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static java.util.stream.Collectors.joining;
 import static kotlinx.metadata.FlagsKt.flagsOf;
 import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION;
 import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
@@ -81,7 +82,7 @@ implements ClassVisitor,
 
     private MetadataType currentType;
 
-    private final WarningPrinter warningPrinter;
+    private final BiConsumer<Clazz, String> errorHandler;
 
     private boolean hasVisitedAny = false;
 
@@ -92,8 +93,18 @@ implements ClassVisitor,
 
     public KotlinMetadataWriter(WarningPrinter warningPrinter, ClassVisitor extraClassVisitor)
     {
+        this((clazz, message) -> warningPrinter.print(clazz.getName(), message), extraClassVisitor);
+    }
+
+    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler)
+    {
+        this(errorHandler, null);
+    }
+
+    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, ClassVisitor extraClassVisitor)
+    {
+        this.errorHandler      = errorHandler;
         this.extraClassVisitor = extraClassVisitor;
-        this.warningPrinter    = warningPrinter;
     }
 
     @Override
@@ -101,6 +112,7 @@ implements ClassVisitor,
     {
         clazz.kotlinMetadataAccept(this);
     }
+
 
 
     // Implementations for KotlinMetadataVisitor.
@@ -125,9 +137,11 @@ implements ClassVisitor,
         KotlinClassMetadata md = KotlinClassMetadata.read(new KotlinClassHeader(k, mv, bv, d1, d2, xs, pn, xi));
         if (md == null)
         {
-            warningPrinter.print(clazz.getName(), "Encountered corrupt Kotlin metadata in class " +
-                                 clazz.getName() +
-                                 ". Not processing the metadata for this class.");
+            String version = mv == null ? "unknown" : Arrays.stream(mv).mapToObj(Integer::toString).collect(joining("."));
+            errorHandler.accept(clazz,
+                                "Encountered corrupt Kotlin metadata in class " +
+                                clazz.getName() + " (version " + version + ")" +
+                                ". Not processing the metadata for this class.");
             return;
         }
 
@@ -146,10 +160,10 @@ implements ClassVisitor,
         {
             // It's possible that an exception is thrown by the MetadataType.valueOf calls if
             // the kotlin.Metadata class was accidentally obfuscated.
-            warningPrinter.print(clazz.getName(), "Invalid Kotlin metadata annotation for " +
-                                                  clazz.getName() +
-                                                  " (invalid Kotlin metadata field names)." +
-                                                  " Not writing the metadata for this class.");
+            errorHandler.accept(clazz, "Invalid Kotlin metadata annotation for " +
+                                        clazz.getName() +
+                                        " (invalid Kotlin metadata field names)." +
+                                        " Not writing the metadata for this class.");
         }
 
         // Clean up dangling Strings from the original metadata.
