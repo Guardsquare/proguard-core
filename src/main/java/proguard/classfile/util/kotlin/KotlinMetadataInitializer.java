@@ -34,8 +34,10 @@ import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.*;
 import static proguard.classfile.attribute.Attribute.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
@@ -66,11 +68,17 @@ implements ClassVisitor,
     // For Constant visiting
     private MetadataType currentType;
 
-    private final WarningPrinter warningPrinter;
+    private final BiConsumer<Clazz, String> errorHandler;
 
     public KotlinMetadataInitializer(WarningPrinter warningPrinter)
     {
-        this.warningPrinter = warningPrinter;
+        this((clazz, message) -> warningPrinter.print(clazz.getName(), message));
+    }
+
+
+    public KotlinMetadataInitializer(BiConsumer<Clazz, String> errorHandler)
+    {
+        this.errorHandler = errorHandler;
     }
 
     // Implementations for ClassVisitor
@@ -108,7 +116,9 @@ implements ClassVisitor,
         KotlinClassMetadata md = KotlinClassMetadata.read(new KotlinClassHeader(k, mv, bv, d1, d2, xs, pn, xi));
         if (md == null)
         {
-            throw new UnsupportedOperationException("Encountered corrupt @kotlin/Metadata for class " + clazz.getName() + ".");
+            String version = mv == null ? "unknown" : Arrays.stream(mv).mapToObj(Integer::toString).collect(joining("."));
+            this.errorHandler.accept(clazz, "Encountered corrupt @kotlin/Metadata for class " + clazz.getName() + " (version " + version + ").");
+            return;
         }
 
         try
@@ -194,19 +204,19 @@ implements ClassVisitor,
 
                 default:
                     // This happens when the library is outdated and a newer type of Kotlin class is passed.
-                    warningPrinter.print(clazz.getName(),
-                                         "Unknown Kotlin class kind in class " +
-                                         clazz.getName() +
-                                         ". The metadata for this class will not be processed.");
+                    this.errorHandler.accept(clazz,
+                                             "Unknown Kotlin class kind in class " +
+                                             clazz.getName() +
+                                             ". The metadata for this class will not be processed.");
                     break;
             }
         }
         catch (InconsistentKotlinMetadataException e)
         {
-            warningPrinter.print(clazz.getName(),
-                                 "Encountered corrupt Kotlin metadata in class " +
-                                 clazz.getName() +
-                                 ". The metadata for this class will not be processed (" + e.getMessage() + ")");
+            this.errorHandler.accept(clazz,
+                                     "Encountered corrupt Kotlin metadata in class " +
+                                     clazz.getName() +
+                                     ". The metadata for this class will not be processed (" + e.getMessage() + ")");
 
         }
     }

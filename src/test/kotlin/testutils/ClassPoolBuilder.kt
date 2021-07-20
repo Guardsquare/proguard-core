@@ -44,11 +44,6 @@ class ClassPoolBuilder private constructor() {
     companion object {
         private val compiler = KotlinCompilation()
         private val libraryClassPool by LibraryClassPoolBuilder(compiler)
-        private val nullWarningPrinter = WarningPrinter(
-            PrintWriter(object : OutputStream() {
-                override fun write(b: Int) { }
-            })
-        )
 
         fun fromClasses(vararg clazz: Clazz): ClassPool {
             return ClassPool().apply {
@@ -118,7 +113,7 @@ class ClassPoolBuilder private constructor() {
             libraryClassPool.classesAccept(classSuperHierarchyInitializer)
 
             if (source.count { it is KotlinSource } > 0)
-                programClassPool.classesAccept(KotlinMetadataInitializer(nullWarningPrinter))
+                programClassPool.classesAccept(KotlinMetadataInitializer { _, message -> println(message) })
 
             programClassPool.classesAccept(classReferenceInitializer)
             libraryClassPool.classesAccept(classReferenceInitializer)

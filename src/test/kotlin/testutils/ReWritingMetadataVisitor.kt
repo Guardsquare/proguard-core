@@ -51,7 +51,7 @@ class ReWritingMetadataVisitor(private vararg val visitors: KotlinMetadataVisito
         clazz?.accept(
             MultiClassVisitor(
                 KotlinMetadataWriter(warningPrinter),
-                KotlinMetadataInitializer(warningPrinter),
+                KotlinMetadataInitializer { _, message -> println(message) },
                 ReferencedKotlinMetadataVisitor(
                     MultiKotlinMetadataVisitor(*visitors)
                 )
