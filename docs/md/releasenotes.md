@@ -14,6 +14,7 @@
 - Rename `AllKotlinPropertiesVisitor` to `AllPropertyVisitor`.
 - Rename `AllConstructorsVisitor` to `AllConstructorVisitor`.
 - Rename `AllFunctionsVisitor` to `AllFunctionVisitor`.
+- Remove `KotlinValueParameterVisitor.onNewFunctionStart()' method.
 
 ## Version 7.1.1
 
