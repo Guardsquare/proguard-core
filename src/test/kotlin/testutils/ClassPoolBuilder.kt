@@ -29,7 +29,6 @@ import proguard.io.NameFilteredDataEntryReader
 import proguard.io.StreamingDataEntry
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.OutputStream
 import java.io.PrintWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
