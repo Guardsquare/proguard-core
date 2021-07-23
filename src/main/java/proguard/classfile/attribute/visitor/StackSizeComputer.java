@@ -17,6 +17,8 @@
  */
 package proguard.classfile.attribute.visitor;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.editor.ClassEstimates;
@@ -42,6 +44,7 @@ implements   AttributeVisitor,
     private static       boolean DEBUG = System.getProperty("ssc") != null;
     //*/
 
+    private static final Logger logger = LogManager.getLogger();
 
     private boolean[] evaluated        = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
     private int[]     stackSizesBefore = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
@@ -122,10 +125,10 @@ implements   AttributeVisitor,
         }
         catch (RuntimeException ex)
         {
-            System.err.println("Unexpected error while computing stack sizes:");
-            System.err.println("  Class       = ["+clazz.getName()+"]");
-            System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-            System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
+            logger.error("Unexpected error while computing stack sizes:");
+            logger.error("  Class       = [{}]", clazz.getName());
+            logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
             if (DEBUG)
             {

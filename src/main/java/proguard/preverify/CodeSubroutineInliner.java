@@ -17,6 +17,8 @@
  */
 package proguard.preverify;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
@@ -42,6 +44,8 @@ implements   AttributeVisitor,
     /*/
     private static       boolean DEBUG = System.getProperty("csi") != null;
     //*/
+
+    private final static Logger logger = LogManager.getLogger();
 
     private final BranchTargetFinder    branchTargetFinder    = new BranchTargetFinder();
     private final CodeAttributeComposer codeAttributeComposer = new CodeAttributeComposer(true, true, true);
@@ -72,10 +76,10 @@ implements   AttributeVisitor,
         }
         catch (RuntimeException ex)
         {
-            System.err.println("Unexpected error while inlining subroutines:");
-            System.err.println("  Class       = ["+clazz.getName()+"]");
-            System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-            System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
+            logger.error("Unexpected error while inlining subroutines:");
+            logger.error("  Class       = [{}]", clazz.getName());
+            logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
             if (DEBUG)
             {

@@ -507,53 +507,49 @@ implements   AttributeVisitor,
 
     public void visitProgramField(ProgramClass programClass, ProgramField programField)
     {
-        if (notePrinter.accepts(programClass.getName()))
-        {
-            System.out.println("      Maybe this is program field '" +
-                               ClassUtil.externalFullClassDescription(0, programClass.getName()) +
-                               " { " +
-                               ClassUtil.externalFullFieldDescription(0, programField.getName(programClass), programField.getDescriptor(programClass)) +
-                               "; }'");
-        }
+        notePrinter.note(
+            programClass.getName(),
+            "      Maybe this is program field '" +
+            ClassUtil.externalFullClassDescription(0, programClass.getName()) +
+            " { " +
+            ClassUtil.externalFullFieldDescription(0, programField.getName(programClass), programField.getDescriptor(programClass)) +
+            "; }'");
     }
 
 
     public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
     {
-        if (notePrinter.accepts(programClass.getName()))
-        {
-            System.out.println("      Maybe this is program method '" +
-                               ClassUtil.externalFullClassDescription(0, programClass.getName()) +
-                               " { " +
-                               ClassUtil.externalFullMethodDescription(programClass.getName(), 0, programMethod.getName(programClass), programMethod.getDescriptor(programClass)) +
-                               "; }'");
-        }
-    }
+        notePrinter.note(
+            programClass.getName(),
+            "      Maybe this is program method '" +
+            ClassUtil.externalFullClassDescription(0, programClass.getName()) +
+            " { " +
+            ClassUtil.externalFullMethodDescription(programClass.getName(), 0, programMethod.getName(programClass), programMethod.getDescriptor(programClass)) +
+            "; }'");
+}
 
 
     public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
     {
-        if (notePrinter.accepts(libraryClass.getName()))
-        {
-            System.out.println("      Maybe this is library field '" +
-                               ClassUtil.externalFullClassDescription(0, libraryClass.getName()) +
-                               " { " +
-                               ClassUtil.externalFullFieldDescription(0, libraryField.getName(libraryClass), libraryField.getDescriptor(libraryClass)) +
-                               "; }'");
-        }
+        notePrinter.note(
+            libraryClass.getName(),
+            "      Maybe this is library field '" +
+            ClassUtil.externalFullClassDescription(0, libraryClass.getName()) +
+            " { " +
+            ClassUtil.externalFullFieldDescription(0, libraryField.getName(libraryClass), libraryField.getDescriptor(libraryClass)) +
+            "; }'");
     }
 
 
     public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
     {
-        if (notePrinter.accepts(libraryClass.getName()))
-        {
-            System.out.println("      Maybe this is library method '" +
-                               ClassUtil.externalFullClassDescription(0, libraryClass.getName()) +
-                               " { " +
-                               ClassUtil.externalFullMethodDescription(libraryClass.getName(), 0, libraryMethod.getName(libraryClass), libraryMethod.getDescriptor(libraryClass)) +
-                               "; }'");
-        }
+        notePrinter.note(
+            libraryClass.getName(),
+            "      Maybe this is library method '" +
+            ClassUtil.externalFullClassDescription(0, libraryClass.getName()) +
+            " { " +
+            ClassUtil.externalFullMethodDescription(libraryClass.getName(), 0, libraryMethod.getName(libraryClass), libraryMethod.getDescriptor(libraryClass)) +
+            "; }'");
     }
 
 

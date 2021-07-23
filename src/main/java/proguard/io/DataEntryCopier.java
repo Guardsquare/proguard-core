@@ -17,6 +17,8 @@
  */
 package proguard.io;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.ClassConstants;
 import proguard.util.ExtensionMatcher;
 
@@ -33,6 +35,8 @@ public class DataEntryCopier implements DataEntryReader
     private static final byte[] JMOD_HEADER = new byte[] { 'J', 'M', 1, 0 };
 
     private static final int BUFFER_SIZE = 1024;
+
+    private static final Logger logger = LogManager.getLogger();
 
     private final DataEntryWriter dataEntryWriter;
     private final byte[]          buffer = new byte[BUFFER_SIZE];
@@ -92,7 +96,7 @@ public class DataEntryCopier implements DataEntryReader
         }
         catch (IOException ex)
         {
-            System.err.println("Warning: can't write resource [" + dataEntry.getName() + "] (" + ex.getMessage() + ")");
+            logger.error("Warning: can't write resource [{}] ({})", dataEntry.getName(), ex.getMessage());
         }
         catch (Exception ex)
         {

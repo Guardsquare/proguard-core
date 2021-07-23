@@ -113,6 +113,28 @@ public class WarningPrinter
         warningCount++;
     }
 
+    /**
+     * Prints out the given note without incrementing the warning count, if
+     * the given class name passes the class name filter.
+     */
+    public void note(String className, String message)
+    {
+        if (accepts(className)) {
+            printWriter.println(message);
+        }
+    }
+
+    /**
+     * Prints out the given note without incrementing the warning count, if
+     * the given class nams pass the class name filter.
+     */
+    public void note(String className1, String className2, String message)
+    {
+        if (accepts(className1, className2)) {
+            printWriter.println(message);
+        }
+    }
+
 
     /**
      * Returns the number of warnings printed so far.

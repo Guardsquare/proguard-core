@@ -17,6 +17,8 @@
  */
 package proguard.classfile.editor;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
@@ -57,6 +59,8 @@ implements   ClassVisitor,
              AnnotationVisitor,
              ElementValueVisitor
 {
+    private static final Logger logger = LogManager.getLogger();
+
     private final boolean ensureUniqueMemberNames;
 
     private final KotlinReferenceFixer kotlinReferenceFixer = new KotlinReferenceFixer();
@@ -948,15 +952,15 @@ implements   ClassVisitor,
         }
         catch (RuntimeException e)
         {
-            System.err.println("Unexpected error while updating descriptor:");
-            System.err.println("  Descriptor = ["+descriptor+"]");
-            System.err.println("  Referenced classes: "+referencedClasses.length);
+            logger.error("Unexpected error while updating descriptor:");
+            logger.error("  Descriptor = [{}]", descriptor);
+            logger.error("  Referenced classes: {}", referencedClasses.length);
             for (int index = 0; index < referencedClasses.length; index++)
             {
                 Clazz referencedClass = referencedClasses[index];
                 if (referencedClass != null)
                 {
-                    System.err.println("    #"+index+": ["+referencedClass.getName()+"]");
+                    logger.error("    #{}: [{}]", index, referencedClass.getName());
                 }
             }
 

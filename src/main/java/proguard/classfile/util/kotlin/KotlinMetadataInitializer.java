@@ -75,7 +75,6 @@ implements ClassVisitor,
         this((clazz, message) -> warningPrinter.print(clazz.getName(), message));
     }
 
-
     public KotlinMetadataInitializer(BiConsumer<Clazz, String> errorHandler)
     {
         this.errorHandler = errorHandler;

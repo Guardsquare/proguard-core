@@ -17,6 +17,8 @@
  */
 package proguard.preverify;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.preverification.*;
@@ -43,6 +45,8 @@ implements   AttributeVisitor
     /*/
     private static       boolean DEBUG = System.getProperty("cp") != null;
     //*/
+
+    private final static Logger logger = LogManager.getLogger();
 
     private static final int AT_METHOD_ENTRY = -1;
 
@@ -84,10 +88,10 @@ implements   AttributeVisitor
         }
         catch (RuntimeException ex)
         {
-            System.err.println("Unexpected error while preverifying:");
-            System.err.println("  Class       = ["+clazz.getName()+"]");
-            System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-            System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
+            logger.error("Unexpected error while preverifying:");
+            logger.error("  Class       = [{}]", clazz.getName());
+            logger.error("  Method      = [{}]", method.getName(clazz)+method.getDescriptor(clazz));
+            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
             throw ex;
         }

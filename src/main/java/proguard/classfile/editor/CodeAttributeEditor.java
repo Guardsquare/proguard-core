@@ -17,6 +17,8 @@
  */
 package proguard.classfile.editor;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
@@ -108,6 +110,7 @@ implements   AttributeVisitor,
 
     private static final int LABEL_FLAG = 0x20000000;
 
+    private static final Logger logger = LogManager.getLogger();
 
     private final boolean updateFrameSizes;
     private final boolean shrinkInstructions;
@@ -528,10 +531,10 @@ implements   AttributeVisitor,
         }
         catch (RuntimeException ex)
         {
-            System.err.println("Unexpected error while editing code:");
-            System.err.println("  Class       = ["+clazz.getName()+"]");
-            System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-            System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
+            logger.error("Unexpected error while editing code:");
+            logger.error("  Class       = [{}]", clazz.getName());
+            logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
             throw ex;
         }

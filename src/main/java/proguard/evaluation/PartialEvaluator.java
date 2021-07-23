@@ -17,6 +17,8 @@
  */
 package proguard.evaluation;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
@@ -46,6 +48,8 @@ implements   AttributeVisitor,
     public static boolean DEBUG         = System.getProperty("pe") != null;
     public static boolean DEBUG_RESULTS = DEBUG;
     //*/
+
+    private final static Logger logger = LogManager.getLogger();
 
     // The analysis will generalize stack/vars after visiting an instruction this many times.
     private static final int GENERALIZE_AFTER_N_EVALUATIONS = 5;
@@ -345,10 +349,10 @@ implements   AttributeVisitor,
         }
         catch (RuntimeException ex)
         {
-            System.err.println("Unexpected error while performing partial evaluation:");
-            System.err.println("  Class       = ["+clazz.getName()+"]");
-            System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-            System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
+            logger.error("Unexpected error while performing partial evaluation:");
+            logger.error("  Class       = [{}]", clazz.getName());
+            logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
             if (DEBUG)
             {
@@ -1001,11 +1005,11 @@ implements   AttributeVisitor,
             }
             catch (RuntimeException ex)
             {
-                System.err.println("Unexpected error while evaluating instruction:");
-                System.err.println("  Class       = ["+clazz.getName()+"]");
-                System.err.println("  Method      = ["+method.getName(clazz)+method.getDescriptor(clazz)+"]");
-                System.err.println("  Instruction = "+instruction.toString(clazz, instructionOffset));
-                System.err.println("  Exception   = ["+ex.getClass().getName()+"] ("+ex.getMessage()+")");
+                logger.error("Unexpected error while evaluating instruction:");
+                logger.error("  Class       = [{}]", clazz.getName());
+                logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+                logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
+                logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
                 throw ex;
             }

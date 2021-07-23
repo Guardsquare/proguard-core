@@ -1,8 +1,12 @@
-## Version 7.2.0-development
+## Version 8.0.0
 
 ### Java support
 
 - Update maximum supported Java class version to 61.0 (Java 17). (`PGD-132`)
+
+### API Improvements
+
+- Add `WarningLogger` class to allow using a custom Log4j2 logger. (`T5561`)
 
 ### API changes
 
