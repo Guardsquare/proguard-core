@@ -4,9 +4,26 @@
 
 - Update maximum supported Java class version to 61.0 (Java 17). (`PGD-132`)
 
+### Kotlin support
+
+- Add support for processing Kotlin 1.5 metadata. (`T5036`)
+- Update `kotlinx` metadata dependency to version 0.2. (`T4651`)
+
 ### API Improvements
 
 - Add `WarningLogger` class to allow using a custom Log4j2 logger. (`T5561`)
+- Add Kotlin metadata model classes and visitors for Kotlin annotations. (`T2698`)
+- Add Kotlin metadata model enum for `KmVariance`. (`T4842`)
+- Add Kotlin metadata model enum for `KmVersionRequirement(Kind|Level)`. (`T4843`)
+- Add Kotlin metadata model enum for `KmEffect(Type|InvocationKind)`. (`T4844`)
+- Add Kotlin metadata flag `IS_FUN` for functional interfaces. (`T4659`)
+- Add Kotlin metadata flag `HAS_NON_STABLE_PARAMETER_NAMES` for Kotlin callables. (`T4658`)
+- Add error handler callback to `KotlinMetadataInitializer`.
+- Add error handler callback to `KotlinMetadataWriter`.
+- Add error handler callback to `KotlinModuleReader`.
+- Add error handler callback to `KotlinModuleWriter`. Add Kotlin metadata flag `IS_SECONDARY` for constructors. (`T4657`)
+- Implement `ClassVisitor` in `KotlinMetadataInitializer` to allow easier initialization of Kotlin metadata.
+- Implement `ClassVisitor` in `KotlinMetadataWriter` to allow easier writing of Kotlin metadata.
 
 ### API changes
 
@@ -15,6 +32,7 @@
 - Rename `AllConstructorsVisitor` to `AllConstructorVisitor`.
 - Rename `AllFunctionsVisitor` to `AllFunctionVisitor`.
 - Remove `KotlinValueParameterVisitor.onNewFunctionStart()' method.
+- Deprecate Kotlin metadata flag `IS_PRIMARY` for constructors. (`T4657`)
 
 ## Version 7.1.1
 
@@ -22,12 +40,6 @@
 
 - Add `KotlinTypeParameterFilter` to allow filtering easily when visiting type parameters.
 - Add `KotlinValueParameterFilter` to allow filtering easily when visiting value parameters.
-- Implement `ClassVisitor` in `KotlinMetadataInitializer` to allow easier initialization of Kotlin metadata.
-- Implement `ClassVisitor` in `KotlinMetadataWriter` to allow easier writing of Kotlin metadata.
-- Add error handler callback to `KotlinMetadataInitializer`.
-- Add error handler callback to `KotlinMetadataWriter`.
-- Add error handler callback to `KotlinModuleReader`.
-- Add error handler callback to `KotlinModuleWriter`.
 
 ### Bug fixes
 
