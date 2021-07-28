@@ -46,7 +46,7 @@ implements   AttributeVisitor
     private static       boolean DEBUG = System.getProperty("cp") != null;
     //*/
 
-    private final static Logger logger = LogManager.getLogger();
+    private final static Logger logger = LogManager.getLogger(CodePreverifier.class);
 
     private static final int AT_METHOD_ENTRY = -1;
 

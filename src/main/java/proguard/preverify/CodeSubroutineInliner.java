@@ -45,7 +45,7 @@ implements   AttributeVisitor,
     private static       boolean DEBUG = System.getProperty("csi") != null;
     //*/
 
-    private final static Logger logger = LogManager.getLogger();
+    private final static Logger logger = LogManager.getLogger(CodeSubroutineInliner.class);
 
     private final BranchTargetFinder    branchTargetFinder    = new BranchTargetFinder();
     private final CodeAttributeComposer codeAttributeComposer = new CodeAttributeComposer(true, true, true);

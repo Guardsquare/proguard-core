@@ -36,7 +36,7 @@ public class DataEntryCopier implements DataEntryReader
 
     private static final int BUFFER_SIZE = 1024;
 
-    private static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger(DataEntryCopier.class);
 
     private final DataEntryWriter dataEntryWriter;
     private final byte[]          buffer = new byte[BUFFER_SIZE];

@@ -44,7 +44,7 @@ implements   AttributeVisitor,
     private static       boolean DEBUG = System.getProperty("ssc") != null;
     //*/
 
-    private static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger(StackSizeComputer.class);
 
     private boolean[] evaluated        = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
     private int[]     stackSizesBefore = new int[ClassEstimates.TYPICAL_CODE_LENGTH];

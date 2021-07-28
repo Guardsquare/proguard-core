@@ -59,7 +59,7 @@ implements   ClassVisitor,
              AnnotationVisitor,
              ElementValueVisitor
 {
-    private static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger(ClassReferenceFixer.class);
 
     private final boolean ensureUniqueMemberNames;
 

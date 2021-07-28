@@ -49,7 +49,7 @@ implements   AttributeVisitor,
     public static boolean DEBUG_RESULTS = DEBUG;
     //*/
 
-    private final static Logger logger = LogManager.getLogger();
+    private final static Logger logger = LogManager.getLogger(PartialEvaluator.class);
 
     // The analysis will generalize stack/vars after visiting an instruction this many times.
     private static final int GENERALIZE_AFTER_N_EVALUATIONS = 5;

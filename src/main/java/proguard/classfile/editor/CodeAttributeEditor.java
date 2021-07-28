@@ -110,7 +110,7 @@ implements   AttributeVisitor,
 
     private static final int LABEL_FLAG = 0x20000000;
 
-    private static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger(CodeAttributeEditor.class);
 
     private final boolean updateFrameSizes;
     private final boolean shrinkInstructions;
