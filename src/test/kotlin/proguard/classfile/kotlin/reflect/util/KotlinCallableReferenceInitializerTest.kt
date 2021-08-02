@@ -18,6 +18,7 @@
 
 package proguard.classfile.kotlin.reflect.util
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -31,6 +32,7 @@ import proguard.classfile.kotlin.KotlinSyntheticClassKindMetadata
 import proguard.classfile.kotlin.reflect.visitor.CallableReferenceInfoVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
+import proguard.classfile.util.ClassReferenceInitializer
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 import testutils.KotlinSource
@@ -399,6 +401,53 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                     programClassPool.getClass("Foo"),
                     ofType(KotlinClassKindMetadata::class)
                 )
+            }
+        }
+    }
+
+    "Given a function callable reference with an uninitialized owner class" - {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun foo() = "bar"
+                fun ref() = ::foo
+                """.trimIndent()
+            )
+        )
+
+        val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
+        val ownerVisitor = spyk< KotlinMetadataVisitor>()
+        val testVisitor = createVisitor(callableRefInfoVisitor, ownerVisitor)
+
+        // Remove the owner class from the classpool, to simulate a case
+        // where the owner class was not found.
+        programClassPool.removeClass("TestKt")
+        // Clear the current callableReferenceInfo
+        programClassPool.classesAccept(
+            "TestKt\$ref\$1",
+            ReferencedKotlinMetadataVisitor(
+                object : KotlinMetadataVisitor {
+                    override fun visitAnyKotlinMetadata(clazz: Clazz, kotlinMetadata: KotlinMetadata) {}
+
+                    override fun visitKotlinSyntheticClassMetadata(clazz: Clazz, kotlinSyntheticClassKindMetadata: KotlinSyntheticClassKindMetadata) {
+                        kotlinSyntheticClassKindMetadata.callableReferenceInfo = null
+                    }
+                }
+            )
+        )
+
+        "Then the initializer should not throw an exception" {
+            shouldNotThrowAny {
+                programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+            }
+        }
+
+        programClassPool.classesAccept("TestKt\$ref\$1", testVisitor)
+
+        "Then the callableReferenceInfo should not be initialized" {
+            verify(exactly = 0) {
+                callableRefInfoVisitor.visitAnyCallableReferenceInfo(any())
             }
         }
     }

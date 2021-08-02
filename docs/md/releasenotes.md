@@ -1,3 +1,9 @@
+## Version 8.0.1
+
+### Bug fixes
+
+- Fix potential `NullPointerException` when initializing Kotlin callable references. (`T5899`)
+
 ## Version 8.0.0
 
 ### Java support

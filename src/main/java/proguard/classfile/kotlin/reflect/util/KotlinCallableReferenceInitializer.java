@@ -308,9 +308,14 @@ implements   KotlinMetadataVisitor
                                 result.callableOwnerMetadata = declarationContainer;
                             }
                         });
+
+                        if (result.callableName      != null &&
+                            result.callableSignature != null)
+                        {
+                            this.consumer.accept(result);
+                        }
                     }
 
-                    this.consumer.accept(result);
                     break;
                 }
             }
@@ -346,9 +351,13 @@ implements   KotlinMetadataVisitor
             if (result.callableOwnerClass != null)
             {
                 result.callableOwnerClass.kotlinMetadataAccept(this);
-            }
 
-            this.infoLoaderResultConsumer.accept(result);
+                if (result.callableName      != null &&
+                    result.callableSignature != null)
+                {
+                    this.infoLoaderResultConsumer.accept(result);
+                }
+            }
         }
 
         // Implementations for MemberVisitor.
