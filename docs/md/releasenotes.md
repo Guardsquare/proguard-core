@@ -1,5 +1,10 @@
 ## Version 8.0.1
 
+### API Improvements
+
+- Add `LibraryClassBuilder` and `LibraryClassEditor` classes to create and edit a `LibraryClass`. (`T5790`)
+- Add additional constructors to `LibraryClass`. 
+
 ### Bug fixes
 
 - Fix potential `NullPointerException` when initializing Kotlin callable references. (`T5899`)

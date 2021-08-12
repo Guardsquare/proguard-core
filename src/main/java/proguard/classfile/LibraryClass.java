@@ -36,7 +36,10 @@ public class LibraryClass
 extends      SimpleFeatureNamedProcessable
 implements   Clazz
 {
-    private static final Clazz[] EMPTY_CLASSES = new Clazz[0];
+    private static final Clazz[]         EMPTY_CLASSES    = new Clazz[0];
+    private static final String[]        EMPTY_INTERFACES = new String[0];
+    private static final LibraryField[]  EMPTY_FIELDS     = new LibraryField[0];
+    private static final LibraryMethod[] EMPTY_METHODS    = new LibraryMethod[0];
 
     public int             u2accessFlags;
     public String          thisClassName;
@@ -70,6 +73,85 @@ implements   Clazz
      */
     public LibraryClass()
     {
+    }
+
+
+    /**
+     * Creates an initialized LibraryClass
+     * @param u2accessFlags     access flags for the new class.
+     * @param thisClassName     the fully qualified name of the new class.
+     * @param superClassName    the fully qualified name of the super class.
+     */
+    public LibraryClass(int    u2accessFlags,
+                        String thisClassName,
+                        String superClassName)
+    {
+        this(u2accessFlags,
+             thisClassName,
+             superClassName,
+             null);
+    }
+
+
+    /**
+     * Creates an initialized LibraryClass
+     * @param u2accessFlags     access flags for the new class.
+     * @param thisClassName     the fully qualified name of the new class.
+     * @param superClassName    the fully qualified name of the super class.
+     * @param kotlinMetadata    the metadata attached to this class if it is a Kotlin class.
+     */
+    public LibraryClass(int            u2accessFlags,
+                        String         thisClassName,
+                        String         superClassName,
+                        KotlinMetadata kotlinMetadata)
+    {
+        this(u2accessFlags,
+             thisClassName,
+             superClassName,
+             EMPTY_INTERFACES,
+             EMPTY_CLASSES,
+             0,
+             EMPTY_CLASSES,
+             EMPTY_FIELDS,
+             EMPTY_METHODS,
+             kotlinMetadata);
+    }
+
+
+    /**
+     * Creates an initialized LibraryClass
+     * @param u2accessFlags     access flags for the new class.
+     * @param thisClassName     the fully qualified name of the new class.
+     * @param superClassName    the fully qualified name of the super class.
+     * @param interfaceNames    the names of the interfaces that are implemented by this class.
+     * @param interfaceClasses  references to the interface classes of the interfaces that are implemented by this class.
+     * @param subClassCount     the number of subclasses of this class.
+     * @param subClasses        references to the subclasses of this class.
+     * @param fields            references to the fields of this class.
+     * @param methods           references to the methods of this class.
+     * @param kotlinMetadata    the metadata attached to this class if it is a Kotlin class
+     */
+    public LibraryClass(int             u2accessFlags,
+                        String          thisClassName,
+                        String          superClassName,
+                        String[]        interfaceNames,
+                        Clazz[]         interfaceClasses,
+                        int             subClassCount,
+                        Clazz[]         subClasses,
+                        LibraryField[]  fields,
+                        LibraryMethod[] methods,
+                        KotlinMetadata  kotlinMetadata)
+    {
+        this.u2accessFlags    = u2accessFlags;
+        this.thisClassName    = thisClassName;
+        this.superClassName   = superClassName;
+        this.interfaceNames   = interfaceNames;
+        this.interfaceClasses = interfaceClasses;
+        this.fields           = fields;
+        this.methods          = methods;
+        this.subClassCount    = subClassCount;
+        this.subClasses       = subClasses;
+        this.kotlinMetadata   = kotlinMetadata;
     }
 
 
