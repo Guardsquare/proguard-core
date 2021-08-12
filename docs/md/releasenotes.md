@@ -9,6 +9,7 @@
 
 - Fix potential `NullPointerException` when initializing Kotlin callable references. (`T5899`)
 - Prevent requiring `--enable-preview` on a JVM for Java 16 class files (write class file version `60.0` instead of `60.65535`).
+- Fix potential `NullPointerException` when visiting referenced methods of Kotlin functions.
 
 ## Version 8.0.0
 
