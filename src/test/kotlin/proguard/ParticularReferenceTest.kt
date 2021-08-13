@@ -67,7 +67,6 @@ class ParticularReferenceTest : FreeSpec({
         }
     }
 
-
     "Unknown value if different possibilities exist - loop" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
