@@ -22,6 +22,52 @@ import testutils.JavaSource
 
 class ParticularReferenceTest : FreeSpec({
 
+    "Simple empty value in Constructor" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                class A {
+                    public void ctor(){
+                        String s = new String();
+                        System.out.println(s);
+                    }
+                }
+                """
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "ctor", "()V", programClassPool)
+
+        "Expected number of instructions" {
+            invocationsWithStack.keys shouldHaveSize 2
+            invocationsWithStack.keys shouldContain 4
+            invocationsWithStack.keys shouldContain 12
+        }
+
+        "Correct parameter in Constructor" {
+            invocationsWithStack[4]!!.methodSignature shouldBe "java/lang/String.<init>.()V"
+            if (invocationsWithStack[4]!!.stack[0] !is TypedReferenceValue) { // we lose all information at the generalization
+                throw AssertionError("Unexpected type: " + invocationsWithStack[4]!!.stack[0].javaClass.simpleName)
+            }
+
+            (invocationsWithStack[4]!!.stack[0] as TypedReferenceValue).referencedClass shouldNotBe null
+            (invocationsWithStack[4]!!.stack[0] as TypedReferenceValue).referencedClass.name shouldBe "java/lang/String"
+        }
+
+        "Correct parameter in last sysout" {
+            invocationsWithStack[12]!!.methodSignature shouldBe "java/io/PrintStream.println.(Ljava/lang/String;)V"
+            if (invocationsWithStack[12]!!.stack[0] !is TypedReferenceValue) { // we lose all information at the generalization
+                throw AssertionError("Unexpected type: " + invocationsWithStack[12]!!.stack[0].javaClass.simpleName)
+            }
+
+            (invocationsWithStack[12]!!.stack[0] as TypedReferenceValue).referencedClass shouldNotBe null
+            (invocationsWithStack[12]!!.stack[0] as TypedReferenceValue).referencedClass.name shouldBe "java/lang/String"
+        }
+    }
+
+
     "Unknown value if different possibilities exist - loop" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
@@ -54,6 +100,9 @@ class ParticularReferenceTest : FreeSpec({
             if (invocationsWithStack[35]!!.stack[0] !is TypedReferenceValue) { // we lose all information at the generalization
                 throw AssertionError("Unexpected type: " + invocationsWithStack[35]!!.stack[0].javaClass.simpleName)
             }
+
+            (invocationsWithStack[35]!!.stack[0] as TypedReferenceValue).referencedClass shouldNotBe null
+            (invocationsWithStack[35]!!.stack[0] as TypedReferenceValue).referencedClass.name shouldBe "java/lang/String"
         }
     }
 
@@ -91,6 +140,9 @@ class ParticularReferenceTest : FreeSpec({
         "Correct parameter in last sysout" {
             invocationsWithStack[36]!!.methodSignature shouldBe "java/io/PrintStream.println.(Ljava/lang/String;)V"
             invocationsWithStack[36]!!.stack[0].isParticular shouldBe false
+
+            (invocationsWithStack[36]!!.stack[0] as TypedReferenceValue).referencedClass shouldNotBe null
+            (invocationsWithStack[36]!!.stack[0] as TypedReferenceValue).referencedClass.name shouldBe "java/lang/String"
         }
     }
 
@@ -123,6 +175,9 @@ class ParticularReferenceTest : FreeSpec({
             if (invocationsWithStack[19]!!.stack[0] !is IdentifiedReferenceValue) {
                 throw AssertionError("Unexpected type: " + invocationsWithStack[36]!!.stack[0].javaClass.simpleName)
             }
+
+            (invocationsWithStack[19]!!.stack[0] as TypedReferenceValue).referencedClass shouldNotBe null
+            (invocationsWithStack[19]!!.stack[0] as TypedReferenceValue).referencedClass.name shouldBe "java/lang/String"
         }
     }
 

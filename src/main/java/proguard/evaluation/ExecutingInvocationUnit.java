@@ -26,9 +26,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
+import proguard.classfile.LibraryClass;
+import proguard.classfile.LibraryMethod;
+import proguard.classfile.Member;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramMethod;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.constant.AnyMethodrefConstant;
 import proguard.classfile.util.ClassUtil;
+import proguard.classfile.visitor.MemberVisitor;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.ReflectiveMethodCallUtil;
@@ -115,7 +121,7 @@ public class ExecutingInvocationUnit
 
         if (!isSupportedMethodCall(baseClassName))
         {
-            return valueFactory.createValue(returnType, clazz, true, true);
+            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, returnType, false), true, true);
         }
 
         Value reflectedReturnValue = handleMethodCall(clazz, anyMethodrefConstant, returnType, parameters, isStatic);
@@ -130,7 +136,7 @@ public class ExecutingInvocationUnit
         else if (reflectedReturnValue == null)
         {
             // The reflective call failed. Create a simple new Value of the correct type.
-            return valueFactory.createValue(returnType, clazz, true, true);
+            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, returnType, false), true, true);
         }
         else
         {
@@ -278,7 +284,12 @@ public class ExecutingInvocationUnit
         {
             returnType = parameter[0].referenceValue().getType();
         }
-        return valueFactory.createReferenceValue(ClassUtil.internalClassNameFromClassType(returnType), clazz, resultMayBeExtension, resultMayBeNull, methodResult);
+        // the referencedClass could be any Type. We do not have a reference to that class at this point.
+        return valueFactory.createReferenceValue(ClassUtil.internalClassNameFromClassType(returnType),
+                                                 getReferencedClass(anyMethodrefConstant, returnType, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
+                                                 resultMayBeExtension,
+                                                 resultMayBeNull,
+                                                 methodResult);
 
     }
 
@@ -476,7 +487,7 @@ public class ExecutingInvocationUnit
                 updateValue = valueFactory.createValue((returnType.charAt(0) == TypeConstants.VOID) ?
                                                            ClassUtil.internalTypeFromClassName(baseClassName) :
                                                            returnType,
-                                                       clazz,
+                                                       getReferencedClass(anyMethodrefConstant, returnType, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
                                                        true,
                                                        true);
             }
@@ -486,4 +497,53 @@ public class ExecutingInvocationUnit
         }
     }
 
+    /**
+     * Returns the class of the returnClassPool type, if available, null otherwise.
+     * For a Constructor, we always return a type, even if the return type of the method would be void. This is required,
+     * since we need to handle constructors differently in general (see Javadoc).
+     */
+    private Clazz getReferencedClass(AnyMethodrefConstant anyMethodrefConstant, String returnType, boolean isCtor)
+    {
+        if (returnType.charAt(0) == TypeConstants.CLASS_START)
+        {
+            if (isCtor)
+            {
+                return anyMethodrefConstant.referencedClass; // this is the class of "this", i.e., the type of this constructor.
+            }
+
+            // extract the class from the referenced classes
+            ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
+            anyMethodrefConstant.referencedMethodAccept(returnClassExtractor);
+            return returnClassExtractor.returnClass; // can be null
+        }
+        return null;
+    }
+
+    /**
+     * Returns the last referenced class of referencedClasses from the program-/ librarymethod.
+     */
+    private static class ReturnClassExtractor
+        implements MemberVisitor
+    {
+
+        private Clazz returnClass;
+
+        @Override
+        public void visitAnyMember(Clazz clazz, Member member)
+        {
+            // only interested in program and librarymethods
+        }
+
+        @Override
+        public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
+        {
+            this.returnClass = programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
+        }
+
+        @Override
+        public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
+        {
+            this.returnClass = libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
+        }
+    }
 }
