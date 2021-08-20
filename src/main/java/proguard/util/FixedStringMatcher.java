@@ -57,6 +57,12 @@ public class FixedStringMatcher extends StringMatcher
     // Implementations for StringMatcher.
 
     @Override
+    public String prefix()
+    {
+        return this.fixedString;
+    }
+
+    @Override
     protected boolean matches(String string, int beginOffset, int endOffset)
     {
         int stringLength      = endOffset - beginOffset;

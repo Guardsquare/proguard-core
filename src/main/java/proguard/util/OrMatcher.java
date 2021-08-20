@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,17 @@ public class OrMatcher extends StringMatcher
 
 
     // Implementations for StringMatcher.
+
+    @Override
+    public String prefix()
+    {
+        if (this.matchers.length == 0 || this.matchers[0] == null)
+            return null;
+        if (this.matchers.length == 1)
+            return this.matchers[0].prefix();
+        // TODO(T6101) - if there is more than 1 matcher, find a more specific prefix than the empty string
+        return "";
+    }
 
     @Override
     protected boolean matches(String string, int beginOffset, int endOffset)

@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,16 @@ public abstract class StringMatcher
         return matches(string, 0, string.length());
     }
 
+
+    /**
+     * Returns a common prefix of all strings matched by this {@link StringMatcher}.
+     * If the returned value is null, then this {@link StringMatcher} does not match any string.
+     */
+    public String prefix()
+    {
+        return "";
+    }
+    
 
     /**
      * Checks whether the given substring matches.

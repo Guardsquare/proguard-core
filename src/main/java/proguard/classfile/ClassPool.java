@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class ClassPool
 {
     // We're using a sorted tree map instead of a hash map to store the classes,
     // in order to make the processing more deterministic.
-    private final Map<String, Clazz> classes = new TreeMap<String, Clazz>();
+    private final TreeMap<String, Clazz> classes = new TreeMap<String, Clazz>();
 
 
     /**
@@ -334,17 +334,15 @@ public class ClassPool
     public void classesAccept(StringMatcher classNameFilter,
                               ClassVisitor  classVisitor)
     {
-        Iterator iterator = classes.entrySet().iterator();
-        while (iterator.hasNext())
+        String prefix = classNameFilter.prefix();
+        Map.Entry<String, Clazz> classEntry = classes.ceilingEntry(prefix);
+        while (classEntry != null && classEntry.getKey().startsWith(prefix))
         {
-            Map.Entry entry     = (Map.Entry)iterator.next();
-            String    className = (String   )entry.getKey();
-
-            if (classNameFilter.matches(className))
+            if (classNameFilter.matches(classEntry.getKey()))
             {
-                Clazz clazz = (Clazz)entry.getValue();
-                clazz.accept(classVisitor);
+                classEntry.getValue().accept(classVisitor);
             }
+            classEntry = classes.higherEntry(classEntry.getKey());
         }
     }
 
