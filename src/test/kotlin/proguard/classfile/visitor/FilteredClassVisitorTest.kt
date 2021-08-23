@@ -25,7 +25,7 @@ import io.mockk.verify
 import proguard.classfile.ClassPool
 import proguard.util.StringMatcher
 
-class FilteredClassVisitorTest : FreeSpec ({
+class FilteredClassVisitorTest : FreeSpec({
     "Given a FilteredClassVisitor with a non-null filter" - {
         val visitor = mockk<ClassVisitor>()
         val filteredClassVisitor = FilteredClassVisitor("proguard/classfile/", visitor)

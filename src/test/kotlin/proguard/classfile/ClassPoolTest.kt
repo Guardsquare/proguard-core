@@ -19,10 +19,13 @@
 package proguard.classfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.mockk.*
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
+import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.visitor.ClassVisitor
 import proguard.util.StringMatcher
-import proguard.classfile.AccessConstants.PUBLIC
 
 class ClassPoolTest : FreeSpec({
     "Given a ClassPool filled with classes" - {
@@ -31,24 +34,29 @@ class ClassPoolTest : FreeSpec({
                 LibraryClass(
                     PUBLIC,
                     "proguard/Classfile",
-                    "java/lang/Object"),
+                    "java/lang/Object"
+                ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/classfile/ClassMemberPair",
-                    "java/lang/Object"),
+                    "java/lang/Object"
+                ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/classfile/visitor/InjectedClassFilter",
-                    "java/lang/Object"),
+                    "java/lang/Object"
+                ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/DescriptorKeeper",
-                    "java/lang/Object"),
+                    "java/lang/Object"
+                ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/Targeter",
-                    "java/lang/Object")
+                    "java/lang/Object"
                 )
+            )
         )
 
         "When a ClassVisitor is applied to all matching classes in the class pool" - {
