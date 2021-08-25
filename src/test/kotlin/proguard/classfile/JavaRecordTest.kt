@@ -22,11 +22,18 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.spyk
+import io.mockk.verify
 import io.mockk.verifyOrder
+import proguard.classfile.attribute.Attribute
+import proguard.classfile.attribute.annotation.RuntimeInvisibleTypeAnnotationsAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AllRecordComponentInfoVisitor
+import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.attribute.visitor.RecordComponentInfoVisitor
 import proguard.classfile.util.MemberFinder
+import proguard.classfile.visitor.AllMemberVisitor
+import proguard.classfile.visitor.ConstructorMethodFilter
+import proguard.classfile.visitor.MethodFilter
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 import testutils.RequiresJavaVersion
@@ -77,6 +84,46 @@ class JavaRecordTest : FreeSpec({
                         it.getDescriptor(recordClazz) shouldBe "Ljava/lang/String;"
                         it.referencedField shouldBe MemberFinder().findField(recordClazz, "surname", "Ljava/lang/String;")
                     }
+                )
+            }
+        }
+    }
+
+    "Given a record with a type annotation in its constructor" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource("Test.java", "public record Test(@Annotation String str) {}"),
+            JavaSource(
+                "Annotation.java",
+                """
+                import java.lang.annotation.*;
+                @Retention(value=RetentionPolicy.CLASS)
+                @Target(value=ElementType.TYPE_USE)
+                public @interface Annotation {}
+                """.trimIndent()
+            ),
+            javacArguments = if (testutils.currentJavaVersion == 15)
+                listOf("--enable-preview", "--release", "15") else emptyList()
+        )
+        val visitor = spyk<AttributeVisitor>(object : AttributeVisitor {
+            override fun visitAnyAttribute(clazz: Clazz, attribute: Attribute) {}
+        })
+
+        programClassPool.classesAccept(
+            "Test",
+            AllMemberVisitor(
+                MethodFilter(
+                    ConstructorMethodFilter(
+                        AllAttributeVisitor(false, visitor)
+                    )
+                )
+            )
+        )
+
+        "Then the type annotation attribute should be visited" {
+            verify(exactly = 1) {
+                visitor.visitAnyTypeAnnotationsAttribute(
+                    programClassPool.getClass("Test"),
+                    ofType(RuntimeInvisibleTypeAnnotationsAttribute::class)
                 )
             }
         }

@@ -413,7 +413,7 @@ public interface AttributeVisitor
 
     default void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
     {
-        visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
+        visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
     }
 
 
