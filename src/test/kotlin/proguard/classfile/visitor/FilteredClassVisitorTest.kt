@@ -18,7 +18,9 @@
 
 package proguard.classfile.visitor
 
+import io.kotest.assertions.any
 import io.kotest.core.spec.style.FreeSpec
+import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
@@ -38,6 +40,29 @@ class FilteredClassVisitorTest : FreeSpec({
             "Then the ClassPool accepts the visitor and filter" {
                 verify(exactly = 1) {
                     classPool.classesAccept(any<StringMatcher>(), visitor)
+                }
+            }
+        }
+    }
+
+    "Given a FilteredClassVisitor with a string matcher" - {
+        val visitor = mockk<ClassVisitor>()
+        val alwaysMatchingMatcher = mockk<StringMatcher>()
+        every { alwaysMatchingMatcher.matches(any()) } returns true
+        every { alwaysMatchingMatcher.prefix() } returns ""
+
+        val filteredClassVisitor = FilteredClassVisitor(alwaysMatchingMatcher, visitor)
+        "When the FilteredClassVisitor visits a ClassPool" - {
+            val classPool = mockk<ClassPool>()
+            every { classPool.classesAccept(alwaysMatchingMatcher, visitor) } answers {
+                alwaysMatchingMatcher.prefix()
+            }
+
+            filteredClassVisitor.visitClassPool(classPool)
+
+            "Then the matcher's prefix is checked at least once" {
+                verify(atLeast = 1) {
+                    alwaysMatchingMatcher.prefix()
                 }
             }
         }
