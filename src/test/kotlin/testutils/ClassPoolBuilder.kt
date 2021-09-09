@@ -66,7 +66,8 @@ class ClassPoolBuilder private constructor() {
             vararg source: TestSource,
             javacArguments: List<String> = emptyList(),
             kotlincArguments: List<String> = emptyList(),
-            jdkHome: File = getCurrentJavaHome()
+            jdkHome: File = getCurrentJavaHome(),
+            initialize: Boolean = true
         ): ClassPools {
 
             compiler.apply {
@@ -104,25 +105,39 @@ class ClassPoolBuilder private constructor() {
                 classReader.read(StreamingDataEntry(it.filename, it.getInputStream()))
             }
 
-            val classReferenceInitializer = ClassReferenceInitializer(programClassPool, libraryClassPool)
-            val classSuperHierarchyInitializer = ClassSuperHierarchyInitializer(programClassPool, libraryClassPool)
+            if (initialize) {
+                initialize(programClassPool, source.any { it is KotlinSource })
+            }
+
+            compiler.workingDir.deleteRecursively()
+
+            return ClassPools(programClassPool, libraryClassPool)
+        }
+
+        fun initialize(programClassPool: ClassPool, containsKotlinCode: Boolean) {
+            val classReferenceInitializer =
+                ClassReferenceInitializer(programClassPool, libraryClassPool)
+            val classSuperHierarchyInitializer =
+                ClassSuperHierarchyInitializer(programClassPool, libraryClassPool)
             val classSubHierarchyInitializer = ClassSubHierarchyInitializer()
 
             programClassPool.classesAccept(classSuperHierarchyInitializer)
             libraryClassPool.classesAccept(classSuperHierarchyInitializer)
 
-            if (source.count { it is KotlinSource } > 0)
-                programClassPool.classesAccept(KotlinMetadataInitializer { _, message -> println(message) })
+            if (containsKotlinCode)
+                programClassPool.classesAccept(
+                    KotlinMetadataInitializer { _, message ->
+                        println(
+                            message
+                        )
+                    }
+                )
 
             programClassPool.classesAccept(classReferenceInitializer)
             libraryClassPool.classesAccept(classReferenceInitializer)
 
             programClassPool.accept(classSubHierarchyInitializer)
             libraryClassPool.accept(classSubHierarchyInitializer)
-
-            compiler.workingDir.deleteRecursively()
-
-            return ClassPools(programClassPool, libraryClassPool)
         }
     }
 }

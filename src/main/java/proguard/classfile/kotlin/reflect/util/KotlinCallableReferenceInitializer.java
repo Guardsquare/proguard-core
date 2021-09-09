@@ -88,10 +88,12 @@ implements   KotlinMetadataVisitor
 
                 if (clazz.extendsOrImplements(REFLECTION.FUNCTION_REFERENCE_CLASS_NAME))
                 {
-                    Method method =
-                        memberFinder.findMethod(result.callableOwnerClass,
-                                                result.callableName,
-                                                result.callableSignature.substring(result.callableSignature.indexOf('(')));
+                    int descriptorStart = result.callableSignature.indexOf('(');
+                    Method method = descriptorStart == -1 ?
+                                        null :
+                                        memberFinder.findMethod(result.callableOwnerClass,
+                                                                result.callableName,
+                                                                result.callableSignature.substring(descriptorStart));
 
                     if (method != null)
                     {
@@ -165,10 +167,12 @@ implements   KotlinMetadataVisitor
                     {
                         // If we couldn't find any in the Kotlin metadata, we can search for the field by name/descriptor (assuming there is a backing field).
 
-                        Field field =
-                            memberFinder.findField(result.callableOwnerClass,
-                                                   result.callableName,
-                                                   result.callableSignature.substring(result.callableSignature.lastIndexOf(')') + 1));
+                        int descriptorEnd = result.callableSignature.lastIndexOf(')');
+                        Field field = descriptorEnd == -1 ?
+                                        null :
+                                        memberFinder.findField(result.callableOwnerClass,
+                                                               result.callableName,
+                                                               result.callableSignature.substring(descriptorEnd + 1));
 
                         if (field != null)
                         {

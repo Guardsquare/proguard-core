@@ -25,6 +25,9 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.Clazz
+import proguard.classfile.constant.Constant
+import proguard.classfile.constant.Utf8Constant
+import proguard.classfile.constant.visitor.ConstantVisitor
 import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata
 import proguard.classfile.kotlin.KotlinMetadata
@@ -75,6 +78,35 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                     programClassPool.getClass("TestKt"),
                     ofType(KotlinFileFacadeKindMetadata::class)
                 )
+            }
+        }
+    }
+
+    "Given a function callable reference with an empty descriptor" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun foo() = "bar"
+                fun ref() = ::foo
+                """.trimIndent()
+            ),
+            initialize = false
+        )
+
+        programClassPool.getClass("TestKt\$ref\$1")!!.constantPoolEntriesAccept(object : ConstantVisitor {
+            override fun visitAnyConstant(clazz: Clazz?, constant: Constant?) {}
+
+            override fun visitUtf8Constant(clazz: Clazz?, utf8Constant: Utf8Constant?) {
+                if (utf8Constant?.string == "foo()Ljava/lang/String;") {
+                    utf8Constant.string = ""
+                }
+            }
+        })
+
+        "This should not crash the initializer" {
+            shouldNotThrowAny {
+                ClassPoolBuilder.initialize(programClassPool, true)
             }
         }
     }
