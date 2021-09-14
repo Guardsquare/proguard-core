@@ -1658,8 +1658,11 @@ implements   ClassVisitor,
         @Override
         public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
         {
-            clazz.kotlinMetadataAccept(new AllPropertyVisitor(
-                                       new KotlinInterClassPropertyReferenceInitializer(classConstant.referencedClass)));
+            if (classConstant.referencedClass != null)
+            {
+                clazz.kotlinMetadataAccept(new AllPropertyVisitor(
+                                           new KotlinInterClassPropertyReferenceInitializer(classConstant.referencedClass)));
+            }
         }
     }
 

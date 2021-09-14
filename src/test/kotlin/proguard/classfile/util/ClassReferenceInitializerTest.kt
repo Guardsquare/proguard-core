@@ -26,6 +26,7 @@ import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinAnnotationArgumentFilter
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 import java.lang.RuntimeException
@@ -268,6 +269,38 @@ class ClassReferenceInitializerTest : FreeSpec({
         "Then an exception should not be thrown when library classes are missing" {
             shouldNotThrow<Exception> {
                 programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, ClassPool()))
+            }
+        }
+    }
+
+    "Given a companion object with a constant property" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                class BaseClass {
+                    companion object {
+                        val CONSTANT = "This does not need the base class"
+                    }
+                }
+                """.trimIndent()
+            ),
+            initialize = false
+        )
+
+        "Then an exception should not be thrown if the base class is missing" {
+            programClassPool.removeClass("BaseClass")
+            programClassPool.classesAccept(
+                KotlinMetadataInitializer { _, message ->
+                    println(
+                        message
+                    )
+                }
+            )
+            shouldNotThrow<Exception> {
+                programClassPool.classesAccept(
+                    ClassReferenceInitializer(programClassPool, ClassPool())
+                )
             }
         }
     }
