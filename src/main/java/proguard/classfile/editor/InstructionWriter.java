@@ -195,7 +195,7 @@ implements   InstructionVisitor,
                     // Insert the complementary conditional branch.
                     Instruction complementaryConditionalBranch =
                         new BranchInstruction((byte)(((branchInstruction.opcode+1) ^ 1) - 1),
-                                              (1+2) + (1+4));
+                                              (1+2));
 
                     insertBeforeInstruction(offset, complementaryConditionalBranch);
 
@@ -209,7 +209,7 @@ implements   InstructionVisitor,
                     // Insert the complementary conditional branch.
                     Instruction complementaryConditionalBranch =
                         new BranchInstruction((byte)(branchInstruction.opcode ^ 1),
-                                              (1+2) + (1+4));
+                                              (1+2));
 
                     insertBeforeInstruction(offset, complementaryConditionalBranch);
 

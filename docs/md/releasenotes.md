@@ -6,6 +6,7 @@
 - Fix potential `StackOverflowError` when using an `AttributeVisitor` to visit runtime invisible type annotations. (`PGD-182`)
 - Fix potential `StringIndexOutOfBoundsException` in `KotlinCallableReferenceInitializer`. (`T5927`)
 - Fix potential `NullPointerException` in `KotlinInterClassPropertyReferenceInitializer`. (`T6138`)
+- Fix wrong offset for complementary branch instruction when widening branch instructions in `InstructionWriter`. (`T5721`)
 
 ## Version 8.0.1
 
