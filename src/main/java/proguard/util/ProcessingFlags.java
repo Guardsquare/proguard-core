@@ -34,7 +34,7 @@ public class ProcessingFlags
     public static final int REFLECT             = 0x04000000; // Marks whether a class or class member should be accessed through reflection.
     public static final int ENCRYPT_REFLECTION  = 0x08000000; // Marks whether reflection strings should be encrypted.
     public static final int VIRTUALIZE_CODE     = 0x10000000; // Marks whether a code attribute should be virtualized.
-    public static final int OBFUSCATE_CODE      = 0xc0000000; // Marks whether a code attribute should be obfuscated.
+    public static final int OBFUSCATE_CODE      = 0x40000000; // Marks whether a code attribute should be obfuscated.
 
     // Internal processing flags.
     public static final int IS_CLASS_AVAILABLE            = 0x00000001; // Marks whether a class member can be used for generalization or specialization.
