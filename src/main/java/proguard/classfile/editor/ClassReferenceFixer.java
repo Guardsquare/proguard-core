@@ -1062,11 +1062,36 @@ implements   ClassVisitor,
                                                                          editor.addUtf8Constant(programMethod.getName(programClass)))
                                             });
 
-        RuntimeInvisibleAnnotationsAttribute attribute =
-            new RuntimeInvisibleAnnotationsAttribute(editor.addUtf8Constant(Attribute.RUNTIME_INVISIBLE_ANNOTATIONS),
-                                                     1,
-                                                     new Annotation[] { jvmName });
+        AttributesEditor attributesEditor     = new AttributesEditor(programClass, programMethod, false);
+        Attribute        annotationsAttribute = attributesEditor.findAttribute(Attribute.RUNTIME_INVISIBLE_ANNOTATIONS);
 
-        new AttributesEditor(programClass, programMethod, false).addAttribute(attribute);
+        if (annotationsAttribute == null)
+        {
+             attributesEditor.addAttribute(
+                new RuntimeInvisibleAnnotationsAttribute(
+                    editor.addUtf8Constant(Attribute.RUNTIME_INVISIBLE_ANNOTATIONS), 1, new Annotation[] { jvmName })
+             );
+        }
+        else
+        {
+            AnnotationsAttributeEditor annotationsAttributeEditor =
+                new AnnotationsAttributeEditor((AnnotationsAttribute) annotationsAttribute);
+
+            programMethod.attributesAccept(
+                programClass,
+                new AllAnnotationVisitor(
+                new AnnotationTypeFilter(
+                    TYPE_KOTLIN_JVM_JVMNAME,
+                    new AnnotationVisitor() {
+                        @Override
+                        public void visitAnnotation(Clazz clazz, Annotation annotation) {
+                            annotationsAttributeEditor.deleteAnnotation(annotation);
+                        }
+                    }
+                )
+            ));
+
+            annotationsAttributeEditor.addAnnotation(jvmName);
+        }
     }
 }
