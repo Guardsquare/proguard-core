@@ -17,6 +17,7 @@
  */
 package proguard.resources.kotlinmodule.io;
 
+import proguard.resources.file.visitor.ResourceFileVisitor;
 import proguard.resources.kotlinmodule.KotlinModule;
 import proguard.io.*;
 import proguard.resources.file.ResourceFilePool;
@@ -60,16 +61,17 @@ implements   DataEntryWriter
     @Override
     public OutputStream createOutputStream(DataEntry dataEntry) throws IOException
     {
-        KotlinModule km = (KotlinModule)resourceFilePool.getResourceFile(dataEntry.getName());
+        KotlinModuleGetter kotlinModuleGetter = new KotlinModuleGetter();
+        resourceFilePool.resourceFileAccept(dataEntry.getName(), kotlinModuleGetter);
+        KotlinModule kotlinModule = kotlinModuleGetter.kotlinModule;
 
-        if (km != null)
+        if (kotlinModule != null)
         {
             OutputStream outputStream = new BufferedOutputStream(dataEntryWriter.createOutputStream(dataEntry));
-            km.accept(new KotlinModuleWriter(outputStream));
+            kotlinModule.accept(new KotlinModuleWriter(outputStream));
             outputStream.flush();
             outputStream.close();
         }
-
         return null;
     }
 
@@ -84,5 +86,17 @@ implements   DataEntryWriter
     {
         pw.println(prefix + "KotlinModuleDataEntryWriter");
         dataEntryWriter.println(pw, prefix);
+    }
+
+    private static class KotlinModuleGetter implements ResourceFileVisitor
+    {
+        KotlinModule kotlinModule;
+
+
+        @Override
+        public void visitKotlinModule(KotlinModule kotlinModule)
+        {
+            this.kotlinModule = kotlinModule;
+        }
     }
 }
