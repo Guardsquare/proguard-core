@@ -544,6 +544,22 @@ implements   ClassVisitor,
         }
     }
 
+    @Override
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        try
+        {
+            signatureAttribute.referencedClasses =
+                findReferencedClasses(clazz,
+                                      signatureAttribute.getSignature(clazz));
+        }
+        catch (Exception corruptSignature)
+        {
+            // #2468: delete corrupt signature attributes, since they
+            // cannot be otherwise worked around.
+            recordComponentInfo.attributesAccept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
+        }
+    }
 
     @Override
     public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
