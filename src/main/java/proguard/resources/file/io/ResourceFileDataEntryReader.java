@@ -19,7 +19,7 @@ package proguard.resources.file.io;
 
 import proguard.io.*;
 import proguard.resources.file.*;
-import proguard.resources.file.visitor.ResourceFileVisitor;
+import proguard.resources.file.visitor.*;
 
 import java.io.*;
 import java.util.*;
@@ -70,7 +70,9 @@ public class ResourceFileDataEntryReader implements DataEntryReader
             if (adaptedDataEntryFilter != null &&
                 adaptedDataEntryFilter.accepts(dataEntry))
             {
-                resourceFile.references = collectJavaReferences(dataEntry);
+                ResourceJavaReferenceCollector resourceJavaReferenceCollector = new ResourceJavaReferenceCollector();
+                resourceJavaReferenceCollector.read(dataEntry);
+                resourceFile.references = resourceJavaReferenceCollector.getReferences();
             }
 
             // Pass the resource file to the visitor.
@@ -79,38 +81,4 @@ public class ResourceFileDataEntryReader implements DataEntryReader
     }
 
 
-    // Small utility methods.
-
-    /**
-     * Collects Java tokens in the contents of the given data entry. The tokens
-     * are not linked to possible classes yet.
-     */
-    private Set<ResourceJavaReference> collectJavaReferences(DataEntry dataEntry)
-    throws IOException
-    {
-        Set<ResourceJavaReference> set = new HashSet<>();
-
-        Reader reader =
-            new BufferedReader(
-            new InputStreamReader(dataEntry.getInputStream()));
-
-        try
-        {
-            DataEntryTokenizer tokenizer = new DataEntryTokenizer(reader);
-            DataEntryToken     token;
-            while ((token = tokenizer.nextToken()) != null)
-            {
-                if (token.type == DataEntryTokenType.JAVA_IDENTIFIER)
-                {
-                    set.add(new ResourceJavaReference(token.string));
-                }
-            }
-        }
-        finally
-        {
-            dataEntry.closeInputStream();
-        }
-
-        return set;
-    }
 }
