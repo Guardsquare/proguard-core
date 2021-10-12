@@ -7,6 +7,8 @@
 
 package proguard.classfile.visitor;
 
+import proguard.classfile.Clazz;
+import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
 import proguard.util.Counter;
@@ -33,6 +35,9 @@ implements   MemberVisitor,
 
 
     // Implementations for MemberVisitor.
+
+    @Override
+    public void visitAnyMember(Clazz clazz, Member member) {}
 
     @Override
     public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
