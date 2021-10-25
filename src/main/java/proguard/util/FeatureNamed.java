@@ -17,6 +17,8 @@
  */
 package proguard.util;
 
+import java.util.Set;
+
 /**
  * Base interface for entities that are part of a feature, as indicated by a
  * feature name.
@@ -41,4 +43,26 @@ public interface FeatureNamed
      * @param featureName the feature Name to be set.
      */
     public void setFeatureName(String featureName);
+
+
+    /**
+     * Adds the feature name to the set of features this entity is part of.
+     *
+     * @param featureName the feature name to add.
+     */
+    public void addExtraFeatureName(String featureName);
+
+
+    /**
+     * Returns the set of feature names for this entity.
+     */
+    public Set<String> getExtraFeatureNames();
+
+
+    /**
+     * Returns whether the entity is part of the given feature.
+     *
+     * @param featureName the name of the feature to check.
+     */
+    public boolean isInFeature(String featureName);
 }

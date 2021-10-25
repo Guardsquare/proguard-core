@@ -17,6 +17,8 @@
  */
 package proguard.util;
 
+import java.util.*;
+
 /**
  * A {@link SimpleProcessable} that additionally implements {@link FeatureNamed}.
  *
@@ -26,7 +28,8 @@ public class SimpleFeatureNamedProcessable
 extends      SimpleProcessable
 implements   FeatureNamed
 {
-    public String featureName;
+    public String      featureName;
+    public Set<String> extraFeatureNames = new HashSet<>();
 
 
     /**
@@ -56,9 +59,31 @@ implements   FeatureNamed
         return featureName;
     }
 
+
     @Override
     public void setFeatureName(String featureName)
     {
         this.featureName = featureName;
+    }
+
+
+    @Override
+    public void addExtraFeatureName(String featureName)
+    {
+        extraFeatureNames.add(featureName);
+    }
+
+
+    @Override
+    public Set<String> getExtraFeatureNames()
+    {
+        return extraFeatureNames;
+    }
+
+
+    @Override
+    public boolean isInFeature(String featureName)
+    {
+        return extraFeatureNames.contains(featureName);
     }
 }
