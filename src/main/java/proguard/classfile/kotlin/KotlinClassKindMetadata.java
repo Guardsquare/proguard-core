@@ -111,7 +111,10 @@ extends KotlinDeclarationContainerMetadata
     {
         for (Clazz sealedSubclass : referencedSealedSubClasses)
         {
-            sealedSubclass.accept(classVisitor);
+            if (sealedSubclass != null)
+            {
+                sealedSubclass.accept(classVisitor);
+            }
         }
     }
 
