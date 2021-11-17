@@ -244,7 +244,7 @@ class PKCS7OutputStream
 
                 // Extract the name and the value from the attribute.
                 // Apparently, the value can contain unquoted control characters
-                // (e.g. EMAILADDRESS=^Vbustia.mobilitat@caixabank.com).
+                // (e.g. EMAILADDRESS=^some.one@example.com).
                 int    equalsIndex    = attribute.indexOf('=');
                 String attributeName  = attribute.substring(0, equalsIndex).trim();
                 String attributeValue = quoted ?
@@ -295,7 +295,7 @@ class PKCS7OutputStream
 
         // Find the last non-space character.
         int endIndex = string.length();
-        while (endIndex >= startIndex && string.charAt(endIndex - 1) == ' ')
+        while (endIndex > startIndex && string.charAt(endIndex - 1) == ' ')
         {
             endIndex--;
         }
