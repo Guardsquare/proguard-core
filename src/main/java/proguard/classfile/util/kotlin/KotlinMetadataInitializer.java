@@ -1659,25 +1659,25 @@ implements ClassVisitor,
     }
 
 
-    private static proguard.classfile.kotlin.JvmMethodSignature fromKotlinJvmMethodSignature(kotlinx.metadata.jvm.JvmMethodSignature jvmMethodSignature)
+    private static MethodSignature fromKotlinJvmMethodSignature(JvmMethodSignature jvmMethodSignature)
     {
         if (jvmMethodSignature == null)
         {
             return null;
         }
 
-        return new proguard.classfile.kotlin.JvmMethodSignature(jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
+        return new MethodSignature(null, jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
     }
 
 
-    private static proguard.classfile.kotlin.JvmFieldSignature fromKotlinJvmFieldSignature(kotlinx.metadata.jvm.JvmFieldSignature jvmFieldSignature)
+    private static FieldSignature fromKotlinJvmFieldSignature(JvmFieldSignature jvmFieldSignature)
     {
         if (jvmFieldSignature == null)
         {
             return null;
         }
 
-        return new proguard.classfile.kotlin.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+        return new FieldSignature(null, jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
     }
 
 

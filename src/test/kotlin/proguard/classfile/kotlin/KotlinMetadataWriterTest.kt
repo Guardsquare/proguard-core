@@ -24,6 +24,7 @@ import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyAll
+import proguard.classfile.MethodSignature
 import proguard.classfile.kotlin.KotlinAnnotationArgument.ArrayValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.BooleanValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.ByteValue
@@ -110,7 +111,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinFileFacadeKindMetadata>(),
                     withArg {
                         it.name shouldBe "foo"
-                        it.jvmSignature shouldBe JvmMethodSignature("foo", "()V")
+                        it.jvmSignature shouldBe MethodSignature(null, "foo", "()V")
                     }
                 )
             }

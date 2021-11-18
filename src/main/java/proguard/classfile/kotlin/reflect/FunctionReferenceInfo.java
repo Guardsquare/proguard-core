@@ -51,14 +51,14 @@ implements   CallableReferenceInfo
     }
 
     /**
-     * For functions this is just the jvmSignature.
+     * For functions this is just their name and descriptor.
      *
      * @return The JVM signature.
      */
     @Override
     public String getSignature()
     {
-        return functionMetadata.jvmSignature.asString();
+        return functionMetadata.jvmSignature.method + functionMetadata.jvmSignature.descriptor;
     }
 
 

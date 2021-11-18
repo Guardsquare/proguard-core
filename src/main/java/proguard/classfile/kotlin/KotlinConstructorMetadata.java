@@ -36,8 +36,8 @@ implements Processable
     public KotlinConstructorFlags flags;
 
     // Extensions.
-    public JvmMethodSignature jvmSignature;
-    public Method             referencedMethod;
+    public MethodSignature jvmSignature;
+    public Method          referencedMethod;
 
 
     public KotlinConstructorMetadata(KotlinConstructorFlags flags)

@@ -27,8 +27,6 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.JvmFieldSignature;
-import proguard.classfile.kotlin.JvmMethodSignature;
 import proguard.classfile.kotlin.flags.KotlinPropertyAccessorFlags;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.util.*;
@@ -637,9 +635,7 @@ implements   ClassVisitor,
             {
                 Clazz backingFieldClass = kotlinPropertyMetadata.referencedBackingFieldClass;
                 Field backingField      = kotlinPropertyMetadata.referencedBackingField;
-                kotlinPropertyMetadata.backingFieldSignature =
-                    new JvmFieldSignature(backingField.getName(backingFieldClass),
-                                          backingField.getDescriptor(backingFieldClass));
+                kotlinPropertyMetadata.backingFieldSignature = new FieldSignature(backingFieldClass, backingField);
             }
 
             kotlinPropertyMetadata.getterSignature =
@@ -682,10 +678,9 @@ implements   ClassVisitor,
             // Fix the JVM signatures.
             if (kotlinFunctionMetadata.jvmSignature != null)
             {
+                Clazz jvmClass = kotlinFunctionMetadata.referencedMethodClass;
                 Method jvmMethod = kotlinFunctionMetadata.referencedMethod;
-                kotlinFunctionMetadata.jvmSignature =
-                    new JvmMethodSignature(jvmMethod.getName(kotlinFunctionMetadata.referencedMethodClass),
-                                           jvmMethod.getDescriptor(kotlinFunctionMetadata.referencedMethodClass));
+                kotlinFunctionMetadata.jvmSignature = new MethodSignature(jvmClass, jvmMethod);
             }
 
             kotlinFunctionMetadata.typeParametersAccept( clazz, kotlinMetadata, this);
@@ -707,8 +702,7 @@ implements   ClassVisitor,
             if (kotlinConstructorMetadata.jvmSignature != null)
             {
                 Method jvmMethod = kotlinConstructorMetadata.referencedMethod;
-                kotlinConstructorMetadata.jvmSignature = new JvmMethodSignature(jvmMethod.getName(clazz),
-                                                                                jvmMethod.getDescriptor(clazz));
+                kotlinConstructorMetadata.jvmSignature = new MethodSignature(clazz, jvmMethod);
             }
 
             kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
@@ -1024,18 +1018,17 @@ implements   ClassVisitor,
 
     // Small utility helper methods for KotlinReferenceFixer.
 
-    private static JvmMethodSignature fixPropertyMethod(Clazz                       referencedMethodClass,
-                                                        Method                      referencedMethod,
-                                                        KotlinPropertyAccessorFlags flags,
-                                                        JvmMethodSignature          oldSignature)
+    private static MethodSignature fixPropertyMethod(Clazz                       referencedMethodClass,
+                                                     Method                      referencedMethod,
+                                                     KotlinPropertyAccessorFlags flags,
+                                                     MethodSignature             oldSignature)
     {
         if (oldSignature == null)
         {
             return null;
         }
 
-        JvmMethodSignature newSignature = new JvmMethodSignature(referencedMethod.getName(referencedMethodClass),
-                                                                 referencedMethod.getDescriptor(referencedMethodClass));
+        MethodSignature newSignature = new MethodSignature(referencedMethodClass, referencedMethod);
 
         if (!oldSignature.equals(newSignature) &&
             flags != null)

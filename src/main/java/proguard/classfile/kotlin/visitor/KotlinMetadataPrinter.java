@@ -992,39 +992,37 @@ implements KotlinMetadataVisitor,
 
     // Field/method signature printing helpers.
 
-    private static String externalFieldDescription(JvmFieldSignature jvmFieldSignature)
+    private static String externalFieldDescription(FieldSignature jvmFieldSignature)
     {
         try
         {
             // If the types are invalid this will throw an exception.
-            return externalFullFieldDescription(0, jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+            return externalFullFieldDescription(0, jvmFieldSignature.memberName, jvmFieldSignature.descriptor);
         }
         catch (StringIndexOutOfBoundsException |
                IllegalArgumentException e)
         {
             // TODO(#1776): Specialize the caught Exception.
-            return "Invalid field descriptor: " + jvmFieldSignature.asString();
+            return "Invalid field descriptor: " + jvmFieldSignature;
         }
     }
 
-    private static String externalMethodDescription(JvmMethodSignature jvmMethodSignature)
+    private static String externalMethodDescription(MethodSignature jvmMethodSignature)
     {
         try
         {
             // If the types are invalid this will throw an exception.
-            return (ClassUtil.isInitializer(jvmMethodSignature.getName()) ?
+            return (ClassUtil.isInitializer(jvmMethodSignature.method) ?
                         "" :
-                        externalMethodReturnType(jvmMethodSignature.getDesc()) + ' ') +
-                   jvmMethodSignature.getName() +
-                   TypeConstants.METHOD_ARGUMENTS_OPEN +
-                   externalMethodArguments(jvmMethodSignature.getDesc()) +
-                   TypeConstants.METHOD_ARGUMENTS_CLOSE;
+                        jvmMethodSignature.descriptor.getPrettyReturnType() + ' ') +
+                   jvmMethodSignature.method +
+                   jvmMethodSignature.descriptor.getPrettyArgumentTypes();
         }
         catch (StringIndexOutOfBoundsException |
                IllegalArgumentException e)
         {
             // TODO(#1776): Specialize the caught Exception.
-            return "Invalid method descriptor: " + jvmMethodSignature.asString();
+            return "Invalid method descriptor: " + jvmMethodSignature;
         }
     }
 

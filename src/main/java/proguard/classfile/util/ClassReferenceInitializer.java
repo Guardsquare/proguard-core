@@ -905,8 +905,8 @@ implements   ClassVisitor,
             {
                 kotlinPropertyMetadata.referencedBackingField =
                     strictMemberFinder.findField(clazz,
-                                                 kotlinPropertyMetadata.backingFieldSignature.getName(),
-                                                 kotlinPropertyMetadata.backingFieldSignature.getDesc());
+                                                 kotlinPropertyMetadata.backingFieldSignature.memberName,
+                                                 kotlinPropertyMetadata.backingFieldSignature.descriptor);
 
                 kotlinPropertyMetadata.referencedBackingFieldClass = strictMemberFinder.correspondingClass();
             }
@@ -915,24 +915,24 @@ implements   ClassVisitor,
             {
                 kotlinPropertyMetadata.referencedGetterMethod =
                     strictMemberFinder.findMethod(clazz,
-                                                  kotlinPropertyMetadata.getterSignature.getName(),
-                                                  kotlinPropertyMetadata.getterSignature.getDesc());
+                                                  kotlinPropertyMetadata.getterSignature.method,
+                                                  kotlinPropertyMetadata.getterSignature.descriptor.toString());
             }
 
             if (kotlinPropertyMetadata.setterSignature != null)
             {
                 kotlinPropertyMetadata.referencedSetterMethod =
                     strictMemberFinder.findMethod(clazz,
-                                                  kotlinPropertyMetadata.setterSignature.getName(),
-                                                  kotlinPropertyMetadata.setterSignature.getDesc());
+                                                  kotlinPropertyMetadata.setterSignature.method,
+                                                  kotlinPropertyMetadata.setterSignature.descriptor.toString());
             }
 
             if (kotlinPropertyMetadata.syntheticMethodForAnnotations != null)
             {
                 kotlinPropertyMetadata.referencedSyntheticMethodForAnnotations =
                     strictMemberFinder.findMethod(clazz,
-                                                  kotlinPropertyMetadata.syntheticMethodForAnnotations.getName(),
-                                                  kotlinPropertyMetadata.syntheticMethodForAnnotations.getDesc());
+                                                  kotlinPropertyMetadata.syntheticMethodForAnnotations.method,
+                                                  kotlinPropertyMetadata.syntheticMethodForAnnotations.descriptor.toString());
 
                 kotlinPropertyMetadata.referencedSyntheticMethodClass = strictMemberFinder.correspondingClass();
             }
@@ -957,8 +957,8 @@ implements   ClassVisitor,
             {
                 kotlinFunctionMetadata.referencedMethod =
                     strictMemberFinder.findMethod(kotlinFunctionMetadata.referencedMethodClass,
-                                                  kotlinFunctionMetadata.jvmSignature.getName(),
-                                                  kotlinFunctionMetadata.jvmSignature.getDesc());
+                                                  kotlinFunctionMetadata.jvmSignature.method,
+                                                  kotlinFunctionMetadata.jvmSignature.descriptor.toString());
             }
 
             if (kotlinFunctionMetadata.lambdaClassOriginName != null)
@@ -992,8 +992,8 @@ implements   ClassVisitor,
             {
                 kotlinConstructorMetadata.referencedMethod =
                     strictMemberFinder.findMethod(clazz,
-                                                  kotlinConstructorMetadata.jvmSignature.getName(),
-                                                  kotlinConstructorMetadata.jvmSignature.getDesc());
+                                                  kotlinConstructorMetadata.jvmSignature.method,
+                                                  kotlinConstructorMetadata.jvmSignature.descriptor.toString());
             }
 
             kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
@@ -1396,7 +1396,7 @@ implements   ClassVisitor,
                 kotlinFunctionMetadata.referencedDefaultImplementationMethod =
                     strictMemberFinder.findMethod(
                         defaultImplsClass,
-                        kotlinFunctionMetadata.jvmSignature.getName(),
+                        kotlinFunctionMetadata.jvmSignature.method,
                         getDescriptor(kotlinDeclarationContainerMetadata, kotlinFunctionMetadata)
                     );
 
@@ -1417,7 +1417,7 @@ implements   ClassVisitor,
         {
             // Default implementation methods are static and have the interface
             // instance as its first parameter.
-            return kotlinFunctionMetadata.jvmSignature.getDesc()
+            return kotlinFunctionMetadata.jvmSignature.descriptor.toString()
                 .replace("(", "(L" + kotlinDeclarationContainerMetadata.ownerClassName + ";");
         }
     }
@@ -1553,8 +1553,8 @@ implements   ClassVisitor,
             {
                 kotlinPropertyMetadata.referencedBackingField =
                     strictMemberFinder.findField(this.clazz,
-                                           kotlinPropertyMetadata.backingFieldSignature.getName(),
-                                           kotlinPropertyMetadata.backingFieldSignature.getDesc());
+                                           kotlinPropertyMetadata.backingFieldSignature.memberName,
+                                           kotlinPropertyMetadata.backingFieldSignature.descriptor);
 
                 kotlinPropertyMetadata.referencedBackingFieldClass = strictMemberFinder.correspondingClass();
             }
@@ -1572,8 +1572,8 @@ implements   ClassVisitor,
             {
                 kotlinPropertyMetadata.referencedSyntheticMethodForAnnotations =
                     strictMemberFinder.findMethod(this.clazz,
-                                            kotlinPropertyMetadata.syntheticMethodForAnnotations.getName(),
-                                            kotlinPropertyMetadata.syntheticMethodForAnnotations.getDesc());
+                                                  kotlinPropertyMetadata.syntheticMethodForAnnotations.method,
+                                                  kotlinPropertyMetadata.syntheticMethodForAnnotations.descriptor.toString());
 
                 kotlinPropertyMetadata.referencedSyntheticMethodClass = strictMemberFinder.correspondingClass();
             }
@@ -1614,7 +1614,7 @@ implements   ClassVisitor,
 
             if (enclosingMethod              != null &&
                 currentFunction.jvmSignature != null &&
-                enclosingMethod.getName(enclosingMethodClass).equals(currentFunction.jvmSignature.getName()))
+                enclosingMethod.getName(enclosingMethodClass).equals(currentFunction.jvmSignature.method))
             {
                 currentFunction.referencedMethod      = enclosingMethod;
                 currentFunction.referencedMethodClass = enclosingMethodClass;

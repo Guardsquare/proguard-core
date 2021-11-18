@@ -22,6 +22,8 @@ import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.*;
 import proguard.classfile.Clazz;
+import proguard.classfile.FieldSignature;
+import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.attribute.Attribute;
@@ -1536,25 +1538,25 @@ implements ClassVisitor,
 
     // Small helper methods.
 
-    private static kotlinx.metadata.jvm.JvmMethodSignature toKotlinJvmMethodSignature(proguard.classfile.kotlin.JvmMethodSignature jvmMethodSignature)
+    private static JvmMethodSignature toKotlinJvmMethodSignature(MethodSignature jvmMethodSignature)
     {
         if (jvmMethodSignature == null)
         {
             return null;
         }
 
-        return new kotlinx.metadata.jvm.JvmMethodSignature(jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
+        return new JvmMethodSignature(jvmMethodSignature.method, jvmMethodSignature.descriptor.toString());
     }
 
 
-    private static kotlinx.metadata.jvm.JvmFieldSignature toKotlinJvmFieldSignature(proguard.classfile.kotlin.JvmFieldSignature jvmFieldSignature)
+    private static JvmFieldSignature toKotlinJvmFieldSignature(FieldSignature jvmFieldSignature)
     {
         if (jvmFieldSignature == null)
         {
             return null;
         }
 
-        return new kotlinx.metadata.jvm.JvmFieldSignature(jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+        return new JvmFieldSignature(jvmFieldSignature.memberName, jvmFieldSignature.descriptor);
     }
 
 

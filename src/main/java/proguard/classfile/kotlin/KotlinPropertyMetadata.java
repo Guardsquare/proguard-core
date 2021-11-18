@@ -47,19 +47,19 @@ extends      SimpleProcessable
     public KotlinPropertyAccessorFlags setterFlags;
 
     // Extensions.
-    public JvmFieldSignature  backingFieldSignature;
+    public FieldSignature  backingFieldSignature;
     // Store the class where the referencedBackingField is declared.
-    public Clazz              referencedBackingFieldClass;
-    public Field              referencedBackingField;
-    public JvmMethodSignature getterSignature;
-    public Method             referencedGetterMethod;
-    public JvmMethodSignature setterSignature;
-    public Method             referencedSetterMethod;
+    public Clazz           referencedBackingFieldClass;
+    public Field           referencedBackingField;
+    public MethodSignature getterSignature;
+    public Method          referencedGetterMethod;
+    public MethodSignature setterSignature;
+    public Method          referencedSetterMethod;
 
-    public JvmMethodSignature syntheticMethodForAnnotations;
+    public MethodSignature syntheticMethodForAnnotations;
 
-    public Clazz              referencedSyntheticMethodClass;
-    public Method             referencedSyntheticMethodForAnnotations;
+    public Clazz           referencedSyntheticMethodClass;
+    public Method          referencedSyntheticMethodForAnnotations;
 
 
     public KotlinPropertyMetadata(KotlinPropertyFlags         flags,

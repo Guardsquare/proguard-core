@@ -66,9 +66,9 @@ implements   CallableReferenceInfo
     public String getSignature()
     {
         return propertyMetadata.getterSignature != null        ?
-                   propertyMetadata.getterSignature.asString() :
-                   generateGetterName(propertyMetadata.backingFieldSignature.getName()) +
-                                      "()" + propertyMetadata.backingFieldSignature.getDesc();
+                   propertyMetadata.getterSignature.method + propertyMetadata.getterSignature.descriptor :
+                   generateGetterName(propertyMetadata.backingFieldSignature.memberName) +
+                                      "()" + propertyMetadata.backingFieldSignature.descriptor;
     }
 
 

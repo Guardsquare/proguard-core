@@ -47,23 +47,23 @@ implements   Processable
     public KotlinFunctionFlags flags;
 
     // Extensions.
-    public JvmMethodSignature jvmSignature;
-    public Method             referencedMethod;
-    public Clazz              referencedMethodClass;
+    public MethodSignature jvmSignature;
+    public Method          referencedMethod;
+    public Clazz           referencedMethodClass;
 
     // Functions with default parameters have a corresponding $default method.
     // this could be in the $DefaultImpls of an interface, so we need a class ref as well.
-    public Method             referencedDefaultMethod;
-    public Clazz              referencedDefaultMethodClass;
+    public Method          referencedDefaultMethod;
+    public Clazz           referencedDefaultMethodClass;
 
     // Interfaces with non-abstract methods have an implementation in a corresponding inner class called DefaultImpls.
-    public Method             referencedDefaultImplementationMethod;
-    public Clazz              referencedDefaultImplementationMethodClass;
+    public Method          referencedDefaultImplementationMethod;
+    public Clazz           referencedDefaultImplementationMethodClass;
 
     // The JVM internal name of the original class the lambda class where this function is copied from. This
     // information is present for lambdas copied from bodies of inline functions to the use site by kotlinc.
-    public String             lambdaClassOriginName;
-    public Clazz              referencedLambdaClassOrigin;
+    public String          lambdaClassOriginName;
+    public Clazz           referencedLambdaClassOrigin;
 
 
     public KotlinFunctionMetadata(KotlinFunctionFlags flags, String name)
