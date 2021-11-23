@@ -8,6 +8,7 @@
 package testutils
 
 import com.tschuchort.compiletesting.KotlinCompilation
+import io.kotest.assertions.fail
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.AutoScan
 import io.kotest.core.test.TestCase
@@ -35,6 +36,7 @@ import java.nio.file.Files
 import java.nio.file.Files.createTempDirectory
 import java.util.Objects
 import kotlin.reflect.KProperty
+import kotlin.streams.toList
 
 data class ClassPools(val programClassPool: ClassPool, val libraryClassPool: ClassPool)
 
@@ -50,13 +52,23 @@ class ClassPoolBuilder private constructor() {
             }
         }
 
-        @Suppress("UNCHECKED_CAST")
-        fun fromDirectory(dir: File): ClassPools =
+        fun fromDirectory(
+            dir: File,
+            javacArguments: List<String> = emptyList(),
+            kotlincArguments: List<String> = emptyList(),
+            jdkHome: File = getCurrentJavaHome(),
+            initialize: Boolean = true
+        ): ClassPools =
             fromSource(
                 *Files.walk(dir.toPath())
                     .filter { it.isJavaFile() || it.isKotlinFile() }
                     .map { TestSource.fromFile(it.toFile()) }
-                    .toArray() as Array<out TestSource>
+                    .toList()
+                    .toTypedArray(),
+                javacArguments = javacArguments,
+                kotlincArguments = kotlincArguments,
+                jdkHome = jdkHome,
+                initialize = initialize
             )
 
         fun fromFiles(vararg file: File): ClassPools =
@@ -81,6 +93,10 @@ class ClassPoolBuilder private constructor() {
             }
 
             val result = compiler.compile()
+
+            if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+                fail("Compilation error: ${result.messages}")
+            }
 
             val programClassPool = ClassPool()
 

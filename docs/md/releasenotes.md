@@ -1,5 +1,9 @@
 ## Version 8.0.2
 
+### API Improvements
+
+- Add call resolving and graph traversal features to enable interprocedural control flow analyses.
+
 ### Bug fixes
 
 - Fix potential `StringIndexOutOfBoundsException` while trimming attribute value spaces in `SignedJarWriter`. (`T7004`)
