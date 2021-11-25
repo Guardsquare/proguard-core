@@ -21,8 +21,6 @@ package proguard.analysis
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import java.util.BitSet
-import kotlin.streams.asSequence
 import proguard.analysis.DominatorCalculator.ENTRY_NODE_OFFSET
 import proguard.analysis.DominatorCalculator.EXIT_NODE_OFFSET
 import proguard.classfile.Clazz
@@ -33,6 +31,8 @@ import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.instruction.Instruction
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MemberVisitor
+import java.util.BitSet
+import kotlin.streams.asSequence
 
 class DominatorCalculatorTest : FreeSpec({
 
@@ -71,7 +71,6 @@ class DominatorCalculatorTest : FreeSpec({
             attributeVisitor: AttributeVisitor?
         ) {
         }
-
     }
 
     /**
