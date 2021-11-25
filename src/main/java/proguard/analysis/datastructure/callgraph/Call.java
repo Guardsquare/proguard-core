@@ -1,8 +1,19 @@
 /*
- * ProGuard -- shrinking, optimization, obfuscation, and preverification
- *             of Java bytecode.
+ * ProGuardCORE -- library to process Java bytecode.
  *
  * Copyright (c) 2002-2021 Guardsquare NV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package proguard.analysis.datastructure.callgraph;
@@ -11,6 +22,8 @@ import java.util.List;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proguard.analysis.CallResolver;
+import proguard.analysis.CallVisitor;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
@@ -47,7 +60,7 @@ public abstract class Call
      *     <li>{@link Instruction#OP_INVOKESPECIAL}</li>
      *     <li>{@link Instruction#OP_INVOKEDYNAMIC}</li>
      * </ul>
-     * See the {@link CallAnalyzer} for more details.
+     * See the {@link CallResolver} for more details.
      */
     public final         byte         invocationOpcode;
     /**
@@ -94,7 +107,7 @@ public abstract class Call
     /**
      * Returns the number of arguments.
      *
-     * <p><b>Note:</b> This is only to be used in implementations of {@link CallReceiver#visitCall(Call)}.
+     * <p><b>Note:</b> This is only to be used in implementations of {@link CallVisitor#visitCall(Call)}.
      * Afterwards, the values will have been cleared to reduce unnecessary memory usage, as argument
      * values are not needed for the full call graph reconstruction.</p>
      */
@@ -105,7 +118,7 @@ public abstract class Call
     /**
      * Get the value for a specific argument index.
      *
-     * <p><b>Note:</b> This is only to be used in implementations of {@link CallReceiver#visitCall(Call)}.
+     * <p><b>Note:</b> This is only to be used in implementations of {@link CallVisitor#visitCall(Call)}.
      * Afterwards, the values will have been cleared to reduce unnecessary memory usage, as argument
      * values are not needed for the full call graph reconstruction.</p>
      */
@@ -133,7 +146,7 @@ public abstract class Call
      * of the object whose method is called, usually an {@link IdentifiedReferenceValue}.
      * For static calls this is null.
      *
-     * <p><b>Note:</b> This is only to be used in implementations of {@link CallReceiver#visitCall(Call)}.
+     * <p><b>Note:</b> This is only to be used in implementations of {@link CallVisitor#visitCall(Call)}.
      * Afterwards, the value will have been cleared to reduce unnecessary memory usage, as the instance
      * value is not needed for the full call graph reconstruction.</p>
      */
@@ -155,7 +168,7 @@ public abstract class Call
     /**
      * Get the return value of this call.
      *
-     * <p><b>Note:</b> This is only to be used in implementations of {@link CallReceiver#visitCall(Call)}.
+     * <p><b>Note:</b> This is only to be used in implementations of {@link CallVisitor#visitCall(Call)}.
      * Afterwards, the value will have been cleared to reduce unnecessary memory usage, as the return
      * value is not needed for the full call graph reconstruction.</p>
      */
