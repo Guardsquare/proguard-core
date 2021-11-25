@@ -497,7 +497,9 @@ implements   ClassVisitor,
                 while (enclosingMethodAttribute.referencedClass            == null &&
                        myEnclosingClassName.indexOf(INNER_CLASS_SEPARATOR) != -1);
 
-                if (enclosingMethodAttribute.referencedClass == null)
+                if (enclosingMethodAttribute.referencedClass == null &&
+                         clazz != null &&
+                         missingClassWarningPrinter != null)
                 {
                     reportMissingClass(clazz.getName(), enclosingClassName);
                 }

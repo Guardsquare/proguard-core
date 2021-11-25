@@ -13,6 +13,7 @@
 - Fix potential `NullPointerException` in `KotlinInterClassPropertyReferenceInitializer`. (`T6138`)
 - Fix wrong offset for complementary branch instruction when widening branch instructions in `InstructionWriter`. (`T5721`)
 - Fix potential `ClassFormatError` due to adding multiple annotation attributes when processing Kotlin code.
+- Fix potential `NullPointerException` due to missing classes in `ClassReferenceInitializer`.
 
 ## Version 8.0.1
 
