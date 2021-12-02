@@ -218,8 +218,8 @@ implements   AttributeVisitor,
         }
         catch (Exception e)
         {
-            Metrics.withMessage(MetricType.PARTIAL_EVALUATOR_EXCEPTION,
-                                e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+            Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
+            log.debug("Exception during evaluating types", e);
         }
 
         try
@@ -231,8 +231,8 @@ implements   AttributeVisitor,
         }
         catch (Exception e)
         {
-            Metrics.withMessage(MetricType.PARTIAL_EVALUATOR_EXCEPTION,
-                                e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+            Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
+            log.debug("Exception during evaluating values", e);
         }
 
         if (useDominatorAnalysis)
@@ -279,7 +279,7 @@ implements   AttributeVisitor,
                     handleInvokeSpecial(location, ref);
                     break;
                 default:
-                    Metrics.withMessage(MetricType.UNSUPPORTED_OPCODE, Integer.toHexString(constantInstruction.opcode));
+                    Metrics.increaseCount(MetricType.UNSUPPORTED_OPCODE);
                     log.warn("Unsupported invocation opcode " + constantInstruction.opcode + " at " + location);
             }
         }
@@ -347,6 +347,7 @@ implements   AttributeVisitor,
                                     invocationOpcode,
                                     controlFlowDependent,
                                     runtimeTypeDependent);
+            Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
         }
         else
         {
@@ -359,6 +360,7 @@ implements   AttributeVisitor,
                                         invocationOpcode,
                                         controlFlowDependent,
                                         runtimeTypeDependent);
+                Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
             }
             else
             {
@@ -369,9 +371,9 @@ implements   AttributeVisitor,
                                         invocationOpcode,
                                         controlFlowDependent,
                                         runtimeTypeDependent);
+                Metrics.increaseCount(MetricType.CONCRETE_CALL);
             }
         }
-        Metrics.withoutMessage(call.getClass().getSimpleName());
         return call;
     }
 
@@ -509,7 +511,8 @@ implements   AttributeVisitor,
         Set<String> targets = resolveInvokeSpecial(location.clazz, ref);
         if (targets.isEmpty())
         {
-            Metrics.withMessage(MetricType.MISSING_METHODS, ref.getClassName(location.clazz));
+            Metrics.increaseCount(MetricType.MISSING_METHODS);
+            log.debug("Missing method {}", ref.getClassName(location.clazz));
         }
         else
         {
@@ -567,7 +570,8 @@ implements   AttributeVisitor,
         {
             // In this case, we don't have the referenced class in our class pool, so we can't be more specific here.
             String className = ref.getClassName(callingClass);
-            Metrics.withMessage(MetricType.MISSING_CLASS, className);
+            Metrics.increaseCount(MetricType.MISSING_CLASS);
+            log.debug("Missing class {}", className);
             return Collections.singleton(className);
         }
 
@@ -640,7 +644,7 @@ implements   AttributeVisitor,
             if (multiTypeEvaluationSuccessful)
             {
                 String classInfo = (thisPtr == null ? "null" : thisPtr.getClass().toString());
-                Metrics.withMessage(MetricType.CALL_RESOLUTION, "This-pointer is not a multi typed reference value but " + classInfo);
+                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_VALUE_IMPRECISE);
                 log.debug("Virtual call at {}: this-pointer is not a multi typed reference value but {}", location, classInfo);
             }
         }
@@ -688,7 +692,8 @@ implements   AttributeVisitor,
                 if (referencedClass == null)
                 {
                     // Class still wasn't found, add it to the missing classes.
-                    Metrics.withMessage(MetricType.MISSING_CLASS, possibleType.getType());
+                    Metrics.increaseCount(MetricType.MISSING_CLASS);
+                    log.info("Missing class {}", possibleType.getType());
                 }
 
                 Set<String> targetClasses = resolveVirtual(location.clazz, referencedClass, ref);
@@ -696,7 +701,8 @@ implements   AttributeVisitor,
                 {
                     if (referencedClass != null)
                     {
-                        Metrics.withMessage(MetricType.MISSING_METHODS, ref.getClassName(location.clazz));
+                        Metrics.increaseCount(MetricType.MISSING_METHODS);
+                        log.debug("Missing method {}", ref.getClassName(location.clazz));
                     }
                     targetClasses = Collections.singleton(possibleType.getType());
                 }
@@ -831,7 +837,8 @@ implements   AttributeVisitor,
             Clazz iface = start.getInterface(i);
             if (iface == null)
             {
-                Metrics.withMessage(MetricType.MISSING_CLASS, start.getName());
+                Metrics.increaseCount(MetricType.MISSING_CLASS);
+                log.info("Missing class {}", start.getName());
                 continue;
             }
             accumulator.add(iface);
@@ -844,7 +851,7 @@ implements   AttributeVisitor,
     }
 
     /**
-     * Utility to collect some statistical information about the call resolution process.
+     * Utility to collect statistical information about the call resolution process.
      */
     public static class Metrics
     {
@@ -852,34 +859,22 @@ implements   AttributeVisitor,
         /**
          * Constants which are used as metric types.
          */
-        public static class MetricType
+        public enum MetricType
         {
-
-            public static final String MISSING_CLASS               = "Missing class";
-            public static final String MISSING_METHODS             = "Missing methods";
-            public static final String CALL_RESOLUTION             = "Call resolution";
-            public static final String UNSUPPORTED_OPCODE          = "Unsupported invocation opcode";
-            public static final String PARTIAL_EVALUATOR_EXCEPTION = "PartialEvaluator Exception";
-            public static final String PE_VALUE_NULL               = "PE stack/value null";
-            public static final String PE_VALUE_IMPRECISE          = "PE value not precise enough";
+            MISSING_CLASS,
+            MISSING_METHODS,
+            UNSUPPORTED_OPCODE,
+            PARTIAL_EVALUATOR_EXCEPTION,
+            PARTIAL_EVALUATOR_VALUE_IMPRECISE,
+            SYMBOLIC_CALL,
+            CONCRETE_CALL
         }
 
-        public static final  Map<String, Map<String, Integer>> withMessage    = new TreeMap<>(); // type -> message -> number of occurrences
-        public static final  Map<String, Integer>              withoutMessage = new TreeMap<>();
+        public static final Map<MetricType, Integer> counts = new TreeMap<>();
 
-        /**
-         * Add another metric of the given type, for the component, with the details in the message.
-         */
-        public static void withMessage(String type, String message)
+        public static void increaseCount(MetricType type)
         {
-            Integer cnt = withMessage.computeIfAbsent(type, x -> new TreeMap<>())
-                                     .computeIfAbsent(message, x -> 0);
-            withMessage.get(type).put(message, cnt + 1);
-        }
-
-        public static void withoutMessage(String type)
-        {
-            withoutMessage.compute(type, (t, count) -> count == null ? 1 : count + 1);
+            counts.merge(type, 1, Integer::sum);
         }
 
         /**
@@ -888,25 +883,12 @@ implements   AttributeVisitor,
         public static String flush()
         {
             StringBuilder result = new StringBuilder("Call resolver Metrics:\n");
-            result.append("With message:\n");
-            withMessage.forEach((type, messageMap) ->
-                                {
-                                    result.append(type.toUpperCase(Locale.ROOT))
-                                          .append(" --------------\n");
-                                    messageMap.forEach((message, count) -> result.append(message)
-                                                                                 .append(": ")
-                                                                                 .append(count)
-                                                                                 .append("\n"));
-                                });
-            withMessage.clear();
 
-            result.append("--------------\n");
-            result.append("Without message:\n");
-            withoutMessage.forEach((type, count) -> result.append(type)
-                                                          .append(": ")
-                                                          .append(count)
-                                                          .append("\n"));
-            withoutMessage.clear();
+            counts.forEach((type, count) -> result.append(type.name())
+                                                  .append(": ")
+                                                  .append(count)
+                                                  .append("\n"));
+            counts.clear();
             return result.toString();
         }
     }
