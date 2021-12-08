@@ -1666,7 +1666,14 @@ implements ClassVisitor,
             return null;
         }
 
-        return new MethodSignature(null, jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
+        try
+        {
+            return new MethodSignature(null, jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 
 

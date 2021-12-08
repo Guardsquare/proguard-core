@@ -55,16 +55,9 @@ public class MethodDescriptor
         {
             returnType = ClassUtil.internalMethodReturnType(descriptor);
             argumentTypes = new ArrayList<>();
-            try
+            for (int i = 0; i < ClassUtil.internalMethodParameterCount(descriptor); i++)
             {
-                for (int i = 0; i < ClassUtil.internalMethodParameterCount(descriptor); i++)
-                {
-                    argumentTypes.add(ClassUtil.internalMethodParameterType(descriptor, i));
-                }
-            }
-            catch (StringIndexOutOfBoundsException e)
-            {
-                e.printStackTrace();
+                argumentTypes.add(ClassUtil.internalMethodParameterType(descriptor, i));
             }
         }
     }
