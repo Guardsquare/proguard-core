@@ -1,5 +1,9 @@
 ## Version 8.0.2
 
+### Improved
+
+- Upgrade log4j2 dependency in response to CVE-2021-44228.
+
 ### API Improvements
 
 - Add call resolving and graph traversal features to enable interprocedural control flow analyses.
