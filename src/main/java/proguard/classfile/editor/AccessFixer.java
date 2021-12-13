@@ -276,6 +276,27 @@ implements   ClassVisitor
     {
         // Implementations for MemberVisitor.
 
+        public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
+        {
+            // Don't update package-private final methods that are shadowed in a subclass.
+            int currentAccessFlags = programMethod.getAccessFlags();
+            int currentAccessLevel = AccessUtil.accessLevel(currentAccessFlags);
+            if (currentAccessLevel == AccessUtil.PACKAGE_VISIBLE && (currentAccessFlags & AccessConstants.FINAL) != 0)
+            {
+                MethodCounter counter = new MethodCounter();
+                programMethod.accept(programClass,
+                    new SimilarMemberVisitor(false, false, false, true,
+                    counter));
+
+                if (counter.getCount() > 0)
+                {
+                    return;
+                }
+            }
+
+            visitProgramMember(programClass, programMethod);
+        }
+
         public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {}
 
 
@@ -301,7 +322,7 @@ implements   ClassVisitor
                     inSamePackage(programClass, referencingClass) ? AccessUtil.PACKAGE_VISIBLE :
                     (referencingMethodAccessFlags & AccessConstants.STATIC) == 0 &&
                     (referencedClass == null ||
-                     referencedClass.extends_(referencingClass))                    &&
+                     referencedClass.extends_(referencingClass))                 &&
                     referencingClass.extends_(programClass)       ? AccessUtil.PROTECTED       :
                                                                     AccessUtil.PUBLIC;
 
