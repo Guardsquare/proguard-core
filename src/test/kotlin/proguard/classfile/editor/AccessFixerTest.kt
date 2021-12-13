@@ -2,30 +2,33 @@ package proguard.classfile.editor
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import proguard.classfile.AccessConstants.*
+import proguard.classfile.AccessConstants.FINAL
+import proguard.classfile.AccessConstants.PROTECTED
+import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.util.ClassRenamer
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
-import java.util.function.Function
 
-class ClassAccessFixerTest : FreeSpec({
+class AccessFixerTest : FreeSpec({
     "Given a super class with a package-private final method that is also defined in a subclass" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-                JavaSource("Super.java",
+            JavaSource(
+                "Super.java",
                 """
                     package a;
                     public class Super {
                         final void foo() { }
                     }
                 """.trimIndent()
-                ),
-                JavaSource("Foo.java",
+            ),
+            JavaSource(
+                "Foo.java",
                 """
                     public class Foo extends a.Super {
                         public final void foo() { }
                     }
                 """.trimIndent()
-                )
+            )
         )
 
         "Then the super method access flags should not be modified incorrectly" {
@@ -38,15 +41,17 @@ class ClassAccessFixerTest : FreeSpec({
 
     "Given a super class with a referenced package-private final method that is also defined in a subclass" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-                JavaSource("Super.java",
+            JavaSource(
+                "Super.java",
                 """
                     package a;
                     public class Super {
                         final void foo() { }
                     }
                 """.trimIndent()
-                ),
-                JavaSource("Bar.java",
+            ),
+            JavaSource(
+                "Bar.java",
                 """
                     package a;
                     public class Bar {
@@ -55,14 +60,15 @@ class ClassAccessFixerTest : FreeSpec({
                        }
                     }
                 """.trimIndent()
-                ),
-                JavaSource("Foo.java",
+            ),
+            JavaSource(
+                "Foo.java",
                 """
                     public class Foo extends a.Super {
                         public final void foo() { }
                     }
                 """.trimIndent()
-                )
+            )
         )
 
         "When the referencing class is repackaged" - {
