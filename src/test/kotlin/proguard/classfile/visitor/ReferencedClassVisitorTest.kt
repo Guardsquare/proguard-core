@@ -40,23 +40,22 @@ class ReferencedClassVisitorTest : FreeSpec({
                 annotation class MyTypeAnnotation(
                     val kClass: KClass<*>,
                     val enum: MyEnum,
-                    val array: Array<Foo>,
+                    val array: Array<Foo2>,
                     val annotation: Foo
                 )
 
                 val x: @MyTypeAnnotation(
                     kClass = Bar::class,
                     enum = MyEnum.FOO,
-                    array = arrayOf(Bar2("foo"), Bar3("bar")),
+                    array = arrayOf(Foo2("foo")),
                     annotation = Foo("foo")) String = "foo"
 
                 // extra helpers
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
+                annotation class Foo2(val string: String)
                 data class Bar(val string: String)
-                data class Bar2(val string: String)
-                data class Bar3(val string: String)
 
                 val p0: Byte = 1
                 val p1: Short = 1
@@ -109,10 +108,8 @@ class ReferencedClassVisitorTest : FreeSpec({
                 with(programClassPool) {
                     classVisitor.visitProgramClass(getClass("MyTypeAnnotation") as ProgramClass)
                     classVisitor.visitProgramClass(getClass("Foo") as ProgramClass)
+                    classVisitor.visitProgramClass(getClass("Foo2") as ProgramClass)
                     classVisitor.visitProgramClass(getClass("MyEnum") as ProgramClass)
-                    classVisitor.visitProgramClass(getClass("Bar") as ProgramClass)
-                    classVisitor.visitProgramClass(getClass("Bar2") as ProgramClass)
-                    classVisitor.visitProgramClass(getClass("Bar3") as ProgramClass)
                 }
             }
         }
