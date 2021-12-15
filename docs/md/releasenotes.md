@@ -1,3 +1,9 @@
+## Version 8.0.3
+
+### Improved
+
+- Upgrade log4j2 dependency in response to CVE-2021-45046.
+
 ## Version 8.0.2
 
 ### Improved
