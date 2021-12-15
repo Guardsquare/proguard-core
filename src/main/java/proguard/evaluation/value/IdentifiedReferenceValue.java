@@ -28,7 +28,7 @@ import proguard.classfile.Clazz;
 public class IdentifiedReferenceValue extends TypedReferenceValue
 {
     private final ValueFactory valuefactory;
-    private final int          id;
+    public final  int          id;
 
 
     /**
