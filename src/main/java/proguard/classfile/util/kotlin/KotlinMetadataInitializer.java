@@ -18,6 +18,7 @@
 package proguard.classfile.util.kotlin;
 
 import kotlinx.metadata.*;
+import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion;
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.*;
@@ -64,6 +65,13 @@ implements ClassVisitor,
     private int      xi;
     private String   xs;
     private String   pn;
+
+    public static final KotlinMetadataVersion MAX_SUPPORTED_VERSION;
+
+    static {
+        int[] version = JvmMetadataVersion.INSTANCE.toArray();
+        MAX_SUPPORTED_VERSION = new KotlinMetadataVersion(version[0], version[1] + 1);
+    }
 
     // For Constant visiting
     private MetadataType currentType;
@@ -2026,5 +2034,11 @@ implements ClassVisitor,
         flags.isNegated            = Flag.EffectExpression.IS_NEGATED.invoke(kotlinFlags);
 
         return flags;
+    }
+
+
+    public static boolean isSupportedMetadataVersion(KotlinMetadataVersion mv)
+    {
+        return new JvmMetadataVersion(mv.major, mv.minor, mv.patch).isCompatible();
     }
 }
