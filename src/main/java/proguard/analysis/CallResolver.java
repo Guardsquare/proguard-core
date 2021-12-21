@@ -374,7 +374,7 @@ implements   AttributeVisitor,
                 Metrics.increaseCount(MetricType.CONCRETE_CALL);
                 if ((method.getAccessFlags() & AccessConstants.ABSTRACT) != 0)
                 {
-                    log.error("Resolved call target is an abstract method: {}", call);
+                    Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
                 }
             }
         }
@@ -873,7 +873,8 @@ implements   AttributeVisitor,
             PARTIAL_EVALUATOR_EXCEPTION,
             PARTIAL_EVALUATOR_VALUE_IMPRECISE,
             SYMBOLIC_CALL,
-            CONCRETE_CALL
+            CONCRETE_CALL,
+            CALL_TO_ABSTRACT_METHOD
         }
 
         public static final Map<MetricType, Integer> counts = new TreeMap<>();
