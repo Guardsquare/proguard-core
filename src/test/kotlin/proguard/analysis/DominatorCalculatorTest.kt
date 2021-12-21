@@ -18,6 +18,7 @@
 
 package proguard.analysis
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -419,6 +420,27 @@ class DominatorCalculatorTest : FreeSpec({
         }
         shouldThrow<IllegalStateException> {
             calculator.dominates(0, 7)
+        }
+    }
+
+    "Empty CodeAttribute" - {
+        val code = byteArrayOf()
+        val clazz = NamedClass("Test")
+        val method = NamedMember("", "()V")
+        val codeAttribute = CodeAttribute(0, 1, 0, code.size, code)
+
+        val calculator = DominatorCalculator()
+
+        "Analysis does not crash" {
+            shouldNotThrowAny {
+                codeAttribute.accept(clazz, method, calculator)
+            }
+        }
+
+        "All offsets are unknown" {
+            shouldThrow<IllegalStateException> {
+                calculator.dominates(0, 1)
+            }
         }
     }
 })
