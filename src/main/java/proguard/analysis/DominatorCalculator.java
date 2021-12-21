@@ -188,6 +188,11 @@ implements   AttributeVisitor
      */
     private void run(CodeAttribute codeAttribute)
     {
+        if (codeAttribute.u4codeLength == 0)
+        {
+            // Skip the method if it doesn't contain any code (e.g. if it was skipped during Dex2Pro conversion).
+            return;
+        }
         LinkedHashSet<Integer> workList = new LinkedHashSet<>();
         workList.add(0);
 

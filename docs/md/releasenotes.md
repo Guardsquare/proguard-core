@@ -1,3 +1,9 @@
+## Version 8.0.5
+
+### Bug fixes
+
+- Make the `DominatorCalculator` skip methods with an empty `CodeAttribute`.
+
 ## Version 8.0.4
 
 ### Improved
