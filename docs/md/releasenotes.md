@@ -4,6 +4,10 @@
 
 - Upgrade log4j2 dependency to v2.17 in response to CVE-2021-45105.
 
+### API Improvements
+
+- Add `KotlinMetadataVersionFilter` to filter classes based on the version of the attached metadata. (`T5017`)
+
 ## Version 8.0.3
 
 ### Improved
