@@ -2,6 +2,7 @@
 
 ### Bug fixes
 
+- Fix `CallResolver` erroneously creating call edges to unimplemented interface methods.
 - Make the `DominatorCalculator` skip methods with an empty `CodeAttribute`.
 
 ## Version 8.0.4
