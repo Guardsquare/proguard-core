@@ -1,3 +1,9 @@
+## Version 8.0.5
+
+### Bugfixes
+
+- Prevent updating Kotlin function names with mangled JVM method names in `ClassReferenceFixer`. (`PGD-208`)
+
 ## Version 8.0.4
 
 ### Improved
