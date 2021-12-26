@@ -224,6 +224,42 @@ class ClassReferenceFixerTest : FreeSpec({
         }
     }
 
+    "Given a Kotlin interface with a normal function" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                KotlinSource(
+                        "Test.kt",
+                        """
+                interface Service {
+                    fun `useCase-123`(): Result<Int>
+                }
+                """.trimIndent()
+                ),
+        )
+
+        "When applying ClassReferenceFixer" - {
+            programClassPool.classesAccept(ClassReferenceFixer(false))
+
+            "Then the Kotlin function should be named correctly" {
+                val functionVisitor = spyk<KotlinFunctionVisitor>()
+                programClassPool.classesAccept(
+                        ReferencedKotlinMetadataVisitor(
+                                AllFunctionVisitor(functionVisitor)
+                        )
+                )
+
+                verify(exactly = 1) {
+                    functionVisitor.visitFunction(
+                            programClassPool.getClass("Service"),
+                            ofType<KotlinDeclarationContainerMetadata>(),
+                            withArg {
+                                it.name shouldBe "useCase-123"
+                            }
+                    )
+                }
+            }
+        }
+    }
+
     "Given a Kotlin interface with a suspend function" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
