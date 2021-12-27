@@ -690,10 +690,15 @@ implements   ClassVisitor,
             kotlinFunctionMetadata.returnTypeAccept(     clazz, kotlinMetadata, this);
             kotlinFunctionMetadata.contractsAccept(      clazz, kotlinMetadata, new AllTypeVisitor(this));
 
-            kotlinFunctionMetadata.name = newKotlinFunctionName(
+            String newFunctionName = newKotlinFunctionName(
                     kotlinFunctionMetadata.name,
                     kotlinFunctionMetadata.referencedMethod.getName(kotlinFunctionMetadata.referencedMethodClass)
             );
+
+            if (!kotlinFunctionMetadata.name.equals(newFunctionName))
+            {
+                kotlinFunctionMetadata.name = newFunctionName;
+            }
         }
 
 
