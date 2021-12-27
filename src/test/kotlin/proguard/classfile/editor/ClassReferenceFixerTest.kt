@@ -258,6 +258,37 @@ class ClassReferenceFixerTest : FreeSpec({
                 }
             }
         }
+
+        "When renaming the JVM method and applying ClassReferenceFixer" - {
+            programClassPool.classesAccept(
+                MultiClassVisitor(
+                    ClassRenamer(
+                        { it.name },
+                        { clazz, member -> if (member.getName(clazz).startsWith("useCase-123")) "useCaseRenamed" else member.getName(clazz) }
+                    ),
+                    ClassReferenceFixer(false)
+                )
+            )
+
+            "Then the Kotlin function should be named correctly" {
+                val functionVisitor = spyk<KotlinFunctionVisitor>()
+                programClassPool.classesAccept(
+                    ReferencedKotlinMetadataVisitor(
+                        AllFunctionVisitor(functionVisitor)
+                    )
+                )
+
+                verify(exactly = 1) {
+                    functionVisitor.visitFunction(
+                        programClassPool.getClass("Service"),
+                        ofType<KotlinDeclarationContainerMetadata>(),
+                        withArg {
+                            it.name shouldBe "useCaseRenamed"
+                        }
+                    )
+                }
+            }
+        }
     }
 
     "Given a Kotlin interface with a suspend function" - {
