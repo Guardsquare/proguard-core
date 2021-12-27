@@ -1,7 +1,9 @@
 ## Version 8.0.5
 
-### Bugfixes
+### Bug fixes
 
+- Fix `CallResolver` erroneously creating call edges to unimplemented interface methods.
+- Make the `DominatorCalculator` skip methods with an empty `CodeAttribute`.
 - Prevent updating Kotlin function names with mangled JVM method names in `ClassReferenceFixer`. (`PGD-208`)
 
 ## Version 8.0.4

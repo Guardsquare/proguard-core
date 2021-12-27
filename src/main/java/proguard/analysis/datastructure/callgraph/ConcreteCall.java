@@ -88,6 +88,11 @@ public class ConcreteCall
         return targetClass;
     }
 
+    public Method getTargetMethod()
+    {
+        return target;
+    }
+
     @Override
     public boolean equals(Object o)
     {

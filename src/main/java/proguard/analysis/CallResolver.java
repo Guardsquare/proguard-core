@@ -372,6 +372,10 @@ implements   AttributeVisitor,
                                         controlFlowDependent,
                                         runtimeTypeDependent);
                 Metrics.increaseCount(MetricType.CONCRETE_CALL);
+                if ((method.getAccessFlags() & AccessConstants.ABSTRACT) != 0)
+                {
+                    Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
+                }
             }
         }
         return call;
@@ -768,7 +772,7 @@ implements   AttributeVisitor,
         while (curr != null)
         {
             Method targetMethod = curr.findMethod(name, descriptor);
-            if (targetMethod != null)
+            if (targetMethod != null && (targetMethod.getAccessFlags() & AccessConstants.ABSTRACT) == 0)
             {
                 return Optional.of(curr.getName());
             }
@@ -806,7 +810,9 @@ implements   AttributeVisitor,
                                                          .filter(i ->
                                                                  {
                                                                      Method m = i.findMethod(name, descriptor);
-                                                                     return m != null && (m.getAccessFlags() & (AccessConstants.PRIVATE | AccessConstants.STATIC)) == 0;
+                                                                     return m != null && (m.getAccessFlags() & (AccessConstants.PRIVATE
+                                                                                                                | AccessConstants.STATIC
+                                                                                                                | AccessConstants.ABSTRACT)) == 0;
                                                                  })
                                                          .collect(Collectors.toSet());
 
@@ -867,7 +873,8 @@ implements   AttributeVisitor,
             PARTIAL_EVALUATOR_EXCEPTION,
             PARTIAL_EVALUATOR_VALUE_IMPRECISE,
             SYMBOLIC_CALL,
-            CONCRETE_CALL
+            CONCRETE_CALL,
+            CALL_TO_ABSTRACT_METHOD
         }
 
         public static final Map<MetricType, Integer> counts = new TreeMap<>();
