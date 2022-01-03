@@ -81,7 +81,24 @@ public class CallGraph
     }
 
     /**
-     * Calculate the incoming call graph for a method of interest, showing how it can be reached.
+     * See {@link #reconstructCallGraph(ClassPool, MethodSignature, int, int)}
+     *
+     * @param programClassPool The current {@link ClassPool} of the program that can be used for mapping.
+     *                         class names to the actual {@link Clazz}.
+     * @param start            The {@link MethodSignature} of the method whose incoming call graph
+     *                         should be calculated.
+     * @return A {@link Node} that represents the single call graph root, i.e. the start method.
+     */
+    public Node reconstructCallGraph(ClassPool programClassPool, MethodSignature start)
+    {
+        return CallGraphWalker.predecessorPathsAccept(this,
+                                                      start,
+                                                      n -> handleUntilEntryPoint(programClassPool, n, null));
+    }
+
+
+    /**
+     *Calculate the incoming call graph for a method of interest, showing how it can be reached.
      *
      * <p>
      * We have an inverted tree structure like the following example:
@@ -107,15 +124,18 @@ public class CallGraph
      *                         class names to the actual {@link Clazz}.
      * @param start            The {@link MethodSignature} of the method whose incoming call graph
      *                         should be calculated.
+     * @param maxDepth maximal depth of reconstructed {@link CallGraph} similar to {@link CallGraphWalker#MAX_DEPTH_DEFAULT}.
+     * @param maxWidth maximal width of reconstructed {@link CallGraph} similar to {@link CallGraphWalker#MAX_WIDTH_DEFAULT}.
      * @return A {@link Node} that represents the single call graph root, i.e. the start method.
      */
-    public Node reconstructCallGraph(ClassPool programClassPool, MethodSignature start)
+    public Node reconstructCallGraph(ClassPool programClassPool, MethodSignature start, int maxDepth, int maxWidth)
     {
         return CallGraphWalker.predecessorPathsAccept(this,
                                                       start,
-                                                      n -> handleUntilEntryPoint(programClassPool, n, null));
+                                                      n -> handleUntilEntryPoint(programClassPool, n, null),
+                                                      maxDepth,
+                                                      maxWidth);
     }
-
 
     /**
      * Extension of {@link #reconstructCallGraph(ClassPool, MethodSignature)} that also collects
