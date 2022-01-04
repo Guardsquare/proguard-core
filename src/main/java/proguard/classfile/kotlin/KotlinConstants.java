@@ -33,6 +33,8 @@ public class KotlinConstants
 
     public static final char INNER_CLASS_SEPARATOR = '.';
 
+    public static final char FUNCTION_NAME_MANGLE_SEPARATOR = '-';
+
     public static final String NAME_KOTLIN_METADATA                   = "kotlin/Metadata";
     public static final String TYPE_KOTLIN_METADATA                   = "Lkotlin/Metadata;";
     public static final String NAME_KOTLIN_ANY                        = "kotlin/Any";

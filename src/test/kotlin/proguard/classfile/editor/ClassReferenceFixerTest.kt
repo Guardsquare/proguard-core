@@ -29,12 +29,16 @@ import proguard.classfile.editor.ClassReferenceFixer.shortKotlinNestedClassName
 import proguard.classfile.kotlin.KotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinAnnotationArgument
+import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
 import proguard.classfile.kotlin.KotlinTypeMetadata
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
+import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
+import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
 import proguard.classfile.util.ClassRenamer
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassNameFilter
@@ -216,6 +220,112 @@ class ClassReferenceFixerTest : FreeSpec({
                     },
                     ofType<KotlinAnnotationArgument.Value>()
                 )
+            }
+        }
+    }
+
+    "Given a Kotlin interface with a normal function" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                interface Service {
+                    fun `useCase-123`(): Result<Int>
+                }
+                """.trimIndent()
+            ),
+        )
+
+        "When applying ClassReferenceFixer" - {
+            programClassPool.classesAccept(ClassReferenceFixer(false))
+
+            "Then the Kotlin function should be named correctly" {
+                val functionVisitor = spyk<KotlinFunctionVisitor>()
+                programClassPool.classesAccept(
+                    ReferencedKotlinMetadataVisitor(
+                        AllFunctionVisitor(functionVisitor)
+                    )
+                )
+
+                verify(exactly = 1) {
+                    functionVisitor.visitFunction(
+                        programClassPool.getClass("Service"),
+                        ofType<KotlinDeclarationContainerMetadata>(),
+                        withArg {
+                            it.name shouldBe "useCase-123"
+                        }
+                    )
+                }
+            }
+        }
+
+        "When renaming the JVM method and applying ClassReferenceFixer" - {
+            programClassPool.classesAccept(
+                MultiClassVisitor(
+                    ClassRenamer(
+                        { it.name },
+                        { clazz, member -> if (member.getName(clazz).startsWith("useCase-123")) "useCaseRenamed" else member.getName(clazz) }
+                    ),
+                    ClassReferenceFixer(false)
+                )
+            )
+
+            "Then the Kotlin function should be named correctly" {
+                val functionVisitor = spyk<KotlinFunctionVisitor>()
+                programClassPool.classesAccept(
+                    ReferencedKotlinMetadataVisitor(
+                        AllFunctionVisitor(functionVisitor)
+                    )
+                )
+
+                verify(exactly = 1) {
+                    functionVisitor.visitFunction(
+                        programClassPool.getClass("Service"),
+                        ofType<KotlinDeclarationContainerMetadata>(),
+                        withArg {
+                            it.name shouldBe "useCaseRenamed"
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    "Given a Kotlin interface with a suspend function" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                interface Service {
+                    // This results in a mangled JVM method name like `useCase-IoAF18A`
+                    suspend fun useCase(): Result<Int>
+                }
+                """.trimIndent()
+            ),
+        )
+
+        "When applying ClassReferenceFixer" - {
+            programClassPool.classesAccept(ClassReferenceFixer(false))
+
+            "Then the Kotlin function should be named correctly" {
+                val functionVisitor = spyk<KotlinFunctionVisitor>()
+                programClassPool.classesAccept(
+                    ReferencedKotlinMetadataVisitor(
+                        AllFunctionVisitor(
+                            KotlinFunctionFilter({ it.flags.isSuspend }, functionVisitor)
+                        )
+                    )
+                )
+
+                verify(exactly = 1) {
+                    functionVisitor.visitFunction(
+                        programClassPool.getClass("Service"),
+                        ofType<KotlinDeclarationContainerMetadata>(),
+                        withArg {
+                            it.name shouldBe "useCase"
+                        }
+                    )
+                }
             }
         }
     }
