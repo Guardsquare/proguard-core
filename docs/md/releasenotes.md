@@ -1,5 +1,9 @@
 ## Version 8.0.5
 
+### Improved
+
+- Upgrade log4j2 dependency to v2.17.1 in response to CVE-2021-44832.
+
 ### Bug fixes
 
 - Fix `CallResolver` erroneously creating call edges to unimplemented interface methods.
