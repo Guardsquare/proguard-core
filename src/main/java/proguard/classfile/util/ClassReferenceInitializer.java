@@ -793,7 +793,7 @@ implements   ClassVisitor,
 
             visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
 
-            if (kotlinClassKindMetadata.flags.isInterface)
+            if (kotlinClassKindMetadata.flags.isInterface || kotlinClassKindMetadata.flags.isAnnotationClass)
             {
                 // Initialize the default implementations class of interfaces.
                 // The class will be an inner class and have a name like MyInterface$DefaultImpls.
