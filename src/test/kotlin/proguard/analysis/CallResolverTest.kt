@@ -109,11 +109,12 @@ class CallResolverTest : FreeSpec({
             "defaultTest",
             "()V"
         )
-    val PRINTLN = MethodSignature(
+    val PRINTLN =
+        MethodSignature(
             "java/io/PrintStream",
             "println",
             "()V"
-    )
+        )
     val LAMBDA = MethodSignature("Main", "lambda\$dynamic$0", "(Ljava/lang/String;)Z")
     val topLevel = Paths.get("src", "test", "resources", "callResolver", "hierarchy")
 
@@ -338,7 +339,6 @@ class CallResolverTest : FreeSpec({
         caller shouldCall VEHICLE_HONK andThrow MAYBE
         caller shouldCall BIKE_HONK andThrow MAYBE
         caller shouldCall CAR_HONK andThrow MAYBE
-
     }
 
     "Do not populate subclasses for java/lang/Object" {
