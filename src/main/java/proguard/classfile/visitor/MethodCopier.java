@@ -11,7 +11,7 @@ import proguard.classfile.instruction.ConstantInstruction;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
-class MethodCopier implements MemberVisitor, AttributeVisitor, InstructionVisitor
+public class MethodCopier implements MemberVisitor, AttributeVisitor, InstructionVisitor
 {
     private final ProgramClass destinationClass;
     private final ClassBuilder classBuilder;
