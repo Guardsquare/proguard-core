@@ -14,7 +14,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.coroutines.repackaged.net.bytebuddy.description.annotation.AnnotationDescription.Builder.ofType
 import proguard.classfile.ClassPool
 import proguard.classfile.Method
 import proguard.classfile.MethodSignature
