@@ -20,6 +20,7 @@
 - Convert to/from Kotlin unsigned integers in Kotlin annotation unsigned type arguments. (`T5405`)
 - Initialize array dimension in Kotlin annotation `ClassValue` type arguments. (`T5406`)
 - Add support for Kotlin inline class underlying type to Kotlin metadata model. (`T4774`)
+- Add support to `MemberDescriptorReferencedClassVisitor` for visiting referenced Kotlin inline class parameters. (`T13653`)
 
 ## Version 8.0.4
 
