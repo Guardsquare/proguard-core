@@ -82,7 +82,7 @@ java {
 // Early access automatic downloads are not yet supported:
 // https://github.com/gradle/gradle/issues/14814
 // But it will work if e.g. Java 17-ea is pre-installed
-def javaVersionsForTest = 9..16
+def javaVersionsForTest = 9..17
 
 test {
     useJUnitPlatform()
