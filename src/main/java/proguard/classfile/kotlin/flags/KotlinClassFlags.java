@@ -99,7 +99,14 @@ public class KotlinClassFlags implements KotlinFlags
     /**
      * Signifies that the corresponding class is `inline`.
      */
+    @Deprecated
     public boolean isInline;
+
+
+    /**
+     * Signifies that the corresponding class is `value`.
+     */
+    public boolean isValue;
 
     /**
      * Signifies that the corresponding class is a functional interface,

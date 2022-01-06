@@ -3,6 +3,7 @@
 ### Improved
 
 - Upgrade log4j2 dependency to v2.17.1 in response to CVE-2021-44832.
+- Add support for reading and writing Kotlin 1.6 metadata.
 
 ### Bug fixes
 
@@ -10,6 +11,14 @@
 - Make the `DominatorCalculator` skip methods with an empty `CodeAttribute`.
 - Prevent updating Kotlin function names with mangled JVM method names in `ClassReferenceFixer`. (`PGD-208`)
 - Initialize Kotlin default implementation classes of annotation classes correctly in `ClassReferenceInitializer`.
+
+### API changes
+
+- `KotlinInterfaceToDefaultImplsClassVisitor` replaced by `KotlinClassToDefaultImplsClassVisitor`.
+- Deprecate Kotlin class metadata flag `IS_INLINE` and replaced with `IS_VALUE` (`T4771`).
+- Convert to/from Kotlin unsigned integers in Kotlin annotation unsigned type arguments. (`T5405`)
+- Initialize array dimension in Kotlin annotation `ClassValue` type arguments. (`T5406`)
+- Add support for Kotlin inline class underlying type to Kotlin metadata model. (`T4774`)
 
 ## Version 8.0.4
 

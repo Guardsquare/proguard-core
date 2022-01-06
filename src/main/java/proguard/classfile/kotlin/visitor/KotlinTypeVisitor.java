@@ -105,6 +105,14 @@ public interface KotlinTypeVisitor
     }
 
 
+    default void visitInlineClassUnderlyingPropertyType(Clazz                   clazz,
+                                                        KotlinClassKindMetadata kotlinMetadata,
+                                                        KotlinTypeMetadata      kotlinTypeMetadata)
+    {
+        visitAnyType(clazz, kotlinTypeMetadata);
+    }
+
+
     // Property.
 
     default void visitPropertyType(Clazz                             clazz,

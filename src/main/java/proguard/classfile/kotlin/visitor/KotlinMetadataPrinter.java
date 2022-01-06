@@ -117,8 +117,9 @@ implements KotlinMetadataVisitor,
         pw.println();
         indent();
 
-        kotlinClassKindMetadata.typeParametersAccept(clazz, this);
-        kotlinClassKindMetadata.superTypesAccept(    clazz, this);
+        kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+        kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
+        kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
 
         printArray("Nested classnames",     kotlinClassKindMetadata.nestedClassNames,    kotlinClassKindMetadata.referencedNestedClasses);
         printArray("Enum entry names",      kotlinClassKindMetadata.enumEntryNames,      kotlinClassKindMetadata.referencedEnumEntries);
@@ -473,6 +474,17 @@ implements KotlinMetadataVisitor,
                                KotlinTypeMetadata kotlinTypeMetadata)
     {
         print("[SUPT] ");
+        indent();
+        printKotlinTypeMetadata(clazz, kotlinTypeMetadata);
+        outdent();
+    }
+
+    @Override
+    public void visitInlineClassUnderlyingPropertyType(Clazz clazz,
+                                                       KotlinClassKindMetadata kotlinMetadata,
+                                                       KotlinTypeMetadata kotlinTypeMetadata)
+    {
+        print("[IUPT] ");
         indent();
         printKotlinTypeMetadata(clazz, kotlinTypeMetadata);
         outdent();
@@ -1057,6 +1069,7 @@ implements KotlinMetadataVisitor,
            (flags.isObject          ? "object "           : "") +
            (flags.isData            ? "data "             : "") +
            (flags.isInline          ? "inline "           : "") +
+           (flags.isValue           ? "value "            : "") +
            (flags.isInner           ? "inner "            : "") +
            (flags.isExpect          ? "expect "           : "") +
            (flags.isExternal        ? "external "         : "") +

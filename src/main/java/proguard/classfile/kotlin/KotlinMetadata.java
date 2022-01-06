@@ -51,11 +51,6 @@ extends               SimpleProcessable
      */
     public int[]    mv;
 
-    /**
-     * The version of the bytecode interface (naming conventions, signatures) of the class file annotated with this annotation.
-     */
-    public int[]    bv;
-
 //    /**
 //     * Metadata in a custom format. The format may be different (or even absent) for different kinds.
 //     */
@@ -91,11 +86,10 @@ extends               SimpleProcessable
     public String   pn;
 
     
-    protected KotlinMetadata(int k, int[] mv, int[] bv, int xi, String xs, String pn)
+    protected KotlinMetadata(int k, int[] mv, int xi, String xs, String pn)
     {
         this.k  = k;
         this.mv = mv;
-        this.bv = bv;
         this.xi = xi;
         this.xs = xs;
         this.pn = pn;

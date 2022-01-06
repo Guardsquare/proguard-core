@@ -48,12 +48,11 @@ extends KotlinMetadata
 
     public KotlinDeclarationContainerMetadata(int    k,
                                               int[]  mv,
-                                              int[]  bv,
                                               int    xi,
                                               String xs,
                                               String pn)
     {
-        super(k, mv, bv, xi, xs, pn);
+        super(k, mv, xi, xs, pn);
     }
 
 

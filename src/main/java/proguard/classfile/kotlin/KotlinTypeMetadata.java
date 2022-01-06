@@ -90,6 +90,16 @@ implements   Processable,
     }
 
 
+    public void underlyingPropertyTypeAccept(Clazz                   clazz,
+                                             KotlinClassKindMetadata kotlinClassKindMetadata,
+                                             KotlinTypeVisitor       kotlinTypeVisitor)
+    {
+        kotlinTypeVisitor.visitInlineClassUnderlyingPropertyType(clazz, kotlinClassKindMetadata, this);
+    }
+
+
+
+
     public void upperBoundsAccept(Clazz             clazz,
                                   KotlinTypeVisitor kotlinTypeVisitor)
     {

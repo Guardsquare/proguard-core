@@ -584,9 +584,10 @@ implements   ClassVisitor,
                                   kotlinClassKindMetadata.referencedSealedSubClasses.get(k)));
             }
 
-            kotlinClassKindMetadata.typeParametersAccept(clazz, this);
-            kotlinClassKindMetadata.superTypesAccept(    clazz, this);
-            kotlinClassKindMetadata.constructorsAccept(  clazz, this);
+            kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+            kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
+            kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
+            kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
 
             visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
         }

@@ -27,12 +27,11 @@ extends KotlinDeclarationContainerMetadata
 {
 
     public KotlinFileFacadeKindMetadata(int[]  mv,
-                                        int[]  bv,
                                         int    xi,
                                         String xs,
                                         String pn)
     {
-        super(METADATA_KIND_FILE_FACADE, mv, bv, xi, xs, pn);
+        super(METADATA_KIND_FILE_FACADE, mv, xi, xs, pn);
     }
 
 

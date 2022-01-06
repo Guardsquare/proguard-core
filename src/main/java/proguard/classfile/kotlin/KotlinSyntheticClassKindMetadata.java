@@ -45,13 +45,12 @@ extends KotlinMetadata
     }
 
     public KotlinSyntheticClassKindMetadata(int[]  mv,
-                                            int[]  bv,
                                             int    xi,
                                             String xs,
                                             String pn,
                                             Flavor flavor)
     {
-        super(METADATA_KIND_SYNTHETIC_CLASS, mv, bv, xi, xs, pn);
+        super(METADATA_KIND_SYNTHETIC_CLASS, mv, xi, xs, pn);
         this.flavor = flavor;
     }
 

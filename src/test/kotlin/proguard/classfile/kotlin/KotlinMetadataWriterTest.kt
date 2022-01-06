@@ -44,10 +44,12 @@ import proguard.classfile.kotlin.KotlinAnnotationArgument.UShortValue
 import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
+import proguard.classfile.kotlin.visitor.AllTypeVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
+import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 import testutils.ReWritingMetadataVisitor
@@ -360,6 +362,40 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "kClass" },
                     ClassValue("kotlin/String")
+                )
+            }
+        }
+    }
+
+    "Given an inline class" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                @JvmInline
+                value class Password(private val s : String)
+                """.trimIndent()
+            )
+        )
+
+        val clazz = programClassPool.getClass("Password")
+        val kotlinTypeVisitor = spyk<KotlinTypeVisitor>()
+
+        clazz.accept(
+            ReWritingMetadataVisitor(
+                AllTypeVisitor(kotlinTypeVisitor)
+            )
+        )
+
+        "Then the type and name should be correct" {
+            verify {
+                kotlinTypeVisitor.visitInlineClassUnderlyingPropertyType(
+                    clazz,
+                    withArg {
+                        it.underlyingPropertyName shouldBe "s"
+                        it.underlyingPropertyType.className shouldBe "kotlin/String"
+                    },
+                    ofType<KotlinTypeMetadata>()
                 )
             }
         }

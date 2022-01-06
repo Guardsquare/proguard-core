@@ -56,6 +56,9 @@ extends KotlinDeclarationContainerMetadata
 
     public KotlinClassFlags flags;
 
+    public String             underlyingPropertyName;
+    public KotlinTypeMetadata underlyingPropertyType;
+
 
     // Extensions.
 
@@ -66,12 +69,11 @@ extends KotlinDeclarationContainerMetadata
 
 
     public KotlinClassKindMetadata(int[]  mv,
-                                   int[]  bv,
                                    int    xi,
                                    String xs,
                                    String pn)
     {
-        super(METADATA_KIND_CLASS, mv, bv, xi, xs, pn);
+        super(METADATA_KIND_CLASS, mv, xi, xs, pn);
     }
 
 
@@ -156,6 +158,16 @@ extends KotlinDeclarationContainerMetadata
                                       kotlinVersionRequirementVisitor);
         }
     }
+
+
+    public void inlineClassUnderlyingPropertyTypeAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor)
+    {
+        if (underlyingPropertyType != null)
+        {
+            underlyingPropertyType.underlyingPropertyTypeAccept(clazz, this, kotlinTypeVisitor);
+        }
+    }
+
 
     // Implementations for Object.
     @Override

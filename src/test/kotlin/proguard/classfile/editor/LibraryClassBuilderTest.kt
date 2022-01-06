@@ -62,7 +62,7 @@ class LibraryClassBuilderTest : FreeSpec({
         val subClasses = emptyArray<Clazz>()
         val fields = emptyArray<LibraryField>()
         val methods = emptyArray<LibraryMethod>()
-        val metaData = KotlinClassKindMetadata(IntArray(0), IntArray(0), 0, "", "")
+        val metaData = KotlinClassKindMetadata(IntArray(0), 0, "", "")
         "When initializing a new LibraryClassBuilder" - {
             val builder = LibraryClassBuilder(
                 accessFlags,
