@@ -11,6 +11,7 @@
 - Make the `DominatorCalculator` skip methods with an empty `CodeAttribute`.
 - Prevent updating Kotlin function names with mangled JVM method names in `ClassReferenceFixer`. (`PGD-208`)
 - Initialize Kotlin default implementation classes of annotation classes correctly in `ClassReferenceInitializer`.
+- Correctly initialize Java Record component attributes in `ClassReferenceInitializer`. (`PGC-28`, `PGD-194`)
 
 ### API changes
 
