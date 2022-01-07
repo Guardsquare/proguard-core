@@ -10,23 +10,35 @@ package proguard.classfile.util
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.ClassPool
+import proguard.classfile.Method
+import proguard.classfile.MethodSignature
+import proguard.classfile.ProgramClass
+import proguard.classfile.ProgramMethod
 import proguard.classfile.kotlin.KotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinAnnotationArgument
 import proguard.classfile.kotlin.KotlinAnnotationArgument.StringValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.Value
+import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
 import proguard.classfile.kotlin.KotlinTypeMetadata
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
+import proguard.classfile.kotlin.visitor.AllPropertyVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
+import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinAnnotationArgumentFilter
+import proguard.classfile.kotlin.visitor.filter.KotlinPropertyFilter
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer
+import proguard.classfile.visitor.AllMemberVisitor
+import proguard.classfile.visitor.MemberNameFilter
+import proguard.classfile.visitor.MemberVisitor
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 import java.lang.RuntimeException
@@ -300,6 +312,63 @@ class ClassReferenceInitializerTest : FreeSpec({
             shouldNotThrow<Exception> {
                 programClassPool.classesAccept(
                     ClassReferenceInitializer(programClassPool, ClassPool())
+                )
+            }
+        }
+    }
+
+    "Given an annotation class containing annotations" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "MyAnnotation.kt",
+                """
+                   annotation class MyAnnotation(
+                        // The annotation will be stored on a method `foo${'$'}annotation` in `MyAnnotation${'$'}DefaultImpls`
+                        @Deprecated("Use bar instead")
+                        val foo: String = "foo",
+                        val bar: String = "bar"
+                   )
+                """.trimIndent()
+            )
+        )
+
+        "Then the annotation synthetic method should be initialized correctly" {
+            val visitor = spyk<KotlinPropertyVisitor>()
+            programClassPool.classesAccept(
+                "MyAnnotation",
+                ReferencedKotlinMetadataVisitor(
+                    AllPropertyVisitor(
+                        KotlinPropertyFilter({ it.name == "foo" }, visitor)
+                    )
+                )
+            )
+
+            lateinit var syntheticAnnotationMethod: Method
+
+            programClassPool.classesAccept(
+                "MyAnnotation\$DefaultImpls",
+                AllMemberVisitor(
+                    MemberNameFilter(
+                        "foo\$annotations",
+                        object : MemberVisitor {
+                            override fun visitProgramMethod(programClass: ProgramClass, programMethod: ProgramMethod) {
+                                syntheticAnnotationMethod = programMethod
+                            }
+                        }
+                    )
+                )
+            )
+
+            syntheticAnnotationMethod shouldNotBe null
+
+            verify(exactly = 1) {
+                visitor.visitAnyProperty(
+                    programClassPool.getClass("MyAnnotation"),
+                    ofType<KotlinDeclarationContainerMetadata>(),
+                    withArg {
+                        it.syntheticMethodForAnnotations shouldBe MethodSignature(null, "foo\$annotations", "()V")
+                        it.referencedSyntheticMethodForAnnotations shouldBe syntheticAnnotationMethod
+                    }
                 )
             }
         }

@@ -12,7 +12,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
-import proguard.classfile.attribute.Attribute
+import proguard.classfile.attribute.Attribute.RUNTIME_VISIBLE_ANNOTATIONS
 import proguard.classfile.attribute.annotation.Annotation
 import proguard.classfile.attribute.annotation.ArrayElementValue
 import proguard.classfile.attribute.annotation.ConstantElementValue
@@ -24,6 +24,7 @@ import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.editor.ConstantPoolEditor
+import proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_METADATA
 import proguard.classfile.kotlin.visitor.KotlinMetadataVersionFilter
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer
 import proguard.classfile.visitor.ClassVisitor
@@ -58,26 +59,26 @@ class KotlinMetadataVersionFilterTest : FreeSpec({
     "Given a class with an unsupported metadata version" - {
         val unsupportedClazz = programClassPool.getClass("Person") as ProgramClass
         // This visitor updates the mv field in the kotlin metadata annotation.
-        unsupportedClazz!!.accept(
+        unsupportedClazz.accept(
             AllAttributeVisitor(
                 AttributeNameFilter(
-                    Attribute.RUNTIME_VISIBLE_ANNOTATIONS,
+                    RUNTIME_VISIBLE_ANNOTATIONS,
                     AllAnnotationVisitor(
                         AnnotationTypeFilter(
-                            KotlinConstants.TYPE_KOTLIN_METADATA,
+                            TYPE_KOTLIN_METADATA,
                             object : AnnotationVisitor {
-                                override fun visitAnnotation(clazz: Clazz?, annotation: Annotation) {
+                                override fun visitAnnotation(clazz: Clazz, annotation: Annotation) {
                                     annotation.elementValuesAccept(
                                         clazz,
                                         object : ElementValueVisitor {
-                                            override fun visitAnyElementValue(clazz: Clazz?, annotation: Annotation?, elementValue: ElementValue?) {}
-                                            override fun visitArrayElementValue(clazz: Clazz?, annotation: Annotation?, arrayElementValue: ArrayElementValue?) {
-                                                arrayElementValue?.elementValueAccept(
+                                            override fun visitAnyElementValue(clazz: Clazz, annotation: Annotation, elementValue: ElementValue) {}
+                                            override fun visitArrayElementValue(clazz: Clazz, annotation: Annotation, arrayElementValue: ArrayElementValue) {
+                                                arrayElementValue.elementValueAccept(
                                                     clazz, annotation, 0,
                                                     object : ElementValueVisitor {
-                                                        override fun visitConstantElementValue(clazz: Clazz?, annotation: Annotation?, constantElementValue: ConstantElementValue?) {
-                                                            val index = ConstantPoolEditor(clazz as ProgramClass?).addIntegerConstant(9001)
-                                                            constantElementValue!!.u2constantValueIndex = index
+                                                        override fun visitConstantElementValue(clazz: Clazz, annotation: Annotation, constantElementValue: ConstantElementValue) {
+                                                            val index = ConstantPoolEditor(clazz as ProgramClass).addIntegerConstant(9001)
+                                                            constantElementValue.u2constantValueIndex = index
                                                         }
                                                     }
                                                 )

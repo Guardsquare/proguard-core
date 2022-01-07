@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.visitor.ClassVisitor;
 
-public class KotlinInterfaceToDefaultImplsClassVisitor
+public class KotlinClassToDefaultImplsClassVisitor
 implements   KotlinMetadataVisitor
 {
 
     private final ClassVisitor classVisitor;
 
-    public KotlinInterfaceToDefaultImplsClassVisitor(ClassVisitor classVisitor) {
+    public KotlinClassToDefaultImplsClassVisitor(ClassVisitor classVisitor) {
         this.classVisitor = classVisitor;
     }
 
@@ -37,7 +37,7 @@ implements   KotlinMetadataVisitor
     @Override
     public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
     {
-        if (kotlinClassKindMetadata.flags.isInterface && kotlinClassKindMetadata.referencedDefaultImplsClass != null)
+        if (kotlinClassKindMetadata.referencedDefaultImplsClass != null)
         {
             kotlinClassKindMetadata.referencedDefaultImplsClass.accept(this.classVisitor);
         }

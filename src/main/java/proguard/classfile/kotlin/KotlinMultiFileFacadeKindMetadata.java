@@ -31,13 +31,12 @@ extends KotlinMetadata
     public List<Clazz>  referencedPartClasses;
 
     public KotlinMultiFileFacadeKindMetadata(int[]    mv,
-                                             int[]    bv,
                                              String[] d1,
                                              int      xi,
                                              String   xs,
                                              String   pn)
     {
-        super(METADATA_KIND_MULTI_FILE_CLASS_FACADE, mv, bv, xi, xs, pn);
+        super(METADATA_KIND_MULTI_FILE_CLASS_FACADE, mv, xi, xs, pn);
 
         this.partClassNames = new ArrayList<>(Arrays.asList(d1));
     }

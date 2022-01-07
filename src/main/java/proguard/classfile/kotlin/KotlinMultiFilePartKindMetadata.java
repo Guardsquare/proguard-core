@@ -30,12 +30,11 @@ extends KotlinDeclarationContainerMetadata
 
 
     public KotlinMultiFilePartKindMetadata(int[]  mv,
-                                           int[]  bv,
                                            int    xi,
                                            String xs,
                                            String pn)
     {
-        super(METADATA_KIND_MULTI_FILE_CLASS_PART, mv, bv, xi, xs, pn);
+        super(METADATA_KIND_MULTI_FILE_CLASS_PART, mv, xi, xs, pn);
 
         this.facadeName = xs;
     }

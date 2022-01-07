@@ -109,27 +109,26 @@ class CallResolverTest : FreeSpec({
             "defaultTest",
             "()V"
         )
-    val PRINTLN = MethodSignature(
-        "java/io/PrintStream",
-        "println",
-        "()V"
-    )
+    val PRINTLN =
+        MethodSignature(
+            "java/io/PrintStream",
+            "println",
+            "()V"
+        )
     val LAMBDA = MethodSignature("Main", "lambda\$dynamic$0", "(Ljava/lang/String;)Z")
-
     val topLevel = Paths.get("src", "test", "resources", "callResolver", "hierarchy")
 
     val classPools = ClassPoolBuilder.fromDirectory(topLevel.toFile())
 
     val callGraph = CallGraph()
-    val resolver = CallResolver(
-        classPools.programClassPool,
-        classPools.libraryClassPool,
-        callGraph,
-        false,
-        true,
-        true,
-        50
-    )
+    val resolver =
+        CallResolver.Builder(classPools.programClassPool, classPools.libraryClassPool, callGraph)
+            .setClearCallValuesAfterVisit(false)
+            .setUseDominatorAnalysis(true)
+            .setEvaluateAllCode(true)
+            .setIncludeSubClasses(true)
+            .setMaxPartialEvaluations(50)
+            .build()
 
     classPools.programClassPool.classesAccept(resolver)
 
@@ -239,7 +238,7 @@ class CallResolverTest : FreeSpec({
             "external",
             "()V"
         )
-        caller shouldCall PRINTLN andThrow MAYBE controlFlowDependent false typeDependent false
+        caller shouldCall PRINTLN andThrow MAYBE controlFlowDependent false typeDependent true
     }
 
     "Call on null object should throw" {
@@ -314,6 +313,48 @@ class CallResolverTest : FreeSpec({
         caller shouldCall SUBINTERFACE_DEFAULT_TEST controlFlowDependent false typeDependent false
         caller shouldNotCall SUPERINTERFACE_DEFAULT_TEST
         caller shouldNotCall SUPER_IMPL_DEFAULT_TEST
+    }
+
+    "Invoke method which parameter has subclasses" {
+        val caller = MethodSignature(
+            "Main",
+            "makeNoise",
+            "(LVehicle;)V"
+        )
+        val VEHICLE_HONK = MethodSignature(
+            "Vehicle",
+            "honk",
+            "()V"
+        )
+        val BIKE_HONK = MethodSignature(
+            "Bike",
+            "honk",
+            "()V"
+        )
+        val CAR_HONK = MethodSignature(
+            "Car",
+            "honk",
+            "()V"
+        )
+        caller shouldCall VEHICLE_HONK andThrow MAYBE
+        caller shouldCall BIKE_HONK andThrow MAYBE
+        caller shouldCall CAR_HONK andThrow MAYBE
+    }
+
+    "Do not populate subclasses for java/lang/Object" {
+        val caller = MethodSignature(
+            "Main",
+            "makeString",
+            "(Ljava/lang/Object;)V"
+        )
+        callGraph.outgoing shouldHaveKey caller
+        val matches = callGraph.outgoing[caller]!!.filter { it.caller.signature == caller }
+        matches shouldHaveSize 1
+        matches[0].target shouldBe MethodSignature(
+            "java/lang/Object",
+            "toString",
+            "()Ljava/lang/String;"
+        )
     }
 
     "All calls have been checked" {

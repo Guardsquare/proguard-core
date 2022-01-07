@@ -71,7 +71,7 @@ public class MultiTypedReferenceValue extends ReferenceValue
         return matchingPotentialType.orElse(newGeneralizedType);
     }
 
-    private TypedReferenceValue generalize(Set<TypedReferenceValue> potentialTypes)
+    public TypedReferenceValue generalize(Set<TypedReferenceValue> potentialTypes)
     {
         TypedReferenceValue generalizedType = null;
         for (TypedReferenceValue type : potentialTypes)

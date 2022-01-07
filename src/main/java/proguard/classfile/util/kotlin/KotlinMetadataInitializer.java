@@ -36,12 +36,11 @@ import proguard.classfile.visitor.ClassVisitor;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
 import static proguard.classfile.attribute.Attribute.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
-import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
+import static proguard.classfile.util.kotlin.KotlinAnnotationUtilKt.convertAnnotation;
 
 /**
  * Initializes the kotlin metadata for each Kotlin class. After initialization, all
@@ -59,7 +58,6 @@ implements ClassVisitor,
     // For original definitions see https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/jvm/runtime/kotlin/Metadata.kt
     private int      k;
     private int[]    mv;
-    private int[]    bv;
     private String[] d1;
     private String[] d2;
     private int      xi;
@@ -109,7 +107,6 @@ implements ClassVisitor,
         // Collect the metadata.
         this.k  = -1;
         this.mv = null; //new int[] { 1, 0, 0 };
-        this.bv = null; //new int[] { 1, 0, 0 };
         this.d1 = null; //new String[0];
         this.d2 = null; //new String[0];
         this.xi = 0; // Optional flags, the `xi` annotation field may not be present so default to none set.
@@ -120,7 +117,7 @@ implements ClassVisitor,
 
 
         // Parse the collected metadata.
-        KotlinClassMetadata md = KotlinClassMetadata.read(new KotlinClassHeader(k, mv, bv, d1, d2, xs, pn, xi));
+        KotlinClassMetadata md = KotlinClassMetadata.read(new KotlinClassHeader(k, mv, d1, d2, xs, pn, xi));
         if (md == null)
         {
             String version = mv == null ? "unknown" : Arrays.stream(mv).mapToObj(Integer::toString).collect(joining("."));
@@ -133,7 +130,7 @@ implements ClassVisitor,
             switch (k)
             {
                 case METADATA_KIND_CLASS:
-                    KotlinClassKindMetadata kotlinClassKindMetadata = new KotlinClassKindMetadata(mv, bv, xi, xs, pn);
+                    KotlinClassKindMetadata kotlinClassKindMetadata = new KotlinClassKindMetadata(mv, xi, xs, pn);
 
                     ((KotlinClassMetadata.Class)md).accept(new ClassReader(kotlinClassKindMetadata));
 
@@ -143,7 +140,6 @@ implements ClassVisitor,
 
                 case METADATA_KIND_FILE_FACADE: // For package level functions/properties
                     KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata = new KotlinFileFacadeKindMetadata(mv,
-                                                                                                                 bv,
                                                                                                                  xi,
                                                                                                                  xs,
                                                                                                                  pn);
@@ -177,7 +173,7 @@ implements ClassVisitor,
                     }
 
                     KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata =
-                        new KotlinSyntheticClassKindMetadata(mv, bv, xi, xs, pn, flavor);
+                        new KotlinSyntheticClassKindMetadata(mv, xi, xs, pn, flavor);
 
                     if (smd.isLambda())
                     {
@@ -195,12 +191,12 @@ implements ClassVisitor,
                     // The relevant data for this kind is in d1. It is a list of Strings
                     // representing the part class names.
                     clazz.accept(new SimpleKotlinMetadataSetter(
-                        new KotlinMultiFileFacadeKindMetadata(mv, bv, d1, xi, xs, pn)));
+                        new KotlinMultiFileFacadeKindMetadata(mv, d1, xi, xs, pn)));
                     break;
 
                 case METADATA_KIND_MULTI_FILE_CLASS_PART:
                     KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata =
-                        new KotlinMultiFilePartKindMetadata(mv, bv, xi, xs, pn);
+                        new KotlinMultiFilePartKindMetadata(mv, xi, xs, pn);
 
                     ((KotlinClassMetadata.MultiFileClassPart)md).accept(new PackageReader(
                         kotlinMultiFilePartKindMetadata));
@@ -244,7 +240,6 @@ implements ClassVisitor,
         switch (arrayElementType)
         {
             case mv: this.mv = new int   [arrayElementValue.u2elementValuesCount]; break;
-            case bv: this.bv = new int   [arrayElementValue.u2elementValuesCount]; break;
             case d1: this.d1 = new String[arrayElementValue.u2elementValuesCount]; break;
             case d2: this.d2 = new String[arrayElementValue.u2elementValuesCount]; break;
         }
@@ -342,7 +337,7 @@ implements ClassVisitor,
             }
             else if (this.arrayType == MetadataType.bv)
             {
-                bv[index++] = integerConstant.getValue();
+                // Deprecated & removed from kotlinx.metadata library, do nothing.
             }
             else
             {
@@ -354,7 +349,9 @@ implements ClassVisitor,
 
     public enum MetadataType
     {
-        k, mv, bv, d1, d2, xi, xs, pn
+        k, mv, d1, d2, xi, xs, pn,
+
+        @Deprecated bv // was removed but older metadata will still contain it.
     }
 
 
@@ -572,6 +569,22 @@ implements ClassVisitor,
         }
 
 
+        @Override
+        public void visitInlineClassUnderlyingPropertyName(String name)
+        {
+            kotlinClassKindMetadata.underlyingPropertyName = name;
+        }
+
+
+        @Override
+        public KmTypeVisitor visitInlineClassUnderlyingType(int flags)
+        {
+            KotlinTypeMetadata type = new KotlinTypeMetadata(convertTypeFlags(flags));
+            kotlinClassKindMetadata.underlyingPropertyType = type;
+            return new TypeReader(type);
+        }
+
+
         private class ClassExtensionReader
         extends JvmClassExtensionVisitor
         {
@@ -623,6 +636,7 @@ implements ClassVisitor,
             flags.isExternal        = Flag.Class.IS_EXTERNAL.invoke(kotlinFlags);
             flags.isExpect          = Flag.Class.IS_EXPECT.invoke(kotlinFlags);
             flags.isInline          = Flag.Class.IS_INLINE.invoke(kotlinFlags);
+            flags.isValue           = Flag.Class.IS_VALUE.invoke(kotlinFlags);
             flags.isFun             = Flag.Class.IS_FUN.invoke(kotlinFlags);
 
             return flags;
@@ -1754,115 +1768,6 @@ implements ClassVisitor,
             case EXACTLY_ONCE:  return KotlinEffectInvocationKind.EXACTLY_ONCE;
             case AT_LEAST_ONCE: return KotlinEffectInvocationKind.AT_LEAST_ONCE;
             default: throw new UnsupportedOperationException("Encountered unknown enum value for KmEffectInvocationKind.");
-        }
-    }
-
-    // Helper methods to convert Kotlin annotations
-
-    private static KotlinAnnotation convertAnnotation(KmAnnotation kmAnnotation)
-    {
-        return new KotlinAnnotation(kmAnnotation.getClassName(), convertAnnotationArguments(kmAnnotation.getArguments()));
-    }
-
-
-    private static List<KotlinAnnotationArgument> convertAnnotationArguments(Map<String, KmAnnotationArgument<?>> arguments)
-    {
-        return arguments
-                .entrySet()
-                .stream()
-                .map(e -> convertAnnotationArgument(e.getKey(), e.getValue()))
-                .collect(Collectors.toList());
-    }
-
-
-    private static KotlinAnnotationArgument convertAnnotationArgument(String name, KmAnnotationArgument<?> argument)
-    {
-        return new KotlinAnnotationArgument(name, convertAnnotationArgumentValue(argument));
-    }
-
-
-    private static Value convertAnnotationArgumentValue(KmAnnotationArgument<?> argument)
-    {
-        if (argument instanceof KmAnnotationArgument.ByteValue)
-        {
-            return new ByteValue((Byte) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.CharValue)
-        {
-            return new CharValue((Character) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.ShortValue)
-        {
-            return new ShortValue((Short) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.IntValue)
-        {
-            return new IntValue((Integer) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.LongValue)
-        {
-            return new LongValue((Long) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.FloatValue)
-        {
-            return new FloatValue((Float) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.DoubleValue)
-        {
-            return new DoubleValue((Double) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.BooleanValue)
-        {
-            return new BooleanValue((Boolean) argument.getValue());
-        }
-        // TODO(T5405): metadata library 0.3 will use unsigned types e.g. UByte instead of Byte as the value type
-        else if (argument instanceof KmAnnotationArgument.UByteValue)
-        {
-            return new UByteValue((Byte) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.UShortValue)
-        {
-            return new UShortValue((Short) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.UIntValue)
-        {
-            return new UIntValue((Integer) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.ULongValue)
-        {
-            return new ULongValue((Long) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.StringValue)
-        {
-            return new StringValue((String) argument.getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.KClassValue)
-        {
-            return new KotlinAnnotationArgument.ClassValue(((KmAnnotationArgument.KClassValue) argument).getValue());
-        }
-        else if (argument instanceof KmAnnotationArgument.EnumValue)
-        {
-            KmAnnotationArgument.EnumValue arg = (KmAnnotationArgument.EnumValue) argument;
-            return new EnumValue(arg.getEnumClassName(), arg.getEnumEntryName());
-        }
-        else if (argument instanceof KmAnnotationArgument.AnnotationValue)
-        {
-            return new AnnotationValue(convertAnnotation((KmAnnotation) argument.getValue()));
-        }
-        else if (argument instanceof KmAnnotationArgument.ArrayValue)
-        {
-            KmAnnotationArgument.ArrayValue arrayValue = (KmAnnotationArgument.ArrayValue)argument;
-            List<? extends KmAnnotationArgument<?>> values = arrayValue.getValue();
-
-            return new ArrayValue(values
-                    .stream()
-                    .map(KotlinMetadataInitializer::convertAnnotationArgumentValue)
-                    .collect(Collectors.toList())
-            );
-        }
-        else
-        {
-            throw new RuntimeException("Invalid Kotlin metadata annotation argument type: " + argument.getClass());
         }
     }
 

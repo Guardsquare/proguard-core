@@ -397,46 +397,6 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
         }
     }
 
-    "Given a private member anonymous function callable reference" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
-            KotlinSource(
-                "Test.kt",
-                """
-                    class Foo {
-                        private fun foo() = "OK"
-
-                        fun ref() = (Foo::foo)(this)
-                    }
-                """.trimIndent()
-            )
-        )
-
-        val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
-        val ownerVisitor = spyk< KotlinMetadataVisitor>()
-        val testVisitor = createVisitor(callableRefInfoVisitor, ownerVisitor)
-
-        programClassPool.classesAccept("Foo\$ref\$1", testVisitor)
-
-        "Then the callableReferenceInfo should be initialized" {
-            verify(exactly = 1) {
-                callableRefInfoVisitor.visitFunctionReferenceInfo(
-                    withArg {
-                        it.name shouldBe "foo"
-                        it.signature shouldBe "foo()Ljava/lang/String;"
-                        it.owner shouldNotBe null
-                    }
-                )
-            }
-
-            verify(exactly = 1) {
-                ownerVisitor.visitKotlinClassMetadata(
-                    programClassPool.getClass("Foo"),
-                    ofType(KotlinClassKindMetadata::class)
-                )
-            }
-        }
-    }
-
     "Given a function callable reference with an uninitialized owner class" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             KotlinSource(

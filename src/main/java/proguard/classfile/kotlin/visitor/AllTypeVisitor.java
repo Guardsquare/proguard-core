@@ -58,9 +58,10 @@ implements   KotlinMetadataVisitor,
     @Override
     public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
     {
-        kotlinClassKindMetadata.typeParametersAccept(clazz, this);
-        kotlinClassKindMetadata.superTypesAccept(    clazz, this);
-        kotlinClassKindMetadata.constructorsAccept(  clazz, this);
+        kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+        kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
+        kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
+        kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
 
         visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
     }
@@ -306,6 +307,18 @@ implements   KotlinMetadataVisitor,
 
         visitAnyType(clazz, kotlinTypeMetadata);
     }
+
+
+    @Override
+    public void visitInlineClassUnderlyingPropertyType(Clazz clazz,
+                                                       KotlinClassKindMetadata kotlinMetadata,
+                                                       KotlinTypeMetadata kotlinTypeMetadata)
+    {
+        delegate.visitInlineClassUnderlyingPropertyType(clazz, kotlinMetadata, kotlinTypeMetadata);
+
+        visitAnyType(clazz, kotlinTypeMetadata);
+    }
+
 
     @Override
     public void visitPropertyType(Clazz clazz,

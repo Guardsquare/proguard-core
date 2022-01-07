@@ -546,6 +546,22 @@ implements   ClassVisitor,
         }
     }
 
+    @Override
+    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
+    {
+        try
+        {
+            signatureAttribute.referencedClasses =
+                findReferencedClasses(clazz,
+                                      signatureAttribute.getSignature(clazz));
+        }
+        catch (Exception corruptSignature)
+        {
+            // #2468: delete corrupt signature attributes, since they
+            // cannot be otherwise worked around.
+            recordComponentInfo.attributesAccept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
+        }
+    }
 
     @Override
     public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
@@ -787,13 +803,14 @@ implements   ClassVisitor,
                     .collect(Collectors.toList());
 
 
-            kotlinClassKindMetadata.typeParametersAccept(clazz, this);
-            kotlinClassKindMetadata.superTypesAccept(    clazz, this);
-            kotlinClassKindMetadata.constructorsAccept(  clazz, this);
+            kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+            kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
+            kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
+            kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
 
             visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
 
-            if (kotlinClassKindMetadata.flags.isInterface)
+            if (kotlinClassKindMetadata.flags.isInterface || kotlinClassKindMetadata.flags.isAnnotationClass)
             {
                 // Initialize the default implementations class of interfaces.
                 // The class will be an inner class and have a name like MyInterface$DefaultImpls.

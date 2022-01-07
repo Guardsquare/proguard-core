@@ -98,4 +98,14 @@ public class Main
         // Target: SubInterface#defaultTest (!)
         new SuperImplementor().defaultTest();
     }
+
+    public static void makeNoise(Vehicle v){
+        // Target: Vehicle#honk, Car#honk or Bike#honk
+        v.honk();
+    }
+
+    public static void makeString(Object v){
+        // Target: java.lang.Object#toString (!)
+        v.toString();
+    }
 }

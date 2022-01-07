@@ -140,6 +140,16 @@ implements   AttributeVisitor,
      *                                  method, in order to be able to fill the
      *                                  {@link Call#controlFlowDependent} flag.
      * @param evaluateAllCode           See {@link PartialEvaluator.Builder#setEvaluateAllCode(boolean)}.
+     * @param includeSubClasses         If true, virtual calls on class fields, parameters and return values of other methods
+     *                                  will take all possible subclasses into account.
+     *                                  This is necessary for a more complete
+     *                                  call graph, because the runtime type of these objects is not controlled by the current
+     *                                  method. E.g. a method that declares its return type to be of type A might also return
+     *                                  an object of type B in case B extends A. The same is true for class fields and parameters,
+     *                                  so in order to really find all potential calls, this circumstance needs to be modeled.
+     *                                  For objects of declared type {@link java.lang.Object} this will be skipped, as the fact
+     *                                  that every single Java class is a subclass of object would lead to an immense blow-up
+     *                                  of the call graph.
      * @param maxPartialEvaluations     See {@link PartialEvaluator.Builder#stopAnalysisAfterNEvaluations(int)}.
      * @param visitors                  {@link CallVisitor}s that are interested in the
      *                                  results of this analysis.
@@ -150,6 +160,7 @@ implements   AttributeVisitor,
                         boolean clearCallValuesAfterVisit,
                         boolean useDominatorAnalysis,
                         boolean evaluateAllCode,
+                        boolean includeSubClasses,
                         int maxPartialEvaluations,
                         CallVisitor... visitors)
     {
@@ -162,7 +173,9 @@ implements   AttributeVisitor,
         dominatorCalculator            = new DominatorCalculator();
 
         // Initialize the multitype evaluator.
-        ValueFactory multiTypeValueFactory          = new MultiTypedReferenceValueFactory();
+        ValueFactory multiTypeValueFactory = includeSubClasses ?
+            new MultiTypedReferenceValueFactory(true, this.programClassPool, this.libraryClassPool) :
+            new MultiTypedReferenceValueFactory();
         InvocationUnit multiTypeValueInvocationUnit = new BasicInvocationUnit(multiTypeValueFactory);
         multiTypeValueEvaluator                     = PartialEvaluator.Builder.create()
                                                                               .setValueFactory(multiTypeValueFactory)
@@ -853,6 +866,103 @@ implements   AttributeVisitor,
         if (start.getSuperClass() != null)
         {
             getSuperinterfaces(start.getSuperClass(), accumulator);
+        }
+    }
+
+    public static class Builder
+    {
+
+        private final ClassPool     programClassPool;
+        private final ClassPool     libraryClassPool;
+        private final CallGraph     callGraph;
+        private final CallVisitor[] visitors;
+        private       boolean       clearCallValuesAfterVisit = true;
+        private       boolean       useDominatorAnalysis      = false;
+        private       boolean       evaluateAllCode           = false;
+        private       boolean       includeSubClasses         = false;
+        private       int           maxPartialEvaluations     = 50;
+
+        public Builder(ClassPool programClassPool, ClassPool libraryClassPool, CallGraph callGraph, CallVisitor... visitors)
+        {
+            this.programClassPool = programClassPool;
+            this.libraryClassPool = libraryClassPool;
+            this.callGraph = callGraph;
+            this.visitors = visitors;
+        }
+
+        /**
+         * If true, {@link Call#clearValues()} will be called after
+         * {@link CallVisitor#visitCall(Call)}. This makes it possible
+         * to analyze arguments and the return value of calls while still
+         * adding them to a {@link CallGraph} afterwards, as call graph analysis
+         * itself usually only requires the call locations and their targets,
+         * not the arguments or return value.
+         */
+        public Builder setClearCallValuesAfterVisit(boolean clearCallValuesAfterVisit)
+        {
+            this.clearCallValuesAfterVisit = clearCallValuesAfterVisit;
+            return this;
+        }
+
+        /**
+         * If true, a dominator analysis is carried out using the {@link DominatorCalculator}
+         * for each method, in order to be able to fill the {@link Call#controlFlowDependent} flag.
+         */
+        public Builder setUseDominatorAnalysis(boolean useDominatorAnalysis)
+        {
+            this.useDominatorAnalysis = useDominatorAnalysis;
+            return this;
+        }
+
+        /**
+         * See {@link PartialEvaluator.Builder#setEvaluateAllCode(boolean)}.
+         */
+        public Builder setEvaluateAllCode(boolean evaluateAllCode)
+        {
+            this.evaluateAllCode = evaluateAllCode;
+            return this;
+        }
+
+        /**
+         * If true, virtual calls on class fields, parameters and return values of other methods
+         * will take all possible subclasses into account.
+         *
+         * <p>This is necessary for a more complete
+         * call graph, because the runtime type of these objects is not controlled by the current
+         * method. E.g. a method that declares its return type to be of type A might also return
+         * an object of type B in case B extends A. The same is true for class fields and parameters,
+         * so in order to really find all potential calls, this circumstance needs to be modeled.
+         * For objects of declared type {@link java.lang.Object} this will be skipped, as the fact
+         * that every single Java class is a subclass of object would lead to an immense blow-up
+         * of the call graph.</p>
+         */
+        public Builder setIncludeSubClasses(boolean includeSubClasses)
+        {
+            this.includeSubClasses = includeSubClasses;
+            return this;
+        }
+
+        /**
+         * See {@link PartialEvaluator.Builder#stopAnalysisAfterNEvaluations(int)}.
+         */
+        public Builder setMaxPartialEvaluations(int maxPartialEvaluations)
+        {
+            this.maxPartialEvaluations = maxPartialEvaluations;
+            return this;
+        }
+
+        public CallResolver build()
+        {
+            return new CallResolver(programClassPool,
+                                    libraryClassPool,
+                                    callGraph,
+                                    clearCallValuesAfterVisit,
+                                    useDominatorAnalysis,
+                                    evaluateAllCode,
+                                    includeSubClasses,
+                                    maxPartialEvaluations,
+                                    visitors);
+
         }
     }
 

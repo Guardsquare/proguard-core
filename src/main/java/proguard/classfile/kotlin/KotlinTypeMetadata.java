@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.flags.KotlinCommonFlags;
 import proguard.classfile.kotlin.flags.KotlinTypeFlags;
 import proguard.classfile.kotlin.visitor.*;
+import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.*;
 
 import java.util.*;
@@ -87,6 +88,16 @@ implements   Processable,
     {
         kotlinTypeVisitor.visitSuperType(clazz, kotlinClassKindMetadata, this);
     }
+
+
+    public void underlyingPropertyTypeAccept(Clazz                   clazz,
+                                             KotlinClassKindMetadata kotlinClassKindMetadata,
+                                             KotlinTypeVisitor       kotlinTypeVisitor)
+    {
+        kotlinTypeVisitor.visitInlineClassUnderlyingPropertyType(clazz, kotlinClassKindMetadata, this);
+    }
+
+
 
 
     public void upperBoundsAccept(Clazz             clazz,
@@ -159,6 +170,14 @@ implements   Processable,
         for (KotlinAnnotation annotation : annotations)
         {
             kotlinAnnotationVisitor.visitTypeAnnotation(clazz, this, annotation);
+        }
+    }
+
+    public void referencedClassAccept(ClassVisitor classVisitor)
+    {
+        if (this.referencedClass != null)
+        {
+            this.referencedClass.accept(classVisitor);
         }
     }
 
