@@ -1,3 +1,9 @@
+## Version 8.0.6
+
+### Improved
+
+- Improve speed for `ClassPool.contains` method. (`T5205`)
+
 ## Version 8.0.5
 
 ### Improved

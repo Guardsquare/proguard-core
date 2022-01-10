@@ -32,7 +32,10 @@ public class ClassPool
 {
     // We're using a sorted tree map instead of a hash map to store the classes,
     // in order to make the processing more deterministic.
-    private final TreeMap<String, Clazz> classes = new TreeMap<String, Clazz>();
+    private final TreeMap<String, Clazz> classes = new TreeMap<>();
+
+    // Keep a separate set of the classes to speed up `contains(Clazz)`.
+    private final Set<Clazz> clazzSet = new HashSet<>();
 
 
     /**
@@ -87,6 +90,7 @@ public class ClassPool
     public void clear()
     {
         classes.clear();
+        clazzSet.clear();
     }
 
 
@@ -95,7 +99,7 @@ public class ClassPool
      */
     public void addClass(Clazz clazz)
     {
-        classes.put(clazz.getName(), clazz);
+        addClass(clazz.getName(), clazz);
     }
 
     /**
@@ -104,6 +108,7 @@ public class ClassPool
     public void addClass(String name, Clazz clazz)
     {
         classes.put(name, clazz);
+        clazzSet.add(clazz);
     }
 
 
@@ -121,6 +126,7 @@ public class ClassPool
      */
     public Clazz removeClass(String className)
     {
+        clazzSet.removeIf(clazz -> clazz.getName().equals(className));
         return classes.remove(className);
     }
 
@@ -141,7 +147,7 @@ public class ClassPool
      */
     public boolean contains(Clazz clazz)
     {
-        return classes.containsValue(clazz);
+        return clazzSet.contains(clazz);
     }
 
 
