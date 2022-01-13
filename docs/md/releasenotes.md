@@ -2,6 +2,7 @@
 
 ### Improved
 
+- Add support for writing out zip64 archives.
 - Improve speed for `ClassPool.contains` method. (`T5205`)
 
 ## Version 8.0.5

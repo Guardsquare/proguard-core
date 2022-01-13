@@ -32,6 +32,7 @@ public class ZipWriter implements DataEntryWriter
 {
     private final StringMatcher   uncompressedFilter;
     private final int             uncompressedAlignment;
+    private final boolean         useZip64;
     private final StringMatcher   extraUncompressedAlignmentFilter;
     private final int             extraUncompressedAlignment;
     private final int             modificationTime;
@@ -39,7 +40,7 @@ public class ZipWriter implements DataEntryWriter
     private final DataEntryWriter dataEntryWriter;
 
     private DataEntry currentParentEntry;
-    private ZipOutput currentZipOutput;
+    public  ZipOutput currentZipOutput;
 
 
     /**
@@ -51,6 +52,7 @@ public class ZipWriter implements DataEntryWriter
     {
         this(null,
              1,
+             false,
              0,
              dataEntryWriter);
     }
@@ -62,6 +64,7 @@ public class ZipWriter implements DataEntryWriter
      *                              be compressed.
      * @param uncompressedAlignment the desired alignment for the data of
      *                              uncompressed entries.
+     * @param useZip64              Whether to write out the archive in zip64 format.
      * @param modificationTime      the modification date and time of the zip
      *                              entries, in DOS format.
      * @param dataEntryWriter       the data entry writer that can provide
@@ -69,11 +72,13 @@ public class ZipWriter implements DataEntryWriter
      */
     public ZipWriter(StringMatcher   uncompressedFilter,
                      int             uncompressedAlignment,
+                     boolean         useZip64,
                      int             modificationTime,
                      DataEntryWriter dataEntryWriter)
     {
         this(uncompressedFilter,
              uncompressedAlignment,
+             useZip64,
              null,
              1,
              modificationTime,
@@ -87,6 +92,7 @@ public class ZipWriter implements DataEntryWriter
      *                                          be compressed.
      * @param uncompressedAlignment             the desired alignment for the data of
      *                                          uncompressed entries.
+     * @param useZip64                          Whether to write out the archive in zip64 format.
      * @param extraUncompressedAlignmentFilter  an optional filter for files that should not
      *                                          be compressed and use a different alignment.
      * @param extraUncompressedAlignment        the desired alignment for the data of
@@ -98,6 +104,7 @@ public class ZipWriter implements DataEntryWriter
      */
     public ZipWriter(StringMatcher   uncompressedFilter,
                      int             uncompressedAlignment,
+                     boolean         useZip64,
                      StringMatcher   extraUncompressedAlignmentFilter,
                      int             extraUncompressedAlignment,
                      int             modificationTime,
@@ -105,6 +112,7 @@ public class ZipWriter implements DataEntryWriter
     {
         this.uncompressedFilter               = uncompressedFilter;
         this.uncompressedAlignment            = uncompressedAlignment;
+        this.useZip64                         = useZip64;
         this.extraUncompressedAlignmentFilter = extraUncompressedAlignmentFilter;
         this.extraUncompressedAlignment       = extraUncompressedAlignment;
         this.modificationTime                 = modificationTime;
@@ -119,6 +127,7 @@ public class ZipWriter implements DataEntryWriter
      *                              be compressed.
      * @param uncompressedAlignment the desired alignment for the data of
      *                              uncompressed entries.
+     * @param useZip64              Whether to write out the archive in zip64 format.
      * @param modificationTime      the modification date and time of the zip
      *                              entries, in DOS format.
      * @param dataEntryWriter       the data entry writer that can provide
@@ -126,19 +135,20 @@ public class ZipWriter implements DataEntryWriter
      */
     public ZipWriter(StringMatcher   uncompressedFilter,
                      int             uncompressedAlignment,
+                     boolean         useZip64,
                      int             modificationTime,
                      byte[]          header,
                      DataEntryWriter dataEntryWriter)
     {
         this(uncompressedFilter,
              uncompressedAlignment,
+             useZip64,
              null,
              1,
              modificationTime,
              header,
              dataEntryWriter);
     }
-
 
     /**
      * Creates a new ZipWriter.
@@ -165,6 +175,42 @@ public class ZipWriter implements DataEntryWriter
     {
         this.uncompressedFilter               = uncompressedFilter;
         this.uncompressedAlignment            = uncompressedAlignment;
+        this.useZip64                         = false;
+        this.extraUncompressedAlignmentFilter = extraUncompressedAlignmentFilter;
+        this.extraUncompressedAlignment       = extraUncompressedAlignment;
+        this.modificationTime                 = modificationTime;
+        this.header                           = header;
+        this.dataEntryWriter                  = dataEntryWriter;
+    }
+
+    /**
+     * Creates a new ZipWriter.
+     * @param uncompressedFilter                an optional filter for files that should not
+     *                                          be compressed.
+     * @param uncompressedAlignment             the desired alignment for the data of
+     *                                          uncompressed entries.
+     * @param useZip64                          Whether to write out the archive in zip64 format.
+     * @param extraUncompressedAlignmentFilter  an optional filter for files that should not
+     *                                          be compressed and use a different alignment.
+     * @param extraUncompressedAlignment        the desired alignment for the data of
+     *                                          entries matching extraAlignmentFilter.
+     * @param modificationTime                  the modification date and time of the zip
+     *                                          entries, in DOS format.
+     * @param dataEntryWriter                   the data entry writer that can provide
+     *                                          output streams for the zip archives.
+     */
+    public ZipWriter(StringMatcher   uncompressedFilter,
+                     int             uncompressedAlignment,
+                     boolean         useZip64,
+                     StringMatcher   extraUncompressedAlignmentFilter,
+                     int             extraUncompressedAlignment,
+                     int             modificationTime,
+                     byte[]          header,
+                     DataEntryWriter dataEntryWriter)
+    {
+        this.uncompressedFilter               = uncompressedFilter;
+        this.uncompressedAlignment            = uncompressedAlignment;
+        this.useZip64                         = useZip64;
         this.extraUncompressedAlignmentFilter = extraUncompressedAlignmentFilter;
         this.extraUncompressedAlignment       = extraUncompressedAlignment;
         this.modificationTime                 = modificationTime;
@@ -282,6 +328,7 @@ public class ZipWriter implements DataEntryWriter
                 createZipOutput(dataEntryWriter.createOutputStream(currentParentEntry),
                                 header,
                                 uncompressedAlignment,
+                                useZip64,
                                 null);
         }
     }
@@ -293,12 +340,14 @@ public class ZipWriter implements DataEntryWriter
     protected ZipOutput createZipOutput(OutputStream  outputStream,
                                         byte[]        header,
                                         int           uncompressedAlignment,
+                                        boolean       useZip64,
                                         String        comment)
     throws IOException
     {
         return new ZipOutput(outputStream,
                              header,
                              uncompressedAlignment,
+                             useZip64,
                              comment);
     }
 

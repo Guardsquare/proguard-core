@@ -431,7 +431,7 @@ public class JarWriter implements DataEntryWriter
             // Start writing out the jar file.
             DataEntryWriter writer =
                 new JarWriter(
-                new ZipWriter(new FixedStringMatcher("file1.txt"), 4, 0,
+                new ZipWriter(new FixedStringMatcher("file1.txt"), 4, false, 0,
                 new FixedFileWriter(new File(jarFileName))));
 
             PrintWriter printWriter =
