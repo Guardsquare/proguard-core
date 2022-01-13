@@ -2,7 +2,7 @@
 
 ### Improved
 
-- Add support for writing out zip64 archives.
+- Add support for writing out zip64 archives. (`PGC-32`)
 - Improve speed for `ClassPool.contains` method. (`T5205`)
 
 ## Version 8.0.5
