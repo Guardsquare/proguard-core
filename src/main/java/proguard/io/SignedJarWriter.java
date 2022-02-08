@@ -415,7 +415,7 @@ public class SignedJarWriter extends JarWriter
             // Start writing out the signed jar file.
             DataEntryWriter writer =
                 new SignedJarWriter(privateKeyEntry, new String[] { DEFAULT_DIGEST_ALGORITHM }, "ProGuard", null,
-                new ZipWriter(new FixedStringMatcher("file1.txt"), 4, 0,
+                new ZipWriter(new FixedStringMatcher("file1.txt"), 4, false, 0,
                 new FixedFileWriter(new File(jarFileName))));
 
             PrintWriter printWriter =

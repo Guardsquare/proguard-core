@@ -40,25 +40,35 @@ import java.util.zip.*;
  */
 public class ZipOutput
 {
-    private static final int MAGIC_LOCAL_FILE_HEADER             = 0x04034b50;
-    private static final int MAGIC_CENTRAL_DIRECTORY_FILE_HEADER = 0x02014b50;
-    private static final int MAGIC_END_OF_CENTRAL_DIRECTORY      = 0x06054b50;
+    private static final int MAGIC_LOCAL_FILE_HEADER                      = 0x04034b50;
+    private static final int MAGIC_CENTRAL_DIRECTORY_FILE_HEADER          = 0x02014b50;
+    private static final int MAGIC_END_OF_CENTRAL_DIRECTORY               = 0x06054b50;
+    private static final int MAGIC_ZIP64_END_OF_CENTRAL_DIRECTORY         = 0x06064b50;
+    private static final int MAGIC_ZIP64_END_OF_CENTRAL_DIRECTORY_LOCATOR = 0x07064b50;
+    private static final int MAGIC_ZIP64_EXTENDED_EXTRA_INFORMATION_FIELD = 0x0001;
+
 
     private static final int VERSION              = 10;
     private static final int GENERAL_PURPOSE_FLAG =  0;
     private static final int METHOD_UNCOMPRESSED  =  0;
     private static final int METHOD_COMPRESSED    =  8;
 
+    private static final int  ZIP64_MIN_VERSION                                  = 0x2d;
+    private static final int  ZIP64_EXTENDED_EXTRA_INFORMATION_FIELD_HEADER_SIZE = 4;
+    private static final int  ZIP64_EXTENDED_SMALL_EXTRA_INFORMATION_FIELD_SIZE  = 16;
+    private static final int  ZIP64_EXTENDED_LARGE_EXTRA_INFORMATION_FIELD_SIZE  = 24;
+    private static final long ZIP64_FIELD_TOO_SMALL_32BIT                        = 0xFFFFFFFF;
+
     private static final boolean DEBUG = false;
 
+    protected     LargeDataOutputStream outputStream;
+    private final int                   uncompressedAlignment;
 
-    protected     DataOutputStream outputStream;
-    private final int              uncompressedAlignment;
+    private final String             comment;
+    private final boolean            useZip64;
 
-    private final String           comment;
-
-    private List zipEntries    = new ArrayList();
-    private Set  zipEntryNames = new HashSet();
+    private List<ZipEntry> zipEntries    = new ArrayList<>();
+    private Set<String>    zipEntryNames = new HashSet<>();
 
 
     // Regular constructors.
@@ -75,6 +85,18 @@ public class ZipOutput
 
 
     /**
+     * Creates a new ZipOutput.
+     * @param outputStream the output stream to which the zip data will be
+     *                     written.
+     * @param useZip64     Whether to write out the archive in zip64 format.
+     */
+    public ZipOutput(OutputStream outputStream, boolean useZip64)
+    {
+        this(outputStream, 1, useZip64, null);
+    }
+
+
+    /**
      * Creates a new ZipOutput that aligns uncompressed entries.
      * @param outputStream           the output stream to which the zip data will
      *                               be written.
@@ -85,6 +107,25 @@ public class ZipOutput
     {
         this(outputStream,
              uncompressedAlignment,
+             false,
+             null);
+    }
+
+
+    /**
+     * Creates a new ZipOutput that aligns uncompressed entries.
+     * @param outputStream          the output stream to which the zip data will
+     *                              be written.
+     * @param useZip64              Whether to write out the archive in zip64 format.
+     * @param uncompressedAlignment the default alignment of uncompressed data.
+     */
+    public ZipOutput(OutputStream outputStream,
+                     boolean      useZip64,
+                     int          uncompressedAlignment)
+    {
+        this(outputStream,
+             uncompressedAlignment,
+             useZip64,
              null);
     }
 
@@ -95,32 +136,17 @@ public class ZipOutput
      * @param outputStream          the output stream to which the zip data will
      *                              be written.
      * @param uncompressedAlignment the default alignment of uncompressed data.
+     * @param useZip64              Whether to write out the archive in zip64 format.
      * @param comment               optional comment for the entire zip file.
      */
     public ZipOutput(OutputStream outputStream,
                      int          uncompressedAlignment,
+                     boolean      useZip64,
                      String       comment)
     {
-        this(new DataOutputStream(outputStream),
-             uncompressedAlignment,
-             comment);
-    }
-
-
-    /**
-     * Creates a new ZipOutput that aligns uncompressed entries and contains a comment.
-     *
-     * @param outputStream          the output stream to which the zip data will
-     *                              be written.
-     * @param uncompressedAlignment the default alignment of uncompressed data.
-     * @param comment               optional comment for the entire zip file.
-     */
-    public ZipOutput(DataOutputStream outputStream,
-                     int              uncompressedAlignment,
-                     String           comment)
-    {
-        this.outputStream          = outputStream;
+        this.outputStream          = new LargeDataOutputStream(outputStream);
         this.uncompressedAlignment = uncompressedAlignment;
+        this.useZip64              = useZip64;
         this.comment               = comment;
     }
 
@@ -132,16 +158,19 @@ public class ZipOutput
      * @param outputStream          the output stream to which the zip data will
      *                              be written.
      * @param header                an optional header for the zip file.
+     * @param useZip64              Whether to write out the archive in zip64 format.
      * @param uncompressedAlignment the requested alignment of uncompressed data.
      */
     public ZipOutput(OutputStream outputStream,
                      byte[]       header,
-                     int          uncompressedAlignment)
+                     int          uncompressedAlignment,
+                     boolean      useZip64)
     throws IOException
     {
         this(outputStream,
              header,
              uncompressedAlignment,
+             useZip64,
              null);
     }
 
@@ -152,37 +181,19 @@ public class ZipOutput
      * @param outputStream          the output stream to which the zip data will be written.
      * @param header                an optional header for the zip file.
      * @param uncompressedAlignment the requested alignment of uncompressed data.
+     * @param useZip64              Whether to write out the archive in zip64 format.
      * @param comment               optional comment for the entire zip file.
      */
-    public ZipOutput(OutputStream  outputStream,
-                     byte[]        header,
-                     int           uncompressedAlignment,
-                     String        comment)
+    public ZipOutput(OutputStream outputStream,
+                     byte[]       header,
+                     int          uncompressedAlignment,
+                     boolean      useZip64,
+                     String       comment)
     throws IOException
     {
-        this(new DataOutputStream(outputStream),
-             header,
-             uncompressedAlignment,
-             comment);
-    }
-
-
-    /**
-     * Creates a new ZipOutput that aligns uncompressed entries and contains a comment.
-     *
-     * @param outputStream          the output stream to which the zip data will be written.
-     * @param header                an optional header for the zip file.
-     * @param uncompressedAlignment the requested alignment of uncompressed data.
-     * @param comment               optional comment for the entire zip file.
-     */
-    public ZipOutput(DataOutputStream outputStream,
-                     byte[]           header,
-                     int              uncompressedAlignment,
-                     String           comment)
-    throws IOException
-    {
-        this.outputStream          = outputStream;
+        this.outputStream          = new LargeDataOutputStream(outputStream);
         this.uncompressedAlignment = uncompressedAlignment;
+        this.useZip64              = useZip64;
         this.comment               = comment;
         if (header != null)
         {
@@ -311,8 +322,14 @@ public class ZipOutput
         // Write the central directory.
         long centralDirectorySize = writeEntriesOfCentralDirectory();
 
-        writeEndOfCentralDirectory(centralDirectoryOffset,
-                                   centralDirectorySize);
+        if (useZip64)
+        {
+            long zip64EndOfCentralDirectoryOffset = outputStream.getLongSize();;
+            writeZip64EndOfCentralDirectory(centralDirectoryOffset, centralDirectorySize);
+            writeZip64EndOfCentralDirectoryLocator(zip64EndOfCentralDirectoryOffset);
+        }
+
+        writeEndOfCentralDirectory(centralDirectoryOffset, centralDirectorySize);
 
         // Close the underlying output stream.
         outputStream.close();
@@ -329,7 +346,7 @@ public class ZipOutput
      */
     protected long size()
     {
-        return outputStream.size();
+        return outputStream.getLongSize();
     }
 
 
@@ -345,7 +362,7 @@ public class ZipOutput
         }
 
         // The central directory as such doesn't have a header.
-        return outputStream.size();
+        return outputStream.getLongSize();
     }
 
 
@@ -360,16 +377,16 @@ public class ZipOutput
             System.out.println("ZipOutput.writeEntriesOfCentralDirectory ("+zipEntries.size()+" entries)");
         }
 
-        long offset = outputStream.size();
+        long offset = outputStream.getLongSize();
 
         for (int index = 0; index < zipEntries.size(); index++)
         {
-            ZipEntry entry = (ZipEntry)zipEntries.get(index);
+            ZipEntry entry = zipEntries.get(index);
 
             entry.writeCentralDirectoryFileHeader();
         }
 
-        return outputStream.size() - offset;
+        return outputStream.getLongSize() - offset;
     }
 
 
@@ -388,12 +405,12 @@ public class ZipOutput
         }
 
         writeInt(MAGIC_END_OF_CENTRAL_DIRECTORY);
-        writeShort(0);                    // Number of this disk.
-        writeShort(0);                    // Number of disk with central directory.
-        writeShort(zipEntries.size());    // Number of records on this disk.
-        writeShort(zipEntries.size());    // Total number of records.
-        writeInt(centralDirectorySize);   // Size of central directory, in bytes.
-        writeInt(centralDirectoryOffset); // Offset of central directory.
+        writeShort(0);                                                             // Number of this disk.
+        writeShort(0);                                                             // Number of disk with central directory.
+        writeShort(zipEntries.size());                                             // Number of records on this disk.
+        writeShort(zipEntries.size());                                             // Total number of records.
+        writeInt(centralDirectorySize);                                            // Size of central directory, in bytes.
+        writeInt(useZip64 ? ZIP64_FIELD_TOO_SMALL_32BIT : centralDirectoryOffset); // Offset of central directory.
 
         if (comment == null)
         {
@@ -407,6 +424,46 @@ public class ZipOutput
             writeShort(commentBytes.length);
             outputStream.write(commentBytes);
         }
+    }
+
+
+    /**
+     * Writes out a ZIP64 end of central directory entry.
+     * @param centralDirectoryOffset The offset from the start of the archive to the first central directory record.
+     * @param centralDirectorySize   The total size of all central directory records.
+     * @throws IOException In case a problem occurs during writing.
+     */
+    protected void writeZip64EndOfCentralDirectory(long centralDirectoryOffset,
+                                                   long centralDirectorySize) throws IOException
+    {
+        if (DEBUG)
+        {
+            System.out.println("ZipOutput.writeZip64EndOfCentralDirectory");
+        }
+
+        writeInt(MAGIC_ZIP64_END_OF_CENTRAL_DIRECTORY);
+        writeLong(44);                        // (Size = SizeOfFixedFields + SizeOfVariableData - 12.)
+        writeShort(ZIP64_MIN_VERSION);        // Made by (Zip 4.5, Default OS value).
+        writeShort(ZIP64_MIN_VERSION);        // Requires (Zip 4.5, Default OS value).
+        writeInt(0);                          // Number of this disk.
+        writeInt(0);                          // Number of disk with central directory.
+        writeLong(zipEntries.size());         // Total number of entries in the central directory of this disk
+        writeLong(zipEntries.size());         // Total number of entries in the central directory.
+        writeLong(centralDirectorySize);
+        writeLong(centralDirectoryOffset);
+    }
+
+    /**
+     * Writes out a ZIP64 end of central directory locator.
+     * @param  zip64CentralDirectoryOffset The offset to the zip64 end of central directory record.
+     * @throws IOException In case a problem occurs during writing.
+     */
+    protected void writeZip64EndOfCentralDirectoryLocator(long zip64CentralDirectoryOffset) throws IOException
+    {
+        writeInt(MAGIC_ZIP64_END_OF_CENTRAL_DIRECTORY_LOCATOR);
+        writeInt(0); // Number of the disk with the start of the zip64 end of central directory
+        writeLong(zip64CentralDirectoryOffset);
+        writeInt(1); // Total number of disks
     }
 
 
@@ -484,19 +541,25 @@ public class ZipOutput
             {
                 System.out.println("ZipOutput.writeLocalFileHeader ["+name+"] (compressed = "+compressed+", offset = "+offset+", "+compressedSize+"/"+uncompressedSize+" bytes)");
             }
+            // If any of these values do not fit, we have to create a zip64
+            // extended extra information field to store them instead.
+            boolean useZip64ExtraField = useZip64 && (
+                (compressedSize   >> 32 > 0) ||
+                (uncompressedSize >> 32 > 0));
 
             writeInt(MAGIC_LOCAL_FILE_HEADER);
-            writeShort(VERSION);
+            writeShort(useZip64 ? ZIP64_MIN_VERSION : VERSION);
             writeShort(GENERAL_PURPOSE_FLAG);
             writeShort(compressed ? METHOD_COMPRESSED : METHOD_UNCOMPRESSED);
             writeInt(modificationTime);
             writeInt(crc);
-            writeInt(compressedSize);
-            writeInt(uncompressedSize);
+            writeInt(useZip64ExtraField ? ZIP64_FIELD_TOO_SMALL_32BIT : compressedSize);
+            writeInt(useZip64ExtraField ? ZIP64_FIELD_TOO_SMALL_32BIT : uncompressedSize);
 
-            byte[] nameBytes = StringUtil.getModifiedUtf8Bytes(name);
-            int nameLength       = nameBytes.length;
-            int extraFieldLength = extraField == null ? 0 : extraField.length;
+            byte[] nameBytes        = StringUtil.getModifiedUtf8Bytes(name);
+            int    nameLength       = nameBytes.length;
+            int    extraFieldLength = (useZip64ExtraField ? ZIP64_EXTENDED_SMALL_EXTRA_INFORMATION_FIELD_SIZE + ZIP64_EXTENDED_EXTRA_INFORMATION_FIELD_HEADER_SIZE : 0) +
+                                      (extraField != null ? extraField.length : 0);
 
             writeShort(nameLength);
 
@@ -505,7 +568,7 @@ public class ZipOutput
             int alignmentDelta = 0;
             if (!compressed)
             {
-                long dataOffset = outputStream.size() + 2L + nameLength + extraFieldLength;
+                long dataOffset = outputStream.getLongSize() + 2L + nameLength + extraFieldLength;
                 alignmentDelta = (int)(dataOffset % uncompressedAlignment);
                 if (alignmentDelta > 0)
                 {
@@ -516,6 +579,15 @@ public class ZipOutput
             writeShort(extraFieldLength + alignmentDelta);
 
             outputStream.write(nameBytes);
+
+            if (useZip64ExtraField)
+            {
+                // Write the Zip64 extended information field.
+                writeShort(MAGIC_ZIP64_EXTENDED_EXTRA_INFORMATION_FIELD);
+                writeShort(ZIP64_EXTENDED_SMALL_EXTRA_INFORMATION_FIELD_SIZE);
+                writeLong(uncompressedSize);
+                writeLong(compressedSize);
+            }
 
             if (extraField != null)
             {
@@ -542,28 +614,50 @@ public class ZipOutput
                 System.out.println("ZipOutput.writeCentralDirectoryFileHeader ["+name+"] (compressed = "+compressed+", offset = "+offset+", "+compressedSize+"/"+uncompressedSize+" bytes)");
             }
 
+            // If any of these values do not fit, we have to create a zip64
+            // extended extra information field to store them instead.
+            boolean useZip64ExtraField = useZip64 && (
+                (compressedSize   >> 32 > 0) ||
+                (uncompressedSize >> 32 > 0) ||
+                (offset           >> 32 > 0));
+
             writeInt(MAGIC_CENTRAL_DIRECTORY_FILE_HEADER);
-            writeShort(VERSION); // Creation version.
-            writeShort(VERSION); // Extraction Version.
+            writeShort(useZip64 ? ZIP64_MIN_VERSION : VERSION); // Creation version.
+            writeShort(useZip64 ? ZIP64_MIN_VERSION : VERSION); // Extraction Version.
             writeShort(GENERAL_PURPOSE_FLAG);
             writeShort(compressed ? METHOD_COMPRESSED : METHOD_UNCOMPRESSED);
             writeInt(modificationTime);
             writeInt(crc);
-            writeInt(compressedSize);
-            writeInt(uncompressedSize);
+            writeInt(useZip64ExtraField ? ZIP64_FIELD_TOO_SMALL_32BIT : compressedSize);
+            writeInt(useZip64ExtraField ? ZIP64_FIELD_TOO_SMALL_32BIT : uncompressedSize);
 
             byte[] nameBytes    = StringUtil.getModifiedUtf8Bytes(name);
             byte[] commentBytes = comment == null ? null :
                                   StringUtil.getModifiedUtf8Bytes(comment);
 
             writeShort(nameBytes.length);
-            writeShort(extraField   == null ? 0 : extraField.length);
+
+            int extraFieldLength = (useZip64ExtraField ? ZIP64_EXTENDED_LARGE_EXTRA_INFORMATION_FIELD_SIZE + ZIP64_EXTENDED_EXTRA_INFORMATION_FIELD_HEADER_SIZE : 0) +
+                                   (extraField != null ? extraField.length : 0);
+
+            writeShort(extraFieldLength);
             writeShort(commentBytes == null ? 0 : commentBytes.length);
             writeShort(0); // Disk number of file start.
             writeShort(0); // Internal file attributes.
             writeInt(0);   // External file attributes.
-            writeInt(offset);
+            writeInt(useZip64ExtraField ? ZIP64_FIELD_TOO_SMALL_32BIT : offset);
             outputStream.write(nameBytes);
+
+            if (useZip64 && useZip64ExtraField)
+            {
+                // Write the Zip64 extended information field.
+                writeShort(MAGIC_ZIP64_EXTENDED_EXTRA_INFORMATION_FIELD);
+                writeShort(ZIP64_EXTENDED_LARGE_EXTRA_INFORMATION_FIELD_SIZE);
+                writeLong(uncompressedSize);
+                writeLong(compressedSize);
+                writeLong(offset);
+            }
+
             if (extraField != null)
             {
                 outputStream.write(extraField);
@@ -625,7 +719,7 @@ public class ZipOutput
 
                 byte[] bytes = super.toByteArray();
 
-                offset           = outputStream.size();
+                offset           = outputStream.getLongSize();
                 crc              = (int)crc32.getValue();
                 compressedSize   = bytes.length;
                 uncompressedSize = bytes.length;
@@ -692,13 +786,58 @@ public class ZipOutput
 
                 byte[] compressedBytes = byteArrayOutputStream.toByteArray();
 
-                offset         = outputStream.size();
+                offset         = outputStream.getLongSize();
                 crc            = (int)crc32.getValue();
                 compressedSize = compressedBytes.length;
 
                 writeLocalFileHeader();
                 outputStream.write(compressedBytes);
             }
+        }
+    }
+
+
+    /**
+     * This output stream is mostly identical to DataOutputStream,
+     * except it stores the amount of bytes written so far in a long
+     * instead of an int. This makes sure the count is correct, even
+     * when writing out more than 1 << 31 bytes.
+     */
+    public static class LargeDataOutputStream extends DataOutputStream
+    {
+        private long written;
+
+        public LargeDataOutputStream(OutputStream out)
+        {
+            super(out);
+            this.written = 0;
+        }
+
+
+        /**
+         * @return the amount of bytes written to the output stream so far.
+         */
+        public long getLongSize()
+        {
+            return written;
+        }
+
+
+        // Implementations for DataOutputStream
+
+        @Override
+        public synchronized void write(int b) throws IOException
+        {
+            super.write(b);
+            written++;
+        }
+
+
+        @Override
+        public void write(byte[] b) throws IOException
+        {
+            super.write(b);
+            written += b.length;
         }
     }
 
@@ -764,7 +903,7 @@ public class ZipOutput
         try
         {
             ZipOutput output =
-                new ZipOutput(new FileOutputStream(args[0]), null, 4, "Main file comment");
+                new ZipOutput(new FileOutputStream(args[0]), null, 4, false, "Main file comment");
 
             PrintWriter printWriter1 =
                 new PrintWriter(output.createOutputStream("file1.txt", false, 1, 0, new byte[] { 0x34, 0x12, 4, 0, 0x48, 0x65, 0x6c, 0x6c, 0x6f }, "Comment"));

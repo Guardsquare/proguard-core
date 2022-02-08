@@ -161,6 +161,7 @@ public class DataEntryCopier implements DataEntryReader
             // Zip up any zips, if necessary.
             DataEntryWriter zipWriter = new ZipWriter(null,
                                                       1,
+                                                      false,
                                                       0,
                                                       new byte[0],
                                                       writer);
@@ -182,6 +183,7 @@ public class DataEntryCopier implements DataEntryReader
             // Zip up any jmods, if necessary.
             DataEntryWriter jmodWriter = new ZipWriter(null,
                                                        1,
+                                                       false,
                                                        0,
                                                        JMOD_HEADER,
                                                        writer);
@@ -203,6 +205,7 @@ public class DataEntryCopier implements DataEntryReader
             // Zip up any wars, if necessary.
             DataEntryWriter warWriter = new ZipWriter(null,
                                                       1,
+                                                      false,
                                                       0,
                                                       new byte[0],
                                                       writer);
@@ -224,6 +227,7 @@ public class DataEntryCopier implements DataEntryReader
             // Zip up any aars, if necessary.
             DataEntryWriter aarWriter = new ZipWriter(null,
                                                       1,
+                                                      false,
                                                       0,
                                                       new byte[0],
                                                       writer);
@@ -245,6 +249,7 @@ public class DataEntryCopier implements DataEntryReader
             // Zip up any jars, if necessary.
             DataEntryWriter jarWriter = new ZipWriter(null,
                                                       1,
+                                                      false,
                                                       0,
                                                       new byte[0],
                                                       writer);
@@ -266,6 +271,7 @@ public class DataEntryCopier implements DataEntryReader
             // Zip up any apks, if necessary.
             DataEntryWriter apkWriter = new ZipWriter(null,
                                                       1,
+                                                      false,
                                                       0,
                                                       new byte[0],
                                                       writer);
