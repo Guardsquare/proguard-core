@@ -18,11 +18,7 @@
 
 package proguard.analysis.datastructure.callgraph;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.ClassPool;
 import proguard.classfile.MethodSignature;
@@ -31,7 +27,8 @@ import proguard.classfile.MethodSignature;
  * Represents a node in a sub-callgraph, e.g. only the incoming
  * or the outgoing callgraph for a specific method.
  * See {@link CallGraph#reconstructCallGraph(ClassPool, MethodSignature)}
- * for more details.
+ * for more details. The reconstruction process makes sure that
+ * there are no loops in the graph.
  *
  * @author Samuel Hopstock
  */
@@ -137,6 +134,51 @@ public class Node
         }
 
         return predecessors;
+    }
+
+    /**
+     * Get the predecessor leaf nodes in the call sub-graph represented by this node.
+     */
+    public Set<Node> getFurthestPredecessors()
+    {
+        return getLeafNodes(true);
+    }
+
+    /**
+     * Get the successor leaf nodes in the call sub-graph represented by this node.
+     */
+    public Set<Node> getFurthestSuccessors()
+    {
+        return getLeafNodes(false);
+    }
+
+    /**
+     * Get the leaf nodes of the call sub-graph represented by this node.
+     *
+     * @param predecessors If true, we're looking for the furthest predecessors of this node,
+     *                     otherwise for the furthest successors.
+     * @return The set of leaf nodes in this sub-graph.
+     */
+    private Set<Node> getLeafNodes(boolean predecessors)
+    {
+        Set<Node> leafNodes = new HashSet<>();
+        List<Node> worklist = new ArrayList<>();
+        worklist.add(this);
+        while (!worklist.isEmpty())
+        {
+            Node curr = worklist.remove(0);
+            Set<Node> next = predecessors ? curr.predecessors : curr.successors;
+            if (next.isEmpty())
+            {
+                leafNodes.add(curr);
+            }
+            else
+            {
+                worklist.addAll(next);
+            }
+        }
+
+        return leafNodes;
     }
 
     @Override
