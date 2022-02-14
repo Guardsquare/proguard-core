@@ -1,3 +1,9 @@
+## Version 8.0.7
+
+### Java support
+
+- Update maximum supported Java class version to 62.65535 (Java 18 ea). (`T13973`)
+
 ## Version 8.0.6
 
 ### Improved
