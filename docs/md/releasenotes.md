@@ -6,6 +6,7 @@
 
 ### Improved
 
+- Add support for Kotlin property synthetic delegate methods. (`T14060`)
 - Add ability to pass `KotlinMetadataVersion` to `KotlinMetadataWriter` / `KotlinModuleWriter`.
 
 ## Version 8.0.6

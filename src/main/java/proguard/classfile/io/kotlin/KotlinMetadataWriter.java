@@ -450,6 +450,13 @@ implements ClassVisitor,
                 );
             }
 
+            if (kotlinPropertyMetadata.syntheticMethodForDelegate != null)
+            {
+                ext.visitSyntheticMethodForDelegate(
+                    toKotlinJvmMethodSignature(kotlinPropertyMetadata.syntheticMethodForDelegate)
+                );
+            }
+
             ext.visitEnd();
 
             kmdPropertyVisitor.visitEnd();

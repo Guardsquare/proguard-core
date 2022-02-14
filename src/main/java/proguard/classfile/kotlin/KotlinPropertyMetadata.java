@@ -61,6 +61,11 @@ extends      SimpleProcessable
     public Clazz           referencedSyntheticMethodClass;
     public Method          referencedSyntheticMethodForAnnotations;
 
+    public MethodSignature syntheticMethodForDelegate;
+
+    public Clazz           referencedSyntheticMethodForDelegateClass;
+    public Method          referencedSyntheticMethodForDelegateMethod;
+
 
     public KotlinPropertyMetadata(KotlinPropertyFlags         flags,
                                   String                      name,

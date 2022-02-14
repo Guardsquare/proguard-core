@@ -22,6 +22,7 @@ import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.*;
+import org.jetbrains.annotations.Nullable;
 import proguard.classfile.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.annotation.visitor.*;
@@ -897,6 +898,11 @@ implements ClassVisitor,
             public void visitSyntheticMethodForAnnotations(JvmMethodSignature jvmMethodSignature)
             {
                 kotlinPropertyMetadata.syntheticMethodForAnnotations = fromKotlinJvmMethodSignature(jvmMethodSignature);
+            }
+
+            @Override
+            public void visitSyntheticMethodForDelegate(JvmMethodSignature jvmMethodSignature) {
+                kotlinPropertyMetadata.syntheticMethodForDelegate = fromKotlinJvmMethodSignature(jvmMethodSignature);
             }
 
             @Override
