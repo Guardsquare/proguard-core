@@ -86,11 +86,15 @@ implements ClassVisitor,
 
     private boolean hasVisitedAny = false;
 
+    private final KotlinMetadataVersion version;
+
+    @Deprecated
     public KotlinMetadataWriter(WarningPrinter warningPrinter)
     {
         this(warningPrinter, null);
     }
 
+    @Deprecated
     public KotlinMetadataWriter(WarningPrinter warningPrinter, ClassVisitor extraClassVisitor)
     {
         this((clazz, message) -> warningPrinter.print(clazz.getName(), message), extraClassVisitor);
@@ -98,12 +102,23 @@ implements ClassVisitor,
 
     public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler)
     {
-        this(errorHandler, null);
+        this(errorHandler, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION));
+    }
+
+    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, KotlinMetadataVersion version)
+    {
+        this(errorHandler, version, null);
     }
 
     public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, ClassVisitor extraClassVisitor)
     {
+        this(errorHandler, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION), extraClassVisitor);
+    }
+
+    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, KotlinMetadataVersion version, ClassVisitor extraClassVisitor)
+    {
         this.errorHandler      = errorHandler;
+        this.version           = version;
         this.extraClassVisitor = extraClassVisitor;
     }
 
@@ -631,7 +646,7 @@ implements ClassVisitor,
             classKmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = classKmdWriter.write(COMPATIBLE_METADATA_VERSION,
+            KotlinClassHeader header = classKmdWriter.write(version.toArray(),
                                                             kotlinClassKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1245,7 +1260,7 @@ implements ClassVisitor,
             facadeKmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = facadeKmdWriter.write(COMPATIBLE_METADATA_VERSION,
+            KotlinClassHeader header = facadeKmdWriter.write(version.toArray(),
                                                              kotlinFileFacadeKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1292,7 +1307,7 @@ implements ClassVisitor,
             kmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = kmdWriter.write(COMPATIBLE_METADATA_VERSION,
+            KotlinClassHeader header = kmdWriter.write(version.toArray(),
                                                        kotlinSyntheticClassKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1374,7 +1389,7 @@ implements ClassVisitor,
             KotlinClassHeader header =
                 new KotlinClassMetadata.MultiFileClassFacade.Writer()
                     .write(kotlinMultiFileFacadeKindMetadata.partClassNames,
-                           COMPATIBLE_METADATA_VERSION,
+                           version.toArray(),
                            kotlinMultiFileFacadeKindMetadata.xi).getHeader();
 
             k  = header.getKind();
@@ -1429,7 +1444,7 @@ implements ClassVisitor,
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             KotlinClassHeader header = multiPartKmdWriter.write(kotlinMultiFilePartKindMetadata.facadeName,
-                                                                COMPATIBLE_METADATA_VERSION,
+                                                                version.toArray(),
                                                                 kotlinMultiFilePartKindMetadata.xi).getHeader();
 
             k  = header.getKind();

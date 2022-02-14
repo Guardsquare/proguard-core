@@ -37,4 +37,9 @@ public class KotlinMetadataVersion
     {
         return this.major + "." + this.minor + (this.patch != -1 ? "." + this.patch : "");
     }
+
+    public int[] toArray()
+    {
+        return new int[] { major, minor, patch == -1 ? 0 : patch };
+    }
 }

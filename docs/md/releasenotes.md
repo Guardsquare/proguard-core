@@ -4,6 +4,10 @@
 
 - Update maximum supported Java class version to 62.65535 (Java 18 ea). (`T13973`)
 
+### Improved
+
+- Add ability to pass `KotlinMetadataVersion` to `KotlinMetadataWriter` / `KotlinModuleWriter`.
+
 ## Version 8.0.6
 
 ### Improved

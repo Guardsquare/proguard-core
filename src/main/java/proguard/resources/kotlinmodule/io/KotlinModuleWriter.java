@@ -19,6 +19,7 @@
 package proguard.resources.kotlinmodule.io;
 
 import kotlinx.metadata.jvm.*;
+import proguard.classfile.kotlin.KotlinMetadataVersion;
 import proguard.resources.kotlinmodule.KotlinModule;
 import proguard.classfile.util.ClassUtil;
 import proguard.resources.file.visitor.*;
@@ -36,16 +37,27 @@ implements   ResourceFileVisitor
 {
     private final OutputStream                     outputStream;
     private final BiConsumer<KotlinModule, String> errorHandler;
+    private final KotlinMetadataVersion            version;
 
     public KotlinModuleWriter(OutputStream outputStream)
     {
-        this(null, outputStream);
+        this(outputStream, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION));
     }
 
-    public KotlinModuleWriter(BiConsumer<KotlinModule, String> errorHandler, OutputStream outputStream)
+    public KotlinModuleWriter(OutputStream outputStream, KotlinMetadataVersion version)
+    {
+        this(null, outputStream, version);
+    }
+
+    public KotlinModuleWriter(BiConsumer<KotlinModule, String> errorHandler, OutputStream outputStream) {
+        this(errorHandler, outputStream, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION));
+    }
+
+    public KotlinModuleWriter(BiConsumer<KotlinModule, String> errorHandler, OutputStream outputStream, KotlinMetadataVersion version)
     {
         this.errorHandler = errorHandler;
         this.outputStream = outputStream;
+        this.version      = version;
     }
 
     @Override
@@ -69,7 +81,7 @@ implements   ResourceFileVisitor
 
             kmModule.accept(writer);
 
-            byte[] transformedBytes = writer.write(COMPATIBLE_METADATA_VERSION).getBytes();
+            byte[] transformedBytes = writer.write(version.toArray()).getBytes();
             outputStream.write(transformedBytes);
         }
         catch (IOException e)
