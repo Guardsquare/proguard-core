@@ -640,6 +640,8 @@ implements ClassVisitor,
                 ext.visitAnonymousObjectOriginName(kotlinClassKindMetadata.anonymousObjectOriginName);
             }
 
+            ext.visitJvmFlags(convertClassJvmFlags(kotlinClassKindMetadata.flags));
+
             ext.visitEnd();
 
             // Finish.
@@ -1766,6 +1768,17 @@ implements ClassVisitor,
         return flags.isMovedFromInterfaceCompanion ?
             flagsOf(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION) :
             0;
+    }
+
+    private int convertClassJvmFlags(KotlinClassFlags flags)
+    {
+        Set<Flag> flagSet = new HashSet<>();
+
+        if (flags.isCompiledInCompatibilityMode) flagSet.add(JvmFlag.Class.IS_COMPILED_IN_COMPATIBILITY_MODE);
+        if (flags.hasMethodBodiesInInterface)    flagSet.add(JvmFlag.Class.HAS_METHOD_BODIES_IN_INTERFACE);
+
+        return flagsOf(flagSet.toArray(new Flag[0]));
+
     }
 
 

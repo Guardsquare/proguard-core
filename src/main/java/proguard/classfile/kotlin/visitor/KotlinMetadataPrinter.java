@@ -1077,7 +1077,11 @@ implements KotlinMetadataVisitor,
            (flags.isEnumEntry       ? "enum entry "       : "") +
            (flags.isEnumClass       ? "enum "             : "") +
            (flags.isFun             ? "fun interface "    :
-                (flags.isInterface  ? "interface "        : ""));
+                (flags.isInterface  ? "interface "        : ""))+
+           // JVM specific flags
+           (flags.isCompiledInCompatibilityMode ? "compiledInCompatibilityMode " : "") +
+           (flags.hasMethodBodiesInInterface    ? "hasMethodBodiesInInterface "  : "");
+
     }
 
     private String constructorFlags(KotlinConstructorFlags flags)

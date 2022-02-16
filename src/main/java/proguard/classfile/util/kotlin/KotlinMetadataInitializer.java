@@ -612,6 +612,12 @@ implements ClassVisitor,
             }
 
             @Override
+            public void visitJvmFlags(int flags)
+            {
+                setClassJvmFlags(kotlinClassKindMetadata.flags, flags);
+            }
+
+            @Override
             public void visitEnd() {}
         }
 
@@ -1898,6 +1904,13 @@ implements ClassVisitor,
     {
         flags.isMovedFromInterfaceCompanion =
             JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION.invoke(jvmFlags);
+    }
+
+
+    private void setClassJvmFlags(KotlinClassFlags flags, int jvmFlags)
+    {
+        flags.hasMethodBodiesInInterface    = JvmFlag.Class.HAS_METHOD_BODIES_IN_INTERFACE.invoke(jvmFlags);
+        flags.isCompiledInCompatibilityMode = JvmFlag.Class.IS_COMPILED_IN_COMPATIBILITY_MODE.invoke(jvmFlags);
     }
 
 

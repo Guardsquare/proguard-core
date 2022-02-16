@@ -14,7 +14,7 @@ import testutils.ReWritingMetadataVisitor
 
 class KotlinClassFlagsTest : FreeSpec({
 
-    val (programClassPool, _) = ClassPoolBuilder.fromSource(
+    val (classFlagsTestPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
             """
@@ -36,7 +36,7 @@ class KotlinClassFlagsTest : FreeSpec({
     )
 
     include(
-        testClassFlags(programClassPool.getClass("UsualClass")) {
+        testClassFlags(classFlagsTestPool.getClass("UsualClass")) {
             it.isUsualClass shouldBe true
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -51,11 +51,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("ValueClass")) {
+        testClassFlags(classFlagsTestPool.getClass("ValueClass")) {
             it.isUsualClass shouldBe true
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -70,11 +73,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe true
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("InlineClass")) {
+        testClassFlags(classFlagsTestPool.getClass("InlineClass")) {
             it.isUsualClass shouldBe true
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -89,11 +95,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe true
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("UsualClass\$InnerClass")) {
+        testClassFlags(classFlagsTestPool.getClass("UsualClass\$InnerClass")) {
             it.isUsualClass shouldBe true
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -108,11 +117,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("UsualClass\$CompanionClass")) {
+        testClassFlags(classFlagsTestPool.getClass("UsualClass\$CompanionClass")) {
             it.isUsualClass shouldBe false
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -127,11 +139,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("DataClass")) {
+        testClassFlags(classFlagsTestPool.getClass("DataClass")) {
             it.isUsualClass shouldBe true
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -146,11 +161,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("InterfaceClass")) {
+        testClassFlags(classFlagsTestPool.getClass("InterfaceClass")) {
             it.isUsualClass shouldBe false
             it.isInterface shouldBe true
             it.isEnumClass shouldBe false
@@ -165,11 +183,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("EnumClass")) {
+        testClassFlags(classFlagsTestPool.getClass("EnumClass")) {
             it.isUsualClass shouldBe false
             it.isInterface shouldBe false
             it.isEnumClass shouldBe true
@@ -184,13 +205,16 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     // TODO EnumEntry
 
     include(
-        testClassFlags(programClassPool.getClass("AnnotationClass")) {
+        testClassFlags(classFlagsTestPool.getClass("AnnotationClass")) {
             it.isUsualClass shouldBe false
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -205,11 +229,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("ObjectClass")) {
+        testClassFlags(classFlagsTestPool.getClass("ObjectClass")) {
             it.isUsualClass shouldBe false
             it.isInterface shouldBe false
             it.isEnumClass shouldBe false
@@ -224,11 +251,14 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     include(
-        testClassFlags(programClassPool.getClass("funInterfaceClass")) {
+        testClassFlags(classFlagsTestPool.getClass("funInterfaceClass")) {
             it.isUsualClass shouldBe false
             it.isInterface shouldBe true
             it.isEnumClass shouldBe false
@@ -243,11 +273,87 @@ class KotlinClassFlagsTest : FreeSpec({
             @Suppress("DEPRECATION")
             it.isInline shouldBe false
             it.isFun shouldBe true
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         }
     )
 
     // TODO isExpect
     // TODO isExternal
+
+    // JVM specific flag tests
+    val (allJvmClassFlagTestPool, _) = ClassPoolBuilder.fromSource(
+        KotlinSource(
+            "Test.kt",
+            """
+                interface InterfaceClass1 {
+                    fun foo() {
+                        print("bar")
+                    }
+                }
+            """.trimIndent()
+        ),
+        kotlincArguments = listOf("-Xjvm-default=all")
+    )
+
+    include(
+        testClassFlags(allJvmClassFlagTestPool.getClass("InterfaceClass1")) {
+            it.isUsualClass shouldBe false
+            it.isInterface shouldBe true
+            it.isEnumClass shouldBe false
+            it.isEnumEntry shouldBe false
+            it.isAnnotationClass shouldBe false
+            it.isObject shouldBe false
+            it.isCompanionObject shouldBe false
+            it.isInner shouldBe false
+            it.isData shouldBe false
+            it.isExternal shouldBe false
+            it.isValue shouldBe false
+            @Suppress("DEPRECATION")
+            it.isInline shouldBe false
+            it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe true
+            it.isCompiledInCompatibilityMode shouldBe false
+        }
+    )
+
+    val (allCompatibilityJvmClassFlagTestPool, _) = ClassPoolBuilder.fromSource(
+        KotlinSource(
+            "Test.kt",
+            """
+                interface InterfaceClass2 {
+                    fun foo() {
+                        print("bar")
+                    }
+                }
+            """.trimIndent()
+        ),
+        kotlincArguments = listOf("-Xjvm-default=all-compatibility")
+    )
+
+    include(
+        testClassFlags(allCompatibilityJvmClassFlagTestPool.getClass("InterfaceClass2")) {
+            it.isUsualClass shouldBe false
+            it.isInterface shouldBe true
+            it.isEnumClass shouldBe false
+            it.isEnumEntry shouldBe false
+            it.isAnnotationClass shouldBe false
+            it.isObject shouldBe false
+            it.isCompanionObject shouldBe false
+            it.isInner shouldBe false
+            it.isData shouldBe false
+            it.isExternal shouldBe false
+            it.isValue shouldBe false
+            @Suppress("DEPRECATION")
+            it.isInline shouldBe false
+            it.isFun shouldBe false
+            // JVM specific flags
+            it.hasMethodBodiesInInterface shouldBe true
+            it.isCompiledInCompatibilityMode shouldBe true
+        }
+    )
 })
 
 internal fun testClassFlags(clazz: Clazz, flags: (KotlinClassFlags) -> Unit) = funSpec {
