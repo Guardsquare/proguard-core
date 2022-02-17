@@ -50,7 +50,6 @@ import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
-import proguard.classfile.util.kotlin.KotlinMetadataInitializer
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MAX_SUPPORTED_VERSION
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
