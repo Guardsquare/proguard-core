@@ -377,6 +377,21 @@ implements KotlinMetadataVisitor,
             );
         }
 
+        if (kotlinPropertyMetadata.syntheticMethodForDelegate != null)
+        {
+            String referencedSyntheticMethodClassNamePrefix =
+                    kotlinPropertyMetadata.referencedSyntheticMethodForDelegateClass != null &&
+                            clazz != kotlinPropertyMetadata.referencedSyntheticMethodForDelegateClass ?
+                            externalClassName(kotlinPropertyMetadata.referencedSyntheticMethodForDelegateClass.getName()) + "." : "";
+
+            println(
+                    "Synthetic method for delegate: " +
+                            referencedSyntheticMethodClassNamePrefix +
+                            hasRefIndicator(kotlinPropertyMetadata.referencedSyntheticMethodForDelegateMethod) +
+                            externalMethodDescription(kotlinPropertyMetadata.syntheticMethodForDelegate)
+            );
+        }
+
         kotlinPropertyMetadata.receiverTypeAccept(      clazz, kotlinDeclarationContainerMetadata, this);
         kotlinPropertyMetadata.typeParametersAccept(    clazz, kotlinDeclarationContainerMetadata, this);
         kotlinPropertyMetadata.typeAccept(              clazz, kotlinDeclarationContainerMetadata, this);
@@ -1077,7 +1092,11 @@ implements KotlinMetadataVisitor,
            (flags.isEnumEntry       ? "enum entry "       : "") +
            (flags.isEnumClass       ? "enum "             : "") +
            (flags.isFun             ? "fun interface "    :
-                (flags.isInterface  ? "interface "        : ""));
+                (flags.isInterface  ? "interface "        : ""))+
+           // JVM specific flags
+           (flags.isCompiledInCompatibilityMode ? "compiledInCompatibilityMode " : "") +
+           (flags.hasMethodBodiesInInterface    ? "hasMethodBodiesInInterface "  : "");
+
     }
 
     private String constructorFlags(KotlinConstructorFlags flags)

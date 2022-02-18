@@ -1,3 +1,14 @@
+## Version 8.0.7
+
+### Java support
+
+- Update maximum supported Java class version to 62.65535 (Java 18 ea). (`T13973`)
+
+### Improved
+
+- Add support for Kotlin property synthetic delegate methods. (`T14060`)
+- Add ability to pass `KotlinMetadataVersion` to `KotlinMetadataWriter` / `KotlinModuleWriter`.
+
 ## Version 8.0.6
 
 ### Improved

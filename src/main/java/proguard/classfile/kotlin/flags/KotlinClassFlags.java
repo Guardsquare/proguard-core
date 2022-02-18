@@ -114,6 +114,27 @@ public class KotlinClassFlags implements KotlinFlags
      */
     public boolean isFun;
 
+    //JVM Specific flags
+
+
+    /**
+     * Applied to an interface compiled with -Xjvm-default=all or all-compatibility.
+     *
+     * Without this flag or a `@JvmDefault` annotation on individual interface methods
+     * the Kotlin compiler moves all interface method bodies into a nested `DefaultImpls`
+     * class.
+     */
+    public boolean hasMethodBodiesInInterface;
+
+    /**
+     * Applied to an interface compiled with -Xjvm-default=all or all-compatibility.
+     *
+     * Without this flag or a `@JvmDefault` annotation on individual interface methods
+     * the Kotlin compiler moves all interface method bodies into a nested `DefaultImpls`
+     * class.
+     */
+    public boolean isCompiledInCompatibilityMode;
+
 
     public KotlinClassFlags(KotlinCommonFlags     common,
                             KotlinVisibilityFlags visibility,

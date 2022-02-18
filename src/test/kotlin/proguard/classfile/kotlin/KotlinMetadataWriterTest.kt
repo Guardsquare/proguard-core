@@ -50,6 +50,7 @@ import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MAX_SUPPORTED_VERSION
 import testutils.ClassPoolBuilder
 import testutils.KotlinSource
 import testutils.ReWritingMetadataVisitor
@@ -397,6 +398,41 @@ class KotlinMetadataWriterTest : FreeSpec({
                     },
                     ofType<KotlinTypeMetadata>()
                 )
+            }
+        }
+    }
+
+    "Given a Kotlin class" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                "class Test"
+            )
+        )
+
+        val clazz = programClassPool.getClass("Test")
+
+        "When specifying a specific Kotlin version" - {
+            val maxVersion = MAX_SUPPORTED_VERSION
+            val version = KotlinMetadataVersion(maxVersion.major, maxVersion.minor, /* patch = */ 9999)
+
+            "Then the version should be written correctly " {
+                val visitor = spyk<KotlinMetadataVisitor>()
+                clazz.accept(
+                    ReWritingMetadataVisitor(
+                        visitor,
+                        version = version
+                    )
+                )
+
+                verify {
+                    visitor.visitKotlinClassMetadata(
+                        clazz,
+                        withArg {
+                            it.mv shouldBe version.toArray()
+                        }
+                    )
+                }
             }
         }
     }

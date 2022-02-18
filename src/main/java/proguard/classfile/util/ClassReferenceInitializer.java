@@ -956,6 +956,16 @@ implements   ClassVisitor,
                 kotlinPropertyMetadata.referencedSyntheticMethodClass = strictMemberFinder.correspondingClass();
             }
 
+            if (kotlinPropertyMetadata.syntheticMethodForDelegate != null)
+            {
+                kotlinPropertyMetadata.referencedSyntheticMethodForDelegateMethod =
+                        strictMemberFinder.findMethod(clazz,
+                                                      kotlinPropertyMetadata.syntheticMethodForDelegate.method,
+                                                      kotlinPropertyMetadata.syntheticMethodForDelegate.descriptor.toString());
+
+                kotlinPropertyMetadata.referencedSyntheticMethodForDelegateClass = strictMemberFinder.correspondingClass();
+            }
+
             kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);

@@ -20,6 +20,7 @@ package testutils
 
 import proguard.classfile.Clazz
 import proguard.classfile.io.kotlin.KotlinMetadataWriter
+import proguard.classfile.kotlin.KotlinMetadataVersion
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.MultiKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
@@ -35,12 +36,12 @@ import proguard.classfile.visitor.MultiClassVisitor
  *
  * This therefore, ensures that the Kotlin metadata goes through the complete initialize -> write -> initialize cycle.
  */
-class ReWritingMetadataVisitor(private vararg val visitors: KotlinMetadataVisitor) : ClassVisitor {
+class ReWritingMetadataVisitor(private vararg val visitors: KotlinMetadataVisitor, val version: KotlinMetadataVersion? = null) : ClassVisitor {
     override fun visitAnyClass(clazz: Clazz?) {
 
         clazz?.accept(
             MultiClassVisitor(
-                KotlinMetadataWriter { _, message -> println(message) },
+                if (version != null) KotlinMetadataWriter({ _, message -> println(message) }, version) else KotlinMetadataWriter { _, message -> println(message) },
                 KotlinMetadataInitializer { _, message -> println(message) },
                 ReferencedKotlinMetadataVisitor(
                     MultiKotlinMetadataVisitor(*visitors)

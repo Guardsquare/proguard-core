@@ -658,6 +658,12 @@ implements   ClassVisitor,
                                   null,
                                   kotlinPropertyMetadata.syntheticMethodForAnnotations);
 
+            kotlinPropertyMetadata.syntheticMethodForDelegate =
+                fixPropertyMethod(kotlinPropertyMetadata.referencedSyntheticMethodForDelegateClass,
+                                  kotlinPropertyMetadata.referencedSyntheticMethodForDelegateMethod,
+                                  null,
+                                  kotlinPropertyMetadata.syntheticMethodForDelegate);
+
             kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
