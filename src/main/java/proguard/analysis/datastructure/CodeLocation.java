@@ -120,7 +120,7 @@ extends      Location
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof CodeLocation))
         {
             return false;
         }
