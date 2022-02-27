@@ -12,7 +12,7 @@ import io.kotest.matchers.shouldBe
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 
-class MethodLinkerTest : FreeSpec ({
+class MethodLinkerTest : FreeSpec({
     "Given a super class with a package-private final method that is also defined in a subclass" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
