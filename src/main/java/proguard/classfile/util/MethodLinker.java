@@ -44,20 +44,21 @@ implements   ClassVisitor,
 {
     // An object that is reset and reused every time.
     // The map: [method name+' '+descriptor - method info]
-    private final Map memberMap = new HashMap();
+    private final Map<String, Member> memberMap = new HashMap<>();
 
 
     // Implementations for ClassVisitor.
 
+    @Override
     public void visitAnyClass(Clazz clazz)
     {
-        // Collect all non-private members in this class hierarchy.
+        // Collect all non-private, non-static members in this class hierarchy.
         clazz.hierarchyAccept(true, true, true, false,
             new AllMethodVisitor(
             new MemberAccessFilter(0, AccessConstants.PRIVATE | AccessConstants.STATIC,
             this)));
 
-        // Link all the methods in the MultiFileFacades with their implementations in the corresponding MutliFilePart
+        // Link all the methods in the MultiFileFacades with their implementations in the corresponding MultiFilePart.
         clazz.kotlinMetadataAccept(new KotlinMultiFileFacadeMethodLinker());
 
         // Clean up for the next class hierarchy.
@@ -67,6 +68,7 @@ implements   ClassVisitor,
 
     // Implementations for MemberVisitor.
 
+    @Override
     public void visitAnyMember(Clazz clazz, Member member)
     {
         // Get the method's name and descriptor.
@@ -83,7 +85,7 @@ implements   ClassVisitor,
         // See if we've already come across a method with the same name and
         // descriptor.
         String key = name + ' ' + descriptor;
-        Member otherMember = (Member)memberMap.get(key);
+        Member otherMember = memberMap.get(key);
 
         if (otherMember == null)
         {
@@ -93,9 +95,9 @@ implements   ClassVisitor,
             // Store the new class method in the map.
             memberMap.put(key, thisLastMember);
         }
-        else
+        else if ((member.getAccessFlags() & AccessConstants.FINAL) == 0)
         {
-            // Link both members.
+            // Link both members if the current member is not final.
             link(member, otherMember);
         }
     }
@@ -130,8 +132,8 @@ implements   ClassVisitor,
 
     /**
      * Finds the last method in the linked list of related methods.
-     * @param member the given method.
-     * @return the last method in the linked list.
+     * @param member The given method.
+     * @return The last method in the linked list.
      */
     public static Member lastMember(Member member)
     {
@@ -148,8 +150,8 @@ implements   ClassVisitor,
 
     /**
      * Finds the last method in the linked list of related methods.
-     * @param processable the given method.
-     * @return the last method in the linked list.
+     * @param processable The given method.
+     * @return The last method in the linked list.
      */
     public static Processable lastProcessable(Processable processable)
     {

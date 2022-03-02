@@ -58,7 +58,7 @@ extends      Location
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof FileLocation))
         {
             return false;
         }

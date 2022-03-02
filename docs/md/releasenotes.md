@@ -1,5 +1,9 @@
 ## Version 8.0.8
 
+### Bug fixes
+
+- Prevent linking a final method with a shadowing method in a subclass. (`T14726`)
+
 ## Version 8.0.7
 
 ### Java support
