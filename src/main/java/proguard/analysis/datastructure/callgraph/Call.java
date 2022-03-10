@@ -18,6 +18,7 @@
 
 package proguard.analysis.datastructure.callgraph;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
@@ -41,15 +42,15 @@ import proguard.evaluation.value.Value;
 public abstract class Call
 {
 
-    private static final transient Logger       log = LogManager.getLogger(Call.class);
+    private static final Logger       log = LogManager.getLogger(Call.class);
     /**
      * The location where the call was invoked.
      */
-    public final                   CodeLocation caller;
+    public final         CodeLocation caller;
     /**
      * Describes whether this call will throw a {@link NullPointerException} at runtime. Either {@link Value#NEVER}, {@link Value#MAYBE} or {@link Value#ALWAYS}.
      */
-    public final                   int          throwsNullptr;
+    public final         int          throwsNullptr;
     /**
      * The type of this call. There are several different ways of invoking
      * a method call in the JVM:
@@ -115,6 +116,7 @@ public abstract class Call
     {
         return arguments.size();
     }
+
     /**
      * Get the value for a specific argument index.
      *
@@ -192,7 +194,7 @@ public abstract class Call
      */
     public void clearValues()
     {
-        arguments.clear();
+        arguments = Collections.nCopies(arguments.size(), null);
         returnValue = null;
         instance = null;
         valuesCleared = true;

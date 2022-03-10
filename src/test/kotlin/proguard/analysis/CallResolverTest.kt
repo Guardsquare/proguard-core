@@ -169,6 +169,13 @@ class CallResolverTest : FreeSpec({
                 unchecked.remove(caller)
             }
         }
+
+        // Check that argument count doesn't change after values have been cleared
+        val call = matches[0]
+        call.argumentCount shouldBe expected.descriptor.argumentTypes.size
+        call.clearValues()
+        call.argumentCount shouldBe expected.descriptor.argumentTypes.size
+
         return matches[0]
     }
 
