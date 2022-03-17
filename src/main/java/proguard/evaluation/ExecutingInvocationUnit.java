@@ -148,8 +148,14 @@ public class ExecutingInvocationUnit
     @Override
     public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant)
     {
-        super.visitAnyMethodrefConstant(clazz, anyMethodrefConstant);
-        this.parameters = null;
+        try
+        {
+            super.visitAnyMethodrefConstant(clazz, anyMethodrefConstant);
+        }
+        finally
+        {
+            this.parameters = null;
+        }
     }
 
     // private methods
