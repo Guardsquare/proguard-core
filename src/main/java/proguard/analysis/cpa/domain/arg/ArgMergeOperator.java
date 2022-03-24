@@ -64,19 +64,13 @@ public class ArgMergeOperator
         AbstractState mergedState = wrappedMergeOperator.merge(abstractArgState1.getWrappedState(),
                                                                abstractArgState2.getWrappedState(),
                                                                precision);
-        if (mergedState.equals(abstractArgState2.getWrappedState()))
-        {
-            abstractArgState1.parents.forEach(abstractArgState2::addParent);
-            return abstractArgState2;
-        }
-        if (mergedState.equals(abstractArgState1.getWrappedState()))
-        {
-            abstractArgState2.parents.forEach(abstractArgState1::addParent);
-            return abstractArgState1;
-        }
-        return argAbstractStateFactory.createArgAbstractState(mergedState,
-                                                              Stream.concat(abstractArgState1.parents.stream(),
-                                                                            abstractArgState2.parents.stream())
-                                                                    .collect(Collectors.toList()));
+        return mergedState.equals(abstractArgState2.getWrappedState())
+               ? abstractArgState2
+               : mergedState.equals(abstractArgState1.getWrappedState())
+                 ? abstractArgState1
+                 : argAbstractStateFactory.createArgAbstractState(mergedState,
+                                                                  Stream.concat(abstractArgState1.parents.stream(),
+                                                                                abstractArgState2.parents.stream())
+                                                                        .collect(Collectors.toList()));
     }
 }

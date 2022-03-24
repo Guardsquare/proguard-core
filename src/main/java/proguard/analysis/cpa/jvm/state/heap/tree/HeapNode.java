@@ -85,6 +85,12 @@ public class HeapNode<StateT extends LatticeAbstractState<StateT>>
         return fieldToAbstractState.equals(((HeapNode<StateT>) obj).fieldToAbstractState);
     }
 
+    @Override
+    public int hashCode()
+    {
+        return fieldToAbstractState.hashCode();
+    }
+
     /**
      * Returns an abstract state for the corresponding field or the {@code defaultValue} if there is no entry.
      */

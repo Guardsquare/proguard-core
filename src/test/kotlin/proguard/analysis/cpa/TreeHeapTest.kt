@@ -19,9 +19,7 @@
 package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
@@ -142,8 +140,9 @@ class TreeHeapTest : FreeSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        // TODO replace this check with an exact trace comparison
-        traces.size shouldNotBe 0
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:11, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:8, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:7, JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:4]"
+        )
     }
 
     "Flow through an array element is detected" - {
@@ -376,8 +375,9 @@ class TreeHeapTest : FreeSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        // TODO replace this check with an exact trace comparison
-        traces.size shouldNotBe 0
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;main(Z)V:18, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:15, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:14, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:1, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:0, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:11, JvmStackLocation(0)@LA;main(Z)V:8]"
+        )
     }
 
     "Unaliased overwriting is supported" - {
@@ -442,7 +442,7 @@ class TreeHeapTest : FreeSpec({
                                 a = new A();
                             }
                             a.s = source1(); // weak update taints both aliases
-                            a.s = null;            // weak update preserves the taint
+                            a.s = null;      // weak update preserves the taint
                             sink(a.s);
                         }
                     
@@ -472,8 +472,9 @@ class TreeHeapTest : FreeSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        // TODO replace this check with an exact trace comparison
-        traces.size shouldNotBe 0
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;main(Z)V:30, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:27, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:26, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:23, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:22, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:21, JvmStackLocation(0)@LA;main(Z)V:18]"
+        )
     }
 
     "Array overwriting results in a weak update preserving the taint" - {
@@ -518,8 +519,9 @@ class TreeHeapTest : FreeSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        // TODO replace this check with an exact trace comparison
-        traces.size shouldNotBe 0
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;main()V:22, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:21, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:20, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:17, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:16, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:15, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:14, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9, JvmStackLocation(0)@LA;main()V:8]"
+        )
     }
 
     "Multiple paths are reconstructed" - {
@@ -589,7 +591,8 @@ class TreeHeapTest : FreeSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        // TODO replace this check with an exact trace comparison
-        traces.size shouldBeGreaterThanOrEqual 2
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;callee3()V:6, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee2()V:9, JvmStackLocation(0)@LA;callee2()V:6]"
+        )
     }
 })
