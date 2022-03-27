@@ -8,8 +8,6 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.editor.ClassBuilder;
 import proguard.classfile.editor.ClassEditor;
 
-import java.util.Objects;
-
 public class FieldCopier implements MemberVisitor, ConstantVisitor {
 
     private final ClassBuilder classBuilder;
@@ -36,12 +34,12 @@ public class FieldCopier implements MemberVisitor, ConstantVisitor {
         }
 
         String fieldDescriptor = programField.getDescriptor(programClass);
-        Field oldField =classBuilder.getProgramClass().findField(fieldName, null);
+        Field oldField = classBuilder.getProgramClass().findField(fieldName, null);
         Field oldFieldSameDescriptor = classBuilder.getProgramClass().findField(fieldName, fieldDescriptor);
         if (oldField != null && oldFieldSameDescriptor == null)
         {
             String oldFieldDescriptor = oldField.getDescriptor(classBuilder.getProgramClass());
-            logger.warn("Field " + fieldName + " already exists in class " + classBuilder.getProgramClass() + " with different descriptor: " + oldFieldDescriptor + " <-> " + fieldDescriptor + ". The field will be duplicated with different descriptors.");
+            //logger.warn("Field " + fieldName + " already exists in class " + classBuilder.getProgramClass() + " with different descriptor: " + oldFieldDescriptor + " <-> " + fieldDescriptor + ". The field will be duplicated with different descriptors.");
                 // Merge the field types: generalise to a common super type
                 //fieldDescriptor = ClassConstants.TYPE_JAVA_LANG_OBJECT;
         }
