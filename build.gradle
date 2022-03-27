@@ -63,6 +63,8 @@ dependencies {
     testImplementation 'io.kotest:kotest-property-jvm:5.0.2' // for kotest property test
     testImplementation 'io.kotest:kotest-framework-datatest:5.0.2'
     testImplementation "io.mockk:mockk:1.12.1" // for mocking
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1' // for junit framework
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' // for junit framework
 
     // For assembling ProGuard assembler snippets
     testImplementation ('com.github.Guardsquare:proguard-assembler:master-SNAPSHOT') {

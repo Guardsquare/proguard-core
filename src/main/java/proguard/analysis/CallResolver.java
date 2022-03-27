@@ -415,14 +415,20 @@ implements   AttributeVisitor,
 
     private List<Value> getArguments(CodeLocation location, MethodSignature invokedMethodSig, boolean isStaticCall)
     {
-        if (!(multiTypeEvaluationSuccessful && particularValueEvaluationSuccessful))
-        {
-            return Collections.emptyList();
-        }
         if (invokedMethodSig.descriptor.argumentTypes == null)
         {
             log.error("Argument types list of {} is null!", invokedMethodSig);
             return Collections.emptyList();
+        }
+        if (!(multiTypeEvaluationSuccessful && particularValueEvaluationSuccessful))
+        {
+            int numArguments = invokedMethodSig.descriptor.argumentTypes.size();
+            if (!isStaticCall)
+            {
+                // For virtual calls we have the instance pointer as a first argument.
+                numArguments++;
+            }
+            return new ArrayList<>(Collections.nCopies(numArguments, null));
         }
 
         List<Value> args = new ArrayList<>();

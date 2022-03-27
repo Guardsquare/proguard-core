@@ -3,6 +3,9 @@
 ### Bug fixes
 
 - Prevent linking a final method with a shadowing method in a subclass. (`T14726`)
+- Force `Call#getArgumentCount()` to be correct even if the actual argument values
+  could not be calculated or have been cleared. (`TT14632`)
+- Reset `ExecutingInvocationUnit` parameters array even when an exception happens.  
 
 ## Version 8.0.7
 

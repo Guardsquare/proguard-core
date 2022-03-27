@@ -306,6 +306,8 @@ public class ClassConstants
     public static final String METHOD_TYPE_OBJECT_STRING_BUILDER  = "(Ljava/lang/Object;)Ljava/lang/StringBuilder;";
     public static final String METHOD_NAME_TOSTRING               = "toString";
     public static final String METHOD_TYPE_TOSTRING               = "()Ljava/lang/String;";
+    public static final String METHOD_NAME_TOSTRING_IMPL          = "toString-impl";
+    public static final String METHOD_TYPE_TOSTRING_IMPL          = "(Ljava/lang/String;)Ljava/lang/String;";
     public static final String METHOD_NAME_CLONE                  = "clone";
     public static final String METHOD_TYPE_CLONE                  = "()Ljava/lang/Object;";
 
