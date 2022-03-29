@@ -103,8 +103,8 @@ public class EvaluateCode
         // In this example, the value factory determines the precision.
         ValueFactory valueFactory =
             precision.equals(BASIC)         ? new BasicValueFactory() :
-            precision.equals(PARTICULAR)    ? new ParticularValueFactory(new BasicValueFactory()) :
-            precision.equals(RANGE)         ? new RangeValueFactory(new BasicValueFactory()) :
+            precision.equals(PARTICULAR)    ? new ParticularValueFactory(new BasicValueFactory(), new ParticularValueFactory.ReferenceValueFactory()) :
+            precision.equals(RANGE)         ? new RangeValueFactory(new ArrayReferenceValueFactory(), new BasicValueFactory()) :
             precision.equals(IDENTITY)      ? new IdentifiedValueFactory() :
             precision.equals(TRACING)       ? new ReferenceTracingValueFactory(new BasicValueFactory()) :
             precision.equals(TYPED)         ? new TypedReferenceValueFactory() :

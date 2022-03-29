@@ -23,5 +23,5 @@ sourceSets.main {
 }
 
 dependencies {
-    implementation 'com.guardsquare:proguard-core:7.0.1'
+    implementation 'com.guardsquare:proguard-core:8.0.7'
 }
