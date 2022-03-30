@@ -341,14 +341,33 @@ public class ClassPool
                               ClassVisitor  classVisitor)
     {
         String prefix = classNameFilter.prefix();
-        Map.Entry<String, Clazz> classEntry = classes.ceilingEntry(prefix);
-        while (classEntry != null && classEntry.getKey().startsWith(prefix))
+        if ("".equals(prefix))
         {
-            if (classNameFilter.matches(classEntry.getKey()))
+            // It is more efficient to avoid using higherEntry when we're traversing over the complete ClassPool.
+            for (Map.Entry<String, Clazz> entry : classes.entrySet())
             {
-                classEntry.getValue().accept(classVisitor);
+                String className = entry.getKey();
+
+                if (classNameFilter.matches(className))
+                {
+                    Clazz clazz = entry.getValue();
+                    clazz.accept(classVisitor);
+                }
             }
-            classEntry = classes.higherEntry(classEntry.getKey());
+        }
+        else
+        {
+            // If we can skip towards a specific entry using the prefix and handle a smaller part of the ClassPool,
+            // then it becomes worthwhile to traverse using higherEntry.
+            Map.Entry<String, Clazz> classEntry = classes.ceilingEntry(prefix);
+            while (classEntry != null && classEntry.getKey().startsWith(prefix))
+            {
+                if (classNameFilter.matches(classEntry.getKey()))
+                {
+                    classEntry.getValue().accept(classVisitor);
+                }
+                classEntry = classes.higherEntry(classEntry.getKey());
+            }
         }
     }
 
