@@ -1,5 +1,10 @@
 ## Version 8.0.8
 
+### API Improvements
+
+- Add configurable program analysis (CPA) for interprocedural data flow analysis development.
+- Add taint analysis.
+
 ### Bug fixes
 
 - Prevent linking a final method with a shadowing method in a subclass. (`T14726`)

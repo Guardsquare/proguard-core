@@ -62,14 +62,16 @@ markdown_extensions:
 # Page tree
 ###################################################################
 nav:
-- Introduction:        index.md
-- Reading classes:     reading.md
-- Creating classes:    creating.md
-- Editing classes:     editing.md
-- Pattern matching:    patternmatching.md
-- Analyzing code:      analyzing.md
-- Kotlin metadata:     kotlin.md
-- License:             license.md
-- Downloads:           downloads.md
-- Building:            building.md
-- Release notes:       releasenotes.md
+- Introduction:                                 index.md
+- Reading classes:                              reading.md
+- Creating classes:                             creating.md
+- Editing classes:                              editing.md
+- Pattern matching:                             patternmatching.md
+- Analyzing code:
+  - Data flow analysis with partial evaluation: partialevaluator.md
+  - Taint analysis with CPA:                    taintcpa.md
+- Kotlin metadata:                              kotlin.md
+- License:                                      license.md
+- Downloads:                                    downloads.md
+- Building:                                     building.md
+- Release notes:                                releasenotes.md
