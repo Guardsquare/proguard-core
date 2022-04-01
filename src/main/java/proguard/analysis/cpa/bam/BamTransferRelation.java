@@ -85,7 +85,6 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
         this.mainLocation = cfa.getFunctionEntryNode(mainFunction);
         this.cache = cache;
         this.fixedPointStopOperator = new StopSepOperator(wrappedCpa.getAbstractDomain());
-        this.maxCallStackDepth = -1;
     }
 
     /**
@@ -170,6 +169,14 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
         }
 
         return abstractSuccessors;
+    }
+
+    /**
+     * Returns the maximal call stack depth. If negative the maximum call stack depth is unlimited.
+     */
+    public int getMaxCallStackDepth()
+    {
+        return maxCallStackDepth;
     }
 
     /**

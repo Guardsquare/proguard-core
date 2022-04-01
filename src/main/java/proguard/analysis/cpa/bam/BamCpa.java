@@ -19,7 +19,6 @@
 package proguard.analysis.cpa.bam;
 
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
-import proguard.classfile.Signature;
 import proguard.analysis.cpa.defaults.Cfa;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.CfaEdge;
@@ -28,7 +27,7 @@ import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.StopOperator;
-import proguard.analysis.cpa.interfaces.TransferRelation;
+import proguard.classfile.Signature;
 
 /**
  * A {@link ConfigurableProgramAnalysis} for inter-procedural analysis using block abstraction memoization as described in {@see https://dl.acm.org/doi/pdf/10.1145/3368089.3409718}, which is defined
@@ -104,7 +103,7 @@ public class BamCpa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT ext
      * Returns the BAM transfer relation, more details in {@link BamTransferRelation}.
      */
     @Override
-    public TransferRelation getTransferRelation()
+    public BamTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> getTransferRelation()
     {
         return bamTransferRelation;
     }

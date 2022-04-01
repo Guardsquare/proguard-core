@@ -21,6 +21,8 @@ package proguard.analysis.cpa.domain.arg;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.CpaRun;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.ReachedSet;
@@ -37,6 +39,23 @@ public class ArgCpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractStateT 
     protected final CpaRun<CpaT, AbstractStateT> wrappedCpaRun;
     protected final ArgAbstractStateFactory      argAbstractStateFactory;
     protected final ReachedSet                   reachedSet;
+    protected final AbortOperator                abortOperator;
+
+    /**
+     * Create an ARG wrapper CPA run.
+     *
+     * @param wrappedCpaRun           a CPA run to be wrapped
+     * @param argAbstractStateFactory an ARG node factory
+     * @param reachedSet              an empty reached set for the ARG
+     * @param abortOperator           an abort operator
+     */
+    public ArgCpaRun(CpaRun<CpaT, AbstractStateT> wrappedCpaRun, ArgAbstractStateFactory argAbstractStateFactory, ReachedSet reachedSet, AbortOperator abortOperator)
+    {
+        this.wrappedCpaRun = wrappedCpaRun;
+        this.argAbstractStateFactory = argAbstractStateFactory;
+        this.reachedSet = reachedSet;
+        this.abortOperator = abortOperator;
+    }
 
     /**
      * Create an ARG wrapper CPA run.
@@ -47,9 +66,7 @@ public class ArgCpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractStateT 
      */
     public ArgCpaRun(CpaRun<CpaT, AbstractStateT> wrappedCpaRun, ArgAbstractStateFactory argAbstractStateFactory, ReachedSet reachedSet)
     {
-        this.wrappedCpaRun = wrappedCpaRun;
-        this.argAbstractStateFactory = argAbstractStateFactory;
-        this.reachedSet = reachedSet;
+        this(wrappedCpaRun, argAbstractStateFactory, reachedSet, NeverAbortOperator.INSTANCE);
     }
 
     // implementations for CpaRun

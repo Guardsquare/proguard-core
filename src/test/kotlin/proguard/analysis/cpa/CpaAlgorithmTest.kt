@@ -21,6 +21,7 @@ package proguard.analysis.cpa
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.algorithms.CpaAlgorithm
+import proguard.analysis.cpa.defaults.ControllableAbortOperator
 import proguard.analysis.cpa.defaults.DefaultReachedSet
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain
 import proguard.analysis.cpa.defaults.DepthFirstWaitlist
@@ -225,5 +226,24 @@ class CpaAlgorithmTest : FreeSpec({
             IntegerAbstractState(8),
             IntegerAbstractState(10)
         )
+    }
+
+    "Abort operator terminates the analysis" {
+        val waitlist = DepthFirstWaitlist()
+        waitlist.add(IntegerAbstractState(0))
+        val reachedset = DefaultReachedSet()
+        val abortOperator = ControllableAbortOperator()
+        abortOperator.abort = true
+        CpaAlgorithm(
+            SimpleCpa(
+                abstractDomain,
+                transferRelation,
+                mergeSepOperator,
+                stopContainedOperator,
+                precisionAdjustment
+            )
+        ).run(reachedset, waitlist, abortOperator)
+        // the test should return all states reachable from 0
+        reachedset shouldBe setOf()
     }
 })

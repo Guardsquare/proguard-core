@@ -19,6 +19,8 @@
 package proguard.analysis.cpa.jvm.util;
 
 import java.util.Arrays;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.BamCpaRun;
@@ -51,18 +53,27 @@ public abstract class JvmBamCpaRun<CpaT extends ConfigurableProgramAnalysis, Abs
      * Create a JVM BAM CPA run.
      *
      * @param cfa               a CFA
-     * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally.
-     *                          0 means intra-procedural analysis.
-     *                          < 0 means no maximum depth.
+     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally
+     *                          0 means intraprocedural analysis
+     *                          < 0 means no maximum depth
      */
     protected JvmBamCpaRun(JvmCfa cfa, int maxCallStackDepth)
     {
-        this(cfa, maxCallStackDepth, HeapModel.FORGETFUL);
+        this(cfa, maxCallStackDepth, HeapModel.FORGETFUL, NeverAbortOperator.INSTANCE);
     }
 
-    protected JvmBamCpaRun(JvmCfa cfa, int maxCallStackDepth, HeapModel heapModel)
+    /**
+     * Create a JVM BAM CPA run.
+     *
+     * @param cfa               a CFA
+     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally
+     *                          0 means intraprocedural analysis
+     *                          < 0 means no maximum depth
+     * @param abortOperator     an abort operator
+     */
+    protected JvmBamCpaRun(JvmCfa cfa, int maxCallStackDepth, HeapModel heapModel, AbortOperator abortOperator)
     {
-        super(maxCallStackDepth);
+        super(abortOperator, maxCallStackDepth);
         this.cfa = cfa;
         this.heapModel = heapModel;
     }

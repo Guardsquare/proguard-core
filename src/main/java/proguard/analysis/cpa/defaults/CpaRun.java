@@ -20,6 +20,7 @@ package proguard.analysis.cpa.defaults;
 
 import java.util.Collection;
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.ReachedSet;
@@ -33,7 +34,8 @@ import proguard.analysis.cpa.interfaces.Waitlist;
 public abstract class CpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractStateT extends AbstractState>
 {
 
-    protected CpaT cpa;
+    protected CpaT           cpa;
+    protected AbortOperator  abortOperator = NeverAbortOperator.INSTANCE;
 
     /**
      * Sets up the {@link CpaAlgorithm}, runs it, and returns the {@link ReachedSet} with the result of the analysis.
@@ -46,14 +48,9 @@ public abstract class CpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractS
         Collection<AbstractStateT> initialStates = getInitialStates();
         waitList.addAll(initialStates);
         reachedSet.addAll(initialStates);
-        cpaAlgorithm.run(reachedSet, waitList);
+        cpaAlgorithm.run(reachedSet, waitList, getAbortOperator());
         return reachedSet;
     }
-
-    /**
-     * Returns an instance of the {@link ConfigurableProgramAnalysis}.
-     */
-    public abstract CpaT getCpa();
 
     /**
      * Returns an empty {@link ReachedSet}.
@@ -75,4 +72,20 @@ public abstract class CpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractS
      * Returns a collection of initial {@link AbstractState}s.
      */
     public abstract Collection<AbstractStateT> getInitialStates();
+
+    /**
+     * Returns the CPA.
+     */
+    public CpaT getCpa()
+    {
+        return cpa;
+    }
+
+    /**
+     * Returns the abort operator.
+     */
+    public AbortOperator getAbortOperator()
+    {
+        return abortOperator;
+    }
 }

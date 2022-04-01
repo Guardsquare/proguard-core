@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.classfile.MethodSignature;
@@ -50,49 +52,56 @@ public abstract class JvmMemoryLocationBamCpaRun<CpaT extends ConfigurableProgra
     implements TraceExtractor<AbstractStateT>
 {
 
-    protected AbstractStateT threshold;
+    protected final AbstractStateT threshold;
 
     /**
      * Create a CPA run.
      *
-     * @param inputCpaRun an unwrapped traced CPA BAM run
-     * @param threshold   a cut-off threshold
+     * @param inputCpaRun   an unwrapped traced CPA BAM run
+     * @param threshold     a cut-off threshold
      */
     public JvmMemoryLocationBamCpaRun(BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold)
     {
-        super(new ArgBamCpaRun<>(inputCpaRun,
+        this(inputCpaRun, threshold, NeverAbortOperator.INSTANCE);
+    }
+
+    /**
+     * Create a CPA run.
+     *
+     * @param inputCpaRun   an unwrapped traced CPA BAM run
+     * @param threshold     a cut-off threshold
+     * @param abortOperator an abort operator
+     */
+    public JvmMemoryLocationBamCpaRun(BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold, AbortOperator abortOperator)
+    {
+        this(new ArgBamCpaRun<>(inputCpaRun,
                                  new ArgProgramLocationDependentAbstractStateFactory<>(s ->
                                  {
                                      JvmAbstractState<AbstractStateT> state = (JvmAbstractState<AbstractStateT>) s.getStateByName(StateNames.Jvm);
                                      return state.getFrame().getLocalVariables().stream().allMatch(threshold::isLessOrEqual)
                                             && state.getFrame().getOperandStack().stream().allMatch(threshold::isLessOrEqual)
                                             && state.getStaticFields().values().stream().allMatch(threshold::isLessOrEqual);
-                                 }),
-                                 inputCpaRun.getMaxCallStackDepth()));
-        this.threshold = threshold;
+                                 })),
+             threshold,
+             abortOperator);
     }
 
     /**
      * Create a CPA run.
      *
-     * @param inputCpaRun a traced CPA BAM run wrapped with an ARG computation
-     * @param threshold   a cut-off threshold
+     * @param inputCpaRun   a traced CPA BAM run wrapped with an ARG computation
+     * @param threshold     a cut-off threshold
+     * @param abortOperator an abort operator
      */
-    public JvmMemoryLocationBamCpaRun(ArgBamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold)
+    public JvmMemoryLocationBamCpaRun(ArgBamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold, AbortOperator abortOperator)
     {
         super(inputCpaRun);
         this.threshold = threshold;
+        cpa = new JvmMemoryLocationCpa<>(threshold);
+        this.abortOperator = abortOperator;
     }
 
     // implementations for CpaRun
-
-    @Override
-    public JvmMemoryLocationCpa<AbstractStateT> getCpa()
-    {
-        return cpa == null
-               ? cpa = new JvmMemoryLocationCpa<>(threshold)
-               : cpa;
-    }
 
     @Override
     public ReachedSet createReachedSet()
