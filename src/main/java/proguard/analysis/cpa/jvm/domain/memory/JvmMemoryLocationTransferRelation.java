@@ -223,8 +223,8 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
     }
 
     private List<JvmMemoryLocation> backtraceStackLocation(JvmMemoryLocation memoryLocation,
-                                                                           Instruction instruction,
-                                                                           Clazz clazz)
+                                                           Instruction instruction,
+                                                           Clazz clazz)
     {
         List<JvmMemoryLocation> result = new ArrayList<>();
         if (!(memoryLocation instanceof JvmStackLocation))
@@ -261,9 +261,23 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                                                 ConstantInstruction callInstruction,
                                                 Clazz clazz)
     {
-        return memoryLocation.getArgNode().getParents().stream().anyMatch(p -> p.getProgramLocation().isExitNode())
-               ? Collections.emptyList() // do not trace intraprocedurally calls which were analyzed interprocedurally
-               : backtraceStackLocation(memoryLocation, callInstruction, clazz);
+        return memoryLocation instanceof JvmLocalVariableLocation
+               ? Collections.singletonList(memoryLocation) // local variable locations aren't affected by calls
+               : memoryLocation instanceof JvmStackLocation
+                 && isStackLocationTooDeep((JvmStackLocation) memoryLocation, callInstruction, clazz)
+                 || doesMemoryLocationDependOnReturnValue(memoryLocation)
+                 ? backtraceStackLocation(memoryLocation, callInstruction, clazz) // trace deep stack locations and intraprocedurally analyzed calls intraprocedurally
+                 : Collections.emptyList(); // do not trace intraprocedurally calls which were analyzed interprocedurally
+    }
+
+    private boolean isStackLocationTooDeep(JvmStackLocation stackLocation, Instruction instruction, Clazz clazz)
+    {
+        return stackLocation.index >= instruction.stackPushCount(clazz);
+    }
+
+    private boolean doesMemoryLocationDependOnReturnValue(JvmMemoryLocation memoryLocation)
+    {
+        return memoryLocation.getArgNode().getParents().stream().noneMatch(p -> p.getProgramLocation().isExitNode());
     }
 
     /**
@@ -318,10 +332,10 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                 return;
             }
             int index = ((JvmStackLocation) memoryLocation).getIndex();
-            if (index >= simpleInstruction.stackPushCount(clazz))
+            if (isStackLocationTooDeep((JvmStackLocation) memoryLocation, simpleInstruction, clazz))
             {
                 // if the location is too deep in the stack, offset the location by the instruction pop/push difference
-                answer.add(new JvmStackLocation(index + simpleInstruction.stackPopCount(clazz) - simpleInstruction.stackPushCount(clazz)));
+                answer.addAll(backtraceStackLocation(memoryLocation, simpleInstruction, clazz));
                 return;
             }
             switch (simpleInstruction.opcode)
@@ -379,7 +393,7 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                 }
                 default: // arithmetic and literal instructions
                 {
-                    answer.addAll(backtraceStackLocation(memoryLocation, simpleInstruction, null));
+                    answer.addAll(backtraceStackLocation(memoryLocation, simpleInstruction, clazz));
                 }
             }
         }
@@ -395,20 +409,13 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
             }
             if (variableInstruction.isLoad())
             {
-                if (!(memoryLocation instanceof JvmStackLocation))
+                answer.addAll(backtraceStackLocation(memoryLocation, variableInstruction, clazz));
+                if (memoryLocation instanceof JvmStackLocation
+                    && !isStackLocationTooDeep((JvmStackLocation) memoryLocation, variableInstruction, clazz))
                 {
-                    // loads affect the stack only
-                    answer.add(memoryLocation);
-                    return;
+                    // the loaded stack location maps to the corresponding local variable array cell
+                    answer.add(new JvmLocalVariableLocation(variableInstruction.variableIndex + ((JvmStackLocation) memoryLocation).index));
                 }
-                int index = ((JvmStackLocation) memoryLocation).getIndex();
-                if (index >= variableInstruction.stackPushCount(clazz))
-                {
-                    // if the location is too deep in the stack, offset the location by the instruction push count
-                    answer.add(new JvmStackLocation(index - variableInstruction.stackPushCount(clazz)));
-                    return;
-                }
-                answer.add(new JvmLocalVariableLocation(variableInstruction.variableIndex + index));
                 return;
             }
             if (!(memoryLocation instanceof JvmLocalVariableLocation) || ((JvmLocalVariableLocation) memoryLocation).index != variableInstruction.variableIndex)
@@ -432,18 +439,12 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                 {
                     constantLookupVisitor.isStatic = true;
                     clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-                    if (!(memoryLocation instanceof JvmStackLocation))
+                    answer.addAll(backtraceStackLocation(memoryLocation, constantInstruction, clazz));
+                    if (memoryLocation instanceof JvmStackLocation
+                        && !isStackLocationTooDeep((JvmStackLocation) memoryLocation, constantInstruction, clazz))
                     {
-                        answer.add(memoryLocation);
-                        break;
+                        answer.add(new JvmStaticFieldLocation(constantLookupVisitor.result));
                     }
-                    int index = ((JvmStackLocation) memoryLocation).getIndex();
-                    if (index >= constantLookupVisitor.resultSize)
-                    {
-                        answer.add(new JvmStackLocation(index - constantLookupVisitor.resultSize));
-                        break;
-                    }
-                    answer.add(new JvmStaticFieldLocation(constantLookupVisitor.result));
                     break;
                 }
                 case Instruction.OP_PUTSTATIC:
@@ -469,20 +470,12 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                 {
                     constantLookupVisitor.isStatic = false;
                     clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-                    if (!(memoryLocation instanceof JvmStackLocation))
+                    answer.addAll(backtraceStackLocation(memoryLocation, constantInstruction, clazz));
+                    if (memoryLocation instanceof JvmStackLocation
+                        && !isStackLocationTooDeep((JvmStackLocation) memoryLocation, constantInstruction, clazz)
+                        && ((JvmAbstractState<AbstractStateT>) parentState.getWrappedState().getStateByName("Jvm")).getHeap() instanceof JvmTreeHeapFollowerAbstractState)
                     {
-                        answer.add(memoryLocation);
-                        break;
-                    }
-                    int index = ((JvmStackLocation) memoryLocation).index;
-                    if (index >= constantLookupVisitor.resultSize)
-                    {
-                        answer.add(new JvmStackLocation(index - constantLookupVisitor.resultSize + 1));
-                        break;
-                    }
-                    answer.add(new JvmStackLocation(0));
-                    if (((JvmAbstractState<AbstractStateT>) parentState.getWrappedState().getStateByName("Jvm")).getHeap() instanceof JvmTreeHeapFollowerAbstractState)
-                    {
+                        // if the heap model is nontrivial, backtrace to the heap location
                         answer.add(new JvmHeapLocation(((JvmReferenceAbstractState) parentState.getWrappedState().getStateByName("Reference")).peek(),
                                                        constantLookupVisitor.result));
                     }
