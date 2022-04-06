@@ -20,6 +20,7 @@ package proguard.analysis.cpa.domain.taint;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A {@link TaintSource} specifies a method which can taint any (subset) of the following: the instance, the return value, the argument objects, or static fields.
@@ -67,16 +68,49 @@ public class TaintSource
             return false;
         }
         TaintSource other = (TaintSource) obj;
-        return fqn.equals(other.fqn)
+        return Objects.equals(fqn, other.fqn)
                && taintsThis == other.taintsThis
                && taintsReturn == other.taintsReturn
-               && taintsArgs.equals(other.taintsArgs)
-               && taintsGlobals.equals(other.taintsGlobals);
+               && Objects.equals(taintsArgs, other.taintsArgs)
+               && Objects.equals(taintsGlobals, other.taintsGlobals);
     }
 
     @Override
     public int hashCode()
     {
         return Objects.hash(fqn, taintsThis, taintsReturn, taintsArgs, taintsGlobals);
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder builder = new StringBuilder("[TaintSource] ").append(fqn);
+        if (taintsThis)
+        {
+            builder.append(", taints this");
+        }
+        if (taintsReturn)
+        {
+            builder.append(", taints return");
+        }
+        if (!taintsArgs.isEmpty())
+        {
+            builder.append(", taints args (")
+                   .append(taintsArgs.stream()
+                                     .map(Object::toString)
+                                     .sorted()
+                                     .collect(Collectors.joining(", ")))
+                   .append(")");
+        }
+        if (!taintsGlobals.isEmpty())
+        {
+            builder.append(", taints globals (")
+                   .append(taintsGlobals.stream()
+                                        .sorted()
+                                        .collect(Collectors.joining(", ")))
+                   .append(")");
+        }
+
+        return builder.toString();
     }
 }

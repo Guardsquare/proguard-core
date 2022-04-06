@@ -18,7 +18,9 @@
 
 package proguard.analysis.cpa.domain.taint;
 
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A {@link TaintSink} specifies a sink for the taint analysis. A sink can be sensitive to
@@ -52,5 +54,58 @@ public class TaintSink
         this.takesInstance = takesInstance;
         this.takesArgs = takesArgs;
         this.takesGlobals = takesGlobals;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof TaintSink))
+        {
+            return false;
+        }
+        TaintSink taintSink = (TaintSink) o;
+        return takesInstance == taintSink.takesInstance
+               && Objects.equals(fqn, taintSink.fqn)
+               && Objects.equals(takesArgs, taintSink.takesArgs)
+               && Objects.equals(takesGlobals, taintSink.takesGlobals);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(fqn, takesInstance, takesArgs, takesGlobals);
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder result = new StringBuilder("[TaintSink] ").append(fqn);
+        if (takesInstance)
+        {
+            result.append(", takes instance");
+        }
+        if (!takesArgs.isEmpty())
+        {
+            result.append(", takes args (")
+                  .append(takesArgs.stream()
+                                   .map(Objects::toString)
+                                   .sorted()
+                                   .collect(Collectors.joining(", ")))
+                  .append(")");
+        }
+        if (!takesGlobals.isEmpty())
+        {
+            result.append(", takes globals (")
+                  .append(takesGlobals.stream()
+                                      .sorted()
+                                      .collect(Collectors.joining(", ")))
+                  .append(")");
+        }
+
+        return result.toString();
     }
 }

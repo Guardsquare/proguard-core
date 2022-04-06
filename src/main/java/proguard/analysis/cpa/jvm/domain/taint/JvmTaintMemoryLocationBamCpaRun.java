@@ -26,16 +26,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import proguard.analysis.cpa.defaults.NeverAbortOperator;
-import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.bam.BamTransferRelation;
 import proguard.analysis.cpa.bam.BlockAbstraction;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.domain.arg.ArgProgramLocationDependentAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
@@ -43,10 +41,12 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationBamCpaRun;
+import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.util.StateNames;
+import proguard.classfile.MethodSignature;
 
 /**
  * This run wraps the execution of BAM {@link JvmMemoryLocationCpa}.
@@ -57,8 +57,8 @@ public class JvmTaintMemoryLocationBamCpaRun
     extends JvmMemoryLocationBamCpaRun<SimpleCpa, TaintAbstractState>
 {
 
-    private final Collection<JvmTaintSink> taintSinks;
-    private       Set<JvmMemoryLocation>   endPoints;
+    private final Collection<? extends JvmTaintSink> taintSinks;
+    private       Set<JvmMemoryLocation>             endPoints;
 
     /**
      * Create a traced taint CPA run.
@@ -69,7 +69,7 @@ public class JvmTaintMemoryLocationBamCpaRun
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmTaintBamCpaRun jvmTaintCpaRun,
                                            TaintAbstractState threshold,
-                                           Collection<JvmTaintSink> taintSinks)
+                                           Collection<? extends JvmTaintSink> taintSinks)
     {
         super(jvmTaintCpaRun, threshold);
         this.taintSinks = taintSinks;
@@ -89,12 +89,12 @@ public class JvmTaintMemoryLocationBamCpaRun
      * @param abortOperator     an abort operator
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
-                                           Set<TaintSource> taintSources,
+                                           Set<? extends TaintSource> taintSources,
                                            MethodSignature mainSignature,
                                            int maxCallStackDepth,
                                            HeapModel heapModel,
                                            TaintAbstractState threshold,
-                                           Collection<JvmTaintSink> taintSinks,
+                                           Collection<? extends JvmTaintSink> taintSinks,
                                            AbortOperator abortOperator)
     {
         this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth, heapModel, abortOperator), threshold, taintSinks);
@@ -113,12 +113,12 @@ public class JvmTaintMemoryLocationBamCpaRun
      * @param taintSinks        a collection of taint sinks
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
-                                           Set<TaintSource> taintSources,
+                                           Set<? extends TaintSource> taintSources,
                                            MethodSignature mainSignature,
                                            int maxCallStackDepth,
                                            HeapModel heapModel,
                                            TaintAbstractState threshold,
-                                           Collection<JvmTaintSink> taintSinks)
+                                           Collection<? extends JvmTaintSink> taintSinks)
     {
         this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth, heapModel, NeverAbortOperator.INSTANCE), threshold, taintSinks);
     }
@@ -136,11 +136,11 @@ public class JvmTaintMemoryLocationBamCpaRun
      * @param taintSinks        a collection of taint sinks
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
-                                           Set<TaintSource> taintSources,
+                                           Set<? extends TaintSource> taintSources,
                                            MethodSignature mainSignature,
                                            int maxCallStackDepth,
                                            TaintAbstractState threshold,
-                                           Collection<JvmTaintSink> taintSinks)
+                                           Collection<? extends JvmTaintSink> taintSinks)
     {
         this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth), threshold, taintSinks);
     }

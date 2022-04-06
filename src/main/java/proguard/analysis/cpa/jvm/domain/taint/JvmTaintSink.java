@@ -68,7 +68,7 @@ public class JvmTaintSink
         return result;
     }
 
-    public static Map<String, Set<JvmMemoryLocation>> convertSinksToMemoryLocations(Collection<JvmTaintSink> taintSinks)
+    public static Map<String, Set<JvmMemoryLocation>> convertSinksToMemoryLocations(Collection<? extends JvmTaintSink> taintSinks)
     {
         Map<String, Set<JvmMemoryLocation>> result = new HashMap<>();
         for (JvmTaintSink taintSink : taintSinks)
