@@ -1,6 +1,12 @@
 ## Version 8.0.8
 
-### API Improvements
+### Configurable program analysis (CPA)
+
+_CPA is a formalism for data flow analysis allowing seamless composition of various analyses
+and model checking techniques. Thus, it adds a framework for systematic development and extension
+of static analyses in a uniform structured way.
+Taint analysis is the first ProGuardCORE CPA. Its goal is to detect data flow between source and sink
+method calls, which is useful for detecting bugs and security flaws._
 
 - Add configurable program analysis (CPA) for interprocedural data flow analysis development.
 - Add taint analysis.
