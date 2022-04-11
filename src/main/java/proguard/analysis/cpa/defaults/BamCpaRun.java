@@ -77,7 +77,8 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
                                     getCfa(),
                                     getMainSignature(),
                                     createCache(),
-                                    getMaxCallStackDepth())
+                                    getMaxCallStackDepth(),
+                                    abortOperator)
                : super.getCpa();
     }
 
