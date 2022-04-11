@@ -11,7 +11,7 @@ You can download the library in various forms:
 
         :::groovy
         dependencies {
-            compile project(':com.guardsquare:proguard-core:7.0.1')
+            compile project(':com.guardsquare:proguard-core:9.0.0')
         }
 
     or
@@ -19,7 +19,7 @@ You can download the library in various forms:
         <dependency>
             <groupId>com.guardsquare</groupId>
             <artifactId>proguard-core</artifactId>
-            <version>7.0.1</version>
+            <version>9.0.0</version>
         </dependency>
 
 - A [Git repository of the source code](https://github.com/Guardsquare/proguard-core) at Github
