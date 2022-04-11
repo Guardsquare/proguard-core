@@ -3,6 +3,7 @@
 ### Bug fixes
 
 - `ParticularReferenceValue` sanity checks now take inheritance into consideration, improving call analysis (`T15197`)
+- Prevent missing semicolon leading to an infinite loop in `ClassUtil#internalMethodParameterCount`.
 
 ## Version 9.0 (April 2022)
 
