@@ -32,11 +32,18 @@ extends      Location
 {
 
     public final String filename;
+    public       String deobfuscateFilename;
 
     public FileLocation(String filename, int line)
     {
         super(line);
         this.filename = filename;
+    }
+
+    public FileLocation(String filename, int line, String deobfuscateFilename)
+    {
+        this(filename, line);
+        this.deobfuscateFilename = deobfuscateFilename;
     }
 
     @Override
