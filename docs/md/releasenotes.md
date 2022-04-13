@@ -1,3 +1,9 @@
+## Version 9.0.1
+
+### Bug fixes
+
+- `ParticularReferenceValue` sanity checks now take inheritance into consideration, improving call analysis (`T15197`)
+
 ## Version 9.0 (April 2022)
 
 ### Configurable program analysis (CPA)

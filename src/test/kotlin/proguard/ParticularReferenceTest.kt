@@ -7,11 +7,16 @@
 
 package proguard
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
+import proguard.classfile.editor.ClassBuilder
+import proguard.classfile.util.ClassUtil
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
@@ -636,6 +641,24 @@ class ParticularReferenceTest : FreeSpec({
             checkExpectedValueParticularReferenceValue(invocationsWithStack, 44, 0, "41 !dlrow olleh")
 
             uniqueIDs shouldHaveSize 7
+        }
+    }
+
+    "Regression test inheritance sanity check" - {
+        val charSequenceClass = ClassBuilder(CLASS_VERSION_1_8, PUBLIC, "java/lang/CharSequence", "java/lang/Object").programClass
+        val stringClass = ClassBuilder(CLASS_VERSION_1_8, PUBLIC, "java/lang/String", "java/lang/Object").programClass
+        charSequenceClass.addSubClass(stringClass)
+
+        "No exception" {
+            shouldNotThrowAny {
+                ParticularReferenceValue(
+                    ClassUtil.internalTypeFromClassName(charSequenceClass.name),
+                    charSequenceClass,
+                    null,
+                    0,
+                    ""
+                )
+            }
         }
     }
 })
