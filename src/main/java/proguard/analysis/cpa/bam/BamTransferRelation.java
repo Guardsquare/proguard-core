@@ -28,6 +28,8 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
 import proguard.classfile.Signature;
@@ -69,6 +71,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
     private final        BamCache<SignatureT>                                cache;
     private              int                                                 maxCallStackDepth = -1;
     private final        StopOperator                                        fixedPointStopOperator;
+    private final        AbortOperator                                       abortOperator;
 
     /**
      * Create a BAM transfer relation with an unlimited call stack.
@@ -78,14 +81,11 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
      * @param mainFunction the signature of the main function of an analyzed program
      * @param cache        a cache for the block abstractions
      */
-    public BamTransferRelation(CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa, Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa, SignatureT mainFunction, BamCache<SignatureT> cache)
+    public BamTransferRelation(CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa,
+                               Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa,
+                               SignatureT mainFunction, BamCache<SignatureT> cache)
     {
-        this.wrappedCpa = wrappedCpa;
-        this.cfa = cfa;
-        this.mainLocation = cfa.getFunctionEntryNode(mainFunction);
-        this.cache = cache;
-        this.fixedPointStopOperator = new StopSepOperator(wrappedCpa.getAbstractDomain());
-        this.maxCallStackDepth = -1;
+        this(wrappedCpa, cfa, mainFunction, cache, -1, NeverAbortOperator.INSTANCE);
     }
 
     /**
@@ -99,12 +99,22 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
      * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally.
      *                          0 means intra-procedural analysis.
      *                          < 0 means no maximum depth.
+     * @param abortOperator     an abort operator used for computing block abstractions
      */
-    public BamTransferRelation(CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa, Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa, SignatureT mainFunction, BamCache<SignatureT> cache,
-        int maxCallStackDepth)
+    public BamTransferRelation(CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa,
+                               Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa,
+                               SignatureT mainFunction,
+                               BamCache<SignatureT> cache,
+                               int maxCallStackDepth,
+                               AbortOperator abortOperator)
     {
-        this(wrappedCpa, cfa, mainFunction, cache);
+        this.wrappedCpa = wrappedCpa;
+        this.cfa = cfa;
+        this.mainLocation = cfa.getFunctionEntryNode(mainFunction);
+        this.cache = cache;
+        this.fixedPointStopOperator = new StopSepOperator(wrappedCpa.getAbstractDomain());
         this.maxCallStackDepth = maxCallStackDepth;
+        this.abortOperator = abortOperator;
     }
 
     // implementations for TransferRelation
@@ -173,6 +183,14 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
     }
 
     /**
+     * Returns the maximal call stack depth. If negative the maximum call stack depth is unlimited.
+     */
+    public int getMaxCallStackDepth()
+    {
+        return maxCallStackDepth;
+    }
+
+    /**
      * Returns the wrapped domain-dependent intra-procedural CPA.
      */
     public CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> getWrappedCpa()
@@ -189,7 +207,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
     }
 
     /**
-     * By default the {@link ReachedSet} used by the applyBlockAbstraction algorithm is a {@link DefaultReachedSet}, this method can be overridden to provide a different reached set.
+     * By default the {@link ReachedSet} used by the applyBlockAbstraction algorithm is a {@link ProgramLocationDependentReachedSet}, this method can be overridden to provide a different reached set.
      */
     protected ReachedSet getReachedSet()
     {
@@ -278,7 +296,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
 
             // analyze the current procedure call with the CPA algorithm, this is the recursive step of the BAM CPA
             // n.b. if the procedure has been already analyzed completely for the input the CPA algorithm will return immediately
-            new CpaAlgorithm(this, wrappedCpa.getMergeOperator(), wrappedCpa.getStopOperator(), wrappedCpa.getPrecisionAdjustment()).run(reached, waitlist);
+            new CpaAlgorithm(this, wrappedCpa.getMergeOperator(), wrappedCpa.getStopOperator(), wrappedCpa.getPrecisionAdjustment()).run(reached, waitlist, abortOperator);
 
             StackEntry stackEntry = stack.pop();
 

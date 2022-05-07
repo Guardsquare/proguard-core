@@ -18,6 +18,7 @@
 
 package proguard.analysis.cpa.defaults;
 
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.classfile.Signature;
 import proguard.analysis.cpa.bam.BamCache;
 import proguard.analysis.cpa.bam.BamCacheImpl;
@@ -33,7 +34,8 @@ import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 
 /**
- * This abstract wrapper class constructs a {@link CpaWithBamOperators} based on the intraprocedural {@link ConfigurableProgramAnalysis}, runs it, and returns the {@link ReachedSet}.
+ * This abstract wrapper class constructs a {@link CpaWithBamOperators} based on the intraprocedural {@link ConfigurableProgramAnalysis}, runs it, and returns
+ * the {@link proguard.analysis.cpa.interfaces.ReachedSet}.
  *
  * @author Dmitry Ivanov
  */
@@ -45,21 +47,24 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
     extends CpaRun<BamCpa<CfaNodeT, CfaEdgeT, SignatureT>, AbstractStateT>
 {
 
-    protected final int maxCallStackDepth;
+    private final int maxCallStackDepth;
 
     /**
      * Create a BAM CPA run.
      *
-     * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally.
-     *                          0 means intra-procedural analysis.
-     *                          < 0 means no maximum depth.
+     * @param abortOperator     an abort operator
+     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally
+     *                          0 means intraprocedural analysis
+     *                          < 0 means no maximum depth
      */
-    protected BamCpaRun(int maxCallStackDepth)
+    protected BamCpaRun(AbortOperator abortOperator, int maxCallStackDepth)
     {
+        this.abortOperator = abortOperator;
         this.maxCallStackDepth = maxCallStackDepth;
     }
 
     // implementations for CpaRun
+
 
     @Override
     public BamCpa<CfaNodeT, CfaEdgeT, SignatureT> getCpa()
@@ -72,8 +77,9 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
                                     getCfa(),
                                     getMainSignature(),
                                     createCache(),
-                                    maxCallStackDepth)
-               : cpa;
+                                    getMaxCallStackDepth(),
+                                    abortOperator)
+               : super.getCpa();
     }
 
     /**
@@ -118,7 +124,7 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
     public abstract SignatureT getMainSignature();
 
     /**
-     * Returns the max call stack depth of the BAM algorithm. If negative the maximum call stack depth is unlimited.
+     * Returns the maximal call stack depth. If negative the maximum call stack depth is unlimited.
      */
     public int getMaxCallStackDepth()
     {

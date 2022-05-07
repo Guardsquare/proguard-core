@@ -22,17 +22,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import proguard.classfile.MethodSignature;
-import proguard.analysis.cpa.bam.BamCpa;
-import proguard.analysis.cpa.bam.CpaWithBamOperators;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
@@ -52,6 +51,7 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapFollowerAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapPrincipalAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
+import proguard.classfile.MethodSignature;
 
 /**
  * This run wraps the execution of BAM {@link JvmTaintCpa}.
@@ -71,14 +71,15 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
      * @param cfa                 a CFA
      * @param taintSources        a set of taint sources
      * @param mainMethodSignature the signature of the main method
-     * @param maxCallStackDepth   maximum depth of the call stack analyzed inter-procedurally.
-     *                            0 means intra-procedural analysis.
-     *                            < 0 means no maximum depth.
+     * @param maxCallStackDepth   the maximum depth of the call stack analyzed interprocedurally
+     *                            0 means intraprocedural analysis
+     *                            < 0 means no maximum depth
      * @param heapModel           a heap model to be used
+     * @param abortOperator       an abort operator
      */
-    public JvmTaintBamCpaRun(JvmCfa cfa, Set<TaintSource> taintSources, MethodSignature mainMethodSignature, int maxCallStackDepth, HeapModel heapModel)
+    public JvmTaintBamCpaRun(JvmCfa cfa, Set<TaintSource> taintSources, MethodSignature mainMethodSignature, int maxCallStackDepth, HeapModel heapModel, AbortOperator abortOperator)
     {
-        super(cfa, maxCallStackDepth, heapModel);
+        super(cfa, maxCallStackDepth, heapModel, abortOperator);
         this.taintSources = taintSources;
         this.mainMethodSignature = mainMethodSignature;
     }
@@ -95,7 +96,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
      */
     public JvmTaintBamCpaRun(JvmCfa cfa, Set<TaintSource> taintSources, MethodSignature mainMethodSignature, int maxCallStackDepth)
     {
-        this(cfa, taintSources, mainMethodSignature, maxCallStackDepth, HeapModel.FORGETFUL);
+        this(cfa, taintSources, mainMethodSignature, maxCallStackDepth, HeapModel.FORGETFUL, NeverAbortOperator.INSTANCE);
     }
 
     // implementations for JvmBamCpaRun
@@ -167,24 +168,5 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
             default:
                 throw new IllegalStateException("Invalid heap model: " + heapModel.name());
         }
-    }
-
-    // implementations for BamCpaRun
-
-    @Override
-    public BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> getCpa()
-    {
-        return cpa == null
-               ? heapModel == HeapModel.FORGETFUL
-                 ? super.getCpa()
-                 : new BamCpa<>(new CpaWithBamOperators<>(createIntraproceduralCPA(),
-                                                          createReduceOperator(),
-                                                          createExpandOperator(),
-                                                          createRebuildOperator()),
-                                getCfa(),
-                                getMainSignature(),
-                                createCache(),
-                                maxCallStackDepth)
-               : cpa;
     }
 }

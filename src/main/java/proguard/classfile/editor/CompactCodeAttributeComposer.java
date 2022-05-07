@@ -297,7 +297,14 @@ implements   AttributeVisitor
         }
     }
 
-
+    /**
+     * Box the primitive value present on the stack.
+     *
+     * Operand stack:
+     * ..., primitive -> ..., boxed_primitive
+     *
+     * @param sourceType type of the primitive on the stack.
+     */
     public void boxPrimitiveType(char sourceType)
     {
         // Perform auto-boxing.
@@ -305,50 +312,50 @@ implements   AttributeVisitor
         {
             case TypeConstants.INT:
                 this.invokestatic(NAME_JAVA_LANG_INTEGER,
-                                  "valueOf",
-                                  "(I)Ljava/lang/Integer;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_INT);
                 break;
 
             case TypeConstants.BYTE:
                 this.invokestatic(NAME_JAVA_LANG_BYTE,
-                                  "valueOf",
-                                  "(B)Ljava/lang/Byte;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_BYTE);
                 break;
 
             case TypeConstants.CHAR:
                 this.invokestatic(NAME_JAVA_LANG_CHARACTER,
-                                  "valueOf",
-                                  "(C)Ljava/lang/Character;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_CHAR);
                 break;
 
             case TypeConstants.SHORT:
                 this.invokestatic(NAME_JAVA_LANG_SHORT,
-                                  "valueOf",
-                                  "(S)Ljava/lang/Short;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_SHORT);
                 break;
 
             case TypeConstants.BOOLEAN:
                 this.invokestatic(NAME_JAVA_LANG_BOOLEAN,
-                                  "valueOf",
-                                  "(Z)Ljava/lang/Boolean;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_BOOLEAN);
                 break;
 
             case TypeConstants.LONG:
                 this.invokestatic(NAME_JAVA_LANG_LONG,
-                                  "valueOf",
-                                  "(J)Ljava/lang/Long;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_LONG);
                 break;
 
             case TypeConstants.FLOAT:
                 this.invokestatic(NAME_JAVA_LANG_FLOAT,
-                                  "valueOf",
-                                  "(F)Ljava/lang/Float;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_FLOAT);
                 break;
 
             case TypeConstants.DOUBLE:
                 this.invokestatic(NAME_JAVA_LANG_DOUBLE,
-                                  "valueOf",
-                                  "(D)Ljava/lang/Double;");
+                        METHOD_NAME_VALUEOF,
+                        METHOD_TYPE_VALUE_OF_DOUBLE);
                 break;
         }
     }
@@ -471,6 +478,15 @@ implements   AttributeVisitor
     }
 
 
+    /**
+     * Unbox the object on the stack to a primitive value.
+     *
+     * Operand stack:
+     * ..., boxed_primitive -> ..., primitive
+     *
+     * @param sourceType type of the primitive that should be unboxed.
+     * @param targetType resulting type.
+     */
     public void unboxPrimitiveType(String sourceType, String targetType)
     {
         boolean castRequired = sourceType.equals(TYPE_JAVA_LANG_OBJECT);
@@ -481,11 +497,9 @@ implements   AttributeVisitor
             case TypeConstants.INT:
                 if (castRequired)
                 {
-                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                    this.checkcast(NAME_JAVA_LANG_NUMBER);
                 }
-                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
-                                   "intValue",
-                                   "()I");
+                this.invokevirtual(NAME_JAVA_LANG_NUMBER, METHOD_NAME_INT_VALUE, METHOD_TYPE_INT_VALUE);
                 break;
 
             case TypeConstants.BYTE:
@@ -493,9 +507,7 @@ implements   AttributeVisitor
                 {
                     this.checkcast(NAME_JAVA_LANG_BYTE);
                 }
-                this.invokevirtual(NAME_JAVA_LANG_BYTE,
-                                   "byteValue",
-                                   "()B");
+                this.invokevirtual(NAME_JAVA_LANG_BYTE, METHOD_NAME_BYTE_VALUE, METHOD_TYPE_BYTE_VALUE);
                 break;
 
             case TypeConstants.CHAR:
@@ -503,9 +515,7 @@ implements   AttributeVisitor
                 {
                     this.checkcast(NAME_JAVA_LANG_CHARACTER);
                 }
-                this.invokevirtual(NAME_JAVA_LANG_CHARACTER,
-                                   "charValue",
-                                   "()C");
+                this.invokevirtual(NAME_JAVA_LANG_CHARACTER, METHOD_NAME_CHAR_VALUE, METHOD_TYPE_CHAR_VALUE);
                 break;
 
             case TypeConstants.SHORT:
@@ -513,9 +523,7 @@ implements   AttributeVisitor
                 {
                     this.checkcast(NAME_JAVA_LANG_SHORT);
                 }
-                this.invokevirtual(NAME_JAVA_LANG_SHORT,
-                                   "shortValue",
-                                   "()S");
+                this.invokevirtual(NAME_JAVA_LANG_SHORT, METHOD_NAME_SHORT_VALUE, METHOD_TYPE_SHORT_VALUE);
                 break;
 
             case TypeConstants.BOOLEAN:
@@ -523,39 +531,31 @@ implements   AttributeVisitor
                 {
                     this.checkcast(NAME_JAVA_LANG_BOOLEAN);
                 }
-                this.invokevirtual(NAME_JAVA_LANG_BOOLEAN,
-                                   "booleanValue",
-                                   "()Z");
+                this.invokevirtual(NAME_JAVA_LANG_BOOLEAN, METHOD_NAME_BOOLEAN_VALUE, METHOD_TYPE_BOOLEAN_VALUE);
                 break;
 
             case TypeConstants.LONG:
                 if (castRequired)
                 {
-                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                    this.checkcast(NAME_JAVA_LANG_NUMBER);
                 }
-                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
-                                   "longValue",
-                                   "()J");
+                this.invokevirtual(NAME_JAVA_LANG_NUMBER, METHOD_NAME_LONG_VALUE, METHOD_TYPE_LONG_VALUE);
                 break;
 
             case TypeConstants.FLOAT:
                 if (castRequired)
                 {
-                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                    this.checkcast(NAME_JAVA_LANG_NUMBER);
                 }
-                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
-                                   "floatValue",
-                                   "()F");
+                this.invokevirtual(NAME_JAVA_LANG_NUMBER, METHOD_NAME_FLOAT_VALUE, METHOD_TYPE_FLOAT_VALUE);
                 break;
 
             case TypeConstants.DOUBLE:
                 if (castRequired)
                 {
-                    this.checkcast(ClassConstants.NAME_JAVA_LANG_NUMBER);
+                    this.checkcast(NAME_JAVA_LANG_NUMBER);
                 }
-                this.invokevirtual(ClassConstants.NAME_JAVA_LANG_NUMBER,
-                                   "doubleValue",
-                                   "()D");
+                this.invokevirtual(NAME_JAVA_LANG_NUMBER, METHOD_NAME_DOUBLE_VALUE, METHOD_TYPE_DOUBLE_VALUE);
                 break;
         }
     }

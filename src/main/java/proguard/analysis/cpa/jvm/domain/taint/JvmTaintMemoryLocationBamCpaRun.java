@@ -26,14 +26,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.bam.BamTransferRelation;
 import proguard.analysis.cpa.bam.BlockAbstraction;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.domain.arg.ArgProgramLocationDependentAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
@@ -41,10 +41,12 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationBamCpaRun;
+import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.util.StateNames;
+import proguard.classfile.MethodSignature;
 
 /**
  * This run wraps the execution of BAM {@link JvmMemoryLocationCpa}.
@@ -55,11 +57,11 @@ public class JvmTaintMemoryLocationBamCpaRun
     extends JvmMemoryLocationBamCpaRun<SimpleCpa, TaintAbstractState>
 {
 
-    private final Collection<JvmTaintSink> taintSinks;
-    private       Set<JvmMemoryLocation>   endPoints;
+    private final Collection<? extends JvmTaintSink> taintSinks;
+    private       Set<JvmMemoryLocation>             endPoints;
 
     /**
-     * Create a CPA run with a simple heap model.
+     * Create a traced taint CPA run.
      *
      * @param jvmTaintCpaRun an intraprocedural taint CPA run
      * @param threshold      a cut-off threshold
@@ -67,37 +69,62 @@ public class JvmTaintMemoryLocationBamCpaRun
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmTaintBamCpaRun jvmTaintCpaRun,
                                            TaintAbstractState threshold,
-                                           Collection<JvmTaintSink> taintSinks)
+                                           Collection<? extends JvmTaintSink> taintSinks)
     {
         super(jvmTaintCpaRun, threshold);
         this.taintSinks = taintSinks;
     }
 
     /**
-     * Run the traced analysis and create a CPA run.
+     * Create a traced taint CPA run.
      *
      * @param cfa               a CFA
      * @param taintSources      a set of taint sources
      * @param mainSignature     the main signature of the main method
-     * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally.
-     *                          0 means intra-procedural analysis.
+     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally.
+     *                          0 means intraprocedural analysis.
      *                          < 0 means no maximum depth.
      * @param threshold         a cut-off threshold
      * @param taintSinks        a collection of taint sinks
+     * @param abortOperator     an abort operator
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
-                                           Set<TaintSource> taintSources,
+                                           Set<? extends TaintSource> taintSources,
                                            MethodSignature mainSignature,
                                            int maxCallStackDepth,
                                            HeapModel heapModel,
                                            TaintAbstractState threshold,
-                                           Collection<JvmTaintSink> taintSinks)
+                                           Collection<? extends JvmTaintSink> taintSinks,
+                                           AbortOperator abortOperator)
     {
-        this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth, heapModel), threshold, taintSinks);
+        this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth, heapModel, abortOperator), threshold, taintSinks);
     }
 
     /**
-     * Run the traced analysis and create a CPA run with a simple heap.
+     * Create a traced taint CPA run without premature termination.
+     *
+     * @param cfa               a CFA
+     * @param taintSources      a set of taint sources
+     * @param mainSignature     the main signature of the main method
+     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally.
+     *                          0 means intraprocedural analysis.
+     *                          < 0 means no maximum depth.
+     * @param threshold         a cut-off threshold
+     * @param taintSinks        a collection of taint sinks
+     */
+    public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
+                                           Set<? extends TaintSource> taintSources,
+                                           MethodSignature mainSignature,
+                                           int maxCallStackDepth,
+                                           HeapModel heapModel,
+                                           TaintAbstractState threshold,
+                                           Collection<? extends JvmTaintSink> taintSinks)
+    {
+        this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth, heapModel, NeverAbortOperator.INSTANCE), threshold, taintSinks);
+    }
+
+    /**
+     * Create a traced taint CPA run with a simple heap and no premature termination.
      *
      * @param cfa               a CFA
      * @param taintSources      a set of taint sources
@@ -109,11 +136,11 @@ public class JvmTaintMemoryLocationBamCpaRun
      * @param taintSinks        a collection of taint sinks
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
-                                           Set<TaintSource> taintSources,
+                                           Set<? extends TaintSource> taintSources,
                                            MethodSignature mainSignature,
                                            int maxCallStackDepth,
                                            TaintAbstractState threshold,
-                                           Collection<JvmTaintSink> taintSinks)
+                                           Collection<? extends JvmTaintSink> taintSinks)
     {
         this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth), threshold, taintSinks);
     }

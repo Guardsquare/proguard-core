@@ -19,8 +19,9 @@
 package proguard.analysis.cpa.bam;
 
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
-import proguard.classfile.Signature;
 import proguard.analysis.cpa.defaults.Cfa;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
@@ -28,7 +29,7 @@ import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.StopOperator;
-import proguard.analysis.cpa.interfaces.TransferRelation;
+import proguard.classfile.Signature;
 
 /**
  * A {@link ConfigurableProgramAnalysis} for inter-procedural analysis using block abstraction memoization as described in {@see https://dl.acm.org/doi/pdf/10.1145/3368089.3409718}, which is defined
@@ -57,8 +58,7 @@ public class BamCpa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT ext
      */
     public BamCpa(CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa, Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa, SignatureT mainFunction, BamCache<SignatureT> cache)
     {
-        this.wrappedCpa = wrappedCpa;
-        this.bamTransferRelation = new BamTransferRelation<>(wrappedCpa, cfa, mainFunction, cache);
+        this(wrappedCpa, cfa, mainFunction, cache, -1, NeverAbortOperator.INSTANCE);
     }
 
     /**
@@ -71,11 +71,17 @@ public class BamCpa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT ext
      * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally.
      *                          0 means intra-procedural analysis.
      *                          < 0 means no maximum depth.
+     * @param abortOperator     an abort operator used for computing block abstractions
      */
-    public BamCpa(CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa, Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa, SignatureT mainFunction, BamCache<SignatureT> cache, int maxCallStackDepth)
+    public BamCpa(CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa,
+                  Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa,
+                  SignatureT mainFunction,
+                  BamCache<SignatureT> cache,
+                  int maxCallStackDepth,
+                  AbortOperator abortOperator)
     {
         this.wrappedCpa = wrappedCpa;
-        this.bamTransferRelation = new BamTransferRelation<>(wrappedCpa, cfa, mainFunction, cache, maxCallStackDepth);
+        this.bamTransferRelation = new BamTransferRelation<>(wrappedCpa, cfa, mainFunction, cache, maxCallStackDepth, abortOperator);
     }
 
     /**
@@ -104,7 +110,7 @@ public class BamCpa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT ext
      * Returns the BAM transfer relation, more details in {@link BamTransferRelation}.
      */
     @Override
-    public TransferRelation getTransferRelation()
+    public BamTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> getTransferRelation()
     {
         return bamTransferRelation;
     }

@@ -190,7 +190,7 @@ The possible answer isn't a single value. You can let the evaluation work with
 integer ranges with a RangeValueFactory:
 
     :::java
-    ValueFactory     valueFactory     = new RangeValueFactory();
+    ValueFactory     valueFactory     = new RangeValueFactory(new ArrayReferenceValueFactory(), new BasicValueFactory());
     InvocationUnit   invocationUnit   = new BasicInvocationUnit(valueFactory);
     PartialEvaluator partialEvaluator = new PartialEvaluator(valueFactory,
                                                              invocationUnit,
@@ -468,7 +468,7 @@ If the value of `s` is of interest, this can be retrieved using a `ParticularVal
 
     :::java
     ValueFactory            valueFactory     = new ParticularValueFactory(new BasicValueFactory(), 
-                                                                          new ReferenceValueFactory());
+                                                                          new ParticularValueFactory.ReferenceValueFactory());
     ExecutingInvocationUnit invocationUnit   = new ExecutingInvocationUnit(valueFactory);
     PartialEvaluator        partialEvaluator = new PartialEvaluator(valueFactory, 
                                                                     invocationUnit, 

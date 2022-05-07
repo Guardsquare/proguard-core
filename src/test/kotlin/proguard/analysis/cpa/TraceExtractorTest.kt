@@ -332,7 +332,7 @@ class TraceExtractorTest : FreeSpec({
         )
     }
 
-    "Intermediate calls don't disrupt the trace" - {
+    "Intermediate library calls don't disrupt the trace" - {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -373,6 +373,54 @@ class TraceExtractorTest : FreeSpec({
 
         traces.map { it.toString() }.toSet() shouldBe setOf(
             "[JvmStackLocation(0)@LA;main()V:11, JvmLocalVariableLocation(1)@LA;main()V:10, JvmLocalVariableLocation(1)@LA;main()V:7, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
+        )
+    }
+
+    "Intermediate program calls don't disrupt the trace" - {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                    class A {
+
+                        public void main() {
+                            String s = source1();
+                            foo();
+                            sink(s);
+                        }
+                    
+                        public static void sink(String s)
+                        {
+                        }
+                    
+                        public static String source1()
+                        {
+                            return null;
+                        }
+                        
+                        public static void foo()
+                        {
+                        }
+                    }
+                    """.trimIndent()
+                )
+            ).programClassPool
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val taintMemoryLocationCpaRun = JvmTaintMemoryLocationBamCpaRun(
+            interproceduralCfa,
+            setOf(taintSourceReturn1),
+            mainSignature,
+            -1,
+            TaintAbstractState.bottom,
+            setOf(taintSinkArgument)
+        )
+        val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+        interproceduralCfa.clear()
+
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;main()V:8, JvmLocalVariableLocation(1)@LA;main()V:7, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
         )
     }
 

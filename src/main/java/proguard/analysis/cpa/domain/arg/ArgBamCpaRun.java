@@ -47,20 +47,17 @@ public class ArgBamCpaRun<CpaT extends ConfigurableProgramAnalysis,
 {
 
     protected final BamCpaRun<CpaT, AbstractStateT, CfaNodeT, CfaEdgeT, SignatureT> wrappedBamCpaRun;
-    protected final ArgAbstractStateFactory      argAbstractStateFactory;
+    protected final ArgAbstractStateFactory                                         argAbstractStateFactory;
 
     /**
      * Create an ARG BAM CPA run.
      *
      * @param wrappedBamCpaRun        a BAM CPA run to be wrapped
      * @param argAbstractStateFactory an ARG node factory
-     * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally.
-     *                          0 means intra-procedural analysis.
-     *                          < 0 means no maximum depth.
      */
-    public ArgBamCpaRun(BamCpaRun<CpaT, AbstractStateT, CfaNodeT, CfaEdgeT, SignatureT> wrappedBamCpaRun, ArgAbstractStateFactory argAbstractStateFactory, int maxCallStackDepth)
+    public ArgBamCpaRun(BamCpaRun<CpaT, AbstractStateT, CfaNodeT, CfaEdgeT, SignatureT> wrappedBamCpaRun, ArgAbstractStateFactory argAbstractStateFactory)
     {
-        super(maxCallStackDepth);
+        super(wrappedBamCpaRun.getAbortOperator(), wrappedBamCpaRun.getMaxCallStackDepth());
         this.wrappedBamCpaRun = wrappedBamCpaRun;
         this.argAbstractStateFactory = argAbstractStateFactory;
     }

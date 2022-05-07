@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.defaults.PrecisionAdjustmentResult;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Algorithm;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
@@ -81,15 +82,20 @@ public class CpaAlgorithm
 
     /**
      * Algorithm from the paper is parametrized with the reached set and the waitlist. Thus one can select the start point of the algorithm (e.g., for resuming the analysis).
+     * The {@code abortOperator} determines whether the analysis should end prematurely.
      */
     @Override
-    public void run(ReachedSet reachedSet, Waitlist waitlist)
+    public void run(ReachedSet reachedSet, Waitlist waitlist, AbortOperator abortOperator)
     {
         while (!waitlist.isEmpty())
         {
             AbstractState currentState = waitlist.pop();
             try
             {
+                if (abortOperator.abort(currentState))
+                {
+                    return;
+                }
                 Precision                 currentPrecision          = currentState.getPrecision();
                 PrecisionAdjustmentResult precisionAdjustmentResult = precisionAdjustment.prec(currentState, currentPrecision, reachedSet.getReached(currentState));
                 currentState = precisionAdjustmentResult.getAbstractState();
