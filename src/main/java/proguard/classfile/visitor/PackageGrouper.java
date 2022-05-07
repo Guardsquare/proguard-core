@@ -25,7 +25,8 @@ public class PackageGrouper implements ClassVisitor {
         // String classPackageName = ClassUtil.internalPackageName(clazz.getName());
         if (!packageClassPools.containsKey(classPackageName))
         {
-            logger.info("New package found: {}", classPackageName);
+            logger.info("New package found: {}",
+                        ClassUtil.externalPackageName(ClassUtil.externalClassName(clazz.getName())));
             packageClassPools.put(classPackageName, new ClassPool());
         }
         packageClassPools.get(classPackageName).addClass(clazz);
