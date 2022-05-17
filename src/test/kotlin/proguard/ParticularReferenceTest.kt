@@ -13,15 +13,22 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import java.io.PrintWriter
+import java.io.StringWriter
 import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.ProgramClass
 import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.util.ClassUtil
+import proguard.classfile.visitor.ClassPrinter
 import proguard.evaluation.value.IdentifiedReferenceValue
+import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.util.MethodWithStack
 import proguard.util.PartialEvaluatorHelper
+import testutils.AssemblerSource
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 
@@ -659,6 +666,72 @@ class ParticularReferenceTest : FreeSpec({
                     ""
                 )
             }
+        }
+    }
+
+    "Load primitive value from static final field" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            AssemblerSource(
+                "A.jbc",
+                """
+                    version 1.8;
+                    public class A extends java.lang.Object [
+                        SourceFile "A.java";
+                        ] 
+                    {
+                        public static final int answer = 42;
+            
+                        public static void staticfield() 
+                        {
+                            getstatic java.lang.System#java.io.PrintStream out
+                            getstatic A#int answer
+                            invokevirtual java.io.PrintStream#void println(java.lang.String)
+                            return
+                        }
+                    }
+                """.trimIndent()
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool)
+
+        "getstatic loaded int parameter" {
+            val value = invocationsWithStack[6]!!.stack[0]
+            value.shouldBeInstanceOf<ParticularIntegerValue>()
+            value.value() shouldNotBe null
+            value.value() shouldBe 42
+        }
+    }
+
+    "Load reference value from static final field" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            AssemblerSource(
+                "A.jbc",
+                """
+                    version 1.8;
+                    public class A extends java.lang.Object [
+                        SourceFile "A.java";
+                        ] 
+                    {
+                        public static final java.lang.String answer = "42";
+            
+                        public static void staticfield() 
+                        {
+                            getstatic java.lang.System#java.io.PrintStream out
+                            getstatic A#java.lang.String answer
+                            invokevirtual java.io.PrintStream#void println(java.lang.String)
+                            return
+                        }
+                    }
+                """.trimIndent()
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool)
+
+        "getstatic loaded String parameter" {
+            checkExpectedValueParticularReferenceValue(invocationsWithStack, 6, 0, "42")
+            (invocationsWithStack[6]!!.stack[0] as ParticularReferenceValue).referencedClass.name shouldBe "java/lang/String"
         }
     }
 })

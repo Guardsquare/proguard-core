@@ -18,22 +18,33 @@
 
 package proguard.evaluation;
 
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
+import static proguard.classfile.AccessConstants.*;
+import static proguard.classfile.ClassConstants.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
-import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
+import proguard.classfile.Field;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryMethod;
 import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.TypeConstants;
+import proguard.classfile.attribute.ConstantValueAttribute;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.AnyMethodrefConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.DoubleConstant;
+import proguard.classfile.constant.FieldrefConstant;
+import proguard.classfile.constant.FloatConstant;
+import proguard.classfile.constant.IntegerConstant;
+import proguard.classfile.constant.LongConstant;
+import proguard.classfile.constant.StringConstant;
+import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.ClassUtil;
+import proguard.classfile.visitor.MemberAccessFilter;
 import proguard.classfile.visitor.MemberVisitor;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
@@ -158,6 +169,84 @@ public class ExecutingInvocationUnit
         }
     }
 
+
+    @Override
+    public Value getFieldValue(Clazz clazz, FieldrefConstant fieldrefConstant, String type)
+    {
+        // get value from static final fields
+        FieldValueGetterVisitor constantVisitor = new FieldValueGetterVisitor();
+        fieldrefConstant.referencedFieldAccept(
+            new MemberAccessFilter(STATIC | FINAL, 0, constantVisitor)
+        );
+        return constantVisitor.value == null ? super.getFieldValue(clazz, fieldrefConstant, type) : constantVisitor.value;
+    }
+
+    private class FieldValueGetterVisitor
+        implements MemberVisitor,
+                   AttributeVisitor,
+                   ConstantVisitor
+    {
+        Value value = null;
+        private ProgramField currentField;
+
+        @Override
+        public void visitAnyMember(Clazz clazz, Member member)
+        {
+        }
+
+        @Override
+        public void visitProgramField(ProgramClass programClass, ProgramField programField)
+        {
+            this.currentField = programField;
+            programField.attributesAccept(programClass, this);
+        }
+
+        @Override
+        public void visitAnyConstant(Clazz clazz, Constant constant)
+        {
+        }
+
+        @Override
+        public void visitConstantValueAttribute(Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute)
+        {
+            clazz.constantPoolEntryAccept(constantValueAttribute.u2constantValueIndex, this);
+        }
+
+        @Override
+        public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant)
+        {
+            value = valueFactory.createIntegerValue(integerConstant.getValue());
+        }
+
+        @Override
+        public void visitFloatConstant(Clazz clazz, FloatConstant floatConstant)
+        {
+            value = valueFactory.createFloatValue(floatConstant.getValue());
+        }
+
+        @Override
+        public void visitDoubleConstant(Clazz clazz, DoubleConstant doubleConstant)
+        {
+            value = valueFactory.createDoubleValue(doubleConstant.getValue());
+        }
+
+        @Override
+        public void visitLongConstant(Clazz clazz, LongConstant longConstant)
+        {
+            value = valueFactory.createLongValue(longConstant.getValue());
+        }
+
+        @Override
+        public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
+        {
+            value = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING,
+                                                      currentField.referencedClass,
+                                                      false,
+                                                      false,
+                                                      stringConstant.getString(clazz));
+        }
+    }
+
     // private methods
 
     /**
@@ -218,7 +307,7 @@ public class ExecutingInvocationUnit
                 parameterObjects[i - paramOffset] = ReflectiveMethodCallUtil.getObjectForValue(parameter[i], parameterClasses[i - paramOffset]);
             }
 
-            if (methodName.equals(ClassConstants.METHOD_NAME_INIT)) //CTOR
+            if (methodName.equals(METHOD_NAME_INIT)) //CTOR
             {
                 methodResult = ReflectiveMethodCallUtil.callConstructor(baseClassName.replace('/', '.'),
                                                                         parameterClasses,
@@ -286,7 +375,7 @@ public class ExecutingInvocationUnit
         }
         // the referencedClass could be any Type. We do not have a reference to that class at this point.
         return valueFactory.createReferenceValue(returnType,
-                                                 getReferencedClass(anyMethodrefConstant, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
+                                                 getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
                                                  resultMayBeExtension,
                                                  resultMayBeNull,
                                                  methodResult);
@@ -330,9 +419,9 @@ public class ExecutingInvocationUnit
     {
         switch (baseClassName)
         {
-            case ClassConstants.NAME_JAVA_LANG_STRING_BUILDER:
-            case ClassConstants.NAME_JAVA_LANG_STRING_BUFFER:
-            case ClassConstants.NAME_JAVA_LANG_STRING:
+            case NAME_JAVA_LANG_STRING_BUILDER:
+            case NAME_JAVA_LANG_STRING_BUFFER:
+            case NAME_JAVA_LANG_STRING:
                 return true;
             default:
                 return false;
@@ -434,12 +523,8 @@ public class ExecutingInvocationUnit
      */
     private static boolean alwaysModifiesInstance(String clazzName, String methodName)
     {
-        if (methodName.equals(ClassConstants.METHOD_NAME_INIT))
-        {
-            // The constructor always modifies the instance.
-            return true;
-        }
-        return false;
+        // The constructor always modifies the instance.
+        return methodName.equals(METHOD_NAME_INIT);
     }
 
     /**
@@ -487,7 +572,7 @@ public class ExecutingInvocationUnit
                 updateValue = valueFactory.createValue((returnType.charAt(0) == TypeConstants.VOID) ?
                                                            ClassUtil.internalTypeFromClassName(baseClassName) :
                                                            returnType,
-                                                       getReferencedClass(anyMethodrefConstant, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
+                                                       getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
                                                        true,
                                                        true);
             }

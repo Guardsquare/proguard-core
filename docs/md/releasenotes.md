@@ -1,5 +1,9 @@
 ## Version 9.0.1
 
+### Improved
+
+- `ExecutingInvocationUnit` now loads values from static final fields.
+
 ### Bug fixes
 
 - `ParticularReferenceValue` sanity checks now take inheritance into consideration, improving call analysis. (`T15197`)
