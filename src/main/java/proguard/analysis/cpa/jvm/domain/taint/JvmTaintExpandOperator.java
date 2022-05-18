@@ -85,13 +85,19 @@ public class JvmTaintExpandOperator
 
         TaintAbstractState answerContent = new TaintAbstractState();
         answerContent.add(detectedSource);
-        for (int i = 0; i < returnInstruction.stackPopCount(null); i++)
+        int returnSize = returnInstruction.stackPopCount(null);
+        for (int i = 0; i < returnSize; i++)
         {
             TaintAbstractState returnByte = ((JvmAbstractState<TaintAbstractState>) reducedExitState).peek(i);
             answerContent = answerContent.join(returnByte);
         }
 
-        for (int i = returnInstruction.stackPopCount(null); i > 0; i--)
+        // pad to meet the return type size and append the abstract state
+        for (int i = returnSize; i > 1; i--)
+        {
+            returnValues.add(TaintAbstractState.bottom);
+        }
+        if (returnSize > 0)
         {
             returnValues.add(answerContent);
         }
