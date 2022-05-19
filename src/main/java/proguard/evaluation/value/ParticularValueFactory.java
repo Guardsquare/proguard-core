@@ -208,7 +208,7 @@ implements   ValueFactory
                                                    boolean mayBeExtension,
                                                    boolean mayBeNull)
         {
-            return new IdentifiedReferenceValue(cleanType(type), referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
+            return new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
         }
 
         @Override
@@ -218,13 +218,7 @@ implements   ValueFactory
                                                    boolean mayBeNull,
                                                    Object value)
         {
-            return new ParticularReferenceValue(cleanType(type), referencedClass, this, referenceID++, value);
-        }
-
-        // Temporary fix for wrong type format bug until a more general solution is developed.
-        private String cleanType(String type)
-        {
-            return type.endsWith(";") ? type : ClassUtil.internalTypeFromClassType(type);
+            return new ParticularReferenceValue(type, referencedClass, this, referenceID++, value);
         }
     }
 }

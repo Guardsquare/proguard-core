@@ -28,7 +28,7 @@ import proguard.classfile.Clazz;
 /**
  * This {@link TypedReferenceValue} can have multiple potential types during runtime.
  * E.g. when evaluating <code>SuperClass s = someFlag ? new A() : new B()</code>,
- * s may be of type A or B.
+ * s may be of type LA; or LB;.
  *
  * @author Samuel Hopstock
  */
@@ -36,12 +36,12 @@ public class MultiTypedReferenceValue extends ReferenceValue
 {
 
     /**
-     * All types that this reference value might possibly have, e.g. {A, B}
+     * All types that this reference value might possibly have, e.g. {LA;, LB;}
      */
     private final Set<TypedReferenceValue> potentialTypes = new HashSet<>();
     /**
      * The most specific supertype of all potential types, calculated by {@link #generalize(Set)}
-     * e.g. S for potential types {A, B} if both A and B extend S
+     * e.g. LS; for potential types {LA;, LB;} if both LA; and LB; extend LS;
      */
     private final TypedReferenceValue      generalizedType;
     public final  boolean                  mayBeUnknown;

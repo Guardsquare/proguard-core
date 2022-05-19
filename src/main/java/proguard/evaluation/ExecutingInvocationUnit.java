@@ -121,7 +121,7 @@ public class ExecutingInvocationUnit
 
         if (!isSupportedMethodCall(baseClassName))
         {
-            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, returnType, false), true, true);
+            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, false), true, true);
         }
 
         Value reflectedReturnValue = handleMethodCall(clazz, anyMethodrefConstant, returnType, parameters, isStatic);
@@ -136,7 +136,7 @@ public class ExecutingInvocationUnit
         else if (reflectedReturnValue == null)
         {
             // The reflective call failed. Create a simple new Value of the correct type.
-            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, returnType, false), true, true);
+            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, false), true, true);
         }
         else
         {
@@ -230,16 +230,10 @@ public class ExecutingInvocationUnit
             }
             else // non-constructor method call.
             {
-                String className;
-                Object callingInstance = null; // correct for static.
-                if (isStatic)
-                {
-                    className = baseClassName.replace('/', '.');
-                }
-                else
+                Object callingInstance = null; // correct for static
+                if (!isStatic)
                 {
                     ReferenceValue instance = parameter[0].referenceValue();
-                    className = ClassUtil.externalClassName(ClassUtil.internalClassNameFromClassType(instance.getType()));
 
                     switch (baseClassName)
                     {
@@ -255,7 +249,7 @@ public class ExecutingInvocationUnit
                             break;
                     }
                 }
-                methodResult = ReflectiveMethodCallUtil.callMethod(className, methodName, callingInstance, parameterClasses, parameterObjects);
+                methodResult = ReflectiveMethodCallUtil.callMethod(ClassUtil.externalClassName(baseClassName), methodName, callingInstance, parameterClasses, parameterObjects);
             }
         }
         catch (NullPointerException | InvocationTargetException e)
@@ -291,8 +285,8 @@ public class ExecutingInvocationUnit
             returnType = parameter[0].referenceValue().getType();
         }
         // the referencedClass could be any Type. We do not have a reference to that class at this point.
-        return valueFactory.createReferenceValue(ClassUtil.internalClassNameFromClassType(returnType),
-                                                 getReferencedClass(anyMethodrefConstant, returnType, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
+        return valueFactory.createReferenceValue(returnType,
+                                                 getReferencedClass(anyMethodrefConstant, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
                                                  resultMayBeExtension,
                                                  resultMayBeNull,
                                                  methodResult);
@@ -493,7 +487,7 @@ public class ExecutingInvocationUnit
                 updateValue = valueFactory.createValue((returnType.charAt(0) == TypeConstants.VOID) ?
                                                            ClassUtil.internalTypeFromClassName(baseClassName) :
                                                            returnType,
-                                                       getReferencedClass(anyMethodrefConstant, returnType, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
+                                                       getReferencedClass(anyMethodrefConstant, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
                                                        true,
                                                        true);
             }
@@ -508,21 +502,17 @@ public class ExecutingInvocationUnit
      * For a Constructor, we always return a type, even if the return type of the method would be void. This is required,
      * since we need to handle constructors differently in general (see Javadoc).
      */
-    private Clazz getReferencedClass(AnyMethodrefConstant anyMethodrefConstant, String returnType, boolean isCtor)
+    private Clazz getReferencedClass(AnyMethodrefConstant anyMethodrefConstant, boolean isCtor)
     {
-        if (returnType.charAt(0) == TypeConstants.CLASS_START)
+        if (isCtor)
         {
-            if (isCtor)
-            {
-                return anyMethodrefConstant.referencedClass; // this is the class of "this", i.e., the type of this constructor.
-            }
-
-            // extract the class from the referenced classes
-            ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
-            anyMethodrefConstant.referencedMethodAccept(returnClassExtractor);
-            return returnClassExtractor.returnClass; // can be null
+            return anyMethodrefConstant.referencedClass; // this is the class of "this", i.e., the type of this constructor.
         }
-        return null;
+
+        // extract the class from the referenced classes
+        ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
+        anyMethodrefConstant.referencedMethodAccept(returnClassExtractor);
+        return returnClassExtractor.returnClass; // can be null
     }
 
     /**
@@ -543,13 +533,19 @@ public class ExecutingInvocationUnit
         @Override
         public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
         {
-            this.returnClass = programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
+            if (programMethod.referencedClasses != null)
+            {
+                this.returnClass = programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
+            }
         }
 
         @Override
         public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
         {
-            this.returnClass = libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
+            if (libraryMethod.referencedClasses != null)
+            {
+                this.returnClass = libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
+            }
         }
     }
 }

@@ -100,7 +100,7 @@ public class MultiTypedReferenceValueFactory extends TypedReferenceValueFactory
 
     @Override
     public Value createValue(String  type,
-                             Clazz referencedClass,
+                             Clazz   referencedClass,
                              boolean mayBeExtension,
                              boolean mayBeNull)
     {
@@ -116,14 +116,14 @@ public class MultiTypedReferenceValueFactory extends TypedReferenceValueFactory
             for (TypedReferenceValue t : multiTypedRet.getPotentialTypes())
             {
                 // do not add subclasses as possible types if there is java/lang/Object in possible types
-                if (t.type.equals(ClassConstants.NAME_JAVA_LANG_OBJECT))
+                if (t.type.equals(ClassConstants.TYPE_JAVA_LANG_OBJECT))
                 {
                     return ret;
                 }
-                Clazz realReferencedClass = programClassPool.getClass(t.type);
+                Clazz realReferencedClass = programClassPool.getClass(ClassUtil.internalClassNameFromClassType(t.type));
                 if (realReferencedClass == null)
                 {
-                    realReferencedClass = libraryClassPool.getClass(t.type);
+                    realReferencedClass = libraryClassPool.getClass(ClassUtil.internalClassNameFromClassType(t.type));
                 }
                 if (realReferencedClass == null)
                 {
@@ -133,7 +133,7 @@ public class MultiTypedReferenceValueFactory extends TypedReferenceValueFactory
             }
 
             Set<TypedReferenceValue> possibleTypes = subClasses.stream()
-                                                               .map(cls -> new TypedReferenceValue(cls.getName(),
+                                                               .map(cls -> new TypedReferenceValue(ClassUtil.internalTypeFromClassName(cls.getName()),
                                                                                                    cls,
                                                                                                    mayBeExtension,
                                                                                                    mayBeNull))

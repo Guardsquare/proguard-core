@@ -88,7 +88,7 @@ implements   ConstantVisitor
 
     public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
     {
-        value = valueFactory.createReferenceValue(ClassConstants.NAME_JAVA_LANG_STRING,
+        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_STRING,
                                                   stringConstant.javaLangStringClass,
                                                   false,
                                                   false,
@@ -116,7 +116,7 @@ implements   ConstantVisitor
 
     public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant)
     {
-        value = valueFactory.createReferenceValue(ClassConstants.NAME_JAVA_LANG_INVOKE_METHOD_HANDLE,
+        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT,
                                                   methodHandleConstant.javaLangInvokeMethodHandleClass,
                                                   false,
                                                   false);
@@ -124,7 +124,7 @@ implements   ConstantVisitor
 
     public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
     {
-        value = valueFactory.createReferenceValue(classConstant.getName(clazz),
+        value = valueFactory.createReferenceValue(ClassUtil.internalTypeFromClassType(classConstant.getName(clazz)),
                                                   classConstant.referencedClass,
                                                   false,
                                                   false);
@@ -133,7 +133,7 @@ implements   ConstantVisitor
 
     public void visitMethodTypeConstant(Clazz clazz, MethodTypeConstant methodTypeConstant)
     {
-        value = valueFactory.createReferenceValue(ClassConstants.NAME_JAVA_LANG_INVOKE_METHOD_TYPE,
+        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_INVOKE_METHOD_TYPE,
                                                   methodTypeConstant.javaLangInvokeMethodTypeClass,
                                                   false,
                                                   false);

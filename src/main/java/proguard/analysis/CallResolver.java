@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import proguard.analysis.CallResolver.Metrics.MetricType;
+import proguard.analysis.Metrics.MetricType;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.analysis.datastructure.Location;
 import proguard.analysis.datastructure.callgraph.Call;
@@ -704,11 +704,11 @@ implements   AttributeVisitor,
                     // In this case we should try to look it up manually in both class pools.
                     if (referencedClass == null)
                     {
-                        referencedClass = programClassPool.getClass(possibleType.getType());
+                        referencedClass = programClassPool.getClass(ClassUtil.internalClassNameFromClassType(possibleType.getType()));
                     }
                     if (referencedClass == null)
                     {
-                        referencedClass = libraryClassPool.getClass(possibleType.getType());
+                        referencedClass = libraryClassPool.getClass(ClassUtil.internalClassNameFromClassType(possibleType.getType()));
                     }
                 }
 
@@ -727,7 +727,7 @@ implements   AttributeVisitor,
                         Metrics.increaseCount(MetricType.MISSING_METHODS);
                         log.debug("Missing method {}", ref.getClassName(location.clazz));
                     }
-                    targetClasses = Collections.singleton(possibleType.getType());
+                    targetClasses = Collections.singleton(ClassUtil.internalClassNameFromClassType(possibleType.getType()));
                 }
 
                 for (String targetClass : targetClasses)
@@ -972,47 +972,4 @@ implements   AttributeVisitor,
         }
     }
 
-    /**
-     * Utility to collect statistical information about the call resolution process.
-     */
-    public static class Metrics
-    {
-
-        /**
-         * Constants which are used as metric types.
-         */
-        public enum MetricType
-        {
-            MISSING_CLASS,
-            MISSING_METHODS,
-            UNSUPPORTED_OPCODE,
-            PARTIAL_EVALUATOR_EXCEPTION,
-            PARTIAL_EVALUATOR_VALUE_IMPRECISE,
-            SYMBOLIC_CALL,
-            CONCRETE_CALL,
-            CALL_TO_ABSTRACT_METHOD
-        }
-
-        public static final Map<MetricType, Integer> counts = new TreeMap<>();
-
-        public static void increaseCount(MetricType type)
-        {
-            counts.merge(type, 1, Integer::sum);
-        }
-
-        /**
-         * Get all collected data as a string and clear it afterwards.
-         */
-        public static String flush()
-        {
-            StringBuilder result = new StringBuilder("Call resolver Metrics:\n");
-
-            counts.forEach((type, count) -> result.append(type.name())
-                                                  .append(": ")
-                                                  .append(count)
-                                                  .append("\n"));
-            counts.clear();
-            return result.toString();
-        }
-    }
 }

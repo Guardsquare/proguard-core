@@ -605,12 +605,12 @@ implements   ClassVisitor,
     @Override
     public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
     {
-        String name = recordComponentInfo.getName(clazz);
-        String type = recordComponentInfo.getDescriptor(clazz);
+        String name       = recordComponentInfo.getName(clazz);
+        String descriptor = recordComponentInfo.getDescriptor(clazz);
 
         recordComponentInfo.referencedField = memberFinder.findField(clazz,
                                                                      name,
-                                                                     type);
+                                                                     descriptor);
 
         // Initialize the attributes.
         recordComponentInfo.attributesAccept(clazz, this);

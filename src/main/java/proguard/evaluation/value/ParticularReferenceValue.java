@@ -34,7 +34,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
 {
 
     // The actual value of the object.
-    private final   Object value;
+    private final Object value;
 
     /**
      * Create a new Instance with the given type, the class it is referenced in, and its actual value.

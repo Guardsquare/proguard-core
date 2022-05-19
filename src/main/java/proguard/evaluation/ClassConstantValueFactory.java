@@ -42,7 +42,7 @@ extends      ConstantValueFactory
     public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
     {
         // Create a Class reference instead of a reference to the class.
-        value = valueFactory.createReferenceValue(ClassConstants.NAME_JAVA_LANG_CLASS,
+        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT,
                                                   classConstant.javaLangClassClass,
                                                   false,
                                                   false);
