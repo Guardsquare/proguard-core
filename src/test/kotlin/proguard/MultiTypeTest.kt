@@ -9,16 +9,6 @@ package proguard
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import proguard.classfile.ClassPool
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.ProgramClass
-import proguard.classfile.ProgramMethod
-import proguard.classfile.attribute.Attribute
-import proguard.classfile.attribute.CodeAttribute
-import proguard.classfile.attribute.LocalVariableTableAttribute
-import proguard.classfile.instruction.Instruction
-import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.value.MultiTypedReferenceValue

@@ -27,7 +27,6 @@ import proguard.classfile.attribute.preverification.visitor.VerificationTypeVisi
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.visitor.AllMethodVisitor
-import proguard.classfile.visitor.ClassPrinter
 import proguard.classfile.visitor.MemberVisitor
 import proguard.preverify.CodePreverifier
 import testutils.ClassPoolBuilder
