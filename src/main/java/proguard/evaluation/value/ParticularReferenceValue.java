@@ -59,7 +59,8 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
                 false,
                 false,
                 true,
-                new ClassNameFilter(ClassUtil.internalClassName(value.getClass().getCanonicalName()), counter)
+                // need to split type to handle reference arrays
+                new ClassNameFilter(ClassUtil.internalClassName(ClassUtil.externalBaseType(value.getClass().getCanonicalName())), counter)
             );
         }
         boolean isExtended = counter.getCount() > 0;

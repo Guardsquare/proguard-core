@@ -32,6 +32,7 @@ import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.TypeConstants;
+import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.ConstantValueAttribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.AnyMethodrefConstant;
@@ -189,6 +190,8 @@ public class ExecutingInvocationUnit
         Value value = null;
         private ProgramField currentField;
 
+        // Implementations for MemberVisitor
+
         @Override
         public void visitAnyMember(Clazz clazz, Member member)
         {
@@ -201,15 +204,25 @@ public class ExecutingInvocationUnit
             programField.attributesAccept(programClass, this);
         }
 
+        // Implementations for AttributeVisitor
+
         @Override
-        public void visitAnyConstant(Clazz clazz, Constant constant)
+        public void visitAnyAttribute(Clazz clazz, Attribute attribute)
         {
         }
+
 
         @Override
         public void visitConstantValueAttribute(Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute)
         {
             clazz.constantPoolEntryAccept(constantValueAttribute.u2constantValueIndex, this);
+        }
+
+        // Implementations for ConstantVisitor
+
+        @Override
+        public void visitAnyConstant(Clazz clazz, Constant constant)
+        {
         }
 
         @Override
@@ -375,7 +388,11 @@ public class ExecutingInvocationUnit
         }
         // the referencedClass could be any Type. We do not have a reference to that class at this point.
         return valueFactory.createReferenceValue(returnType,
-                                                 getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
+                                                 // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
+                                                 // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
+                                                 ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
+                                                    ? null
+                                                    : getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
                                                  resultMayBeExtension,
                                                  resultMayBeNull,
                                                  methodResult);

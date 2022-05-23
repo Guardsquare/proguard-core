@@ -6,6 +6,7 @@
 
 ### Bug fixes
 
+- Fix wrong handling of array types in `ExecutingIvocationUnit` and `ParticularReferenceValue`.
 - `ParticularReferenceValue` sanity checks now take inheritance into consideration, improving call analysis. (`T15197`)
 - Prevent missing semicolon leading to an infinite loop in `ClassUtil#internalMethodParameterCount`.
 - Make category 2 CPA taint sources affect only the most significant byte abstract state.

@@ -734,13 +734,65 @@ class ParticularReferenceTest : FreeSpec({
             (invocationsWithStack[6]!!.stack[0] as ParticularReferenceValue).referencedClass.name shouldBe "java/lang/String"
         }
     }
+
+    "String function returning reference array " - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                class A {
+                    public void functions()
+                    {
+                        String str = "42-43";
+                        String[] arr = str.split("-");
+                        System.out.println(arr);
+                    }
+                }
+                """
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+
+        "String array evaluated correctly" {
+            val value = invocationsWithStack[14]!!.stack[0]
+            value.shouldBeInstanceOf<ParticularReferenceValue>()
+            value.type shouldBe "[Ljava/lang/String;"
+            value.value() shouldBe arrayOf("42", "43")
+        }
+    }
+
+    "String function returning primitive array " - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                class A {
+                    public void functions() throws java.io.UnsupportedEncodingException
+                    {
+                        String str = "42";
+                        byte[] arr = str.getBytes("UTF-8");
+                        System.out.println(arr);
+                    }
+                }
+                """
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+
+        "Primitive array evaluated correctly" {
+            val value = invocationsWithStack[14]!!.stack[0]
+            value.shouldBeInstanceOf<ParticularReferenceValue>()
+            value.type shouldBe "[B"
+            value.value() shouldBe arrayOf(52.toByte(), 50.toByte())
+        }
+    }
 })
 
 fun checkExpectedValueParticularReferenceValue(invocationsWithStack: HashMap<Int, MethodWithStack>, instructionOffset: Int, stackPositionFromTop: Int, expected: String?): ParticularReferenceValue {
     val value = invocationsWithStack[instructionOffset]!!.stack[stackPositionFromTop]
-    if (value !is ParticularReferenceValue) {
-        throw AssertionError("Unexpected type: " + value.javaClass.simpleName)
-    }
+    value.shouldBeInstanceOf<ParticularReferenceValue>()
     if (expected != null) {
         value.value() shouldNotBe null
         value.value().toString() shouldBe expected
