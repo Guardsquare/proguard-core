@@ -171,7 +171,7 @@ public class ClassConstants
     public static final String METHOD_TYPE_LOAD                             = "(Ljava/lang/String;)V";
     public static final String METHOD_TYPE_LOAD2                            = "(Ljava/lang/String;Ljava/lang/ClassLoader;)V";
     public static final String METHOD_NAME_NATIVE_LOAD                      = "nativeLoad";
-    public static final String METHOD_TYPE_NATIVE_LOAD                      = "(Ljava/lang/String;Ljava/lang/ClassLoader;)V";
+    public static final String METHOD_TYPE_NATIVE_LOAD                      = "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/String;";
     public static final String METHOD_NAME_MAP_LIBRARY_NAME                 = "mapLibraryName";
     public static final String METHOD_TYPE_MAP_LIBRARY_NAME                 = "(Ljava/lang/String;)Ljava/lang/String;";
     public static final String METHOD_NAME_GET_RUNTIME                      = "getRuntime";
