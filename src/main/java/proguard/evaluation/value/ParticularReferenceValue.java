@@ -59,7 +59,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
                 false,
                 false,
                 true,
-                // need to split type to handle reference arrays
+                // if the value is an array check the inheritance for the referenced type
                 new ClassNameFilter(ClassUtil.internalClassName(ClassUtil.externalBaseType(value.getClass().getCanonicalName())), counter)
             );
         }

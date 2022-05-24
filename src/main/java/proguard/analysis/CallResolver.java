@@ -48,6 +48,7 @@ import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.LineNumberFinder;
 import proguard.classfile.visitor.MultiClassVisitor;
 import proguard.evaluation.BasicInvocationUnit;
+import proguard.evaluation.ExcessiveComplexityException;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.InvocationUnit;
 import proguard.evaluation.PartialEvaluator;
@@ -231,7 +232,14 @@ implements   AttributeVisitor,
         }
         catch (Exception e)
         {
-            Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
+            if (e instanceof ExcessiveComplexityException)
+            {
+                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCESSIVE_COMPLEXITY);
+            }
+            else
+            {
+                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
+            }
             log.debug("Exception during evaluating types", e);
         }
 
@@ -244,7 +252,14 @@ implements   AttributeVisitor,
         }
         catch (Exception e)
         {
-            Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
+            if (e instanceof ExcessiveComplexityException)
+            {
+                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCESSIVE_COMPLEXITY);
+            }
+            else
+            {
+                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
+            }
             log.debug("Exception during evaluating values", e);
         }
 
