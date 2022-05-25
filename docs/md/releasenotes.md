@@ -14,6 +14,7 @@
 - Make category 2 CPA taint sources affect only the most significant byte abstract state.
 - Fix inconsistent usage of type names in the context of the `PartialEvaluator` that could result in
   trying to create an internal type string from a string that was already an internal type. (`T15513`)
+- Fix initialization of Kotlin callable references when using `-Xno-optimized-callable-references` compiler option. (`T16486`)
   
 ### Upgrade considerations
 ####TYPE NAME CONVENTION
