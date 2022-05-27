@@ -14,14 +14,10 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import java.io.PrintWriter
-import java.io.StringWriter
 import proguard.classfile.AccessConstants.PUBLIC
-import proguard.classfile.ProgramClass
 import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.util.ClassUtil
-import proguard.classfile.visitor.ClassPrinter
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularReferenceValue
