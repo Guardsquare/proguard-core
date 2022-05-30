@@ -19,13 +19,16 @@
 package proguard.analysis.cpa.jvm.util;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 import proguard.analysis.CallResolver;
 import proguard.analysis.cpa.defaults.Cfa;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
 import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
 import proguard.classfile.LibraryClass;
+import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.CodeAttribute;
@@ -49,8 +52,30 @@ public class CfaUtil
      */
     public static JvmCfa createIntraproceduralCfaFromClassPool(ClassPool programClassPool)
     {
+        return createIntraproceduralCfaFromClassPool(programClassPool, () -> true);
+    }
+
+    /**
+     * Returns a CFA for the given program class pool. Allows to limit the number of processed code attributes with {@code shouldAnalyzeNextCodeAttribute}.
+     *
+     * @param programClassPool a program class pool
+     */
+    public static JvmCfa createIntraproceduralCfaFromClassPool(ClassPool programClassPool, Supplier<Boolean> shouldAnalyzeNextCodeAttribute)
+    {
         JvmCfa cfa = new JvmCfa();
-        programClassPool.classesAccept(new AllMethodVisitor(new AllAttributeVisitor(new JvmIntraproceduralCfaFillerAllInstructionVisitor(cfa))));
+        programClassPool.classesAccept(new AllMethodVisitor(new AllAttributeVisitor(new JvmIntraproceduralCfaFillerAllInstructionVisitor(cfa)
+        {
+            @Override
+            public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
+            {
+                // Check whether this code attribute should be analyzed
+                if (!shouldAnalyzeNextCodeAttribute.get())
+                {
+                    return;
+                }
+                super.visitCodeAttribute(clazz, method, codeAttribute);
+            }
+        })));
         return cfa;
     }
 
