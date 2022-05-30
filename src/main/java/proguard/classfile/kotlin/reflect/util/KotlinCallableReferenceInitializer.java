@@ -401,7 +401,8 @@ implements   KotlinMetadataVisitor
         @Override
         public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
         {
-            if (currentMethod.equals(REFLECTION.GETOWNER_METHOD_NAME + REFLECTION.GETOWNER_METHOD_DESC))
+            if (currentMethod.equals(REFLECTION.GETOWNER_METHOD_NAME + REFLECTION.GETOWNER_METHOD_DESC) &&
+                result.callableOwnerClass == null)
             {
                 // There is a class ref (+ possibly a string for the module name but that's not required
                 // because we know the module from the Kotlin class).
