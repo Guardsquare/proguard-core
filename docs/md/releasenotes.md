@@ -5,6 +5,7 @@
 - `ExecutingInvocationUnit` now loads values from static final fields.
 - Initialize Kotlin lambda method references when the JVM method name is `<anonymous>`. (`T16483`)
 - Add the possibility of limiting the number of `CodeAttributes` contributing into CFA.
+- Add the possibility of limiting the number of `CodeAttributes` considered by the `CallResolver`.
 
 ### Bug fixes
 

@@ -20,6 +20,7 @@ package proguard.analysis;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -119,41 +120,44 @@ implements   AttributeVisitor,
      */
     private final        PartialEvaluator                             multiTypeValueEvaluator;
     private              boolean                                      multiTypeEvaluationSuccessful;
+    private final        Supplier<Boolean>                            shouldAnalyzeNextCodeAttribute;
 
     /**
      * Create a new call resolver.
      *
-     * @param programClassPool          {@link ClassPool} containing the classes whose
-     *                                  calls should be analyzed.
-     * @param libraryClassPool          Auxiliary {@link ClassPool} containing framework classes.
-     *                                  Their calls are not resolved, but the class structure information
-     *                                  (i.e. contained methods) is needed when resolving calls whose
-     *                                  target lies in such a library class.
-     * @param callGraph                 The {@link CallGraph} to fill with all discovered {@link Call}s.
-     * @param clearCallValuesAfterVisit If true, {@link Call#clearValues()} will be called after
-     *                                  {@link CallVisitor#visitCall(Call)}. This makes it possible
-     *                                  to analyze arguments and the return value of calls while still
-     *                                  adding them to a {@link CallGraph} afterwards, as call graph analysis
-     *                                  itself usually only requires the call locations and their targets,
-     *                                  not the arguments or return value.
-     * @param useDominatorAnalysis      If true, a dominator analysis is carried out
-     *                                  using the {@link DominatorCalculator} for each
-     *                                  method, in order to be able to fill the
-     *                                  {@link Call#controlFlowDependent} flag.
-     * @param evaluateAllCode           See {@link PartialEvaluator.Builder#setEvaluateAllCode(boolean)}.
-     * @param includeSubClasses         If true, virtual calls on class fields, parameters and return values of other methods
-     *                                  will take all possible subclasses into account.
-     *                                  This is necessary for a more complete
-     *                                  call graph, because the runtime type of these objects is not controlled by the current
-     *                                  method. E.g. a method that declares its return type to be of type A might also return
-     *                                  an object of type B in case B extends A. The same is true for class fields and parameters,
-     *                                  so in order to really find all potential calls, this circumstance needs to be modeled.
-     *                                  For objects of declared type {@link java.lang.Object} this will be skipped, as the fact
-     *                                  that every single Java class is a subclass of object would lead to an immense blow-up
-     *                                  of the call graph.
-     * @param maxPartialEvaluations     See {@link PartialEvaluator.Builder#stopAnalysisAfterNEvaluations(int)}.
-     * @param visitors                  {@link CallVisitor}s that are interested in the
-     *                                  results of this analysis.
+     * @param programClassPool               {@link ClassPool} containing the classes whose
+     *                                       calls should be analyzed.
+     * @param libraryClassPool               Auxiliary {@link ClassPool} containing framework classes.
+     *                                       Their calls are not resolved, but the class structure information
+     *                                       (i.e. contained methods) is needed when resolving calls whose
+     *                                       target lies in such a library class.
+     * @param callGraph                      The {@link CallGraph} to fill with all discovered {@link Call}s.
+     * @param clearCallValuesAfterVisit      If true, {@link Call#clearValues()} will be called after
+     *                                       {@link CallVisitor#visitCall(Call)}. This makes it possible
+     *                                       to analyze arguments and the return value of calls while still
+     *                                       adding them to a {@link CallGraph} afterwards, as call graph analysis
+     *                                       itself usually only requires the call locations and their targets,
+     *                                       not the arguments or return value.
+     * @param useDominatorAnalysis           If true, a dominator analysis is carried out
+     *                                       using the {@link DominatorCalculator} for each
+     *                                       method, in order to be able to fill the
+     *                                       {@link Call#controlFlowDependent} flag.
+     * @param evaluateAllCode                See {@link PartialEvaluator.Builder#setEvaluateAllCode(boolean)}.
+     * @param includeSubClasses              If true, virtual calls on class fields, parameters and return values of other methods
+     *                                       will take all possible subclasses into account.
+     *                                       This is necessary for a more complete
+     *                                       call graph, because the runtime type of these objects is not controlled by the current
+     *                                       method. E.g. a method that declares its return type to be of type A might also return
+     *                                       an object of type B in case B extends A. The same is true for class fields and parameters,
+     *                                       so in order to really find all potential calls, this circumstance needs to be modeled.
+     *                                       For objects of declared type {@link java.lang.Object} this will be skipped, as the fact
+     *                                       that every single Java class is a subclass of object would lead to an immense blow-up
+     *                                       of the call graph.
+     * @param maxPartialEvaluations          See {@link PartialEvaluator.Builder#stopAnalysisAfterNEvaluations(int)}.
+     * @param shouldAnalyzeNextCodeAttribute If returns true, the next code attribute will be analyzed. Otherwise, the code attribute
+     *                                       will be skipped.
+     * @param visitors                       {@link CallVisitor}s that are interested in the
+     *                                       results of this analysis.
      */
     public CallResolver(ClassPool programClassPool,
                         ClassPool libraryClassPool,
@@ -163,15 +167,17 @@ implements   AttributeVisitor,
                         boolean evaluateAllCode,
                         boolean includeSubClasses,
                         int maxPartialEvaluations,
+                        Supplier<Boolean> shouldAnalyzeNextCodeAttribute,
                         CallVisitor... visitors)
     {
-        this.programClassPool          = programClassPool;
-        this.libraryClassPool          = libraryClassPool;
-        this.callGraph                 = callGraph;
-        this.clearCallValuesAfterVisit = clearCallValuesAfterVisit;
-        this.useDominatorAnalysis      = useDominatorAnalysis;
-        this.visitors                  = Arrays.asList(visitors);
-        dominatorCalculator            = new DominatorCalculator();
+        this.programClassPool               = programClassPool;
+        this.libraryClassPool               = libraryClassPool;
+        this.callGraph                      = callGraph;
+        this.clearCallValuesAfterVisit      = clearCallValuesAfterVisit;
+        this.useDominatorAnalysis           = useDominatorAnalysis;
+        this.shouldAnalyzeNextCodeAttribute = shouldAnalyzeNextCodeAttribute;
+        this.visitors                       = Arrays.asList(visitors);
+        dominatorCalculator                 = new DominatorCalculator();
 
         // Initialize the multitype evaluator.
         ValueFactory multiTypeValueFactory = includeSubClasses ?
@@ -220,6 +226,11 @@ implements   AttributeVisitor,
     @Override
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
+        // Check whether this code attribute should be analyzed
+        if (!shouldAnalyzeNextCodeAttribute.get())
+        {
+            return;
+        }
         // Exceptions while executing the partial evaluators are fine, the virtual
         // call resolving and argument/return value reconstruction handle these
         // cases gracefully.
@@ -893,15 +904,16 @@ implements   AttributeVisitor,
     public static class Builder
     {
 
-        private final ClassPool     programClassPool;
-        private final ClassPool     libraryClassPool;
-        private final CallGraph     callGraph;
-        private final CallVisitor[] visitors;
-        private       boolean       clearCallValuesAfterVisit = true;
-        private       boolean       useDominatorAnalysis      = false;
-        private       boolean       evaluateAllCode           = false;
-        private       boolean       includeSubClasses         = false;
-        private       int           maxPartialEvaluations     = 50;
+        private final ClassPool         programClassPool;
+        private final ClassPool         libraryClassPool;
+        private final CallGraph         callGraph;
+        private final CallVisitor[]     visitors;
+        private       boolean           clearCallValuesAfterVisit      = true;
+        private       boolean           useDominatorAnalysis           = false;
+        private       boolean           evaluateAllCode                = false;
+        private       boolean           includeSubClasses              = false;
+        private       int               maxPartialEvaluations          = 50;
+        private       Supplier<Boolean> shouldAnalyzeNextCodeAttribute = () -> true;
 
         public Builder(ClassPool programClassPool, ClassPool libraryClassPool, CallGraph callGraph, CallVisitor... visitors)
         {
@@ -972,6 +984,16 @@ implements   AttributeVisitor,
             return this;
         }
 
+        /**
+         * If returns true, the next code attribute will be analyzed. Otherwise, the code attribute
+         * will be skipped.
+         */
+        public Builder setShouldAnalyzeNextCodeAttribute(Supplier<Boolean> shouldAnalyzeNextCodeAttribute)
+        {
+            this.shouldAnalyzeNextCodeAttribute = shouldAnalyzeNextCodeAttribute;
+            return this;
+        }
+
         public CallResolver build()
         {
             return new CallResolver(programClassPool,
@@ -982,6 +1004,7 @@ implements   AttributeVisitor,
                                     evaluateAllCode,
                                     includeSubClasses,
                                     maxPartialEvaluations,
+                                    shouldAnalyzeNextCodeAttribute,
                                     visitors);
 
         }
