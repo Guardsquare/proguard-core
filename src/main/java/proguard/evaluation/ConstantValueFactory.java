@@ -116,7 +116,7 @@ implements   ConstantVisitor
 
     public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant)
     {
-        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT,
+        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_INVOKE_METHOD_HANDLE,
                                                   methodHandleConstant.javaLangInvokeMethodHandleClass,
                                                   false,
                                                   false);

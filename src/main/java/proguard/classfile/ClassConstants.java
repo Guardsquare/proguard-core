@@ -45,6 +45,7 @@ public class ClassConstants
     public static final String NAME_JAVA_LANG_STRING_BUFFER                 = "java/lang/StringBuffer";
     public static final String NAME_JAVA_LANG_STRING_BUILDER                = "java/lang/StringBuilder";
     public static final String NAME_JAVA_LANG_INVOKE_METHOD_HANDLE          = "java/lang/invoke/MethodHandle";
+    public static final String TYPE_JAVA_LANG_INVOKE_METHOD_HANDLE          = "Ljava/lang/invoke/MethodHandle;";
     public static final String NAME_JAVA_LANG_INVOKE_METHOD_TYPE            = "java/lang/invoke/MethodType";
     public static final String TYPE_JAVA_LANG_INVOKE_METHOD_TYPE            = "Ljava/lang/invoke/MethodType;";
     public static final String NAME_JAVA_LANG_INVOKE_STRING_CONCAT_FACTORY  = "java/lang/invoke/StringConcatFactory";
