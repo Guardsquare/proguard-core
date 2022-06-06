@@ -728,6 +728,10 @@ public class ClassUtil
 
                     // Skip the class name.
                     index = internalMethodDescriptor.indexOf(TypeConstants.CLASS_END, index) + 1;
+                    if (index == 0)
+                    {
+                        throw new IllegalStateException("No matching semicolon found for class start character");
+                    }
                     break;
                 }
                 default:

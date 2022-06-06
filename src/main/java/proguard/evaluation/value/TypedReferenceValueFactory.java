@@ -29,8 +29,8 @@ public class TypedReferenceValueFactory
 extends      BasicValueFactory
 {
     static final ReferenceValue REFERENCE_VALUE_NULL                        = new TypedReferenceValue(null, null, false, true);
-    static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_MAYBE_NULL = new TypedReferenceValue(ClassConstants.NAME_JAVA_LANG_OBJECT, null, true, true);
-    static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL   = new TypedReferenceValue(ClassConstants.NAME_JAVA_LANG_OBJECT, null, true, false);
+    static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_MAYBE_NULL = new TypedReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT, null, true, true);
+    static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL   = new TypedReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT, null, true, false);
 
 
     // Implementations for BasicValueFactory.
@@ -47,7 +47,7 @@ extends      BasicValueFactory
                                                boolean mayBeNull)
     {
         return type == null                                       ? REFERENCE_VALUE_NULL                                                      :
-               !type.equals(ClassConstants.NAME_JAVA_LANG_OBJECT) ||
+               !type.equals(ClassConstants.TYPE_JAVA_LANG_OBJECT) ||
                !mayBeExtension                                    ? new TypedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull) :
                mayBeNull                                          ? REFERENCE_VALUE_JAVA_LANG_OBJECT_MAYBE_NULL                               :
                                                                     REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL;

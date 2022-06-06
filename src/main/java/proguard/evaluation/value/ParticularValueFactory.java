@@ -208,7 +208,7 @@ implements   ValueFactory
                                                    boolean mayBeExtension,
                                                    boolean mayBeNull)
         {
-            return new IdentifiedReferenceValue(ClassUtil.internalTypeFromClassType(type), referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
+            return new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
         }
 
         @Override
@@ -218,7 +218,7 @@ implements   ValueFactory
                                                    boolean mayBeNull,
                                                    Object value)
         {
-            return new ParticularReferenceValue(ClassUtil.internalTypeFromClassType(type), referencedClass, this, referenceID++, value);
+            return new ParticularReferenceValue(type, referencedClass, this, referenceID++, value);
         }
     }
 }

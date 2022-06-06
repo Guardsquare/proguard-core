@@ -17,6 +17,7 @@
  */
 package proguard.evaluation.value;
 
+import proguard.analysis.*;
 import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
@@ -38,9 +39,7 @@ import static proguard.classfile.util.ClassUtil.*;
 public class TypedReferenceValue extends ReferenceValue
 {
     private static final boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
-
     private static final boolean DEBUG = false;
-
 
     protected final String  type;
     protected final Clazz   referencedClass;
@@ -121,23 +120,11 @@ public class TypedReferenceValue extends ReferenceValue
                                                  ALWAYS;
         }
 
-        // Strip the class type prefix and suffix of this type, if any.
-        if (thisDimensionCount == commonDimensionCount)
-        {
-            thisType = ClassUtil.internalClassNameFromClassType(thisType);
-        }
-
-        // Strip the class type prefix and suffix of the other type, if any.
-        if (otherDimensionCount == commonDimensionCount)
-        {
-            otherType = ClassUtil.internalClassNameFromClassType(otherType);
-        }
-
         // If this type is an array type, and the other type is not
         // java.lang.Object, java.lang.Cloneable, or java.io.Serializable,
         // this type can never be an instance.
         if (thisDimensionCount > otherDimensionCount &&
-            !ClassUtil.isInternalArrayInterfaceName(otherType))
+            !ClassUtil.isInternalArrayInterfaceName(ClassUtil.internalClassNameFromClassType(otherType)))
         {
             return NEVER;
         }
@@ -146,7 +133,7 @@ public class TypedReferenceValue extends ReferenceValue
         // java.lang.Object, java.lang.Cloneable, or java.io.Serializable,
         // this type can never be an instance.
         if (thisDimensionCount < otherDimensionCount &&
-            !ClassUtil.isInternalArrayInterfaceName(thisType))
+            !ClassUtil.isInternalArrayInterfaceName(ClassUtil.internalClassNameFromClassType(thisType)))
         {
             return NEVER;
         }
@@ -155,7 +142,7 @@ public class TypedReferenceValue extends ReferenceValue
         // java.lang.Object, or if this type is an array type, then this type
         // is always an instance (unless it may be null).
         if (thisType.equals(otherType)                             ||
-            ClassConstants.NAME_JAVA_LANG_OBJECT.equals(otherType) ||
+            ClassConstants.TYPE_JAVA_LANG_OBJECT.equals(otherType) ||
             thisDimensionCount > otherDimensionCount)
         {
             return mayBeNull ? MAYBE :
@@ -335,7 +322,7 @@ public class TypedReferenceValue extends ReferenceValue
                     }
 
                     return new TypedReferenceValue(commonDimensionCount == 0 ?
-                                                       commonClass.getName() :
+                                                       ClassUtil.internalTypeFromClassName(commonClass.getName()) :
                                                        ClassUtil.internalArrayTypeFromClassName(commonClass.getName(),
                                                                                                 commonDimensionCount),
                                                    commonClass,
@@ -681,12 +668,7 @@ public class TypedReferenceValue extends ReferenceValue
 
     public final String internalType()
     {
-        return
-            type == null                        ? ClassConstants.TYPE_JAVA_LANG_OBJECT :
-            ClassUtil.isInternalArrayType(type) ? type                                          :
-                                                  TypeConstants.CLASS_START +
-                                                  type +
-                                                  TypeConstants.CLASS_END;
+        return type == null ? ClassConstants.TYPE_JAVA_LANG_OBJECT : type;
     }
 
 

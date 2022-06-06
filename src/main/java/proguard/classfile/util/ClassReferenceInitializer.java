@@ -34,9 +34,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static proguard.classfile.TypeConstants.INNER_CLASS_SEPARATOR;
-import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_IMPLEMENTATIONS_SUFFIX;
-import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_METHOD_SUFFIX;
 import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
+import static proguard.classfile.kotlin.KotlinConstants.*;
 
 /**
  * This {@link ClassVisitor} initializes the references of all classes that
@@ -605,12 +604,12 @@ implements   ClassVisitor,
     @Override
     public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
     {
-        String name = recordComponentInfo.getName(clazz);
-        String type = recordComponentInfo.getDescriptor(clazz);
+        String name       = recordComponentInfo.getName(clazz);
+        String descriptor = recordComponentInfo.getDescriptor(clazz);
 
         recordComponentInfo.referencedField = memberFinder.findField(clazz,
                                                                      name,
-                                                                     type);
+                                                                     descriptor);
 
         // Initialize the attributes.
         recordComponentInfo.attributesAccept(clazz, this);
@@ -984,9 +983,14 @@ implements   ClassVisitor,
 
             if (kotlinFunctionMetadata.jvmSignature != null)
             {
+                String method = !FUNCTION_NAME_ANONYMOUS.equals(kotlinFunctionMetadata.jvmSignature.method) ?
+                        kotlinFunctionMetadata.jvmSignature.method :
+                        // T16483: In some cases, the jvmSignature erroneously contains the name <anonymous> instead of invoke
+                        METHOD_NAME_LAMBDA_INVOKE;
+
                 kotlinFunctionMetadata.referencedMethod =
                     strictMemberFinder.findMethod(kotlinFunctionMetadata.referencedMethodClass,
-                                                  kotlinFunctionMetadata.jvmSignature.method,
+                                                  method,
                                                   kotlinFunctionMetadata.jvmSignature.descriptor.toString());
             }
 

@@ -98,7 +98,7 @@ Complete example: VisualizeControlFlow.java
 
 ### Data flow analysis
 
-You can also insprect the data flow between the instructions in a method by
+You can also inspect the data flow between the instructions in a method by
 looking at the stack and the local variables:
 
     :::java
@@ -351,22 +351,32 @@ The results then show the types:
 
 Instruction | Stack | v0 |
 ------------|-------|----|
-[0] aload_0 v0 | [0:java/lang/Number]  | P0:java/lang/Number |
-[1] ifnonnull +13 (target=14) |  | P0:java/lang/Number |
-[4] new #2 | [4:java/lang/Integer=!]  | P0:java/lang/Number |
-[7] dup | [4:7:java/lang/Integer=!] [4:7:java/lang/Integer=!]  | P0:java/lang/Number |
-[8] bipush 42 | [4:7:java/lang/Integer=!] [4:7:java/lang/Integer=!] [8:i]  | P0:java/lang/Number |
-[10] invokespecial #3 | [4:7:java/lang/Integer=!]  | P0:java/lang/Number |
-[13] astore_0 v0 |  | 13:java/lang/Integer=! |
-[14] aload_0 v0 | [14:java/lang/Number]  | P0,13:java/lang/Number |
-[15] areturn |  | P0,13:java/lang/Number |
+[0] aload_0 v0 | [0:Ljava/lang/Number;]  | P0:Ljava/lang/Number; |
+[1] ifnonnull +13 (target=14) |  | P0:Ljava/lang/Number; |
+[4] new #2 | [4:Ljava/lang/Integer;=!]  | P0:Ljava/lang/Number; |
+[7] dup | [4:7:Ljava/lang/Integer;=!] [4:7:Ljava/lang/Integer;=!]  | P0:Ljava/lang/Number; |
+[8] bipush 42 | [4:7:Ljava/lang/Integer;=!] [4:7:Ljava/lang/Integer;=!] [8:i]  | P0:Ljava/lang/Number; |
+[10] invokespecial #3 | [4:7:Ljava/lang/Integer;=!]  | P0:Ljava/lang/Number; |
+[13] astore_0 v0 |  | 13:Ljava/lang/Integer;=! |
+[14] aload_0 v0 | [14:Ljava/lang/Number;]  | P0,13:Ljava/lang/Number; |
+[15] areturn |  | P0,13:Ljava/lang/Number; |
 
-The types here are "java/lang/Number" and "java/lang/Integer". The types
+The types here are "Ljava/lang/Number;" and "Ljava/lang/Integer;". The types
 respect the type hierarchy, for example when the branches join and the type is
-"java/lang/Number". A mark "=" means that the type is the exact type, not an
+"Ljava/lang/Number;". A mark "=" means that the type is the exact type, not an
 extension. A mark "!" means that the value is definitely not null.
 
 Useful applications: preverification of the type safety of bytecode.
+
+### Note on type variables naming convention
+PGC has different representation for type string variables:
+
+- External class name: `com.guardsquare.SomeClass`
+- Internal class name: `com/guardsquare/SomeClass`
+- Internal type (or just `type`): `Lcom/guardsquare/SomeClass;` (for arrays e.g. `[I`, `[Ljava/lang/Object;`)
+- Internal class type: `com/guardsquare/SomeClass` (for arrays this is their internal type e.g. `[I`, `[Ljava/lang/Object;`)
+
+See `proguard.classfile.util.ClassUtil` for useful methods to convert between the different representations.
 
 ## Evaluation with primitive arrays {: #array}
 

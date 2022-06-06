@@ -183,9 +183,10 @@ implements   KotlinMetadataVisitor
                 }
             };
 
-            clazz.accept(syntheticClassKindMetadata.mv[0] == 1 && syntheticClassKindMetadata.mv[1] <= 3 ?
-                            new CallableReferenceInfoLoader1dot3(loader) :
-                            new CallableReferenceInfoLoader1dot4(loader));
+            clazz.accept(
+                new OptimizedCallableReferenceFilter(
+                    new CallableReferenceInfoLoader1dot4(loader),
+                    new CallableReferenceInfoLoader1dot3(loader)));
         }
     }
 
@@ -400,7 +401,8 @@ implements   KotlinMetadataVisitor
         @Override
         public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
         {
-            if (currentMethod.equals(REFLECTION.GETOWNER_METHOD_NAME + REFLECTION.GETOWNER_METHOD_DESC))
+            if (currentMethod.equals(REFLECTION.GETOWNER_METHOD_NAME + REFLECTION.GETOWNER_METHOD_DESC) &&
+                result.callableOwnerClass == null)
             {
                 // There is a class ref (+ possibly a string for the module name but that's not required
                 // because we know the module from the Kotlin class).
@@ -495,4 +497,30 @@ implements   KotlinMetadataVisitor
 
     // Helper class to exit early from hierarchy property search.
     private static class PropertyFoundException extends RuntimeException {}
+    
+    // Optimized callable references don't override the getName, getSignature, getOwner
+    // methods. This behaviour is default since Kotlin 1.4 and forcible with the compiler
+    // argument "-Xno-optimized-callable-references".
+    public static class OptimizedCallableReferenceFilter implements ClassVisitor
+    {
+        private final ClassVisitor optimizedVisitor;
+        private final ClassVisitor nonOptimizedVisitor;
+
+        public OptimizedCallableReferenceFilter(ClassVisitor optimizedVisitor, ClassVisitor nonOptimizedVisitor)
+        {
+            this.optimizedVisitor    = optimizedVisitor;
+            this.nonOptimizedVisitor = nonOptimizedVisitor;
+        }
+
+        @Override
+        public void visitAnyClass(Clazz clazz)
+        {
+            boolean isOptimized =
+                clazz.findMethod(REFLECTION.GETNAME_METHOD_NAME,      REFLECTION.GETNAME_METHOD_DESC) == null &&
+                clazz.findMethod(REFLECTION.GETSIGNATURE_METHOD_NAME, REFLECTION.GETSIGNATURE_METHOD_DESC) == null &&
+                clazz.findMethod(REFLECTION.GETOWNER_METHOD_NAME,     REFLECTION.GETSIGNATURE_METHOD_DESC) == null;
+
+            clazz.accept(isOptimized ? optimizedVisitor : nonOptimizedVisitor);
+        }
+    }
 }

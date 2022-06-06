@@ -513,7 +513,7 @@ implements   AttributeVisitor
     private int createClassConstant(ProgramClass   programClass,
                                     ReferenceValue referenceValue)
     {
-        return new ConstantPoolEditor(programClass).addClassConstant(referenceValue.getType(),
+        return new ConstantPoolEditor(programClass).addClassConstant(ClassUtil.internalClassTypeFromType(referenceValue.getType()),
                                                                      referenceValue.getReferencedClass());
     }
 

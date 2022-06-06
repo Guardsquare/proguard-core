@@ -63,7 +63,7 @@ implements   InvocationUnit,
             catchClassConstant.referencedClass :
             null;
 
-        return valueFactory.createReferenceValue(catchClassName,
+        return valueFactory.createReferenceValue(ClassUtil.internalTypeFromClassName(catchClassName),
                                                  catchClass,
                                                  true,
                                                  false);

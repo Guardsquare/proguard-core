@@ -82,6 +82,44 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
         }
     }
 
+    "Given a non-optimized function callable reference" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun foo() = "bar"
+                fun ref() = ::foo
+                """.trimIndent()
+            ),
+            kotlincArguments = listOf("-Xno-optimized-callable-references")
+        )
+
+        val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
+        val ownerVisitor = spyk< KotlinMetadataVisitor>()
+        val testVisitor = createVisitor(callableRefInfoVisitor, ownerVisitor)
+
+        programClassPool.classesAccept("TestKt\$ref\$1", testVisitor)
+
+        "Then the callableReferenceInfo should be initialized" {
+            verify(exactly = 1) {
+                callableRefInfoVisitor.visitFunctionReferenceInfo(
+                    withArg {
+                        it.name shouldBe "foo"
+                        it.signature shouldBe "foo()Ljava/lang/String;"
+                        it.owner shouldNotBe null
+                    }
+                )
+            }
+
+            verify(exactly = 1) {
+                ownerVisitor.visitKotlinFileFacadeMetadata(
+                    programClassPool.getClass("TestKt"),
+                    ofType(KotlinFileFacadeKindMetadata::class)
+                )
+            }
+        }
+    }
+
     "Given a function callable reference with an empty descriptor" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(

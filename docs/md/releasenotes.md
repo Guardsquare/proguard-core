@@ -1,3 +1,41 @@
+## Version 9.0.1
+
+### Improved
+
+- `ExecutingInvocationUnit` now loads values from static final fields.
+- Initialize Kotlin lambda method references when the JVM method name is `<anonymous>`. (`T16483`)
+- Add the possibility of limiting the number of `CodeAttributes` contributing into CFA.
+- Add the possibility of limiting the number of `CodeAttributes` considered by the `CallResolver`.
+
+### Bug fixes
+
+- Fix wrong handling of array types in `ExecutingIvocationUnit` and `ParticularReferenceValue`.
+- `ParticularReferenceValue` sanity checks now take inheritance into consideration, improving call analysis. (`T15197`)
+- Prevent missing semicolon leading to an infinite loop in `ClassUtil#internalMethodParameterCount`.
+- Make category 2 CPA taint sources affect only the most significant byte abstract state.
+- Fix inconsistent usage of type names in the context of the `PartialEvaluator` that could result in
+  trying to create an internal type string from a string that was already an internal type. (`T15513`)
+- Fix initialization of Kotlin callable references when using `-Xno-optimized-callable-references` compiler option. (`T16486`)
+  
+### Upgrade considerations
+####TYPE NAME CONVENTION
+
+PGC has different representation for type string variables: 
+
+- External class name: `com.guardsquare.SomeClass`
+- Internal class name: `com/guardsquare/SomeClass`
+- Internal type (or just `type`): `Lcom/guardsquare/SomeClass;` (for arrays e.g. `[I`, `[Ljava/lang/Object;`)
+- Internal class type: `com/guardsquare/SomeClass` (for arrays this is their internal type e.g. `[I`, `[Ljava/lang/Object;`)
+
+See `proguard.classfile.util.ClassUtil` for useful methods to convert between the different representations.
+
+Since internal class name and type were used ambiguously, from version 9.0.1 the internal type is used 
+consistently whenever we have a variable named `type`.
+
+Since this was not the case, this update might cause some `type` variables switching from the internal class name
+notation to the internal type notation, potentially breaking some logic if types are used by an external
+application using proguard-core.
+
 ## Version 9.0 (April 2022)
 
 ### Configurable program analysis (CPA)

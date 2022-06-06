@@ -1016,8 +1016,8 @@ class JvmTransferRelationTest : FreeSpec({
      * arguments. For non-static fields the instance should come before other arguments.
      */
     "Method calls are handled correctly" {
-        val referenceA = ParticularReferenceValue("A", clazzA, null, 0, null)
-        val referenceB = ParticularReferenceValue("B", clazzB, null, 0, null)
+        val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
+        val referenceB = ParticularReferenceValue("LB;", clazzB, null, 0, null)
         var state = emptyState.copy()
         state.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
         var result = emptyState.copy()
@@ -1202,7 +1202,7 @@ class JvmTransferRelationTest : FreeSpec({
      * Same for the synchronization instructions.
      */
     "Synchronization is not modeled" {
-        val referenceA = ParticularReferenceValue("A", clazzA, null, 0, null)
+        val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
         var state = emptyState.copy()
         state.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
         getAbstractSuccessorForInstruction.call(

@@ -45,7 +45,9 @@ public class ClassConstants
     public static final String NAME_JAVA_LANG_STRING_BUFFER                 = "java/lang/StringBuffer";
     public static final String NAME_JAVA_LANG_STRING_BUILDER                = "java/lang/StringBuilder";
     public static final String NAME_JAVA_LANG_INVOKE_METHOD_HANDLE          = "java/lang/invoke/MethodHandle";
+    public static final String TYPE_JAVA_LANG_INVOKE_METHOD_HANDLE          = "Ljava/lang/invoke/MethodHandle;";
     public static final String NAME_JAVA_LANG_INVOKE_METHOD_TYPE            = "java/lang/invoke/MethodType";
+    public static final String TYPE_JAVA_LANG_INVOKE_METHOD_TYPE            = "Ljava/lang/invoke/MethodType;";
     public static final String NAME_JAVA_LANG_INVOKE_STRING_CONCAT_FACTORY  = "java/lang/invoke/StringConcatFactory";
     public static final String NAME_JAVA_LANG_VOID                          = "java/lang/Void";
     public static final String NAME_JAVA_LANG_BOOLEAN                       = "java/lang/Boolean";
@@ -174,7 +176,7 @@ public class ClassConstants
     public static final String METHOD_TYPE_LOAD                             = "(Ljava/lang/String;)V";
     public static final String METHOD_TYPE_LOAD2                            = "(Ljava/lang/String;Ljava/lang/ClassLoader;)V";
     public static final String METHOD_NAME_NATIVE_LOAD                      = "nativeLoad";
-    public static final String METHOD_TYPE_NATIVE_LOAD                      = "(Ljava/lang/String;Ljava/lang/ClassLoader;)V";
+    public static final String METHOD_TYPE_NATIVE_LOAD                      = "(Ljava/lang/String;Ljava/lang/ClassLoader;)Ljava/lang/String;";
     public static final String METHOD_NAME_MAP_LIBRARY_NAME                 = "mapLibraryName";
     public static final String METHOD_TYPE_MAP_LIBRARY_NAME                 = "(Ljava/lang/String;)Ljava/lang/String;";
     public static final String METHOD_NAME_GET_RUNTIME                      = "getRuntime";

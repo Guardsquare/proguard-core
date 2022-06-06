@@ -67,7 +67,12 @@ public class JvmTaintTransferRelation
             answerContent.add(detectedSource);
         }
 
-        for (int i = 0; i < pushCount; i++)
+        // pad to the return type size and put the abstract state on the top of the stack
+        for (int i = 1; i < pushCount; i++)
+        {
+            state.push(getAbstractDefault());
+        }
+        if (pushCount > 0)
         {
             state.push(answerContent);
         }

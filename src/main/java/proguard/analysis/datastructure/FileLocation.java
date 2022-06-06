@@ -32,11 +32,18 @@ extends      Location
 {
 
     public final String filename;
+    public       String obfuscatedFilename;
 
     public FileLocation(String filename, int line)
     {
         super(line);
         this.filename = filename;
+    }
+
+    public FileLocation(String filename, int line, String obfuscatedFilename)
+    {
+        this(filename, line);
+        this.obfuscatedFilename = obfuscatedFilename;
     }
 
     @Override
@@ -85,5 +92,10 @@ extends      Location
             return line - other.line;
         }
         return filename.compareTo(other.filename);
+    }
+
+    public String getOriginalFilename()
+    {
+        return obfuscatedFilename != null ? obfuscatedFilename : filename;
     }
 }

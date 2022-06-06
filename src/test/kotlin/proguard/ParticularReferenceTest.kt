@@ -7,16 +7,24 @@
 
 package proguard
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
+import proguard.classfile.editor.ClassBuilder
+import proguard.classfile.util.ClassUtil
 import proguard.evaluation.value.IdentifiedReferenceValue
+import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.util.MethodWithStack
 import proguard.util.PartialEvaluatorHelper
+import testutils.AssemblerSource
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 
@@ -638,13 +646,149 @@ class ParticularReferenceTest : FreeSpec({
             uniqueIDs shouldHaveSize 7
         }
     }
+
+    "Regression test inheritance sanity check" - {
+        val charSequenceClass = ClassBuilder(CLASS_VERSION_1_8, PUBLIC, "java/lang/CharSequence", "java/lang/Object").programClass
+        val stringClass = ClassBuilder(CLASS_VERSION_1_8, PUBLIC, "java/lang/String", "java/lang/Object").programClass
+        charSequenceClass.addSubClass(stringClass)
+
+        "No exception" {
+            shouldNotThrowAny {
+                ParticularReferenceValue(
+                    ClassUtil.internalTypeFromClassName(charSequenceClass.name),
+                    charSequenceClass,
+                    null,
+                    0,
+                    ""
+                )
+            }
+        }
+    }
+
+    "Load primitive value from static final field" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            AssemblerSource(
+                "A.jbc",
+                """
+                    version 1.8;
+                    public class A extends java.lang.Object [
+                        SourceFile "A.java";
+                        ] 
+                    {
+                        public static final int answer = 42;
+            
+                        public static void staticfield() 
+                        {
+                            getstatic java.lang.System#java.io.PrintStream out
+                            getstatic A#int answer
+                            invokevirtual java.io.PrintStream#void println(java.lang.String)
+                            return
+                        }
+                    }
+                """.trimIndent()
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool)
+
+        "getstatic loaded int parameter" {
+            val value = invocationsWithStack[6]!!.stack[0]
+            value.shouldBeInstanceOf<ParticularIntegerValue>()
+            value.value() shouldNotBe null
+            value.value() shouldBe 42
+        }
+    }
+
+    "Load reference value from static final field" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            AssemblerSource(
+                "A.jbc",
+                """
+                    version 1.8;
+                    public class A extends java.lang.Object [
+                        SourceFile "A.java";
+                        ] 
+                    {
+                        public static final java.lang.String answer = "42";
+            
+                        public static void staticfield() 
+                        {
+                            getstatic java.lang.System#java.io.PrintStream out
+                            getstatic A#java.lang.String answer
+                            invokevirtual java.io.PrintStream#void println(java.lang.String)
+                            return
+                        }
+                    }
+                """.trimIndent()
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool)
+
+        "getstatic loaded String parameter" {
+            checkExpectedValueParticularReferenceValue(invocationsWithStack, 6, 0, "42")
+            (invocationsWithStack[6]!!.stack[0] as ParticularReferenceValue).referencedClass.name shouldBe "java/lang/String"
+        }
+    }
+
+    "String function returning reference array " - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                class A {
+                    public void functions()
+                    {
+                        String str = "42-43";
+                        String[] arr = str.split("-");
+                        System.out.println(arr);
+                    }
+                }
+                """
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+
+        "String array evaluated correctly" {
+            val value = invocationsWithStack[14]!!.stack[0]
+            value.shouldBeInstanceOf<ParticularReferenceValue>()
+            value.type shouldBe "[Ljava/lang/String;"
+            value.value() shouldBe arrayOf("42", "43")
+        }
+    }
+
+    "String function returning primitive array " - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                class A {
+                    public void functions() throws java.io.UnsupportedEncodingException
+                    {
+                        String str = "42";
+                        byte[] arr = str.getBytes("UTF-8");
+                        System.out.println(arr);
+                    }
+                }
+                """
+            )
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+
+        "Primitive array evaluated correctly" {
+            val value = invocationsWithStack[14]!!.stack[0]
+            value.shouldBeInstanceOf<ParticularReferenceValue>()
+            value.type shouldBe "[B"
+            value.value() shouldBe arrayOf(52.toByte(), 50.toByte())
+        }
+    }
 })
 
 fun checkExpectedValueParticularReferenceValue(invocationsWithStack: HashMap<Int, MethodWithStack>, instructionOffset: Int, stackPositionFromTop: Int, expected: String?): ParticularReferenceValue {
     val value = invocationsWithStack[instructionOffset]!!.stack[stackPositionFromTop]
-    if (value !is ParticularReferenceValue) {
-        throw AssertionError("Unexpected type: " + value.javaClass.simpleName)
-    }
+    value.shouldBeInstanceOf<ParticularReferenceValue>()
     if (expected != null) {
         value.value() shouldNotBe null
         value.value().toString() shouldBe expected

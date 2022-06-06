@@ -9,16 +9,6 @@ package proguard
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import proguard.classfile.ClassPool
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.ProgramClass
-import proguard.classfile.ProgramMethod
-import proguard.classfile.attribute.Attribute
-import proguard.classfile.attribute.CodeAttribute
-import proguard.classfile.attribute.LocalVariableTableAttribute
-import proguard.classfile.instruction.Instruction
-import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.value.MultiTypedReferenceValue
@@ -29,6 +19,7 @@ import proguard.evaluation.value.UnknownReferenceValue
 import proguard.evaluation.value.Value
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
+import testutils.PartialEvaluatorUtil
 
 class MultiTypeTest : FreeSpec({
 
@@ -115,7 +106,7 @@ class MultiTypeTest : FreeSpec({
 
     "Code examples" - {
         "Exact type" {
-            val (instructions, variableTable) = evaluate(
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Target",
                 "exact",
                 "()V",
@@ -126,11 +117,11 @@ class MultiTypeTest : FreeSpec({
 
             val s = partialEvaluator.getVariablesBefore(methodEnd)
                 .getValue(variableTable["s"]!!) as MultiTypedReferenceValue
-            s.generalizedType.type shouldBe "Super"
-            s.potentialTypes.map { it.type } shouldBe listOf("Super")
+            s.generalizedType.type shouldBe "LSuper;"
+            s.potentialTypes.map { it.type } shouldBe listOf("LSuper;")
         }
         "Ternary operator" {
-            val (instructions, variableTable) = evaluate(
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Target",
                 "ternary",
                 "(Z)V",
@@ -141,12 +132,12 @@ class MultiTypeTest : FreeSpec({
 
             val s = partialEvaluator.getVariablesBefore(methodEnd)
                 .getValue(variableTable["s"]!!) as MultiTypedReferenceValue
-            s.generalizedType.type shouldBe "Super"
+            s.generalizedType.type shouldBe "LSuper;"
             s.isNull shouldBe Value.NEVER
-            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("A", "B")
+            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;", "LB;")
         }
         "If else" {
-            val (instructions, variableTable) = evaluate(
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Target",
                 "ifElse",
                 "(Z)V",
@@ -157,12 +148,12 @@ class MultiTypeTest : FreeSpec({
 
             val s = partialEvaluator.getVariablesBefore(methodEnd)
                 .getValue(variableTable["s"]!!) as MultiTypedReferenceValue
-            s.generalizedType.type shouldBe "Super"
+            s.generalizedType.type shouldBe "LSuper;"
             s.isNull shouldBe Value.NEVER
-            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("A", "B")
+            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;", "LB;")
         }
         "Switch" {
-            val (instructions, variableTable) = evaluate(
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Target",
                 "switchStmt",
                 "(Ljava/lang/String;)V",
@@ -173,12 +164,12 @@ class MultiTypeTest : FreeSpec({
 
             val s = partialEvaluator.getVariablesBefore(methodEnd)
                 .getValue(variableTable["s"]!!) as MultiTypedReferenceValue
-            s.generalizedType.type shouldBe "Super"
+            s.generalizedType.type shouldBe "LSuper;"
             s.isNull shouldBe Value.MAYBE
-            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("A", "B", "Super", null)
+            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;", "LB;", "LSuper;", null)
         }
         "Array handling" {
-            val (instructions, variableTable) = evaluate(
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Target",
                 "array",
                 "()V",
@@ -195,9 +186,9 @@ class MultiTypeTest : FreeSpec({
 
             val a = partialEvaluator.getVariablesBefore(methodEnd)
                 .getValue(variableTable["a"]!!) as MultiTypedReferenceValue
-            a.generalizedType.type shouldBe "A"
+            a.generalizedType.type shouldBe "LA;"
             a.isNull shouldBe Value.MAYBE
-            a.potentialTypes.map { it.type }.toSet() shouldBe setOf("A")
+            a.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;")
         }
     }
 
@@ -206,7 +197,7 @@ class MultiTypeTest : FreeSpec({
         val multiNull = MultiTypedReferenceValue(nul, false)
 
         val superClass = TypedReferenceValue(
-            "Super",
+            "LSuper;",
             classPool.getClass("Super"),
             false,
             false
@@ -214,7 +205,7 @@ class MultiTypeTest : FreeSpec({
         val multiSuper = MultiTypedReferenceValue(superClass, false)
 
         val a = TypedReferenceValue(
-            "A",
+            "LA;",
             classPool.getClass("A"),
             false,
             false
@@ -222,7 +213,7 @@ class MultiTypeTest : FreeSpec({
         val multiA = MultiTypedReferenceValue(a, false)
 
         val b = TypedReferenceValue(
-            "B",
+            "LB;",
             classPool.getClass("B"),
             false,
             false
@@ -347,7 +338,7 @@ class MultiTypeTest : FreeSpec({
                     valueFactory
                 ) as MultiTypedReferenceValue
 
-                dereferenced.type shouldBe "A"
+                dereferenced.type shouldBe "LA;"
                 dereferenced.referencedClass shouldBe classPool.getClass("A")
 
                 val referenced = valueFactory.createArrayReferenceValue(
@@ -402,48 +393,3 @@ class MultiTypeTest : FreeSpec({
         }
     }
 })
-
-fun evaluate(
-    className: String,
-    methodName: String,
-    methodDescriptor: String,
-    classPool: ClassPool,
-    partialEvaluator: PartialEvaluator
-): Pair<ArrayList<Pair<Int, Instruction>>, HashMap<String, Int>> {
-    val clazz = classPool.getClass(className) as ProgramClass
-    val method = clazz.findMethod(methodName, methodDescriptor) as ProgramMethod
-
-    val codeAttribute =
-        method.attributes.find { it.getAttributeName(clazz) == Attribute.CODE } as CodeAttribute
-    val localVarTableAttribute =
-        codeAttribute.attributes.find { it.getAttributeName(clazz) == Attribute.LOCAL_VARIABLE_TABLE } as LocalVariableTableAttribute?
-
-    val instructions = ArrayList<Pair<Int, Instruction>>()
-    codeAttribute.instructionsAccept(
-        clazz, method,
-        object : InstructionVisitor {
-            override fun visitAnyInstruction(
-                clazz: Clazz?,
-                method: Method?,
-                codeAttribute: CodeAttribute?,
-                offset: Int,
-                instruction: Instruction?
-            ) {
-                instruction?.let { instructions.add(Pair(offset, it)) }
-            }
-        }
-    )
-
-    val variableTable = HashMap<String, Int>()
-    localVarTableAttribute?.localVariablesAccept(
-        clazz,
-        method,
-        codeAttribute
-    ) { _, _, _, localVar ->
-        variableTable[localVar.getName(clazz)] = localVar.u2index
-    }
-
-    partialEvaluator.visitCodeAttribute(clazz, method, codeAttribute)
-
-    return Pair(instructions, variableTable)
-}

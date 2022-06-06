@@ -17,11 +17,12 @@
  */
 package proguard.evaluation.value;
 
+import java.util.Objects;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
-
-import java.util.Objects;
+import proguard.classfile.visitor.ClassCounter;
+import proguard.classfile.visitor.ClassNameFilter;
 
 /**
  * This {@link ParticularReferenceValue} represents a particular reference value, i.e. a reference with an associated value.
@@ -33,7 +34,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
 {
 
     // The actual value of the object.
-    private final   Object value;
+    private final Object value;
 
     /**
      * Create a new Instance with the given type, the class it is referenced in, and its actual value.
@@ -50,10 +51,28 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
 
         this.value = value;
 
-        // Sanity checks.
-        if (value != null && !type.equals(ClassUtil.internalType(value.getClass().getCanonicalName())))
+        ClassCounter counter = new ClassCounter();
+        if (value != null && referencedClass != null)
         {
-            throw new RuntimeException("Type does not match type of the value (" + ClassUtil.internalType(value.getClass().getCanonicalName()) + " - " + type + ")");
+            referencedClass.hierarchyAccept(
+                true,
+                false,
+                false,
+                true,
+                // if the value is an array check the inheritance for the referenced type
+                new ClassNameFilter(ClassUtil.internalClassName(ClassUtil.externalBaseType(value.getClass().getCanonicalName())), counter)
+            );
+        }
+        boolean isExtended = counter.getCount() > 0;
+
+        // Sanity checks.
+        // If referenced class is known we can check for inheritance
+        // If referenced class is unknown the best we can do is checking if the type exactly matches the value type
+        if (value != null
+            && (referencedClass != null && !isExtended
+                || referencedClass == null && !type.equals(ClassUtil.internalType(value.getClass().getCanonicalName()))))
+        {
+            throw new RuntimeException("Type does not match or is not extended by type of the value (" + ClassUtil.internalType(value.getClass().getCanonicalName()) + " - " + type + ")");
         }
         if (type == null)
         {

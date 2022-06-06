@@ -18,22 +18,34 @@
 
 package proguard.evaluation;
 
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
+import static proguard.classfile.AccessConstants.*;
+import static proguard.classfile.ClassConstants.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
-import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
+import proguard.classfile.Field;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryMethod;
 import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.TypeConstants;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.ConstantValueAttribute;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.AnyMethodrefConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.DoubleConstant;
+import proguard.classfile.constant.FieldrefConstant;
+import proguard.classfile.constant.FloatConstant;
+import proguard.classfile.constant.IntegerConstant;
+import proguard.classfile.constant.LongConstant;
+import proguard.classfile.constant.StringConstant;
+import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.ClassUtil;
+import proguard.classfile.visitor.MemberAccessFilter;
 import proguard.classfile.visitor.MemberVisitor;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
@@ -121,7 +133,7 @@ public class ExecutingInvocationUnit
 
         if (!isSupportedMethodCall(baseClassName))
         {
-            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, returnType, false), true, true);
+            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, false), true, true);
         }
 
         Value reflectedReturnValue = handleMethodCall(clazz, anyMethodrefConstant, returnType, parameters, isStatic);
@@ -136,7 +148,7 @@ public class ExecutingInvocationUnit
         else if (reflectedReturnValue == null)
         {
             // The reflective call failed. Create a simple new Value of the correct type.
-            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, returnType, false), true, true);
+            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, false), true, true);
         }
         else
         {
@@ -155,6 +167,96 @@ public class ExecutingInvocationUnit
         finally
         {
             this.parameters = null;
+        }
+    }
+
+
+    @Override
+    public Value getFieldValue(Clazz clazz, FieldrefConstant fieldrefConstant, String type)
+    {
+        // get value from static final fields
+        FieldValueGetterVisitor constantVisitor = new FieldValueGetterVisitor();
+        fieldrefConstant.referencedFieldAccept(
+            new MemberAccessFilter(STATIC | FINAL, 0, constantVisitor)
+        );
+        return constantVisitor.value == null ? super.getFieldValue(clazz, fieldrefConstant, type) : constantVisitor.value;
+    }
+
+    private class FieldValueGetterVisitor
+        implements MemberVisitor,
+                   AttributeVisitor,
+                   ConstantVisitor
+    {
+        Value value = null;
+        private ProgramField currentField;
+
+        // Implementations for MemberVisitor
+
+        @Override
+        public void visitAnyMember(Clazz clazz, Member member)
+        {
+        }
+
+        @Override
+        public void visitProgramField(ProgramClass programClass, ProgramField programField)
+        {
+            this.currentField = programField;
+            programField.attributesAccept(programClass, this);
+        }
+
+        // Implementations for AttributeVisitor
+
+        @Override
+        public void visitAnyAttribute(Clazz clazz, Attribute attribute)
+        {
+        }
+
+
+        @Override
+        public void visitConstantValueAttribute(Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute)
+        {
+            clazz.constantPoolEntryAccept(constantValueAttribute.u2constantValueIndex, this);
+        }
+
+        // Implementations for ConstantVisitor
+
+        @Override
+        public void visitAnyConstant(Clazz clazz, Constant constant)
+        {
+        }
+
+        @Override
+        public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant)
+        {
+            value = valueFactory.createIntegerValue(integerConstant.getValue());
+        }
+
+        @Override
+        public void visitFloatConstant(Clazz clazz, FloatConstant floatConstant)
+        {
+            value = valueFactory.createFloatValue(floatConstant.getValue());
+        }
+
+        @Override
+        public void visitDoubleConstant(Clazz clazz, DoubleConstant doubleConstant)
+        {
+            value = valueFactory.createDoubleValue(doubleConstant.getValue());
+        }
+
+        @Override
+        public void visitLongConstant(Clazz clazz, LongConstant longConstant)
+        {
+            value = valueFactory.createLongValue(longConstant.getValue());
+        }
+
+        @Override
+        public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
+        {
+            value = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING,
+                                                      currentField.referencedClass,
+                                                      false,
+                                                      false,
+                                                      stringConstant.getString(clazz));
         }
     }
 
@@ -218,7 +320,7 @@ public class ExecutingInvocationUnit
                 parameterObjects[i - paramOffset] = ReflectiveMethodCallUtil.getObjectForValue(parameter[i], parameterClasses[i - paramOffset]);
             }
 
-            if (methodName.equals(ClassConstants.METHOD_NAME_INIT)) //CTOR
+            if (methodName.equals(METHOD_NAME_INIT)) //CTOR
             {
                 methodResult = ReflectiveMethodCallUtil.callConstructor(baseClassName.replace('/', '.'),
                                                                         parameterClasses,
@@ -230,16 +332,10 @@ public class ExecutingInvocationUnit
             }
             else // non-constructor method call.
             {
-                String className;
-                Object callingInstance = null; // correct for static.
-                if (isStatic)
-                {
-                    className = baseClassName.replace('/', '.');
-                }
-                else
+                Object callingInstance = null; // correct for static
+                if (!isStatic)
                 {
                     ReferenceValue instance = parameter[0].referenceValue();
-                    className = ClassUtil.externalClassName(ClassUtil.internalClassNameFromClassType(instance.getType()));
 
                     switch (baseClassName)
                     {
@@ -255,7 +351,7 @@ public class ExecutingInvocationUnit
                             break;
                     }
                 }
-                methodResult = ReflectiveMethodCallUtil.callMethod(className, methodName, callingInstance, parameterClasses, parameterObjects);
+                methodResult = ReflectiveMethodCallUtil.callMethod(ClassUtil.externalClassName(baseClassName), methodName, callingInstance, parameterClasses, parameterObjects);
             }
         }
         catch (NullPointerException | InvocationTargetException e)
@@ -291,8 +387,12 @@ public class ExecutingInvocationUnit
             returnType = parameter[0].referenceValue().getType();
         }
         // the referencedClass could be any Type. We do not have a reference to that class at this point.
-        return valueFactory.createReferenceValue(ClassUtil.internalClassNameFromClassType(returnType),
-                                                 getReferencedClass(anyMethodrefConstant, returnType, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
+        return valueFactory.createReferenceValue(returnType,
+                                                 // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
+                                                 // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
+                                                 ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
+                                                    ? null
+                                                    : getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
                                                  resultMayBeExtension,
                                                  resultMayBeNull,
                                                  methodResult);
@@ -336,9 +436,9 @@ public class ExecutingInvocationUnit
     {
         switch (baseClassName)
         {
-            case ClassConstants.NAME_JAVA_LANG_STRING_BUILDER:
-            case ClassConstants.NAME_JAVA_LANG_STRING_BUFFER:
-            case ClassConstants.NAME_JAVA_LANG_STRING:
+            case NAME_JAVA_LANG_STRING_BUILDER:
+            case NAME_JAVA_LANG_STRING_BUFFER:
+            case NAME_JAVA_LANG_STRING:
                 return true;
             default:
                 return false;
@@ -440,12 +540,8 @@ public class ExecutingInvocationUnit
      */
     private static boolean alwaysModifiesInstance(String clazzName, String methodName)
     {
-        if (methodName.equals(ClassConstants.METHOD_NAME_INIT))
-        {
-            // The constructor always modifies the instance.
-            return true;
-        }
-        return false;
+        // The constructor always modifies the instance.
+        return methodName.equals(METHOD_NAME_INIT);
     }
 
     /**
@@ -493,7 +589,7 @@ public class ExecutingInvocationUnit
                 updateValue = valueFactory.createValue((returnType.charAt(0) == TypeConstants.VOID) ?
                                                            ClassUtil.internalTypeFromClassName(baseClassName) :
                                                            returnType,
-                                                       getReferencedClass(anyMethodrefConstant, returnType, methodName.equals(ClassConstants.METHOD_NAME_INIT)),
+                                                       getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
                                                        true,
                                                        true);
             }
@@ -508,21 +604,17 @@ public class ExecutingInvocationUnit
      * For a Constructor, we always return a type, even if the return type of the method would be void. This is required,
      * since we need to handle constructors differently in general (see Javadoc).
      */
-    private Clazz getReferencedClass(AnyMethodrefConstant anyMethodrefConstant, String returnType, boolean isCtor)
+    private Clazz getReferencedClass(AnyMethodrefConstant anyMethodrefConstant, boolean isCtor)
     {
-        if (returnType.charAt(0) == TypeConstants.CLASS_START)
+        if (isCtor)
         {
-            if (isCtor)
-            {
-                return anyMethodrefConstant.referencedClass; // this is the class of "this", i.e., the type of this constructor.
-            }
-
-            // extract the class from the referenced classes
-            ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
-            anyMethodrefConstant.referencedMethodAccept(returnClassExtractor);
-            return returnClassExtractor.returnClass; // can be null
+            return anyMethodrefConstant.referencedClass; // this is the class of "this", i.e., the type of this constructor.
         }
-        return null;
+
+        // extract the class from the referenced classes
+        ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
+        anyMethodrefConstant.referencedMethodAccept(returnClassExtractor);
+        return returnClassExtractor.returnClass; // can be null
     }
 
     /**
@@ -543,13 +635,19 @@ public class ExecutingInvocationUnit
         @Override
         public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
         {
-            this.returnClass = programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
+            if (programMethod.referencedClasses != null)
+            {
+                this.returnClass = programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
+            }
         }
 
         @Override
         public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
         {
-            this.returnClass = libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
+            if (libraryMethod.referencedClasses != null)
+            {
+                this.returnClass = libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
+            }
         }
     }
 }

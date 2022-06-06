@@ -54,12 +54,10 @@ implements   ValueFactory
             case TypeConstants.LONG:    return createLongValue();
             case TypeConstants.FLOAT:   return createFloatValue();
             case TypeConstants.DOUBLE:  return createDoubleValue();
-            default:                    return createReferenceValue(ClassUtil.isInternalArrayType(type) ?
-                                                                        type :
-                                                                        ClassUtil.internalClassNameFromClassType(type),
-                                                                        referencedClass,
-                                                                        mayBeExtension,
-                                                                        mayBeNull);
+            default:                    return createReferenceValue(type,
+                                                                    referencedClass,
+                                                                    mayBeExtension,
+                                                                    mayBeNull);
         }
     }
 

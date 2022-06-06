@@ -48,6 +48,13 @@ class JvmTaintCpaTest : FreeSpec({
         setOf(),
         setOf()
     )
+    val taintSourceReturnDouble = TaintSource(
+        "LA;source()D",
+        false,
+        true,
+        setOf(),
+        setOf()
+    )
     val taintSourceStatic = TaintSource(
         "LA;source()V",
         false,
@@ -518,5 +525,39 @@ class JvmTaintCpaTest : FreeSpec({
 
         abstractStates.size shouldBe 1
         (abstractStates.first() as JvmAbstractState<TaintAbstractState>).getStaticOrDefault("A.s", TaintAbstractState.bottom) shouldBe setOf(taintSourceStatic)
+    }
+
+    "Category 2 taint sources taint only top of the stack" - {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                    class A
+                    {
+                    
+                        public void main()
+                        {
+                            source(); // out offset: 3
+                        }
+                    
+                        public static double source()
+                        {
+                            return 0.0;
+                        }
+                    }
+                    """.trimIndent()
+                )
+            ).programClassPool
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val location = interproceduralCfa.getFunctionNode(mainSignature, 3)
+        val taintCpaRun = JvmTaintBamCpaRun<JvmAbstractState<TaintAbstractState>>(interproceduralCfa, setOf(taintSourceReturnDouble), mainSignature, -1)
+        val abstractStates = (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<TaintAbstractState>, MethodSignature>).getReached(location)
+        interproceduralCfa.clear()
+
+        abstractStates.size shouldBe 1
+        (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf(taintSourceReturnDouble)
+        (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek(1) shouldBe setOf()
     }
 })

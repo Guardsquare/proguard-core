@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,29 @@ implements   ClassVisitor
 {
     private final ClassVisitor interfaceSorter    = new InterfaceSorter();
     private final ClassVisitor constantPoolSorter = new ConstantPoolSorter();
-//  private ClassVisitor classMemberSorter  = new ClassMemberSorter();
+    private final ClassVisitor classMemberSorter  = new ClassMemberSorter();
     private final ClassVisitor attributeSorter    = new AttributeSorter();
 
+    private boolean sortInterfaces;
+    private boolean sortConstants;
+    private boolean sortMembers;
+    private boolean sortAttributes;
+
+    /**
+     * Creates a default `ClassElementSorter` that sorts interfaces, constants and attributes.
+     */
+    public ClassElementSorter()
+    {
+        this(true, true, false, true);
+    }
+
+    public ClassElementSorter(boolean sortInterfaces, boolean sortConstants, boolean sortMembers, boolean sortAttributes)
+    {
+        this.sortInterfaces = sortInterfaces;
+        this.sortConstants  = sortConstants;
+        this.sortMembers    = sortMembers;
+        this.sortAttributes = sortAttributes;
+    }
 
     // Implementations for ClassVisitor.
 
@@ -45,9 +65,9 @@ implements   ClassVisitor
     @Override
     public void visitProgramClass(ProgramClass programClass)
     {
-        programClass.accept(constantPoolSorter);
-        programClass.accept(interfaceSorter);
-//      programClass.accept(classMemberSorter);
-        programClass.accept(attributeSorter);
+        if (sortConstants)  programClass.accept(constantPoolSorter);
+        if (sortInterfaces) programClass.accept(interfaceSorter);
+        if (sortMembers)    programClass.accept(classMemberSorter);
+        if (sortAttributes) programClass.accept(attributeSorter);
     }
 }

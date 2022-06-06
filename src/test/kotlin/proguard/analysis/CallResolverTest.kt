@@ -368,4 +368,20 @@ class CallResolverTest : FreeSpec({
         val missing = unchecked.values.flatten().filter { !it.target.fqn.startsWith("Ljava/") }
         missing shouldHaveSize 0
     }
+
+    "Static false shouldAnalyzeNextCodeAttribute skips all attributes" {
+        val callGraph = CallGraph()
+        val resolver =
+            CallResolver.Builder(classPools.programClassPool, classPools.libraryClassPool, callGraph)
+                .setClearCallValuesAfterVisit(false)
+                .setUseDominatorAnalysis(true)
+                .setEvaluateAllCode(true)
+                .setIncludeSubClasses(true)
+                .setMaxPartialEvaluations(50)
+                .setShouldAnalyzeNextCodeAttribute { false }
+                .build()
+        classPools.programClassPool.classesAccept(resolver)
+        callGraph.incoming.isEmpty() shouldBe true
+        callGraph.outgoing.isEmpty() shouldBe true
+    }
 })
