@@ -16,33 +16,37 @@ import testutils.MatchDetector
 class MethodCopierTest : FreeSpec({
     "Given a method and a target class" - {
         val classBuilder = ClassBuilder(
-        VersionConstants.CLASS_VERSION_1_8,
-        AccessConstants.FINAL or AccessConstants.SUPER,
-        "Test",
-        ClassConstants.NAME_JAVA_LANG_OBJECT
-    )
+            VersionConstants.CLASS_VERSION_1_8,
+            AccessConstants.FINAL or AccessConstants.SUPER,
+            "Test",
+            ClassConstants.NAME_JAVA_LANG_OBJECT
+        )
         val testClass = classBuilder.programClass
-        val method   = classBuilder.addAndReturnMethod(AccessConstants.PUBLIC,
+        val method = classBuilder.addAndReturnMethod(
+            AccessConstants.PUBLIC,
             ClassConstants.METHOD_NAME_INIT,
             ClassConstants.METHOD_TYPE_INIT,
-            50) {
+            50
+        ) {
             it
                 .aload_0()
                 .iconst(0)
                 .invokespecial(
                     ClassConstants.NAME_JAVA_LANG_OBJECT,
                     ClassConstants.METHOD_NAME_INIT,
-                    ClassConstants.METHOD_TYPE_INIT)
+                    ClassConstants.METHOD_TYPE_INIT
+                )
                 .return_()
         }
-        val methodDescriptor  = method.getDescriptor(testClass)
-        val methodName        = method.getName(testClass)
+        val methodDescriptor = method.getDescriptor(testClass)
+        val methodName = method.getName(testClass)
         val methodAccessFlags = AccessConstants.PUBLIC
         val targetClass = ClassBuilder(
             VersionConstants.CLASS_VERSION_1_8,
             AccessConstants.PUBLIC,
             "TargetClass",
-            ClassConstants.NAME_JAVA_LANG_OBJECT).programClass
+            ClassConstants.NAME_JAVA_LANG_OBJECT
+        ).programClass
         "When the method is copied to the target class" - {
             val methodCopier = MethodCopier(targetClass, ClassConstants.METHOD_NAME_INIT, methodAccessFlags)
             method.accept(testClass, methodCopier)
@@ -63,14 +67,19 @@ class MethodCopierTest : FreeSpec({
                     .invokespecial(
                         ClassConstants.NAME_JAVA_LANG_OBJECT,
                         ClassConstants.METHOD_NAME_INIT,
-                        ClassConstants.METHOD_TYPE_INIT)
+                        ClassConstants.METHOD_TYPE_INIT
+                    )
                     .return_()
                 val matchDetector = MatchDetector(InstructionSequenceMatcher(builder.constants(), builder.instructions()))
                 val copiedMethod = targetClass.findMethod(methodName, methodDescriptor)
-                copiedMethod.accept(targetClass,
-                                    AllAttributeVisitor(
-                                    AllInstructionVisitor(
-                                    matchDetector)))
+                copiedMethod.accept(
+                    targetClass,
+                    AllAttributeVisitor(
+                        AllInstructionVisitor(
+                            matchDetector
+                        )
+                    )
+                )
                 matchDetector.matchIsFound shouldBe true
             }
         }
