@@ -22,7 +22,6 @@ import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.*;
-import org.jetbrains.annotations.Nullable;
 import proguard.classfile.*;
 import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.annotation.visitor.*;
@@ -116,12 +115,31 @@ implements ClassVisitor,
 
         annotation.elementValuesAccept(clazz, this);
 
+        // mv could be null if the metadata annotation was partially shrunk/obfuscated.
+        KotlinMetadataVersion version = mv == null ? null : new KotlinMetadataVersion(mv);
+
+        if (version == null)
+        {
+            throw new UnsupportedKotlinMetadataVersionException(
+                    "Kotlin metadata version not found on class '" + clazz.getName() + "'.",
+                    version,
+                    MAX_SUPPORTED_VERSION
+            );
+        }
+        else if (!isSupportedMetadataVersion(version))
+        {
+            throw new UnsupportedKotlinMetadataVersionException(
+                    "Unsupported Kotlin metadata version " + version + " found on class '" + clazz.getName() + "'." + System.lineSeparator() +
+                    "Kotlin versions up to " + MAX_SUPPORTED_VERSION.major + "." + MAX_SUPPORTED_VERSION.minor + " are supported.",
+                    version,
+                    MAX_SUPPORTED_VERSION
+            );
+        }
 
         // Parse the collected metadata.
         KotlinClassMetadata md = KotlinClassMetadata.read(new KotlinClassHeader(k, mv, d1, d2, xs, pn, xi));
         if (md == null)
         {
-            String version = mv == null ? "unknown" : Arrays.stream(mv).mapToObj(Integer::toString).collect(joining("."));
             this.errorHandler.accept(clazz, "Encountered corrupt @kotlin/Metadata for class " + clazz.getName() + " (version " + version + ").");
             return;
         }
@@ -1964,5 +1982,28 @@ implements ClassVisitor,
     public static boolean isSupportedMetadataVersion(KotlinMetadataVersion mv)
     {
         return new JvmMetadataVersion(mv.major, mv.minor, mv.patch).isCompatible();
+    }
+
+    public static class UnsupportedKotlinMetadataVersionException extends RuntimeException
+    {
+        private final KotlinMetadataVersion version;
+        private final KotlinMetadataVersion maxSupportedVersion;
+
+        public UnsupportedKotlinMetadataVersionException(String message, KotlinMetadataVersion version, KotlinMetadataVersion maxSupportedVersion)
+        {
+            super(message);
+            this.version             = version;
+            this.maxSupportedVersion = maxSupportedVersion;
+        }
+
+        public KotlinMetadataVersion getVersion()
+        {
+            return version;
+        }
+
+        public KotlinMetadataVersion getMaxSupportedVersion()
+        {
+            return maxSupportedVersion;
+        }
     }
 }

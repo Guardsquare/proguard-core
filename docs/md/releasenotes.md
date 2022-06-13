@@ -1,3 +1,9 @@
+## Version 9.0.2
+
+### API changes
+
+- `KotlinMetadataInitializer` now throws a `UnsupportedKotlinMetadataVersionException` if the version of metadata in the annotation is unsupported. (`T16714`)
+
 ## Version 9.0.1
 
 ### Improved

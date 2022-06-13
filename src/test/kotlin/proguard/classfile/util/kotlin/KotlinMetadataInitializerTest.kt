@@ -18,6 +18,7 @@
 
 package proguard.classfile.util.kotlin
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
@@ -31,6 +32,7 @@ import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinDeclarationContainerFilter
 import proguard.classfile.util.ClassReferenceInitializer
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer.UnsupportedKotlinMetadataVersionException
 import proguard.classfile.visitor.MultiClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
@@ -124,6 +126,63 @@ class KotlinMetadataInitializerTest : FreeSpec({
                         it.className shouldBe "TestKotlin1dot4Metadata"
                         it.mv shouldBe arrayOf(1, 4, 0)
                     }
+                )
+            }
+        }
+    }
+
+    "Given a class with Kotlin 9999 metadata" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "TestKotlin9999Metadata.java",
+                """
+                    @kotlin.Metadata(
+                        d1 = {"\u0000\n\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\u0018\u00002\u00020\u0001B\u0005¢\u0006\u0002\u0010\u0002"},
+                        d2 = {"LTestKotlin9999Metadata;", "", "()V"},
+                        k = 1,
+                        mv = {9999, 0, 0}
+                    )
+                    public class TestKotlin9999Metadata { }
+                """.trimIndent()
+            ),
+            initialize = false
+        )
+        "Then the metadata initializer should be throw an exception" {
+            shouldThrow<UnsupportedKotlinMetadataVersionException> {
+                val visitor = spyk<KotlinMetadataVisitor>()
+                programClassPool.classesAccept(
+                    MultiClassVisitor(
+                        KotlinMetadataInitializer { _, _ -> },
+                        ReferencedKotlinMetadataVisitor(visitor)
+                    )
+                )
+            }
+        }
+    }
+
+    "Given a class with Kotlin metadata version missing" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "TestKotlinVersionMissingMetadata.java",
+                """
+                    @kotlin.Metadata(
+                        d1 = {"\u0000\n\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\u0018\u00002\u00020\u0001B\u0005¢\u0006\u0002\u0010\u0002"},
+                        d2 = {"LTestKotlinVersionMissingMetadata;", "", "()V"},
+                        k = 1
+                    )
+                    public class TestKotlinVersionMissingMetadata { }
+                """.trimIndent()
+            ),
+            initialize = false
+        )
+        "Then the metadata initializer should be throw an exception" {
+            shouldThrow<UnsupportedKotlinMetadataVersionException> {
+                val visitor = spyk<KotlinMetadataVisitor>()
+                programClassPool.classesAccept(
+                    MultiClassVisitor(
+                        KotlinMetadataInitializer { _, _ -> },
+                        ReferencedKotlinMetadataVisitor(visitor)
+                    )
                 )
             }
         }
