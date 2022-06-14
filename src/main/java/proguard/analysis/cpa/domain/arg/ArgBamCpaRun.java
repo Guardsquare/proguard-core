@@ -20,7 +20,7 @@ package proguard.analysis.cpa.domain.arg;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
-import proguard.classfile.Signature;
+import proguard.analysis.cpa.bam.BamCache;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.RebuildOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
@@ -32,6 +32,7 @@ import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.ReachedSet;
+import proguard.classfile.Signature;
 
 /**
  * This {@link BamCpaRun} wraps the given {@link BamCpaRun} with an ARG generator.
@@ -105,7 +106,13 @@ public class ArgBamCpaRun<CpaT extends ConfigurableProgramAnalysis,
                           new ArgPrecisionAdjustment(wrappedCpa.getPrecisionAdjustment(), argAbstractStateFactory));
     }
 
-    // implementations for CpaRun
+    @Override
+    public BamCache<SignatureT> createCache()
+    {
+        return wrappedBamCpaRun.createCache();
+    }
+
+// implementations for CpaRun
 
     @Override
     public Collection<ArgAbstractState> getInitialStates()
