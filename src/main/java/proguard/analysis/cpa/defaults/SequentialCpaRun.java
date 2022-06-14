@@ -61,4 +61,9 @@ public abstract class SequentialCpaRun<CpaT extends ConfigurableProgramAnalysis,
     {
         return outputReachedSet == null ? outputReachedSet = execute() : outputReachedSet;
     }
+
+    public InputCpaRunT getInputCpaRun()
+    {
+        return inputCpaRun;
+    }
 }

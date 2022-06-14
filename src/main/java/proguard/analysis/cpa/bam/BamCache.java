@@ -52,4 +52,12 @@ public interface BamCache<SignatureT extends Signature>
      * Returns block abstractions stored in the cache.
      */
     Collection<BlockAbstraction> values();
+
+    /**
+     * Returns the size of the cache.
+     */
+    default int size()
+    {
+        return values().size();
+    }
 }
