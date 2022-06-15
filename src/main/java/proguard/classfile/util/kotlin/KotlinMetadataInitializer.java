@@ -37,15 +37,25 @@ import proguard.classfile.visitor.ClassVisitor;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-import static java.util.stream.Collectors.*;
 import static proguard.classfile.attribute.Attribute.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 import static proguard.classfile.util.kotlin.KotlinAnnotationUtilKt.convertAnnotation;
 
 /**
- * Initializes the kotlin metadata for each Kotlin class. After initialization, all
- * info from the annotation is represented in the Clazz's `kotlinMetadata` field. All
- * lists in kotlinMetadata are initialized, even if empty.
+ * Initializes the kotlin metadata for a Kotlin class.
+ * <p>
+ * Provides two APIs:
+ * <p>
+ * - Visitor: use as a ClassVisitor or AnnotationVisitor to initialize the Kotlin metadata
+ *            contain within a {@link kotlin.Metadata} annotation.
+ *            After initialization, all info from the annotation is represented in the {@link Clazz}'s
+ *            {@link ProgramClass#kotlinMetadata} field.
+ * <p>
+ *            Note: only applicable for {@link ProgramClass}.
+ * <p>
+ * - `initialize`: provide the {@link Clazz} and {@link kotlin.Metadata} field values
+ *                 to the {@link KotlinMetadataInitializer#initialize(Clazz, int, int[], String[], String[], int, String, String)} method
+ *                 to initialize Kotlin metadata for the given {@link Clazz}.
  */
 public class KotlinMetadataInitializer
 implements ClassVisitor,
@@ -87,9 +97,20 @@ implements ClassVisitor,
     }
 
     // Implementations for ClassVisitor
+    @Override
+    public void visitAnyClass(Clazz clazz) { }
+
 
     @Override
-    public void visitAnyClass(Clazz clazz)
+    public void visitLibraryClass(LibraryClass libraryClass) {
+        // LibraryClass models do not contain constant pools, attributes, so
+        // they cannot be initialized by a visitor.
+        // They should be initialized instead with the `initialize` method.
+    }
+
+
+    @Override
+    public void visitProgramClass(ProgramClass clazz)
     {
         clazz.accept(
                 new AllAttributeVisitor(
@@ -115,21 +136,38 @@ implements ClassVisitor,
 
         annotation.elementValuesAccept(clazz, this);
 
-        // mv could be null if the metadata annotation was partially shrunk/obfuscated.
-        KotlinMetadataVersion version = mv == null ? null : new KotlinMetadataVersion(mv);
+        initialize(clazz, k, mv, d1, d2, xi, xs, pn);
+    }
 
-        if (version == null)
+    /**
+     * Initialize Kotlin metadata for a given {@link Clazz}.
+     *
+     * @param clazz The {@link ProgramClass} or {@link LibraryClass}.
+     * @param k
+     * @param mv
+     * @param d1
+     * @param d2
+     * @param xi
+     * @param xs
+     * @param pn
+     *
+     * @throws UnsupportedKotlinMetadataVersionException if the metadata version is < MAX_SUPPORTED_VERSION
+     */
+    public void initialize(Clazz clazz, int k, int[] mv, String[] d1, String[] d2, int xi, String xs, String pn)
+    {
+        // mv could be null if the metadata annotation was partially shrunk/obfuscated.
+        if (mv == null || mv.length < 3)
         {
-            throw new UnsupportedKotlinMetadataVersionException(
-                    "Kotlin metadata version not found on class '" + clazz.getName() + "'.",
-                    version,
-                    MAX_SUPPORTED_VERSION
-            );
+            this.errorHandler.accept(clazz, "Encountered corrupt @kotlin/Metadata for class " + clazz.getName() + " (version unknown).");
+            return;
         }
-        else if (!isSupportedMetadataVersion(version))
+
+        KotlinMetadataVersion version = new KotlinMetadataVersion(mv);
+
+        if (!isSupportedMetadataVersion(version))
         {
             throw new UnsupportedKotlinMetadataVersionException(
-                    "Unsupported Kotlin metadata version " + version + " found on class '" + clazz.getName() + "'." + System.lineSeparator() +
+                    "Unsupported Kotlin metadata version " + version + " for class '" + clazz.getName() + "'." + System.lineSeparator() +
                     "Kotlin versions up to " + MAX_SUPPORTED_VERSION.major + "." + MAX_SUPPORTED_VERSION.minor + " are supported.",
                     version,
                     MAX_SUPPORTED_VERSION

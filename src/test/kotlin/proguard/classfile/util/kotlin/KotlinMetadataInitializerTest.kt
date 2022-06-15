@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,16 +175,16 @@ class KotlinMetadataInitializerTest : FreeSpec({
             ),
             initialize = false
         )
-        "Then the metadata initializer should be throw an exception" {
-            shouldThrow<UnsupportedKotlinMetadataVersionException> {
-                val visitor = spyk<KotlinMetadataVisitor>()
-                programClassPool.classesAccept(
-                    MultiClassVisitor(
-                        KotlinMetadataInitializer { _, _ -> },
-                        ReferencedKotlinMetadataVisitor(visitor)
-                    )
+        "Then the metadata initializer should print a warning" {
+            val visitor = spyk<KotlinMetadataVisitor>()
+            lateinit var message: String
+            programClassPool.classesAccept(
+                MultiClassVisitor(
+                    KotlinMetadataInitializer { _, s -> message = s },
+                    ReferencedKotlinMetadataVisitor(visitor)
                 )
-            }
+            )
+            message shouldBe "Encountered corrupt @kotlin/Metadata for class TestKotlinVersionMissingMetadata (version unknown)."
         }
     }
 
@@ -230,6 +230,47 @@ class KotlinMetadataInitializerTest : FreeSpec({
                     logger.accept(
                         ofType<Clazz>(),
                         ofType<String>()
+                    )
+                }
+            }
+        }
+    }
+
+    "Given a Kotlin metadata components" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Test.java",
+                """
+                public class Test { }
+                """.trimIndent()
+            )
+        )
+        "Then using the KotlinMetadataInitializer initialize function" - {
+            val kotlinMetadataInitializer = KotlinMetadataInitializer { _, _ -> }
+            kotlinMetadataInitializer.initialize(
+                programClassPool.getClass("Test"),
+                1,
+                intArrayOf(1, 4, 0),
+                arrayOf("\u0000\n\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\u0018\u00002\u00020\u0001B\u0005¢\u0006\u0002\u0010\u0002"),
+                arrayOf("LTest;", "", "()V"),
+                0,
+                "",
+                ""
+            )
+
+            "Then the metadata should be initialized correctly" {
+                val visitor = spyk<KotlinMetadataVisitor>()
+                programClassPool.classesAccept(
+                    ReferencedKotlinMetadataVisitor(visitor)
+                )
+
+                verify {
+                    visitor.visitKotlinClassMetadata(
+                        programClassPool.getClass("Test"),
+                        withArg {
+                            it.className shouldBe "Test"
+                            it.mv shouldBe arrayOf(1, 4, 0)
+                        }
                     )
                 }
             }
