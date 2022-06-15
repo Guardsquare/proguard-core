@@ -24,6 +24,7 @@ import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.Clazz
 import proguard.classfile.MethodSignature
+import proguard.classfile.editor.MemberReferenceFixer
 import proguard.classfile.kotlin.KotlinSyntheticClassKindMetadata
 import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
@@ -31,6 +32,7 @@ import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinDeclarationContainerFilter
 import proguard.classfile.util.ClassReferenceInitializer
+import proguard.classfile.util.ClassRenamer
 import proguard.classfile.visitor.MultiClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
@@ -183,6 +185,46 @@ class KotlinMetadataInitializerTest : FreeSpec({
                 )
             )
             message shouldBe "Encountered corrupt @kotlin/Metadata for class TestKotlinVersionMissingMetadata (version unknown)."
+        }
+    }
+
+    "Given a class with Kotlin metadata unknown field" - {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "TestKotlin1dot4Metadata.java",
+                """
+                    @kotlin.Metadata(
+                        bv = {1, 0, 3},
+                        d1 = {"\u0000\n\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\u0018\u00002\u00020\u0001B\u0005¢\u0006\u0002\u0010\u0002"},
+                        d2 = {"LTestKotlin1dot4Metadata;", "", "()V"},
+                        k = 1,
+                        mv = {1, 4, 0}
+                    )
+                    public class TestKotlin1dot4Metadata { }
+                """.trimIndent()
+            )
+        )
+
+        libraryClassPool.classAccept(
+            "kotlin/Metadata",
+            ClassRenamer(
+                { clazz -> clazz.name },
+                { clazz, member -> if (member.getName(clazz) == "k") "invalid" else member.getName(clazz) }
+            )
+        )
+
+        programClassPool.classesAccept(MemberReferenceFixer(true))
+
+        "Then the metadata initializer should print a warning" {
+            val visitor = spyk<KotlinMetadataVisitor>()
+            lateinit var message: String
+            programClassPool.classesAccept(
+                MultiClassVisitor(
+                    KotlinMetadataInitializer { _, s -> message = s },
+                    ReferencedKotlinMetadataVisitor(visitor)
+                )
+            )
+            message shouldBe "Encountered corrupt Kotlin metadata in class TestKotlin1dot4Metadata. The metadata for this class will not be processed (Unknown Kotlin metadata field 'invalid')"
         }
     }
 

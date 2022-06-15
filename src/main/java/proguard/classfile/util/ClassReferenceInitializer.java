@@ -814,7 +814,7 @@ implements   ClassVisitor,
                 // Initialize the default implementations class of interfaces.
                 // The class will be an inner class and have a name like MyInterface$DefaultImpls.
                 kotlinClassKindMetadata.referencedDefaultImplsClass =
-                    programClassPool.getClass(
+                    findClass(clazz,
                         kotlinClassKindMetadata.className +
                         KotlinConstants.DEFAULT_IMPLEMENTATIONS_SUFFIX
                     );
@@ -844,8 +844,7 @@ implements   ClassVisitor,
             {
                 // Initialize missing references from properties in the Companion class
                 // that have their backing field on the parent class.
-                clazz.attributeAccept(Attribute.INNER_CLASSES,
-                                      new KotlinCompanionParentPropertyInitializer());
+                clazz.accept(new KotlinCompanionParentPropertyInitializer());
             }
         }
 
@@ -1067,11 +1066,13 @@ implements   ClassVisitor,
                     simpleName      = ClassUtil.internalSimpleClassName(kotlinTypeMetadata.aliasName);
                 }
 
-                programClassPool.classesAccept(
-                    classNameFilter,
+                ClassVisitor typeAliasInitializer =
+                    new ClassNameFilter(classNameFilter,
                     new ReferencedKotlinMetadataVisitor(
-                    new KotlinTypeAliasReferenceInitializer(kotlinTypeMetadata, simpleName))
-                );
+                    new KotlinTypeAliasReferenceInitializer(kotlinTypeMetadata, simpleName)));
+
+                programClassPool.classesAccept(typeAliasInitializer);
+                libraryClassPool.classesAccept(typeAliasInitializer);
             }
 
             kotlinTypeMetadata.annotationsAccept(  clazz, this);
@@ -1509,8 +1510,8 @@ implements   ClassVisitor,
 
                 if (kotlinFunctionMetadata.referencedDefaultMethod == null && isInterface)
                 {
-                    Clazz defaultImplsClass = programClassPool.getClass(clazz.getName() +
-                                                                        DEFAULT_IMPLEMENTATIONS_SUFFIX);
+                    Clazz defaultImplsClass = findClass(clazz,
+                                                        clazz.getName() + DEFAULT_IMPLEMENTATIONS_SUFFIX);
 
                     if (defaultImplsClass != null)
                     {
@@ -1618,6 +1619,7 @@ implements   ClassVisitor,
      */
     private static class KotlinInterClassSyntheticFunctionInitializer
     implements           KotlinFunctionVisitor,
+                         ClassVisitor,
                          AttributeVisitor
     {
         private KotlinFunctionMetadata currentFunction;
@@ -1635,9 +1637,28 @@ implements   ClassVisitor,
             if (kotlinFunctionMetadata.referencedMethod == null)
             {
                 this.currentFunction = kotlinFunctionMetadata;
-                clazz.attributeAccept(Attribute.ENCLOSING_METHOD, this);
+                clazz.accept(this);
             }
         }
+
+
+        @Override
+        public void visitAnyClass(Clazz clazz) { }
+
+
+        @Override
+        public void visitProgramClass(ProgramClass programClass)
+        {
+            programClass.attributeAccept(Attribute.ENCLOSING_METHOD, this);
+        }
+
+
+        @Override
+        public void visitLibraryClass(LibraryClass libraryClass)
+        {
+            // TODO: Not supported
+        }
+
 
         @Override
         public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
@@ -1660,10 +1681,32 @@ implements   ClassVisitor,
      * and passes it to a KotlinInterClassPropertyReferenceInitializer.
      */
     private class KotlinCompanionParentPropertyInitializer
-    implements    AttributeVisitor,
+    implements    ClassVisitor,
+                  AttributeVisitor,
                   InnerClassesInfoVisitor,
                   ConstantVisitor
     {
+        // Implements for ClassVisitor
+
+
+        @Override
+        public void visitAnyClass(Clazz clazz) { }
+
+
+        @Override
+        public void visitProgramClass(ProgramClass programClass)
+        {
+            programClass.attributeAccept(Attribute.INNER_CLASSES, this);
+        }
+
+
+        @Override
+        public void visitLibraryClass(LibraryClass libraryClass)
+        {
+            // TODO: Not supported
+        }
+
+
         // Implementations for AttributeVisitor.
 
         @Override

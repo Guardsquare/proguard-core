@@ -59,6 +59,15 @@ public class KotlinConstants
 
     public static final String KOTLIN_INTRINSICS_CLASS               = "kotlin/jvm/internal/Intrinsics";
 
+    public static final String KOTLIN_METADATA_FIELD_K  = "k";
+    public static final String KOTLIN_METADATA_FIELD_BV = "bv";
+    public static final String KOTLIN_METADATA_FIELD_MV = "mv";
+    public static final String KOTLIN_METADATA_FIELD_D1 = "d1";
+    public static final String KOTLIN_METADATA_FIELD_D2 = "d2";
+    public static final String KOTLIN_METADATA_FIELD_XI = "xi";
+    public static final String KOLTIN_METADATA_FIELD_XS = "xs";
+    public static final String KOTLIN_METADATA_FIELD_PN = "pn";
+
     public static final class REFLECTION
     {
         public static final String CLASS_NAME                           = "kotlin/jvm/internal/Reflection";

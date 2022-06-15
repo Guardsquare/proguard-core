@@ -20,6 +20,7 @@ package proguard.io;
 import proguard.classfile.*;
 import proguard.classfile.io.*;
 import proguard.classfile.util.*;
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer;
 import proguard.classfile.visitor.*;
 
 import java.io.*;
@@ -48,6 +49,9 @@ public class ClassReader implements DataEntryReader
     private final WarningPrinter warningPrinter;
     private final ClassVisitor   classVisitor;
 
+    // Optionally build the Kotlin metadata model while reading classes.
+    private final KotlinMetadataInitializer kmInitializer;
+
 
     /**
      * Creates a new ClassReader for reading the specified
@@ -60,12 +64,36 @@ public class ClassReader implements DataEntryReader
                        WarningPrinter warningPrinter,
                        ClassVisitor   classVisitor)
     {
+        this(isLibrary,
+             skipNonPublicLibraryClasses,
+             skipNonPublicLibraryClassMembers,
+             ignoreStackMapAttributes,
+             false,
+             warningPrinter,
+             classVisitor);
+    }
+
+
+    /**
+     * Creates a new ClassReader for reading the specified
+     * Clazz objects.
+     */
+    public ClassReader(boolean        isLibrary,
+                       boolean        skipNonPublicLibraryClasses,
+                       boolean        skipNonPublicLibraryClassMembers,
+                       boolean        ignoreStackMapAttributes,
+                       boolean        includeKotlinMetadata,
+                       WarningPrinter warningPrinter,
+                       ClassVisitor   classVisitor)
+    {
         this.isLibrary                        = isLibrary;
         this.skipNonPublicLibraryClasses      = skipNonPublicLibraryClasses;
         this.skipNonPublicLibraryClassMembers = skipNonPublicLibraryClassMembers;
         this.ignoreStackMapAttributes         = ignoreStackMapAttributes;
         this.warningPrinter                   = warningPrinter;
         this.classVisitor                     = classVisitor;
+        this.kmInitializer = includeKotlinMetadata ?
+                new KotlinMetadataInitializer(warningPrinter) : null;
     }
 
 
@@ -87,12 +115,29 @@ public class ClassReader implements DataEntryReader
             if (isLibrary)
             {
                 clazz = new LibraryClass();
-                clazz.accept(new LibraryClassReader(dataInputStream, skipNonPublicLibraryClasses, skipNonPublicLibraryClassMembers));
+                ClassVisitor libraryClassReader = new LibraryClassReader(
+                    dataInputStream,
+                    skipNonPublicLibraryClasses,
+                    skipNonPublicLibraryClassMembers,
+                    kmInitializer != null ? (k, mv, d1, d2, xi, xs, pn) -> kmInitializer.initialize(clazz, k, mv, d1, d2, xi, xs, pn) : null
+                );
+
+                clazz.accept(libraryClassReader);
             }
             else
             {
                 clazz = new ProgramClass();
-                clazz.accept(new ProgramClassReader(dataInputStream, ignoreStackMapAttributes));
+                ClassVisitor programClassReader = new ProgramClassReader(
+                    dataInputStream,
+                    ignoreStackMapAttributes
+                );
+
+                if (kmInitializer != null)
+                {
+                    programClassReader = new MultiClassVisitor(programClassReader, kmInitializer);
+                }
+
+                clazz.accept(programClassReader);
             }
 
             // Apply the visitor, if we have a real class.

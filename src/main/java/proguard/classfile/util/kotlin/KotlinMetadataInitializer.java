@@ -135,7 +135,19 @@ implements ClassVisitor,
         this.xs = null;
         this.pn = null;
 
-        annotation.elementValuesAccept(clazz, this);
+        try
+        {
+            annotation.elementValuesAccept(clazz, this);
+        }
+        catch (Exception e)
+        {
+            this.errorHandler.accept(clazz,
+                                     "Encountered corrupt Kotlin metadata in class " +
+                                     clazz.getName() +
+                                     ". The metadata for this class will not be processed (" + e.getMessage() + ")");
+            clazz.accept(new SimpleKotlinMetadataSetter(new UnsupportedKotlinMetadata(k, mv, xi, xs, pn)));
+            return;
+        }
 
         initialize(clazz, k, mv, d1, d2, xi, xs, pn);
     }
@@ -269,14 +281,14 @@ implements ClassVisitor,
     @Override
     public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
     {
-        this.currentType = MetadataType.valueOf(constantElementValue.getMethodName(clazz));
+        this.currentType = metadataTypeOf(constantElementValue.getMethodName(clazz));
         clazz.constantPoolEntryAccept(constantElementValue.u2constantValueIndex, this);
     }
 
     @Override
     public void visitArrayElementValue(Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue)
     {
-        MetadataType arrayElementType = MetadataType.valueOf(arrayElementValue.getMethodName(clazz));
+        MetadataType arrayElementType = metadataTypeOf(arrayElementValue.getMethodName(clazz));
         switch (arrayElementType)
         {
             case mv: this.mv = new int   [arrayElementValue.u2elementValuesCount]; break;
@@ -2003,5 +2015,39 @@ implements ClassVisitor,
     public static boolean isSupportedMetadataVersion(KotlinMetadataVersion mv)
     {
         return new JvmMetadataVersion(mv.major, mv.minor, mv.patch).isCompatible();
+    }
+    
+    public static boolean isValidKotlinMetadataAnnotationField(String name)
+    {
+        switch (name)
+        {
+            case KOTLIN_METADATA_FIELD_K:
+            case KOTLIN_METADATA_FIELD_BV:
+            case KOTLIN_METADATA_FIELD_MV:
+            case KOTLIN_METADATA_FIELD_D1:
+            case KOTLIN_METADATA_FIELD_D2:
+            case KOTLIN_METADATA_FIELD_XI:
+            case KOLTIN_METADATA_FIELD_XS:
+            case KOTLIN_METADATA_FIELD_PN:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static MetadataType metadataTypeOf(String name)
+    {
+        switch (name)
+        {
+            case KOTLIN_METADATA_FIELD_K:  return MetadataType.k;
+            case KOTLIN_METADATA_FIELD_BV: return MetadataType.bv;
+            case KOTLIN_METADATA_FIELD_MV: return MetadataType.mv;
+            case KOTLIN_METADATA_FIELD_D1: return MetadataType.d1;
+            case KOTLIN_METADATA_FIELD_D2: return MetadataType.d2;
+            case KOTLIN_METADATA_FIELD_XI: return MetadataType.xi;
+            case KOLTIN_METADATA_FIELD_XS: return MetadataType.xs;
+            case KOTLIN_METADATA_FIELD_PN: return MetadataType.pn;
+            default: throw new IllegalArgumentException("Unknown Kotlin metadata field '" + name + "'");
+        }
     }
 }

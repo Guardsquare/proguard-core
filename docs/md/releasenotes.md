@@ -1,8 +1,15 @@
 ## Version 9.0.2
 
-### API changes
+### Improvements to Kotlin metadata initialization
 
-- `KotlinMetadataInitializer` now throws a `UnsupportedKotlinMetadataVersionException` if the version of metadata in the annotation is unsupported. (`T16714`)
+Several improvements to Kotlin metadata initialization now allow building the Kotlin metadata model for library classes (`LibraryClass`):
+
+- `KotlinMetadataInitializer` provides a new public method `initialize(Clazz, int, int[], String[], String[], int, String, String)` to initialize
+  the Kotlin metadata model for a given class.
+- `ClassReader` can now build the Kotlin metadata model by setting `includeKotlinMetadata` to `true`.
+- `LibraryClassReader` can now read the Kotlin metadata annotation and provide the components to a consumer.
+- An `UnsupportedKotlinMetadata` type is now assigned by the `KotlinMetadataInitializer` if the Kotlin metadata model
+  could not be initialized correctly. 
 
 ## Version 9.0.1
 

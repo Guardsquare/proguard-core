@@ -18,13 +18,22 @@
 package proguard.classfile.io;
 
 import proguard.classfile.*;
+import proguard.classfile.attribute.annotation.*;
+import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.*;
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
 import proguard.classfile.visitor.*;
 import proguard.io.RuntimeDataInput;
 
-import java.io.DataInput;
+import java.io.*;
+import java.util.*;
+
+import static proguard.classfile.attribute.Attribute.RUNTIME_VISIBLE_ANNOTATIONS;
+import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_METADATA;
+import static proguard.classfile.util.kotlin.KotlinMetadataInitializer.isValidKotlinMetadataAnnotationField;
+import static proguard.classfile.util.kotlin.KotlinMetadataInitializer.metadataTypeOf;
 
 /**
  * This {@link ClassVisitor} fills out the {@link LibraryClass} instances that it visits with data
@@ -45,6 +54,9 @@ implements   ClassVisitor,
     private final boolean          skipNonPublicClasses;
     private final boolean          skipNonPublicClassMembers;
 
+    // A callback which can be used to build the Kotlin metadata model.
+    private final KotlinMetadataElementValueConsumer kmElementValueConsumer;
+
     // A global array that acts as a parameter for the visitor methods.
     private Constant[]      constantPool;
 
@@ -56,9 +68,23 @@ implements   ClassVisitor,
                               boolean   skipNonPublicClasses,
                               boolean   skipNonPublicClassMembers)
     {
+        this(dataInput, skipNonPublicClasses, skipNonPublicClassMembers, null);
+    }
+
+
+
+    /**
+     * Creates a new ProgramClassReader for reading from the given DataInput.
+     */
+    public LibraryClassReader(DataInput                          dataInput,
+                              boolean                            skipNonPublicClasses,
+                              boolean                            skipNonPublicClassMembers,
+                              KotlinMetadataElementValueConsumer kmElementValueConsumer)
+    {
         this.dataInput                 = new RuntimeDataInput(dataInput);
         this.skipNonPublicClasses      = skipNonPublicClasses;
         this.skipNonPublicClassMembers = skipNonPublicClassMembers;
+        this.kmElementValueConsumer    = kmElementValueConsumer;
     }
 
 
@@ -98,7 +124,8 @@ implements   ClassVisitor,
 
             int tag = constant.getTag();
             if (tag == Constant.CLASS ||
-                tag == Constant.UTF8)
+                tag == Constant.UTF8 ||
+                tag == Constant.INTEGER)
             {
                 constantPool[index] = constant;
             }
@@ -207,8 +234,7 @@ implements   ClassVisitor,
             System.arraycopy(reusableMethods, 0, libraryClass.methods, 0, visibleMethodsCount);
         }
 
-        // Skip the class attributes.
-        skipAttributes();
+        skipClassAttributes(libraryClass);
     }
 
 
@@ -226,8 +252,7 @@ implements   ClassVisitor,
         libraryMember.name          = getString(dataInput.readUnsignedShort());
         libraryMember.descriptor    = getString(dataInput.readUnsignedShort());
 
-        // Skip the field attributes.
-        skipAttributes();
+        skipMemberAttributes();
     }
 
 
@@ -235,7 +260,7 @@ implements   ClassVisitor,
 
     public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant)
     {
-        dataInput.skipBytes(4);
+        integerConstant.u4value = dataInput.readInt();
     }
 
 
@@ -359,6 +384,15 @@ implements   ClassVisitor,
         return ((Utf8Constant)constantPool[constantIndex]).getString();
     }
 
+    /**
+     * Returns the {@link IntegerConstant} at the specified index in the
+     * reusable constant pool.
+     */
+    private int getInteger(int constantIndex)
+    {
+        return ((IntegerConstant)constantPool[constantIndex]).getValue();
+    }
+
 
     private Constant createConstant()
     {
@@ -389,22 +423,54 @@ implements   ClassVisitor,
     }
 
 
-    private void skipAttributes()
+    private void skipClassAttributes(LibraryClass libraryClass)
     {
         int u2attributesCount = dataInput.readUnsignedShort();
 
         for (int index = 0; index < u2attributesCount; index++)
         {
+            int    u2attributeNameIndex = dataInput.readUnsignedShort();
+            String attributeName        = getString(u2attributeNameIndex);
+            if (kmElementValueConsumer != null && RUNTIME_VISIBLE_ANNOTATIONS.equals(attributeName))
+            {
+                skipAttributeOrReadKotlinMetadataAnnotation(libraryClass);
+            }
+            else
+            {
+                skipAttribute();
+            }
+        }
+    }
+
+    private void skipMemberAttributes()
+    {
+        int u2attributesCount = dataInput.readUnsignedShort();
+
+        for (int index = 0; index < u2attributesCount; index++)
+        {
+            // u2attributeNameIndex
+            dataInput.skipBytes(2);
+
             skipAttribute();
         }
     }
 
-
     private void skipAttribute()
     {
-        dataInput.skipBytes(2);
         int u4attributeLength = dataInput.readInt();
         dataInput.skipBytes(u4attributeLength);
+    }
+
+    private void skipAttributeOrReadKotlinMetadataAnnotation(LibraryClass libraryClass)
+    {
+        // u4attributeLength
+        dataInput.skipBytes(4);
+
+        int u2annotationsCount = dataInput.readUnsignedShort();
+        for (int index = 0; index < u2annotationsCount; index++)
+        {
+            skipAnnotationOrReadKotlinMetadataAnnotation(libraryClass);
+        }
     }
 
 
@@ -426,5 +492,209 @@ implements   ClassVisitor,
         }
 
         return 0;
+    }
+
+    // Helpers for reading the {@link kotlin.Metadata} annotation.
+    
+    private void skipAnnotationOrReadKotlinMetadataAnnotation(Clazz clazz)
+    {
+        Annotation annotation  = new Annotation();
+        annotation.u2typeIndex = dataInput.readUnsignedShort();
+        String annotationType  = getString(annotation.u2typeIndex);
+
+        if (!TYPE_KOTLIN_METADATA.equals(annotationType))
+        {
+            skipAnnotationRemainingBytes(false, clazz, annotation);
+            return;
+        }
+
+        annotation.u2elementValuesCount = dataInput.readUnsignedShort();
+
+        KotlinMetadataElementValues kmValues = new KotlinMetadataElementValues();
+        for (int index = 0; index < annotation.u2elementValuesCount; index++)
+        {
+            int u2elementNameIndex          = dataInput.readUnsignedShort();
+            ElementValue elementValue       = createElementValue();
+            elementValue.u2elementNameIndex = u2elementNameIndex;
+            String elementName              = getString(u2elementNameIndex);
+
+            elementValue.accept(
+                clazz,
+                annotation,
+                isValidKotlinMetadataAnnotationField(elementName) ?
+                    new KotlinMetadataAnnotationElementValueReader(
+                        metadataTypeOf(elementName),
+                        kmValues
+                    ) :
+                    new SkipAnnotationElementVisitor()
+            );
+        }
+
+        kmElementValueConsumer.accept(
+            kmValues.k,
+            kmValues.mv == null ? null : kmValues.mv.stream().mapToInt(i -> i).toArray(),
+            kmValues.d1 == null ? null : kmValues.d1.toArray(new String[0]),
+            kmValues.d2 == null ? null : kmValues.d2.toArray(new String[0]),
+            kmValues.xi,
+            kmValues.xs,
+            kmValues.pn
+        );
+    }
+
+    private static final class KotlinMetadataElementValues
+    {
+        public int           k = -1;
+        public List<Integer> mv;
+        public List<String>  d1;
+        public List<String>  d2;
+        public int           xi = 0;
+        public String        xs;
+        public String        pn;
+    }
+
+    private ElementValue createElementValue()
+    {
+        int u1tag = dataInput.readUnsignedByte();
+
+        switch (u1tag)
+        {
+            case TypeConstants.BOOLEAN:
+            case TypeConstants.BYTE:
+            case TypeConstants.CHAR:
+            case TypeConstants.SHORT:
+            case TypeConstants.INT:
+            case TypeConstants.FLOAT:
+            case TypeConstants.LONG:
+            case TypeConstants.DOUBLE:
+            case ElementValue.TAG_STRING_CONSTANT: return new ConstantElementValue((char)u1tag);
+            case ElementValue.TAG_ENUM_CONSTANT:   return new EnumConstantElementValue();
+            case ElementValue.TAG_CLASS:           return new ClassElementValue();
+            case ElementValue.TAG_ANNOTATION:      return new AnnotationElementValue();
+            case ElementValue.TAG_ARRAY:           return new ArrayElementValue();
+
+            default: throw new IllegalArgumentException("Unknown element value tag ["+u1tag+"]");
+        }
+    }
+
+
+    private class KotlinMetadataAnnotationElementValueReader implements ElementValueVisitor
+    {
+
+        private final MetadataType                elementName;
+        private final KotlinMetadataElementValues kotlinMetadataFields;
+
+
+        public KotlinMetadataAnnotationElementValueReader(MetadataType                elementName,
+                                                          KotlinMetadataElementValues kotlinMetadataFields)
+        {
+            this.elementName          = elementName;
+            this.kotlinMetadataFields = kotlinMetadataFields;
+        }
+
+
+        @Override
+        public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
+        {
+            int u2constantValueIndex = dataInput.readUnsignedShort();
+
+            switch (elementName)
+            {
+                case mv: if (kotlinMetadataFields.mv == null) kotlinMetadataFields.mv = new ArrayList<>(); break;
+                case d1: if (kotlinMetadataFields.d1 == null) kotlinMetadataFields.d1 = new ArrayList<>(); break;
+                case d2: if (kotlinMetadataFields.d2 == null) kotlinMetadataFields.d2 = new ArrayList<>(); break;
+            }
+
+            switch (elementName)
+            {
+                case  k: kotlinMetadataFields.k = getInteger(u2constantValueIndex); break;
+                case mv: kotlinMetadataFields.mv.add(getInteger(u2constantValueIndex)); break;
+                case d1: kotlinMetadataFields.d1.add(getString(u2constantValueIndex)); break;
+                case d2: kotlinMetadataFields.d2.add(getString(u2constantValueIndex)); break;
+                case xi: kotlinMetadataFields.xi = getInteger(u2constantValueIndex); break;
+                case xs: kotlinMetadataFields.xs = getString(u2constantValueIndex); break;
+                case pn: kotlinMetadataFields.pn = getString(u2constantValueIndex); break;
+            }
+        }
+
+        @Override
+        public void visitArrayElementValue(Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue)
+        {
+            int u2elementValuesCount = dataInput.readUnsignedShort();
+
+            for (int index = 0; index < u2elementValuesCount; index++)
+            {
+                ElementValue elementValue = createElementValue();
+                elementValue.accept(clazz, annotation, this);
+            }
+        }
+    }
+
+    private void skipAnnotationRemainingBytes(boolean readTypeIndex, Clazz clazz, Annotation annotation)
+    {
+        if (readTypeIndex)
+        {
+            // u2typeIndex
+            dataInput.skipBytes(2);
+        }
+        annotation.u2elementValuesCount = dataInput.readUnsignedShort();
+        for (int index = 0; index < annotation.u2elementValuesCount; index++)
+        {
+            // u2elementNameIndex
+            dataInput.skipBytes(2);
+            createElementValue().accept(clazz, annotation, new SkipAnnotationElementVisitor());
+        }
+    }
+
+    private class SkipAnnotationElementVisitor implements ElementValueVisitor
+    {
+
+        @Override
+        public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
+        {
+            // u2constantValueIndex
+            dataInput.skipBytes(2);
+        }
+
+
+        @Override
+        public void visitEnumConstantElementValue(Clazz clazz, Annotation annotation, EnumConstantElementValue enumConstantElementValue)
+        {
+            // u2typeNameIndex
+            dataInput.skipBytes(2);
+            // u2constantNameIndex
+            dataInput.skipBytes(2);
+        }
+
+
+        @Override
+        public void visitClassElementValue(Clazz clazz, Annotation annotation, ClassElementValue classElementValue)
+        {
+            // u2classInfoIndex
+            dataInput.skipBytes(2);
+        }
+
+
+        @Override
+        public void visitAnnotationElementValue(Clazz clazz, Annotation annotation, AnnotationElementValue annotationElementValue)
+        {
+            skipAnnotationRemainingBytes(/* readTypeIndex = */ true, clazz, new Annotation());
+        }
+
+
+        @Override
+        public void visitArrayElementValue(Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue)
+        {
+            int u2elementValuesCount = dataInput.readUnsignedShort();
+
+            for (int index = 0; index < u2elementValuesCount; index++)
+            {
+                createElementValue().accept(clazz, annotation, this);
+            }
+        }
+    }
+
+    public interface KotlinMetadataElementValueConsumer
+    {
+        void accept(int k, int[] mv, String[] d1, String[] d2, int xi, String xs, String pn);
     }
 }
