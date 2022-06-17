@@ -18,7 +18,6 @@
 
 package proguard.classfile.util.kotlin
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
@@ -32,7 +31,6 @@ import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinDeclarationContainerFilter
 import proguard.classfile.util.ClassReferenceInitializer
-import proguard.classfile.util.kotlin.KotlinMetadataInitializer.UnsupportedKotlinMetadataVersionException
 import proguard.classfile.visitor.MultiClassVisitor
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
@@ -147,16 +145,16 @@ class KotlinMetadataInitializerTest : FreeSpec({
             ),
             initialize = false
         )
-        "Then the metadata initializer should be throw an exception" {
-            shouldThrow<UnsupportedKotlinMetadataVersionException> {
-                val visitor = spyk<KotlinMetadataVisitor>()
-                programClassPool.classesAccept(
-                    MultiClassVisitor(
-                        KotlinMetadataInitializer { _, _ -> },
-                        ReferencedKotlinMetadataVisitor(visitor)
-                    )
+        "Then the metadata initializer should print a warning" {
+            val visitor = spyk<KotlinMetadataVisitor>()
+            lateinit var message: String
+            programClassPool.classesAccept(
+                MultiClassVisitor(
+                    KotlinMetadataInitializer { _, s -> message = s },
+                    ReferencedKotlinMetadataVisitor(visitor)
                 )
-            }
+            )
+            message shouldBe "Encountered corrupt @kotlin/Metadata for class TestKotlin9999Metadata (version 9999.0.0)."
         }
     }
 

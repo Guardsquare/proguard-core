@@ -26,6 +26,11 @@ public interface KotlinMetadataVisitor
                                 KotlinMetadata kotlinMetadata);
 
 
+    default void visitUnsupportedKotlinMetadata(Clazz clazz, UnsupportedKotlinMetadata kotlinMetadata)
+    {
+        visitAnyKotlinMetadata(clazz, kotlinMetadata);
+    }
+
     default void visitKotlinDeclarationContainerMetadata(Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
     {
         visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);

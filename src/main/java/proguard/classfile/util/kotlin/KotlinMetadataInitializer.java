@@ -37,6 +37,7 @@ import proguard.classfile.visitor.ClassVisitor;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+import static java.util.stream.Collectors.joining;
 import static proguard.classfile.attribute.Attribute.*;
 import static proguard.classfile.kotlin.KotlinConstants.*;
 import static proguard.classfile.util.kotlin.KotlinAnnotationUtilKt.convertAnnotation;
@@ -150,35 +151,16 @@ implements ClassVisitor,
      * @param xi
      * @param xs
      * @param pn
-     *
-     * @throws UnsupportedKotlinMetadataVersionException if the metadata version is < MAX_SUPPORTED_VERSION
      */
     public void initialize(Clazz clazz, int k, int[] mv, String[] d1, String[] d2, int xi, String xs, String pn)
     {
-        // mv could be null if the metadata annotation was partially shrunk/obfuscated.
-        if (mv == null || mv.length < 3)
-        {
-            this.errorHandler.accept(clazz, "Encountered corrupt @kotlin/Metadata for class " + clazz.getName() + " (version unknown).");
-            return;
-        }
-
-        KotlinMetadataVersion version = new KotlinMetadataVersion(mv);
-
-        if (!isSupportedMetadataVersion(version))
-        {
-            throw new UnsupportedKotlinMetadataVersionException(
-                    "Unsupported Kotlin metadata version " + version + " for class '" + clazz.getName() + "'." + System.lineSeparator() +
-                    "Kotlin versions up to " + MAX_SUPPORTED_VERSION.major + "." + MAX_SUPPORTED_VERSION.minor + " are supported.",
-                    version,
-                    MAX_SUPPORTED_VERSION
-            );
-        }
-
         // Parse the collected metadata.
         KotlinClassMetadata md = KotlinClassMetadata.read(new KotlinClassHeader(k, mv, d1, d2, xs, pn, xi));
         if (md == null)
         {
+            String version = mv == null ? "unknown" : Arrays.stream(mv).mapToObj(Integer::toString).collect(joining("."));
             this.errorHandler.accept(clazz, "Encountered corrupt @kotlin/Metadata for class " + clazz.getName() + " (version " + version + ").");
+            clazz.accept(new SimpleKotlinMetadataSetter(new UnsupportedKotlinMetadata(k, mv, xi, xs, pn)));
             return;
         }
 
@@ -268,6 +250,7 @@ implements ClassVisitor,
                                              "Unknown Kotlin class kind in class " +
                                              clazz.getName() +
                                              ". The metadata for this class will not be processed.");
+                    clazz.accept(new SimpleKotlinMetadataSetter(new UnsupportedKotlinMetadata(k, mv, xi, xs, pn)));
                     break;
             }
         }
@@ -277,7 +260,7 @@ implements ClassVisitor,
                                      "Encountered corrupt Kotlin metadata in class " +
                                      clazz.getName() +
                                      ". The metadata for this class will not be processed (" + e.getMessage() + ")");
-
+            clazz.accept(new SimpleKotlinMetadataSetter(new UnsupportedKotlinMetadata(k, mv, xi, xs, pn)));
         }
     }
 
@@ -2020,28 +2003,5 @@ implements ClassVisitor,
     public static boolean isSupportedMetadataVersion(KotlinMetadataVersion mv)
     {
         return new JvmMetadataVersion(mv.major, mv.minor, mv.patch).isCompatible();
-    }
-
-    public static class UnsupportedKotlinMetadataVersionException extends RuntimeException
-    {
-        private final KotlinMetadataVersion version;
-        private final KotlinMetadataVersion maxSupportedVersion;
-
-        public UnsupportedKotlinMetadataVersionException(String message, KotlinMetadataVersion version, KotlinMetadataVersion maxSupportedVersion)
-        {
-            super(message);
-            this.version             = version;
-            this.maxSupportedVersion = maxSupportedVersion;
-        }
-
-        public KotlinMetadataVersion getVersion()
-        {
-            return version;
-        }
-
-        public KotlinMetadataVersion getMaxSupportedVersion()
-        {
-            return maxSupportedVersion;
-        }
     }
 }
