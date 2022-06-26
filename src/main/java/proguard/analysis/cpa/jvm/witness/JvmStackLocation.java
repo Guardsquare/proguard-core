@@ -19,15 +19,11 @@
 package proguard.analysis.cpa.jvm.witness;
 
 import java.util.Objects;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.domain.arg.ArgProgramLocationDependentAbstractState;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
- * The {@link JvmStackLocation} is a memory location at the operand stack at a certain program point.
+ * The {@link JvmStackLocation} is a memory location at the operand stack.
  * Indexing starts from the top of the stack.
  *
  * @author Dmitry Ivanov
@@ -39,33 +35,13 @@ public class JvmStackLocation
     public final int index;
 
     /**
-     * Create a stack location unspecific to a program location.
+     * Create a stack location.
      *
      * @param index a stack element index from the top
      */
     public JvmStackLocation(int index)
     {
-        this(null, index);
-    }
-
-    /**
-     * Create a stack location at a specific program location.
-     *
-     * @param argNode an ARG node
-     * @param index   a stack element index from the top
-     */
-    public JvmStackLocation(ArgProgramLocationDependentAbstractState<JvmCfaNode, JvmCfaEdge, MethodSignature> argNode, int index)
-    {
-        this.argNode = argNode;
         this.index = index;
-    }
-
-    // implementations for JvmMemoryLocation
-
-    @Override
-    public JvmStackLocation copy()
-    {
-        return new JvmStackLocation(argNode, index);
     }
 
     // implementations for MemoryLocation
@@ -94,18 +70,18 @@ public class JvmStackLocation
             return false;
         }
         JvmStackLocation other = (JvmStackLocation) obj;
-        return super.equals(obj) && index == other.index;
+        return index == other.index;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(argNode, index);
+        return Objects.hash(index);
     }
 
     @Override
     public String toString()
     {
-        return "JvmStackLocation(" + index + ")" + (argNode == null ? "" : "@" + argNode.getProgramLocation().getSignature().getFqn() + ":" + argNode.getProgramLocation().getOffset());
+        return "JvmStackLocation(" + index + ")";
     }
 }

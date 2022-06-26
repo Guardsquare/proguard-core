@@ -20,7 +20,6 @@ package proguard.analysis.cpa.defaults;
 
 import java.util.Objects;
 import proguard.classfile.Signature;
-import proguard.analysis.cpa.domain.arg.ArgProgramLocationDependentAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
@@ -31,42 +30,10 @@ import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
  *
  * @author Dmitry Ivanov
  */
-public abstract class MemoryLocation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT
-    extends CfaEdge<CfaNodeT>, SignatureT extends Signature, ValueT extends AbstractState, AbstractStateT extends AbstractState>
-    implements ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>
+public abstract class MemoryLocation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
+                                     CfaEdgeT extends CfaEdge<CfaNodeT>, SignatureT extends Signature,
+                                     ValueT extends AbstractState, AbstractStateT extends AbstractState>
 {
-
-    protected ArgProgramLocationDependentAbstractState<CfaNodeT, CfaEdgeT, SignatureT> argNode;
-
-    // implementations for ProgramLocationDependent
-
-    @Override
-    public CfaNodeT getProgramLocation()
-    {
-        return argNode == null ? null : argNode.getProgramLocation();
-    }
-
-    @Override
-    public void setProgramLocation(CfaNodeT programLocation)
-    {
-        this.argNode.setProgramLocation(programLocation);
-    }
-
-    /**
-     * Return the ARG node it points at.
-     */
-    public ArgProgramLocationDependentAbstractState<CfaNodeT, CfaEdgeT, SignatureT> getArgNode()
-    {
-        return argNode;
-    }
-
-    /**
-     * Sets the ARG node to point at.
-     */
-    public void setArgNode(ArgProgramLocationDependentAbstractState<CfaNodeT, CfaEdgeT, SignatureT> argNode)
-    {
-        this.argNode = argNode;
-    }
 
     /**
      * Returns an {@link AbstractState} representing value stored at the {@link MemoryLocation} in the input {@link AbstractState}.
@@ -74,27 +41,14 @@ public abstract class MemoryLocation<CfaNodeT extends CfaNode<CfaEdgeT, Signatur
      */
     public abstract <T extends ValueT> T extractValueOrDefault(AbstractStateT abstractState, T defaultValue);
 
-    /**
-     * Creates its copy.
-     */
-    public abstract MemoryLocation<CfaNodeT, CfaEdgeT, SignatureT, ValueT, AbstractStateT> copy();
-
     // implementations for Object
 
     @Override
-    public boolean equals(Object obj)
-    {
-        if (!(obj instanceof MemoryLocation))
-        {
-            return false;
-        }
-        MemoryLocation<CfaNodeT, CfaEdgeT, SignatureT, ValueT, AbstractStateT> other = (MemoryLocation<CfaNodeT, CfaEdgeT, SignatureT, ValueT, AbstractStateT>) obj;
-        return Objects.equals(argNode, other.argNode);
-    }
+    public abstract boolean equals(Object obj);
 
     @Override
-    public int hashCode()
-    {
-        return argNode.hashCode();
-    }
+    public abstract int hashCode();
+
+    @Override
+    public abstract String toString();
 }

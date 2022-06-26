@@ -48,7 +48,7 @@ public final class JvmMemoryLocationMergeJoinOperator
     @Override
     public AbstractState merge(AbstractState abstractState1, AbstractState abstractState2, Precision precision)
     {
-        if (!((JvmMemoryLocationAbstractState) abstractState1).getMemoryLocation().equals(((JvmMemoryLocationAbstractState) abstractState2).getMemoryLocation()))
+        if (!((JvmMemoryLocationAbstractState) abstractState1).getLocationDependentMemoryLocation().equals(((JvmMemoryLocationAbstractState) abstractState2).getLocationDependentMemoryLocation()))
         {
             return abstractState2;
         }

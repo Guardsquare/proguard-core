@@ -33,9 +33,4 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 public abstract class JvmMemoryLocation
     extends MemoryLocation<JvmCfaNode, JvmCfaEdge, MethodSignature, LatticeAbstractState, JvmAbstractState>
 {
-
-    // overloads for MemoryLocation
-
-    @Override
-    public abstract JvmMemoryLocation copy();
 }

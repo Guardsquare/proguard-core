@@ -29,7 +29,7 @@ import proguard.analysis.cpa.interfaces.AbstractState;
  *
  * @author Dmitry Ivanov
  */
-public class DelegateAbstractDomain<LatticeAbstractStateT extends LatticeAbstractState<? super LatticeAbstractStateT>>
+public class DelegateAbstractDomain<LatticeAbstractStateT extends LatticeAbstractState>
     implements AbstractDomain
 {
 

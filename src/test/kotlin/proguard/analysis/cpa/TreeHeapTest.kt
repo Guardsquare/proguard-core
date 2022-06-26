@@ -18,7 +18,7 @@
 
 package proguard.analysis.cpa
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
@@ -29,7 +29,7 @@ import proguard.analysis.cpa.jvm.util.CfaUtil
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 
-class TreeHeapTest : FreeSpec({
+class TreeHeapTest : StringSpec({
 
     val taintSourceReturn1 = TaintSource(
         "LA;source1()Ljava/lang/String;",
@@ -46,7 +46,7 @@ class TreeHeapTest : FreeSpec({
         setOf()
     )
 
-    "Method arguments are unaliased by default" - {
+    "Method arguments are unaliased by default" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -92,7 +92,7 @@ class TreeHeapTest : FreeSpec({
         traces.size shouldBe 0
     }
 
-    "Explicit argument aliasing is supported" - {
+    "Explicit argument aliasing is supported" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -145,7 +145,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "Flow through an array element is detected" - {
+    "Flow through an array element is detected" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -191,7 +191,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "All array elements are assumed to be aliased" - {
+    "All array elements are assumed to be aliased" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -238,7 +238,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "All fields with the same name are aliased in complex objects" - {
+    "All fields with the same name are aliased in complex objects" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -285,7 +285,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "Flows through nonstatic fields are supported" - {
+    "Flows through nonstatic fields are supported" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -331,7 +331,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "Analysis of loops converges" - {
+    "Analysis of loops converges" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -380,7 +380,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "Unaliased overwriting is supported" - {
+    "Unaliased overwriting is supported" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -425,7 +425,7 @@ class TreeHeapTest : FreeSpec({
         traces.size shouldBe 0
     }
 
-    "Aliased overwriting results in a weak update preserving the taint" - {
+    "Aliased overwriting results in a weak update preserving the taint" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -477,7 +477,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "Array overwriting results in a weak update preserving the taint" - {
+    "Array overwriting results in a weak update preserving the taint" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -524,7 +524,7 @@ class TreeHeapTest : FreeSpec({
         )
     }
 
-    "Multiple paths are reconstructed" - {
+    "Multiple paths are reconstructed" {
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             ClassPoolBuilder.fromSource(
                 JavaSource(
@@ -592,7 +592,8 @@ class TreeHeapTest : FreeSpec({
         interproceduralCfa.clear()
 
         traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;callee3()V:6, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee2()V:9, JvmStackLocation(0)@LA;callee2()V:6]"
+            "[JvmStackLocation(0)@LA;callee3()V:6, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee2()V:9, JvmStackLocation(0)@LA;callee2()V:6]",
+            "[JvmStackLocation(0)@LA;callee3()V:6, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:7, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee1()V:9, JvmStackLocation(0)@LA;callee1()V:6]"
         )
     }
 })

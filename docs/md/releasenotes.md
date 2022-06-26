@@ -1,5 +1,8 @@
 ## Version 9.0.2
 
+### Improved
+- `JvmMemoryLocationTransferRelation` does not rely anymore on a pre-computed abstract reachability graph. (`T15956`)
+
 ### Improvements to Kotlin metadata initialization
 
 Several improvements to Kotlin metadata initialization now allow building the Kotlin metadata model for library classes (`LibraryClass`):

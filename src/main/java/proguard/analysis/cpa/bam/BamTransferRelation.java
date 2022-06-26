@@ -222,6 +222,14 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
         return cache;
     }
 
+    /**
+     * Returns the CFA used by the transfer relation.
+     */
+    public Cfa<CfaNodeT, CfaEdgeT, SignatureT> getCfa()
+    {
+        return cfa;
+    }
+
     private Collection<? extends AbstractState> fixedPoint(AbstractState entryState, CfaNodeT currentLocation, Precision precision)
     {
         Collection<? extends AbstractState> blockResult = Collections.emptyList();

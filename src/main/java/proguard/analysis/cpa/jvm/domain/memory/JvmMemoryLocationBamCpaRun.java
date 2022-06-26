@@ -18,24 +18,23 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
-import proguard.analysis.cpa.defaults.NeverAbortOperator;
-import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.BamCpaRun;
+import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SequentialCpaRun;
-import proguard.analysis.cpa.domain.arg.ArgBamCpaRun;
-import proguard.analysis.cpa.domain.arg.ArgProgramLocationDependentAbstractStateFactory;
+import proguard.analysis.cpa.interfaces.AbortOperator;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.interfaces.ReachedSet;
+import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
-import proguard.analysis.cpa.util.StateNames;
+import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
+import proguard.classfile.MethodSignature;
 
 /**
  * This abstract analyzer runs the {@link JvmMemoryLocationCpa} and returns the {@link ReachedSet}.
@@ -43,13 +42,15 @@ import proguard.analysis.cpa.util.StateNames;
  * {@link JvmMemoryLocation}s is constructed. The threshold defines the minimal value above which the {@link AbstractState} should be
  * in order to be included into the continuation of the trace.
  *
+ * @param <AbstractStateT> The type of the values of the traced analysis.
+ *
  * @author Dmitry Ivanov
  */
 public abstract class JvmMemoryLocationBamCpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractStateT extends LatticeAbstractState<AbstractStateT>>
     extends SequentialCpaRun<JvmMemoryLocationCpa<AbstractStateT>,
-                             JvmMemoryLocationAbstractState,
-                             ArgBamCpaRun<CpaT, ? extends ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>, JvmCfaNode, JvmCfaEdge, MethodSignature>>
-    implements TraceExtractor<AbstractStateT>
+                             JvmMemoryLocationAbstractState<?>,
+                             BamCpaRun<CpaT, ? extends ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>, JvmCfaNode, JvmCfaEdge, MethodSignature>>
+    implements TraceExtractor
 {
 
     protected final AbstractStateT threshold;
@@ -68,36 +69,15 @@ public abstract class JvmMemoryLocationBamCpaRun<CpaT extends ConfigurableProgra
     /**
      * Create a CPA run.
      *
-     * @param inputCpaRun   an unwrapped traced CPA BAM run
+     * @param inputCpaRun   a traced CPA BAM run wrapped with an ARG computation
      * @param threshold     a cut-off threshold
      * @param abortOperator an abort operator
      */
     public JvmMemoryLocationBamCpaRun(BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold, AbortOperator abortOperator)
     {
-        this(new ArgBamCpaRun<>(inputCpaRun,
-                                 new ArgProgramLocationDependentAbstractStateFactory<>(s ->
-                                 {
-                                     JvmAbstractState<AbstractStateT> state = (JvmAbstractState<AbstractStateT>) s.getStateByName(StateNames.Jvm);
-                                     return state.getFrame().getLocalVariables().stream().allMatch(threshold::isLessOrEqual)
-                                            && state.getFrame().getOperandStack().stream().allMatch(threshold::isLessOrEqual)
-                                            && state.getStaticFields().values().stream().allMatch(threshold::isLessOrEqual);
-                                 })),
-             threshold,
-             abortOperator);
-    }
-
-    /**
-     * Create a CPA run.
-     *
-     * @param inputCpaRun   a traced CPA BAM run wrapped with an ARG computation
-     * @param threshold     a cut-off threshold
-     * @param abortOperator an abort operator
-     */
-    public JvmMemoryLocationBamCpaRun(ArgBamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold, AbortOperator abortOperator)
-    {
         super(inputCpaRun);
         this.threshold = threshold;
-        cpa = new JvmMemoryLocationCpa<>(threshold);
+        cpa = new JvmMemoryLocationCpa<>(threshold, inputCpaRun.getCpa());
         this.abortOperator = abortOperator;
     }
 
@@ -109,11 +89,17 @@ public abstract class JvmMemoryLocationBamCpaRun<CpaT extends ConfigurableProgra
         return new ProgramLocationDependentReachedSet<>();
     }
 
+    @Override
+    protected Waitlist createWaitlist()
+    {
+        return new BreadthFirstWaitlist();
+    }
+
     // implementations for TraceExtractor
 
     @Override
-    public ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState, MethodSignature> getOutputReachedSet()
+    public ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState<?>, MethodSignature> getOutputReachedSet()
     {
-        return (ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState, MethodSignature>) super.getOutputReachedSet();
+        return (ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState<?>, MethodSignature>) super.getOutputReachedSet();
     }
 }

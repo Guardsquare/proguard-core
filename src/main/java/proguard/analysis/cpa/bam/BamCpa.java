@@ -141,4 +141,44 @@ public class BamCpa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT ext
     {
         return wrappedCpa.getPrecisionAdjustment();
     }
+
+    /**
+     * Returns the reduce operator of the wrapped CPA.
+     */
+    public ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> getReduceOperator()
+    {
+        return wrappedCpa.getReduceOperator();
+    }
+
+    /**
+     * Returns the expand operator of the wrapped CPA.
+     */
+    public ExpandOperator<CfaNodeT, CfaEdgeT, SignatureT> getExpandOperator()
+    {
+        return wrappedCpa.getExpandOperator();
+    }
+
+    /**
+     * Returns the rebuild operator of the wrapped CPA.
+     */
+    public RebuildOperator getRebuildOperator()
+    {
+        return wrappedCpa.getRebuildOperator();
+    }
+
+    /**
+     * Returns the BAM cache used by the CPA.
+     */
+    public BamCache<SignatureT> getCache()
+    {
+        return bamTransferRelation.getCache();
+    }
+
+    /**
+     * Returns the CFA used by the CPA.
+     */
+    public Cfa<CfaNodeT, CfaEdgeT, SignatureT> getCfa()
+    {
+        return bamTransferRelation.getCfa();
+    }
 }

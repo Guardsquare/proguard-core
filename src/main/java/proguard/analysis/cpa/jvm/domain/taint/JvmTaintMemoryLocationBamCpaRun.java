@@ -18,27 +18,26 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import proguard.analysis.cpa.bam.BamTransferRelation;
 import proguard.analysis.cpa.bam.BlockAbstraction;
 import proguard.analysis.cpa.defaults.NeverAbortOperator;
+import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SimpleCpa;
-import proguard.analysis.cpa.domain.arg.ArgProgramLocationDependentAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.CallEdge;
-import proguard.analysis.cpa.interfaces.ReachedSet;
+import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationBamCpaRun;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
@@ -57,8 +56,8 @@ public class JvmTaintMemoryLocationBamCpaRun
     extends JvmMemoryLocationBamCpaRun<SimpleCpa, TaintAbstractState>
 {
 
-    private final Collection<? extends JvmTaintSink> taintSinks;
-    private       Set<JvmMemoryLocation>             endPoints;
+    private final Collection<? extends JvmTaintSink>             taintSinks;
+    private       List<BamLocationDependentJvmMemoryLocation<?>> endPoints;
 
     /**
      * Create a traced taint CPA run.
@@ -148,17 +147,19 @@ public class JvmTaintMemoryLocationBamCpaRun
     // implementations for CpaRun
 
     @Override
-    public List<JvmMemoryLocationAbstractState> getInitialStates()
+    public List<JvmMemoryLocationAbstractState<?>> getInitialStates()
     {
-        return getEndPoints().stream().map(JvmMemoryLocationAbstractState::new).collect(Collectors.toList());
+        return getEndPoints().stream()
+                             .map(JvmMemoryLocationAbstractState::new)
+                             .collect(Collectors.toList());
     }
 
     // implementations for TraceExtractor
 
     @Override
-    public Set<JvmMemoryLocation> getEndPoints()
+    public Collection<BamLocationDependentJvmMemoryLocation<?>> getEndPoints()
     {
-        Set<JvmMemoryLocation> memoryLocations = new HashSet<>();
+        List<BamLocationDependentJvmMemoryLocation<?>> memoryLocations = new ArrayList<>();
         Map<String, Set<JvmMemoryLocation>> fqnToLocations = JvmTaintSink.convertSinksToMemoryLocations(taintSinks);
         // if the end points have been already computed, return their cached set
         if (endPoints != null)
@@ -172,29 +173,32 @@ public class JvmTaintMemoryLocationBamCpaRun
             execute();
             return endPoints;
         }
+
         // find reached taint sinks in all cached reached sets
-        Stream.concat(((BamTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>) inputCpaRun.getCpa().getTransferRelation())
-            .getCache()
-            .values()
-            .stream()
-            .map(BlockAbstraction::getReachedSet), Stream.of(inputReachedSet))
-            .map(ReachedSet::asCollection)
-            .flatMap(Collection::stream)
-            .map(s -> (ArgProgramLocationDependentAbstractState) s)
-            .forEach(arg -> ((JvmAbstractState<TaintAbstractState>) arg.getWrappedState().getStateByName(StateNames.Jvm))
-                .getProgramLocation()
-                .getLeavingEdges()
-                .stream()
-                .filter(e -> e instanceof CallEdge)
-                .map(e -> ((CallEdge) e).getCall().getTarget().getFqn())
-                .forEach(fqn -> fqnToLocations.getOrDefault(fqn, Collections.emptySet())
-                                              .stream()
-                                              .filter(l -> !l.extractValueOrDefault((JvmAbstractState<TaintAbstractState>) arg.getWrappedState().getStateByName(StateNames.Jvm),
-                                                                                    TaintAbstractState.bottom)
-                                                             .isEmpty())
-                                              .map(JvmMemoryLocation::copy)
-                                              .peek(l -> l.setArgNode(arg))
-                                              .forEach(l -> memoryLocations.add((JvmMemoryLocation) l))));
+        inputCpaRun.getCpa()
+                   .getCache()
+                   .values()
+                   .stream()
+                   .map(BlockAbstraction::getReachedSet)
+                   .forEach(reachedSet -> reachedSet
+                       .asCollection()
+                       .stream()
+                       .forEach(state -> ((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm))
+                           .getProgramLocation()
+                           .getLeavingEdges()
+                           .stream()
+                           .filter(e -> e instanceof CallEdge)
+                           .map(e -> ((CallEdge) e).getCall().getTarget().getFqn())
+                           .forEach(fqn -> fqnToLocations.getOrDefault(fqn, Collections.emptySet())
+                                                         .stream()
+                                                         .filter(l -> !l.extractValueOrDefault((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm),
+                                                                                               TaintAbstractState.bottom)
+                                                                        .isEmpty())
+                                                         .forEach(l -> memoryLocations.add(
+                                                             new BamLocationDependentJvmMemoryLocation(l,
+                                                                                                       ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) state).getProgramLocation(),
+                                                                                                       (ProgramLocationDependentReachedSet) reachedSet))))));
+
         return endPoints = memoryLocations;
     }
 }

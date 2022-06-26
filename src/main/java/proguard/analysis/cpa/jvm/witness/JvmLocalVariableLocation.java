@@ -19,15 +19,11 @@
 package proguard.analysis.cpa.jvm.witness;
 
 import java.util.Objects;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.domain.arg.ArgProgramLocationDependentAbstractState;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
- * The {@link JvmLocalVariableLocation} is a memory location at the local variable array for a certain program point.
+ * The {@link JvmLocalVariableLocation} is a memory location at the local variable array.
  *
  * @author Dmitry Ivanov
  */
@@ -38,33 +34,13 @@ public class JvmLocalVariableLocation
     public final int index;
 
     /**
-     * Create a local variable location unspecific to a program location.
+     * Create a local variable location.
      *
      * @param index a position at the local variable array
      */
     public JvmLocalVariableLocation(int index)
     {
-        this(null, index);
-    }
-
-    /**
-     * Create a local variable location at a specific program location.
-     *
-     * @param argNode an ARG node
-     * @param index   a position at the local variable array
-     */
-    public JvmLocalVariableLocation(ArgProgramLocationDependentAbstractState<JvmCfaNode, JvmCfaEdge, MethodSignature> argNode, int index)
-    {
-        this.argNode = argNode;
         this.index = index;
-    }
-
-    // implementations for JvmMemoryLocation
-
-    @Override
-    public JvmLocalVariableLocation copy()
-    {
-        return new JvmLocalVariableLocation(argNode, index);
     }
 
     // implementations for MemoryLocation
@@ -85,18 +61,18 @@ public class JvmLocalVariableLocation
             return false;
         }
         JvmLocalVariableLocation other = (JvmLocalVariableLocation) obj;
-        return super.equals(obj) && index == other.index;
+        return index == other.index;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(argNode, index);
+        return Objects.hash(index);
     }
 
     @Override
     public String toString()
     {
-        return "JvmLocalVariableLocation(" + index + ")" + (argNode == null ? "" : "@" + argNode.getProgramLocation().getSignature().getFqn() + ":" + argNode.getProgramLocation().getOffset());
+        return "JvmLocalVariableLocation(" + index + ")";
     }
 }

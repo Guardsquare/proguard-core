@@ -18,13 +18,12 @@
 
 package proguard.analysis.cpa.bam;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.classfile.Signature;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -39,52 +38,49 @@ public class BamCacheImpl<SignatureT extends Signature>
     implements BamCache<SignatureT>
 {
 
-    private final Map<HashKey, BlockAbstraction> cache = new HashMap<>();
+    private final Map<SignatureT, Map<HashKey, BlockAbstraction>> cache = new HashMap<>();
 
     // Implementations for BamCache
 
     @Override
     public void put(AbstractState stateKey, Precision precisionKey, SignatureT blockKey, BlockAbstraction blockAbstraction)
     {
-        cache.put(getHashKey(stateKey, precisionKey, blockKey), blockAbstraction);
+        cache.computeIfAbsent(blockKey, k -> new HashMap<>()).put(getHashKey(stateKey, precisionKey), blockAbstraction);
     }
 
     @Override
     public BlockAbstraction get(AbstractState stateKey, Precision precisionKey, SignatureT blockKey)
     {
-        return cache.get(getHashKey(stateKey, precisionKey, blockKey));
+        return cache.getOrDefault(blockKey, Collections.emptyMap()).get(getHashKey(stateKey, precisionKey));
     }
 
-    /**
-     * Returns the keys of the cache.
-     */
-    public Set<HashKey> getKeySet()
+
+    @Override
+    public Collection<BlockAbstraction> get(SignatureT blockKey)
     {
-        return cache.keySet();
+        return cache.getOrDefault(blockKey, Collections.emptyMap()).values();
     }
 
-    /**
-     * Returns the list of cache entries for a specified method.
-     *
-     * @param signature the signature of a method
-     */
-    public List<BlockAbstraction> getBySignature(SignatureT signature)
+    @Override
+    public Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey)
     {
-        List<HashKey>          methodKeys = cache.keySet().stream().filter(k -> k.blockKey.equals(signature)).collect(Collectors.toList());
-        List<BlockAbstraction> res        = new ArrayList<>();
-        methodKeys.forEach(k -> res.add(cache.get(k)));
-        return res;
+        return cache.getOrDefault(blockKey, Collections.emptyMap())
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getKey().precisionKey.equals(precision))
+                    .map(Entry::getValue)
+                    .collect(Collectors.toSet());
     }
 
     @Override
     public Collection<BlockAbstraction> values()
     {
-        return cache.values();
+        return cache.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
-    private HashKey getHashKey(AbstractState stateKey, Precision precisionKey, SignatureT blockKey)
+    private HashKey getHashKey(AbstractState stateKey, Precision precisionKey)
     {
-        return new HashKey(stateKey, precisionKey, blockKey);
+        return new HashKey(stateKey, precisionKey);
     }
 
     /**
@@ -95,28 +91,17 @@ public class BamCacheImpl<SignatureT extends Signature>
 
         private final AbstractState stateKey;
         private final Precision     precisionKey;
-        private final Signature     blockKey;
 
         /**
          * Create a cache key from its components.
          *
          * @param stateKey     the entry abstract state of a method
          * @param precisionKey a precision
-         * @param blockKey     the signature of a method
          */
-        public HashKey(AbstractState stateKey, Precision precisionKey, Signature blockKey)
+        public HashKey(AbstractState stateKey, Precision precisionKey)
         {
             this.stateKey = stateKey;
             this.precisionKey = precisionKey;
-            this.blockKey = blockKey;
-        }
-
-        /**
-         * Returns the signature of the method that composes the key.
-         */
-        public Signature getBlockKey()
-        {
-            return blockKey;
         }
 
         /**
@@ -150,14 +135,13 @@ public class BamCacheImpl<SignatureT extends Signature>
             }
             HashKey other = (HashKey) o;
             return Objects.equals(stateKey, other.stateKey)
-                   && Objects.equals(precisionKey, other.precisionKey)
-                   && Objects.equals(blockKey, other.blockKey);
+                   && Objects.equals(precisionKey, other.precisionKey);
         }
 
         @Override
         public int hashCode()
         {
-            return Objects.hash(stateKey, precisionKey, blockKey);
+            return Objects.hash(stateKey, precisionKey);
         }
     }
 }

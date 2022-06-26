@@ -19,15 +19,18 @@
 package proguard.analysis.cpa.jvm.cfa.nodes;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import proguard.classfile.Clazz;
-import proguard.classfile.MethodSignature;
+import java.util.stream.Collectors;
 import proguard.analysis.cpa.interfaces.CfaNode;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.util.InstructionClassifier;
+import proguard.classfile.Clazz;
+import proguard.classfile.MethodSignature;
 
 /**
  * A node representing a code location of a JVM method identified by a {@link MethodSignature} and an offset.
@@ -148,13 +151,62 @@ public class JvmCfaNode
     }
 
     /**
-     * If the node is the location after a method invocation returns the entering {@link JvmInstructionCfaEdge} for the method invocation, empty otherwise.
+     * If the node is the location after a method invocation, returns the entering {@link JvmInstructionCfaEdge} for the method invocation, empty otherwise.
      */
     public Optional<JvmCfaEdge> getEnteringInvokeEdge()
     {
-        return getEnteringEdges().stream()
-                                 .filter(edge -> edge instanceof JvmInstructionCfaEdge
-                                                 && InstructionClassifier.isInvoke(((JvmInstructionCfaEdge) edge).getInstruction().opcode))
-                                 .findFirst();
+        return enteringEdges.stream()
+                            .filter(e -> e instanceof JvmInstructionCfaEdge
+                                         && InstructionClassifier.isInvoke(((JvmInstructionCfaEdge) e).getInstruction().opcode))
+                            .findFirst();
+    }
+
+    /**
+     * If the node is the location before a method invocation, returns the leaving {@link JvmInstructionCfaEdge} for the method invocation, empty otherwise.
+     */
+    public Optional<JvmCfaEdge> getLeavingInvokeEdge()
+    {
+        return leavingEdges.stream()
+                            .filter(e -> e instanceof JvmInstructionCfaEdge
+                                         && InstructionClassifier.isInvoke(((JvmInstructionCfaEdge) e).getInstruction().opcode))
+                            .findFirst();
+    }
+
+    /**
+     * Returns the edges entering the node that do not come from another method.
+     */
+    public Collection<JvmCfaEdge> getEnteringIntraproceduralEdges()
+    {
+        return enteringEdges.stream()
+            .filter(e -> !(e instanceof JvmCallCfaEdge))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns the edges entering the node that do not come from another method.
+     */
+    public Collection<JvmCfaEdge> getLeavingIntraproceduralEdges()
+    {
+        return leavingEdges
+            .stream()
+            .filter(e -> !(e instanceof JvmCallCfaEdge))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns all the interprocedural call edges leaving the node with target method the code of which is known.
+     */
+    public Collection<JvmCallCfaEdge> getKnownMethodCallEdges()
+    {
+        return leavingEdges.stream()
+                           .filter(e -> e instanceof JvmCallCfaEdge && !(e.getTarget() instanceof JvmUnknownCfaNode))
+                           .map(JvmCallCfaEdge.class::cast)
+                           .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "JvmCfaNode{" + signature.toString() + ":" + offset + '}';
     }
 }

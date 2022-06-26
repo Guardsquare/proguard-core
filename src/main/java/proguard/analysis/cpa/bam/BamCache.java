@@ -49,6 +49,16 @@ public interface BamCache<SignatureT extends Signature>
     BlockAbstraction get(AbstractState stateKey, Precision precisionKey, SignatureT blockKey);
 
     /**
+     * Returns a collection of all the cache entries for a specified method, empty in case there are not such entries.
+     */
+    public Collection<BlockAbstraction> get(SignatureT blockKey);
+
+    /**
+     * Returns a collection of all the cache entries for a specified method with a certain precision, empty in case there are not such entries.
+     */
+    public Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey);
+
+    /**
      * Returns block abstractions stored in the cache.
      */
     Collection<BlockAbstraction> values();
