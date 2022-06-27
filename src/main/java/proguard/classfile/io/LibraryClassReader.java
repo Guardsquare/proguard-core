@@ -214,10 +214,14 @@ implements   ClassVisitor,
             LibraryMethod method = new LibraryMethod();
             this.visitLibraryMember(libraryClass, method);
 
-            // Only store methods that are visible.
-            if (AccessUtil.accessLevel(method.getAccessFlags()) >=
+            // Only store methods that are visible, except if
+            // we're building the Kotlin metadata model, we may need
+            // private members such as private constructors,
+            // to initialize the model references fully.
+            if (kmElementValueConsumer != null ||
+                (AccessUtil.accessLevel(method.getAccessFlags()) >=
                 (skipNonPublicClassMembers ? AccessUtil.PROTECTED :
-                                             AccessUtil.PACKAGE_VISIBLE))
+                                             AccessUtil.PACKAGE_VISIBLE)))
             {
                 reusableMethods[visibleMethodsCount++] = method;
             }
