@@ -43,7 +43,8 @@ public class ClassConstantToClassVisitor implements ConstantVisitor
     public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
     @Override
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
+    {
         if (this.classVisitor != null && classConstant.referencedClass != null)
         {
             classConstant.referencedClass.accept(this.classVisitor);
