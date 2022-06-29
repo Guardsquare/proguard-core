@@ -182,10 +182,14 @@ implements   ClassVisitor,
             LibraryField field = new LibraryField();
             this.visitLibraryMember(libraryClass, field);
 
-            // Only store fields that are visible.
-            if (AccessUtil.accessLevel(field.getAccessFlags()) >=
+            // Only store fields that are visible, except if
+            // we're building the Kotlin metadata model, we may
+            // need private fields such as backing fields,
+            // to initialize the model references fully.
+            if (kmElementValueConsumer != null ||
+                (AccessUtil.accessLevel(field.getAccessFlags()) >=
                 (skipNonPublicClassMembers ? AccessUtil.PROTECTED :
-                                             AccessUtil.PACKAGE_VISIBLE))
+                                             AccessUtil.PACKAGE_VISIBLE)))
             {
                 reusableFields[visibleFieldsCount++] = field;
             }
