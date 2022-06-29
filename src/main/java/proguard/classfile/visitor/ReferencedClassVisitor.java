@@ -339,11 +339,8 @@ implements   ClassVisitor,
         @Override
         public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata)
         {
-            if (kotlinTypeMetadata.referencedClass != null)
-            {
-                kotlinTypeMetadata.referencedClass.accept(classVisitor);
-            }
-
+            kotlinTypeMetadata.referencedClassAccept(classVisitor);
+            kotlinTypeMetadata.typeArgumentsAccept(clazz, this);
             kotlinTypeMetadata.annotationsAccept(clazz, this);
         }
 
@@ -458,6 +455,21 @@ implements   ClassVisitor,
             kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
             kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
+
+            if (kotlinPropertyMetadata.referencedSyntheticMethodClass != null)
+            {
+                kotlinPropertyMetadata.referencedSyntheticMethodClass.accept(classVisitor);
+            }
+
+            if (kotlinPropertyMetadata.referencedBackingFieldClass != null)
+            {
+                kotlinPropertyMetadata.referencedBackingFieldClass.accept(classVisitor);
+            }
+
+            if (kotlinPropertyMetadata.referencedSyntheticMethodForDelegateClass != null)
+            {
+                kotlinPropertyMetadata.referencedSyntheticMethodForDelegateClass.accept(classVisitor);
+            }
         }
 
 
