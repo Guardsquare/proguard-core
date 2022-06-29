@@ -1703,7 +1703,13 @@ implements   ClassVisitor,
         @Override
         public void visitLibraryClass(LibraryClass libraryClass)
         {
-            // TODO: Not supported
+            // Since `LibraryClass` doesn't have attributes, use a heuristic shortcut
+            int dollarIndex = libraryClass.getName().lastIndexOf('$');
+            if (dollarIndex != -1)
+            {
+                Clazz outerClass = findClass(libraryClass, libraryClass.getName().substring(0, dollarIndex));
+                initProperty(libraryClass, outerClass);
+            }
         }
 
 
@@ -1734,10 +1740,16 @@ implements   ClassVisitor,
         @Override
         public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
         {
-            if (classConstant.referencedClass != null)
+            initProperty(clazz, classConstant.referencedClass);
+        }
+
+        private void initProperty(Clazz thisClazz, Clazz parentClazz)
+        {
+            if (parentClazz != null)
             {
-                clazz.kotlinMetadataAccept(new AllPropertyVisitor(
-                                           new KotlinInterClassPropertyReferenceInitializer(classConstant.referencedClass)));
+                 thisClazz.kotlinMetadataAccept(
+                         new AllPropertyVisitor(
+                         new KotlinInterClassPropertyReferenceInitializer(parentClazz)));
             }
         }
     }
