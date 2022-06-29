@@ -114,10 +114,6 @@ public class ClassConstants
     public static final String NAME_ANDROID_WEBKIT_WEB_VIEW                 = "android/webkit/WebView";
     public static final String NAME_ANDROID_SUPPORT_V4_APP_FRAGMENT         = "android/support/v4/app/Fragment";
 
-    public static final String NAME_KOTLIN_UNIT = "kotlin/Unit";
-    public static final String TYPE_KOTLIN_UNIT = "Lkotlin/Unit;";
-    public static final String FIELD_NAME_KOTLIN_UNIT_INSTANCE = "INSTANCE";
-
     public static final String NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_INTEGER_FIELD_UPDATER   = "java/util/concurrent/atomic/AtomicIntegerFieldUpdater";
     public static final String NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_LONG_FIELD_UPDATER      = "java/util/concurrent/atomic/AtomicLongFieldUpdater";
     public static final String NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_REFERENCE_FIELD_UPDATER = "java/util/concurrent/atomic/AtomicReferenceFieldUpdater";
