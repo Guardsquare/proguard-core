@@ -1,12 +1,14 @@
 package proguard.examples;
 
-import proguard.classfile.*;
-import proguard.classfile.attribute.visitor.AllAttributeVisitor;
-import proguard.classfile.visitor.*;
+import proguard.classfile.ClassPool;
+import proguard.classfile.visitor.ClassNameFilter;
+import proguard.classfile.visitor.ClassPoolFiller;
 import proguard.io.*;
-import proguard.preverify.CodePreverifier;
+import proguard.util.ExtensionMatcher;
+import proguard.util.OrMatcher;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * This utility class provides methods to read and write the classes in jars.
@@ -54,16 +56,38 @@ public class JarUtil
             new FileSource(
             new File(jarFileName));
 
-        source.pumpDataEntries(
-            new JarReader(isLibrary,
-            new ClassFilter(
+        DataEntryReader classReader =
+            new NameFilteredDataEntryReader("**.class",
             new ClassReader(isLibrary, false, false, false, null,
             new ClassNameFilter(classNameFilter,
-            new ClassPoolFiller(classPool))))));
+            new ClassPoolFiller(classPool))));
+
+        // Convert dex files to a JAR first.
+        //classReader =
+        //    new NameFilteredDataEntryReader("classes*.dex",
+        //    new Dex2JarReader(!isLibrary,
+        //        classReader),
+        //    classReader);
+
+        // Extract files from an archive if necessary.
+        classReader =
+                new FilteredDataEntryReader(
+                new DataEntryNameFilter(new ExtensionMatcher("aar")),
+                    new JarReader(
+                    new NameFilteredDataEntryReader("classes.jar",
+                    new JarReader(classReader))),
+                new FilteredDataEntryReader(
+                new DataEntryNameFilter(new OrMatcher(
+                                        new ExtensionMatcher("jar"),
+                                        new ExtensionMatcher("zip"),
+                                        new ExtensionMatcher("apk"))),
+                    new JarReader(classReader),
+                classReader));
+
+        source.pumpDataEntries(classReader);
 
         return classPool;
     }
-
 
     /**
      * Writes the classes from the given class pool to a specified jar.
