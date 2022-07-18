@@ -675,10 +675,17 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                     }
                     if (memoryLocation instanceof JvmStaticFieldLocation)
                     {
-                        answer.add(new JvmStackLocation(0));
-                        if (constantLookupVisitor.resultSize == 2)
+                        if (constantLookupVisitor.result.equals(((JvmStaticFieldLocation) memoryLocation).fqn))
                         {
-                            answer.add(new JvmStackLocation(1));
+                            answer.add(new JvmStackLocation(0));
+                            if (constantLookupVisitor.resultSize == 2)
+                            {
+                                answer.add(new JvmStackLocation(1));
+                            }
+                        }
+                        else
+                        {
+                            answer.add(memoryLocation);
                         }
                         break;
                     }

@@ -968,4 +968,68 @@ class TraceExtractorTest : StringSpec({
                 "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:0, JvmStackLocation(1)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:5]"
         )
     }
+
+    "Regression test: loading a different static field does not break the trace" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                    class A {
+
+                        public static String s;
+                        public static String s1;
+                    
+                        public void main() {
+                            callee();
+                            s1 = "42";
+                            sink(s);
+                        }
+                    
+                        public static void callee()
+                        {
+                            s = source1();
+                        }
+                    
+                        public static void sink(String s)
+                        {
+                            return;
+                        }
+                    
+                        public static String source1()
+                        {
+                            return null;
+                        }
+                    }
+                    """.trimIndent()
+                )
+            ).programClassPool
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val taintMemoryLocationCpaRun = JvmTaintMemoryLocationBamCpaRun(
+            interproceduralCfa,
+            setOf(taintSourceReturn1),
+            mainSignature,
+            -1,
+            TaintAbstractState.bottom,
+            setOf(taintSinkArgument)
+        )
+        val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+        interproceduralCfa.clear()
+
+        /*
+        Bytecode of main:
+            [0] invokestatic #2 = Methodref(A.callee()V)
+            [3] ldc #3 = String("42")
+            [5] putstatic #4 = Fieldref(A.s1 Ljava/lang/String;)
+            [8] getstatic #7 = Fieldref(A.s Ljava/lang/String;)
+            [11] invokestatic #8 = Methodref(A.sink(Ljava/lang/String;)V)
+            [14] return
+         */
+
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;main()V:11, JvmStaticFieldLocation(A.s)@LA;main()V:8, JvmStaticFieldLocation(A.s)@LA;main()V:5, " +
+                "JvmStaticFieldLocation(A.s)@LA;main()V:3, JvmStaticFieldLocation(A.s)@LA;callee()V:6, JvmStackLocation(0)@LA;callee()V:3]"
+        )
+    }
 })
