@@ -1,6 +1,10 @@
 ## Version 9.0.3
 
-### API Improvements
+### Improved
+
+- Add utility to produce dot-graphs for control flow automatons (`CfaUtil.toDot(cfa)`, example `VisualizeCfa`).
+ 
+#### API Improvements
 
 - Split `ProgramLocationDependentTransferRelation` into forward and backward variants.
 

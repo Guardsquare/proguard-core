@@ -22,6 +22,10 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 import proguard.analysis.CallResolver;
 import proguard.analysis.cpa.defaults.Cfa;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
@@ -33,6 +37,11 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.RefConstant;
+import proguard.classfile.constant.visitor.ConstantVisitor;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
 import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.visitors.JvmIntraproceduralCfaFillerAllInstructionVisitor;
@@ -134,5 +143,82 @@ public class CfaUtil
         JvmCfa cfa = createIntraproceduralCfaFromClassPool(programClassPool);
         addInterproceduralEdgesToCfa(cfa, callGraph);
         return cfa;
+    }
+
+    /**
+     * Produces a DOT graph representation of the given JVM control flow
+     * automaton.
+     */
+    public static String toDot(JvmCfa cfa) {
+        StringBuffer sb = new StringBuffer();
+        sb.append("digraph G { ");
+        sb.append("node")
+                .append(Integer.toHexString(JvmUnknownCfaNode.INSTANCE.hashCode()))
+                .append(" [label=\"unknown\",style=dotted]");
+
+        cfa.getAllNodes().forEach(node -> {
+            String nodeAId = "node" + Integer.toHexString(node.hashCode());
+            sb.append(nodeAId).append(" [label=\"");
+
+            if (node.isExitNode()) {
+                sb.append("exit ").append(node.getSignature());
+            } else if (node.isEntryNode()) {
+                sb.append("entry ").append(node.getSignature());
+            } else {
+                sb.append(node.getOffset());
+            }
+            sb.append("\"");
+            if (node.isExitNode() || node.isEntryNode()) {
+                sb.append(",shape=rect");
+            }
+            sb.append("]\n");
+            node.getLeavingEdges().forEach(edge -> {
+                JvmCfaNode target = edge.getTarget();
+                String nodeBId = "node" + Integer.toHexString(target.hashCode());
+                sb.append(nodeAId)
+                        .append(" -> ")
+                        .append(nodeBId)
+                        .append("[label=\"");
+                if (edge instanceof JvmInstructionCfaEdge) {
+                    Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
+                    sb.append(instruction);
+                    if (instruction instanceof ConstantInstruction) {
+                        edge.getSource().getClazz().constantPoolEntryAccept(((ConstantInstruction) instruction).constantIndex, new ConstantVisitor()
+                        {
+                            @Override
+                            public void visitAnyConstant(Clazz clazz, Constant constant)
+                            {
+                                sb.append(constant);
+                            }
+
+                            @Override
+                            public void visitAnyRefConstant(Clazz clazz, RefConstant refConstant)
+                            {
+                                sb.append(" ")
+                                        .append(refConstant.getClassName(clazz)).append(".")
+                                        .append(refConstant.getName(clazz))
+                                        .append(refConstant.getType(clazz));
+                            }
+                        });
+
+                    }
+                } else if (edge instanceof JvmCallCfaEdge) {
+                    sb.append(((JvmCallCfaEdge) edge).getCall());
+                } else {
+                    sb.append(edge);
+                }
+                sb.append("\"");
+                if (edge instanceof JvmCallCfaEdge) {
+                    if (edge.getTarget() == JvmUnknownCfaNode.INSTANCE) {
+                        sb.append(",style=dotted");
+                    } else {
+                        sb.append(",style=dashed");
+                    }
+                }
+                sb.append("]\n");
+            });
+        });
+        sb.append("}");
+        return sb.toString();
     }
 }
