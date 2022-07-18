@@ -22,13 +22,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+
+import proguard.analysis.cpa.interfaces.*;
 import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.Precision;
-import proguard.analysis.cpa.interfaces.ProgramLocationDependentTransferRelation;
-import proguard.analysis.cpa.interfaces.TransferRelation;
-import proguard.analysis.cpa.interfaces.WrapperTransferRelation;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
@@ -42,7 +39,7 @@ import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
  */
 public class CompositeHeapTransferRelation
     implements WrapperTransferRelation,
-               ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
+               ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
     private final List<JvmTransferRelation<? extends AbstractState>> jvmTransferRelations;

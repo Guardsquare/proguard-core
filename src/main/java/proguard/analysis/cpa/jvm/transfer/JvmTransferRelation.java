@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import proguard.analysis.cpa.interfaces.ProgramLocationDependentForwardTransferRelation;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
@@ -39,7 +41,6 @@ import proguard.classfile.util.ClassUtil;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
-import proguard.analysis.cpa.interfaces.ProgramLocationDependentTransferRelation;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
@@ -63,7 +64,7 @@ import proguard.evaluation.value.Value;
  * @author Dmitry Ivanov
  */
 public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<StateT>>
-    implements ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
+    implements ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
     // implementations for ProgramLocationDependentTransferRelation

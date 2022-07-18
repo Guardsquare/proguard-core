@@ -18,10 +18,12 @@
 
 package proguard.analysis.cpa.interfaces;
 
+import proguard.classfile.Signature;
+
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import proguard.classfile.Signature;
 
 /**
  * An interface for {@link TransferRelation}s that depend on the {@link proguard.analysis.cpa.defaults.Cfa} location for which the successor can be defined for the edges of the current location.
@@ -48,7 +50,7 @@ public interface ProgramLocationDependentTransferRelation<CfaNodeT extends CfaNo
         }
         ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state = (ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) abstractState;
         Set<AbstractState> successors = new HashSet<>();
-        for (CfaEdgeT edge : state.getProgramLocation().getLeavingEdges())
+        for (CfaEdgeT edge : getEdges(state))
         {
             AbstractState successor = getEdgeAbstractSuccessor(abstractState, edge, precision);
             if (successor != null)
@@ -58,4 +60,6 @@ public interface ProgramLocationDependentTransferRelation<CfaNodeT extends CfaNo
         }
         return successors;
     }
+
+    List<CfaEdgeT> getEdges(ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state);
 }

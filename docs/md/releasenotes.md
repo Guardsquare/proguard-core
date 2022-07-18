@@ -1,5 +1,9 @@
 ## Version 9.0.3
 
+### API Improvements
+
+- Split `ProgramLocationDependentTransferRelation` into forward and backward variants.
+
 
 ## Version 9.0.2
 
