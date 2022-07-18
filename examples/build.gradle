@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.guardsquare:proguard-core:9.0.1'
+    implementation 'com.guardsquare:proguard-core'
 }
 
 java {

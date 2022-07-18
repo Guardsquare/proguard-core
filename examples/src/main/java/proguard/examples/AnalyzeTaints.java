@@ -7,10 +7,10 @@ import java.util.Set;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
+import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSink;
 import proguard.analysis.cpa.jvm.util.CfaUtil;
-import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.classfile.ClassPool;
 import proguard.classfile.MethodSignature;
 
@@ -61,7 +61,7 @@ public class AnalyzeTaints
                                                                                          Collections.singleton(sink));                // a collection of taint sinks
 
             // Run the analysis and get witness traces.
-            Set<List<JvmMemoryLocation>> traces = cpaRun.extractLinearTraces();
+            Set<List<BamLocationDependentJvmMemoryLocation>> traces = cpaRun.extractLinearTraces();
 
             // Print the analysis result.
             System.out.println(traces.isEmpty()
