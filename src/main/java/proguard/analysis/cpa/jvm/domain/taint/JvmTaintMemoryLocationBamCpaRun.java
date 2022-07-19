@@ -70,7 +70,7 @@ public class JvmTaintMemoryLocationBamCpaRun
                                            TaintAbstractState threshold,
                                            Collection<? extends JvmTaintSink> taintSinks)
     {
-        super(jvmTaintCpaRun, threshold);
+        super(jvmTaintCpaRun, threshold, jvmTaintCpaRun.getAbortOperator());
         this.taintSinks = taintSinks;
     }
 
