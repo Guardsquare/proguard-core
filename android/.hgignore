@@ -1,0 +1,18 @@
+syntax: glob
+*/target/*
+target/*
+*/build
+build
+*/.project
+*/.classpath
+*/.*
+
+.*
+*.bak
+*.orig
+*/nb-configuration.xml
+*.iml
+*.ipr
+*.iws
+*~
+

@@ -9,4 +9,9 @@ pluginManagement {
 }
 rootProject.name = 'proguard-core'
 include 'base'
+include 'android'
 
+include 'android:dex-ir'
+include 'android:dex-reader'
+include 'android:dex-reader-api'
+include 'android:dex-translator'

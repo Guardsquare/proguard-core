@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+
+description = 'Dex Reader'
+
+dependencies {
+    implementation project(':android:dex-reader-api')
+    implementation project(':android:dex-translator')
+    testImplementation (group: 'org.apache.commons', name: 'commons-compress', version:'1.21')
+}
+
+

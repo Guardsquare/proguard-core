@@ -1,0 +1,8 @@
+apply plugin: 'java-library'
+
+description = 'Dex Translator'
+
+dependencies {
+  implementation project(':android:dex-reader-api')
+}
+
