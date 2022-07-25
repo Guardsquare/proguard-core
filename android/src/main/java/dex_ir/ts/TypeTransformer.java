@@ -16,7 +16,6 @@
  */
 package dex_ir.ts;
 
-import com.googlecode.d2j.DexType;
 import dex_ir.IrMethod;
 import dex_ir.TypeClass;
 import dex_ir.expr.*;
@@ -27,6 +26,7 @@ import dex_ir.stmt.Stmt;
 import dex_ir.stmt.Stmt.E1Stmt;
 import dex_ir.stmt.Stmt.E2Stmt;
 import dex_ir.stmt.Stmt.ST;
+import dex_reader_api.DexType;
 
 import java.util.*;
 

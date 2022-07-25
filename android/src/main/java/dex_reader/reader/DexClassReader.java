@@ -7,6 +7,10 @@
 package dex_reader.reader;
 
 import dex_reader_api.node.DexFileNode;
+import dex_translator.converter.Dex2Pro;
+import proguard.classfile.visitor.ClassPrinter;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.io.*;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,9 +1,9 @@
 package dex_ir.ts;
 
-import com.googlecode.d2j.DexType;
 import dex_ir.IrMethod;
 import dex_ir.StmtTraveler;
 import dex_ir.expr.*;
+import dex_reader_api.DexType;
 
 /**
  * dex does have the instruction to create a multi-array. the implement is to

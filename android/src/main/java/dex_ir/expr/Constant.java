@@ -15,10 +15,10 @@
  */
 package dex_ir.expr;
 
-import com.googlecode.d2j.DexType;
 import dex_ir.LabelAndLocalMapper;
 import dex_ir.Util;
 import dex_ir.expr.Value.E0Expr;
+import dex_reader_api.DexType;
 
 import java.lang.reflect.Array;
 
