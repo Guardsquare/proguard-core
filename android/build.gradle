@@ -1,13 +1,57 @@
+plugins {
+    id 'distribution'
+    id 'java-library'
+    id "org.jetbrains.kotlin.jvm"
+    id 'maven-publish'
+    id 'signing'
+    id 'com.adarshr.test-logger'
+    id 'de.jansauer.printcoverage'
+    id 'jacoco'
+    id "org.jlleitschuh.gradle.ktlint"
+    id "org.sonarqube"
+}
+
 allprojects  {
     apply plugin: 'maven-publish'
     apply plugin: 'idea'
     apply plugin: 'eclipse'
     group = 'com.guardsquare'
-//    group = 'proguard-core-android'
     version = '2.1-SNAPSHOT'
 }
 
 defaultTasks('clean','distZip')
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+    api "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
+    api "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
+
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    testImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.9'
+    testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.3.1' // for kotest framework
+    testImplementation 'io.kotest:kotest-assertions-core-jvm:5.3.1' // for kotest core jvm assertions
+    testImplementation 'io.kotest:kotest-property-jvm:5.3.1' // for kotest property test
+    testImplementation 'io.kotest:kotest-framework-datatest:5.3.1'
+    testImplementation "io.mockk:mockk:1.12.4" // for mocking
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1' // for junit framework
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' // for junit framework
+
+    // For assembling ProGuard assembler snippets
+    testImplementation ('com.github.Guardsquare:proguard-assembler:master-SNAPSHOT') {
+        exclude group: 'com.guardsquare', module: 'proguard-core'
+    }
+
+    implementation project(":base")
+}
 
 subprojects {
     apply plugin: 'java'
@@ -44,7 +88,6 @@ subprojects {
     compileTestJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 
     dependencies {
-        implementation 'com.guardsquare:proguard-core:9.0.1'
         testImplementation group: 'junit', name: 'junit', version:'4.11'
     }
 
