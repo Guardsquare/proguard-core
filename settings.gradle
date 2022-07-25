@@ -8,3 +8,5 @@ pluginManagement {
     }
 }
 rootProject.name = 'proguard-core'
+
+include 'base'
