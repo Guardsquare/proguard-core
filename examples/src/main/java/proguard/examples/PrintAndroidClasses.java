@@ -1,4 +1,4 @@
-import dex_reader.reader.DexClassReader;
+import dexreader.reader.DexClassReader;
 import proguard.classfile.ClassPool;
 import proguard.classfile.visitor.ClassNameFilter;
 import proguard.classfile.visitor.ClassPoolFiller;
