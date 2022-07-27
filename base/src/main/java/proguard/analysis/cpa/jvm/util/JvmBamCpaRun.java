@@ -59,7 +59,7 @@ public abstract class JvmBamCpaRun<CpaT extends ConfigurableProgramAnalysis, Abs
      */
     protected JvmBamCpaRun(JvmCfa cfa, int maxCallStackDepth)
     {
-        this(cfa, maxCallStackDepth, HeapModel.FORGETFUL, NeverAbortOperator.INSTANCE);
+        this(cfa, maxCallStackDepth, HeapModel.FORGETFUL, NeverAbortOperator.INSTANCE, true);
     }
 
     /**
@@ -70,10 +70,11 @@ public abstract class JvmBamCpaRun<CpaT extends ConfigurableProgramAnalysis, Abs
      *                          0 means intraprocedural analysis
      *                          < 0 means no maximum depth
      * @param abortOperator     an abort operator
+     * @param reduceHeap        whether reduction/expansion of the heap state is performed at call/return sites
      */
-    protected JvmBamCpaRun(JvmCfa cfa, int maxCallStackDepth, HeapModel heapModel, AbortOperator abortOperator)
+    protected JvmBamCpaRun(JvmCfa cfa, int maxCallStackDepth, HeapModel heapModel, AbortOperator abortOperator, boolean reduceHeap)
     {
-        super(abortOperator, maxCallStackDepth);
+        super(abortOperator, maxCallStackDepth, reduceHeap);
         this.cfa = cfa;
         this.heapModel = heapModel;
     }
@@ -89,13 +90,15 @@ public abstract class JvmBamCpaRun<CpaT extends ConfigurableProgramAnalysis, Abs
     @Override
     public ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createReduceOperator()
     {
+        JvmDefaultReduceOperator<AbstractStateT> jvmReduceOperator = new JvmDefaultReduceOperator<>(reduceHeap);
+
         switch (heapModel)
         {
             case FORGETFUL:
-                return new JvmDefaultReduceOperator<AbstractStateT>();
+                return jvmReduceOperator;
             case TREE:
-                return new JvmCompositeHeapReduceOperator(Arrays.asList(new JvmReferenceReduceOperator(),
-                                                                        new JvmDefaultReduceOperator<AbstractStateT>()));
+                return new JvmCompositeHeapReduceOperator(Arrays.asList(new JvmReferenceReduceOperator(reduceHeap),
+                                                                        jvmReduceOperator));
             default:
                 throw new IllegalArgumentException("Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
         }

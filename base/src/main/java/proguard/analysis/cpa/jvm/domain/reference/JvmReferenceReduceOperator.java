@@ -18,12 +18,15 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
+import java.util.Optional;
+import java.util.Set;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapPrincipalAbstractState;
 
 /**
  * This reduce operator behaves the same as the {@link JvmDefaultReduceOperator} but operates on {@link JvmReferenceAbstractState}s.
@@ -33,6 +36,42 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 public class JvmReferenceReduceOperator
     extends JvmDefaultReduceOperator<SetAbstractState<Reference>>
 {
+
+    /**
+     * Create the reduce operator for the JVM reference analysis.
+     */
+    public JvmReferenceReduceOperator()
+    {
+        this(true);
+    }
+
+    /**
+     * Create the reduce operator for the JVM reference analysis.
+     *
+     * @param reduceHeap whether reduction of the heap is performed
+     */
+    public JvmReferenceReduceOperator(boolean reduceHeap)
+    {
+        super(reduceHeap);
+    }
+
+    // implementations for JvmDefaultReduceOperator
+
+    /**
+     * Performs reduction of the {@link JvmTreeHeapPrincipalAbstractState} keeping just the portion of the tree rooted at
+     * references in static fields and parameters.
+     */
+    @Override
+    protected void reduceHeap(JvmHeapAbstractState<SetAbstractState<Reference>> heap,
+                              JvmFrameAbstractState<SetAbstractState<Reference>> reducedFrame,
+                              MapAbstractState<String, SetAbstractState<Reference>> reducedStaticFields)
+    {
+            Set<Reference> roots = ((JvmTreeHeapPrincipalAbstractState) heap).getStaticCreationReferences();
+            reducedFrame.getLocalVariables().forEach(roots::addAll);
+            reducedStaticFields.values().forEach(roots::addAll);
+
+            heap.reduce(Optional.of(roots));
+    }
 
     // implementations for JvmAbstractStateFactory
 

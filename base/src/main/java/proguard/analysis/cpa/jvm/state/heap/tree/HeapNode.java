@@ -18,6 +18,7 @@
 
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
+import java.util.Collection;
 import java.util.function.Function;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
@@ -44,6 +45,14 @@ public class HeapNode<StateT extends LatticeAbstractState<StateT>>
     protected HeapNode(MapAbstractState<String, StateT> fieldToAbstractState)
     {
         this.fieldToAbstractState = fieldToAbstractState;
+    }
+
+    /**
+     * Returns all the values contained in the node.
+     */
+    public Collection<StateT> values()
+    {
+        return fieldToAbstractState.values();
     }
 
     // implementations for LatticeAbstractState

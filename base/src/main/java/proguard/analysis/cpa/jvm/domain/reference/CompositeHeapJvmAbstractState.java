@@ -67,6 +67,14 @@ public class CompositeHeapJvmAbstractState
         this.jvmAbstractStates = jvmAbstractStates;
     }
 
+    /**
+     * Returns the state at the specified position in the composite state.
+     */
+    public JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>> getStateByIndex(int index)
+    {
+        return jvmAbstractStates.get(index);
+    }
+
     public void updateHeapDependence()
     {
         jvmAbstractStates.stream()
@@ -160,14 +168,8 @@ public class CompositeHeapJvmAbstractState
     public AbstractState copy()
     {
         List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> newJvmAbstractStates = jvmAbstractStates.stream().map(JvmAbstractState::copy).collect(Collectors.toList());
-        for (Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> iterator = newJvmAbstractStates.listIterator(1); iterator.hasNext();)
-        {
-            JvmHeapAbstractState<? extends LatticeAbstractState<? extends AbstractState>> heapAbstractState = iterator.next().getHeap();
-            if (heapAbstractState instanceof JvmTreeHeapFollowerAbstractState)
-            {
-                ((JvmTreeHeapFollowerAbstractState<? extends AbstractState>) heapAbstractState).setPrincipalState((JvmReferenceAbstractState) newJvmAbstractStates.get(REFERENCE_STATE_INDEX));
-            }
-        }
-        return new CompositeHeapJvmAbstractState(newJvmAbstractStates);
+        CompositeHeapJvmAbstractState copy = new CompositeHeapJvmAbstractState(newJvmAbstractStates);
+        copy.updateHeapDependence();
+        return copy;
     }
 }

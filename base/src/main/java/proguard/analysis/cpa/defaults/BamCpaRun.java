@@ -18,8 +18,6 @@
 
 package proguard.analysis.cpa.defaults;
 
-import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.classfile.Signature;
 import proguard.analysis.cpa.bam.BamCache;
 import proguard.analysis.cpa.bam.BamCacheImpl;
 import proguard.analysis.cpa.bam.BamCpa;
@@ -28,10 +26,12 @@ import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.NoOpRebuildOperator;
 import proguard.analysis.cpa.bam.RebuildOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
+import proguard.classfile.Signature;
 
 /**
  * This abstract wrapper class constructs a {@link CpaWithBamOperators} based on the intraprocedural {@link ConfigurableProgramAnalysis}, runs it, and returns
@@ -47,7 +47,8 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
     extends CpaRun<BamCpa<CfaNodeT, CfaEdgeT, SignatureT>, AbstractStateT>
 {
 
-    private final int maxCallStackDepth;
+    private final   int     maxCallStackDepth;
+    protected final boolean reduceHeap;
 
     /**
      * Create a BAM CPA run.
@@ -59,8 +60,23 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
      */
     protected BamCpaRun(AbortOperator abortOperator, int maxCallStackDepth)
     {
+        this(abortOperator, maxCallStackDepth, true);
+    }
+
+    /**
+     * Create a BAM CPA run.
+     *
+     * @param abortOperator     an abort operator
+     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally
+     *                          0 means intraprocedural analysis
+     *                          < 0 means no maximum depth
+     * @param reduceHeap        whether reduction/expansion of the heap state is performed at call/return sites
+     */
+    protected BamCpaRun(AbortOperator abortOperator, int maxCallStackDepth, boolean reduceHeap)
+    {
         this.abortOperator = abortOperator;
         this.maxCallStackDepth = maxCallStackDepth;
+        this.reduceHeap = reduceHeap;
     }
 
     // implementations for CpaRun

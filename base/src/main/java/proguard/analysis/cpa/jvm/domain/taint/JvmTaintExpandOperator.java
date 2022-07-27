@@ -43,6 +43,18 @@ public class JvmTaintExpandOperator
 
     private final Map<String, TaintSource> fqnToSources;
 
+    /**
+     * Create the operator specifying the taint sources.
+     *
+     * @param cfa          the control flow automaton of the analyzed program.
+     * @param fqnToSources a mapping from fully qualified names of methods to their {@link TaintSource}
+     * @param expandHeap   whether expansion of the heap is performed
+     */
+    public JvmTaintExpandOperator(JvmCfa cfa, Map<String, TaintSource> fqnToSources, boolean expandHeap)
+    {
+        super(cfa, expandHeap);
+        this.fqnToSources = fqnToSources;
+    }
 
     /**
      * Create the operator specifying the taint sources.
@@ -52,8 +64,7 @@ public class JvmTaintExpandOperator
      */
     public JvmTaintExpandOperator(JvmCfa cfa, Map<String, TaintSource> fqnToSources)
     {
-        super(cfa);
-        this.fqnToSources = fqnToSources;
+        this(cfa, fqnToSources, true);
     }
 
     // Overrides of JvmDefaultExpandOperator
@@ -71,6 +82,9 @@ public class JvmTaintExpandOperator
         return result;
     }
 
+    /**
+     * The calculation of return values supports tainting it in case the analyzed method is a taint source.
+     */
     @Override
     protected List<TaintAbstractState> calculateReturnValues(AbstractState reducedExitState, Instruction returnInstruction, Call call)
     {

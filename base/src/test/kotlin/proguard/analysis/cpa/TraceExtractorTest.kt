@@ -119,8 +119,11 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:3, JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:3",
+                "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3"
+            )
         )
     }
 
@@ -171,8 +174,11 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;callee1()V:3, JvmStackLocation(0)@LA;callee2()Ljava/lang/String;:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;callee1()V:3",
+                "JvmStackLocation(0)@LA;callee2()Ljava/lang/String;:3"
+            )
         )
     }
 
@@ -238,9 +244,17 @@ class TraceExtractorTest : StringSpec({
              [4] return
         */
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1, JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0, JvmStackLocation(0)@LA;main()V:3]",
-            "[JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1, JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0, JvmStackLocation(0)@LA;main()V:9]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
+                "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
+                "JvmStackLocation(0)@LA;main()V:3"
+            ),
+            listOf(
+                "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
+                "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
+                "JvmStackLocation(0)@LA;main()V:9"
+            )
         )
     }
 
@@ -290,8 +304,11 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStaticFieldLocation(A.s)@LA;main()V:3, JvmStaticFieldLocation(A.s)@LA;callee()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStaticFieldLocation(A.s)@LA;main()V:3",
+                "JvmStaticFieldLocation(A.s)@LA;callee()V:3"
+            )
         )
     }
 
@@ -341,8 +358,13 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:6, JvmStaticFieldLocation(A.s)@LA;main()V:3, JvmStaticFieldLocation(A.s)@LA;callee()V:6, JvmStackLocation(0)@LA;callee()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:6",
+                "JvmStaticFieldLocation(A.s)@LA;main()V:3",
+                "JvmStaticFieldLocation(A.s)@LA;callee()V:6",
+                "JvmStackLocation(0)@LA;callee()V:3"
+            )
         )
     }
 
@@ -385,8 +407,14 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:11, JvmLocalVariableLocation(1)@LA;main()V:10, JvmLocalVariableLocation(1)@LA;main()V:7, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:11",
+                "JvmLocalVariableLocation(1)@LA;main()V:10",
+                "JvmLocalVariableLocation(1)@LA;main()V:7",
+                "JvmLocalVariableLocation(1)@LA;main()V:4",
+                "JvmStackLocation(0)@LA;main()V:3"
+            )
         )
     }
 
@@ -433,8 +461,13 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:8, JvmLocalVariableLocation(1)@LA;main()V:7, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:8",
+                "JvmLocalVariableLocation(1)@LA;main()V:7",
+                "JvmLocalVariableLocation(1)@LA;main()V:4",
+                "JvmStackLocation(0)@LA;main()V:3"
+            )
         )
     }
 
@@ -478,8 +511,14 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:7, JvmLocalVariableLocation(1)@LA;main()V:6, JvmLocalVariableLocation(1)@LA;main()V:5, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:7",
+                "JvmLocalVariableLocation(1)@LA;main()V:6",
+                "JvmLocalVariableLocation(1)@LA;main()V:5",
+                "JvmLocalVariableLocation(1)@LA;main()V:4",
+                "JvmStackLocation(0)@LA;main()V:3"
+            )
         )
     }
 
@@ -521,8 +560,14 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:9, JvmStackLocation(0)@LA;main()V:8, JvmStackLocation(0)@LA;main()V:5, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:9",
+                "JvmStackLocation(0)@LA;main()V:8",
+                "JvmStackLocation(0)@LA;main()V:5",
+                "JvmLocalVariableLocation(1)@LA;main()V:4",
+                "JvmStackLocation(0)@LA;main()V:3"
+            )
         )
     }
 
@@ -564,8 +609,13 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:6, JvmLocalVariableLocation(1)@LA;main()V:5, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:6",
+                "JvmLocalVariableLocation(1)@LA;main()V:5",
+                "JvmLocalVariableLocation(1)@LA;main()V:4",
+                "JvmStackLocation(0)@LA;main()V:3"
+            )
         )
     }
 
@@ -627,9 +677,16 @@ class TraceExtractorTest : StringSpec({
             [16] return
          */
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main(Z)V:13, JvmStackLocation(0)@LA;getSource2()Ljava/lang/String;:3]",
-            "[JvmStackLocation(0)@LA;main(Z)V:13, JvmStackLocation(0)@LA;main(Z)V:7, JvmStackLocation(0)@LA;getSource1()Ljava/lang/String;:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:13",
+                "JvmStackLocation(0)@LA;getSource2()Ljava/lang/String;:3"
+            ),
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:13",
+                "JvmStackLocation(0)@LA;main(Z)V:7",
+                "JvmStackLocation(0)@LA;getSource1()Ljava/lang/String;:3"
+            )
         )
     }
 
@@ -686,8 +743,14 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:14, JvmLocalVariableLocation(1)@LA;main()V:13, JvmLocalVariableLocation(1)@LA;main()V:12, JvmLocalVariableLocation(1)@LA;main()V:4, JvmStackLocation(0)@LA;main()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:14",
+                "JvmLocalVariableLocation(1)@LA;main()V:13",
+                "JvmLocalVariableLocation(1)@LA;main()V:12",
+                "JvmLocalVariableLocation(1)@LA;main()V:4",
+                "JvmStackLocation(0)@LA;main()V:3"
+            )
         )
     }
 
@@ -734,8 +797,11 @@ class TraceExtractorTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:10, JvmStackLocation(0)@LA;callee(Ljava/lang/String;)Ljava/lang/String;:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:10",
+                "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)Ljava/lang/String;:3"
+            )
         )
     }
 
@@ -798,9 +864,24 @@ class TraceExtractorTest : StringSpec({
             [20] return
         */
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main(Z)V:17, JvmLocalVariableLocation(3)@LA;main(Z)V:16, JvmLocalVariableLocation(3)@LA;main(Z)V:9, JvmLocalVariableLocation(3)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:7]",
-            "[JvmStackLocation(0)@LA;main(Z)V:17, JvmStackLocation(0)@LA;main(Z)V:13, JvmLocalVariableLocation(2)@LA;main(Z)V:12, JvmLocalVariableLocation(2)@LA;main(Z)V:9, JvmLocalVariableLocation(2)@LA;main(Z)V:8, JvmLocalVariableLocation(2)@LA;main(Z)V:7, JvmLocalVariableLocation(2)@LA;main(Z)V:4, JvmStackLocation(0)@LA;main(Z)V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:17",
+                "JvmLocalVariableLocation(3)@LA;main(Z)V:16",
+                "JvmLocalVariableLocation(3)@LA;main(Z)V:9",
+                "JvmLocalVariableLocation(3)@LA;main(Z)V:8",
+                "JvmStackLocation(0)@LA;main(Z)V:7"
+            ),
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:17",
+                "JvmStackLocation(0)@LA;main(Z)V:13",
+                "JvmLocalVariableLocation(2)@LA;main(Z)V:12",
+                "JvmLocalVariableLocation(2)@LA;main(Z)V:9",
+                "JvmLocalVariableLocation(2)@LA;main(Z)V:8",
+                "JvmLocalVariableLocation(2)@LA;main(Z)V:7",
+                "JvmLocalVariableLocation(2)@LA;main(Z)V:4",
+                "JvmStackLocation(0)@LA;main(Z)V:3"
+            )
         )
     }
 
@@ -881,9 +962,19 @@ class TraceExtractorTest : StringSpec({
             [6] return
         */
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main(Z)V:19, JvmStaticFieldLocation(A.s)@LA;main(Z)V:16, JvmStaticFieldLocation(A.s)@LA;main(Z)V:10, JvmStackLocation(0)@LA;main(Z)V:7]",
-            "[JvmStackLocation(0)@LA;main(Z)V:19, JvmStaticFieldLocation(A.s)@LA;main(Z)V:16, JvmStaticFieldLocation(A.s)@LA;callee()V:6, JvmStackLocation(0)@LA;callee()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:19",
+                "JvmStaticFieldLocation(A.s)@LA;main(Z)V:16",
+                "JvmStaticFieldLocation(A.s)@LA;main(Z)V:10",
+                "JvmStackLocation(0)@LA;main(Z)V:7"
+            ),
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:19",
+                "JvmStaticFieldLocation(A.s)@LA;main(Z)V:16",
+                "JvmStaticFieldLocation(A.s)@LA;callee()V:6",
+                "JvmStackLocation(0)@LA;callee()V:3"
+            )
         )
     }
 
@@ -962,10 +1053,15 @@ class TraceExtractorTest : StringSpec({
             [23] areturn
          */
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main(Z)V:11, JvmStackLocation(0)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:23, " +
-                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:22, JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:11, " +
-                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:0, JvmStackLocation(1)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:5]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:11",
+                "JvmStackLocation(0)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:23",
+                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:22",
+                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:11",
+                "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:0",
+                "JvmStackLocation(1)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:5"
+            )
         )
     }
 
@@ -1027,9 +1123,15 @@ class TraceExtractorTest : StringSpec({
             [14] return
          */
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:11, JvmStaticFieldLocation(A.s)@LA;main()V:8, JvmStaticFieldLocation(A.s)@LA;main()V:5, " +
-                "JvmStaticFieldLocation(A.s)@LA;main()V:3, JvmStaticFieldLocation(A.s)@LA;callee()V:6, JvmStackLocation(0)@LA;callee()V:3]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:11",
+                "JvmStaticFieldLocation(A.s)@LA;main()V:8",
+                "JvmStaticFieldLocation(A.s)@LA;main()V:5",
+                "JvmStaticFieldLocation(A.s)@LA;main()V:3",
+                "JvmStaticFieldLocation(A.s)@LA;callee()V:6",
+                "JvmStackLocation(0)@LA;callee()V:3"
+            )
         )
     }
 })

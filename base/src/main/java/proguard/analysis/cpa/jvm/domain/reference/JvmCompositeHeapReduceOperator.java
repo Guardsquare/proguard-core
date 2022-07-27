@@ -18,20 +18,24 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
+import static proguard.analysis.cpa.jvm.domain.reference.CompositeHeapJvmAbstractState.REFERENCE_STATE_INDEX;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapFollowerAbstractState;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.MethodSignature;
 
 /**
  * A wrapper class around multiple {@link ReduceOperator}s applying them elementwise to {@link CompositeHeapJvmAbstractState}s.
+ *
+ * Also discards from the heap state all nodes not in a subtree of references in method's call arguments or static variables.
  *
  * @author Dmitry Ivanov
  */
@@ -61,12 +65,32 @@ public class JvmCompositeHeapReduceOperator
             throw new IllegalArgumentException("The operator works on composite JVM states, states of type " + expandedInitialState.getClass().getName() + " are not supported");
         }
 
-        List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> reducedStates = new ArrayList<>(((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates()
-                                                                                                                                                                              .size());
-        Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> expandedStateIterator = ((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates()
-                                                                                                                                                                          .iterator();
+        int stateSize = ((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates()
+                                                                              .size();
+        List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> reducedStates = new ArrayList<>(stateSize);
 
-        wrappedReducedOperators.forEach(ro -> reducedStates.add((JvmAbstractState<? extends AbstractState>) ro.reduce(expandedStateIterator.next(), blockEntryNode, call)));
+        // reduce reference state
+        JvmReferenceAbstractState reducedReferenceState = (JvmReferenceAbstractState) wrappedReducedOperators
+            .get(REFERENCE_STATE_INDEX)
+            .reduce(((CompositeHeapJvmAbstractState) expandedInitialState).getStateByIndex(REFERENCE_STATE_INDEX), blockEntryNode, call);
+        reducedStates.add(REFERENCE_STATE_INDEX, reducedReferenceState);
+
+        // assign principal state to followers and reduce them
+        // assigning the new reduced principal state is necessary to let the followers know what to discard
+        for (int i = 0; i < stateSize; i++)
+        {
+            if (i == REFERENCE_STATE_INDEX)
+            {
+                continue;
+            }
+
+            JvmAbstractState<?> state = ((CompositeHeapJvmAbstractState) expandedInitialState).getStateByIndex(i).copy();
+            ((JvmTreeHeapFollowerAbstractState<?>) state.getHeap()).setPrincipalState(reducedReferenceState);
+            JvmAbstractState<?> reducedState = (JvmAbstractState<?>) wrappedReducedOperators.get(i)
+                                                                                            .reduce(state, blockEntryNode, call);
+            reducedStates.add(i, reducedState);
+        }
+
         CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(reducedStates);
         result.updateHeapDependence();
         return result;

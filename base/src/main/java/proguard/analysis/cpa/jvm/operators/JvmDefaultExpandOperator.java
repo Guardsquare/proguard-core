@@ -22,16 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.Clazz;
-import proguard.classfile.Method;
-import proguard.classfile.MethodSignature;
-import proguard.classfile.attribute.Attribute;
-import proguard.classfile.attribute.CodeAttribute;
-import proguard.classfile.attribute.ExceptionInfo;
-import proguard.classfile.attribute.visitor.AllAttributeVisitor;
-import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.instruction.Instruction;
+import javax.swing.plaf.nimbus.State;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -43,8 +34,19 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractStateFactory;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
+import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.util.CallUtil;
 import proguard.analysis.cpa.jvm.util.InstructionClassifier;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.MethodSignature;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.ExceptionInfo;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.instruction.Instruction;
 
 /**
  * This {@link ExpandOperator} simulates the JVM behavior on a method exit.
@@ -64,15 +66,28 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
 {
 
     private final JvmCfa cfa;
+    private final boolean expandHeap;
 
     /**
      * Create the default expand operator for the JVM.
      *
-     * @param cfa The control flow automaton of the analyzed program.
+     * @param cfa the control flow automaton of the analyzed program
      */
     public JvmDefaultExpandOperator(JvmCfa cfa)
     {
+        this(cfa, true);
+    }
+
+    /**
+     * Create the default expand operator for the JVM.
+     *
+     * @param cfa        the control flow automaton of the analyzed program
+     * @param expandHeap whether expansion of the heap is performed
+     */
+    public JvmDefaultExpandOperator(JvmCfa cfa, boolean expandHeap)
+    {
         this.cfa = cfa;
+        this.expandHeap = expandHeap;
     }
 
     // Implementations for ExpandOperator
@@ -130,6 +145,11 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
 
             returnState.pushAll(calculateReturnValues(reducedExitState, returnInstruction, call));
 
+            if (expandHeap)
+            {
+                expandHeap(returnState.getHeap(), ((JvmAbstractState<StateT>) expandedInitialState).getHeap());
+            }
+
             return returnState;
 
         }
@@ -140,10 +160,16 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
             CallerExceptionHandlerFinder finder = new CallerExceptionHandlerFinder(call, (JvmCfa) cfa);
             call.caller.member.accept(call.caller.clazz, new AllAttributeVisitor(finder));
 
+            JvmHeapAbstractState<StateT> heap = ((JvmAbstractState<StateT>) reducedExitState).getHeap();
+            if (expandHeap)
+            {
+                expandHeap(heap, ((JvmAbstractState<StateT>) expandedInitialState).getHeap());
+            }
+
             JvmAbstractState<StateT> returnState = createJvmAbstractState(finder.nextNode,
                                                                           new JvmFrameAbstractState<>(((JvmAbstractState<StateT>) expandedInitialState).getFrame().getLocalVariables(),
                                                                                                       ((JvmAbstractState<StateT>) reducedExitState).getFrame().getOperandStack()),
-                                                                          ((JvmAbstractState<StateT>) reducedExitState).getHeap(),
+                                                                          heap,
                                                                           ((JvmAbstractState<StateT>) reducedExitState).getStaticFields());
 
             return returnState;
@@ -152,6 +178,9 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
         throw new IllegalStateException("The node of " + exitNode.getSignature() + " at offset " + exitNode.getOffset() + " is not an exit node");
     }
 
+    /**
+     * Calculates the returned state. Can be overridden to handle special behavior.
+     */
     protected List<StateT> calculateReturnValues(AbstractState reducedExitState, Instruction returnInstruction, Call call)
     {
         List<StateT> returnValues = new ArrayList<>();
@@ -163,6 +192,11 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
         }
 
         return returnValues;
+    }
+
+    protected void expandHeap(JvmHeapAbstractState<StateT> heap, JvmHeapAbstractState<StateT> callerHeap)
+    {
+        heap.expand(callerHeap);
     }
 
     private class CallerExceptionHandlerFinder

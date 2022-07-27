@@ -140,8 +140,13 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:11, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:8, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:7, JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:4]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:11",
+                "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:8",
+                "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:7",
+                "JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:4"
+            )
         )
     }
 
@@ -186,8 +191,15 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:15, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:14, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9, JvmStackLocation(0)@LA;main()V:8]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:15",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:14",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9",
+                "JvmStackLocation(0)@LA;main()V:8"
+            )
         )
     }
 
@@ -233,8 +245,15 @@ class TreeHeapTest : StringSpec({
         interproceduralCfa.clear()
 
         // TODO adjust this test after the heap model refinement
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:15, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:14, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9, JvmStackLocation(0)@LA;main()V:8]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:15",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:14",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9",
+                "JvmStackLocation(0)@LA;main()V:8"
+            )
         )
     }
 
@@ -280,8 +299,13 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:14, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:11, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:10, JvmStackLocation(0)@LA;main()V:7]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:14",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:11",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:10",
+                "JvmStackLocation(0)@LA;main()V:7"
+            )
         )
     }
 
@@ -326,8 +350,13 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:11, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:8, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:7, JvmStackLocation(0)@LA;main()V:4]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:11",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:8",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:7",
+                "JvmStackLocation(0)@LA;main()V:4"
+            )
         )
     }
 
@@ -375,8 +404,16 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main(Z)V:18, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:15, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:14, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:1, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:0, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:11, JvmStackLocation(0)@LA;main(Z)V:8]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:18",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:15",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:14",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:1",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:0",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:11",
+                "JvmStackLocation(0)@LA;main(Z)V:8"
+            )
         )
     }
 
@@ -472,8 +509,16 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main(Z)V:30, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:27, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:26, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:23, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:22, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:21, JvmStackLocation(0)@LA;main(Z)V:18]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main(Z)V:30",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:27",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:26",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:23",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:22",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:21",
+                "JvmStackLocation(0)@LA;main(Z)V:18"
+            )
         )
     }
 
@@ -519,8 +564,20 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:22, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:21, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:20, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:17, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:16, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:15, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:14, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10, JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9, JvmStackLocation(0)@LA;main()V:8]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:22",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:21",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:20",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:17",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:16",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:15",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:14",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10",
+                "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9",
+                "JvmStackLocation(0)@LA;main()V:8"
+            )
         )
     }
 
@@ -591,9 +648,40 @@ class TreeHeapTest : StringSpec({
         val traces = taintMemoryLocationCpaRun.extractLinearTraces()
         interproceduralCfa.clear()
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;callee3()V:6, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee2()V:9, JvmStackLocation(0)@LA;callee2()V:6]",
-            "[JvmStackLocation(0)@LA;callee3()V:6, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:7, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee1()V:9, JvmStackLocation(0)@LA;callee1()V:6]"
+        /*
+        Bytecode of main:
+            [0] iload_1 v1
+            [1] ifeq +9 (target=10)
+            [4] invokestatic #2 = Methodref(A.callee1()V)
+            [7] goto +6 (target=13)
+            [10] invokestatic #3 = Methodref(A.callee2()V)
+            [13] invokestatic #4 = Methodref(A.callee3()V)
+            [16] return
+        Bytecode of callee1:
+            [0] getstatic #5 = Fieldref(A.b LA$B;)
+            [3] invokestatic #6 = Methodref(A.source1()Ljava/lang/String;)
+            [6] putfield #7 = Fieldref(A$B.s Ljava/lang/String;)
+            [9] return
+         */
+
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;callee3()V:6",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee2()V:9",
+                "JvmStackLocation(0)@LA;callee2()V:6"
+            ),
+            listOf(
+                "JvmStackLocation(0)@LA;callee3()V:6",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:7",
+                "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee1()V:9",
+                "JvmStackLocation(0)@LA;callee1()V:6"
+            )
         )
     }
 
@@ -667,10 +755,16 @@ class TreeHeapTest : StringSpec({
             [38] return
          */
 
-        traces.map { it.toString() }.toSet() shouldBe setOf(
-            "[JvmStackLocation(0)@LA;main()V:35, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:32, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], " +
-                "A\$B#s)@LA;main()V:31, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:28, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], " +
-                "A\$B#s)@LA;main()V:26, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:25, JvmStackLocation(0)@LA;main()V:22]"
+        traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+            listOf(
+                "JvmStackLocation(0)@LA;main()V:35",
+                "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:32",
+                "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:31",
+                "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:28",
+                "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:26",
+                "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:25",
+                "JvmStackLocation(0)@LA;main()V:22"
+            )
         )
     }
 })

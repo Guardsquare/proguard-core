@@ -36,13 +36,24 @@ public class JvmReferenceExpandOperator
 {
 
     /**
-     * Create the default expand operator for the JVM.
+     * Create the expand operator for the JVM reference analysis.
      *
-     * @param cfa The control flow automaton of the analyzed program.
+     * @param cfa the control flow automaton of the analyzed program
      */
     public JvmReferenceExpandOperator(JvmCfa cfa)
     {
-        super(cfa);
+        this(cfa, true);
+    }
+
+    /**
+     * Create the expand operator for the JVM reference analysis.
+     *
+     * @param cfa        the control flow automaton of the analyzed program
+     * @param expandHeap whether expansion of the heap is performed
+     */
+    public JvmReferenceExpandOperator(JvmCfa cfa, boolean expandHeap)
+    {
+        super(cfa, expandHeap);
     }
 
     // implementations for JvmAbstractStateFactory

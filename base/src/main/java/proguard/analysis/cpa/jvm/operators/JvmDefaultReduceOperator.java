@@ -19,13 +19,11 @@
 package proguard.analysis.cpa.jvm.operators;
 
 import java.util.ListIterator;
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.MethodSignature;
-import proguard.classfile.instruction.Instruction;
-import proguard.classfile.util.ClassUtil;
+import java.util.Optional;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ListAbstractState;
+import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.StackAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
@@ -33,6 +31,11 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractStateFactory;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
+import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.MethodSignature;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.util.ClassUtil;
 
 /**
  * This {@link ReduceOperator} simulates the JVM behavior on a method call. It takes a clone of the caller {@link JvmAbstractState}, creates an empty stack and a local variables array with the callee
@@ -45,6 +48,26 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
     implements ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>,
                JvmAbstractStateFactory<StateT>
 {
+    
+    private final boolean reduceHeap;
+
+    /**
+     * Create the default reduce operator for the JVM.
+     */
+    public JvmDefaultReduceOperator()
+    {
+        this(true);
+    }
+
+    /**
+     * Create the default reduce operator for the JVM.
+     *
+     * @param reduceHeap whether reduction of the heap is performed
+     */
+    public JvmDefaultReduceOperator(boolean reduceHeap)
+    {
+        this.reduceHeap = reduceHeap;
+    }
 
     // Implementations for ReduceOperator
 
@@ -104,13 +127,47 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
             }
         }
 
+        MapAbstractState<String, StateT> staticFields = initialJvmState.getStaticFields();
+        reduceStaticFields(staticFields);
+
+
         if (!isStatic)
         {
             StateT state = initialJvmState.peek(i++);
 
             localVariables.set(0, state, null);
         }
+        
+        JvmHeapAbstractState<StateT> heap = initialJvmState.getHeap();
+        if (reduceHeap)
+        {
+            reduceHeap(heap, frame, initialJvmState.getStaticFields());
+        }
 
-        return createJvmAbstractState(initialJvmState.getProgramLocation(), frame, initialJvmState.getHeap(), initialJvmState.getStaticFields());
+        return createJvmAbstractState(initialJvmState.getProgramLocation(), frame, heap, initialJvmState.getStaticFields());
+    }
+
+    /**
+     * Reduces the static fields. The default implementation doesn't perform any reduction.
+     *
+     * @param staticFields the static fields map that is modified by this method by performing reduction
+     */
+    protected void reduceStaticFields(MapAbstractState<String, StateT> staticFields)
+    {
+    }
+
+    /**
+     * Reduces the heap state. The default implementation passes an empty optional to {@link JvmHeapAbstractState#reduce}
+     * which should take care of handling this case properly.
+     *
+     * @param heap                the heap that is modified by this method by performing reduction
+     * @param reducedFrame        the frame after reduction has been performed on it
+     * @param reducedStaticFields the static fields after reduction has been performed on them
+     */
+    protected void reduceHeap(JvmHeapAbstractState<StateT> heap,
+                              JvmFrameAbstractState<StateT> reducedFrame,
+                              MapAbstractState<String, StateT> reducedStaticFields)
+    {
+        heap.reduce(Optional.empty());
     }
 }

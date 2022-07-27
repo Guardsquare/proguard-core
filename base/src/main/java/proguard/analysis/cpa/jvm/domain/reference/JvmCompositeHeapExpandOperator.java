@@ -21,17 +21,19 @@ package proguard.analysis.cpa.jvm.domain.reference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.MethodSignature;
 
 /**
  * A wrapper class around multiple {@link ExpandOperator}s applying them elementwise to {@link CompositeHeapJvmAbstractState}s.
+ *
+ * Also recovers all the heap nodes that have been discarded at the call site.
  *
  * @author Dmitry Ivanov
  */
@@ -77,6 +79,7 @@ public class JvmCompositeHeapExpandOperator
                                                                                                                       reducedStateIterator.next(),
                                                                                                                       blockEntryNode,
                                                                                                                       call)));
+
         CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(expandedStates);
         result.updateHeapDependence();
         return result;

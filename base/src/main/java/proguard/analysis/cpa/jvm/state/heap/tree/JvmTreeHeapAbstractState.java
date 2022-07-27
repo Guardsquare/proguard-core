@@ -53,6 +53,8 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
         this.referenceToNode = referenceToNode;
     }
 
+    // implementations for JvmHeapAbstractState
+
     /**
      * Returns a join over all fields aliased by the input {@link SetAbstractState}. The {@code defaultValue} is used when there is no information available.
      */
@@ -101,6 +103,20 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
     {
         array.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<>())
                                                   .mergeValue("[]", value));
+    }
+
+    /**
+     * Expands the state with all the entries from another heap state with reference not already known by the state.
+     */
+    @Override
+    public void expand(JvmHeapAbstractState<StateT> otherState)
+    {
+        if (!(otherState instanceof JvmTreeHeapAbstractState))
+        {
+            throw new IllegalArgumentException("The other state should be a JvmTreeHeapAbstractState");
+        }
+
+        ((JvmTreeHeapAbstractState<StateT>) otherState).referenceToNode.forEach(referenceToNode::putIfAbsent);
     }
 
     // implementations for LatticeAbstractState

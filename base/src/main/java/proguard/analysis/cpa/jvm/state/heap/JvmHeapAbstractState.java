@@ -19,8 +19,11 @@
 package proguard.analysis.cpa.jvm.state.heap;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.domain.reference.Reference;
 
 /**
  * The {@link JvmHeapAbstractState} provides the interfaces for heap operations over objects and arrays.
@@ -66,4 +69,26 @@ public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT
      * Sets the {@code array} element {@code value} at the specified {@code index}.
      */
     void setArrayElement(StateT array, StateT index, StateT value);
+
+    /**
+     * Discards unused parts of the heap. Does nothing in the default implementation.
+     *
+     * This can be overridden to model discarding heap portions at call sites.
+     *
+     * @param references information on the references to keep or discard, based on the implementation. Unused in the default implementation
+     */
+    default void reduce(Optional<Set<Reference>> references)
+    {
+    }
+
+    /**
+     * Expands the heap with references present in another state. Does nothing in the default implementation.
+     *
+     * This can be overridden to model recovering information discarded at call sites when analyzing a return site.
+     *
+     * @param otherState a heap state from which expanding the heap (e.g. the state calling a method to recover information discarded from it)
+     */
+    default void expand(JvmHeapAbstractState<StateT> otherState)
+    {
+    }
 }

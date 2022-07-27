@@ -77,9 +77,39 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
      * @param heapModel           a heap model to be used
      * @param abortOperator       an abort operator
      */
-    public JvmTaintBamCpaRun(JvmCfa cfa, Set<TaintSource> taintSources, MethodSignature mainMethodSignature, int maxCallStackDepth, HeapModel heapModel, AbortOperator abortOperator)
+    public JvmTaintBamCpaRun(JvmCfa cfa,
+                             Set<TaintSource> taintSources,
+                             MethodSignature mainMethodSignature,
+                             int maxCallStackDepth,
+                             HeapModel heapModel,
+                             AbortOperator abortOperator)
     {
-        super(cfa, maxCallStackDepth, heapModel, abortOperator);
+        this(cfa, taintSources, mainMethodSignature, maxCallStackDepth, heapModel, abortOperator, true);
+    }
+
+    /**
+     * Create a CPA run. If reduceHeap is set to false no reduction/expansion is applied to the heap states at call/return sites
+     * (this parameter is irrelevant for FORGETFUL heap model).
+     *
+     * @param cfa                 a CFA
+     * @param taintSources        a set of taint sources
+     * @param mainMethodSignature the signature of the main method
+     * @param maxCallStackDepth   the maximum depth of the call stack analyzed interprocedurally
+     *                            0 means intraprocedural analysis
+     *                            < 0 means no maximum depth
+     * @param heapModel           a heap model to be used
+     * @param abortOperator       an abort operator
+     * @param reduceHeap          whether reduction/expansion of the heap state is performed at call/return sites
+     */
+    public JvmTaintBamCpaRun(JvmCfa cfa,
+                             Set<TaintSource> taintSources,
+                             MethodSignature mainMethodSignature,
+                             int maxCallStackDepth,
+                             HeapModel heapModel,
+                             AbortOperator abortOperator,
+                             boolean reduceHeap)
+    {
+        super(cfa, maxCallStackDepth, heapModel, abortOperator, reduceHeap);
         this.taintSources = taintSources;
         this.mainMethodSignature = mainMethodSignature;
     }
@@ -94,7 +124,9 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
      *                            0 means intra-procedural analysis.
      *                            < 0 means no maximum depth.
      */
-    public JvmTaintBamCpaRun(JvmCfa cfa, Set<TaintSource> taintSources, MethodSignature mainMethodSignature, int maxCallStackDepth)
+    public JvmTaintBamCpaRun(JvmCfa cfa, Set<TaintSource> taintSources,
+                             MethodSignature mainMethodSignature,
+                             int maxCallStackDepth)
     {
         this(cfa, taintSources, mainMethodSignature, maxCallStackDepth, HeapModel.FORGETFUL, NeverAbortOperator.INSTANCE);
     }
@@ -123,12 +155,14 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     @Override
     public ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createExpandOperator()
     {
+        JvmTaintExpandOperator jvmExpandOperator = new JvmTaintExpandOperator(cfa, JvmTaintCpa.createSourcesMap(taintSources), reduceHeap);
+
         switch (heapModel)
         {
             case FORGETFUL:
-                return new JvmTaintExpandOperator(cfa, JvmTaintCpa.createSourcesMap(taintSources));
+                return jvmExpandOperator;
             case TREE:
-                return new JvmCompositeHeapExpandOperator(Arrays.asList(new JvmReferenceExpandOperator(cfa), new JvmTaintExpandOperator(cfa, JvmTaintCpa.createSourcesMap(taintSources))));
+                return new JvmCompositeHeapExpandOperator(Arrays.asList(new JvmReferenceExpandOperator(cfa, reduceHeap), jvmExpandOperator));
             default:
                 throw new IllegalArgumentException("Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
         }

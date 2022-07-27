@@ -20,6 +20,8 @@ package proguard.analysis.cpa.jvm.state.heap.tree;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
@@ -106,7 +108,23 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
         return defaultValue;
     }
 
-    // implementations for LatticeAbstractState
+    /**
+     * Removes all the nodes not present in the principal model.
+     *
+     * @param references unused
+     */
+    @Override
+    public void reduce(Optional<Set<Reference>> references)
+    {
+        Set<Reference> toKeep = ((JvmTreeHeapPrincipalAbstractState) principal.getHeap()).referenceToNode.keySet();
+
+        if (toKeep.size() >= referenceToNode.size())
+            return;
+
+        referenceToNode.entrySet().removeIf(e -> !toKeep.contains(e.getKey()));
+    }
+
+// implementations for LatticeAbstractState
 
     @Override
     public JvmTreeHeapFollowerAbstractState<StateT> join(JvmHeapAbstractState<StateT> abstractState)

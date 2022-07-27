@@ -50,4 +50,10 @@ public class JvmUnknownCfaNode
     {
         return true;
     }
+
+    @Override
+    public String toString()
+    {
+        return "JvmUnknownCfaNode{}";
+    }
 }

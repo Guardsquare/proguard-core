@@ -18,8 +18,13 @@
 
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
@@ -27,6 +32,7 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
+import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 
 /**
  * This is a self-sufficient heap model in the sense that it contains references necessary for addressing. When a memory location is accessed, it is created on-the-fly and is assumed to contain
@@ -104,6 +110,57 @@ public class JvmTreeHeapPrincipalAbstractState
     public SetAbstractState<Reference> newArray(String type, List<SetAbstractState<Reference>> dimensions, JvmCfaNode creationCite)
     {
         return new SetAbstractState<>(new Reference(creationCite, new JvmStackLocation(0)));
+    }
+
+    /**
+     * Get all the references to nodes that have been created in a {@link JvmStaticFieldLocation}.
+     */
+    public Set<Reference> getStaticCreationReferences()
+    {
+        Set<Reference> references = new HashSet<>();
+
+        referenceToNode.keySet()
+                       .stream()
+                       .filter(ref -> ref.creationSite instanceof JvmStaticFieldLocation)
+                       .forEach(references::add);
+
+        return references;
+    }
+
+    /**
+     * Slices the principal heap tree starting from the specified roots.
+     *
+     * If {@param roots} is an empty optional does not perform any reduction.
+     */
+    @Override
+    public void reduce(Optional<Set<Reference>> roots)
+    {
+        if (!roots.isPresent())
+        {
+            return;
+        }
+
+        Deque<Reference> worklist = new ArrayDeque<>(roots.get());
+        Set<Reference> discoveredReferences = new HashSet<>(roots.get());
+
+
+        // collect references in the subtree of the roots
+        while (!worklist.isEmpty())
+        {
+            Reference reference = worklist.pop();
+            HeapNode<SetAbstractState<Reference>> node = referenceToNode.get(reference);
+
+            if (node == null)
+            {
+                continue;
+            }
+
+            node.values().forEach(n -> n.stream()
+                                        .filter(discoveredReferences::add)
+                                        .forEach(worklist::add));
+        }
+
+        referenceToNode.entrySet().removeIf(e -> !discoveredReferences.contains(e.getKey()));
     }
 
     // implementations for LatticeAbstractState
