@@ -11,3 +11,4 @@ rootProject.name = 'proguard-core'
 
 include 'base'
 include 'android'
+include 'examples'

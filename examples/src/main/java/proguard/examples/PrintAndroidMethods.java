@@ -1,4 +1,5 @@
-import dexreader.reader.DexClassReader;
+package proguard.examples;
+
 import proguard.classfile.*;
 import proguard.classfile.visitor.*;
 import proguard.io.*;

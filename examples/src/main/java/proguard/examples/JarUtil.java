@@ -63,11 +63,11 @@ public class JarUtil
             new ClassPoolFiller(classPool))));
 
         // Convert dex files to a JAR first.
-        //classReader =
-        //    new NameFilteredDataEntryReader("classes*.dex",
-        //    new Dex2JarReader(!isLibrary,
-        //        classReader),
-        //    classReader);
+//        classReader =
+//            new NameFilteredDataEntryReader("classes*.dex",
+//            new Dex2JarReader(!isLibrary,
+//                classReader),
+//            classReader);
 
         // Extract files from an archive if necessary.
         classReader =
