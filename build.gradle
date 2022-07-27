@@ -10,6 +10,7 @@ plugins {
     id 'jacoco'
     id "org.jlleitschuh.gradle.ktlint" version '10.1.0' apply false
     id "org.sonarqube" version "3.3"
+    id "io.freefair.aggregate-javadoc" version "6.5.0.3"
 }
 
 sonarqube {
@@ -28,15 +29,14 @@ allprojects {
     }
 }
 
-javadoc {
+aggregateJavadoc {
     title          = 'ProGuardCORE'
-    source         = sourceSets.main.allJava
     destinationDir = file('docs/md/api')
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 task buildDocumentation(type: Exec) {
-    dependsOn javadoc
+    dependsOn aggregateJavadoc
     inputs.dir 'docs/md'
     inputs.file 'docs/mkdocs.yml'
     outputs.dir 'docs/html'
@@ -45,7 +45,7 @@ task buildDocumentation(type: Exec) {
 }
 
 clean {
-    delete javadoc.outputs
+    delete aggregateJavadoc.outputs
     delete buildDocumentation.outputs
 }
 
@@ -73,11 +73,11 @@ distributions {
 distTar {
     compression = Compression.GZIP
     archiveExtension.set('tar.gz')
-    dependsOn('javadoc')
+    dependsOn('aggregateJavadoc')
 }
 
 distZip {
-    dependsOn('javadoc')
+    dependsOn('aggregateJavadoc')
 }
 
 nexusPublishing {
