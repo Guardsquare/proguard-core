@@ -39,7 +39,7 @@ import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
  */
 public class CompositeHeapTransferRelation
     implements WrapperTransferRelation,
-               ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
+               ProgramLocationDependentBackwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
     private final List<JvmTransferRelation<? extends AbstractState>> jvmTransferRelations;
