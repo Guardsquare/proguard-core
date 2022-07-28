@@ -65,7 +65,7 @@ distributions {
         distributionBaseName.set('proguard-core')
         contents {
             into('lib') {
-                from tasks.getByPath(":base:jar").outputs
+                from tasks.getByPath(":proguard-core:jar").outputs
             }
             into('docs') {
                 from('docs/md') {
