@@ -23,7 +23,7 @@ jobs:
         with:
           arguments: assemble
       - name: Sonar
-        run: gradle -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=guardsquare -Dsonar.projectKey=Guardsquare_proguard-core sonarqube
+        run: gradle -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=guardsquare -Dsonar.projectKey=Guardsquare_proguard-core sonarqube --info
         env:
           GITHUB_TOKEN: ${{ secrets.PROGUARD_GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.PROGUARD_SONAR_TOKEN }}
