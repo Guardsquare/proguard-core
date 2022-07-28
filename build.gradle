@@ -1,40 +1,53 @@
 plugins {
     id 'distribution'
     id 'io.github.gradle-nexus.publish-plugin'
-    id 'java-library'
-    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
-    id 'maven-publish'
     id 'signing'
-    id 'com.adarshr.test-logger' version '3.0.0'
-    id 'de.jansauer.printcoverage' version '2.0.0'
-    id 'jacoco'
-    id "org.jlleitschuh.gradle.ktlint" version '10.1.0'
-    id "org.sonarqube" version "3.3"
+    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
+    id 'com.adarshr.test-logger' version '3.0.0' apply false
+    id 'de.jansauer.printcoverage' version '2.0.0' apply false
+    id "org.sonarqube" version "3.4.0.2513"
+    id "io.freefair.aggregate-javadoc" version "6.5.0.3"
 }
 
-sonarqube {
-    properties {
-        property "sonar.sources", "src"
+allprojects {
+    group = 'com.guardsquare'
+    version = proguardCoreVersion
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+    
+    pluginManager.withPlugin('java') {
+        java {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(8))
+            }
+            withJavadocJar()
+            withSourcesJar()
+        }
+
+        javadoc {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+        kotlinOptions {
+            jvmTarget = '1.8'
+            freeCompilerArgs = ["-opt-in=kotlin.RequiresOptIn"]
+        }
     }
 }
 
-group = 'com.guardsquare'
-version = proguardCoreVersion
-
-repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
-}
-
-javadoc {
+aggregateJavadoc {
     title          = 'ProGuardCORE'
-    source         = sourceSets.main.allJava
     destinationDir = file('docs/md/api')
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 task buildDocumentation(type: Exec) {
-    dependsOn javadoc
+    dependsOn aggregateJavadoc
     inputs.dir 'docs/md'
     inputs.file 'docs/mkdocs.yml'
     outputs.dir 'docs/html'
@@ -43,91 +56,8 @@ task buildDocumentation(type: Exec) {
 }
 
 clean {
-    delete javadoc.outputs
-    delete buildDocumentation.outputs
-}
-
-dependencies {
-    api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-    api "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
-    api "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
-
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
-
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-    testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-    testImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.9'
-    testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.3.1' // for kotest framework
-    testImplementation 'io.kotest:kotest-assertions-core-jvm:5.3.1' // for kotest core jvm assertions
-    testImplementation 'io.kotest:kotest-property-jvm:5.3.1' // for kotest property test
-    testImplementation 'io.kotest:kotest-framework-datatest:5.3.1'
-    testImplementation "io.mockk:mockk:1.12.4" // for mocking
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1' // for junit framework
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' // for junit framework
-
-    // For assembling ProGuard assembler snippets
-    testImplementation ('com.github.Guardsquare:proguard-assembler:master-SNAPSHOT') {
-        exclude group: 'com.guardsquare', module: 'proguard-core'
-    }
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
-
-    withSourcesJar()
-    withJavadocJar()
-}
-
-// Early access automatic downloads are not yet supported:
-// https://github.com/gradle/gradle/issues/14814
-// But it will work if e.g. Java N-ea is pre-installed
-def javaVersionsForTest = 9..18
-
-test {
-    useJUnitPlatform()
-}
-
-task testAllJavaVersions() { testAllTask ->
-    dependsOn(test) // the usual test runs on Java 8
-
-    javaVersionsForTest.each {version ->
-        task("testJava$version", type: Test) {
-            useJUnitPlatform()
-            ignoreFailures = true
-
-            testAllTask.dependsOn(it)
-
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(version)
-            }
-        }
-    }
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    kotlinOptions {
-        jvmTarget = '1.8'
-        freeCompilerArgs = ["-Xopt-in=kotlin.RequiresOptIn"]
-    }
-}
-
-jacocoTestReport {
-    // Define which classes need to be monitored
-    def sources = files(rootProject.sourceSets.main.allSource.srcDirs)
-    sourceDirectories.setFrom(sources)
-    additionalSourceDirs.setFrom(sources)
-    sourceDirectories.setFrom(sources)
-    def classes = files(rootProject.sourceSets.main.output.classesDirs)
-    classDirectories.setFrom(classes)
-    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/*.exec')
-    reports {
-        xml.enabled true
-        csv.enabled false
-        html.destination file("${buildDir}/reports/coverage")
-    }
+    delete aggregateJavadoc.outputs
+    //delete buildDocumentation.outputs
 }
 
 distributions {
@@ -135,7 +65,7 @@ distributions {
         distributionBaseName.set('proguard-core')
         contents {
             into('lib') {
-                from tasks.getByName('jar').outputs
+                from tasks.getByPath(":proguard-core:jar").outputs
             }
             into('docs') {
                 from('docs/md') {
@@ -154,80 +84,10 @@ distributions {
 distTar {
     compression = Compression.GZIP
     archiveExtension.set('tar.gz')
-    dependsOn('javadoc')
+    dependsOn('aggregateJavadoc')
 }
 
 distZip {
-    dependsOn('javadoc')
-}
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = findProperty('PROGUARD_STAGING_USERNAME')
-            password = findProperty('PROGUARD_STAGING_PASSWORD')
-        }
-    }
-}
-
-publishing {
-    publications {
-        create('proguardCore', MavenPublication) {
-            from components.java
-            pom {
-                name = "$groupId:$artifactId"
-                description = 'ProGuardCORE is a free library to read, analyze, modify, and write Java class files.'
-                url = 'https://guardsquare.github.io/proguard-core'
-                developers {
-                    developer {
-                        id = 'lafortune'
-                        name = 'Eric Lafortune'
-                        organization = 'Guardsquare'
-                        organizationUrl = 'https://www.guardsquare.com/'
-                        roles = ['Project Administrator', 'Developer']
-                    }
-                }
-                licenses {
-                    license {
-                        name = 'Apache License Version 2.0'
-                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution = 'repo'
-                    }
-                }
-                issueManagement {
-                    system = 'Github Tracker'
-                    url = 'https://github.com/Guardsquare/proguard-core/issues'
-                }
-                scm {
-                    url = 'https://github.com/Guardsquare/proguard-core.git'
-                    connection = 'scm:git:https://github.com/Guardsquare/proguard-core.git'
-                }
-                properties = [
-                        'project.build.sourceEncoding': 'UTF-8'
-                ]
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = 'Github'
-            url = uri('https://maven.pkg.github.com/guardsquare/proguard-core')
-            credentials {
-                username = project.findProperty('PROGUARD_GITHUB_USERNAME')
-                password = project.findProperty('PROGUARD_GITHUB_TOKEN')
-            }
-        }
-    }
-}
-
-// We use in-memory ascii-armored keys
-// See https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
-if (hasProperty('PROGUARD_SIGNING_KEY')) {
-    signing {
-        String key = findProperty('PROGUARD_SIGNING_KEY')
-        String password = findProperty('PROGUARD_SIGNING_PASSWORD')
-        useInMemoryPgpKeys(key, password)
-        sign publishing.publications.proguardCore
-    }
+    dependsOn('aggregateJavadoc')
 }
 
