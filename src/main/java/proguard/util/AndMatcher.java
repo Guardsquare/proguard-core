@@ -44,6 +44,7 @@ public class AndMatcher extends StringMatcher
     @Override
     public String prefix()
     {
+        // Test
         String prefix1 = this.matcher1.prefix();
         String prefix2 = this.matcher2.prefix();
 
