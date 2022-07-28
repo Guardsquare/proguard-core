@@ -43,6 +43,7 @@ public class KotlinConstants
     public static final String TYPE_KOTLIN_METADATA                   = "Lkotlin/Metadata;";
     public static final String NAME_KOTLIN_ANY                        = "kotlin/Any";
     public static final String NAME_KOTLIN_UNIT                       = "kotlin/Unit";
+    public static final String TYPE_KOTLIN_UNIT                       = "Lkotlin/Unit;";
     public static final String NAME_KOTLIN_ENUM                       = "kotlin/Enum";
     public static final String NAME_KOTLIN_FUNCTION                   = "kotlin/Function"; // kotlin/Function and also kotlin/FunctionN
     public static final String NAME_KOTLIN_EXTENSION_FUNCTION         = "kotlin/ExtensionFunctionType";
