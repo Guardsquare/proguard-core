@@ -29,8 +29,8 @@ import proguard.analysis.cpa.jvm.domain.taint.JvmTaintBamCpaRun
 import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.classfile.MethodSignature
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class JvmTaintCpaTest : FreeSpec({
 

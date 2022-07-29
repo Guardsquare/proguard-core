@@ -30,9 +30,9 @@ import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinValueParameterFilter
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
-import testutils.ReWritingMetadataVisitor
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
+import proguard.testutils.ReWritingMetadataVisitor
 import java.util.function.Predicate
 
 class KotlinValueParameterFlagsTest : FreeSpec({

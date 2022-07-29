@@ -24,8 +24,8 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.util.CfaUtil
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class InterproceduralCfaCreatorTest : FreeSpec({
 

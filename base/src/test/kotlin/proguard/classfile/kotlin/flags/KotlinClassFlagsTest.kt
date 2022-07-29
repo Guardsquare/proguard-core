@@ -8,9 +8,9 @@ import io.mockk.verify
 import proguard.classfile.Clazz
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
-import testutils.ReWritingMetadataVisitor
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
+import proguard.testutils.ReWritingMetadataVisitor
 
 class KotlinClassFlagsTest : FreeSpec({
 

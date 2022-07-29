@@ -26,9 +26,9 @@ import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
 import proguard.classfile.kotlin.visitor.AllTypeAliasVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeAliasVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
-import testutils.ReWritingMetadataVisitor
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
+import proguard.testutils.ReWritingMetadataVisitor
 
 class KotlinTypeAliasFlagsTest : FreeSpec({
 

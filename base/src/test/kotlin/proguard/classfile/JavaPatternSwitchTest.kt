@@ -9,10 +9,10 @@ package proguard.classfile
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldNotBe
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.RequiresJavaVersion
-import testutils.currentJavaVersion
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.RequiresJavaVersion
+import proguard.testutils.currentJavaVersion
 
 /**
  * Test the pattern matching switch in Java 18.

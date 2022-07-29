@@ -28,8 +28,8 @@ import proguard.classfile.kotlin.KotlinTypeVariance.OUT
 import proguard.classfile.kotlin.visitor.AllTypeParameterVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class KotlinMetadataTypeVarianceTest : FreeSpec({
     val (programClassPool, _) = ClassPoolBuilder.fromSource(

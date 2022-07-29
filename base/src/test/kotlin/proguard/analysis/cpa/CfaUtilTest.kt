@@ -3,8 +3,8 @@ package proguard.analysis.cpa
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.jvm.util.CfaUtil
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class CfaUtilTest : FreeSpec({
     "Static false shouldAnalyzeNextCodeAttribute skips all attributes" {

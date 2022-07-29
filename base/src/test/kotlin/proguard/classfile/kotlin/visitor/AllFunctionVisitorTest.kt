@@ -14,8 +14,8 @@ import io.mockk.verify
 import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata
 import proguard.classfile.kotlin.KotlinFunctionMetadata
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class AllFunctionVisitorTest : FreeSpec({
 

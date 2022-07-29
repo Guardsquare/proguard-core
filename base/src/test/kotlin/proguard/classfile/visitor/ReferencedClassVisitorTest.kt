@@ -23,8 +23,8 @@ import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.LibraryClass
 import proguard.classfile.ProgramClass
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 import proguard.classfile.kotlin.KotlinConstants.dummyClassPool as kotlinDummyClassPool
 
 class ReferencedClassVisitorTest : FreeSpec({

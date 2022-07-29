@@ -24,8 +24,8 @@ import io.mockk.verify
 import proguard.classfile.visitor.AllMemberVisitor
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MemberDescriptorReferencedClassVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class MemberDescriptorReferencedClassVisitorTest : FreeSpec({
     "Given an inline class" - {

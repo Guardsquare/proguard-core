@@ -27,9 +27,9 @@ import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.AllTypeAliasVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
-import testutils.ReWritingMetadataVisitor
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
+import proguard.testutils.ReWritingMetadataVisitor
 
 class KotlinMetadataAnnotationMultiDimensionalArrayTest : FreeSpec({
 

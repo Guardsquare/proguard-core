@@ -36,9 +36,9 @@ import proguard.classfile.kotlin.reflect.visitor.CallableReferenceInfoVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.util.ClassReferenceInitializer
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.KotlinSource
 
 class KotlinCallableReferenceInitializerTest : FreeSpec({
 

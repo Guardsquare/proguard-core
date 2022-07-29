@@ -28,8 +28,8 @@ import proguard.classfile.kotlin.KotlinFunctionMetadata
 import proguard.classfile.kotlin.KotlinPropertyMetadata
 import proguard.classfile.kotlin.visitor.AllValueParameterVisitor
 import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 import java.util.function.Predicate
 
 class KotlinValueParameterFilterTest : FreeSpec({

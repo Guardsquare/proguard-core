@@ -22,8 +22,8 @@ import proguard.classfile.util.ClassRenamer
 import proguard.classfile.visitor.AllMemberVisitor
 import proguard.classfile.visitor.MemberNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class MultipleRuntimeInvisibleAnnotationsTest : FreeSpec({
 

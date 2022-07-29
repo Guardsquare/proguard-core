@@ -72,13 +72,13 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.SimpleInstruction;
 import proguard.evaluation.value.ParticularDoubleValue;
 import proguard.evaluation.value.ParticularIntegerValue;
-import testutils.ClassPoolBuilder;
-import testutils.cpa.ExpressionAbstractState;
-import testutils.cpa.ExpressionTransferRelation;
-import testutils.cpa.InstructionExpression;
-import testutils.cpa.MethodExpression;
-import testutils.cpa.UnknownValue;
-import testutils.cpa.ValueExpression;
+import proguard.testutils.ClassPoolBuilder;
+import proguard.testutils.cpa.ExpressionAbstractState;
+import proguard.testutils.cpa.ExpressionTransferRelation;
+import proguard.testutils.cpa.InstructionExpression;
+import proguard.testutils.cpa.MethodExpression;
+import proguard.testutils.cpa.UnknownValue;
+import proguard.testutils.cpa.ValueExpression;
 
 /**
  * Test for {@link BamCpa}.

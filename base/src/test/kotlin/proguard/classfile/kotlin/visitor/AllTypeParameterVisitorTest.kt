@@ -23,8 +23,8 @@ import io.kotest.matchers.collections.shouldExist
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.kotlin.KotlinTypeParameterMetadata
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class AllTypeParameterVisitorTest : FreeSpec({
     val (programClassPool, _) = ClassPoolBuilder.fromSource(

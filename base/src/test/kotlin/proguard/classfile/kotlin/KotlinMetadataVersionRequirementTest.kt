@@ -28,8 +28,8 @@ import proguard.classfile.kotlin.KotlinVersionRequirementVersionKind.LANGUAGE_VE
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinVersionRequirementVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class KotlinMetadataVersionRequirementTest : FreeSpec({
     val (programClassPool, _) = ClassPoolBuilder.fromSource(
