@@ -1,0 +1,37 @@
+plugins {
+    id 'distribution'
+    id 'java-library'
+    id 'java-test-fixtures'
+    id "org.jetbrains.kotlin.jvm"
+    id 'maven-publish'
+    id 'signing'
+    id 'com.adarshr.test-logger'
+    id 'de.jansauer.printcoverage'
+    id 'jacoco'
+    id "org.sonarqube"
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.3.1' // for kotest framework
+    testImplementation 'io.kotest:kotest-assertions-core-jvm:5.3.1' // for kotest core jvm assertions
+    testImplementation 'io.kotest:kotest-property-jvm:5.3.1' // for kotest property test
+    testImplementation 'io.kotest:kotest-framework-datatest:5.3.1'
+    testImplementation "io.mockk:mockk:1.12.4" // for mocking
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1' // for junit framework
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' // for junit framework
+
+    testFixturesImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.9'
+
+    implementation project(":proguard-core")
+    testImplementation(testFixtures(project(":proguard-core")))
+    testFixturesImplementation(testFixtures(project(":proguard-core")))
+
+    testFixturesImplementation 'org.smali:smali:2.5.2'
+}
