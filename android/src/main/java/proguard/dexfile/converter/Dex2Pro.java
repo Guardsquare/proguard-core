@@ -54,13 +54,13 @@ public class Dex2Pro {
      * amount of time. This results in a {@link proguard.classfile.Method}
      * with an empty {@link CodeAttribute}.
      */
-    private static final int MAX_PHI_LABELS = Integer.parseInt(System.getProperty("dexguard.dexconversion.maxphilabels", "0"));
-    private static final int MAX_CODE_LENGTH = Integer.parseInt(System.getProperty("dexguard.dexconversion.maxcodelength", "10000"));
+    private static final int MAX_PHI_LABELS = Integer.parseInt(System.getProperty("proguard.dexconversion.maxphilabels", "0"));
+    private static final int MAX_CODE_LENGTH = Integer.parseInt(System.getProperty("proguard.dexconversion.maxcodelength", "10000"));
 
     /**
      * If the conversion to dex fails for any reason, an empty code will be returned, but the execution will not stop
      **/
-    private static final boolean SKIP_UNPARSEABLE_METHODS = System.getProperty("dexguard.dexconversion.skip_unparseable_methods") != null;
+    private static final boolean SKIP_UNPARSEABLE_METHODS = System.getProperty("proguard.dexconversion.skip_unparseable_methods") != null;
 
 //    private static final Logger  logger                   = LogManager.getLogger(Dex2Pro.class);
 

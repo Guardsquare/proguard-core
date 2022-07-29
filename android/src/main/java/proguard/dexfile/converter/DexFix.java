@@ -103,7 +103,6 @@ public class DexFix {
                                     fs.remove(key);
                                     DexFieldNode dn = shouldNotBeAssigned.get(key);
                                     if (dn != null) {
-                                        //System.out.println(field.getName() + ":" + field.getType());
                                         dn.cst = null;
                                     }
                                 }

@@ -63,10 +63,9 @@ public class IR2ProConverter {
      * with an empty {@link CodeAttribute} if it contains such a deeply
      * nested statement.
      */
-    private static final int MAX_STATEMENT_DEPTH = Integer.parseInt(System.getProperty("dexguard.dexconversion.maxstatementdepth", "0"));
+    private static final int MAX_STATEMENT_DEPTH = Integer.parseInt(System.getProperty("proguard.dexconversion.maxstatementdepth", "0"));
 
     private boolean optimizeSynchronized = false;
-    private boolean useConstantPrimitiveArray = false;
     private int statementDepthCounter = 0;
 
     IrMethod ir;
@@ -78,11 +77,6 @@ public class IR2ProConverter {
 
     public IR2ProConverter optimizeSynchronized(boolean optimizeSynchronized) {
         this.optimizeSynchronized = optimizeSynchronized;
-        return this;
-    }
-
-    public IR2ProConverter useConstantPrimitiveArray(boolean useConstantPrimitiveArray) {
-        this.useConstantPrimitiveArray = useConstantPrimitiveArray;
         return this;
     }
 
