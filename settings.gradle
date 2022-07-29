@@ -10,5 +10,6 @@ pluginManagement {
 rootProject.name = 'proguard-core-root'
 
 include('base')
+include('examples')
 // Rename base as proguard-core for backwards compatibility
 project(':base').name = "proguard-core"
