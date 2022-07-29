@@ -37,6 +37,7 @@ import proguard.classfile.visitor.MethodFilter
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 import testutils.RequiresJavaVersion
+import testutils.currentJavaVersion
 
 @RequiresJavaVersion(15)
 class JavaRecordTest : FreeSpec({
@@ -49,7 +50,7 @@ class JavaRecordTest : FreeSpec({
                 public record Test (String firstname, String surname) { }
                 """.trimIndent()
             ),
-            javacArguments = if (testutils.currentJavaVersion == 15)
+            javacArguments = if (currentJavaVersion == 15)
                 listOf("--enable-preview", "--release", "15") else emptyList()
         )
 
@@ -101,7 +102,7 @@ class JavaRecordTest : FreeSpec({
                 public @interface Annotation {}
                 """.trimIndent()
             ),
-            javacArguments = if (testutils.currentJavaVersion == 15)
+            javacArguments = if (currentJavaVersion == 15)
                 listOf("--enable-preview", "--release", "15") else emptyList()
         )
         val visitor = spyk<AttributeVisitor>(object : AttributeVisitor {
