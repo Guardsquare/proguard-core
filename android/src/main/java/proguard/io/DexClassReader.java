@@ -2,9 +2,9 @@
  * ProGuard -- shrinking, optimization, obfuscation, and preverification
  *             of Java bytecode.
  *
- * Copyright (c) 2002-2017 GuardSquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  */
-package proguard.dexfile.reader.reader;
+package proguard.dexfile.reader;
 
 import proguard.dexfile.reader.api.node.DexFileNode;
 import proguard.dexfile.translator.converter.Dex2Pro;

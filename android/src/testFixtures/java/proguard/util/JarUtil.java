@@ -3,7 +3,7 @@ package proguard.util;
 import proguard.classfile.ClassPool;
 import proguard.classfile.visitor.ClassNameFilter;
 import proguard.classfile.visitor.ClassPoolFiller;
-import proguard.dexfile.reader.reader.DexClassReader;
+import proguard.dexfile.reader.DexClassReader;
 import proguard.io.*;
 
 import java.io.File;

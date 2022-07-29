@@ -1,4 +1,11 @@
-package proguard.dexfile.reader.reader;
+/*
+ * ProGuard -- shrinking, optimization, obfuscation, and preverification
+ *             of Java bytecode.
+ *
+ * Copyright (c) 2002-2022 Guardsquare NV
+ */
+
+package proguard.dexfile.reader;
 
 import proguard.dexfile.reader.api.visitors.DexFileVisitor;
 
