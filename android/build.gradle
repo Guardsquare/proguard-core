@@ -12,12 +12,12 @@ plugins {
     id "org.sonarqube"
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
-}
-
 dependencies {
+    api project(":proguard-core")
+
+    testImplementation(testFixtures(project(":proguard-core")))
+    testFixturesImplementation(testFixtures(project(":proguard-core")))
+
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
     testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.3.1' // for kotest framework
@@ -29,11 +29,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' // for junit framework
 
     testFixturesImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.9'
-
-    implementation project(":proguard-core")
-    testImplementation(testFixtures(project(":proguard-core")))
-    testFixturesImplementation(testFixtures(project(":proguard-core")))
-
     testFixturesImplementation 'org.smali:smali:2.5.2'
 }
 
