@@ -22,11 +22,11 @@ import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
-import proguard.util.MethodWithStack
-import proguard.util.PartialEvaluatorHelper
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import proguard.util.MethodWithStack
+import proguard.util.PartialEvaluatorHelper
 
 class ParticularReferenceTest : FreeSpec({
 
