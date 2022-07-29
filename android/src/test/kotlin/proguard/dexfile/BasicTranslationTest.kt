@@ -20,7 +20,9 @@ class BasicTranslationTest : FreeSpec({
     "Basic Hello World translation test" - {
 
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(
-            SmaliSource("HelloWorld.smali", """
+            SmaliSource(
+                "HelloWorld.smali",
+                """
                 .class public LHelloWorld;
                 
                 .super Ljava/lang/Object;
@@ -36,7 +38,8 @@ class BasicTranslationTest : FreeSpec({
                     
                     return-void
                 .end method
-            """.trimIndent())
+                """.trimIndent()
+            )
         )
 
 //        programClassPool.classesAccept(ClassPrinter())
@@ -78,9 +81,11 @@ class BasicTranslationTest : FreeSpec({
 
             helloWorldClass.methodsAccept(
                 AllAttributeVisitor(
-                AllInstructionVisitor(
-                MatchPrinter())))
+                    AllInstructionVisitor(
+                        MatchPrinter()
+                    )
+                )
+            )
         }
     }
-
 })
