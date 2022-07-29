@@ -15,7 +15,7 @@ class BasicTranslationTest : FreeSpec({
 
     "Basic Hello World translation test" - {
 
-        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(
+        val (programClassPool, _) = ClassPoolBuilder.fromSmali(
             SmaliSource(
                 "HelloWorld.smali",
                 """
