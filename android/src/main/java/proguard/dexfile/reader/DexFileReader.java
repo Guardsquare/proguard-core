@@ -36,7 +36,8 @@ import java.util.*;
  * @author <a href="mailto:pxb1988@gmail.com">Panxiaobo</a>
  * @version $Rev$
  */
-public class DexFileReader implements BaseDexFileReader {
+public class DexFileReader
+{
     /**
      * skip debug infos in dex file.
      */
@@ -585,7 +586,6 @@ public class DexFileReader implements BaseDexFileReader {
         }
     }
 
-    @Override
     public int getDexVersion() {
         return dex_version;
     }
@@ -595,12 +595,10 @@ public class DexFileReader implements BaseDexFileReader {
      *
      * @param dv
      */
-    @Override
     public void accept(DexFileVisitor dv) {
         this.accept(dv, 0);
     }
 
-    @Override
     public List<String> getClassNames() {
         List<String> names = new ArrayList<>(class_defs_size);
         ByteBuffer in = classDefIn;
@@ -619,7 +617,6 @@ public class DexFileReader implements BaseDexFileReader {
      * @param config config flags, {@link #SKIP_CODE}, {@link #SKIP_DEBUG}, {@link #SKIP_ANNOTATION},
      *               {@link #SKIP_FIELD_CONSTANT}
      */
-    @Override
     public void accept(DexFileVisitor dv, int config) {
         dv.visitDexFileVersion(this.dex_version);
         for (int cid = 0; cid < class_defs_size; cid++) {
@@ -637,7 +634,6 @@ public class DexFileReader implements BaseDexFileReader {
      * @param config   config flags, {@link #SKIP_CODE}, {@link #SKIP_DEBUG}, {@link #SKIP_ANNOTATION},
      *                 {@link #SKIP_FIELD_CONSTANT}
      */
-    @Override
     public void accept(DexFileVisitor dv, int classIdx, int config) {
         ((Buffer) classDefIn).position(classIdx * 32);
         int class_idx = classDefIn.getInt();
