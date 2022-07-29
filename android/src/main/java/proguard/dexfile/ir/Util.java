@@ -27,7 +27,7 @@ import java.util.List;
  */
 public class Util {
 
-    public static long irTransformMemoryLimit = Long.parseLong(System.getProperty("dex2jar.ir.transform.memory.limit", "0")) * 1024L * 1024L;
+    public static long irTransformMemoryLimit = Long.parseLong(System.getProperty("dex2pro.ir.transform.memory.limit", "0")) * 1024L * 1024L;
 
     public static List<String> listDesc(String desc) {
         List<String> list = new ArrayList<String>(5);

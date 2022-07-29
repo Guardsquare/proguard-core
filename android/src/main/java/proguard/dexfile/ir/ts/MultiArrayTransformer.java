@@ -2,7 +2,7 @@ package proguard.dexfile.ir.ts;
 
 import proguard.dexfile.ir.IrMethod;
 import proguard.dexfile.ir.StmtTraveler;
-import proguard.dexfile.reader.api.DexType;
+import proguard.dexfile.reader.DexType;
 import proguard.dexfile.ir.expr.*;
 
 /**

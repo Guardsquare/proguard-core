@@ -15,10 +15,10 @@
  */
 package proguard.dexfile.ir.expr;
 
-import proguard.dexfile.reader.api.DexType;
-import proguard.dexfile.reader.api.Method;
-import proguard.dexfile.reader.api.MethodHandle;
-import proguard.dexfile.reader.api.Proto;
+import proguard.dexfile.reader.DexType;
+import proguard.dexfile.reader.Method;
+import proguard.dexfile.reader.MethodHandle;
+import proguard.dexfile.reader.Proto;
 
 public final class Exprs {
     public static Value[] copy(Value[] v) {

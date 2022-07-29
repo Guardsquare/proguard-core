@@ -16,8 +16,8 @@
 package proguard.dexfile.ir.expr;
 
 import proguard.dexfile.ir.LabelAndLocalMapper;
-import proguard.dexfile.reader.api.MethodHandle;
-import proguard.dexfile.reader.api.Proto;
+import proguard.dexfile.reader.MethodHandle;
+import proguard.dexfile.reader.Proto;
 
 public class InvokeCustomExpr extends InvokeExpr {
     public String name;

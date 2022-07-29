@@ -21,7 +21,7 @@ import proguard.dexfile.ir.TypeClass;
 import proguard.dexfile.ir.stmt.AssignStmt;
 import proguard.dexfile.ir.stmt.LabelStmt;
 import proguard.dexfile.ir.stmt.Stmt;
-import proguard.dexfile.reader.api.DexType;
+import proguard.dexfile.reader.DexType;
 import proguard.dexfile.ir.expr.*;
 
 import java.util.*;

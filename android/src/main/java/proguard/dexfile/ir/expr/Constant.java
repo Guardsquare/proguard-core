@@ -18,7 +18,7 @@ package proguard.dexfile.ir.expr;
 import proguard.dexfile.ir.LabelAndLocalMapper;
 import proguard.dexfile.ir.Util;
 import proguard.dexfile.ir.expr.Value.E0Expr;
-import proguard.dexfile.reader.api.DexType;
+import proguard.dexfile.reader.DexType;
 
 import java.lang.reflect.Array;
 

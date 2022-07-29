@@ -6,8 +6,8 @@
  */
 package proguard.dexfile.reader;
 
-import proguard.dexfile.reader.api.node.DexFileNode;
-import proguard.dexfile.translator.converter.Dex2Pro;
+import proguard.dexfile.reader.node.DexFileNode;
+import proguard.dexfile.converter.Dex2Pro;
 import proguard.classfile.visitor.ClassPrinter;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.io.*;

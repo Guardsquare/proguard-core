@@ -22,7 +22,7 @@ import proguard.dexfile.ir.Util;
 import proguard.dexfile.ir.expr.Constant;
 import proguard.dexfile.ir.expr.Local;
 import proguard.dexfile.ir.expr.Value;
-import proguard.dexfile.reader.api.DexType;
+import proguard.dexfile.reader.DexType;
 import proguard.dexfile.ir.stmt.*;
 
 import java.util.Collections;

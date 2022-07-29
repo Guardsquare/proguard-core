@@ -17,8 +17,8 @@ package proguard.dexfile.ir.expr;
 
 import proguard.dexfile.ir.LabelAndLocalMapper;
 import proguard.dexfile.ir.Util;
-import proguard.dexfile.reader.api.Method;
-import proguard.dexfile.reader.api.Proto;
+import proguard.dexfile.reader.Method;
+import proguard.dexfile.reader.Proto;
 
 /**
  * Represent a method invocation expression. To represent a {@link VT#INVOKE_INTERFACE},{@link VT#INVOKE_SPECIAL} or

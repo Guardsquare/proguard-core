@@ -17,7 +17,7 @@ package proguard.dexfile.ir.expr;
 
 
 import proguard.dexfile.ir.expr.Value.EnExpr;
-import proguard.dexfile.reader.api.Proto;
+import proguard.dexfile.reader.Proto;
 
 public abstract class AbstractInvokeExpr extends EnExpr {
     @Override

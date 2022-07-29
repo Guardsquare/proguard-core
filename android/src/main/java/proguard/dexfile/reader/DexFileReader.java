@@ -16,14 +16,10 @@
 
 package proguard.dexfile.reader;
 
-import proguard.dexfile.reader.api.*;
-import proguard.dexfile.reader.api.visitors.*;
+import proguard.dexfile.reader.visitors.*;
 import proguard.dexfile.reader.util.Mutf8;
-import proguard.dexfile.reader.api.node.DexAnnotationNode;
-import proguard.dexfile.reader.api.node.analysis.DvmFrame;
-import proguard.dexfile.reader.api.reader.InstructionFormat;
-import proguard.dexfile.reader.api.reader.InstructionIndexType;
-import proguard.dexfile.reader.api.reader.Op;
+import proguard.dexfile.reader.node.DexAnnotationNode;
+import proguard.dexfile.reader.node.analysis.DvmFrame;
 
 import java.io.*;
 import java.nio.Buffer;
