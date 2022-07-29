@@ -596,4 +596,81 @@ class TreeHeapTest : StringSpec({
             "[JvmStackLocation(0)@LA;callee3()V:6, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:3, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:7, JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee1()V:9, JvmStackLocation(0)@LA;callee1()V:6]"
         )
     }
+
+    "Regression test: trace not interrupted when same field of different reference is assigned" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                class A {
+
+                    public void main() {
+                        B b = new B();           
+                        B b1 = new B();      
+                        b.s = source1();
+                        b1.s = "42";
+                        sink(b.s);
+                    }
+                
+                    public static void sink(String s)
+                    {
+                    }
+                
+                    public static String source1()
+                    {
+                        return null;
+                    }
+                
+                    public class B {
+                        public String s;
+                    }                
+                }
+                """.trimIndent()
+                )
+            ).programClassPool
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val taintMemoryLocationCpaRun = JvmTaintMemoryLocationBamCpaRun(
+            interproceduralCfa,
+            setOf(taintSourceReturn1),
+            mainSignature,
+            -1,
+            HeapModel.TREE,
+            TaintAbstractState.bottom,
+            setOf(taintSinkArgument)
+        )
+        val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+        interproceduralCfa.clear()
+
+        /*
+        Bytecode of main:
+            [0] new #2 = Class(A$B)
+            [3] dup
+            [4] aload_0 v0
+            [5] invokespecial #3 = Methodref(A$B.<init>(LA;)V)
+            [8] astore_1 v1
+            [9] new #2 = Class(A$B)
+            [12] dup
+            [13] aload_0 v0
+            [14] invokespecial #3 = Methodref(A$B.<init>(LA;)V)
+            [17] astore_2 v2
+            [18] aload_1 v1
+            [19] invokestatic #4 = Methodref(A.source1()Ljava/lang/String;)
+            [22] putfield #5 = Fieldref(A$B.s Ljava/lang/String;)
+            [25] aload_2 v2
+            [26] ldc #6 = String("42")
+            [28] putfield #5 = Fieldref(A$B.s Ljava/lang/String;)
+            [31] aload_1 v1
+            [32] getfield #5 = Fieldref(A$B.s Ljava/lang/String;)
+            [35] invokestatic #7 = Methodref(A.sink(Ljava/lang/String;)V)
+            [38] return
+         */
+
+        traces.map { it.toString() }.toSet() shouldBe setOf(
+            "[JvmStackLocation(0)@LA;main()V:35, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:32, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], " +
+                "A\$B#s)@LA;main()V:31, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:28, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], " +
+                "A\$B#s)@LA;main()V:26, JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:25, JvmStackLocation(0)@LA;main()V:22]"
+        )
+    }
 })
