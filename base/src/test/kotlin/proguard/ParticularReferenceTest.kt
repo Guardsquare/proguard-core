@@ -24,9 +24,9 @@ import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.util.MethodWithStack
 import proguard.util.PartialEvaluatorHelper
-import testutils.AssemblerSource
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.AssemblerSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class ParticularReferenceTest : FreeSpec({
 

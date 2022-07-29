@@ -13,9 +13,9 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.TypedReferenceValueFactory
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.PartialEvaluatorUtil
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.PartialEvaluatorUtil
 
 class ArrayTypeTest : FreeSpec({
     val valueFactory = TypedReferenceValueFactory()

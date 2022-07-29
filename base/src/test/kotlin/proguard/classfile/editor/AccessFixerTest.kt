@@ -6,8 +6,8 @@ import proguard.classfile.AccessConstants.FINAL
 import proguard.classfile.AccessConstants.PROTECTED
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.util.ClassRenamer
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class AccessFixerTest : FreeSpec({
     "Given a super class with a package-private final method that is also defined in a subclass" - {

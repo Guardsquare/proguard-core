@@ -16,19 +16,18 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils
 
-import java.util.Objects
+import proguard.classfile.constant.Constant
+import proguard.classfile.editor.InstructionSequenceBuilder
+import proguard.classfile.instruction.Instruction
 
-class MethodExpression(
-    val name: String,
-    val operands: List<ExpressionAbstractState>
-) : JVMExpression {
-    override fun equals(other: Any?): Boolean {
-        return other is MethodExpression && name == other.name && operands == other.operands
-    }
+typealias InstructionBuilder = InstructionSequenceBuilder
 
-    override fun hashCode(): Int {
-        return Objects.hash(name, operands)
-    }
-}
+// allows the following:
+//     val (constants, instructions) = builder
+// instead of
+//     val constants = builder.constants()
+//     val instructions = builder.instructions()
+operator fun InstructionBuilder.component1(): Array<Constant> = this.constants()
+operator fun InstructionBuilder.component2(): Array<Instruction> = this.instructions()

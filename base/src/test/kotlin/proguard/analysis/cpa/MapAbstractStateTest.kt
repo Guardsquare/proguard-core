@@ -21,7 +21,7 @@ package proguard.analysis.cpa
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.MapAbstractState
-import testutils.cpa.IntegerAbstractState
+import proguard.testutils.cpa.IntegerAbstractState
 
 class MapAbstractStateTest : FreeSpec({
 

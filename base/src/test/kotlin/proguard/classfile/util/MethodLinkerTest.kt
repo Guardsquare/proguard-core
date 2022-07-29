@@ -9,8 +9,8 @@ package proguard.classfile.util
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class MethodLinkerTest : FreeSpec({
     "Given a super class with a package-private final method that is also defined in a subclass" - {

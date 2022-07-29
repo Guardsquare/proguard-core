@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils.cpa
 
 import proguard.analysis.cpa.defaults.LatticeAbstractState
 

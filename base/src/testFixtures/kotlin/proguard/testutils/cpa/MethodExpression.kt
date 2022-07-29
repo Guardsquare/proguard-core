@@ -16,21 +16,19 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils.cpa
 
-import proguard.classfile.ProgramClass
-class NamedClass(val memberName: String) : ProgramClass() {
-    private var superNameStr: String? = null
-    constructor(memberName: String, vararg methods: NamedMember) : this(memberName) {
-        this.methods = methods
+import java.util.Objects
+
+class MethodExpression(
+    val name: String,
+    val operands: List<ExpressionAbstractState>
+) : JVMExpression {
+    override fun equals(other: Any?): Boolean {
+        return other is MethodExpression && name == other.name && operands == other.operands
     }
-    override fun getName(): String {
-        return memberName
-    }
-    fun setSuperName(superNameStr: String) {
-        this.superNameStr = superNameStr
-    }
-    override fun getSuperName(): String {
-        return superNameStr ?: ""
+
+    override fun hashCode(): Int {
+        return Objects.hash(name, operands)
     }
 }

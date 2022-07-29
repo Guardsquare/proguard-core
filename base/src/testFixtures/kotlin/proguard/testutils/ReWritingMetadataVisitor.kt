@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package testutils
+package proguard.testutils
 
 import proguard.classfile.Clazz
 import proguard.classfile.io.kotlin.KotlinMetadataWriter

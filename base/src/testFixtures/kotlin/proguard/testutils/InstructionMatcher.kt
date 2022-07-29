@@ -16,18 +16,8 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils
 
-import proguard.evaluation.value.Value
+import proguard.classfile.util.InstructionSequenceMatcher
 
-class ValueExpression(
-    val value: Value
-) : JVMExpression {
-    override fun equals(other: Any?): Boolean {
-        return other is ValueExpression && value == other.value
-    }
-
-    override fun hashCode(): Int {
-        return value.hashCode()
-    }
-}
+typealias InstructionMatcher = InstructionSequenceMatcher

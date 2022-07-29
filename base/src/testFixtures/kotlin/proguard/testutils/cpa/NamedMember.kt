@@ -16,22 +16,23 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils.cpa
 
 import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
-import proguard.classfile.ProgramField
+import proguard.classfile.ProgramMethod
 import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MemberVisitor
 
-class NamedField(val fieldName: String, val fieldDescriptor: String) : ProgramField() {
+class NamedMember(val memberName: String, val descriptor: String) : ProgramMethod() {
+
     override fun getName(clazz: Clazz?): String {
-        return fieldName
+        return memberName
     }
 
-    override fun getDescriptor(clazz: Clazz): String {
-        return fieldDescriptor
+    override fun getDescriptor(clazz: Clazz?): String {
+        return descriptor
     }
 
     override fun accept(programClass: ProgramClass?, memberVisitor: MemberVisitor?) {

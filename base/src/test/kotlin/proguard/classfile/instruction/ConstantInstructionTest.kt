@@ -27,8 +27,8 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.instruction.Instruction.OP_LDC
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.instruction.visitor.InstructionVisitor
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class ConstantInstructionTest : FreeSpec({
 

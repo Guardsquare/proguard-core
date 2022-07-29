@@ -43,8 +43,8 @@ import proguard.classfile.util.ClassRenamer
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 import java.lang.RuntimeException
 
 class ClassReferenceFixerTest : FreeSpec({

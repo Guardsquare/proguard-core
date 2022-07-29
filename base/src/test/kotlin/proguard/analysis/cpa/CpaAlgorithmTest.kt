@@ -32,8 +32,8 @@ import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment
 import proguard.analysis.cpa.defaults.StopAlwaysOperator
 import proguard.analysis.cpa.defaults.StopContainedOperator
 import proguard.analysis.cpa.defaults.StopSepOperator
-import testutils.cpa.BoundedAdditiveTransferRelation
-import testutils.cpa.IntegerAbstractState
+import proguard.testutils.cpa.BoundedAdditiveTransferRelation
+import proguard.testutils.cpa.IntegerAbstractState
 
 class CpaAlgorithmTest : FreeSpec({
 

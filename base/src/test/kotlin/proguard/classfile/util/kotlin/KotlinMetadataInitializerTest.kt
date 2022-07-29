@@ -34,9 +34,9 @@ import proguard.classfile.kotlin.visitor.filter.KotlinDeclarationContainerFilter
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.ClassRenamer
 import proguard.classfile.visitor.MultiClassVisitor
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.KotlinSource
 import java.util.function.BiConsumer
 
 class KotlinMetadataInitializerTest : FreeSpec({

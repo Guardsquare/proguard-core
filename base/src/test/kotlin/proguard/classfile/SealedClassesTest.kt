@@ -31,10 +31,10 @@ import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.constant.ClassConstant
 import proguard.classfile.constant.Constant
 import proguard.classfile.constant.visitor.ConstantVisitor
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.RequiresJavaVersion
-import testutils.currentJavaVersion
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.RequiresJavaVersion
+import proguard.testutils.currentJavaVersion
 
 @RequiresJavaVersion(15)
 class SealedClassesTest : FreeSpec({

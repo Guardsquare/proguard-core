@@ -29,8 +29,8 @@ import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.MemberVisitor
 import proguard.preverify.CodePreverifier
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 
 class TestCodePreverifier : FreeSpec({
 

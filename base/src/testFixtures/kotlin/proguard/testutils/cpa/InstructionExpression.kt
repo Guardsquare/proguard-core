@@ -16,24 +16,20 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils.cpa
 
-import proguard.analysis.cpa.interfaces.AbstractState
-import proguard.analysis.cpa.interfaces.Precision
-import proguard.analysis.cpa.interfaces.TransferRelation
+import proguard.classfile.instruction.Instruction
+import java.util.Objects
 
-class BoundedAdditiveTransferRelation(
-    private val step: Int,
-    private val cap: Int
-) : TransferRelation {
-    override fun getAbstractSuccessors(
-        abstractState: AbstractState?,
-        precision: Precision?
-    ): MutableCollection<out AbstractState> {
-        if (abstractState is IntegerAbstractState) {
-            return mutableListOf(IntegerAbstractState(minOf(abstractState.v + step, cap)))
-        } else {
-            throw IllegalArgumentException()
-        }
+class InstructionExpression(
+    val instruction: Instruction,
+    val operands: List<ExpressionAbstractState>
+) : JVMExpression {
+    override fun equals(other: Any?): Boolean {
+        return other is InstructionExpression && instruction == other.instruction && operands == other.operands
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(instruction, operands)
     }
 }

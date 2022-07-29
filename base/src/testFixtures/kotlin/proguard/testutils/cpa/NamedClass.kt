@@ -16,31 +16,21 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils.cpa
 
-import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
-import proguard.classfile.ProgramMethod
-import proguard.classfile.attribute.visitor.AttributeVisitor
-import proguard.classfile.visitor.ClassVisitor
-import proguard.classfile.visitor.MemberVisitor
-
-class NamedMember(val memberName: String, val descriptor: String) : ProgramMethod() {
-
-    override fun getName(clazz: Clazz?): String {
+class NamedClass(val memberName: String) : ProgramClass() {
+    private var superNameStr: String? = null
+    constructor(memberName: String, vararg methods: NamedMember) : this(memberName) {
+        this.methods = methods
+    }
+    override fun getName(): String {
         return memberName
     }
-
-    override fun getDescriptor(clazz: Clazz?): String {
-        return descriptor
+    fun setSuperName(superNameStr: String) {
+        this.superNameStr = superNameStr
     }
-
-    override fun accept(programClass: ProgramClass?, memberVisitor: MemberVisitor?) {
-    }
-
-    override fun referencedClassesAccept(classVisitor: ClassVisitor?) {
-    }
-
-    override fun attributesAccept(programClass: ProgramClass?, attributeVisitor: AttributeVisitor?) {
+    override fun getSuperName(): String {
+        return superNameStr ?: ""
     }
 }

@@ -1,4 +1,4 @@
-package testutils
+package proguard.testutils
 
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz

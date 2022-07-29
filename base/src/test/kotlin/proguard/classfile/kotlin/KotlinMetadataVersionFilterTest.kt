@@ -28,8 +28,8 @@ import proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_METADATA
 import proguard.classfile.kotlin.visitor.KotlinMetadataVersionFilter
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer
 import proguard.classfile.visitor.ClassVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class KotlinMetadataVersionFilterTest : FreeSpec({
     val (programClassPool, _) = ClassPoolBuilder.fromSource(

@@ -29,8 +29,8 @@ import proguard.classfile.ProgramClass
 import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.visitor.MemberVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class KotlinFunctionMetadataTest : FreeSpec({
 

@@ -52,14 +52,14 @@ import proguard.evaluation.value.ParticularFloatValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularLongValue
 import proguard.evaluation.value.ParticularReferenceValue
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.cpa.ExpressionAbstractState
-import testutils.cpa.ExpressionTransferRelation
-import testutils.cpa.InstructionExpression
-import testutils.cpa.MethodExpression
-import testutils.cpa.UnknownValue
-import testutils.cpa.ValueExpression
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.cpa.ExpressionAbstractState
+import proguard.testutils.cpa.ExpressionTransferRelation
+import proguard.testutils.cpa.InstructionExpression
+import proguard.testutils.cpa.MethodExpression
+import proguard.testutils.cpa.UnknownValue
+import proguard.testutils.cpa.ValueExpression
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.isAccessible
 

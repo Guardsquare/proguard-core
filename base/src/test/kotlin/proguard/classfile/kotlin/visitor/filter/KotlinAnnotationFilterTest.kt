@@ -28,8 +28,8 @@ import proguard.classfile.kotlin.KotlinTypeParameterMetadata
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 import java.util.function.Predicate
 
 class KotlinAnnotationFilterTest : FreeSpec({

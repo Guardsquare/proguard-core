@@ -42,9 +42,9 @@ import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor
 import proguard.classfile.kotlin.visitor.MultiKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.visitor.ClassVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
-import testutils.ReWritingMetadataVisitor
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
+import proguard.testutils.ReWritingMetadataVisitor
 
 class KotlinCommonFlagsTest : FreeSpec({
 

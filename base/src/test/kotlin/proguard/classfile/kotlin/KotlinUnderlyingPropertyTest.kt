@@ -15,8 +15,8 @@ import proguard.classfile.kotlin.visitor.AllTypeVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
 
 class KotlinUnderlyingPropertyTest : FreeSpec({
 

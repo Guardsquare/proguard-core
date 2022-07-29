@@ -32,8 +32,8 @@ import proguard.analysis.cpa.jvm.cfa.visitors.JvmIntraproceduralCfaFillerAllInst
 import proguard.classfile.MethodSignature
 import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.instruction.Instruction
-import testutils.cpa.NamedClass
-import testutils.cpa.NamedMember
+import proguard.testutils.cpa.NamedClass
+import proguard.testutils.cpa.NamedMember
 
 class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
 

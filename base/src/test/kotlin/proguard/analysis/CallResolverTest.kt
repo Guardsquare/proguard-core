@@ -30,7 +30,7 @@ import proguard.classfile.Signature
 import proguard.evaluation.value.Value.ALWAYS
 import proguard.evaluation.value.Value.MAYBE
 import proguard.evaluation.value.Value.NEVER
-import testutils.ClassPoolBuilder
+import proguard.testutils.ClassPoolBuilder
 import java.nio.file.Paths
 
 class CallResolverTest : FreeSpec({

@@ -17,9 +17,9 @@ import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownReferenceValue
 import proguard.evaluation.value.Value
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.PartialEvaluatorUtil
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.PartialEvaluatorUtil
 
 class MultiTypeTest : FreeSpec({
 

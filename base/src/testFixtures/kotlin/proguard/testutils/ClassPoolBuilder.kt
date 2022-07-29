@@ -5,7 +5,7 @@
  * Copyright (c) 2002-2021 Guardsquare NV
  */
 
-package testutils
+package proguard.testutils
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import io.kotest.assertions.fail

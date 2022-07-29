@@ -16,6 +16,18 @@
  * limitations under the License.
  */
 
-package testutils.cpa
+package proguard.testutils.cpa
 
-interface JVMExpression
+import proguard.evaluation.value.Value
+
+class ValueExpression(
+    val value: Value
+) : JVMExpression {
+    override fun equals(other: Any?): Boolean {
+        return other is ValueExpression && value == other.value
+    }
+
+    override fun hashCode(): Int {
+        return value.hashCode()
+    }
+}

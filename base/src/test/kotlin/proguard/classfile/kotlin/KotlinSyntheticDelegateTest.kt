@@ -35,9 +35,9 @@ import proguard.classfile.util.MemberFinder
 import proguard.classfile.visitor.AllMemberVisitor
 import proguard.classfile.visitor.MemberNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
-import testutils.ReWritingMetadataVisitor
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
+import proguard.testutils.ReWritingMetadataVisitor
 
 class KotlinSyntheticDelegateTest : FreeSpec({
     "Given a property delegate" - {

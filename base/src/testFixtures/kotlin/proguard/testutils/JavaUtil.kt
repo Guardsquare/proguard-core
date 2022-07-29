@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package testutils
+package proguard.testutils
 
 import java.io.File
 import javax.lang.model.SourceVersion

@@ -31,9 +31,9 @@ import proguard.classfile.kotlin.visitor.KotlinEffectExprVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
-import testutils.ClassPoolBuilder
-import testutils.KotlinSource
-import testutils.ReWritingMetadataVisitor
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.KotlinSource
+import proguard.testutils.ReWritingMetadataVisitor
 
 class KotlinEffectExpressionFlagsTest : FreeSpec({
     val (programClassPool, _) = ClassPoolBuilder.fromSource(
