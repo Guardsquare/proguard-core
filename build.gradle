@@ -91,3 +91,11 @@ distZip {
     dependsOn('aggregateJavadoc')
 }
 
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = findProperty('PROGUARD_STAGING_USERNAME')
+            password = findProperty('PROGUARD_STAGING_PASSWORD')
+        }
+    }
+}

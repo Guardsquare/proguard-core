@@ -141,15 +141,6 @@ publishing {
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = findProperty('PROGUARD_STAGING_USERNAME')
-            password = findProperty('PROGUARD_STAGING_PASSWORD')
-        }
-    }
-}
-
 // We use in-memory ascii-armored keys
 // See https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
 if (hasProperty('PROGUARD_SIGNING_KEY')) {
