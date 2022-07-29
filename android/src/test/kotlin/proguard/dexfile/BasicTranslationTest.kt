@@ -3,14 +3,10 @@ package proguard.dexfile
 import SmaliSource
 import fromSmali
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
 import testutils.ClassPoolBuilder
 import testutils.InstructionBuilder
@@ -42,22 +38,18 @@ class BasicTranslationTest : FreeSpec({
             )
         )
 
-//        programClassPool.classesAccept(ClassPrinter())
-
         val helloWorldClass = programClassPool.getClass("HelloWorld")
 
-        "Check if classPool contains the HelloWorld class" - {
-            helloWorldClass
-                .shouldNotBe(null)
+        "Check if classPool contains the HelloWorld class" {
+            helloWorldClass shouldNotBe null
         }
 
-        "Check if HelloWorld contains main method" - {
+        "Check if HelloWorld contains main method" {
             helloWorldClass
-                .findMethod("main", "([Ljava/lang/String;)V")
-                .shouldNotBe(null)
+                .findMethod("main", "([Ljava/lang/String;)V") shouldNotBe null
         }
 
-        "Check if sequence of operations after translation match original smali code" - {
+        "Check if sequence of operations after translation match original smali code" {
             val instructionBuilder = InstructionBuilder()
 
             instructionBuilder
@@ -68,24 +60,9 @@ class BasicTranslationTest : FreeSpec({
 
             val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
 
-            // Find the match in the code and print it out.
-            class MatchPrinter : InstructionVisitor {
-                override fun visitAnyInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, instruction: Instruction) {
-                    println(instruction.toString(clazz, offset))
-                    instruction.accept(clazz, method, codeAttribute, offset, matcher)
-                    if (matcher.isMatching()) {
-                        println("  -> matching sequence starting at [" + matcher.matchedInstructionOffset(0) + "]")
-                    }
-                }
-            }
+            helloWorldClass.methodsAccept(AllAttributeVisitor(AllInstructionVisitor(matcher)))
 
-            helloWorldClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(
-                        MatchPrinter()
-                    )
-                )
-            )
+            matcher.isMatching shouldBe true
         }
     }
 })
