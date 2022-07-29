@@ -1,7 +1,7 @@
 plugins {
-    id 'java'
     id 'distribution'
     id 'java-library'
+    id 'java-test-fixtures'
     id "org.jetbrains.kotlin.jvm"
     id 'maven-publish'
     id 'signing'
@@ -9,92 +9,32 @@ plugins {
     id 'de.jansauer.printcoverage'
     id 'jacoco'
     id "org.jlleitschuh.gradle.ktlint" version "10.3.0"
-    id "java-test-fixtures"
+    id "org.sonarqube"
 }
 
 dependencies {
-    api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-    api "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
-    api "org.jetbrains.kotlinx:kotlinx-metadata-jvm:${kotlinxMetadataVersion}"
+    api project(":proguard-core")
 
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    testImplementation(testFixtures(project(":proguard-core")))
+    testFixturesImplementation(testFixtures(project(":proguard-core")))
 
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-    testFixturesImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-    testFixturesImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.9'
-    testFixturesImplementation 'io.kotest:kotest-runner-junit5-jvm:5.3.1' // for kotest framework
     testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.3.1' // for kotest framework
     testImplementation 'io.kotest:kotest-assertions-core-jvm:5.3.1' // for kotest core jvm assertions
-    testFixturesImplementation 'io.kotest:kotest-assertions-core-jvm:5.3.1' // for kotest core jvm assertions
-
     testImplementation 'io.kotest:kotest-property-jvm:5.3.1' // for kotest property test
     testImplementation 'io.kotest:kotest-framework-datatest:5.3.1'
     testImplementation "io.mockk:mockk:1.12.4" // for mocking
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1' // for junit framework
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' // for junit framework
 
-    // For assembling ProGuard assembler snippets
-    testFixturesImplementation ('com.github.Guardsquare:proguard-assembler:master-SNAPSHOT') {
-        exclude group: 'com.guardsquare', module: 'proguard-core'
-    }
-
-}
-
-jar {
-    archiveBaseName = 'proguard-core'
-    manifest {
-        attributes('Implementation-Version': archiveVersion.get())
-    }
-}
-
-// Early access automatic downloads are not yet supported:
-// https://github.com/gradle/gradle/issues/14814
-// But it will work if e.g. Java N-ea is pre-installed
-def javaVersionsForTest = 9..18
-
-test {
-    useJUnitPlatform()
-}
-
-task testAllJavaVersions() { testAllTask ->
-    dependsOn(test) // the usual test runs on Java 8
-
-    javaVersionsForTest.each {version ->
-        task("testJava$version", type: Test) {
-            useJUnitPlatform()
-            ignoreFailures = true
-
-            testAllTask.dependsOn(it)
-
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(version)
-            }
-        }
-    }
-}
-
-jacocoTestReport {
-    // Define which classes need to be monitored
-    def sources = files(sourceSets.main.allSource.srcDirs)
-    sourceDirectories.setFrom(sources)
-    additionalSourceDirs.setFrom(sources)
-    sourceDirectories.setFrom(sources)
-    def classes = files(sourceSets.main.output.classesDirs)
-    classDirectories.setFrom(classes)
-    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/*.exec')
-    reports {
-        xml.enabled true
-        csv.enabled false
-        html.destination file("${buildDir}/reports/coverage")
-    }
+    testFixturesImplementation 'org.smali:smali:2.5.2'
 }
 
 publishing {
     publications {
         maven(MavenPublication) {
-            artifactId = 'proguard-core'
+            artifactId = 'proguard-core-android'
             from components.java
             pom {
                 description = 'ProGuardCORE is a free library to read, analyze, modify, and write Java class files.'
@@ -151,3 +91,4 @@ if (hasProperty('PROGUARD_SIGNING_KEY')) {
         sign publishing.publications
     }
 }
+

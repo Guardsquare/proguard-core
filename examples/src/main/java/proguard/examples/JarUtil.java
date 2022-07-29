@@ -3,6 +3,7 @@ package proguard.examples;
 import proguard.classfile.ClassPool;
 import proguard.classfile.visitor.ClassNameFilter;
 import proguard.classfile.visitor.ClassPoolFiller;
+import proguard.dexfile.reader.DexClassReader;
 import proguard.io.*;
 import proguard.util.ExtensionMatcher;
 import proguard.util.OrMatcher;
@@ -56,18 +57,17 @@ public class JarUtil
             new FileSource(
             new File(jarFileName));
 
+        ClassPoolFiller classPoolFiller = new ClassPoolFiller(classPool);
         DataEntryReader classReader =
             new NameFilteredDataEntryReader("**.class",
             new ClassReader(isLibrary, false, false, false, null,
             new ClassNameFilter(classNameFilter,
-            new ClassPoolFiller(classPool))));
+                                classPoolFiller)));
 
         // Convert dex files to a JAR first.
-        //classReader =
-        //    new NameFilteredDataEntryReader("classes*.dex",
-        //    new Dex2JarReader(!isLibrary,
-        //        classReader),
-        //    classReader);
+        classReader = new NameFilteredDataEntryReader("classes*.dex",
+                      new DexClassReader(!isLibrary, classPoolFiller),
+                      classReader);
 
         // Extract files from an archive if necessary.
         classReader =
