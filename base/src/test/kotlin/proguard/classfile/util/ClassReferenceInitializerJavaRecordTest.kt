@@ -27,6 +27,7 @@ import proguard.classfile.attribute.RecordComponentInfo
 import testutils.ClassPoolBuilder
 import testutils.JavaSource
 import testutils.RequiresJavaVersion
+import testutils.currentJavaVersion
 
 @RequiresJavaVersion(15)
 class ClassReferenceInitializerJavaRecordTest : FreeSpec({
@@ -45,7 +46,7 @@ class ClassReferenceInitializerJavaRecordTest : FreeSpec({
                 """.trimIndent()
             ),
             initialize = false,
-            javacArguments = if (testutils.currentJavaVersion == 15)
+            javacArguments = if (currentJavaVersion == 15)
                 listOf("--enable-preview", "--release", "15") else emptyList()
         )
 
