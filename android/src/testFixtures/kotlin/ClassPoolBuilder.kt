@@ -1,6 +1,8 @@
 import org.jf.smali.Smali
 import org.jf.smali.SmaliOptions
-import proguard.util.JarUtil
+import proguard.dexfile.reader.DexClassReader
+import proguard.io.NameFilteredDataEntryReader
+import proguard.io.util.IOUtil
 import testutils.ClassPoolBuilder
 import testutils.ClassPools
 import java.io.File
@@ -20,7 +22,17 @@ fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {
     file.deleteOnExit()
     dexFile.deleteOnExit()
 
-    val classPool = JarUtil.readJar(dexFileName, false)
+    val classPool = IOUtil.read(dexFileName, "**", false) { dataEntryReader, classPoolFiller ->
+        // Convert dex files
+        NameFilteredDataEntryReader(
+            "classes*.dex",
+            DexClassReader(
+                true,
+                classPoolFiller
+            ),
+            dataEntryReader
+        )
+    }
     initialize(classPool, false)
     return ClassPools(classPool, libraryClassPool)
 }
