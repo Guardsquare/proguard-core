@@ -9,7 +9,6 @@ import java.io.File
 
 fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {
     // smali -> baksmali -> dex file -> dex2pro -> class -> JavaSource
-
     val file = File.createTempFile("tmp", null)
     file.writeText(smali.contents)
 

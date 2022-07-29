@@ -28,7 +28,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1' // for junit framework
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' // for junit framework
 
-    testFixturesImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.9'
     testFixturesImplementation 'org.smali:smali:2.5.2'
 }
 
