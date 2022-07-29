@@ -9,6 +9,7 @@ repositories {
 
 dependencies {
     implementation project(':proguard-core')
+    implementation project(':proguard-core-android')
 }
 
 java {
