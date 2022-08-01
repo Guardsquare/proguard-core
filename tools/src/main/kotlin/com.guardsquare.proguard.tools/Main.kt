@@ -107,7 +107,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    class PrintCmd : Subcommand("print", "Print classes details") {
+    class PrintCmd : Subcommand("print", "Print information about the input") {
 
         var input by argument(ArgType.String, description = "Input file name")
         var classNameFilter by option(

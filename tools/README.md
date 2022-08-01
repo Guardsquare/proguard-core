@@ -1,23 +1,35 @@
-# Example uses
+# ProGuardCORE command line tools
 
-- for help
-  `./gradlew :proguard-core-tools:run --args='--help'`
+The command line tools provide convenient access to some functionalities of ProGuardCORE directly from the command line:
 
-- to print classes
-  `./gradlew :proguard-core-tools:run --args='print classes <path_to_apk.apk>'`
+* Conversion of dex files (or APKs) into jar files
+* Listing classes, methods & fields
+* Printing a textual representation of classes
 
-- to list classes
-  `./gradlew :proguard-core-tools:run --args='list classes <path_to_apk.apk>'`
+## Usage
 
-- to list methods
-  `./gradlew :proguard-core-tools:run --args='list classes <path_to_apk.apk>'`
+```shell
+$ proguard-core-tools --help
+Usage: proguard-core-tools options_list
+Subcommands: 
+    dex2jar - Convert dex to jar
+    list - List classes, methods & fields
+    print - Print classes details
 
-- to list fields
-  `./gradlew :proguard-core-tools:run --args='list classes <path_to_apk.apk>'`
+Options: 
+    --help, -h -> Usage info 
+```
+## Execute via Gradle
 
-- to list members
-  `./gradlew :proguard-core-tools:run --args='list classes <path_to_apk.apk>'`
+```shell
+$ /gradlew :proguard-core-tools:run --args='--help'
+```
 
-- to convert dex2jar
-  `./gradlew :proguard-core-tools:run --args='dex2jar <path_to_apk.apk> -o <output_name.jar>'`
+## Install distribution
 
+```
+$ ./gradlew :proguard-core-tools:installDist
+$ cp -R proguard-core-tools/build/install/proguard-core-tools /path/to/install/dir
+$ cd /path/to/install/dir
+$ ./proguard-core-tools --help
+```
