@@ -1,13 +1,9 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'application'
-}
-
-group 'com.guardsquare'
-version '9.0.3'
-
-repositories {
-    mavenCentral()
+    id 'maven-publish'
+    id 'signing'
+    id "org.jlleitschuh.gradle.ktlint"
 }
 
 dependencies {
@@ -19,8 +15,65 @@ dependencies {
 application {
     mainClass.set("com.guardsquare.proguard.tools.MainKt")
 }
-distributions {
-    main {
-        distributionBaseName = 'pgc-tools'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'proguard-core-tools'
+            from components.java
+            pom {
+                description = 'ProGuardCORE is a free library to read, analyze, modify, and write Java class files.'
+                url = 'https://guardsquare.github.io/proguard-core'
+
+                developers {
+                    developer {
+                        id = 'lafortune'
+                        name = 'Eric Lafortune'
+                        organization = 'Guardsquare'
+                        organizationUrl = 'https://www.guardsquare.com/'
+                        roles = ['Project Administrator', 'Developer']
+                    }
+                }
+                licenses {
+                    license {
+                        name = 'Apache License Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+                issueManagement {
+                    system = 'Github Tracker'
+                    url = 'https://github.com/Guardsquare/proguard-core/issues'
+                }
+                scm {
+                    url = 'https://github.com/Guardsquare/proguard-core.git'
+                    connection = 'scm:git:https://github.com/Guardsquare/proguard-core.git'
+                }
+                properties = [
+                        'project.build.sourceEncoding': 'UTF-8'
+                ]
+            }
+            repositories {
+                maven {
+                    name = 'Github'
+                    url = uri('https://maven.pkg.github.com/guardsquare/proguard-core')
+                    credentials {
+                        username = project.findProperty('PROGUARD_GITHUB_USERNAME')
+                        password = project.findProperty('PROGUARD_GITHUB_TOKEN')
+                    }
+                }
+            }
+        }
+    }
+}
+
+// We use in-memory ascii-armored keys
+// See https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
+if (hasProperty('PROGUARD_SIGNING_KEY')) {
+    signing {
+        String key = findProperty('PROGUARD_SIGNING_KEY')
+        String password = findProperty('PROGUARD_SIGNING_PASSWORD')
+        useInMemoryPgpKeys(key, password)
+        sign publishing.publications
     }
 }

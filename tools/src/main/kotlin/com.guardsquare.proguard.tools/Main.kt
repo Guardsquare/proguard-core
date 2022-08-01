@@ -1,16 +1,29 @@
 package com.guardsquare.proguard.tools
 
-import kotlinx.cli.*
-import proguard.classfile.*
-import proguard.classfile.util.ClassUtil.*
-import proguard.classfile.visitor.*
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
+import kotlinx.cli.ExperimentalCli
+import kotlinx.cli.Subcommand
+import kotlinx.cli.default
+import proguard.classfile.ClassPool
+import proguard.classfile.Clazz
+import proguard.classfile.Member
+import proguard.classfile.ProgramClass
+import proguard.classfile.ProgramField
+import proguard.classfile.ProgramMethod
+import proguard.classfile.util.ClassUtil.externalClassName
+import proguard.classfile.util.ClassUtil.externalFullFieldDescription
+import proguard.classfile.util.ClassUtil.externalFullMethodDescription
+import proguard.classfile.visitor.AllFieldVisitor
+import proguard.classfile.visitor.AllMemberVisitor
+import proguard.classfile.visitor.AllMethodVisitor
+import proguard.classfile.visitor.ClassPrinter
+import proguard.classfile.visitor.ClassVisitor
+import proguard.classfile.visitor.MemberVisitor
 import proguard.dexfile.reader.DexClassReader
-import proguard.io.*
-import proguard.util.ExtensionMatcher
-import proguard.util.OrMatcher
-import java.io.Closeable
+import proguard.io.NameFilteredDataEntryReader
+import proguard.io.util.IOUtil
 import java.io.File
-
 
 @ExperimentalCli
 fun main(args: Array<String>) {
@@ -26,13 +39,13 @@ fun main(args: Array<String>) {
             shortName = "cf",
             fullName = "classNameFilter"
         ).default("**")
-        val programClassPool: ClassPool by lazy { readJar(input, classNameFilter, false) }
+        val programClassPool: ClassPool by lazy { read(input, classNameFilter, false) }
 
         init {
             subcommands(ClassNamePrinterCmd(), MethodNamePrinterCmd(), FieldNamePrinterCmd(), MemberPrinterCmd())
         }
 
-        override fun execute() {}
+        override fun execute() { }
 
         inner class ClassNamePrinterCmd : Subcommand("classes", "List all the classes") {
             override fun execute() {
@@ -72,11 +85,11 @@ fun main(args: Array<String>) {
             override fun visitProgramField(programClass: ProgramClass, programField: ProgramField) {
                 println(
                     externalClassName(programClass.name) + " " +
-                            externalFullFieldDescription(
-                                programField.accessFlags,
-                                programField.getName(programClass),
-                                programField.getDescriptor(programClass)
-                            )
+                        externalFullFieldDescription(
+                            programField.accessFlags,
+                            programField.getName(programClass),
+                            programField.getDescriptor(programClass)
+                        )
                 )
             }
 
@@ -102,7 +115,7 @@ fun main(args: Array<String>) {
             shortName = "cf",
             fullName = "classNameFilter"
         ).default("**")
-        val programClassPool: ClassPool by lazy { readJar(input, classNameFilter, false) }
+        val programClassPool: ClassPool by lazy { read(input, classNameFilter, false) }
 
         init {
             subcommands(ClassPrinterCmd())
@@ -140,24 +153,13 @@ fun main(args: Array<String>) {
         ).default(false)
 
         override fun execute() {
-            val programClassPool = readJar(input, classNameFilter, false)
+            val programClassPool = read(input, classNameFilter, false)
             val file = File(output)
             if (file.exists() && !forceOverwrite) {
                 System.err.println("$file exists, use --force to overwrite")
                 return
             }
-            writeJar(programClassPool, file)
-        }
-
-        private fun writeJar(programClassPool: ClassPool, file: File) {
-            class MyJarWriter(zipEntryWriter: DataEntryWriter) : JarWriter(zipEntryWriter), Closeable {
-                override fun close() {
-                    super.close()
-                }
-            }
-
-            val jarWriter = MyJarWriter(ZipWriter(FixedFileWriter(file)))
-            jarWriter.use { programClassPool.classesAccept(DataEntryClassWriter(it)) }
+            IOUtil.writeJar(programClassPool, file.absolutePath)
         }
     }
 
@@ -174,48 +176,17 @@ fun main(args: Array<String>) {
     parser.parse(args)
 }
 
-fun readJar(
-    jarFileName: String,
+private fun read(
+    filename: String,
     classNameFilter: String,
     isLibrary: Boolean
-): ClassPool {
-    val classPool = ClassPool()
-    val source: DataEntrySource = FileSource(File(jarFileName))
-    val acceptedClassVisitor = ClassPoolFiller(classPool)
-
-    var classReader: DataEntryReader = NameFilteredDataEntryReader(
-        "**.class",
-        ClassReader(
-            isLibrary, false, false, false, null,
-            ClassNameFilter(classNameFilter, acceptedClassVisitor)
-        )
-    )
-
-    classReader = NameFilteredDataEntryReader(
+): ClassPool = IOUtil.read(filename, classNameFilter, isLibrary) { dataEntryReader, classPoolFiller ->
+    NameFilteredDataEntryReader(
         "classes*.dex",
-        DexClassReader(!isLibrary, acceptedClassVisitor), classReader
-    )
-
-    classReader = FilteredDataEntryReader(
-        DataEntryNameFilter(ExtensionMatcher("aar")),
-        JarReader(
-            NameFilteredDataEntryReader(
-                "classes.jar",
-                JarReader(classReader)
-            )
+        DexClassReader(
+            true,
+            classPoolFiller
         ),
-        FilteredDataEntryReader(
-            DataEntryNameFilter(
-                OrMatcher(
-                    ExtensionMatcher("jar"),
-                    ExtensionMatcher("zip"),
-                    ExtensionMatcher("apk")
-                )
-            ),
-            JarReader(classReader),
-            classReader
-        )
+        dataEntryReader
     )
-    source.pumpDataEntries(classReader)
-    return classPool
 }
