@@ -19,6 +19,7 @@ import proguard.dexfile.ir.LabelAndLocalMapper;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Represent a list of statement.
@@ -54,6 +55,7 @@ public class StmtList implements Iterable<Stmt>, java.util.Comparator<Stmt> {
                 next = x.next;
             } else {
                 next = null;
+                throw new NoSuchElementException();
             }
             return x;
         }
