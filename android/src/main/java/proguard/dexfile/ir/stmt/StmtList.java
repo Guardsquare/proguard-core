@@ -50,12 +50,13 @@ public class StmtList implements Iterable<Stmt>, java.util.Comparator<Stmt> {
 
         @Override
         public Stmt next() {
+            if (!hasNext())
+                throw new NoSuchElementException();
             Stmt x = current = next;
             if (x != null) {
                 next = x.next;
             } else {
                 next = null;
-                throw new NoSuchElementException();
             }
             return x;
         }
