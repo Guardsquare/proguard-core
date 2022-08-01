@@ -1,0 +1,26 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'application'
+}
+
+group 'com.guardsquare'
+version '9.0.3'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(":proguard-core"))
+    implementation(project(":proguard-core-android"))
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
+}
+
+application {
+    mainClass.set("com.guardsquare.proguard.tools.MainKt")
+}
+distributions {
+    main {
+        distributionBaseName = 'pgc-tools'
+    }
+}
