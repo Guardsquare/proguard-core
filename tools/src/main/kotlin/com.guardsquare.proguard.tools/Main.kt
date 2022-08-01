@@ -5,6 +5,7 @@ import kotlinx.cli.ArgType
 import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import kotlinx.cli.default
+import kotlinx.cli.required
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.Member
@@ -30,7 +31,7 @@ fun main(args: Array<String>) {
 
     val parser = ArgParser("proguard-core-tools")
 
-    class ListCmd : Subcommand("list", "List classes, methods & methods") {
+    class ListCmd : Subcommand("list", "List classes, methods & fields") {
 
         var input by argument(ArgType.String, description = "Input file name")
         var classNameFilter by option(
@@ -138,7 +139,7 @@ fun main(args: Array<String>) {
             description = "Output file name",
             shortName = "o",
             fullName = "output"
-        ).default("classes.jar")
+        ).required()
         var classNameFilter by option(
             ArgType.String,
             description = "Class name filter",
