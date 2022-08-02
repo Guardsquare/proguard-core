@@ -30,7 +30,7 @@ public class ClassPoolClassLoader extends ClassLoader {
         Clazz clazz = classPool.getClass(internalClassName(name));
         if (clazz == null)
         {
-            return super.findClass(name);
+            throw new ClassNotFoundException("Class " + name + " not found in class pool");
         }
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
