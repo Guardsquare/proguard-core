@@ -419,7 +419,7 @@ public class Dex2Pro {
                         switch (ann.type) {
                             case DexConstants.ANNOTATION_ENCLOSING_CLASS_TYPE: {
                                 DexType type = (DexType) findAnnotationAttribute(ann, "value");
-                                Clz enclosingClass = get(classes, type != null ? type.desc : null);
+                                Clz enclosingClass = get(classes, Objects.requireNonNull(type).desc);
                                 clz.enclosingClass = enclosingClass;
 
                                 // apply patch from ChaeHoon Lim,
@@ -434,7 +434,7 @@ public class Dex2Pro {
                             break;
                             case DexConstants.ANNOTATION_ENCLOSING_METHOD_TYPE: {
                                 proguard.dexfile.reader.Method m = (proguard.dexfile.reader.Method) findAnnotationAttribute(ann, "value");
-                                Clz enclosingClass = get(classes, m != null ? m.getOwner() : null);
+                                Clz enclosingClass = get(classes, Objects.requireNonNull(m).getOwner());
                                 clz.enclosingClass = enclosingClass;
                                 clz.enclosingMethod = m;
                                 enclosingClass.addInner(clz);
