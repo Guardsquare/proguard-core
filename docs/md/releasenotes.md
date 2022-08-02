@@ -7,6 +7,7 @@
 #### API Improvements
 
 - Split `ProgramLocationDependentTransferRelation` into forward and backward variants.
+- Add `ClassPoolClassLoader` utility for loading ProGuardCORE classes.
 
 
 ## Version 9.0.2
