@@ -405,7 +405,7 @@ public class Dex2Pro {
             System.err.println("WARN: ignored null annotation value");
         }
 
-        throw new UnsupportedOperationException("Unsupported element value " + o.getClass().getName() + " [" + o + "]");
+        throw new UnsupportedOperationException("Unsupported element value " + (o == null ? "null class" : o.getClass().getName()) + " [" + o + "]");
     }
 
     private static Map<String, Clz> collectClzInfo(DexFileNode fileNode) {
@@ -419,7 +419,7 @@ public class Dex2Pro {
                         switch (ann.type) {
                             case DexConstants.ANNOTATION_ENCLOSING_CLASS_TYPE: {
                                 DexType type = (DexType) findAnnotationAttribute(ann, "value");
-                                Clz enclosingClass = get(classes, type.desc);
+                                Clz enclosingClass = get(classes, Objects.requireNonNull(type).desc);
                                 clz.enclosingClass = enclosingClass;
 
                                 // apply patch from ChaeHoon Lim,
@@ -434,7 +434,7 @@ public class Dex2Pro {
                             break;
                             case DexConstants.ANNOTATION_ENCLOSING_METHOD_TYPE: {
                                 proguard.dexfile.reader.Method m = (proguard.dexfile.reader.Method) findAnnotationAttribute(ann, "value");
-                                Clz enclosingClass = get(classes, m.getOwner());
+                                Clz enclosingClass = get(classes, Objects.requireNonNull(m).getOwner());
                                 clz.enclosingClass = enclosingClass;
                                 clz.enclosingMethod = m;
                                 enclosingClass.addInner(clz);
