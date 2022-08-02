@@ -24,6 +24,7 @@ public class ClassPoolClassLoader extends ClassLoader {
         this.classPool = classPool;
     }
 
+    @Override
     public Class<?> findClass(String name) throws ClassNotFoundException
     {
         Clazz clazz = classPool.getClass(internalClassName(name));
