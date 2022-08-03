@@ -34,6 +34,7 @@ public class ClassConstants
     public static final String NAME_JAVA_LANG_THROWABLE                     = "java/lang/Throwable";
     public static final String NAME_JAVA_LANG_EXCEPTION                     = "java/lang/Exception";
     public static final String NAME_JAVA_LANG_UNSUPPORTED_OP_EXCEPTION      = "java/lang/UnsupportedOperationException";
+    public static final String NAME_JAVA_LANG_CLASS_NOT_FOUND_EXCEPTION     = "java/lang/ClassNotFoundException";
     public static final String NAME_JAVA_LANG_NUMBER_FORMAT_EXCEPTION       = "java/lang/NumberFormatException";
     public static final String NAME_JAVA_LANG_CLASS                         = "java/lang/Class";
     public static final String TYPE_JAVA_LANG_CLASS                         = "Ljava/lang/Class;";
