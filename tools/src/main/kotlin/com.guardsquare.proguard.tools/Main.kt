@@ -21,7 +21,7 @@ import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassPrinter
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MemberVisitor
-import proguard.dexfile.reader.DexClassReader
+import proguard.io.DexClassReader
 import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
 import java.io.File
