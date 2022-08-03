@@ -24,6 +24,7 @@ import proguard.classfile.visitor.MemberVisitor
 import proguard.io.DexClassReader
 import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
+import proguard.io.util.IOUtil.writeJar
 import java.io.File
 
 @ExperimentalCli
@@ -160,7 +161,7 @@ fun main(args: Array<String>) {
                 System.err.println("$file exists, use --force to overwrite")
                 return
             }
-            IOUtil.writeJar(programClassPool, file.absolutePath)
+            writeJar(programClassPool, file.absolutePath)
         }
     }
 
@@ -173,11 +174,11 @@ fun main(args: Array<String>) {
         }
     }
 
-    parser.subcommands(Dex2JarCmd(), Jar2DexCmd(), ListCmd(), PrintCmd())
+    parser.subcommands(Dex2JarCmd(), Jar2DexCmd(), ListCmd(), PrintCmd(), TransformCmd())
     parser.parse(args)
 }
 
-private fun read(
+fun read(
     filename: String,
     classNameFilter: String,
     isLibrary: Boolean
