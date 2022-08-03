@@ -1,7 +1,7 @@
 package proguard.dexfile
 
-import testutils.SmaliSource
-import testutils.fromSmali
+import proguard.android.testutils.SmaliSource
+import proguard.android.testutils.fromSmali
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -130,11 +130,11 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
                         .pop()
                         .ldc("The answer is ")
 //                        .ifnonnull(L0.offset())
-                        .ifnonnull(8)
+                        .ifnonnull(8) // jumps to label L0
                         .iconst_0()
                         .istore_1()
 //                        .goto_(L1.offset())
-                        .goto_(6)
+                        .goto_(6) // jumps to label L1
 //                        .label(L0)
                         .bipush(42)
                         .istore_1()

@@ -1,4 +1,4 @@
-package testutils
+package proguard.android.testutils
 
 import org.intellij.lang.annotations.Language
 

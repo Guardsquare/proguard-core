@@ -1,10 +1,10 @@
 package proguard.dexfile
 
-import testutils.SmaliSource
-import testutils.fromSmali
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import proguard.android.testutils.SmaliSource
+import proguard.android.testutils.fromSmali
 import testutils.ClassPoolBuilder
 import testutils.runClassPool
 
