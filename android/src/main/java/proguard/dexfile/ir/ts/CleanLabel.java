@@ -21,7 +21,7 @@ import proguard.dexfile.ir.LocalVar;
 import proguard.dexfile.ir.Trap;
 import proguard.dexfile.ir.stmt.*;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,7 +34,7 @@ public class CleanLabel implements Transformer {
 
     @Override
     public void transform(IrMethod irMethod) {
-        Set<LabelStmt> uselabels = new HashSet<LabelStmt>();
+        Set<LabelStmt> uselabels = new LinkedHashSet<>();
         addTrap(irMethod.traps, uselabels);
         addVars(irMethod.vars, uselabels);
         addStmt(irMethod.stmts, uselabels);

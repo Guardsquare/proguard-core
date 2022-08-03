@@ -67,7 +67,7 @@ public class NewTransformer implements Transformer {
     }
 
     void replaceX(IrMethod method) {
-        final Map<Local, TObject> init = new HashMap<>();
+        final Map<Local, TObject> init = new LinkedHashMap<>();
         for (Stmt p : method.stmts) {
             if (p.st == Stmt.ST.ASSIGN && p.getOp1().vt == Value.VT.LOCAL && p.getOp2().vt == Value.VT.NEW) {
                 // the stmt is a new assign stmt
@@ -112,7 +112,7 @@ public class NewTransformer implements Transformer {
     }
 
     void replace0(IrMethod method, Map<Local, TObject> init, int size) {
-        Set<Local> toDelete = new HashSet<>();
+        Set<Local> toDelete = new LinkedHashSet<>();
 
         Local locals[] = new Local[size];
         for (Local local : method.locals) {

@@ -38,8 +38,8 @@ import java.util.*;
 public class Ir2JRegAssignTransformer implements Transformer {
 
     public static class Reg {
-        public Set<Reg> excludes = new HashSet<>(4);
-        public Set<Reg> prefers = new HashSet<>(3);
+        public Set<Reg> excludes = new LinkedHashSet<>(4);
+        public Set<Reg> prefers = new LinkedHashSet<>(3);
         int reg = -1;
         public char type;
     }
@@ -64,7 +64,7 @@ public class Ir2JRegAssignTransformer implements Transformer {
             args = new Reg[method.args.length + 1];
         }
 
-        Set<Stmt> tos = new HashSet<>();
+        Set<Stmt> tos = new LinkedHashSet<>();
         for (Stmt stmt : method.stmts) {
             if (stmt.st == Stmt.ST.ASSIGN || stmt.st == Stmt.ST.IDENTITY) {
                 if (stmt.getOp1().vt == Value.VT.LOCAL) {
@@ -124,7 +124,7 @@ public class Ir2JRegAssignTransformer implements Transformer {
     }
 
     Map<Character, List<Reg>> groupAndCleanUpByType(Reg[] regs) {
-        Map<Character, List<Reg>> groups = new HashMap<>();
+        Map<Character, List<Reg>> groups = new LinkedHashMap<>();
         for (Reg reg : regs) {
             char simpleType = reg.type;
             List<Reg> group = groups.get(simpleType);
