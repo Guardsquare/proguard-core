@@ -12,7 +12,7 @@ import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.classfile.util.InstructionSequenceMatcher.*
 import testutils.ClassPoolBuilder
-import util.ClassPoolUtil
+import testutils.runClassPool
 
 class TestTypeTransformerMergeIZArray : FreeSpec({
 
@@ -162,7 +162,7 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
 
             "Then the result after execution of the program should be correct" {
                 val expected = "The answer is 42\n"
-                val output = ClassPoolUtil.runClassPool(pcp, "TestTypeTransformerMergeIZArray", arrayOf())
+                val output = runClassPool(pcp, "TestTypeTransformerMergeIZArray", arrayOf())
 
                 output shouldBe expected
             }
