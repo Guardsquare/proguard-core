@@ -17,7 +17,7 @@ public class AggTransformer extends StatedTransformer {
         boolean changed = false;
 
 
-        Set<Stmt> locationSensitiveStmts = new HashSet<>();
+        Set<Stmt> locationSensitiveStmts = new LinkedHashSet<>();
         // 1. merge location Insensitive stmts
         changed = simpleMergeLocals(method, changed, locationSensitiveStmts);
 
@@ -190,7 +190,7 @@ public class AggTransformer extends StatedTransformer {
         }
         final int[] readCounts = Cfg.countLocalReads(method);
         Set<Local> useInPhi = collectLocalUsedInPhi(method);
-        final Map<Local, Value> toReplace = new HashMap<>();
+        final Map<Local, Value> toReplace = new LinkedHashMap<>();
         for (Iterator<Stmt> it = method.stmts.iterator(); it.hasNext(); ) {
             Stmt p = it.next();
             if (p.st == Stmt.ST.ASSIGN && p.getOp1().vt == Value.VT.LOCAL) {
@@ -234,7 +234,7 @@ public class AggTransformer extends StatedTransformer {
     }
 
     private Set<Local> collectLocalUsedInPhi(IrMethod method) {
-        Set<Local> useInPhi = new HashSet<>();
+        Set<Local> useInPhi = new LinkedHashSet<>();
         if (method.phiLabels != null) {
             for (LabelStmt labelStmt : method.phiLabels) {
                 if (labelStmt.phis != null) {

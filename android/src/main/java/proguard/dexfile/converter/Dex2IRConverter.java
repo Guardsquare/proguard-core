@@ -29,14 +29,14 @@ import static proguard.dexfile.ir.expr.Exprs.*;
 import static proguard.dexfile.ir.stmt.Stmts.*;
 
 public class Dex2IRConverter {
-    Map<DexLabel, DexLabelStmtNode> labelMap = new HashMap<>();
+    Map<DexLabel, DexLabelStmtNode> labelMap = new LinkedHashMap<>();
     List<DexStmtNode> insnList;
     int[] parentCount;
     IrMethod target;
     DexCodeNode dexCodeNode;
     List<Stmt> preEmit = new ArrayList<>();
     List<Stmt> currentEmit;
-    Map<DexLabel, LabelStmt> map = new HashMap<>();
+    Map<DexLabel, LabelStmt> map = new LinkedHashMap<>();
     private Dex2IrFrame[] frames;
     private ArrayList<Stmt>[] emitStmts;
     boolean initAllToZero = true;
@@ -155,7 +155,7 @@ public class Dex2IRConverter {
             }
         }
 
-        Set<Value> phiValues = new HashSet<>();
+        Set<Value> phiValues = new LinkedHashSet<>();
         List<LabelStmt> phiLabels = new ArrayList<>();
         for (int i = 0; i < frames.length; i++) {
             Dex2IrFrame frame = frames[i];
@@ -197,7 +197,7 @@ public class Dex2IRConverter {
         if (dexCodeNode == null || dexCodeNode.debugNode == null || dexCodeNode.debugNode.debugNodes == null) {
             return;
         }
-        Map<DexLabel, Integer> lineNumber = new HashMap<>();
+        Map<DexLabel, Integer> lineNumber = new LinkedHashMap<>();
         for (DexDebugNode.DexDebugOpNode debugNode : dexCodeNode.debugNode.debugNodes) {
             if (debugNode instanceof DexDebugNode.DexDebugOpNode.LineNumber) {
                 lineNumber.put(debugNode.label, ((DexDebugNode.DexDebugOpNode.LineNumber) debugNode).line);
@@ -249,7 +249,7 @@ public class Dex2IRConverter {
 
         q.add(0);
 
-        Map<Integer, DexLabel> needChange = new HashMap<>();
+        Map<Integer, DexLabel> needChange = new LinkedHashMap<>();
 
         BitSet access = new BitSet(insnList.size());
         while (!q.isEmpty()) {
@@ -487,7 +487,7 @@ public class Dex2IRConverter {
             //
         } else {
             if (child.otherParent == null) {
-                child.otherParent = new HashSet<>(5);
+                child.otherParent = new LinkedHashSet<>(5);
             }
             child.otherParent.add(parent);
         }

@@ -37,7 +37,7 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.util.ClassUtil;
 
 import java.lang.reflect.Array;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 // Derived from dex-translator/src/main/java/com/googlecode/d2j/converter/IR2JConverter.java
@@ -152,7 +152,7 @@ public class IR2ProConverter {
         for (Local local : ir.locals) {
             maxLocalIndex = Math.max(maxLocalIndex, local._ls_index);
         }
-        Map<String, Integer> lockMap = new HashMap<String, Integer>();
+        Map<String, Integer> lockMap = new LinkedHashMap<>();
         int[] mutableMaxLocalIndex = new int[]{maxLocalIndex};
         for (Stmt st : ir.stmts) {
             statementDepthCounter = 0;

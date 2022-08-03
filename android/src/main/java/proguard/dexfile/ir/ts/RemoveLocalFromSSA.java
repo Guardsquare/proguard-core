@@ -39,7 +39,7 @@ public class RemoveLocalFromSSA extends StatedTransformer {
 
     private boolean simpleAssign(List<LabelStmt> phiLabels, List<AssignStmt> assignStmtList,
                                  Map<Local, Local> toReplace, StmtList stmts) {
-        Set<Value> usedInPhi = new HashSet<>();
+        Set<Value> usedInPhi = new LinkedHashSet<>();
         if (phiLabels != null) {
             for (LabelStmt labelStmt : phiLabels) {
                 for (AssignStmt phi : labelStmt.phis) {
@@ -83,8 +83,8 @@ public class RemoveLocalFromSSA extends StatedTransformer {
     }
 
     static class PhiObject {
-        Set<PhiObject> parent = new HashSet<>();
-        Set<PhiObject> children = new HashSet<>();
+        Set<PhiObject> parent = new LinkedHashSet<>();
+        Set<PhiObject> children = new LinkedHashSet<>();
         Local local;
         boolean isInitByPhi = false;
     }
@@ -133,7 +133,7 @@ public class RemoveLocalFromSSA extends StatedTransformer {
     private boolean removeLoopFromPhi(List<LabelStmt> phiLabels, Map<Local, Local> toReplace) {
         boolean changed = false;
         if (phiLabels != null) {
-            Set<Local> toDeletePhiAssign = new HashSet<>();
+            Set<Local> toDeletePhiAssign = new LinkedHashSet<>();
             Map<Local, PhiObject> phis;
             // detect loop init in phi
             phis = collectPhiObjects(phiLabels);
@@ -183,7 +183,7 @@ public class RemoveLocalFromSSA extends StatedTransformer {
 
     private Map<Local, PhiObject> collectPhiObjects(List<LabelStmt> phiLabels) {
         Map<Local, PhiObject> phis;
-        phis = new HashMap<>();
+        phis = new LinkedHashMap<>();
         for (LabelStmt labelStmt : phiLabels) {
             for (AssignStmt as : labelStmt.phis) {
                 Local local = (Local) as.getOp1();
@@ -234,8 +234,8 @@ public class RemoveLocalFromSSA extends StatedTransformer {
                 }
             }
         }
-        final Map<Local, Local> toReplace = new HashMap<>();
-        Set<Value> set = new HashSet<>();
+        final Map<Local, Local> toReplace = new LinkedHashMap<>();
+        Set<Value> set = new LinkedHashSet<>();
         boolean changed = true;
         while (changed) {
             changed = false;
