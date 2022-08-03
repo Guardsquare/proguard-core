@@ -1,10 +1,10 @@
+package testutils
+
 import org.jf.smali.Smali
 import org.jf.smali.SmaliOptions
 import proguard.dexfile.reader.DexClassReader
 import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
-import testutils.ClassPoolBuilder
-import testutils.ClassPools
 import java.io.File
 
 fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {
