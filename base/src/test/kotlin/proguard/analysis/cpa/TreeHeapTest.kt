@@ -606,8 +606,8 @@ class TreeHeapTest : StringSpec({
                 class A {
 
                     public void main() {
-                        B b = new B();           
-                        B b1 = new B();      
+                        B b = new B();
+                        B b1 = new B();
                         b.s = source1();
                         b1.s = "42";
                         sink(b.s);
@@ -626,7 +626,7 @@ class TreeHeapTest : StringSpec({
                         public String s;
                     }                
                 }
-                """.trimIndent()
+                    """.trimIndent()
                 )
             ).programClassPool
         )
