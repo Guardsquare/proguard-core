@@ -32,6 +32,7 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input") {
     var output by option(ArgType.String, description = "Output file name", shortName = "o", fullName = "output")
     var transformer by option(ArgType.String, description = "Classes containing ClassVisitor implementations", shortName = "t", fullName = "transformer").required()
     var printClasses by option(ArgType.Boolean, description = "Print classes after applying ClassVisitors").default(false)
+    var classNameFilter by option(ArgType.String, description = "Class name filter", shortName = "cf", fullName = "classNameFilter").default("**")
 
     private val programClassPool: ClassPool by lazy { read(input, "**", false) }
     private val transformersPool: ClassPool by lazy { read(transformer, "**", false) }
@@ -79,7 +80,7 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input") {
             .toList()
             .toTypedArray()
 
-        programClassPool.classesAccept(MultiClassVisitor(*classVisitors))
+        programClassPool.classesAccept(classNameFilter, MultiClassVisitor(*classVisitors))
 
         if (printClasses) programClassPool.classesAccept(ClassPrinter())
 
