@@ -6,8 +6,7 @@ import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import testutils.ClassPoolBuilder
 
-
-class TestLambdaNameStartingWithHyphen : FreeSpec ({
+class TestLambdaNameStartingWithHyphen : FreeSpec({
 
     "Given a small Smali file with a lambda expression starting with a hyphen" - {
 
@@ -27,9 +26,6 @@ class TestLambdaNameStartingWithHyphen : FreeSpec ({
                 val className = "-${'$'}${'$'}Lambda${'$'}RetrofitProvider${'$'}7UGyImjn5OERU8TG-W_Zn0fdFtY"
                 pcp.getClass(className) shouldNotBe null
             }
-
         }
-
     }
-
 })

@@ -1,18 +1,20 @@
 package proguard.dexfile
 
-import proguard.android.testutils.SmaliSource
-import proguard.android.testutils.fromSmali
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import proguard.android.testutils.SmaliSource
+import proguard.android.testutils.fromSmali
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.editor.CodeAttributeEditor
 import proguard.classfile.editor.InstructionSequenceBuilder
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
-import proguard.classfile.util.InstructionSequenceMatcher.*
+import proguard.classfile.util.InstructionSequenceMatcher.X
+import proguard.classfile.util.InstructionSequenceMatcher.Y
+import proguard.classfile.util.InstructionSequenceMatcher.Z
 import testutils.ClassPoolBuilder
-import testutils.runClassPool
+import proguard.testutils.runClassPool
 
 class TestTypeTransformerMergeIZArray : FreeSpec({
 
@@ -21,8 +23,9 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
         "When loading and translating the file" - {
 
             val (pcp, _) = ClassPoolBuilder.fromSmali(
-                SmaliSource("TestTypeTransformerMergeIZArray.smali",
-                """
+                SmaliSource(
+                    "TestTypeTransformerMergeIZArray.smali",
+                    """
                     .class public LTestTypeTransformerMergeIZArray;
                     .super Ljava/lang/Object;
                     
@@ -70,7 +73,8 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
                     
                         return-void
                     .end method
-                """.trimIndent())
+                    """.trimIndent()
+                )
             )
 
             "Then the classpool should not be null" {
@@ -97,7 +101,7 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
                 val L0 = editor.label()
                 val L1 = editor.label()
 
-                val instructionBuilder = with (InstructionSequenceBuilder()) {
+                val instructionBuilder = with(InstructionSequenceBuilder()) {
                     iconst_2()
                     newarray(10)
                     astore(X)
@@ -154,7 +158,8 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
 
                 programClass.methodsAccept(
                     AllAttributeVisitor(
-                    AllInstructionVisitor(matcher))
+                        AllInstructionVisitor(matcher)
+                    )
                 )
 
                 matcher.isMatching shouldBe true

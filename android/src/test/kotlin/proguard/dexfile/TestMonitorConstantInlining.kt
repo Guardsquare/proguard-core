@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import testutils.ClassPoolBuilder
-import testutils.runClassPool
+import proguard.testutils.runClassPool
 
 class TestMonitorConstantInlining : FreeSpec({
 
@@ -73,9 +73,6 @@ class TestMonitorConstantInlining : FreeSpec({
 
                 output shouldBe expected
             }
-
         }
-
     }
-
 })

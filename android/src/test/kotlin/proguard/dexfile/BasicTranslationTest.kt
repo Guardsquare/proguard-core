@@ -50,7 +50,7 @@ class BasicTranslationTest : FreeSpec({
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with (InstructionBuilder()) {
+            val instructionBuilder = with(InstructionBuilder()) {
                 getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
                 ldc("Hello World!")
                 invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
