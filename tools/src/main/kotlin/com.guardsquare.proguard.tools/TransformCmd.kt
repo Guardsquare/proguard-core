@@ -3,6 +3,7 @@ package com.guardsquare.proguard.tools
 import kotlinx.cli.ArgType
 import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
+import kotlinx.cli.default
 import kotlinx.cli.required
 import proguard.classfile.ClassPool
 import proguard.classfile.LibraryClass
@@ -15,6 +16,7 @@ import proguard.classfile.util.ClassSuperHierarchyInitializer
 import proguard.classfile.util.ClassUtil.externalClassName
 import proguard.classfile.util.ClassUtil.internalClassName
 import proguard.classfile.util.WarningPrinter
+import proguard.classfile.visitor.ClassPrinter
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MultiClassVisitor
 import proguard.io.util.IOUtil.writeJar
@@ -27,7 +29,8 @@ import java.io.PrintWriter
 class TransformCmd : Subcommand("transform", "Apply transformations to input") {
     var input by argument(ArgType.String, description = "Input file name")
     var output by option(ArgType.String, description = "Output file name", shortName = "o", fullName = "output")
-    var transformer by option(ArgType.String, description = "classes containing ClassVisitor implementations", shortName = "t", fullName = "transformer").required()
+    var transformer by option(ArgType.String, description = "Classes containing ClassVisitor implementations", shortName = "t", fullName = "transformer").required()
+    var printClasses by option(ArgType.Boolean, description = "Print classes after applying ClassVisitors").default(false)
 
     private val programClassPool: ClassPool by lazy { read(input, "**", false) }
     private val transformersPool: ClassPool by lazy { read(transformer, "**", false) }
@@ -38,22 +41,46 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input") {
         transformersLibraryClassPool.addLibraryClass(ClassVisitor::class.java)
 
         initialize(transformersPool, transformersLibraryClassPool)
-        initialize(programClassPool, ClassPool()) // TODO: libraryClassPool
+        val libraryClassPool = ClassPool()
+        initialize(programClassPool, libraryClassPool) // TODO: libraryClassPool
 
         val classLoader = ClassPoolClassLoader(transformersPool)
 
         // Load all the ClassVisitor classes and create instances
         val classVisitors = transformersPool
             .classes()
+            .asSequence()
             .filter { it.extendsOrImplements(internalClassName(ClassVisitor::class.java.name)) }
             .map { classLoader.loadClass(externalClassName(it.name)) as Class<ClassVisitor> }
             .map { it.getDeclaredConstructor().newInstance() }
-            .map { MultiClassVisitor({ clazz -> println("Transforming ${clazz.name}") }, it) }
+            .onEach {
+                // Set the class pools if the fields exist
+                with(it::class.java) {
+                    if (this.fields.count { it.name == "programClassPool" } > 0 &&
+                        this.getField("programClassPool").type == ClassPool::class.java
+                    ) {
+                        this.getField("programClassPool").set(it, programClassPool)
+                    } else if (this.fields.count { it.name == "libraryClassPool" } > 0 &&
+                        this.getField("libraryClassPool").type == ClassPool::class.java
+                    ) {
+                        this.getField("libraryClassPool").set(it, libraryClassPool)
+                    }
+                }
+            }
+            .map { classVisitor ->
+                MultiClassVisitor(
+                    { clazz -> println("Applying ${classVisitor.javaClass.simpleName} to ${externalClassName(clazz.name)}") },
+                    classVisitor
+                )
+            }
+            .toList()
             .toTypedArray()
 
         programClassPool.classesAccept(MultiClassVisitor(*classVisitors))
 
-        writeJar(programClassPool, output ?: input)
+        if (printClasses) programClassPool.classesAccept(ClassPrinter())
+
+        output?.let { writeJar(programClassPool, it) }
     }
 
     private fun initialize(programClassPool: ClassPool, libraryClassPool: ClassPool) {
