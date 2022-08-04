@@ -60,7 +60,8 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input") {
                         this.getField("programClassPool").type == ClassPool::class.java
                     ) {
                         this.getField("programClassPool").set(it, programClassPool)
-                    } else if (this.fields.count { it.name == "libraryClassPool" } > 0 &&
+                    }
+                    if (this.fields.count { it.name == "libraryClassPool" } > 0 &&
                         this.getField("libraryClassPool").type == ClassPool::class.java
                     ) {
                         this.getField("libraryClassPool").set(it, libraryClassPool)
