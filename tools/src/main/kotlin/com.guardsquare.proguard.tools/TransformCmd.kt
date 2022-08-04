@@ -5,6 +5,7 @@ import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import kotlinx.cli.default
 import kotlinx.cli.required
+import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.ClassPool
 import proguard.classfile.LibraryClass
 import proguard.classfile.ProgramClass
@@ -51,6 +52,7 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input") {
             .classes()
             .asSequence()
             .filter { it.extendsOrImplements(internalClassName(ClassVisitor::class.java.name)) }
+            .filter { it.accessFlags and PUBLIC == PUBLIC }
             .map { classLoader.loadClass(externalClassName(it.name)) as Class<ClassVisitor> }
             .map { it.getDeclaredConstructor().newInstance() }
             .onEach {
