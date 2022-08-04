@@ -274,12 +274,12 @@ public class DvmFrame<V> {
                 Proto proto = methodStmtNode.getProto();
                 boolean isStatic = false;
                 boolean isRange =
-                        insn.op == Op.INVOKE_VIRTUAL_RANGE ||
-                                insn.op == Op.INVOKE_SUPER_RANGE ||
-                                insn.op == Op.INVOKE_DIRECT_RANGE ||
-                                insn.op == Op.INVOKE_STATIC_RANGE ||
-                                insn.op == Op.INVOKE_INTERFACE_RANGE ||
-                                insn.op == Op.INVOKE_CUSTOM_RANGE ||
+                        insn.op == Op.INVOKE_VIRTUAL_RANGE              ||
+                                insn.op == Op.INVOKE_SUPER_RANGE        ||
+                                insn.op == Op.INVOKE_DIRECT_RANGE       ||
+                                insn.op == Op.INVOKE_STATIC_RANGE       ||
+                                insn.op == Op.INVOKE_INTERFACE_RANGE    ||
+                                insn.op == Op.INVOKE_CUSTOM_RANGE       ||
                                 insn.op == Op.INVOKE_POLYMORPHIC_RANGE;
 
                 if (insn.op == Op.INVOKE_STATIC || insn.op == Op.INVOKE_STATIC_RANGE) {
