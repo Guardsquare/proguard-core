@@ -27,7 +27,7 @@ import java.io.OutputStream
 import java.io.PrintWriter
 
 @OptIn(ExperimentalCli::class)
-class TransformCmd : Subcommand("transform", "Apply transformations to input") {
+class TransformCmd : Subcommand("transform", "Apply transformations to input (experimental)") {
     var input by argument(ArgType.String, description = "Input file name")
     var output by option(ArgType.String, description = "Output file name", shortName = "o", fullName = "output")
     var transformer by option(ArgType.String, description = "Classes containing ClassVisitor implementations", shortName = "t", fullName = "transformer").required()
