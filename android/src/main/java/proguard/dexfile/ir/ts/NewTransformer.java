@@ -114,7 +114,7 @@ public class NewTransformer implements Transformer {
     void replace0(IrMethod method, Map<Local, TObject> init, int size) {
         Set<Local> toDelete = new LinkedHashSet<>();
 
-        Local locals[] = new Local[size];
+        Local[] locals = new Local[size];
         for (Local local : method.locals) {
             locals[local._ls_index] = local;
         }
