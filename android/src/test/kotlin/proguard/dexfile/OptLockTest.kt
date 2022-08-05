@@ -76,7 +76,7 @@ class OptLockTest : FreeSpec({
 
             testClass.methodsAccept(
                 AllAttributeVisitor(
-                AllInstructionVisitor(matcher)
+                    AllInstructionVisitor(matcher)
                 )
             )
 

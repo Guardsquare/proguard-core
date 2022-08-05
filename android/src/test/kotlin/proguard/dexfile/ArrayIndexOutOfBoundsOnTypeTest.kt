@@ -1,26 +1,17 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.attribute.CodeAttribute
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.Instruction
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.instruction.visitor.InstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import testutils.ClassPoolBuilder
-import testutils.InstructionBuilder
 
 class ArrayIndexOutOfBoundsOnTypeTest : FreeSpec({
     "Array index out of bounds on type test" - {
-        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(SmaliSource(
-            "bb-5-ArrayIndexOutOfBoundsOnType.smali",
-            """
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(
+            SmaliSource(
+                "bb-5-ArrayIndexOutOfBoundsOnType.smali",
+                """
             .class Li;
             .super Ljava/lang/Object;
 
@@ -217,7 +208,9 @@ class ArrayIndexOutOfBoundsOnTypeTest : FreeSpec({
                 invoke-direct { v0, v1 }, Ljava/lang/RuntimeException;-><init>(Ljava/lang/String;)V
                 throw v0
             .end method
-        """.trimIndent()))
+                """.trimIndent()
+            )
+        )
         val testClass = programClassPool.getClass("i")
 
         "Check if classPool is not null" {
@@ -232,6 +225,5 @@ class ArrayIndexOutOfBoundsOnTypeTest : FreeSpec({
             testClass
                 .findMethod("a", "(Ljava/lang/Object;IZ)Ljava/lang/Object;") shouldNotBe null
         }
-
     }
 })

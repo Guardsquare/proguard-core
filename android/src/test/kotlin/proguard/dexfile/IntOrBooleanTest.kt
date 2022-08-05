@@ -67,7 +67,7 @@ class IntOrBooleanTest : FreeSpec({
 
             testClass.methodsAccept(
                 AllAttributeVisitor(
-                AllInstructionVisitor(matcher)
+                    AllInstructionVisitor(matcher)
                 )
             )
 

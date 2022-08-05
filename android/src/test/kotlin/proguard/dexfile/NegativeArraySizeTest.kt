@@ -81,7 +81,7 @@ class NegativeArraySizeTest : FreeSpec({
 
             testClass.methodsAccept(
                 AllAttributeVisitor(
-                AllInstructionVisitor(matcher)
+                    AllInstructionVisitor(matcher)
                 )
             )
 

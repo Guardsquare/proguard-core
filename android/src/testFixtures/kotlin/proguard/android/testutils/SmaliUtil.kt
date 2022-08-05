@@ -1,7 +1,6 @@
 package proguard.android.testutils
 
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
@@ -16,6 +15,6 @@ fun getAllSmaliResources(): List<File> {
 }
 
 fun getSmaliResource(name: String): File {
-    val res = object{}::class.java.getResource("smalifile/$name")
+    val res = object {}::class.java.getResource("smalifile/$name")
     return Paths.get(res.toURI()).toFile()
 }

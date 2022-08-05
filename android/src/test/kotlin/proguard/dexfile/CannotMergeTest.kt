@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.android.testutils.getSmaliResource
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
@@ -60,7 +59,7 @@ class CannotMergeTest : FreeSpec({
 
             testClass.methodsAccept(
                 AllAttributeVisitor(
-                AllInstructionVisitor(matcher)
+                    AllInstructionVisitor(matcher)
                 )
             )
 
