@@ -4,8 +4,9 @@
  *
  * Copyright (c) 2002-2022 Guardsquare NV
  */
-package proguard.dexfile.reader;
+package proguard.io;
 
+import proguard.dexfile.reader.DexFileReader;
 import proguard.dexfile.reader.node.DexFileNode;
 import proguard.dexfile.converter.Dex2Pro;
 import proguard.classfile.visitor.ClassPrinter;

@@ -1,12 +1,12 @@
 package proguard.dexfile.ir.ts;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
 public class UniqueQueue<T> extends LinkedList<T> {
-    Set<T> set = new HashSet<>();
+    Set<T> set = new LinkedHashSet<>();
 
     public UniqueQueue() {
     }

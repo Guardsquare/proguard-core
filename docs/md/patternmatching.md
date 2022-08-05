@@ -63,7 +63,9 @@ sequence "putstatic/getstatic" by an equivalent "dup/putstatic":
         new AllAttributeVisitor(
         new PeepholeEditor(branchTargetFinder, codeAttributeEditor,
         new InstructionSequenceReplacer(constants,
-                                        replacements,
+                                        replacements[0],
+                                        constants,
+                                        replacements[1],
                                         branchTargetFinder,
                                         codeAttributeEditor)))));
 

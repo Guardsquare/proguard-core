@@ -30,7 +30,7 @@ class JavaSource(val filename: String, @Language("Java") val contents: String) :
     override fun asSourceFile() = SourceFile.java(filename, contents)
 }
 
-class KotlinSource(val filename: String, @Language("Kotlin") val contents: String) : TestSource() {
+class KotlinSource(val filename: String, @Language("kotlin") val contents: String) : TestSource() {
     override fun asSourceFile() = SourceFile.kotlin(filename, contents)
 }
 

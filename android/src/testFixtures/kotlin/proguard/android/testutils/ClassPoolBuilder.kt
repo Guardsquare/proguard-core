@@ -2,7 +2,7 @@ package proguard.android.testutils
 
 import org.jf.smali.Smali
 import org.jf.smali.SmaliOptions
-import proguard.dexfile.reader.DexClassReader
+import proguard.io.DexClassReader
 import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
 import testutils.ClassPoolBuilder
