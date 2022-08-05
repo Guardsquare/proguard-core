@@ -21,6 +21,7 @@ import proguard.dexfile.ir.LocalVar;
 import proguard.dexfile.ir.Trap;
 import proguard.dexfile.ir.stmt.*;
 
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,9 +77,7 @@ public class CleanLabel implements Transformer {
             } else if (p instanceof BaseSwitchStmt) {
                 BaseSwitchStmt stmt = (BaseSwitchStmt) p;
                 labels.add(stmt.defaultTarget);
-                for (LabelStmt t : stmt.targets) {
-                    labels.add(t);
-                }
+                labels.addAll(Arrays.asList(stmt.targets));
             } else if (p instanceof LabelStmt) {
                 // Retain label statements that carry line number information.
                 if (((LabelStmt) p).lineNumber >= 0) {
@@ -93,9 +92,7 @@ public class CleanLabel implements Transformer {
             for (Trap trap : traps) {
                 labels.add(trap.start);
                 labels.add(trap.end);
-                for (LabelStmt h : trap.handlers) {
-                    labels.add(h);
-                }
+                labels.addAll(Arrays.asList(trap.handlers));
             }
         }
     }
