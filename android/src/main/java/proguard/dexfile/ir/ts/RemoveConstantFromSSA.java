@@ -54,7 +54,7 @@ public class RemoveConstantFromSSA extends StatedTransformer {
         List<AssignStmt> assignStmtList = new ArrayList<>();
         Set<Local> usedByLock = getLocalsUsedByLock(method);
 
-        Map<Local, Object> cstMap = new HashMap<>();
+        Map<Local, Object> cstMap = new LinkedHashMap<>();
         for (Stmt p = method.stmts.getFirst(); p != null; p = p.getNext()) {
             if (p.st == Stmt.ST.ASSIGN) {
                 AssignStmt as = (AssignStmt) p;
@@ -72,8 +72,8 @@ public class RemoveConstantFromSSA extends StatedTransformer {
             return false;
         }
         RemoveLocalFromSSA.fixReplace(cstMap);
-        final Map<Local, Value> toReplace = new HashMap<>();
-        Set<Value> usedInPhi = new HashSet<>();
+        final Map<Local, Value> toReplace = new LinkedHashMap<>();
+        Set<Value> usedInPhi = new LinkedHashSet<>();
         List<LabelStmt> phiLabels = method.phiLabels;
         if (phiLabels != null) {
             boolean loopAgain = true;
@@ -162,7 +162,7 @@ public class RemoveConstantFromSSA extends StatedTransformer {
      * @return a set of Locals used by lock instructions.
      */
     private static Set<Local> getLocalsUsedByLock(IrMethod method) {
-        Set<Local> usedByLock = new HashSet<>();
+        Set<Local> usedByLock = new LinkedHashSet<>();
 
         for (Stmt p = method.stmts.getFirst(); p != null; p = p.getNext()) {
             if (p.st == Stmt.ST.LOCK) {

@@ -4,12 +4,12 @@ import proguard.dexfile.ir.expr.Local;
 import proguard.dexfile.ir.stmt.LabelStmt;
 import proguard.dexfile.ir.stmt.Stmts;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class LabelAndLocalMapper {
-    Map<LabelStmt, LabelStmt> labels = new HashMap<>();
-    Map<Local, Local> locals = new HashMap<>();
+    Map<LabelStmt, LabelStmt> labels = new LinkedHashMap<>();
+    Map<Local, Local> locals = new LinkedHashMap<>();
 
     public LabelStmt map(LabelStmt label) {
         LabelStmt nTarget = labels.get(label);

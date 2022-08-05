@@ -330,16 +330,18 @@ public class TypeTransformer implements Transformer {
 
         public boolean addUses(String ele) {
             assert this.next == null;
-            if (this.uses == null) {
-                this.uses = new HashSet<>();
+            TypeRef t = this;
+            if (t.uses == null) {
+                this.uses = new LinkedHashSet<>();
             }
-            return this.uses.add(ele);
+            return t.uses.add(ele);
+
         }
 
         public boolean addAllUses(Set<String> uses) {
             assert this.next == null;
             if (this.uses == null) {
-                this.uses = new HashSet<>();
+                this.uses = new LinkedHashSet<>();
             }
             return this.uses.addAll(uses);
         }
@@ -362,7 +364,7 @@ public class TypeTransformer implements Transformer {
 
         private void fixTypes() {
             // 1. collect all Array Roots
-            Set<TypeRef> arrayRoots = new HashSet<>();
+            Set<TypeRef> arrayRoots = new LinkedHashSet<>();
             for (TypeRef ref : refs) {
                 ref = ref.getReal();
                 if (ref.gArrayValues != null || ref.sArrayValues != null) {
@@ -373,7 +375,7 @@ public class TypeTransformer implements Transformer {
                 mergeArrayRelation(ref, Relation.R_arrayRoots);
             }
 
-            Set<TypeRef> updatedRefs = new HashSet<>();
+            Set<TypeRef> updatedRefs = new LinkedHashSet<>();
             UniqueQueue<TypeRef> q = new UniqueQueue<>();
             q.addAll(refs);
             while (!q.isEmpty()) {
