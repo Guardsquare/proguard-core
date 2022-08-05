@@ -53,7 +53,8 @@ CodeAttributeEditor.
     Instructions[] replacementInstructions = builder
         .getstatic("java/lang/System", "out", "Ljava/io/
         .ldc("Hello")
-        .invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V"        .instructions();
+        .invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V"        
+        .instructions();
 
     // Prepare the editor for this code.
     codeAttributeEditor.reset(codeAttribute.u4codeLength);

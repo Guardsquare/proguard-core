@@ -28,8 +28,7 @@ Complete example: PrintClasses.java
 
 With the addition of `proguard-core-android`, you can read classes from dex/apk 
 files just like you would with jar files. A small example showing how to use 
-`DexClassReader()` to read classes from a dex/apk file and dump those classes 
-into a `ClassPool`:
+`DexClassReader()` to read classes from a dex/apk file:
 
     :::java
     DataEntrySource source = 
@@ -50,8 +49,9 @@ into a `ClassPool`:
 
     source.pumpDataEntries(classReader);
 
-Do note that in order to use dex/apk file reading functionalities, you must 
-import `proguard-core-android` in the `build.gradle` file:
+Do note that in order to use dex/apk file reading functionalities within 
+your project, you must import `proguard-core-android` in the `build.gradle` 
+file:
 
 > build.gradle
 > ```
