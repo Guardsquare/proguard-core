@@ -729,7 +729,7 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                     }
                     SetAbstractState<Reference> reference = ((JvmReferenceAbstractState) parentState.getStateByName(StateNames.Reference)).peek(constantLookupVisitor.resultSize);
                     SetAbstractState<Reference> referenceIntersection = heapLocation.reference.stream().filter(reference::contains).collect(Collectors.toCollection(SetAbstractState::new));
-                    if (reference.size() != 1 || reference.equals(heapLocation.reference) || constantLookupVisitor.result.endsWith("[]"))
+                    if (referenceIntersection.size() == 0 || reference.size() != 1 || constantLookupVisitor.result.endsWith("[]"))
                     {
                         answer.add(memoryLocation);
                     }

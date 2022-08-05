@@ -25,7 +25,7 @@ import proguard.dexfile.reader.node.DexMethodNode;
 import proguard.dexfile.reader.Op;
 import proguard.dexfile.reader.visitors.DexCodeVisitor;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -57,8 +57,8 @@ public class DexFix {
         if (classNode.fields == null) {
             return;
         }
-        final Map<String, DexFieldNode> fs = new HashMap<>();
-        final Map<String, DexFieldNode> shouldNotBeAssigned = new HashMap<>();
+        final Map<String, DexFieldNode> fs = new LinkedHashMap<>();
+        final Map<String, DexFieldNode> shouldNotBeAssigned = new LinkedHashMap<>();
         for (DexFieldNode fn : classNode.fields) {
             if ((fn.access & ACC_STATIC_FINAL) == ACC_STATIC_FINAL) {
                 if (fn.cst == null) {

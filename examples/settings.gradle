@@ -1,5 +1,0 @@
-// Include the proguard-core project to build the
-// examples with the latest repository code.
-includeBuild("../") {
-    it.name = "proguard-core"
-}

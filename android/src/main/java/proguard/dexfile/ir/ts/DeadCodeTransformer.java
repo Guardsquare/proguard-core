@@ -74,7 +74,7 @@ public class DeadCodeTransformer implements Transformer {
                 }
             }
         }
-        Set<Local> definedLocals = new HashSet<>();
+        Set<Local> definedLocals = new LinkedHashSet<>();
         for (Iterator<Stmt> it = method.stmts.iterator(); it.hasNext(); ) {
             Stmt p = it.next();
             if (!p.visited) {
@@ -104,7 +104,7 @@ public class DeadCodeTransformer implements Transformer {
 
         method.locals.clear();
         method.locals.addAll(definedLocals);
-        Set<Value> tmp = new HashSet<>();
+        Set<Value> tmp = new LinkedHashSet<>();
         if (method.phiLabels != null) {
             for (Iterator<LabelStmt> it = method.phiLabels.iterator(); it.hasNext(); ) {
                 LabelStmt labelStmt = it.next();

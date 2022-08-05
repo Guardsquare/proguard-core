@@ -80,7 +80,7 @@ public class Dex2Pro {
 
         void addInner(Clz clz) {
             if (inners == null) {
-                inners = new HashSet<>();
+                inners = new LinkedHashSet<>();
             }
             inners.add(clz);
         }
@@ -409,7 +409,7 @@ public class Dex2Pro {
     }
 
     private static Map<String, Clz> collectClzInfo(DexFileNode fileNode) {
-        Map<String, Clz> classes = new HashMap<>();
+        Map<String, Clz> classes = new LinkedHashMap<>();
         for (DexClassNode classNode : fileNode.clzs) {
             Clz clz = get(classes, classNode.className);
             clz.access = (clz.access & ~ACC_INTERFACE_ABSTRACT) | classNode.access;
@@ -669,7 +669,7 @@ public class Dex2Pro {
 
     private static final String HEX_CLASS_LOCATION = "res/Hex";
     private static final Set<String> HEX_DECODE_METHODS =
-            new HashSet<>(Arrays.asList("decode_J", "decode_I", "decode_S", "decode_B"));
+            new LinkedHashSet<>(Arrays.asList("decode_J", "decode_I", "decode_S", "decode_B"));
 
     protected InputStream getHexClassAsStream() {
         return Dex2Pro.class.getResourceAsStream("/" + HEX_CLASS_LOCATION + ".class");
@@ -1044,7 +1044,7 @@ public class Dex2Pro {
      * Adds the transitive outer classes of the given class to the given list.
      */
     private static void searchEnclosing(Clz clz, List<InnerClassNode> innerClassNodes) {
-        Set<Clz> visitedClz = new HashSet<>();
+        Set<Clz> visitedClz = new LinkedHashSet<>();
         for (Clz p = clz; p != null; p = p.enclosingClass) {
             if (!visitedClz.add(p)) { // prevent endless loop
                 break;

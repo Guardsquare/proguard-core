@@ -315,12 +315,12 @@ public class UnSSATransformer implements Transformer {
             local.tag = new RegAssign();
         }
 
-        Set<Stmt> tos = new HashSet<>();
+        Set<Stmt> tos = new LinkedHashSet<>();
         for (Stmt stmt : method.stmts) {
             if ((stmt.st == Stmt.ST.ASSIGN || stmt.st == Stmt.ST.IDENTITY) && stmt.getOp1().vt == Value.VT.LOCAL) {
                 Local localAssignTo = (Local) stmt.getOp1();
                 RegAssign regAssignTo = (RegAssign) localAssignTo.tag;
-                Set<Integer> excludeIdx = new HashSet<>();
+                Set<Integer> excludeIdx = new LinkedHashSet<>();
                 Cfg.collectTos(stmt, tos);
                 for (Stmt target : tos) {
                     LiveV[] frame = (LiveV[]) target.frame;
@@ -420,7 +420,7 @@ public class UnSSATransformer implements Transformer {
         }
 
         protected Set<LiveV> markUsed() {
-            Set<LiveV> used = new HashSet<LiveV>(aValues.size() / 2);
+            Set<LiveV> used = new LinkedHashSet<>(aValues.size() / 2);
             Queue<LiveV> q = new UniqueQueue<>();
             q.addAll(aValues);
 
@@ -464,7 +464,7 @@ public class UnSSATransformer implements Transformer {
         @Override
         public LiveV[] merge(LiveV[] srcFrame, LiveV[] distFrame, Stmt src, Stmt dist) {
 
-            Map<Integer, AssignStmt> phiLives = new HashMap<>();
+            Map<Integer, AssignStmt> phiLives = new LinkedHashMap<>();
             if (dist.st == Stmt.ST.LABEL) {
                 LabelStmt label = (LabelStmt) dist;
                 if (label.phis != null) {// we got phis here
@@ -523,7 +523,7 @@ public class UnSSATransformer implements Transformer {
                 if (firstMerge) {
                     distValue = new LiveV();
                     distValue.local = phiLocal;
-                    distValue.stmt2regMap = new HashMap<>();
+                    distValue.stmt2regMap = new LinkedHashMap<>();
                     distFrame[phiLocal._ls_index] = distValue;
                 } else {
                     distValue = distFrame[phiLocal._ls_index];
@@ -615,7 +615,7 @@ public class UnSSATransformer implements Transformer {
         /**
          * can not have same index with
          */
-        public Set<RegAssign> excludes = new HashSet<RegAssign>();
+        public Set<RegAssign> excludes = new LinkedHashSet<>();
 
     }
 }
