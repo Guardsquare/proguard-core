@@ -4,9 +4,14 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
+import proguard.classfile.Clazz
+import proguard.classfile.Method
+import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.editor.InstructionSequenceBuilder
+import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
+import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
 import testutils.ClassPoolBuilder
 
@@ -20,7 +25,7 @@ class TestTranslationDeterminism : FreeSpec({
                 // obviously doesn't test for full non-determinism as this test would need to be run forever,
                 // running the translation a few times should give us a good idea whether the translation is
                 // deterministic or not
-                for (i in 1..100) {
+                for (i in 1..10) {
                     val (pcp, _) = ClassPoolBuilder.fromSmali(
                         SmaliSource(
                             "TestTypeTransformerMergeIZArray.smali",
@@ -78,8 +83,8 @@ class TestTranslationDeterminism : FreeSpec({
                     val instructionBuilder = with(InstructionSequenceBuilder()) {
                         iconst_2()
                         newarray(10)
-                        astore(0)
-                        aload(0)
+                        astore_0()
+                        aload_0()
                         dup()
                         ldc(0)
                         iconst_0()
@@ -89,39 +94,39 @@ class TestTranslationDeterminism : FreeSpec({
                         iconst_1()
                         iastore()
                         pop()
-                        aload(0)
+                        aload_0()
                         iconst_0()
                         iaload()
                         ireturn()
                         invokestatic("TestTypeTransformerMergeIZArray", "foo", "()Z")
                         pop()
                         getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-                        astore(0)
+                        astore_0()
                         new_("java/lang/StringBuilder")
                         dup()
                         invokespecial("java/lang/StringBuilder", "<init>", "()V")
-                        astore(2)
-                        aload(2)
+                        astore_1()
+                        aload_1()
                         ldc("The answer is ")
                         invokevirtual("java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;")
                         pop()
                         ldc("The answer is ")
-//                  ifnonnull(L0.offset())
+//                      ifnonnull(L0.offset())
                         ifnonnull(8) // jumps to label L0
                         iconst_0()
-                        istore_1()
-//                  goto_(L1.offset())
+                        istore_2()
+//                      goto_(L1.offset())
                         goto_(6) // jumps to label L1
-//                  label(L0)
+//                      label(L0)
                         bipush(42)
-                        istore_1()
-//                  label(L1)
-                        aload(2)
-                        iload_1()
+                        istore_2()
+//                      label(L1)
+                        aload_1()
+                        iload_2()
                         invokevirtual("java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;")
                         pop()
-                        aload(0)
-                        aload(2)
+                        aload_0()
+                        aload_1()
                         invokevirtual("java/lang/StringBuilder", "toString", "()Ljava/lang/String;")
                         invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
                         return_()
@@ -135,7 +140,6 @@ class TestTranslationDeterminism : FreeSpec({
                         )
                     )
 
-                    println(i)
                     matcher.isMatching shouldBe true
                 }
             }
