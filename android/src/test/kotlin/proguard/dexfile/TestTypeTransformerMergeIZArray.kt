@@ -5,19 +5,17 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.editor.CodeAttributeEditor
 import proguard.classfile.editor.InstructionSequenceBuilder
-import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
-import proguard.classfile.util.InstructionSequenceMatcher.*
-import testutils.ClassPoolBuilder
+import proguard.classfile.util.InstructionSequenceMatcher.A
+import proguard.classfile.util.InstructionSequenceMatcher.X
+import proguard.classfile.util.InstructionSequenceMatcher.Y
+import proguard.classfile.util.InstructionSequenceMatcher.Z
 import proguard.testutils.runClassPool
+import testutils.ClassPoolBuilder
 
 class TestTypeTransformerMergeIZArray : FreeSpec({
 

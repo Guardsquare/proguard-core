@@ -4,14 +4,9 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.editor.InstructionSequenceBuilder
-import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
 import testutils.ClassPoolBuilder
 
@@ -77,7 +72,7 @@ class TestTranslationDeterminism : FreeSpec({
                     
                         return-void
                     .end method
-                    """.trimIndent()
+                            """.trimIndent()
                         )
                     )
                     val instructionBuilder = with(InstructionSequenceBuilder()) {
@@ -143,9 +138,6 @@ class TestTranslationDeterminism : FreeSpec({
                     matcher.isMatching shouldBe true
                 }
             }
-
         }
-
     }
-
 })
