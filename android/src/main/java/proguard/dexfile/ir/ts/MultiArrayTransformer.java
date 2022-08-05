@@ -20,7 +20,7 @@ import proguard.dexfile.ir.expr.*;
 public class MultiArrayTransformer extends StatedTransformer {
     @Override
     public boolean transformReportChanged(IrMethod method) {
-        final boolean changed[] = {false};
+        final boolean[] changed = {false};
         new StmtTraveler() {
             @Override
             public Value travel(Value op) {
