@@ -1,25 +1,68 @@
 package proguard.dexfile
 
-import SmaliSource
-import fromSmali
-import getSmaliResource
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.attribute.CodeAttribute
+import proguard.android.testutils.SmaliSource
+import proguard.android.testutils.fromSmali
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
 import testutils.ClassPoolBuilder
 import testutils.InstructionBuilder
 
 class MLTest : FreeSpec({
     "ML test" - {
-        val smaliFile = getSmaliResource("ML.smali")
-        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(SmaliSource(smaliFile.name, smaliFile.readText()))
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(
+            SmaliSource(
+                "ML.smali",
+                """
+                    .class LML;
+                    .super Ljava/lang/Object;
+                    .source "ML.java"
+
+
+                    # direct methods
+                    .method constructor <init>()V
+                        .registers 1
+
+                        .prologue
+                        .line 1
+                        invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+                        return-void
+                    .end method
+
+
+                    # virtual methods
+                    .method a()Ljava/lang/Object;
+                        .registers 4
+
+                        .prologue
+                        .line 3
+                        const/4 v0, 0x4
+
+                        const/4 v1, 0x5
+
+                        const/4 v2, 0x6
+
+                        filled-new-array {v0, v1, v2}, [I
+
+                        move-result-object v0
+
+                        const-class v1, Ljava/lang/String;
+
+                        invoke-static {v1, v0}, Ljava/lang/reflect/Array;->newInstance(Ljava/lang/Class;[I)Ljava/lang/Object;
+
+                        move-result-object v0
+
+                        check-cast v0, [[[Ljava/lang/String;
+
+                        return-object v0
+                    .end method
+                """.trimIndent()
+            )
+        )
 
         val testClass = programClassPool.getClass("ML")
 
@@ -42,53 +85,41 @@ class MLTest : FreeSpec({
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = InstructionBuilder()
-
-            instructionBuilder
-                .aload(0)
-                .invokespecial("java/lang/Object", "<init>", "()V")
-                .return_()
-                .iconst(3)
-                .newarray(10)
-                .astore(1)
-                .aload(1)
-                .iconst(0)
-                .iconst(4)
-                .iastore()
-                .aload(1)
-                .iconst(1)
-                .iconst(5)
-                .iastore()
-                .aload(1)
-                .iconst(2)
-                .bipush(6)
-                .iastore()
-                .ldc(libraryClassPool.getClass("java/lang/String"))
-                .aload(1)
-                .invokestatic("java/lang/reflect/Array", "newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;")
-                .checkcast("[[[Ljava/lang/String;")
-                .areturn()
+            val instructionBuilder = with(InstructionBuilder()) {
+                aload(0)
+                invokespecial("java/lang/Object", "<init>", "()V")
+                return_()
+                iconst(3)
+                newarray(10)
+                astore(1)
+                aload(1)
+                iconst(0)
+                iconst(4)
+                iastore()
+                aload(1)
+                iconst(1)
+                iconst(5)
+                iastore()
+                aload(1)
+                iconst(2)
+                bipush(6)
+                iastore()
+                ldc(libraryClassPool.getClass("java/lang/String"))
+                aload(1)
+                invokestatic("java/lang/reflect/Array", "newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;")
+                checkcast("[[[Ljava/lang/String;")
+                areturn()
+            }
 
             val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
 
-            // Find the match in the code and print it out.
-            class MatchPrinter : InstructionVisitor {
-                override fun visitAnyInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, instruction: Instruction) {
-                    println(instruction.toString(clazz, offset))
-                    instruction.accept(clazz, method, codeAttribute, offset, matcher)
-                    if (matcher.isMatching()) {
-                        println("  -> matching sequence starting at [" + matcher.matchedInstructionOffset(0) + "]")
-                    }
-                }
-            }
-
             testClass.methodsAccept(
                 AllAttributeVisitor(
-                    AllInstructionVisitor(
-                        MatchPrinter()
-                    )
+                AllInstructionVisitor(matcher)
                 )
             )
+
+            matcher.isMatching shouldBe true
         }
     }
 })

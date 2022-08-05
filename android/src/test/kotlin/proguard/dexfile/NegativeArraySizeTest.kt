@@ -1,26 +1,49 @@
 package proguard.dexfile
 
-import SmaliSource
-import fromSmali
-import getSmaliResource
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import proguard.classfile.Clazz
-import proguard.classfile.Method
-import proguard.classfile.attribute.CodeAttribute
+import proguard.android.testutils.SmaliSource
+import proguard.android.testutils.fromSmali
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
 import testutils.ClassPoolBuilder
 import testutils.InstructionBuilder
 
 class NegativeArraySizeTest : FreeSpec({
     "Negative array size test" - {
-        val smaliFile = getSmaliResource("negative-array-size.smali")
-        val (programClassPool, _) = ClassPoolBuilder.fromSmali(SmaliSource(smaliFile.name, smaliFile.readText()))
+        val (programClassPool, _) = ClassPoolBuilder.fromSmali(
+            SmaliSource(
+                "negative-array-size.smali",
+                """
+                    .class Li;
+                    .super Ljava/lang/Object;
 
+                    .method public getFileLength()I
+                      .catch Ljava/lang/Exception; { :L0 .. :L1 } :L2
+                      .catch Ljava/lang/Exception; { :L3 .. :L4 } :L5
+                      .registers 3
+                        const/4 v0, -1
+                      :L0
+                        new-array v1, v0, [I
+                      :L1
+                        goto :L0
+                      :L2
+                        move-exception v0
+                        const/4 v0, 0
+                        sput v0, Lz;->b:I
+                      :L3
+                        iget v0, p0, Lz;->b:I
+                      :L4
+                        return v0
+                      :L5
+                        move-exception v0
+                        throw v0
+                    .end method
+                """.trimIndent()
+            )
+        )
         val testClass = programClassPool.getClass("i")
 
         "Check if classPool is not null" {
@@ -36,45 +59,33 @@ class NegativeArraySizeTest : FreeSpec({
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = InstructionBuilder()
-
-            instructionBuilder
-                .iconst_m1()
-                .newarray(10)
-                .astore(1)
-                .goto_(-4)
-                .astore(1)
-                .iconst_0()
-                .putstatic("z", "b", "I")
-                .aload(0)
-                .getfield("z", "b", "I")
-                .istore(2)
-                .iload(2)
-                .ireturn()
-                .astore(1)
-                .aload(1)
-                .athrow()
+            val instructionBuilder = with(InstructionBuilder()) {
+                iconst_m1()
+                newarray(10)
+                astore(1)
+                goto_(-4)
+                astore(1)
+                iconst_0()
+                putstatic("z", "b", "I")
+                aload(0)
+                getfield("z", "b", "I")
+                istore(2)
+                iload(2)
+                ireturn()
+                astore(1)
+                aload(1)
+                athrow()
+            }
 
             val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
 
-            // Find the match in the code and print it out.
-            class MatchPrinter : InstructionVisitor {
-                override fun visitAnyInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, instruction: Instruction) {
-                    println(instruction.toString(clazz, offset))
-                    instruction.accept(clazz, method, codeAttribute, offset, matcher)
-                    if (matcher.isMatching()) {
-                        println("  -> matching sequence starting at [" + matcher.matchedInstructionOffset(0) + "]")
-                    }
-                }
-            }
-
             testClass.methodsAccept(
                 AllAttributeVisitor(
-                    AllInstructionVisitor(
-                        MatchPrinter()
-                    )
+                AllInstructionVisitor(matcher)
                 )
             )
+
+            matcher.isMatching shouldBe true
         }
     }
 })
