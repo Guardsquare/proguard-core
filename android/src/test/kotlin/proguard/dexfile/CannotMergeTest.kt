@@ -5,28 +5,16 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
+import proguard.android.testutils.getSmaliResource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
 import proguard.testutils.match
 
 class CannotMergeTest : FreeSpec({
     "Can not merge z and i test" - {
+        val smali = getSmaliResource("MultiSelectListPreference.smali")
         val (programClassPool, _) = ClassPoolBuilder.fromSmali(
-            SmaliSource(
-                "MultiSelectListPreference.smali",
-                """
-                    .class Landroid/preference/MultiSelectListPreference;
-                    .super Ljava/lang/Object;
-                    # virtual methods
-                    .method test(Ljava/util/Set;Ljava/lang/Object;)V
-                        .registers 3
-                        invoke-interface {p1, p2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
-                        move-result p1
-                        invoke-static {p0, p1}, Landroid/preference/MultiSelectListPreference;->access${'$'}076(Landroid/preference/MultiSelectListPreference;I)Z
-                        return-void
-                    .end method
-                """.trimIndent()
-            )
+            SmaliSource(smali.name, smali.readText())
         )
         val testClass = programClassPool.getClass("android/preference/MultiSelectListPreference")
         val testMethod = testClass.findMethod("test", "(Ljava/util/Set;Ljava/lang/Object;)V")

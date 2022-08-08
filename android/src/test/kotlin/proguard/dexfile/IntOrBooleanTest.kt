@@ -5,29 +5,18 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
+import proguard.android.testutils.getSmaliResource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
 import proguard.testutils.match
 
 class IntOrBooleanTest : FreeSpec({
     "Int or Boolean test" - {
+        val smali = getSmaliResource("int-or-boolean.smali")
         val (programClassPool, _) = ClassPoolBuilder.fromSmali(
             SmaliSource(
-                "int-or-boolean.smali",
-                """
-                    .class Li/or/Z;
-                    .super Ljava/lang/Object;
-
-                    .method static synthetic access${'$'}376(Lcom/google/android/finsky/widget/consumption/NowPlayingWidgetProvider${'$'}ViewTreeWrapper;I)Z
-                        .registers 3
-                        iget-boolean v0, v1, Lcom/google/android/finsky/widget/consumption/NowPlayingWidgetProvider${'$'}ViewTreeWrapper;->showBackground:Z
-                        or-int/2addr v0, v2
-                        int-to-byte v0, v0
-                        iput-boolean v0, v1, Lcom/google/android/finsky/widget/consumption/NowPlayingWidgetProvider${'$'}ViewTreeWrapper;->showBackground:Z
-                        return v0
-                    .end method
-
-                """.trimIndent()
+                smali.name,
+                smali.readText()
             )
         )
 

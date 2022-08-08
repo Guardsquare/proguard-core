@@ -6,7 +6,7 @@ import java.nio.file.Paths
 import java.util.stream.Collectors
 
 fun getAllSmaliResources(): List<File> {
-    val res = object {}::class.java.getResource("smalifile")
+    val res = object {}::class.java.getResource("/smalifile")
 
     return Files.walk(Paths.get(res.toURI()))
         .filter(Files::isRegularFile)
@@ -15,6 +15,6 @@ fun getAllSmaliResources(): List<File> {
 }
 
 fun getSmaliResource(name: String): File {
-    val res = object {}::class.java.getResource("smalifile/$name")
+    val res = object {}::class.java.getResource("/smalifile/$name")
     return Paths.get(res.toURI()).toFile()
 }
