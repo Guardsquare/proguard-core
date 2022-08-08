@@ -8,8 +8,8 @@ import io.kotest.matchers.shouldNotBe
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
-import testutils.ClassPoolBuilder
-import testutils.InstructionBuilder
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.InstructionBuilder
 
 class BasicTranslationTest : FreeSpec({
 

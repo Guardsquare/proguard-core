@@ -44,7 +44,7 @@ class ClassPoolBuilder private constructor() {
 
     companion object {
         private val compiler = KotlinCompilation()
-        private val libraryClassPool by LibraryClassPoolBuilder(compiler)
+        val libraryClassPool by LibraryClassPoolBuilder(compiler)
 
         fun fromClasses(vararg clazz: Clazz): ClassPool {
             return ClassPool().apply {
