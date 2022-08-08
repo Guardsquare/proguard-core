@@ -4,11 +4,9 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.editor.InstructionSequenceBuilder
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class TestTranslationDeterminism : FreeSpec({
 
@@ -75,67 +73,66 @@ class TestTranslationDeterminism : FreeSpec({
                             """.trimIndent()
                         )
                     )
-                    val instructionBuilder = with(InstructionSequenceBuilder()) {
-                        iconst_2()
-                        newarray(10)
-                        astore_0()
-                        aload_0()
-                        dup()
-                        ldc(0)
-                        iconst_0()
-                        iastore()
-                        dup()
-                        ldc(1)
-                        iconst_1()
-                        iastore()
-                        pop()
-                        aload_0()
-                        iconst_0()
-                        iaload()
-                        ireturn()
-                        invokestatic("TestTypeTransformerMergeIZArray", "foo", "()Z")
-                        pop()
-                        getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-                        astore_0()
-                        new_("java/lang/StringBuilder")
-                        dup()
-                        invokespecial("java/lang/StringBuilder", "<init>", "()V")
-                        astore_1()
-                        aload_1()
-                        ldc("The answer is ")
-                        invokevirtual("java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;")
-                        pop()
-                        ldc("The answer is ")
-//                      ifnonnull(L0.offset())
-                        ifnonnull(8) // jumps to label L0
-                        iconst_0()
-                        istore_2()
-//                      goto_(L1.offset())
-                        goto_(6) // jumps to label L1
-//                      label(L0)
-                        bipush(42)
-                        istore_2()
-//                      label(L1)
-                        aload_1()
-                        iload_2()
-                        invokevirtual("java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;")
-                        pop()
-                        aload_0()
-                        aload_1()
-                        invokevirtual("java/lang/StringBuilder", "toString", "()Ljava/lang/String;")
-                        invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
-                        return_()
+                    val testClass = pcp.getClass("TestTypeTransformerMergeIZArray")
+                    val methodFoo = testClass.findMethod("foo", "()Z")
+                    val methodMain = testClass.findMethod("main", "([Ljava/lang/String;)V")
+                    with(testClass and methodFoo) {
+                        match {
+                            iconst_2()
+                            newarray(10)
+                            astore_0()
+                            aload_0()
+                            dup()
+                            ldc(0)
+                            iconst_0()
+                            iastore()
+                            dup()
+                            ldc(1)
+                            iconst_1()
+                            iastore()
+                            pop()
+                            aload_0()
+                            iconst_0()
+                            iaload()
+                            ireturn()
+                        } shouldBe true
                     }
-                    val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-                    val programClass = pcp.getClass("TestTypeTransformerMergeIZArray")
-
-                    programClass.methodsAccept(
-                        AllAttributeVisitor(
-                            AllInstructionVisitor(matcher)
-                        )
-                    )
-
-                    matcher.isMatching shouldBe true
+                    with(testClass and methodMain) {
+                        match {
+                            invokestatic("TestTypeTransformerMergeIZArray", "foo", "()Z")
+                            pop()
+                            getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
+                            astore_0()
+                            new_("java/lang/StringBuilder")
+                            dup()
+                            invokespecial("java/lang/StringBuilder", "<init>", "()V")
+                            astore_1()
+                            aload_1()
+                            ldc("The answer is ")
+                            invokevirtual("java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;")
+                            pop()
+                            ldc("The answer is ")
+//                      ifnonnull(L0.offset())
+                            ifnonnull(8) // jumps to label L0
+                            iconst_0()
+                            istore_2()
+//                      goto_(L1.offset())
+                            goto_(6) // jumps to label L1
+//                      label(L0)
+                            bipush(42)
+                            istore_2()
+//                      label(L1)
+                            aload_1()
+                            iload_2()
+                            invokevirtual("java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;")
+                            pop()
+                            aload_0()
+                            aload_1()
+                            invokevirtual("java/lang/StringBuilder", "toString", "()Ljava/lang/String;")
+                            invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
+                            return_()
+                        }
+                    } shouldBe true
                 }
             }
         }

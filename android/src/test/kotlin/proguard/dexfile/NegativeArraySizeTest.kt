@@ -5,11 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class NegativeArraySizeTest : FreeSpec({
     "Negative array size test" - {
@@ -45,6 +43,7 @@ class NegativeArraySizeTest : FreeSpec({
             )
         )
         val testClass = programClassPool.getClass("i")
+        val testMethod = testClass.findMethod("getFileLength", "()I")
 
         "Check if classPool is not null" {
             programClassPool shouldNotBe null
@@ -55,37 +54,29 @@ class NegativeArraySizeTest : FreeSpec({
         }
 
         "Check if class i has method getFileLength" {
-            testClass.findMethod("getFileLength", "()I") shouldNotBe null
+            testMethod shouldNotBe null
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                iconst_m1()
-                newarray(10)
-                astore(1)
-                goto_(-4)
-                astore(1)
-                iconst_0()
-                putstatic("z", "b", "I")
-                aload(0)
-                getfield("z", "b", "I")
-                istore(2)
-                iload(2)
-                ireturn()
-                astore(1)
-                aload(1)
-                athrow()
+            with(testClass and testMethod) {
+                match {
+                    iconst_m1()
+                    newarray(10)
+                    astore(1)
+                    goto_(-4)
+                    astore(1)
+                    iconst_0()
+                    putstatic("z", "b", "I")
+                    aload(0)
+                    getfield("z", "b", "I")
+                    istore(2)
+                    iload(2)
+                    ireturn()
+                    astore(1)
+                    aload(1)
+                    athrow()
+                } shouldBe true
             }
-
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            testClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(matcher)
-                )
-            )
-
-            matcher.isMatching shouldBe true
         }
     }
 })

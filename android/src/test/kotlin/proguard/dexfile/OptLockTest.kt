@@ -5,11 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class OptLockTest : FreeSpec({
     "Opt lock test" - {
@@ -40,6 +38,7 @@ class OptLockTest : FreeSpec({
         )
 
         val testClass = programClassPool.getClass("opt/lock")
+        val testMethod = testClass.findMethod("a", "()V")
 
         "Check if classPool is not null" {
             programClassPool shouldNotBe null
@@ -50,37 +49,29 @@ class OptLockTest : FreeSpec({
         }
 
         "Check if class has method a" {
-            testClass.findMethod("a", "()V") shouldNotBe null
+            testMethod shouldNotBe null
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-                astore(0)
-                aload(0)
-                monitorenter()
-                aload(0)
-                ldc("haha")
-                invokevirtual("java/io/PrintString", "println", "(Ljava/lang/String;)V")
-                aload(0)
-                monitorexit()
-                return_()
-                astore(1)
-                aload(0)
-                monitorexit()
-                aload(1)
-                athrow()
+            with(testClass and testMethod) {
+                match {
+                    getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
+                    astore(0)
+                    aload(0)
+                    monitorenter()
+                    aload(0)
+                    ldc("haha")
+                    invokevirtual("java/io/PrintString", "println", "(Ljava/lang/String;)V")
+                    aload(0)
+                    monitorexit()
+                    return_()
+                    astore(1)
+                    aload(0)
+                    monitorexit()
+                    aload(1)
+                    athrow()
+                } shouldBe true
             }
-
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            testClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(matcher)
-                )
-            )
-
-            matcher.isMatching shouldBe true
         }
     }
 })

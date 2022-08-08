@@ -5,10 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
-import proguard.testutils.*
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class BasicTranslationTest : FreeSpec({
 
@@ -38,19 +37,17 @@ class BasicTranslationTest : FreeSpec({
         )
 
         val helloWorldClass = programClassPool.getClass("HelloWorld")
+        val mainMethod = helloWorldClass.findMethod("main", "([Ljava/lang/String;)V")
 
         "Check if classPool contains the HelloWorld class" {
             helloWorldClass shouldNotBe null
         }
 
         "Check if HelloWorld contains main method" {
-            helloWorldClass
-                .findMethod("main", "([Ljava/lang/String;)V") shouldNotBe null
+            mainMethod shouldNotBe null
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val mainMethod = helloWorldClass
-                .findMethod("main", "([Ljava/lang/String;)V")
             with(helloWorldClass and mainMethod) {
                 match {
                     getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")

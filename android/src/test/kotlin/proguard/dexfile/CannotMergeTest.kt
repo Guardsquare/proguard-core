@@ -5,11 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class CannotMergeTest : FreeSpec({
     "Can not merge z and i test" - {
@@ -31,6 +29,7 @@ class CannotMergeTest : FreeSpec({
             )
         )
         val testClass = programClassPool.getClass("android/preference/MultiSelectListPreference")
+        val testMethod = testClass.findMethod("test", "(Ljava/util/Set;Ljava/lang/Object;)V")
 
         "Check if classPool is not null" {
             programClassPool shouldNotBe null
@@ -41,32 +40,24 @@ class CannotMergeTest : FreeSpec({
         }
 
         "Check if the class contains method test" - {
-            testClass
-                .findMethod("test", "(Ljava/util/Set;Ljava/lang/Object;)V") shouldNotBe null
+            testMethod shouldNotBe null
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                aload(0)
-                aload(1)
-                aload(2)
-                invokeinterface("java/util/Set", "add", "(Ljava/lang/Object;)Z")
-                invokestatic(
-                    "android/preference/MultiSelectListPreference", "access$076",
-                    "(Landroid/preference/MultiSelectListPreference;I)Z"
-                )
-                pop()
-                return_()
+            with(testClass and testMethod) {
+                match {
+                    aload(0)
+                    aload(1)
+                    aload(2)
+                    invokeinterface("java/util/Set", "add", "(Ljava/lang/Object;)Z")
+                    invokestatic(
+                        "android/preference/MultiSelectListPreference", "access$076",
+                        "(Landroid/preference/MultiSelectListPreference;I)Z"
+                    )
+                    pop()
+                    return_()
+                } shouldBe true
             }
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            testClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(matcher)
-                )
-            )
-
-            matcher.isMatching shouldBe true
         }
     }
 })

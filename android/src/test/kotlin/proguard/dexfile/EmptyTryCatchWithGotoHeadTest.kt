@@ -5,11 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class EmptyTryCatchWithGotoHeadTest : FreeSpec({
     "Empty Try Catch With Goto Head test" - {
@@ -49,6 +47,7 @@ class EmptyTryCatchWithGotoHeadTest : FreeSpec({
             )
         )
         val testClass = programClassPool.getClass("etcwgh")
+        val testMethod = testClass.findMethod("aaa", "(F)V")
 
         "Check if classPool is not null" {
             programClassPool shouldNotBe null
@@ -59,45 +58,37 @@ class EmptyTryCatchWithGotoHeadTest : FreeSpec({
         }
 
         "Check if class etcwgh contains method aaa" {
-            testClass
-                .findMethod("aaa", "(F)V") shouldNotBe null
+            testMethod shouldNotBe null
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                aload(0)
-                getfield("z", "z", "Lz;")
-                ifnull(38)
-                aload(0)
-                getfield("z", "z", "Lz;")
-                astore(2)
-                invokestatic("java/util/Locale", "getDefault", "()Ljava/util/Locale;")
-                astore(3)
-                iconst(1)
-                anewarray(libraryClassPool.getClass("java/lang/Object"))
-                astore(4)
-                aload(4)
-                iconst_0()
-                fload(1)
-                invokestatic("java/lang/Float", "valueOf", "(F)Ljava/lang/Float;")
-                aastore()
-                aload(2)
-                aload(3)
-                ldc("%.1f")
-                aload(4)
-                invokestatic("java/lang/String", "format", "(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;")
-                invokevirtual("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V")
-                return_()
+            with(testClass and testMethod) {
+                match {
+                    aload(0)
+                    getfield("z", "z", "Lz;")
+                    ifnull(38)
+                    aload(0)
+                    getfield("z", "z", "Lz;")
+                    astore(2)
+                    invokestatic("java/util/Locale", "getDefault", "()Ljava/util/Locale;")
+                    astore(3)
+                    iconst(1)
+                    anewarray(libraryClassPool.getClass("java/lang/Object"))
+                    astore(4)
+                    aload(4)
+                    iconst_0()
+                    fload(1)
+                    invokestatic("java/lang/Float", "valueOf", "(F)Ljava/lang/Float;")
+                    aastore()
+                    aload(2)
+                    aload(3)
+                    ldc("%.1f")
+                    aload(4)
+                    invokestatic("java/lang/String", "format", "(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;")
+                    invokevirtual("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V")
+                    return_()
+                } shouldBe true
             }
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            testClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(matcher)
-                )
-            )
-
-            matcher.isMatching shouldBe true
         }
     }
 })

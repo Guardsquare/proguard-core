@@ -1,15 +1,10 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
 
 class GoToFirstLabelTest : FreeSpec({
     "Go to first label test" - {
@@ -50,6 +45,8 @@ class GoToFirstLabelTest : FreeSpec({
             )
         )
         val testClass = programClassPool.getClass("xgoto/first/label")
+        val methodAssertSlept = testClass.findMethod("assertSlept", "()V")
+        val methodG2 = testClass.findMethod("g2", "(LObj;)V")
 
         "Check if classPool is not null" {
             programClassPool shouldNotBe null
@@ -60,44 +57,11 @@ class GoToFirstLabelTest : FreeSpec({
         }
 
         "Check if class has method assertSlept" {
-            testClass
-                .findMethod("assertSlept", "()V") shouldNotBe null
+            methodAssertSlept shouldNotBe null
         }
 
         "Check if class has method g2" {
-            testClass
-                .findMethod("g2", "(LObj;)V") shouldNotBe null
-        }
-
-        "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                getstatic("A", "sleepSemaphore", "Ljava/util/concurrent/Semaphore;")
-                invokevirtual("java/util/concurrent/Semaphore", "availablePermits", "()I")
-                ifne(4)
-                return_()
-                ldc2_w(50L)
-                invokestatic("java/lang/Thread", "sleep", "(J)V")
-                goto_(-16)
-                aload(0)
-                invokevirtual("Obj", "next", "()LObj;")
-                astore(0)
-                aload(0)
-                ifnonnull(4)
-                return_()
-                aload(0)
-                invokevirtual("Obj", "next", "()LObj;")
-                astore(0)
-                goto_(-15)
-            }
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            testClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(matcher)
-                )
-            )
-
-            matcher.isMatching shouldBe true
+            methodG2 shouldNotBe null
         }
     }
 })

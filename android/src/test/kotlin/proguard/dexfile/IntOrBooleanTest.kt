@@ -5,11 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class IntOrBooleanTest : FreeSpec({
     "Int or Boolean test" - {
@@ -34,6 +32,10 @@ class IntOrBooleanTest : FreeSpec({
         )
 
         val testClass = programClassPool.getClass("i/or/Z")
+        val testMethod = testClass.findMethod(
+            "access\$376",
+            "(Lcom/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper;I)Z"
+        )
 
         "Check if classPool is not null" {
             programClassPool shouldNotBe null
@@ -44,34 +46,25 @@ class IntOrBooleanTest : FreeSpec({
         }
 
         "Check if class has method access$376" - {
-            testClass
-                .findMethod("access\$376", "(Lcom/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper;I)Z") shouldNotBe null
+            testMethod shouldNotBe null
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                aload_0()
-                getfield("com/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper", "showBackground", "Z")
-                iload_1()
-                ior()
-                i2b()
-                istore_2()
-                aload_0()
-                iload_2()
-                putfield("com/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper", "showBackground", "Z")
-                iload_2()
-                ireturn()
+            with(testClass and testMethod) {
+                match {
+                    aload_0()
+                    getfield("com/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper", "showBackground", "Z")
+                    iload_1()
+                    ior()
+                    i2b()
+                    istore_2()
+                    aload_0()
+                    iload_2()
+                    putfield("com/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper", "showBackground", "Z")
+                    iload_2()
+                    ireturn()
+                } shouldBe true
             }
-
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            testClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(matcher)
-                )
-            )
-
-            matcher.isMatching shouldBe true
         }
     }
 })

@@ -5,11 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class MLTest : FreeSpec({
     "ML test" - {
@@ -65,6 +63,8 @@ class MLTest : FreeSpec({
         )
 
         val testClass = programClassPool.getClass("ML")
+        val methodInit = testClass.findMethod("<init>", "()V")
+        val methodA = testClass.findMethod("a", "()Ljava/lang/Object;")
 
         "Check if classPool is not null" {
             programClassPool shouldNotBe null
@@ -75,51 +75,48 @@ class MLTest : FreeSpec({
         }
 
         "Check if class ML has a constructor" {
-            testClass
-                .findMethod("<init>", "()V") shouldNotBe null
+            methodInit shouldNotBe null
         }
 
         "Check if class ML has method a" {
-            testClass
-                .findMethod("a", "()Ljava/lang/Object;") shouldNotBe null
+            methodA shouldNotBe null
         }
 
-        "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                aload(0)
-                invokespecial("java/lang/Object", "<init>", "()V")
-                return_()
-                iconst(3)
-                newarray(10)
-                astore(1)
-                aload(1)
-                iconst(0)
-                iconst(4)
-                iastore()
-                aload(1)
-                iconst(1)
-                iconst(5)
-                iastore()
-                aload(1)
-                iconst(2)
-                bipush(6)
-                iastore()
-                ldc(libraryClassPool.getClass("java/lang/String"))
-                aload(1)
-                invokestatic("java/lang/reflect/Array", "newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;")
-                checkcast("[[[Ljava/lang/String;")
-                areturn()
+        "Check if sequence of operations for method <init> after translation match original smali code" {
+            with(testClass and methodInit) {
+                match {
+                    aload(0)
+                    invokespecial("java/lang/Object", "<init>", "()V")
+                    return_()
+                } shouldBe true
             }
+        }
 
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            testClass.methodsAccept(
-                AllAttributeVisitor(
-                    AllInstructionVisitor(matcher)
-                )
-            )
-
-            matcher.isMatching shouldBe true
+        "Check if sequence of operations for method a after translation match original smali code" {
+            with(testClass and methodA) {
+                match {
+                    iconst(3)
+                    newarray(10)
+                    astore(1)
+                    aload(1)
+                    iconst(0)
+                    iconst(4)
+                    iastore()
+                    aload(1)
+                    iconst(1)
+                    iconst(5)
+                    iastore()
+                    aload(1)
+                    iconst(2)
+                    bipush(6)
+                    iastore()
+                    ldc(libraryClassPool.getClass("java/lang/String"))
+                    aload(1)
+                    invokestatic("java/lang/reflect/Array", "newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;")
+                    checkcast("[[[Ljava/lang/String;")
+                    areturn()
+                } shouldBe true
+            }
         }
     }
 })
