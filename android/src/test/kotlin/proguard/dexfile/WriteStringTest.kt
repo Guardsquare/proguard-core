@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
-import testutils.ClassPoolBuilder
+import proguard.testutils.ClassPoolBuilder
 
 class WriteStringTest : FreeSpec({
     "Write string test" - {

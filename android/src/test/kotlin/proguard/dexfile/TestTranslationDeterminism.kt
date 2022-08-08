@@ -8,7 +8,7 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.editor.InstructionSequenceBuilder
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
-import testutils.ClassPoolBuilder
+import proguard.testutils.ClassPoolBuilder
 
 class TestTranslationDeterminism : FreeSpec({
 

@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
+import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.runClassPool
-import testutils.ClassPoolBuilder
 
 class TestMonitorConstantInlining : FreeSpec({
 

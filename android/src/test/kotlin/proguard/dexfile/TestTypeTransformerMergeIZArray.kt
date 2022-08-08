@@ -14,8 +14,8 @@ import proguard.classfile.util.InstructionSequenceMatcher.A
 import proguard.classfile.util.InstructionSequenceMatcher.X
 import proguard.classfile.util.InstructionSequenceMatcher.Y
 import proguard.classfile.util.InstructionSequenceMatcher.Z
+import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.runClassPool
-import testutils.ClassPoolBuilder
 
 class TestTypeTransformerMergeIZArray : FreeSpec({
 
