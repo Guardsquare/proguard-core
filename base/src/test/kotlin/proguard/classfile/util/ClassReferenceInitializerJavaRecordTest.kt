@@ -24,10 +24,10 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.attribute.RecordComponentInfo
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.RequiresJavaVersion
-import testutils.currentJavaVersion
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.RequiresJavaVersion
+import proguard.testutils.currentJavaVersion
 
 @RequiresJavaVersion(15)
 class ClassReferenceInitializerJavaRecordTest : FreeSpec({

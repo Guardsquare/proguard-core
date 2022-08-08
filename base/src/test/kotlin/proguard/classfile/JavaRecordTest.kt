@@ -34,10 +34,10 @@ import proguard.classfile.util.MemberFinder
 import proguard.classfile.visitor.AllMemberVisitor
 import proguard.classfile.visitor.ConstructorMethodFilter
 import proguard.classfile.visitor.MethodFilter
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
-import testutils.RequiresJavaVersion
-import testutils.currentJavaVersion
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
+import proguard.testutils.RequiresJavaVersion
+import proguard.testutils.currentJavaVersion
 
 @RequiresJavaVersion(15)
 class JavaRecordTest : FreeSpec({
