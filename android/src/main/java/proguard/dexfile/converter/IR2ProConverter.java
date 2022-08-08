@@ -309,7 +309,7 @@ public class IR2ProConverter {
                         code.iconst_0();
                         accept(e2.getOp1(), code);
                         code.iconst_0();
-                        code.iconst(arraySize);
+                        code.pushInt(arraySize);
                         code.invokestatic("java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
                         return code;
                     }
