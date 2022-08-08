@@ -47,7 +47,6 @@ class CannotMergeTest : FreeSpec({
 
         "Check if sequence of operations after translation match original smali code" {
             val instructionBuilder = with(InstructionBuilder()) {
-                match {
                     aload(0)
                     aload(1)
                     aload(2)
@@ -58,7 +57,6 @@ class CannotMergeTest : FreeSpec({
                     )
                     pop()
                     return_()
-                } shouldBe true
             }
             val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
 
