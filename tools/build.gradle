@@ -9,6 +9,8 @@ plugins {
 dependencies {
     implementation(project(":proguard-core"))
     implementation(project(":proguard-core-android"))
+    implementation(testFixtures(project(":proguard-core")))
+    implementation(testFixtures(project(":proguard-core-android")))
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 }
 

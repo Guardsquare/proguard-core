@@ -6,6 +6,7 @@ import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import kotlinx.cli.default
 import kotlinx.cli.required
+import proguard.android.testutils.SmaliSource
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.Member
@@ -25,7 +26,19 @@ import proguard.io.DexClassReader
 import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
 import proguard.io.util.IOUtil.writeJar
+import proguard.testutils.ClassPoolBuilder
 import java.io.File
+import java.io.IOException
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.*
+import proguard.android.testutils.fromSmali
+import proguard.android.testutils.getSmaliResource
+import kotlin.io.path.readText
+
 
 @ExperimentalCli
 fun main(args: Array<String>) {
@@ -174,7 +187,67 @@ fun main(args: Array<String>) {
         }
     }
 
-    parser.subcommands(Dex2JarCmd(), Jar2DexCmd(), ListCmd(), PrintCmd(), TransformCmd())
+    class Smali2JarCmd : Subcommand("smali2jar", "Convert smali to jar - NOT YET COMPLETED") {
+
+        var input by argument(ArgType.String, description = "Input smali folder name")
+        var output by option(
+            ArgType.String,
+            description = "Output file name",
+            shortName = "o",
+            fullName = "output"
+        ).default("classes.jar")
+        var forceOverwrite by option(
+            ArgType.Boolean,
+            description = "Force file overwriting",
+            shortName = "f",
+            fullName = "force"
+        ).default(false)
+        var apiLevel by option(
+            ArgType.Int,
+            description = "api level of the file to generate",
+            shortName = "v",
+            fullName = "version"
+        )
+
+        override fun execute() {
+//            val smaliFile = getSmaliResource(input)
+//            val (pcp, _) = ClassPoolBuilder.fromSmali(SmaliSource(smaliFile.name, smaliFile.readText()))
+
+            val basePath : Path = File(input).toPath()
+            val files: MutableSet<Path> = TreeSet()
+
+            try {
+                Files.walkFileTree(basePath, object : SimpleFileVisitor<Path>() {
+                    @Throws(IOException::class)
+                    override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                        if (file.fileName.toString().endsWith(".smali")) {
+                            files.add(file)
+                        }
+                        return super.visitFile(file, attrs)
+                    }
+                })
+            } catch (e: IOException) {
+                throw RuntimeException(e)
+            }
+
+//            val outputfile = File(output)
+
+            var programClassPool : ClassPool
+
+            for (p in files){
+                val testFile= File(p.toUri())
+                val tempPool = ClassPoolBuilder.fromSmali(SmaliSource(testFile.name, testFile.readText())).programClassPool
+//                println(tempPool.classNames().toString())
+
+            }
+
+//            writeJar(pcp, outputfile.absolutePath)
+        }
+
+    }
+
+
+    parser.subcommands(Dex2JarCmd(), Jar2DexCmd(), ListCmd(), PrintCmd(), TransformCmd(), Smali2JarCmd())
     parser.parse(args)
 }
 
