@@ -1,3 +1,5 @@
+package proguard.android.testutils
+
 import org.jf.smali.Smali
 import org.jf.smali.SmaliOptions
 import proguard.io.DexClassReader
@@ -16,6 +18,7 @@ fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {
     val dexFile = File.createTempFile("classes", ".dex")
     val dexFileName = dexFile.absolutePath
     options.outputDexFile = dexFileName
+    options.apiLevel = smali.apiLevel
     Smali.assemble(options, file.absolutePath)
 
     file.deleteOnExit()

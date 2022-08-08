@@ -1,15 +1,13 @@
 package proguard.dexfile
 
-import SmaliSource
-import fromSmali
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import proguard.classfile.attribute.visitor.AllAttributeVisitor
-import proguard.classfile.instruction.visitor.AllInstructionVisitor
-import proguard.classfile.util.InstructionSequenceMatcher
+import proguard.android.testutils.SmaliSource
+import proguard.android.testutils.fromSmali
 import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.and
+import proguard.testutils.match
 
 class BasicTranslationTest : FreeSpec({
 
@@ -39,30 +37,25 @@ class BasicTranslationTest : FreeSpec({
         )
 
         val helloWorldClass = programClassPool.getClass("HelloWorld")
+        val mainMethod = helloWorldClass.findMethod("main", "([Ljava/lang/String;)V")
 
         "Check if classPool contains the HelloWorld class" {
             helloWorldClass shouldNotBe null
         }
 
         "Check if HelloWorld contains main method" {
-            helloWorldClass
-                .findMethod("main", "([Ljava/lang/String;)V") shouldNotBe null
+            mainMethod shouldNotBe null
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = InstructionBuilder()
-
-            instructionBuilder
-                .getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-                .ldc("Hello World!")
-                .invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
-                .return_()
-
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            helloWorldClass.methodsAccept(AllAttributeVisitor(AllInstructionVisitor(matcher)))
-
-            matcher.isMatching shouldBe true
+            with(helloWorldClass and mainMethod) {
+                match {
+                    getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
+                    ldc("Hello World!")
+                    invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
+                    return_()
+                } shouldBe true
+            }
         }
     }
 })
