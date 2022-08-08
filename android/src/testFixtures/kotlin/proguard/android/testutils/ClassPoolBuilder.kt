@@ -7,7 +7,6 @@ import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.ClassPools
-
 import java.io.File
 
 fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {

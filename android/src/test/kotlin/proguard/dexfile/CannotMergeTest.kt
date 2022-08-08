@@ -51,7 +51,10 @@ class CannotMergeTest : FreeSpec({
                 aload(1)
                 aload(2)
                 invokeinterface("java/util/Set", "add", "(Ljava/lang/Object;)Z")
-                invokestatic("android/preference/MultiSelectListPreference", "access$076", "(Landroid/preference/MultiSelectListPreference;I)Z")
+                invokestatic(
+                    "android/preference/MultiSelectListPreference", "access$076",
+                    "(Landroid/preference/MultiSelectListPreference;I)Z"
+                )
                 pop()
                 return_()
             }
