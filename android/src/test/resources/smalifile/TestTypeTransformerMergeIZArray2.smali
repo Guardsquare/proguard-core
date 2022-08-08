@@ -1,31 +1,6 @@
 # T6048: Fix merging of I+Z in ADD instructions.
 #        Sample is a stripped down snippet based on real customer code.
 
-# RUN: %smali a %s -o %t/classes.dex
-# RUN: jar -cf %t/input.jar -C %t classes.dex
-
-# RUN: %dalvikvm -cp %t/input.jar %basename_s | FileCheck %s -check-prefix ORIGINAL
-# ORIGINAL: The answer is 42
-
-# RUN: %dexguard -injars %t/input.jar \
-# RUN:           -libraryjars %android \
-# RUN:           -outjars %t/%basename_s.apk \
-# RUN:           -ignorewarnings \
-# RUN:           -verbose \
-# RUN:           -forceprocessing \
-# RUN:           -dalvik \
-# RUN:           -dontobfuscate \
-# RUN:           -dontoptimize \
-# RUN:           -dontshrink \
-# RUN:           -dump | FileCheck %s --check-prefix DEXGUARD
-
-# DEXGUARD-NOT: java.lang.RuntimeException
-
-# RUN: %dalvikvm -cp %t/%basename_s.apk %basename_s | FileCheck %s -check-prefix OBFUSCATED
-
-# OBFUSCATED: The answer is 42
-
-
 .class public LTestTypeTransformerMergeIZArray2;
 .super Ljava/lang/Object;
 

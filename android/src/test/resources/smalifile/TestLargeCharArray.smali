@@ -2,28 +2,6 @@
 #        Dex2Pro will convert the array-data into a short[] array but
 #        the actual array type should be char[].
 
-# RUN: %smali a %s -o %t/classes.dex
-# RUN: jar -cf %t/input.jar -C %t classes.dex
-
-# RUN: %dexguard -injars %t/input.jar -outjars %t/output.apk \
-# RUN:           -libraryjars %android \
-# RUN:           -ignorewarnings \
-# RUN:           -verbose \
-# RUN:           -forceprocessing \
-# RUN:           -dalvik -android \
-# RUN:           -dontobfuscate \
-# RUN:           -dontoptimize \
-# RUN:           -dontshrink \
-# RUN:            | FileCheck %s --check-prefix DEXGUARD
-#
-# RUN: %dalvikvm -cp %t/classes.dex %basename_s | FileCheck %s -check-prefix ORIGINAL
-# DEXGUARD: Writing dex file
-
-# RUN: %dalvikvm -cp %t/output.apk %basename_s | FileCheck %s -check-prefix PROCESSED
-
-# ORIGINAL: The answer is 42
-# PROCESSED: The answer is 42
-
 .class public LTestLargeCharArray;
 .super Ljava/lang/Object;
 

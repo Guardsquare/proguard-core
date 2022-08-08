@@ -2,25 +2,6 @@
 # post-processing mode, dex2jar would inline the constants used by the monitor
 # instructions. This would cause a VerifyError on dalvik machines as
 # throwing instructions must be covered by a catch-all. See issue #2297.
-#
-# REQUIRES: DALVIKVM
-#
-# RUN: %smali a %s -o %t/classes.dex
-# RUN: %dexguard -injars %t/classes.dex \
-# RUN:           -outjars %t/%basename_s.apk \
-# RUN:           -ignorewarnings \
-# RUN:           -dalvik \
-# RUN:           -android \
-# RUN:           -dontobfuscate \
-# RUN:           -dontoptimize \
-# RUN:           -dontshrink \
-# RUN:           -keep class %basename_s
-
-# RUN: %baksmali d %t/%basename_s.apk -o %t/smali
-# RUN: cat %t/smali/%basename_s.smali | FileCheck %s -check-prefix PROCESSED
-# RUN: %dalvikvm -cp %t/%basename_s.apk %basename_s | FileCheck %s -check-prefix OUTPUT
-#
-# OUTPUT: The answer is 42
 
 .class public final LTestMonitorConstantInlining2297;
 .super Ljava/lang/Object;
@@ -35,9 +16,7 @@
     .registers 4
     :try_start_1
     # The constant should be loaded once and stored in a register
-    # PROCESSED: const-class [[REGISTER:v[0-9]+]], Ljava/lang/Object;
     const-class v0, Ljava/lang/Object;
-    # PROCESSED: monitor-enter [[REGISTER]]
     monitor-enter v0
     :try_end_4
     .catch Ljava/lang/InterruptedException; {:try_start_1 .. :try_end_4} :catch_13
@@ -49,14 +28,10 @@
     :try_end_e
     .catchall {:try_start_5 .. :try_end_e} :catchall_10
     :try_start_e
-    # PROCESSED-NOT: const-class v{{[0-9]+}}, Ljava/lang/Object;
-    # PROCESSED: monitor-exit [[REGISTER]]
     monitor-exit v0
     goto :goto_14
     :catchall_10
     move-exception v1
-    # PROCESSED-NOT: const-class v{{[0-9]+}}, Ljava/lang/Object;
-    # PROCESSED: monitor-exit [[REGISTER]]
     monitor-exit v0
     throw v1
     :try_end_13

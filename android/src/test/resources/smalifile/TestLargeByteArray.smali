@@ -1,24 +1,3 @@
-# RUN: %smali a -a 26 %s -o %t/classes.dex
-# RUN: jar -cf %t/input.jar -C %t classes.dex
-
-# RUN: %dexguard -injars %t/input.jar                                                      \
-# RUN:           -outjar %t/out.jar                                                        \
-# RUN:           -libraryjars %android                                                     \
-# RUN:           -ignorewarnings                                                           \
-# RUN:           -verbose                                                                  \
-# RUN:           -forceprocessing                                                          \
-# RUN:           -dalvik                                                                   \
-# RUN:           -dontobfuscate                                                            \
-# RUN:           -dontoptimize                                                             \
-# RUN:           -dontshrink                                                               \
-# RUN:           -keep class %basename_s { public static void main(java.lang.String[])\; } \
-# RUN:           -dump | FileCheck %s --check-prefix BYTEC --check-prefix DEXGUARD
-#
-# DEXGUARD: Printing classes
-
-# RUN: %dalvikvm -cp %t/out.jar %basename_s | FileCheck %s -check-prefix OUTPUT
-# OUTPUT: The answer is 42
-
 # PrimitiveArrays are introduced by Dex2Pro (always) OR
 # ProGuard.introducePrimitiveArrayConstants() but only when obfuscate = true || optimize = true.
 #
@@ -28,9 +7,6 @@
 # Large arrays list this will be expanded to Strings when using -dalvik
 # by PrimitiveArrayConstantToStringReplacer via PrimitiveArrayConstantAdaptiveReplacer
 # So we expect to see the following in the output:
-
-# DEXGUARD: ldc #{{[0-9]+}} = String
-# DEXGUARD: ldc #{{[0-9]+}} = String("ISO-8859-1")
 
 # Note you can also add programClassPool.classesAccept(new ClassPrinter()); *before*
 # ProGuard.introducePrimitiveArrayConstants() and a PrimitiveArray should already be there.

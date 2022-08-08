@@ -1,29 +1,5 @@
 # T5347: Tests the merging of integer and boolean types, when accessed via an array.
 # See dex2jar:TypeTransformer#mergeTypeEx
-#
-# RUN: %smali a %s -o %t/classes.dex
-# RUN: jar -cf %t/input.jar -C %t classes.dex
-
-# RUN: %dexguard -injars %t/input.jar \
-# RUN:           -libraryjars %android \
-# RUN:           -outjars %t/%basename_s.apk \
-# RUN:           -ignorewarnings \
-# RUN:           -verbose \
-# RUN:           -forceprocessing \
-# RUN:           -dalvik \
-# RUN:           -dontobfuscate \
-# RUN:           -dontoptimize \
-# RUN:           -dontshrink \
-# RUN:           -dump | FileCheck %s --check-prefix DEXGUARD
-
-# DEXGUARD-NOT: java.lang.RuntimeException
-
-# RUN: %dalvikvm -cp %t/input.jar %basename_s FileCheck %s -check-prefix ORIGINAL
-# RUN: %dalvikvm -cp %t/%basename_s.apk %basename_s FileCheck %s -check-prefix OBFUSCATED
-
-# ORIGINAL: The answer is 42
-# OBFUSCATED: The answer is 42
-
 
 .class public LTestTypeTransformerMergeIZArray;
 .super Ljava/lang/Object;
