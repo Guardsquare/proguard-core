@@ -8,8 +8,7 @@ import proguard.android.testutils.fromSmali
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.util.InstructionSequenceMatcher
-import proguard.testutils.ClassPoolBuilder
-import proguard.testutils.InstructionBuilder
+import proguard.testutils.*
 
 class BasicTranslationTest : FreeSpec({
 
@@ -50,18 +49,16 @@ class BasicTranslationTest : FreeSpec({
         }
 
         "Check if sequence of operations after translation match original smali code" {
-            val instructionBuilder = with(InstructionBuilder()) {
-                getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-                ldc("Hello World!")
-                invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
-                return_()
+            val mainMethod = helloWorldClass
+                .findMethod("main", "([Ljava/lang/String;)V")
+            with(helloWorldClass and mainMethod) {
+                match {
+                    getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
+                    ldc("Hello World!")
+                    invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
+                    return_()
+                } shouldBe true
             }
-
-            val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
-
-            helloWorldClass.methodsAccept(AllAttributeVisitor(AllInstructionVisitor(matcher)))
-
-            matcher.isMatching shouldBe true
         }
     }
 })
