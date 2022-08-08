@@ -47,16 +47,16 @@ class CannotMergeTest : FreeSpec({
 
         "Check if sequence of operations after translation match original smali code" {
             val instructionBuilder = with(InstructionBuilder()) {
-                    aload(0)
-                    aload(1)
-                    aload(2)
-                    invokeinterface("java/util/Set", "add", "(Ljava/lang/Object;)Z")
-                    invokestatic(
-                        "android/preference/MultiSelectListPreference", "access$076",
-                        "(Landroid/preference/MultiSelectListPreference;I)Z"
-                    )
-                    pop()
-                    return_()
+                aload(0)
+                aload(1)
+                aload(2)
+                invokeinterface("java/util/Set", "add", "(Ljava/lang/Object;)Z")
+                invokestatic(
+                    "android/preference/MultiSelectListPreference", "access$076",
+                    "(Landroid/preference/MultiSelectListPreference;I)Z"
+                )
+                pop()
+                return_()
             }
             val matcher = InstructionSequenceMatcher(instructionBuilder.constants(), instructionBuilder.instructions())
 
