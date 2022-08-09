@@ -15,10 +15,14 @@ import proguard.testutils.RequiresJavaVersion
 import proguard.testutils.currentJavaVersion
 
 /**
- * Test the pattern matching switch in Java 18.
+ * Test the pattern matching switch in Java 19.
+ * The preview in Java 19 changed the guard syntax from `&&` to `when`.
  */
-@RequiresJavaVersion(18, 18)
-class JavaPatternSwitchTest : FreeSpec({
+@RequiresJavaVersion(19, 19)
+class Java19PatternSwitchTest : FreeSpec({
+
+    val javacArguments = if (currentJavaVersion in 19..19)
+        listOf("--enable-preview", "--release", currentJavaVersion.toString()) else emptyList()
 
     "Test PatternSwitch" - {
         "Instance of" - {
@@ -42,8 +46,7 @@ class JavaPatternSwitchTest : FreeSpec({
                     }
                     """.trimIndent()
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = javacArguments
             )
 
             "$className class should be in program class pool" {
@@ -70,8 +73,7 @@ class JavaPatternSwitchTest : FreeSpec({
                     }
                     """.trimIndent()
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = javacArguments
             )
             "$className class should be in program class pool" {
                 programClassPool.getClass(className) shouldNotBe null
@@ -95,8 +97,7 @@ class JavaPatternSwitchTest : FreeSpec({
                     }
                     """.trimIndent()
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = javacArguments
             )
 
             "$className class should be in program class pool" {
@@ -113,15 +114,14 @@ class JavaPatternSwitchTest : FreeSpec({
                     public class $className {
                         public static void foo(Object o) {
                             double value = switch (o) {
-                                case String s && s.length() > 0 -> Double.parseDouble(s);
+                                case String s when s.length() > 0 -> Double.parseDouble(s);
                                 default -> -1d;
                             };
                         }
                     }
                     """.trimIndent()
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = javacArguments
             )
 
             "$className class should be in program class pool" {
@@ -138,15 +138,14 @@ class JavaPatternSwitchTest : FreeSpec({
                     public class $className {
                         public static void foo(Object o) {
                             double value = switch (o) {
-                                case String s && s.length() > 0 && !(s.contains("//") || s.contains("#")) -> Double.parseDouble(s);
+                                case String s when s.length() > 0 && !(s.contains("//") || s.contains("#")) -> Double.parseDouble(s);
                                 default -> -1d;
                             };
                         }
                     }
                     """.trimIndent()
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = javacArguments
             )
 
             "$className class should be in program class pool" {
@@ -176,8 +175,7 @@ class JavaPatternSwitchTest : FreeSpec({
                     }
                     """.trimIndent()
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = javacArguments
             )
 
             "$className class should be in program class pool" {
@@ -204,8 +202,7 @@ class JavaPatternSwitchTest : FreeSpec({
                     }
                     """.trimIndent()
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = javacArguments
             )
 
             "$className class should be in program class pool" {
