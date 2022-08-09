@@ -6,6 +6,8 @@ import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import kotlinx.cli.default
 import kotlinx.cli.required
+import org.jf.smali.Smali
+import org.jf.smali.SmaliOptions
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.Member
@@ -21,7 +23,10 @@ import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassPrinter
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MemberVisitor
+import proguard.io.DataEntry
+import proguard.io.DataEntryReader
 import proguard.io.DexClassReader
+import proguard.io.FileDataEntry
 import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
 import proguard.io.util.IOUtil.writeJar
@@ -183,7 +188,7 @@ fun read(
     classNameFilter: String,
     isLibrary: Boolean
 ): ClassPool = IOUtil.read(filename, classNameFilter, isLibrary) { dataEntryReader, classPoolFiller ->
-    NameFilteredDataEntryReader(
+    val dexReader = NameFilteredDataEntryReader(
         "classes*.dex",
         DexClassReader(
             true,
@@ -191,4 +196,25 @@ fun read(
         ),
         dataEntryReader
     )
+    NameFilteredDataEntryReader(
+        "**.smali",
+        Smali2DexReader(
+            (dexReader)
+        ),
+        dexReader
+    )
+}
+
+class Smali2DexReader(private val delegate: DataEntryReader) : DataEntryReader {
+    override fun read(dataEntry: DataEntry) {
+
+        val options = SmaliOptions()
+        val dexFile = File.createTempFile("classes", ".dex")
+        options.outputDexFile = dexFile.absolutePath
+        Smali.assemble(options, (dataEntry as FileDataEntry).file.absolutePath)
+
+        val fileDataEntry = FileDataEntry(dexFile)
+        delegate.read(fileDataEntry)
+        dexFile.deleteOnExit()
+    }
 }
