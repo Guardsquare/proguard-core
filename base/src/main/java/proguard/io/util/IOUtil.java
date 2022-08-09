@@ -99,7 +99,7 @@ public class IOUtil
         // Parse all classes from the input jar and
         // collect them in the class pool.
         DataEntrySource source =
-            new FileSource(
+            new DirectorySource(
             new File(fileName));
 
         DataEntryReader classReader =
