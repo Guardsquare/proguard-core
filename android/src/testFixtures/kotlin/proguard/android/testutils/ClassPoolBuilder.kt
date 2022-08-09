@@ -2,7 +2,11 @@ package proguard.android.testutils
 
 import org.jf.smali.Smali
 import org.jf.smali.SmaliOptions
-import proguard.io.*
+import proguard.io.DataEntry
+import proguard.io.DataEntryReader
+import proguard.io.DexClassReader
+import proguard.io.FileDataEntry
+import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.ClassPools
@@ -41,7 +45,7 @@ class Smali2DexReader(private val delegate: DataEntryReader) : DataEntryReader {
         val options = SmaliOptions()
         val dexFile = File.createTempFile("classes", ".dex")
         options.outputDexFile = dexFile.absolutePath
-        Smali.assemble(options,  (dataEntry as FileDataEntry).file.absolutePath)
+        Smali.assemble(options, (dataEntry as FileDataEntry).file.absolutePath)
         val fileDataEntry = FileDataEntry(dexFile)
         delegate.read(fileDataEntry)
         dexFile.deleteOnExit()

@@ -1,12 +1,33 @@
 package com.guardsquare.proguard.tools
 
-import kotlinx.cli.*
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
+import kotlinx.cli.ExperimentalCli
+import kotlinx.cli.Subcommand
+import kotlinx.cli.default
+import kotlinx.cli.required
 import org.jf.smali.Smali
 import org.jf.smali.SmaliOptions
-import proguard.classfile.*
-import proguard.classfile.util.ClassUtil.*
-import proguard.classfile.visitor.*
-import proguard.io.*
+import proguard.classfile.ClassPool
+import proguard.classfile.Clazz
+import proguard.classfile.Member
+import proguard.classfile.ProgramClass
+import proguard.classfile.ProgramField
+import proguard.classfile.ProgramMethod
+import proguard.classfile.util.ClassUtil.externalClassName
+import proguard.classfile.util.ClassUtil.externalFullFieldDescription
+import proguard.classfile.util.ClassUtil.externalFullMethodDescription
+import proguard.classfile.visitor.AllFieldVisitor
+import proguard.classfile.visitor.AllMemberVisitor
+import proguard.classfile.visitor.AllMethodVisitor
+import proguard.classfile.visitor.ClassPrinter
+import proguard.classfile.visitor.ClassVisitor
+import proguard.classfile.visitor.MemberVisitor
+import proguard.io.DataEntry
+import proguard.io.DataEntryReader
+import proguard.io.DexClassReader
+import proguard.io.FileDataEntry
+import proguard.io.NameFilteredDataEntryReader
 import proguard.io.util.IOUtil
 import proguard.io.util.IOUtil.writeJar
 import java.io.File
@@ -178,9 +199,10 @@ fun read(
     NameFilteredDataEntryReader(
         "**.smali",
         Smali2DexReader(
-            (dexReader)),
-            dexReader
-        )
+            (dexReader)
+        ),
+        dexReader
+    )
 }
 
 class Smali2DexReader(private val delegate: DataEntryReader) : DataEntryReader {
@@ -189,7 +211,7 @@ class Smali2DexReader(private val delegate: DataEntryReader) : DataEntryReader {
         val options = SmaliOptions()
         val dexFile = File.createTempFile("classes", ".dex")
         options.outputDexFile = dexFile.absolutePath
-        Smali.assemble(options,  (dataEntry as FileDataEntry).file.absolutePath)
+        Smali.assemble(options, (dataEntry as FileDataEntry).file.absolutePath)
 
         val fileDataEntry = FileDataEntry(dexFile)
         delegate.read(fileDataEntry)
