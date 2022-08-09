@@ -1,5 +1,9 @@
 ## Version 9.0.3
 
+### Java support
+
+- Update maximum supported Java class version to 63.65535 (Java 19 ea). (`PGD-247`)
+
 ### Improved
 
 - Add utility to produce dot-graphs for control flow automatons (`CfaUtil.toDot(cfa)`, example `VisualizeCfa`).
