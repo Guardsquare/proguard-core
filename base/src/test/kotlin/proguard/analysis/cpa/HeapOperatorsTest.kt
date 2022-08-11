@@ -26,8 +26,8 @@ import proguard.analysis.cpa.jvm.witness.JvmStackLocation
 import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.classfile.MethodSignature
-import testutils.ClassPoolBuilder
-import testutils.JavaSource
+import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
