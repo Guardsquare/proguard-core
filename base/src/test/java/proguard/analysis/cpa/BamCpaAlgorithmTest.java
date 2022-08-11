@@ -40,7 +40,7 @@ import proguard.analysis.cpa.bam.RebuildOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
-import proguard.analysis.cpa.defaults.MapAbstractState;
+import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
@@ -129,7 +129,7 @@ public class BamCpaAlgorithmTest
             node,
             new JvmFrameAbstractState<>(),
             new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
-            new MapAbstractState<>()
+            new HashMapAbstractState<>()
         );
 
         ReachedSet reached = new ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
@@ -149,7 +149,7 @@ public class BamCpaAlgorithmTest
         assertEquals(1, returnStates8.size());
         AbstractState returnState8 = returnStates8.get(0);
 
-        MapAbstractState<String, ExpressionAbstractState> staticFields = new MapAbstractState();
+        HashMapAbstractState<String, ExpressionAbstractState> staticFields = new HashMapAbstractState();
         staticFields.put("A.a", new ExpressionAbstractState(Collections.singleton(new ValueExpression(new ParticularIntegerValue(4)))));
 
         JvmAbstractState<ExpressionAbstractState> expected8 = new JvmAbstractState<>(
@@ -268,7 +268,7 @@ public class BamCpaAlgorithmTest
             node,
             new JvmFrameAbstractState<>(),
             new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
-            new MapAbstractState<>()
+            new HashMapAbstractState<>()
         );
 
         ReachedSet reached = new ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
@@ -286,14 +286,14 @@ public class BamCpaAlgorithmTest
         assertEquals(1, returnStates.size());
         AbstractState returnState = returnStates.get(0);
 
-        MapAbstractState<String, ExpressionAbstractState> staticFields = new MapAbstractState();
+        HashMapAbstractState<String, ExpressionAbstractState> staticFields = new HashMapAbstractState();
         staticFields.put("A.a", new ExpressionAbstractState(Collections.singleton(new ValueExpression(new ParticularIntegerValue(4)))));
 
         JvmAbstractState<ExpressionAbstractState> expected = new JvmAbstractState<>(
             cfa.getFunctionNode(mainSignature, 5),
             new JvmFrameAbstractState<ExpressionAbstractState>(),
             new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
-            new MapAbstractState<>()
+            new HashMapAbstractState<>()
         );
 
         // result of the first iteration
@@ -393,7 +393,7 @@ public class BamCpaAlgorithmTest
             node,
             new JvmFrameAbstractState<>(),
             new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
-            new MapAbstractState<>()
+            new HashMapAbstractState<>()
         );
 
         ReachedSet reached = new ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
@@ -440,7 +440,7 @@ public class BamCpaAlgorithmTest
             node,
             new JvmFrameAbstractState<>(),
             new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
-            new MapAbstractState<>()
+            new HashMapAbstractState<>()
         );
 
         ReachedSet reached = new ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();

@@ -73,7 +73,9 @@ public abstract class JvmMemoryLocationBamCpaRun<CpaT extends ConfigurableProgra
      * @param threshold     a cut-off threshold
      * @param abortOperator an abort operator
      */
-    public JvmMemoryLocationBamCpaRun(BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold, AbortOperator abortOperator)
+    public JvmMemoryLocationBamCpaRun(BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun,
+                                      AbstractStateT threshold,
+                                      AbortOperator abortOperator)
     {
         super(inputCpaRun);
         this.threshold = threshold;

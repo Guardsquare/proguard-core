@@ -20,16 +20,16 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import proguard.analysis.cpa.defaults.MapAbstractState
-import proguard.testutils.cpa.IntegerAbstractState
+import proguard.analysis.cpa.defaults.HashMapAbstractState
+import testutils.cpa.IntegerAbstractState
 
-class MapAbstractStateTest : FreeSpec({
+class HashMapAbstractStateTest : FreeSpec({
 
-    val stateEmpty = MapAbstractState<Int, IntegerAbstractState>()
-    val state1 = MapAbstractState<Int, IntegerAbstractState>()
-    val state2 = MapAbstractState<Int, IntegerAbstractState>()
-    val state3 = MapAbstractState<Int, IntegerAbstractState>()
-    val stateLarge = MapAbstractState<Int, IntegerAbstractState>()
+    val stateEmpty = HashMapAbstractState<Int, IntegerAbstractState>()
+    val state1 = HashMapAbstractState<Int, IntegerAbstractState>()
+    val state2 = HashMapAbstractState<Int, IntegerAbstractState>()
+    val state3 = HashMapAbstractState<Int, IntegerAbstractState>()
+    val stateLarge = HashMapAbstractState<Int, IntegerAbstractState>()
 
     state1[1] = IntegerAbstractState(1)
     state1[2] = IntegerAbstractState(2)

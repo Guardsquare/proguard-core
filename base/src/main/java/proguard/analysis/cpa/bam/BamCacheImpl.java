@@ -25,9 +25,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import proguard.classfile.Signature;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
+import proguard.classfile.Signature;
 
 /**
  * A simple implementation of {@link BamCache} where the cache is implemented as a {@link HashMap}.
@@ -38,6 +40,8 @@ public class BamCacheImpl<SignatureT extends Signature>
     implements BamCache<SignatureT>
 {
 
+    private static final Logger  log   = LogManager.getLogger(BamCacheImpl.class);
+
     private final Map<SignatureT, Map<HashKey, BlockAbstraction>> cache = new HashMap<>();
 
     // Implementations for BamCache
@@ -45,7 +49,12 @@ public class BamCacheImpl<SignatureT extends Signature>
     @Override
     public void put(AbstractState stateKey, Precision precisionKey, SignatureT blockKey, BlockAbstraction blockAbstraction)
     {
+        int oldSize = size();
         cache.computeIfAbsent(blockKey, k -> new HashMap<>()).put(getHashKey(stateKey, precisionKey), blockAbstraction);
+        if (size() >= oldSize)
+        {
+            log.debug(size());
+        }
     }
 
     @Override

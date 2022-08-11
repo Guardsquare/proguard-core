@@ -32,6 +32,7 @@ import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
+import proguard.analysis.cpa.state.MapAbstractStateFactory;
 
 /**
  * This is a heap model for analyses that need to track the actual content of heap objects. This does not track references to these objects though,
@@ -49,17 +50,17 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     /**
      * Create a follower heap abstract state.
      *
-     * @param principal    the principal heap abstract state containing reference abstract states
-     * @param defaultValue the default value representing unknown values
+     * @param principal               the principal heap abstract state containing reference abstract states
+     * @param defaultValue            the default value representing unknown values
+     * @param referenceToNode         the mapping from references to heap nodes
+     * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
-    public JvmTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal, StateT defaultValue)
+    public JvmTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal,
+                                            StateT defaultValue,
+                                            MapAbstractState<Reference, HeapNode<StateT>> referenceToNode,
+                                            MapAbstractStateFactory mapAbstractStateFactory)
     {
-        this(principal, defaultValue, new MapAbstractState<>());
-    }
-
-    private JvmTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal, StateT defaultValue, MapAbstractState<Reference, HeapNode<StateT>> referenceToNode)
-    {
-        super(referenceToNode);
+        super(referenceToNode, mapAbstractStateFactory);
         this.principal = principal;
         this.defaultValue = defaultValue;
     }
@@ -139,7 +140,7 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
         {
             return other;
         }
-        return new JvmTreeHeapFollowerAbstractState<>(principal, defaultValue, newReferenceToNode);
+        return new JvmTreeHeapFollowerAbstractState<>(principal, defaultValue, newReferenceToNode, mapAbstractStateFactory);
     }
 
     @Override
@@ -156,11 +157,12 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
         return new JvmTreeHeapFollowerAbstractState<>(principal,
                                                       defaultValue,
                                                       referenceToNode.entrySet()
-                                                                    .stream()
-                                                                    .collect(Collectors.toMap(Entry::getKey,
-                                                                                              e -> e.getValue().copy(),
-                                                                                              HeapNode::join,
-                                                                                              MapAbstractState::new)));
+                                                                     .stream()
+                                                                     .collect(Collectors.toMap(Entry::getKey,
+                                                                                               e -> e.getValue().copy(),
+                                                                                               HeapNode::join,
+                                                                                               mapAbstractStateFactory::createMapAbstractState)),
+                                                      mapAbstractStateFactory);
     }
 
     public void setPrincipalState(JvmReferenceAbstractState principal)

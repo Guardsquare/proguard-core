@@ -23,6 +23,7 @@ import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.analysis.cpa.state.MapAbstractStateFactory;
 
 /**
  * The tree heap model represents the memory as a map from references to objects or arrays ({@link HeapNode}s) which may refer other heap nodes in their fields.
@@ -34,23 +35,19 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
 {
 
     protected final MapAbstractState<Reference, HeapNode<StateT>> referenceToNode;
+    protected final MapAbstractStateFactory                       mapAbstractStateFactory;
 
     /**
-     * Create an empty tree heap abstract state.
-     */
-    public JvmTreeHeapAbstractState()
-    {
-        this(new MapAbstractState<>());
-    }
-
-    /**
-     * Create an tree heap abstract state from a given memory layout.
+     * Create a tree heap abstract state from a given memory layout.
      *
-     * @param referenceToNode a mapping from references to their objects/arrays
+     * @param referenceToNode         a mapping from references to their objects/arrays
+     * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
-    protected JvmTreeHeapAbstractState(MapAbstractState<Reference, HeapNode<StateT>> referenceToNode)
+    protected JvmTreeHeapAbstractState(MapAbstractState<Reference, HeapNode<StateT>> referenceToNode,
+                                       MapAbstractStateFactory                       mapAbstractStateFactory)
     {
         this.referenceToNode = referenceToNode;
+        this.mapAbstractStateFactory = mapAbstractStateFactory;
     }
 
     // implementations for JvmHeapAbstractState
@@ -74,12 +71,12 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
     {
         if (object.size() <= 1)
         {
-            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<>())
+            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
                                                        .setValue(descriptor, value));
         }
         else
         {
-            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<>())
+            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
                                                        .mergeValue(descriptor, value));
         }
     }
@@ -101,7 +98,7 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
      */
     protected void setArrayElement(SetAbstractState<Reference> array, StateT index, StateT value)
     {
-        array.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<>())
+        array.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
                                                   .mergeValue("[]", value));
     }
 
@@ -141,7 +138,7 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
         {
             return false;
         }
-        return referenceToNode.equals(((JvmTreeHeapAbstractState) obj).referenceToNode);
+        return referenceToNode.equals(((JvmTreeHeapAbstractState<StateT>) obj).referenceToNode);
     }
 
     @Override

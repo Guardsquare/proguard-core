@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.bam.BlockAbstraction;
-import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
@@ -44,6 +43,7 @@ import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
+import proguard.analysis.cpa.state.MapAbstractStateFactory;
 import proguard.analysis.cpa.util.StateNames;
 import proguard.classfile.MethodSignature;
 
@@ -77,15 +77,17 @@ public class JvmTaintMemoryLocationBamCpaRun
     /**
      * Create a traced taint CPA run.
      *
-     * @param cfa               a CFA
-     * @param taintSources      a set of taint sources
-     * @param mainSignature     the main signature of the main method
-     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally.
-     *                          0 means intraprocedural analysis.
-     *                          < 0 means no maximum depth.
-     * @param threshold         a cut-off threshold
-     * @param taintSinks        a collection of taint sinks
-     * @param abortOperator     an abort operator
+     * @param cfa                             a CFA
+     * @param taintSources                    a set of taint sources
+     * @param mainSignature                   the main signature of the main method
+     * @param maxCallStackDepth               the maximum depth of the call stack analyzed interprocedurally.
+     *                                        0 means intraprocedural analysis.
+     *                                        < 0 means no maximum depth.
+     * @param threshold                       a cut-off threshold
+     * @param taintSinks                      a collection of taint sinks
+     * @param abortOperator                   an abort operator
+     * @param reduceHeap                      whether reduction/expansion of the heap state is performed at call/return sites
+     * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
     public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
                                            Set<? extends TaintSource> taintSources,
@@ -94,32 +96,20 @@ public class JvmTaintMemoryLocationBamCpaRun
                                            HeapModel heapModel,
                                            TaintAbstractState threshold,
                                            Collection<? extends JvmTaintSink> taintSinks,
-                                           AbortOperator abortOperator)
+                                           AbortOperator abortOperator,
+                                           boolean reduceHeap,
+                                           MapAbstractStateFactory heapNodeMapAbstractStateFactory)
     {
-        this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth, heapModel, abortOperator), threshold, taintSinks);
-    }
-
-    /**
-     * Create a traced taint CPA run without premature termination.
-     *
-     * @param cfa               a CFA
-     * @param taintSources      a set of taint sources
-     * @param mainSignature     the main signature of the main method
-     * @param maxCallStackDepth the maximum depth of the call stack analyzed interprocedurally.
-     *                          0 means intraprocedural analysis.
-     *                          < 0 means no maximum depth.
-     * @param threshold         a cut-off threshold
-     * @param taintSinks        a collection of taint sinks
-     */
-    public JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
-                                           Set<? extends TaintSource> taintSources,
-                                           MethodSignature mainSignature,
-                                           int maxCallStackDepth,
-                                           HeapModel heapModel,
-                                           TaintAbstractState threshold,
-                                           Collection<? extends JvmTaintSink> taintSinks)
-    {
-        this(new JvmTaintBamCpaRun(cfa, taintSources, mainSignature, maxCallStackDepth, heapModel, NeverAbortOperator.INSTANCE), threshold, taintSinks);
+        this(new JvmTaintBamCpaRun(cfa,
+                                   taintSources,
+                                   mainSignature,
+                                   maxCallStackDepth,
+                                   heapModel,
+                                   abortOperator,
+                                   reduceHeap,
+                                   heapNodeMapAbstractStateFactory),
+             threshold,
+             taintSinks);
     }
 
     /**

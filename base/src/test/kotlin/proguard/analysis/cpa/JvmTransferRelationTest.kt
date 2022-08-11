@@ -20,7 +20,7 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import proguard.analysis.cpa.defaults.MapAbstractState
+import proguard.analysis.cpa.defaults.HashMapAbstractState
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState
@@ -253,7 +253,7 @@ class JvmTransferRelationTest : FreeSpec({
         node,
         JvmFrameAbstractState<ExpressionAbstractState>(),
         JvmForgetfulHeapAbstractState<ExpressionAbstractState>(ExpressionAbstractState(setOf(ValueExpression(UnknownValue)))),
-        MapAbstractState<String, ExpressionAbstractState>()
+        HashMapAbstractState<String, ExpressionAbstractState>()
     )
 
     /**

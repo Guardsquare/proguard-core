@@ -8,6 +8,7 @@
 
 - Add utility to produce dot-graphs for control flow automatons (`CfaUtil.toDot(cfa)`, example `VisualizeCfa`).
 - Add support for heap slicing on call sites and heap reconstruction on return sites in dataflow analysis heap tree model. (`T17091`)
+- Add support for differential map representation to be used in the data flow analysis. (`T17090`)
  
 #### API Improvements
 

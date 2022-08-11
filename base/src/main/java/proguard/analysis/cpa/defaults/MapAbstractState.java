@@ -15,46 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package proguard.analysis.cpa.defaults;
 
-import java.util.HashMap;
+import java.util.Map;
 
-/**
- * This {@link MapAbstractState} represents a map to {@link LatticeAbstractState}s with the semilattice operators lifted to the map.
- *
- * @author Dmitry Ivanov
- */
-public class MapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
-    extends HashMap<KeyT, AbstractSpaceT>
-    implements LatticeAbstractState<MapAbstractState<KeyT, AbstractSpaceT>>
+public interface MapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
+    extends Map<KeyT, AbstractSpaceT>, LatticeAbstractState<MapAbstractState<KeyT, AbstractSpaceT>>
 {
-
-    public MapAbstractState()
-    {
-        super();
-    }
-
-
-    public MapAbstractState(int initialCapacity)
-    {
-        super(initialCapacity);
-    }
 
     // implementations for LatticeAbstractState
 
     @Override
-    public MapAbstractState<KeyT, AbstractSpaceT> join(MapAbstractState<KeyT, AbstractSpaceT> abstractState)
+    default MapAbstractState<KeyT, AbstractSpaceT> join(MapAbstractState<KeyT, AbstractSpaceT> abstractState)
     {
         if (this == abstractState)
         {
             return this;
         }
-        MapAbstractState<KeyT, AbstractSpaceT> joinResult = new MapAbstractState<>();
-        joinResult.putAll(this);
-        joinResult.putAll(abstractState);
+        MapAbstractState<KeyT, AbstractSpaceT> joinResult = abstractState.copy();
         // compute the join for the domain intersection
-        forEach((keyL, valueL) -> joinResult.computeIfPresent(keyL, (keyR, valueR) -> valueL.join(valueR)));
+        forEach((keyL, valueL) -> joinResult.compute(keyL, (keyR, valueR) -> valueR == null ? valueL : valueL.join(valueR)));
         if (equals(joinResult))
         {
             return this;
@@ -67,7 +47,7 @@ public class MapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<
     }
 
     @Override
-    public boolean isLessOrEqual(MapAbstractState<KeyT, AbstractSpaceT> abstractState)
+    default boolean isLessOrEqual(MapAbstractState<KeyT, AbstractSpaceT> abstractState)
     {
         if (!abstractState.keySet().containsAll(keySet()))
         {
@@ -78,12 +58,8 @@ public class MapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<
                                                  .isLessOrEqual(abstractState.get(entry.getKey())));
     }
 
-    @Override
-    public MapAbstractState<KeyT, AbstractSpaceT> copy()
-    {
-        MapAbstractState<KeyT, AbstractSpaceT> copy = new MapAbstractState<>();
-        copy.putAll(this);
-        return copy;
-    }
+    // overloads for AbstractState
 
+    @Override
+    MapAbstractState<KeyT, AbstractSpaceT> copy();
 }

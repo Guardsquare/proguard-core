@@ -35,14 +35,9 @@ public class HeapNode<StateT extends LatticeAbstractState<StateT>>
     private final MapAbstractState<String, StateT> fieldToAbstractState;
 
     /**
-     * Create a heap node.
+     * Create a heap node form a map abstract state.
      */
-    protected HeapNode()
-    {
-        this(new MapAbstractState<>());
-    }
-
-    protected HeapNode(MapAbstractState<String, StateT> fieldToAbstractState)
+    public HeapNode(MapAbstractState<String, StateT> fieldToAbstractState)
     {
         this.fieldToAbstractState = fieldToAbstractState;
     }

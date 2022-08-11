@@ -20,13 +20,13 @@ package proguard.analysis.cpa.jvm.state;
 
 import java.util.List;
 import java.util.Objects;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.classfile.MethodSignature;
 
 /**
  * The {@link JvmAbstractState} consists of the method frame {@link JvmFrameAbstractState} and the heap {@link JvmHeapAbstractState}.
@@ -38,10 +38,10 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
                ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
-    protected final        JvmFrameAbstractState<StateT>    frame;
-    protected final        JvmHeapAbstractState<StateT>     heap;
-    protected final        MapAbstractState<String, StateT> staticFields;
-    protected              JvmCfaNode                       programLocation;
+    protected final        JvmFrameAbstractState<StateT> frame;
+    protected final JvmHeapAbstractState<StateT>         heap;
+    protected final MapAbstractState<String, StateT>     staticFields;
+    protected       JvmCfaNode                           programLocation;
     protected static final JvmCfaNode                       topLocation = new JvmCfaNode(null, -1, null);
 
     /**

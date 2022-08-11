@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Set;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
-import proguard.analysis.cpa.defaults.MapAbstractState;
+import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.SimpleCpa;
@@ -47,10 +47,11 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.JvmForgetfulHeapAbstractState;
-import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapFollowerAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapPrincipalAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
+import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
+import proguard.analysis.cpa.state.MapAbstractStateFactory;
 import proguard.classfile.MethodSignature;
 
 /**
@@ -62,11 +63,12 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     extends JvmBamCpaRun<SimpleCpa, TaintAbstractState, OuterAbstractStateT>
 {
 
-    private final Set<TaintSource> taintSources;
-    private final MethodSignature  mainMethodSignature;
+    private final Set<TaintSource>        taintSources;
+    private final MethodSignature         mainMethodSignature;
+    private final MapAbstractStateFactory heapNodeMapAbstractStateFactory;
 
     /**
-     * Create a CPA run.
+     * Create a simple CPA run.
      *
      * @param cfa                 a CFA
      * @param taintSources        a set of taint sources
@@ -74,32 +76,36 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
      * @param maxCallStackDepth   the maximum depth of the call stack analyzed interprocedurally
      *                            0 means intraprocedural analysis
      *                            < 0 means no maximum depth
-     * @param heapModel           a heap model to be used
-     * @param abortOperator       an abort operator
      */
     public JvmTaintBamCpaRun(JvmCfa cfa,
                              Set<TaintSource> taintSources,
                              MethodSignature mainMethodSignature,
-                             int maxCallStackDepth,
-                             HeapModel heapModel,
-                             AbortOperator abortOperator)
+                             int maxCallStackDepth)
     {
-        this(cfa, taintSources, mainMethodSignature, maxCallStackDepth, heapModel, abortOperator, true);
+        this(cfa,
+             taintSources,
+             mainMethodSignature,
+             maxCallStackDepth,
+             HeapModel.FORGETFUL,
+             NeverAbortOperator.INSTANCE,
+             true,
+             HashMapAbstractStateFactory.INSTANCE);
     }
 
     /**
      * Create a CPA run. If reduceHeap is set to false no reduction/expansion is applied to the heap states at call/return sites
      * (this parameter is irrelevant for FORGETFUL heap model).
      *
-     * @param cfa                 a CFA
-     * @param taintSources        a set of taint sources
-     * @param mainMethodSignature the signature of the main method
-     * @param maxCallStackDepth   the maximum depth of the call stack analyzed interprocedurally
-     *                            0 means intraprocedural analysis
-     *                            < 0 means no maximum depth
-     * @param heapModel           a heap model to be used
-     * @param abortOperator       an abort operator
-     * @param reduceHeap          whether reduction/expansion of the heap state is performed at call/return sites
+     * @param cfa                             a CFA
+     * @param taintSources                    a set of taint sources
+     * @param mainMethodSignature             the signature of the main method
+     * @param maxCallStackDepth               the maximum depth of the call stack analyzed interprocedurally
+     *                                        0 means intraprocedural analysis
+     *                                        < 0 means no maximum depth
+     * @param heapModel                       a heap model to be used
+     * @param abortOperator                   an abort operator
+     * @param reduceHeap                      whether reduction/expansion of the heap state is performed at call/return sites
+     * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
     public JvmTaintBamCpaRun(JvmCfa cfa,
                              Set<TaintSource> taintSources,
@@ -107,28 +113,13 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
                              int maxCallStackDepth,
                              HeapModel heapModel,
                              AbortOperator abortOperator,
-                             boolean reduceHeap)
+                             boolean reduceHeap,
+                             MapAbstractStateFactory heapNodeMapAbstractStateFactory)
     {
         super(cfa, maxCallStackDepth, heapModel, abortOperator, reduceHeap);
         this.taintSources = taintSources;
         this.mainMethodSignature = mainMethodSignature;
-    }
-
-    /**
-     * Create a CPA run with a forgetful heap model.
-     *
-     * @param cfa                 a CFA
-     * @param taintSources        a set of taint sources
-     * @param mainMethodSignature the signature of the main method
-     * @param maxCallStackDepth   maximum depth of the call stack analyzed inter-procedurally.
-     *                            0 means intra-procedural analysis.
-     *                            < 0 means no maximum depth.
-     */
-    public JvmTaintBamCpaRun(JvmCfa cfa, Set<TaintSource> taintSources,
-                             MethodSignature mainMethodSignature,
-                             int maxCallStackDepth)
-    {
-        this(cfa, taintSources, mainMethodSignature, maxCallStackDepth, HeapModel.FORGETFUL, NeverAbortOperator.INSTANCE);
+        this.heapNodeMapAbstractStateFactory = heapNodeMapAbstractStateFactory;
     }
 
     // implementations for JvmBamCpaRun
@@ -178,27 +169,28 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     public Collection<OuterAbstractStateT> getInitialStates()
     {
         JvmFrameAbstractState<TaintAbstractState> emptyframe = new JvmFrameAbstractState<>();
-        MapAbstractState<String, TaintAbstractState> emptyStaticFields = new MapAbstractState<>();
-        JvmHeapAbstractState<TaintAbstractState> emptyHeap;
+        HashMapAbstractState<String, TaintAbstractState> emptyStaticFields = new HashMapAbstractState<>();
         switch (heapModel)
         {
             case FORGETFUL:
-                emptyHeap = new JvmForgetfulHeapAbstractState<>(TaintAbstractState.bottom);
                 return Collections.singleton((OuterAbstractStateT) new JvmAbstractState<>(cfa.getFunctionEntryNode(mainMethodSignature),
                                                                                           emptyframe,
-                                                                                          emptyHeap,
+                                                                                          new JvmForgetfulHeapAbstractState<>(TaintAbstractState.bottom),
                                                                                           emptyStaticFields));
             case TREE:
                 JvmReferenceAbstractState principalState = new JvmReferenceAbstractState(cfa.getFunctionEntryNode(mainMethodSignature),
                                                                                          new JvmFrameAbstractState<>(),
-                                                                                         new JvmTreeHeapPrincipalAbstractState(),
-                                                                                         new MapAbstractState<>());
-                emptyHeap = new JvmTreeHeapFollowerAbstractState<>(principalState, TaintAbstractState.bottom);
-                return (Collection<OuterAbstractStateT>) Collections.singleton(new CompositeHeapJvmAbstractState(Arrays.asList(principalState,
-                                                                                                                               new JvmAbstractState<>(cfa.getFunctionEntryNode(mainMethodSignature),
-                                                                                                                                                      emptyframe,
-                                                                                                                                                      emptyHeap,
-                                                                                                                                                      emptyStaticFields))));
+                                                                                         new JvmTreeHeapPrincipalAbstractState(heapNodeMapAbstractStateFactory),
+                                                                                         new HashMapAbstractState<>());
+                return (Collection<OuterAbstractStateT>) Collections.singleton(new CompositeHeapJvmAbstractState(Arrays.asList(
+                    principalState,
+                    new JvmAbstractState<>(cfa.getFunctionEntryNode(mainMethodSignature),
+                                           emptyframe,
+                                           new JvmTreeHeapFollowerAbstractState<>(principalState,
+                                                                                  TaintAbstractState.bottom,
+                                                                                  heapNodeMapAbstractStateFactory.createMapAbstractState(),
+                                                                                  heapNodeMapAbstractStateFactory),
+                                           emptyStaticFields))));
             default:
                 throw new IllegalStateException("Invalid heap model: " + heapModel.name());
         }
