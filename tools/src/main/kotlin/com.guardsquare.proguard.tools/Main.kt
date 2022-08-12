@@ -49,7 +49,7 @@ fun main(args: Array<String>) {
         val programClassPool: ClassPool by lazy { read(input, classNameFilter, false) }
 
         init {
-            subcommands(ClassNamePrinterCmd(), MethodNamePrinterCmd(), FieldNamePrinterCmd(), MemberPrinterCmd())
+            subcommands(ClassNamePrinterCmd(), MethodNamePrinterCmd(), FieldNamePrinterCmd(), MemberPrinterCmd(), StringPrinterCmd())
         }
 
         override fun execute() { }
@@ -82,6 +82,12 @@ fun main(args: Array<String>) {
         inner class MemberPrinterCmd : Subcommand("members", "List all the members") {
             override fun execute() {
                 programClassPool.classesAccept(AllMemberVisitor(MemberPrinter()))
+            }
+        }
+
+        inner class StringPrinterCmd : Subcommand("strings", "List all the strings") {
+            override fun execute() {
+                programClassPool.classesAccept(StringPrinter())
             }
         }
 
