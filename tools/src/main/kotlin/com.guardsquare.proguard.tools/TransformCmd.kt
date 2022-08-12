@@ -73,7 +73,7 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input (ex
             }
             .map { classVisitor ->
                 MultiClassVisitor(
-                    { clazz -> println("Applying ${classVisitor.javaClass.simpleName} to ${externalClassName(clazz.name)}") },
+                    // { clazz -> println("Applying ${classVisitor.javaClass.simpleName} to ${externalClassName(clazz.name)}") },
                     classVisitor
                 )
             }
