@@ -44,7 +44,7 @@ public class JvmTaintCpa
      *
      * @param sources a set of taint sources
      */
-    public JvmTaintCpa(Set<TaintSource> sources)
+    public JvmTaintCpa(Set<? extends TaintSource> sources)
     {
         this(createSourcesMap(sources), new DelegateAbstractDomain<JvmAbstractState<TaintAbstractState>>());
     }
@@ -70,7 +70,7 @@ public class JvmTaintCpa
     /**
      * Since the used data structure is a map that uses the fqn as key, which is a parameter of the {@link TaintSource}s, this method constructs the map correctly starting from a set of sources.
      */
-    public static Map<String, TaintSource> createSourcesMap(Set<TaintSource> sources)
+    public static Map<String, TaintSource> createSourcesMap(Set<? extends TaintSource> sources)
     {
         Map<String, TaintSource> taintSourcesMap = new HashMap<>();
         for (TaintSource source : sources)

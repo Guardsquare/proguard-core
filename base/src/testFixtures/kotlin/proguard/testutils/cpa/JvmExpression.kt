@@ -18,4 +18,4 @@
 
 package proguard.testutils.cpa
 
-interface JVMExpression
+interface JvmExpression

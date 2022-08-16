@@ -6,9 +6,7 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.LatticeAbstractState
 import proguard.analysis.cpa.defaults.MapAbstractState
-import proguard.analysis.cpa.defaults.NeverAbortOperator
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet
-import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.domain.reference.CompositeHeapJvmAbstractState
@@ -96,14 +94,18 @@ class HeapOperatorsTest : FreeSpec({
         listOf(
             HashMapAbstractStateFactory.INSTANCE,
             DifferentialMapAbstractStateFactory { false }
-        ).forEach { mapAbstractStateFactory ->
-            val testNameSuffix = " for ${mapAbstractStateFactory.javaClass.simpleName}"
+        ).forEach { heapNodeMapAbstractStateFactory ->
+            listOf(
+                HashMapAbstractStateFactory.INSTANCE,
+                DifferentialMapAbstractStateFactory { false }
+            ).forEach { staticFieldMapAbstractStateFactory ->
+                val testNameSuffix = " for heap ${heapNodeMapAbstractStateFactory.javaClass.simpleName} and static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"
 
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                    ClassPoolBuilder.fromSource(
+                        JavaSource(
+                            "A.java",
+                            """
                 class A {
                 
                     public static D d; 
@@ -154,23 +156,21 @@ class HeapOperatorsTest : FreeSpec({
                         }
                     }
                 }
-                        """.trimIndent()
-                    )
-                ).programClassPool
-            )
+                            """.trimIndent()
+                        )
+                    ).programClassPool
+                )
 
-            val taintMemoryLocationCpaRun = JvmTaintMemoryLocationBamCpaRun(
-                interproceduralCfa,
-                setOf(taintSourceReturn1),
-                mainSignature,
-                -1,
-                HeapModel.TREE,
-                TaintAbstractState.bottom,
-                setOf(taintSinkArgument),
-                NeverAbortOperator.INSTANCE,
-                true,
-                mapAbstractStateFactory
-            )
+                val taintMemoryLocationCpaRun = JvmTaintMemoryLocationBamCpaRun.Builder()
+                    .setCfa(interproceduralCfa)
+                    .setMainSignature(mainSignature)
+                    .setTaintSources(setOf(taintSourceReturn1))
+                    .setTaintSinks(setOf(taintSinkArgument))
+                    .setHeapModel(HeapModel.TREE)
+                    .setReduceHeap(true)
+                    .setHeapNodeMapAbstractStateFactory(heapNodeMapAbstractStateFactory)
+                    .setStaticFieldMapAbstractStateFactory(staticFieldMapAbstractStateFactory)
+                    .build()
 
             /*
             Bytecode of main:
@@ -247,96 +247,97 @@ class HeapOperatorsTest : FreeSpec({
                  [34] return
              */
 
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
 
-            val cache = taintMemoryLocationCpaRun.inputCpaRun.cpa.cache
+                val cache = taintMemoryLocationCpaRun.inputCpaRun.cpa.cache
 
-            val mainCacheEntries = cache.get(mainSignature)
-            val calleeCacheEntries = cache.get(calleeSignature)
+                val mainCacheEntries = cache.get(mainSignature)
+                val calleeCacheEntries = cache.get(calleeSignature)
 
-            "Correct cache size$testNameSuffix" {
-                mainCacheEntries.size shouldBe 1
-                calleeCacheEntries.size shouldBe 1
-            }
+                "Correct cache size$testNameSuffix" {
+                    mainCacheEntries.size shouldBe 1
+                    calleeCacheEntries.size shouldBe 1
+                }
 
-            val mainCacheEntry = mainCacheEntries.first()
-            val calleeCacheEntry = calleeCacheEntries.first()
+                val mainCacheEntry = mainCacheEntries.first()
+                val calleeCacheEntry = calleeCacheEntries.first()
 
-            val callerState = (mainCacheEntry.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, * >)
-                .getReached(interproceduralCfa.getFunctionNode(mainSignature, 33)).first() as CompositeHeapJvmAbstractState
-            val returnState = (mainCacheEntry.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>)
-                .getReached(interproceduralCfa.getFunctionNode(mainSignature, 36)).first() as CompositeHeapJvmAbstractState
-            val reducedEntryState = (calleeCacheEntry.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>)
-                .getReached(interproceduralCfa.getFunctionNode(calleeSignature, 0)).first() as CompositeHeapJvmAbstractState
+                val callerState = (mainCacheEntry.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, * >)
+                    .getReached(interproceduralCfa.getFunctionNode(mainSignature, 33)).first() as CompositeHeapJvmAbstractState
+                val returnState = (mainCacheEntry.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>)
+                    .getReached(interproceduralCfa.getFunctionNode(mainSignature, 36)).first() as CompositeHeapJvmAbstractState
+                val reducedEntryState = (calleeCacheEntry.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>)
+                    .getReached(interproceduralCfa.getFunctionNode(calleeSignature, 0)).first() as CompositeHeapJvmAbstractState
 
-            val bMainRef = Reference(interproceduralCfa.getFunctionNode(mainSignature, 3), JvmStackLocation(0))
-            val cMainRef = Reference(interproceduralCfa.getFunctionNode(mainSignature, 12), JvmStackLocation(0))
-            val dMainRef = Reference(interproceduralCfa.getFunctionNode(mainSignature, 21), JvmStackLocation(0))
-            val bCRef = Reference(interproceduralCfa.getFunctionNode(initCSignature, 13), JvmStackLocation(0))
-            val bDRef = Reference(interproceduralCfa.getFunctionNode(initDSignature, 13), JvmStackLocation(0))
-            val cDRef = Reference(interproceduralCfa.getFunctionNode(initDSignature, 25), JvmStackLocation(0))
+                val bMainRef = Reference(interproceduralCfa.getFunctionNode(mainSignature, 3), JvmStackLocation(0))
+                val cMainRef = Reference(interproceduralCfa.getFunctionNode(mainSignature, 12), JvmStackLocation(0))
+                val dMainRef = Reference(interproceduralCfa.getFunctionNode(mainSignature, 21), JvmStackLocation(0))
+                val bCRef = Reference(interproceduralCfa.getFunctionNode(initCSignature, 13), JvmStackLocation(0))
+                val bDRef = Reference(interproceduralCfa.getFunctionNode(initDSignature, 13), JvmStackLocation(0))
+                val cDRef = Reference(interproceduralCfa.getFunctionNode(initDSignature, 25), JvmStackLocation(0))
 
             /*
             This test is acknowledgedly incomplete. A more complete test can check the entire tree and not just the keys.
              */
-            "Correct reduction for$testNameSuffix" - {
+                "Correct reduction for$testNameSuffix" - {
 
-                val callerPrincipalHeap = (callerState.getStateByName("Reference") as JvmReferenceAbstractState).heap as JvmTreeHeapPrincipalAbstractState
-                val reducedPrincipalHeap = (reducedEntryState.getStateByName("Reference") as JvmReferenceAbstractState).heap as JvmTreeHeapPrincipalAbstractState
+                    val callerPrincipalHeap = (callerState.getStateByName("Reference") as JvmReferenceAbstractState).heap as JvmTreeHeapPrincipalAbstractState
+                    val reducedPrincipalHeap = (reducedEntryState.getStateByName("Reference") as JvmReferenceAbstractState).heap as JvmTreeHeapPrincipalAbstractState
 
-                "Correct number of states for ${mapAbstractStateFactory.javaClass.simpleName}" {
-                    callerPrincipalHeap.assertKeysCount(6)
-                    reducedPrincipalHeap.assertKeysCount(4)
+                    "Correct number of states$testNameSuffix" {
+                        callerPrincipalHeap.assertKeysCount(6)
+                        reducedPrincipalHeap.assertKeysCount(4)
+                    }
+
+                    "Parameters kept$testNameSuffix" {
+                        callerPrincipalHeap.assertContainsKeys(setOf(bCRef))
+                        reducedPrincipalHeap.assertContainsKeys(setOf(bCRef))
+                    }
+
+                    "Static variables kept$testNameSuffix" {
+                        callerPrincipalHeap.assertContainsKeys(setOf(dMainRef, bDRef, cDRef, bCRef))
+                        reducedPrincipalHeap.assertContainsKeys(setOf(dMainRef, bDRef, cDRef, bCRef))
+                    }
+
+                    "References discarded$testNameSuffix" {
+                        callerPrincipalHeap.assertContainsKeys(setOf(bMainRef, cMainRef))
+                        reducedPrincipalHeap.assertNotContainsKeys(setOf(bMainRef, cMainRef))
+                    }
                 }
-
-                "Parameters kept for ${mapAbstractStateFactory.javaClass.simpleName}" {
-                    callerPrincipalHeap.assertContainsKeys(setOf(bCRef))
-                    reducedPrincipalHeap.assertContainsKeys(setOf(bCRef))
-                }
-
-                "Static variables kept for ${mapAbstractStateFactory.javaClass.simpleName}" {
-                    callerPrincipalHeap.assertContainsKeys(setOf(dMainRef, bDRef, cDRef, bCRef))
-                    reducedPrincipalHeap.assertContainsKeys(setOf(dMainRef, bDRef, cDRef, bCRef))
-                }
-
-                "References discarded for ${mapAbstractStateFactory.javaClass.simpleName}" {
-                    callerPrincipalHeap.assertContainsKeys(setOf(bMainRef, cMainRef))
-                    reducedPrincipalHeap.assertNotContainsKeys(setOf(bMainRef, cMainRef))
-                }
-            }
 
             /*
             This test is valid as long as callee just calls the sink without modifying the heap.
              */
-            "Correct expansion$testNameSuffix" {
-                (callerState.getStateByName("Reference") as JvmAbstractState<*>).heap shouldBe (returnState.getStateByName("Reference") as JvmAbstractState<*>).heap
-            }
+                "Correct expansion$testNameSuffix" {
+                    (callerState.getStateByName("Reference") as JvmAbstractState<*>).heap shouldBe (returnState.getStateByName("Reference") as JvmAbstractState<*>).heap
+                }
 
-            interproceduralCfa.clear()
+                interproceduralCfa.clear()
 
-            "Correct trace$testNameSuffix" {
-                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                    listOf(
-                        "JvmStackLocation(0)@LA;callee(LA\$B;)V:4",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;callee(LA\$B;)V:1",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;callee(LA\$B;)V:0",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:33",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:30",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:29",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:26",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:50",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:47",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:44",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:41",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:40",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:37",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:34",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:33",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:30",
-                        "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$C;<init>(LA;)V:34",
-                        "JvmStackLocation(0)@LA\$C;<init>(LA;)V:31"
+                "Correct trace$testNameSuffix" {
+                    traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                        listOf(
+                            "JvmStackLocation(0)@LA;callee(LA\$B;)V:4",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;callee(LA\$B;)V:1",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;callee(LA\$B;)V:0",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:33",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:30",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:29",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA;main()V:26",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:50",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:47",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:44",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:41",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:40",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:37",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:34",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:33",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:30",
+                            "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$C;<init>(LA;)V:34",
+                            "JvmStackLocation(0)@LA\$C;<init>(LA;)V:31"
+                        )
                     )
-                )
+                }
             }
         }
     }

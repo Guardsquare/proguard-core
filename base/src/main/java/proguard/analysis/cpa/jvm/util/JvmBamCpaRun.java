@@ -19,13 +19,12 @@
 package proguard.analysis.cpa.jvm.util;
 
 import java.util.Arrays;
-import proguard.analysis.cpa.defaults.NeverAbortOperator;
-import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.BamCpaRun;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.ReachedSet;
@@ -36,6 +35,7 @@ import proguard.analysis.cpa.jvm.domain.reference.JvmCompositeHeapReduceOperator
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceReduceOperator;
 import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
+import proguard.classfile.MethodSignature;
 
 /**
  * A JVM instance of {@link BamCpaRun} uses a reached set optimized for program location-dependent analysis.
@@ -111,5 +111,61 @@ public abstract class JvmBamCpaRun<CpaT extends ConfigurableProgramAnalysis, Abs
     protected ReachedSet createReachedSet()
     {
         return new ProgramLocationDependentReachedSet<>();
+    }
+
+    /**
+     * A builder for {@link JvmBamCpaRun}. It assumes either the best performing parameters or the most basic one, if there is no absolute benefit.
+     *
+     * @author Dmitry Ivanov
+     */
+    public static abstract class Builder extends BamCpaRun.Builder
+    {
+
+        protected JvmCfa    cfa;
+        protected HeapModel heapModel = HeapModel.FORGETFUL;
+
+        // implementations for BamCpaRun.Builder
+
+        /**
+         * Returns the {@link JvmBamCpaRun} for given parameters.
+         */
+        @Override
+        public abstract JvmBamCpaRun<?, ?, ?> build();
+
+        @Override
+        public Builder setMaxCallStackDepth(int maxCallStackDepth)
+        {
+            return (Builder) super.setMaxCallStackDepth(maxCallStackDepth);
+        }
+
+        @Override
+        public Builder setAbortOperator(AbortOperator abortOperator)
+        {
+            return (Builder) super.setAbortOperator(abortOperator);
+        }
+
+        @Override
+        public Builder setReduceHeap(boolean reduceHeap)
+        {
+            return (Builder) super.setReduceHeap(reduceHeap);
+        }
+
+        /**
+         * Sets the control flow automaton.
+         */
+        public Builder setCfa(JvmCfa cfa)
+        {
+            this.cfa = cfa;
+            return this;
+        }
+
+        /**
+         * Sets the heap model.
+         */
+        public Builder setHeapModel(HeapModel heapModel)
+        {
+            this.heapModel = heapModel;
+            return this;
+        }
     }
 }

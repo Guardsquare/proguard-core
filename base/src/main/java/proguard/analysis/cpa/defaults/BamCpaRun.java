@@ -146,4 +146,49 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
     {
         return maxCallStackDepth;
     }
+
+    /**
+     * A builder for {@link BamCpaRun}. It assumes either the best performing parameters or the most basic one, if there is no absolute benefit.
+     *
+     * @author Dmitry Ivanov
+     */
+    public static abstract class Builder
+    {
+
+        protected int           maxCallStackDepth = -1;
+        protected AbortOperator abortOperator     = NeverAbortOperator.INSTANCE;
+        protected boolean       reduceHeap        = true;
+
+        /**
+         * Returns the {@link BamCpaRun} for given parameters.
+         */
+        public abstract BamCpaRun<?, ?, ?, ?, ?> build();
+
+        /**
+         * Sets the call stack limit for the interprocedural analysis.
+         */
+        public Builder setMaxCallStackDepth(int maxCallStackDepth)
+        {
+            this.maxCallStackDepth = maxCallStackDepth;
+            return this;
+        }
+
+        /**
+         * Sets the abort operator for premature CPA algorithm termination.
+         */
+        public Builder setAbortOperator(AbortOperator abortOperator)
+        {
+            this.abortOperator = abortOperator;
+            return this;
+        }
+
+        /**
+         * Sets whether the heap should be reduced before method calls.
+         */
+        public Builder setReduceHeap(boolean reduceHeap)
+        {
+            this.reduceHeap = reduceHeap;
+            return this;
+        }
+    }
 }

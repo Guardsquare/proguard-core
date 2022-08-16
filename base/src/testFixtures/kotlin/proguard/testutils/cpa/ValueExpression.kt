@@ -22,7 +22,7 @@ import proguard.evaluation.value.Value
 
 class ValueExpression(
     val value: Value
-) : JVMExpression {
+) : JvmExpression {
     override fun equals(other: Any?): Boolean {
         return other is ValueExpression && value == other.value
     }

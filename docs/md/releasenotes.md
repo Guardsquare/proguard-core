@@ -9,19 +9,20 @@
 ### Improved
 
 - Add utility to produce dot-graphs for control flow automatons (`CfaUtil.toDot(cfa)`, example `VisualizeCfa`).
-- Add support for heap slicing on call sites and heap reconstruction on return sites in dataflow analysis heap tree model. (`T17091`)
-- Add support for differential map representation to be used in the data flow analysis. (`T17090`)
+- Add support for heap slicing on call sites and heap reconstruction on return sites in dataflow analysis heap tree model.
+- Add support for differential map representation to be used in the data flow analysis.
  
 #### API Improvements
 
 - Split `ProgramLocationDependentTransferRelation` into forward and backward variants.
 - Add `ClassPoolClassLoader` utility for loading ProGuardCORE classes.
+- Add builders for CPA runs.
 
 
 ## Version 9.0.2
 
 ### Improved
-- `JvmMemoryLocationTransferRelation` does not rely anymore on a pre-computed abstract reachability graph. (`T15956`)
+- `JvmMemoryLocationTransferRelation` does not rely anymore on a pre-computed abstract reachability graph.
 
 ### Improvements to Kotlin metadata initialization
 
@@ -39,19 +40,19 @@ Several improvements to Kotlin metadata initialization now allow building the Ko
 ### Improved
 
 - `ExecutingInvocationUnit` now loads values from static final fields.
-- Initialize Kotlin lambda method references when the JVM method name is `<anonymous>`. (`T16483`)
+- Initialize Kotlin lambda method references when the JVM method name is `<anonymous>`.
 - Add the possibility of limiting the number of `CodeAttributes` contributing into CFA.
 - Add the possibility of limiting the number of `CodeAttributes` considered by the `CallResolver`.
 
 ### Bug fixes
 
 - Fix wrong handling of array types in `ExecutingIvocationUnit` and `ParticularReferenceValue`.
-- `ParticularReferenceValue` sanity checks now take inheritance into consideration, improving call analysis. (`T15197`)
+- `ParticularReferenceValue` sanity checks now take inheritance into consideration, improving call analysis.
 - Prevent missing semicolon leading to an infinite loop in `ClassUtil#internalMethodParameterCount`.
 - Make category 2 CPA taint sources affect only the most significant byte abstract state.
 - Fix inconsistent usage of type names in the context of the `PartialEvaluator` that could result in
-  trying to create an internal type string from a string that was already an internal type. (`T15513`)
-- Fix initialization of Kotlin callable references when using `-Xno-optimized-callable-references` compiler option. (`T16486`)
+  trying to create an internal type string from a string that was already an internal type.
+- Fix initialization of Kotlin callable references when using `-Xno-optimized-callable-references` compiler option.
 - Fix `createCache()` delegation in `ArgBamCpaRun`
   
 ### Upgrade considerations
@@ -91,28 +92,28 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 
 ### Bug fixes
 
-- Prevent linking a final method with a shadowing method in a subclass. (`T14726`)
+- Prevent linking a final method with a shadowing method in a subclass.
 - Force `Call#getArgumentCount()` to be correct even if the actual argument values
-  could not be calculated or have been cleared. (`TT14632`)
+  could not be calculated or have been cleared.
 - Reset `ExecutingInvocationUnit` parameters array even when an exception happens.
 
 ## Version 8.0.7
 
 ### Java support
 
-- Update maximum supported Java class version to 62.65535 (Java 18 ea). (`T13973`)
+- Update maximum supported Java class version to 62.65535 (Java 18 ea).
 
 ### Improved
 
-- Add support for Kotlin property synthetic delegate methods. (`T14060`)
+- Add support for Kotlin property synthetic delegate methods.
 - Add ability to pass `KotlinMetadataVersion` to `KotlinMetadataWriter` / `KotlinModuleWriter`.
 
 ## Version 8.0.6
 
 ### Improved
 
-- Add support for writing out zip64 archives. (`PGC-32`)
-- Improve speed for `ClassPool.contains` method. (`T5205`)
+- Add support for writing out zip64 archives.
+- Improve speed for `ClassPool.contains` method.
 
 ## Version 8.0.5
 
@@ -125,18 +126,18 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 
 - Fix `CallResolver` erroneously creating call edges to unimplemented interface methods.
 - Make the `DominatorCalculator` skip methods with an empty `CodeAttribute`.
-- Prevent updating Kotlin function names with mangled JVM method names in `ClassReferenceFixer`. (`PGD-208`)
+- Prevent updating Kotlin function names with mangled JVM method names in `ClassReferenceFixer`.
 - Initialize Kotlin default implementation classes of annotation classes correctly in `ClassReferenceInitializer`.
-- Correctly initialize Java Record component attributes in `ClassReferenceInitializer`. (`PGC-28`, `PGD-194`)
+- Correctly initialize Java Record component attributes in `ClassReferenceInitializer`.
 
 ### API changes
 
 - `KotlinInterfaceToDefaultImplsClassVisitor` replaced by `KotlinClassToDefaultImplsClassVisitor`.
-- Deprecate Kotlin class metadata flag `IS_INLINE` and replaced with `IS_VALUE` (`T4771`).
-- Convert to/from Kotlin unsigned integers in Kotlin annotation unsigned type arguments. (`T5405`)
-- Initialize array dimension in Kotlin annotation `ClassValue` type arguments. (`T5406`)
-- Add support for Kotlin inline class underlying type to Kotlin metadata model. (`T4774`)
-- Add support to `MemberDescriptorReferencedClassVisitor` for visiting referenced Kotlin inline class parameters. (`T13653`)
+- Deprecate Kotlin class metadata flag `IS_INLINE` and replaced with `IS_VALUE`.
+- Convert to/from Kotlin unsigned integers in Kotlin annotation unsigned type arguments.
+- Initialize array dimension in Kotlin annotation `ClassValue` type arguments.
+- Add support for Kotlin inline class underlying type to Kotlin metadata model.
+- Add support to `MemberDescriptorReferencedClassVisitor` for visiting referenced Kotlin inline class parameters.
 
 ## Version 8.0.4
 
@@ -146,7 +147,7 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 
 ### API Improvements
 
-- Add `KotlinMetadataVersionFilter` to filter classes based on the version of the attached metadata. (`T5017`)
+- Add `KotlinMetadataVersionFilter` to filter classes based on the version of the attached metadata.
 
 ## Version 8.0.3
 
@@ -166,26 +167,26 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 
 ### Bug fixes
 
-- Fix potential `StringIndexOutOfBoundsException` while trimming attribute value spaces in `SignedJarWriter`. (`T7004`)
-- Fix `referencedClass` of Values generated by the `ExecutingInvocationUnit`. (`T6031`)
-- Fix potential `StackOverflowError` when using an `AttributeVisitor` to visit runtime invisible type annotations. (`PGD-182`)
-- Fix potential `StringIndexOutOfBoundsException` in `KotlinCallableReferenceInitializer`. (`T5927`)
-- Fix potential `NullPointerException` in `KotlinInterClassPropertyReferenceInitializer`. (`T6138`)
-- Fix wrong offset for complementary branch instruction when widening branch instructions in `InstructionWriter`. (`T5721`)
+- Fix potential `StringIndexOutOfBoundsException` while trimming attribute value spaces in `SignedJarWriter`.
+- Fix `referencedClass` of Values generated by the `ExecutingInvocationUnit`.
+- Fix potential `StackOverflowError` when using an `AttributeVisitor` to visit runtime invisible type annotations.
+- Fix potential `StringIndexOutOfBoundsException` in `KotlinCallableReferenceInitializer`.
+- Fix potential `NullPointerException` in `KotlinInterClassPropertyReferenceInitializer`.
+- Fix wrong offset for complementary branch instruction when widening branch instructions in `InstructionWriter`.
 - Fix potential `ClassFormatError` due to adding multiple annotation attributes when processing Kotlin code.
 - Fix potential `NullPointerException` due to missing classes in `ClassReferenceInitializer`.
-- Prevent making package-private final methods that are shadowed protected. (`T7056`)
+- Prevent making package-private final methods that are shadowed protected.
 
 ## Version 8.0.1
 
 ### API Improvements
 
-- Add `LibraryClassBuilder` and `LibraryClassEditor` classes to create and edit a `LibraryClass`. (`T5790`)
+- Add `LibraryClassBuilder` and `LibraryClassEditor` classes to create and edit a `LibraryClass`.
 - Add additional constructors to `LibraryClass`. 
 
 ### Bug fixes
 
-- Fix potential `NullPointerException` when initializing Kotlin callable references. (`T5899`)
+- Fix potential `NullPointerException` when initializing Kotlin callable references.
 - Prevent requiring `--enable-preview` on a JVM for Java 16 class files (write class file version `60.0` instead of `60.65535`).
 - Fix potential `NullPointerException` when visiting referenced methods of Kotlin functions.
 
@@ -193,26 +194,26 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 
 ### Java support
 
-- Update maximum supported Java class version to 61.0 (Java 17). (`PGD-132`)
+- Update maximum supported Java class version to 61.0 (Java 17).
 
 ### Kotlin support
 
-- Add support for processing Kotlin 1.5 metadata. (`T5036`)
-- Update `kotlinx` metadata dependency to version 0.2. (`T4651`)
+- Add support for processing Kotlin 1.5 metadata.
+- Update `kotlinx` metadata dependency to version 0.2.
 
 ### API Improvements
 
-- Add `WarningLogger` class to allow using a custom Log4j2 logger. (`T5561`)
-- Add Kotlin metadata model classes and visitors for Kotlin annotations. (`T2698`)
-- Add Kotlin metadata model enum for `KmVariance`. (`T4842`)
-- Add Kotlin metadata model enum for `KmVersionRequirement(Kind|Level)`. (`T4843`)
-- Add Kotlin metadata model enum for `KmEffect(Type|InvocationKind)`. (`T4844`)
-- Add Kotlin metadata flag `IS_FUN` for functional interfaces. (`T4659`)
-- Add Kotlin metadata flag `HAS_NON_STABLE_PARAMETER_NAMES` for Kotlin callables. (`T4658`)
+- Add `WarningLogger` class to allow using a custom Log4j2 logger.
+- Add Kotlin metadata model classes and visitors for Kotlin annotations.
+- Add Kotlin metadata model enum for `KmVariance`.
+- Add Kotlin metadata model enum for `KmVersionRequirement(Kind|Level)`.
+- Add Kotlin metadata model enum for `KmEffect(Type|InvocationKind)`.
+- Add Kotlin metadata flag `IS_FUN` for functional interfaces.
+- Add Kotlin metadata flag `HAS_NON_STABLE_PARAMETER_NAMES` for Kotlin callables.
 - Add error handler callback to `KotlinMetadataInitializer`.
 - Add error handler callback to `KotlinMetadataWriter`.
 - Add error handler callback to `KotlinModuleReader`.
-- Add error handler callback to `KotlinModuleWriter`. Add Kotlin metadata flag `IS_SECONDARY` for constructors. (`T4657`)
+- Add error handler callback to `KotlinModuleWriter`. Add Kotlin metadata flag `IS_SECONDARY` for constructors.
 - Implement `ClassVisitor` in `KotlinMetadataInitializer` to allow easier initialization of Kotlin metadata.
 - Implement `ClassVisitor` in `KotlinMetadataWriter` to allow easier writing of Kotlin metadata.
 
@@ -223,7 +224,7 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 - Rename `AllConstructorsVisitor` to `AllConstructorVisitor`.
 - Rename `AllFunctionsVisitor` to `AllFunctionVisitor`.
 - Remove `KotlinValueParameterVisitor.onNewFunctionStart()' method.
-- Deprecate Kotlin metadata flag `IS_PRIMARY` for constructors. (`T4657`)
+- Deprecate Kotlin metadata flag `IS_PRIMARY` for constructors.
 
 ## Version 7.1.1
 
@@ -236,7 +237,7 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 
  - Fix `AllTypeParameterVisitor` so that it visits type parameters defined in any kind of declaration container.
  - Fix `AllTypeParameterVisitor` so that it visits type parameters of type aliases.
- - Fix potential `NullPointerException` when initializing a Kotlin default implementation class that does not contain an initialized `jvmSignature`. (`T5442`)
+ - Fix potential `NullPointerException` when initializing a Kotlin default implementation class that does not contain an initialized `jvmSignature`.
  - Add missing `equals` method to `ParticularReferenceValue`.
  - Fix incorrect handling of `InterruptedException` in `ParallelAllClassVisitor`.
  - Fix potential `ZipOutput` alignment issue when writing large uncompressed zip entries.
@@ -251,9 +252,9 @@ The [Taint Analysis manual page](taintcpa.md) provides more information.
 
 ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:
 
- - Add support for reading & writing Java 14, 15 and 16 class files. (`PGC-0015`, `PGD-0064`)
- - Add support for Java 14 sealed classes (permitted subclasses attributes). (`PGD-0064`)
- - Add support for record attributes (previewed in Java 15/16, targeted for Java 17). (`PGD-0064`)
+ - Add support for reading & writing Java 14, 15 and 16 class files.
+ - Add support for Java 14 sealed classes (permitted subclasses attributes).
+ - Add support for record attributes (previewed in Java 15/16, targeted for Java 17).
 
 ### Improved code analysis
 
@@ -263,32 +264,32 @@ ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:
   `IllegalArgumentException` when an incomplete hierarchy is encountered.
 - The partial evaluator will now throw an `ExcessiveComplexityException` if an instruction is visited more than `stopAnalysisAfterNEvaluations` times.
 - Potentially throwing `ldc` instructions are now taken into account during partial evaluation,
-  improving the accuracy of code analysis. (`DGD-3036`)
+  improving the accuracy of code analysis.
 - Add support for multiple possible types during partial evaluation.
 
 ### Performance improvements
 
- - Improve efficiency of building classes, methods and constant pools (`PGD-5`).
+ - Improve efficiency of building classes, methods and constant pools.
 
 ### API improvements
 
-- Add `ClassRenamer` to allow renaming classes and members easily. (`T5302`)
+- Add `ClassRenamer` to allow renaming classes and members easily.
 
 ### Bug fixes
 
- - Add missing method reference in injected static initializer instructions. (`DGD-3231`)
+ - Add missing method reference in injected static initializer instructions.
  - Add missing dimensions argument to `CompactCodeAttributeComposer.multianewarray`.
  - Fix potential `StackOverflowException` when comparing multi-typed reference values.
- - Fix handling of Kotlin nested class names which contain `$`. (`DGD-3317`)
- - Mark `Module`, `ModuleMainClass` and `ModulePackages` attributes as required. (`PDG-127`)
- - Fix potential `ClassCastException` in `ConstructorMethodFilter`. (`PGC-0016`)
+ - Fix handling of Kotlin nested class names which contain `$`.
+ - Mark `Module`, `ModuleMainClass` and `ModulePackages` attributes as required.
+ - Fix potential `ClassCastException` in `ConstructorMethodFilter`.
  - Fix potential `NullPointerException` for module classes in ClassPrinter.
- - Fix storage and alignment of uncompressed zip entries. (`DGD-2390`)
- - Fix processing of constant boolean arrays. (`DGD-2338`)
+ - Fix storage and alignment of uncompressed zip entries.
+ - Fix processing of constant boolean arrays.
  - Fix adding branch instructions with labels in `CompactCodeAttributeComposer`.
  - Fix handling of array dereferencing in `MultiTypedReferenceValue`.
  - Fix `AllKotlinAnnotationVisitor` so that it visits type alias annotations defined in any kind of declaration container.
- - Move initialization of Kotlin declaration container's `ownerClassName` field from `ClassReferenceInitializer` to `KotlinMetadataInitializer`. (`T5348`)
+ - Move initialization of Kotlin declaration container's `ownerClassName` field from `ClassReferenceInitializer` to `KotlinMetadataInitializer`.
 
 ## Version 7.0 (Jan 2020)
 

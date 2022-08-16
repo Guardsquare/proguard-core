@@ -49,16 +49,17 @@ public class AnalyzeTaints
                                                  Collections.emptySet());        // a set of sensitive global variables
 
             // Create the CPA run.
-            JvmTaintMemoryLocationBamCpaRun cpaRun = new JvmTaintMemoryLocationBamCpaRun(cfa,                                         // a CFA
-                                                                                         Collections.singleton(source),               // a set of taint sources
-                                                                                         new MethodSignature("Main",
-                                                                                                             "main",
-                                                                                                             "()[Ljava/lang/String"), // the signature of the main method
-                                                                                         -1,                                          // maximum depth of the call stack
-                                                                                                                                      // 0 means intra-procedural analysis.
-                                                                                                                                      // < 0 means unlimited call stack.
-                                                                                         TaintAbstractState.bottom,                   // a cut-off threshold
-                                                                                         Collections.singleton(sink));                // a collection of taint sinks
+            JvmTaintMemoryLocationBamCpaRun cpaRun =
+                new JvmTaintMemoryLocationBamCpaRun.Builder().setCfa(cfa) // a CFA
+                                                            .setMainSignature(new MethodSignature("Main", // the signature of the main method
+                                                                                                  "main",
+                                                                                                  "()[Ljava/lang/String")).setTaintSources(Collections.singleton(source)) // a set of taint sources
+                                                             .setTaintSinks(Collections.singleton(sink)) // a set of taint sinks
+                                                             .setMaxCallStackDepth(-1) // maximum depth of the call stack
+                                                                                       // 0 means intra-procedural analysis.
+                                                                                       // < 0 means unlimited call stack.
+                                                             .setThreshold(TaintAbstractState.bottom) // a cut-off threshold
+                                                             .build();
 
             // Run the analysis and get witness traces.
             Set<List<BamLocationDependentJvmMemoryLocation>> traces = cpaRun.extractLinearTraces();
