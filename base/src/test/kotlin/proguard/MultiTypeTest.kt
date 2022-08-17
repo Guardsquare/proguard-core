@@ -20,6 +20,7 @@ import proguard.evaluation.value.Value
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
+import java.lang.reflect.Modifier
 
 class MultiTypeTest : FreeSpec({
 
@@ -31,6 +32,14 @@ class MultiTypeTest : FreeSpec({
         "Super.java",
         """
         public class Super {
+            public void call() {}
+        }
+        """
+    )
+    val codeRemovedSuper = JavaSource(
+        "RemovedSuper.java",
+        """
+        public class RemovedSuper {
             public void call() {}
         }
         """
@@ -53,6 +62,15 @@ class MultiTypeTest : FreeSpec({
         }
         """
     )
+    val codeC = JavaSource(
+        "C.java",
+        """
+        public class C extends RemovedSuper {
+            @Override
+            public void call() {}
+        }
+        """
+    )
     val codeTarget = JavaSource(
         "Target.java",
         """
@@ -60,6 +78,11 @@ class MultiTypeTest : FreeSpec({
             public void ternary(boolean flag) {
                 Super s = flag ? new A() : new B();
                 // s is A or B
+            }
+
+            public void noSuperClass(boolean flag) {
+                Object o = flag ? new A() : new C();
+                // Common superclass is Object, as superclass of C is removed from the class pool
             }
 
             public void ifElse(boolean flag) {
@@ -102,7 +125,9 @@ class MultiTypeTest : FreeSpec({
         }
         """
     )
-    val (classPool, _) = ClassPoolBuilder.fromSource(codeSuper, codeA, codeB, codeTarget, javacArguments = listOf("-g"))
+    val (classPool, _) = ClassPoolBuilder.fromSource(codeSuper, codeRemovedSuper, codeA, codeB, codeC, codeTarget, javacArguments = listOf("-g"), initialize = false)
+    classPool.removeClass("RemovedSuper")
+    ClassPoolBuilder.initialize(classPool, false)
 
     "Code examples" - {
         "Exact type" {
@@ -135,6 +160,31 @@ class MultiTypeTest : FreeSpec({
             s.generalizedType.type shouldBe "LSuper;"
             s.isNull shouldBe Value.NEVER
             s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;", "LB;")
+        }
+        "No super class" {
+            // Allow incomplete Class Hierarchies
+            val allowIncompleteClassHierarchy = TypedReferenceValue::class.java.getDeclaredField("ALLOW_INCOMPLETE_CLASS_HIERARCHY")
+            allowIncompleteClassHierarchy.isAccessible = true
+            val modifiers = allowIncompleteClassHierarchy::class.java.getDeclaredField("modifiers")
+            modifiers.isAccessible = true
+            modifiers.setInt(allowIncompleteClassHierarchy, allowIncompleteClassHierarchy.modifiers and Modifier.FINAL.inv())
+            allowIncompleteClassHierarchy.setBoolean(TypedReferenceValue(null, null, true, true), true)
+
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Target",
+                "noSuperClass",
+                "(Z)V",
+                classPool,
+                partialEvaluator
+            )
+            val (methodEnd, _) = instructions.last()
+            val s = partialEvaluator.getVariablesBefore(methodEnd)
+                .getValue(variableTable["o"]!!) as MultiTypedReferenceValue
+            s.generalizedType.type shouldBe "Ljava/lang/Object;"
+            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LC;", "LA;")
+
+            modifiers.setInt(allowIncompleteClassHierarchy, allowIncompleteClassHierarchy.modifiers and Modifier.FINAL)
+            allowIncompleteClassHierarchy.setBoolean(TypedReferenceValue(null, null, true, true), false)
         }
         "If else" {
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(

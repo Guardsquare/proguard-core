@@ -446,16 +446,6 @@ implements   AttributeVisitor,
             log.error("Argument types list of {} is null!", invokedMethodSig);
             return Collections.emptyList();
         }
-        if (!(multiTypeEvaluationSuccessful && particularValueEvaluationSuccessful))
-        {
-            int numArguments = invokedMethodSig.descriptor.argumentTypes.size();
-            if (!isStaticCall)
-            {
-                // For virtual calls we have the instance pointer as a first argument.
-                numArguments++;
-            }
-            return new ArrayList<>(Collections.nCopies(numArguments, null));
-        }
 
         List<Value> args = new ArrayList<>();
         int stackOffset  = 0;
