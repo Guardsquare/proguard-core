@@ -40,20 +40,20 @@ public class BamCacheImpl<SignatureT extends Signature>
     implements BamCache<SignatureT>
 {
 
-    private static final Logger  log   = LogManager.getLogger(BamCacheImpl.class);
+    private static final Logger log = LogManager.getLogger(BamCacheImpl.class);
 
     private final Map<SignatureT, Map<HashKey, BlockAbstraction>> cache = new HashMap<>();
+    private       int                                             size  = 0;
 
     // Implementations for BamCache
 
     @Override
     public void put(AbstractState stateKey, Precision precisionKey, SignatureT blockKey, BlockAbstraction blockAbstraction)
     {
-        int oldSize = size();
-        cache.computeIfAbsent(blockKey, k -> new HashMap<>()).put(getHashKey(stateKey, precisionKey), blockAbstraction);
-        if (size() >= oldSize)
+        if (cache.computeIfAbsent(blockKey, k -> new HashMap<>()).put(getHashKey(stateKey, precisionKey), blockAbstraction) == null)
         {
-            log.debug(size());
+            size++;
+            log.debug(size);
         }
     }
 
@@ -85,6 +85,12 @@ public class BamCacheImpl<SignatureT extends Signature>
     public Collection<BlockAbstraction> values()
     {
         return cache.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toSet());
+    }
+
+    @Override
+    public int size()
+    {
+        return size;
     }
 
     private HashKey getHashKey(AbstractState stateKey, Precision precisionKey)

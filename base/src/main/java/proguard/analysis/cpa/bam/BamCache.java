@@ -66,8 +66,5 @@ public interface BamCache<SignatureT extends Signature>
     /**
      * Returns the size of the cache.
      */
-    default int size()
-    {
-        return values().size();
-    }
+    int size();
 }
