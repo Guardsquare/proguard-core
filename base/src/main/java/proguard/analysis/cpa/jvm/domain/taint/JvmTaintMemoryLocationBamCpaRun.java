@@ -64,15 +64,17 @@ public class JvmTaintMemoryLocationBamCpaRun
     /**
      * Create a traced taint CPA run.
      *
-     * @param jvmTaintCpaRun an intraprocedural taint CPA run
-     * @param threshold      a cut-off threshold
-     * @param taintSinks     a collection of taint sinks
+     * @param jvmTaintCpaRun              an intraprocedural taint CPA run
+     * @param threshold                   a cut-off threshold
+     * @param taintSinks                  a collection of taint sinks
+     * @param memoryLocationAbortOperator an abort operator for trace reconstruction
      */
     protected JvmTaintMemoryLocationBamCpaRun(JvmTaintBamCpaRun jvmTaintCpaRun,
                                               TaintAbstractState threshold,
-                                              Collection<? extends JvmTaintSink> taintSinks)
+                                              Collection<? extends JvmTaintSink> taintSinks,
+                                              AbortOperator memoryLocationAbortOperator)
     {
-        super(jvmTaintCpaRun, threshold, jvmTaintCpaRun.getAbortOperator());
+        super(jvmTaintCpaRun, threshold, memoryLocationAbortOperator);
         this.taintSinks = taintSinks;
     }
 
@@ -88,6 +90,7 @@ public class JvmTaintMemoryLocationBamCpaRun
      * @param threshold                       a cut-off threshold
      * @param taintSinks                      a collection of taint sinks
      * @param abortOperator                   an abort operator
+     * @param memoryLocationAbortOperator     an abort operator for trace reconstruction
      * @param reduceHeap                      whether reduction/expansion of the heap state is performed at call/return sites
      * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
@@ -99,6 +102,7 @@ public class JvmTaintMemoryLocationBamCpaRun
                                               TaintAbstractState threshold,
                                               Collection<? extends JvmTaintSink> taintSinks,
                                               AbortOperator abortOperator,
+                                              AbortOperator memoryLocationAbortOperator,
                                               boolean reduceHeap,
                                               MapAbstractStateFactory heapNodeMapAbstractStateFactory,
                                               MapAbstractStateFactory staticFieldMapAbstractStateFactory)
@@ -113,7 +117,8 @@ public class JvmTaintMemoryLocationBamCpaRun
                                                                          heapNodeMapAbstractStateFactory,
                                                                          staticFieldMapAbstractStateFactory),
              threshold,
-             taintSinks);
+             taintSinks,
+             memoryLocationAbortOperator);
     }
 
     // implementations for CpaRun
@@ -190,6 +195,7 @@ public class JvmTaintMemoryLocationBamCpaRun
         private TaintAbstractState                 threshold                          = TaintAbstractState.bottom;
         private Collection<? extends JvmTaintSink> taintSinks                         = Collections.emptySet();
         private AbortOperator                      abortOperator                      = NeverAbortOperator.INSTANCE;
+        private AbortOperator                      memoryLocationAbortOperator        = NeverAbortOperator.INSTANCE;
         private boolean                            reduceHeap                         = true;
         private MapAbstractStateFactory            heapNodeMapAbstractStateFactory    = HashMapAbstractStateFactory.INSTANCE;;
         private MapAbstractStateFactory            staticFieldMapAbstractStateFactory = HashMapAbstractStateFactory.INSTANCE;;
@@ -211,6 +217,7 @@ public class JvmTaintMemoryLocationBamCpaRun
                                                        threshold,
                                                        taintSinks,
                                                        abortOperator,
+                                                       memoryLocationAbortOperator,
                                                        reduceHeap,
                                                        heapNodeMapAbstractStateFactory,
                                                        staticFieldMapAbstractStateFactory);
@@ -285,6 +292,15 @@ public class JvmTaintMemoryLocationBamCpaRun
         public Builder setAbortOperator(AbortOperator abortOperator)
         {
             this.abortOperator = abortOperator;
+            return this;
+        }
+
+        /**
+         * Sets the abort operator for premature trace reconstruction termination.
+         */
+        public Builder setMemoryLocationAbortOperator(AbortOperator memoryLocationAbortOperator)
+        {
+            this.memoryLocationAbortOperator = memoryLocationAbortOperator;
             return this;
         }
 

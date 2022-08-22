@@ -1,5 +1,9 @@
 ## Version 9.0.4
 
+### Improved
+
+- Enable providing distinct abort operators for the main and trace reconstruction CPAs.
+
 ## Version 9.0.3
 
 ### Java support
