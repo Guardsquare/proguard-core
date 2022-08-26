@@ -121,7 +121,8 @@ public class IOUtil
                 new DataEntryNameFilter(new OrMatcher(
                                         new ExtensionMatcher("jar"),
                                         new ExtensionMatcher("zip"),
-                                        new ExtensionMatcher("apk"))),
+                                        new ExtensionMatcher("apk"),
+                                        new ExtensionMatcher("jmod"))),
                     new JarReader(classReader),
                 classReader));
 
