@@ -27,8 +27,8 @@ import proguard.classfile.Clazz;
  */
 public class IdentifiedArrayReferenceValue extends ArrayReferenceValue
 {
-    private final ValueFactory valuefactory;
-    private final int          id;
+    protected final ValueFactory valuefactory;
+    protected final int          id;
 
 
     /**

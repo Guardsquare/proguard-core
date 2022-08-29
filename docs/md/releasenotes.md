@@ -4,6 +4,11 @@
 
 - Enable providing distinct abort operators for the main and trace reconstruction CPAs.
 
+### Bug fixes
+
+- Fix side effect on `DetailedArrayReferenceValue` modifying values at previous offsets on array store
+  instructions during `PartialEvaluator` execution.
+
 ## Version 9.0.3
 
 ### Java support

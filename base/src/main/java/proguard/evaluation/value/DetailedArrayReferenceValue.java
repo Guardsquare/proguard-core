@@ -32,7 +32,7 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
     private static final int MAXIMUM_STORED_ARRAY_LENGTH = 32;
 
 
-    private final Value[] values;
+    private Value[] values;
 
 
     /**
@@ -302,6 +302,26 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
         }
 
         return true;
+    }
+
+    /**
+     * Creates a deep copy of the DetailedArrayReferenceValue.
+     */
+    @Override
+    public DetailedArrayReferenceValue copyIfMutable()
+    {
+        DetailedArrayReferenceValue copy = new DetailedArrayReferenceValue(type,
+                                                                           referencedClass,
+                                                                           mayBeExtension,
+                                                                           arrayLength,
+                                                                           valuefactory,
+                                                                           id);
+        copy.values = new Value[values.length];
+        for (int i = 0; i < values.length; i++)
+        {
+            copy.values[i] = values[i].copyIfMutable();
+        }
+        return copy;
     }
 
 

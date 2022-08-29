@@ -490,6 +490,20 @@ public class Stack
         values[currentSize - 2] = value1;
     }
 
+    /**
+     * Replaces all the references to {@param toReplace} with references to {@param replacement}.
+     */
+    public void replaceReferences(Value toReplace, Value replacement)
+    {
+        for (int i = 0; i < values.length; i++)
+        {
+            if (values[i] == toReplace)
+            {
+                values[i] = replacement;
+            }
+        }
+    }
+
 
     // Implementations for Object.
 

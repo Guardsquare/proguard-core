@@ -163,4 +163,13 @@ public abstract class Value
      *         an array type containing any of these types (always as String).
      */
     public abstract String internalType();
+
+    /**
+     * Returns a deep copy of the value if it mutable,
+     * returns the value itself otherwise.
+     */
+    public Value copyIfMutable()
+    {
+        return this;
+    }
 }

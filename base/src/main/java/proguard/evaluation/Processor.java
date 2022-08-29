@@ -17,11 +17,26 @@
  */
 package proguard.evaluation;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
 import proguard.classfile.attribute.CodeAttribute;
-import proguard.classfile.instruction.*;
+import proguard.classfile.instruction.BranchInstruction;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.InstructionUtil;
+import proguard.classfile.instruction.LookUpSwitchInstruction;
+import proguard.classfile.instruction.SimpleInstruction;
+import proguard.classfile.instruction.TableSwitchInstruction;
+import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.evaluation.value.*;
+import proguard.evaluation.value.DoubleValue;
+import proguard.evaluation.value.FloatValue;
+import proguard.evaluation.value.InstructionOffsetValue;
+import proguard.evaluation.value.IntegerValue;
+import proguard.evaluation.value.LongValue;
+import proguard.evaluation.value.ReferenceValue;
+import proguard.evaluation.value.Value;
+import proguard.evaluation.value.ValueFactory;
 
 /**
  * This {@link InstructionVisitor} executes the instructions that it visits on a given
@@ -160,7 +175,7 @@ implements   InstructionVisitor
                 Value          value          = stack.ipop();
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                arrayReference.arrayStore(arrayIndex, value);
+                arrayStore(arrayReference, arrayIndex, value);
                 break;
             }
             case Instruction.OP_LASTORE:
@@ -168,7 +183,7 @@ implements   InstructionVisitor
                 Value          value          = stack.lpop();
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                arrayReference.arrayStore(arrayIndex, value);
+                arrayStore(arrayReference, arrayIndex, value);
                 break;
             }
             case Instruction.OP_FASTORE:
@@ -176,7 +191,7 @@ implements   InstructionVisitor
                 Value          value          = stack.fpop();
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                arrayReference.arrayStore(arrayIndex, value);
+                arrayStore(arrayReference, arrayIndex, value);
                 break;
             }
             case Instruction.OP_DASTORE:
@@ -184,7 +199,7 @@ implements   InstructionVisitor
                 Value          value          = stack.dpop();
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                arrayReference.arrayStore(arrayIndex, value);
+                arrayStore(arrayReference, arrayIndex, value);
                 break;
             }
             case Instruction.OP_AASTORE:
@@ -192,7 +207,7 @@ implements   InstructionVisitor
                 Value          value          = stack.apop();
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                arrayReference.arrayStore(arrayIndex, value);
+                arrayStore(arrayReference, arrayIndex, value);
                 break;
             }
             case Instruction.OP_POP:
@@ -930,5 +945,20 @@ implements   InstructionVisitor
                                            offset + lookUpSwitchInstruction.jumpOffsets[index],
                                            conditional);
         }
+    }
+
+    private void arrayStore(ReferenceValue arrayReference, IntegerValue arrayIndex, Value value)
+    {
+        Value copy = arrayReference.copyIfMutable();
+        if (!(copy instanceof ReferenceValue))
+        {
+            throw new IllegalStateException("copyIfMutable should return a value of the same type");
+        }
+        if (arrayReference != copy)
+        {
+            stack.replaceReferences(arrayReference, copy);
+            variables.replaceReferences(arrayReference, copy);
+        }
+        ((ReferenceValue) copy).arrayStore(arrayIndex, value);
     }
 }
