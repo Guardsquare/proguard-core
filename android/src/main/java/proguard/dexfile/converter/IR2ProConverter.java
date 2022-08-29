@@ -16,6 +16,8 @@
  */
 package proguard.dexfile.converter;
 
+import proguard.classfile.constant.PrimitiveArrayConstant;
+import proguard.classfile.util.PrimitiveArrayConstantReplacer;
 import proguard.dexfile.ir.IrMethod;
 import proguard.dexfile.ir.Trap;
 import proguard.dexfile.ir.expr.*;
@@ -66,6 +68,7 @@ public class IR2ProConverter {
     private static final int MAX_STATEMENT_DEPTH = Integer.parseInt(System.getProperty("proguard.dexconversion.maxstatementdepth", "0"));
 
     private boolean optimizeSynchronized = false;
+    private boolean usePrimitiveArrayConstants = false;
     private int statementDepthCounter = 0;
 
     IrMethod ir;
@@ -73,6 +76,18 @@ public class IR2ProConverter {
 
     public IR2ProConverter() {
         super();
+    }
+
+    /**
+     * Specifies whether {@link PrimitiveArrayConstant}s can be generated,
+     * when applicable.
+     * <p>
+     * If they are generated then they should be converted back to standard
+     * Java arrays before converting to Java class files using {@link PrimitiveArrayConstantReplacer}.
+     */
+    public IR2ProConverter usePrimitiveArrayConstants(boolean usePrimitiveArrayConstants) {
+        this.usePrimitiveArrayConstants = usePrimitiveArrayConstants;
+        return this;
     }
 
     public IR2ProConverter optimizeSynchronized(boolean optimizeSynchronized) {
@@ -282,7 +297,7 @@ public class IR2ProConverter {
                             "I";
 
                     // convert small arrays to unrolled loop
-                    if (arraySize < 0x200) {
+                    if (!usePrimitiveArrayConstants || arraySize < 0x200) {
                         accept(e2.getOp1(), code);
                         for (int i = 0; i < arraySize; i++) {
                             code.dup()
@@ -817,7 +832,10 @@ public class IR2ProConverter {
      * Returns whether the given array is a primitive array with only
      * constants.
      */
-    private static boolean isConstantPrimitiveArray(FilledArrayExpr fae) {
+    private boolean isConstantPrimitiveArray(FilledArrayExpr fae) {
+
+        if (!this.usePrimitiveArrayConstants) return false;
+
         // Is it a primitive array type, like "[I".
         if (fae.valueType.length() != 2)
             return false;
