@@ -64,6 +64,8 @@ public class Dex2Pro {
 
 //    private static final Logger  logger                   = LogManager.getLogger(Dex2Pro.class);
 
+    private boolean usePrimitiveArrayConstants = false;
+
 
     private static class Clz {
         private int access;
@@ -481,6 +483,11 @@ public class Dex2Pro {
             }
         }
         return true;
+    }
+
+    public Dex2Pro usePrimitiveArrayConstants(boolean usePrimitiveArrayConstants) {
+        this.usePrimitiveArrayConstants = usePrimitiveArrayConstants;
+        return this;
     }
 
 
@@ -1012,6 +1019,7 @@ public class Dex2Pro {
     private void ir2j(IrMethod irMethod, CompactCodeAttributeComposer composer) {
         new IR2ProConverter()
                 .optimizeSynchronized(false)
+                .usePrimitiveArrayConstants(this.usePrimitiveArrayConstants)
                 .ir(irMethod)
                 .code(composer)
                 .convert();

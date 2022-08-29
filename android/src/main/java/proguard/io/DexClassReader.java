@@ -1,11 +1,24 @@
 /*
- * ProGuard -- shrinking, optimization, obfuscation, and preverification
- *             of Java bytecode.
+ * ProGuardCORE -- library to process Java bytecode.
  *
  * Copyright (c) 2002-2022 Guardsquare NV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package proguard.io;
 
+import proguard.classfile.constant.PrimitiveArrayConstant;
+import proguard.classfile.util.PrimitiveArrayConstantReplacer;
 import proguard.dexfile.reader.DexFileReader;
 import proguard.dexfile.reader.node.DexFileNode;
 import proguard.dexfile.converter.Dex2Pro;
@@ -24,11 +37,15 @@ import java.io.InputStream;
  * @author Eric Lafortune
  */
 public class DexClassReader implements DataEntryReader {
-    private final boolean readCode;
+    private final boolean      readCode;
     private final ClassVisitor classVisitor;
+    private final boolean      usePrimitiveArrayConstants;
 
     /**
      * Creates a new DexClassReader.
+     * <p>
+     * Does not generate {@link PrimitiveArrayConstant}s by default, which is a custom
+     * ProGuardCORE extension.
      *
      * @param readCode     specifies whether to read the actual code or just
      *                     skip it.
@@ -37,8 +54,28 @@ public class DexClassReader implements DataEntryReader {
      */
     public DexClassReader(boolean readCode,
                           ClassVisitor classVisitor) {
-        this.readCode = readCode;
-        this.classVisitor = classVisitor;
+        this(readCode, false, classVisitor);
+    }
+
+    /**
+     * Creates a new DexClassReader.
+     * <p>
+     * If {@link PrimitiveArrayConstant}s are generated then they should be converted back to standard
+     * Java arrays before converting to Java class files using {@link PrimitiveArrayConstantReplacer}.
+     *
+     * @param readCode     specifies whether to read the actual code or just
+     *                     skip it.
+     * @param usePrimitiveArrayConstants specifies whether {@link PrimitiveArrayConstant} can
+     *                                   be generated when applicable.
+     * @param classVisitor the class visitor to which decoded classes will be
+     *                     passed.
+     */
+    public DexClassReader(boolean      readCode,
+                          boolean      usePrimitiveArrayConstants,
+                          ClassVisitor classVisitor) {
+        this.readCode                   = readCode;
+        this.usePrimitiveArrayConstants = usePrimitiveArrayConstants;
+        this.classVisitor               = classVisitor;
     }
 
 
@@ -56,8 +93,10 @@ public class DexClassReader implements DataEntryReader {
                     DexFileReader.SKIP_DEBUG);
             new DexFileReader(inputStream).accept(fileNode, readerConfig);
 
-            // Convert it to classes, with the help of Dex2jar.
-            new Dex2Pro().convertDex(fileNode, classVisitor);
+            // Convert it to classes, with the help of Dex2Pro.
+            new Dex2Pro()
+                    .usePrimitiveArrayConstants(usePrimitiveArrayConstants)
+                    .convertDex(fileNode, classVisitor);
         } finally {
             inputStream.close();
         }
