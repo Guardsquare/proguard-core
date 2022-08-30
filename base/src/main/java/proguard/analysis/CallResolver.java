@@ -123,6 +123,62 @@ implements   AttributeVisitor,
     private final        Supplier<Boolean>                            shouldAnalyzeNextCodeAttribute;
 
     /**
+     * Lightweight utility method to resolve the target of an invocation instruction on demand,
+     * without having to run a full scale analysis. This means the following for the different
+     * invocation types:
+     * <ul>
+     *     <li><b>invokestatic:</b> Full target resolution possible.</li>
+     *     <li><b>invokevirtual, invokespecial, invokeinterface:</b> Method name and descriptor.</li>
+     *     <li><b>invokedynamic:</b> Only descriptor.</li>
+     * </ul>
+     *
+     * @param instruction The invocation instruction to analyze.
+     * @param clazz       The {@link ProgramClass} containing this instruction.
+     * @return A {@link MethodSignature} containing as much information about the invocation target
+     *     as we can confidently know without needing more in-depth analysis.
+     */
+    public static MethodSignature quickResolve(Instruction instruction, ProgramClass clazz)
+    {
+        if (!(instruction instanceof ConstantInstruction))
+        {
+            return MethodSignature.UNKNOWN;
+        }
+
+        Constant constant = clazz.getConstant(((ConstantInstruction) instruction).constantIndex);
+        if (instruction.opcode == Instruction.OP_INVOKEDYNAMIC && constant instanceof InvokeDynamicConstant)
+        {
+            // While we don't know what exact method is going to be executed
+            // (the bootstrap method can decide this), we do get a name and a descriptor.
+            // The name is arbitrary and doesn't need to correspond with the name of the
+            // actually executed method, but the descriptor is not going to change.
+            InvokeDynamicConstant invokeDynamicConstant = (InvokeDynamicConstant) constant;
+            return new MethodSignature(null,
+                                       null,
+                                       invokeDynamicConstant.getType(clazz));
+        }
+
+        if (!(constant instanceof AnyMethodrefConstant))
+        {
+            return MethodSignature.UNKNOWN;
+        }
+        AnyMethodrefConstant methodRef = (AnyMethodrefConstant) constant;
+        switch (instruction.opcode)
+        {
+            case Instruction.OP_INVOKESTATIC:
+                // This is always clear, so we can just return it directly
+                return new MethodSignature(methodRef.getClassName(clazz), methodRef.getName(clazz), methodRef.getType(clazz));
+            case Instruction.OP_INVOKESPECIAL:
+            case Instruction.OP_INVOKEVIRTUAL:
+            case Instruction.OP_INVOKEINTERFACE:
+                // Virtual method invocation targets will always have the expected name and descriptor,
+                // but to know the exact target class we would need more in-depth analysis
+                return new MethodSignature(null, methodRef.getName(clazz), methodRef.getType(clazz));
+        }
+
+        return MethodSignature.UNKNOWN;
+    }
+
+    /**
      * Create a new call resolver.
      *
      * @param programClassPool               {@link ClassPool} containing the classes whose
