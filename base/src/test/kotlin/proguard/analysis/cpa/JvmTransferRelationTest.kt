@@ -20,7 +20,10 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import kotlin.reflect.full.functions
+import kotlin.reflect.jvm.isAccessible
 import proguard.analysis.cpa.defaults.HashMapAbstractState
+import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState
@@ -30,6 +33,9 @@ import proguard.classfile.Clazz
 import proguard.classfile.MethodDescriptor
 import proguard.classfile.MethodSignature
 import proguard.classfile.ProgramClass
+import proguard.classfile.ProgramMethod
+import proguard.classfile.Signature
+import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.constant.ClassConstant
 import proguard.classfile.constant.Constant
 import proguard.classfile.constant.DoubleConstant
@@ -60,8 +66,6 @@ import proguard.testutils.cpa.InstructionExpression
 import proguard.testutils.cpa.MethodExpression
 import proguard.testutils.cpa.UnknownValue
 import proguard.testutils.cpa.ValueExpression
-import kotlin.reflect.full.functions
-import kotlin.reflect.jvm.isAccessible
 
 class JvmTransferRelationTest : FreeSpec({
 
@@ -1318,5 +1322,26 @@ class JvmTransferRelationTest : FreeSpec({
             clazzA,
             null
         ) shouldBe result
+    }
+
+    "Regression test: successor is created for invoke instruction with no correspondent call edge" {
+        // test on this instruction: [36] invokevirtual #10 = Methodref(A.foo()B)
+        val mainMethod = clazzA.findMethod("main", "()V") as ProgramMethod
+        val mainSignature = Signature.of(clazzA, mainMethod) as MethodSignature
+        val sourceNode = JvmCfaNode(mainSignature, 36, clazzA)
+        val targetNode = JvmCfaNode(mainSignature, 39, clazzA)
+        val invokeEdge = JvmInstructionCfaEdge(sourceNode, targetNode, mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute, 36)
+
+        val sourceState = JvmAbstractState<ExpressionAbstractState>(
+            sourceNode,
+            JvmFrameAbstractState<ExpressionAbstractState>(),
+            JvmForgetfulHeapAbstractState<ExpressionAbstractState>(ExpressionAbstractState(setOf(ValueExpression(UnknownValue)))),
+            HashMapAbstractState<String, ExpressionAbstractState>()
+        )
+        val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
+        sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
+
+        val successors = transferRelation.getAbstractSuccessors(sourceState, null)
+        successors.size shouldBe 1
     }
 })

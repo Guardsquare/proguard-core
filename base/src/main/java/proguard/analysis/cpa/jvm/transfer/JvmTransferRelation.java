@@ -24,11 +24,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import proguard.analysis.CallResolver;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentForwardTransferRelation;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.analysis.datastructure.callgraph.Call;
+import proguard.analysis.datastructure.callgraph.SymbolicCall;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
+import proguard.classfile.ProgramClass;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.BranchInstruction;
 import proguard.classfile.instruction.ConstantInstruction;
@@ -81,7 +85,8 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
 
         if (edge instanceof JvmCallCfaEdge)
         {
-            successor.setProgramLocation(edge.getSource().getLeavingEdges().stream().filter(JvmInstructionCfaEdge.class::isInstance).findFirst().get().getTarget());
+            // successor location is the intraprocedural successor node after method invocation
+            successor.setProgramLocation(edge.getSource().getLeavingInvokeEdge().get().getTarget());
             processCall(successor, ((JvmCallCfaEdge) edge).getCall());
         }
         else
@@ -89,11 +94,6 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
             successor.setProgramLocation(edge.getTarget());
             if (edge instanceof JvmInstructionCfaEdge)
             {
-                Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
-                if (InstructionClassifier.isInvoke(instruction.opcode))
-                {
-                    return null;
-                }
                 successor = getAbstractSuccessorForInstruction(successor, ((JvmInstructionCfaEdge) edge).getInstruction(), state.getProgramLocation().getClazz(), precision);
             }
         }
@@ -549,7 +549,20 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 case Instruction.OP_INVOKEVIRTUAL:
                 case Instruction.OP_INVOKESPECIAL:
                 case Instruction.OP_INVOKEINTERFACE:
-                    throw new IllegalStateException(getClass().getName() + " encountered an unexpected call instruction");
+                    // this should be run just if call edges are missing for the CFA (incomplete call analysis)
+                    // otherwise the information on the call edge should be used instead of performing a partial call resolution here
+                    MethodSignature calleeSignature = CallResolver.quickResolve(constantInstruction, (ProgramClass) clazz);
+                    if (calleeSignature.equals(MethodSignature.UNKNOWN))
+                    {
+                        throw new IllegalStateException("Unexpected unknown signature");
+                    }
+                    processCall(abstractState, new SymbolicCall(new CodeLocation(clazz, method, offset, -1),
+                                                                calleeSignature,
+                                                                Value.MAYBE,
+                                                                constantInstruction.opcode,
+                                                                false,
+                                                                false));
+                    break;
                 case Instruction.OP_INSTANCEOF:
                     clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
                     abstractState.push(isInstanceOf(abstractState.pop(), constantLookupVisitor.result));

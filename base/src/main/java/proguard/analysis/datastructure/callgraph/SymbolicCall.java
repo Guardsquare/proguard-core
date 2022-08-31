@@ -40,38 +40,12 @@ public class SymbolicCall
 
     public SymbolicCall(CodeLocation caller,
                         MethodSignature target,
-                        Value instance,
-                        List<Value> arguments,
-                        Value returnValue,
-                        int throwsNullptr,
-                        byte invocationOpcode)
-    {
-        this(caller, target, instance, arguments, returnValue, throwsNullptr, invocationOpcode, false, false);
-    }
-
-    public SymbolicCall(CodeLocation caller,
-                        MethodSignature target,
-                        Value instance,
-                        List<Value> arguments,
-                        Value returnValue,
                         int throwsNullptr,
                         byte invocationOpcode,
                         boolean controlFlowDependent,
                         boolean runtimeTypeDependent)
     {
-        super(caller, instance, arguments, returnValue, throwsNullptr, invocationOpcode, controlFlowDependent, runtimeTypeDependent);
-        this.target = target;
-    }
-
-    public SymbolicCall(CodeLocation caller,
-                        MethodSignature target,
-                        int throwsNullptr,
-                        byte invocationOpcode,
-                        boolean controlFlowDependent,
-                        boolean runtimeTypeDependent)
-    {
-        this(caller,
-             target,
+        super(caller,
              null,
              Collections.emptyList(),
              null,
@@ -79,6 +53,8 @@ public class SymbolicCall
              invocationOpcode,
              controlFlowDependent,
              runtimeTypeDependent);
+
+        this.target = target;
     }
 
     @Override

@@ -455,4 +455,52 @@ public class BamCpaAlgorithmTest
         assertEquals(cfa.getFunctionNodes(mainSignature).size() + cfa.getFunctionCatchNodes(mainSignature).size(), reached.asCollection().size());
         assertTrue(reached.asCollection().stream().map(r -> ((JvmAbstractState<ExpressionAbstractState>) r).getProgramLocation()).anyMatch(JvmCfaNode::isExceptionExitNode));
     }
+
+    @Test
+    public void successorNoCallEdge()
+    {
+        // Regression test: tests that a successor state is produced if the inter-procedural call edge is missing from the CFA
+
+        ClassPool programClassPool = ClassPoolBuilder.Companion.fromFiles(new File("src/test/resources/BamCpaAlgorithmTest/interprocedural.java")).getProgramClassPool();
+        // create just intra-procedural CFA, all inter-procedural call edges are missing
+        cfa                        = CfaUtil.createIntraproceduralCfaFromClassPool(programClassPool);
+
+        AbstractDomain abstractDomain      = new DelegateAbstractDomain<ExpressionAbstractState>();
+        ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature> transferRelation    = new ExpressionTransferRelation();
+        MergeOperator mergeOperator       = new MergeJoinOperator(abstractDomain);
+        StopOperator stopOperator        = new StopSepOperator(abstractDomain);
+        PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
+        ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> reduceOperator      = new JvmDefaultReduceOperator<>();
+        ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> expandOperator      = new JvmDefaultExpandOperator<>(cfa);
+        RebuildOperator rebuildOperator     = new NoOpRebuildOperator();
+        CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> wrappedCpa = new CpaWithBamOperators<>(abstractDomain, transferRelation, mergeOperator, stopOperator, precisionAdjustment,
+                                                                                                            reduceOperator, expandOperator,
+                                                                                                            rebuildOperator);
+
+        ProgramClass    clazzA        = (ProgramClass) programClassPool.getClass("A");
+        Method          mainMethod    = Arrays.stream(clazzA.methods).filter(m -> m.getName(clazzA).equals("main")).findFirst().get();
+        MethodSignature mainSignature = MethodSignature.computeIfAbsent(clazzA, mainMethod);
+
+        BamCache<MethodSignature> cache = new BamCacheImpl<>();
+
+        BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa = new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
+
+        JvmCfaNode node = cfa.getFunctionEntryNode(mainSignature);
+
+        JvmAbstractState<ExpressionAbstractState> emptyState = new JvmAbstractState<>(
+            node,
+            new JvmFrameAbstractState<>(),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new HashMapAbstractState<>()
+        );
+
+        ReachedSet reached = new ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
+        reached.add(emptyState);
+        Waitlist waitlist = new BreadthFirstWaitlist();
+        waitlist.add(emptyState);
+
+        new CpaAlgorithm(bamCpa).run(reached, waitlist);
+
+        assertEquals(cfa.getFunctionNodes(mainSignature).size(), reached.asCollection().size());
+    }
 }
