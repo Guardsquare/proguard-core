@@ -316,10 +316,13 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
                                                                            arrayLength,
                                                                            valuefactory,
                                                                            id);
-        copy.values = new Value[values.length];
-        for (int i = 0; i < values.length; i++)
+        if (values != null)
         {
-            copy.values[i] = values[i].copyIfMutable();
+            copy.values = new Value[values.length];
+            for (int i = 0; i < values.length; i++)
+            {
+                copy.values[i] = values[i].copyIfMutable();
+            }
         }
         return copy;
     }
