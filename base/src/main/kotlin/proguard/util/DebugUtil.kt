@@ -1,7 +1,11 @@
 package proguard.util
 
 import proguard.analysis.cpa.jvm.cfa.JvmCfa
-import proguard.classfile.*
+import proguard.classfile.ClassPool
+import proguard.classfile.Method
+import proguard.classfile.MethodSignature
+import proguard.classfile.ProgramClass
+import proguard.classfile.ProgramMethod
 import proguard.classfile.attribute.Attribute
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
@@ -95,8 +99,8 @@ object DebugUtil {
      * "Lokhttp3/RequestBody;create(Lokhttp3/MediaType;Lokio/ByteString;)Lokhttp3/RequestBody;",
      * "Lokhttp3/RequestBody;create(Lokhttp3/MediaType;Ljava/io/File;)Lokhttp3/RequestBody;",
      * "Lokhttp3/RequestBody;create(Lokhttp3/MediaType;Ljava/lang/String;)Lokhttp3/RequestBody;"
-    ` *
-    </pre> *
+     ` *
+     </pre> *
      */
     @JvmStatic
     fun getMethodFqnList(classPool: ClassPool, className: String?): String {

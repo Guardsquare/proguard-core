@@ -13,13 +13,14 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
 
-
-class DetailedArrayTest : FreeSpec ({
+class DetailedArrayTest : FreeSpec({
     val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ReferenceValueFactory())
     val invocationUnit = ExecutingInvocationUnit(valueFactory)
-    val partialEvaluator = PartialEvaluator(valueFactory,
+    val partialEvaluator = PartialEvaluator(
+        valueFactory,
         invocationUnit,
-        false)
+        false
+    )
 
     "Array values evaluated correctly" - {
 
