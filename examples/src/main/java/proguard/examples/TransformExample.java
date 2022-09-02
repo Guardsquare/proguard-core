@@ -50,11 +50,11 @@ public class TransformExample
     {
 
         // input file
-        ClassPathEntry inputEntry = new ClassPathEntry(new File("/home/pramitha/Downloads/HelloWorld.apk"), false);
+        ClassPathEntry inputEntry = new ClassPathEntry(new File(args[0]), false);
         // output file
-        ClassPathEntry outputEntry = new ClassPathEntry(new File("/home/pramitha/Downloads/DexOut/output/output.apk"), true);
+        ClassPathEntry outputEntry = new ClassPathEntry(new File(args[1]), true);
         // library file
-        ClassPathEntry libraryEntry = new ClassPathEntry(new File("/home/pramitha/Android/Sdk/platforms/android-33/android.jar"), false);
+        ClassPathEntry libraryEntry = new ClassPathEntry(new File(args[2]), false);
 
         ClassPath programJars = new ClassPath(inputEntry, outputEntry);
         ClassPath libraryJars = new ClassPath(libraryEntry);
