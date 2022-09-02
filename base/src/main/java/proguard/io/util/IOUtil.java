@@ -125,9 +125,7 @@ public class IOUtil
                                  BiFunction<DataEntryReader, ClassVisitor, DataEntryReader> extraDataEntryReader)
     throws IOException
     {
-        ClassPath classPath = new ClassPath();
-        classPath.add(new ClassPathEntry(file, false));
-        return read(classPath, "**",false, isLibrary, false, false, false, extraDataEntryReader);
+        return read(new ClassPath(new ClassPathEntry(file, false)), "**",false, isLibrary, false, false, false, extraDataEntryReader);
     }
 
     public static ClassPool read(ClassPath      classPath,
