@@ -23,6 +23,8 @@ import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassPrinter
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MemberVisitor
+import proguard.io.ClassPath
+import proguard.io.ClassPathEntry
 import proguard.io.DataEntry
 import proguard.io.DataEntryReader
 import proguard.io.DexClassReader
@@ -193,7 +195,9 @@ fun read(
     filename: String,
     classNameFilter: String,
     isLibrary: Boolean
-): ClassPool = IOUtil.read(filename, classNameFilter, isLibrary) { dataEntryReader, classPoolFiller ->
+): ClassPool = IOUtil.read(
+    ClassPath(ClassPathEntry(File(filename), false)),
+    classNameFilter, true, isLibrary, false, false, false) { dataEntryReader, classPoolFiller ->
     val dexReader = NameFilteredDataEntryReader(
         "classes*.dex",
         DexClassReader(
