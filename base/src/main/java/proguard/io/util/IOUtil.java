@@ -41,11 +41,27 @@ package proguard.io.util;
 import proguard.classfile.ClassPool;
 import proguard.classfile.visitor.ClassNameFilter;
 import proguard.classfile.visitor.ClassPoolFiller;
-import proguard.io.*;
-import proguard.util.ExtensionMatcher;
-import proguard.util.OrMatcher;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.io.ClassPath;
+import proguard.io.ClassPathEntry;
+import proguard.io.ClassReader;
+import proguard.io.DataEntry;
+import proguard.io.DataEntryClassWriter;
+import proguard.io.DataEntryReader;
+import proguard.io.DataEntryReaderFactory;
+import proguard.io.DataEntrySource;
+import proguard.io.DataEntryWriter;
+import proguard.io.DirectorySource;
+import proguard.io.FixedFileWriter;
+import proguard.io.JarWriter;
+import proguard.io.NameFilteredDataEntryReader;
+import proguard.io.ZipWriter;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.function.BiFunction;
 
 /**
@@ -62,17 +78,34 @@ public class IOUtil
      * Reads the classes from the specified jar file and returns them as a class
      * pool.
      *
-     * @param fileName    the name of the file.
+     * @param fileName    the file name.
      * @param isLibrary   specifies whether classes should be represented as
      *                    ProgramClass instances (for processing) or
      *                    LibraryClass instances (more compact).
      * @return a new class pool with the read classes.
      */
-    public static ClassPool read(String  fileName,
+    public static ClassPool read(String   fileName,
                                  boolean isLibrary)
     throws IOException
     {
-        return read(fileName, "**", isLibrary, (dataEntryReader, classPool) -> dataEntryReader);
+        return read(new File(fileName), isLibrary);
+    }
+
+    /**
+     * Reads the classes from the specified jar file and returns them as a class
+     * pool.
+     *
+     * @param file        the file.
+     * @param isLibrary   specifies whether classes should be represented as
+     *                    ProgramClass instances (for processing) or
+     *                    LibraryClass instances (more compact).
+     * @return a new class pool with the read classes.
+     */
+    public static ClassPool read(File    file,
+                                 boolean isLibrary)
+    throws IOException
+    {
+        return read(file, isLibrary, (dataEntryReader, classPool) -> dataEntryReader);
     }
 
 
@@ -80,56 +113,79 @@ public class IOUtil
      * Reads the classes from the specified jar file and returns them as a class
      * pool.
      *
-     * @param fileName    the name of the file.
+     * @param file        the name of the file.
      * @param isLibrary   specifies whether classes should be represented as
      *                    ProgramClass instances (for processing) or
      *                    LibraryClass instances (more compact).
      * @param extraDataEntryReader Optionally provide a function that wraps the reader in another reader.
      * @return a new class pool with the read classes.
      */
-    public static ClassPool read(String  fileName,
-                                 String  classNameFilter,
+    public static ClassPool read(File    file,
                                  boolean isLibrary,
-                                 BiFunction<DataEntryReader, ClassPoolFiller, DataEntryReader> extraDataEntryReader)
+                                 BiFunction<DataEntryReader, ClassVisitor, DataEntryReader> extraDataEntryReader)
+    throws IOException
+    {
+        ClassPath classPath = new ClassPath();
+        classPath.add(new ClassPathEntry(file, false));
+        return read(classPath, "**",false, isLibrary, false, false, false, extraDataEntryReader);
+    }
+
+    public static ClassPool read(ClassPath      classPath,
+                                 String         classNameFilter,
+                                 boolean        android,
+                                 boolean        isLibrary,
+                                 boolean        skipNonPublicLibraryClasses,
+                                 boolean        skipNonPublicLibraryClassMembers,
+                                 boolean        ignoreStackMapAttributes,
+                                 BiFunction<DataEntryReader, ClassVisitor, DataEntryReader> extraDataEntryReader)
     throws IOException
     {
         ClassPool classPool = new ClassPool();
-        ClassPoolFiller classPoolFiller = new ClassPoolFiller(classPool);
+        ClassVisitor classPoolFiller = new ClassPoolFiller(classPool);
 
-        // Parse all classes from the input jar and
-        // collect them in the class pool.
-        DataEntrySource source =
-            new DirectorySource(
-            new File(fileName));
+        if (classNameFilter != null)
+            classPoolFiller = new ClassNameFilter(classNameFilter, classPoolFiller);
 
         DataEntryReader classReader =
-            new NameFilteredDataEntryReader("**.class",
-            new ClassReader(isLibrary, false, false, false, null,
-            new ClassNameFilter(classNameFilter,
-            classPoolFiller)));
+                new NameFilteredDataEntryReader("**.class",
+                new ClassReader(
+                        isLibrary,
+                        skipNonPublicLibraryClasses,
+                        skipNonPublicLibraryClassMembers,
+                        ignoreStackMapAttributes,
+                        null,
+                        classPoolFiller));
 
         classReader = extraDataEntryReader.apply(classReader, classPoolFiller);
 
-        // Extract files from an archive if necessary.
-        classReader =
-                new FilteredDataEntryReader(
-                new DataEntryNameFilter(new ExtensionMatcher("aar")),
-                    new JarReader(
-                    new NameFilteredDataEntryReader("classes.jar",
-                    new JarReader(classReader))),
-                new FilteredDataEntryReader(
-                new DataEntryNameFilter(new OrMatcher(
-                                        new ExtensionMatcher("jar"),
-                                        new ExtensionMatcher("zip"),
-                                        new ExtensionMatcher("apk"),
-                                        new ExtensionMatcher("jmod"))),
-                    new JarReader(classReader),
-                classReader));
+        for (int index = 0; index < classPath.size(); index++)
+        {
+            ClassPathEntry entry = classPath.get(index);
+            if (!entry.isOutput())
+            {
+                try
+                {
+                    // Create a reader that can unwrap jars, wars, ears, jmods and zips.
+                    DataEntryReader reader =
+                            new DataEntryReaderFactory(android)
+                                    .createDataEntryReader(entry, classReader);
 
-        source.pumpDataEntries(classReader);
+                    // Create the data entry source.
+                    DataEntrySource source = new DirectorySource(entry.getFile());
+
+                    // Pump the data entries into the reader.
+                    source.pumpDataEntries(reader);
+                }
+                catch (IOException ex)
+                {
+                    throw new IOException("Can't read [" + entry + "] (" + ex.getMessage() + ")", ex);
+                }
+            }
+        }
 
         return classPool;
     }
+
 
     /**
      * Writes the classes from the given class pool to a specified jar.
