@@ -36,13 +36,16 @@ public class ClassPath
      */
     public boolean hasOutput()
     {
-        for (ClassPathEntry classPathEntry : classPathEntries) {
-            if (classPathEntry.isOutput()) {
-                return true;
-            }
-        }
+        return classPathEntries.stream().anyMatch(ClassPathEntry::isOutput);
+    }
 
-        return false;
+
+    /**
+     * Returns the list of class path entries for this class path.
+     */
+    public List<ClassPathEntry> getClassPathEntries()
+    {
+        return classPathEntries;
     }
 
 
