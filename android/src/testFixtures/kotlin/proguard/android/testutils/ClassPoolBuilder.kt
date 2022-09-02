@@ -12,7 +12,6 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.ClassPools
 import java.io.File
 import java.io.FileOutputStream
-
 import java.io.InputStream
 
 fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {

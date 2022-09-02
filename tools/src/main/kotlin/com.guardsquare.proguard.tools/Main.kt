@@ -197,7 +197,8 @@ fun read(
     isLibrary: Boolean
 ): ClassPool = IOUtil.read(
     ClassPath(ClassPathEntry(File(filename), false)),
-    classNameFilter, true, isLibrary, false, false, false) { dataEntryReader, classPoolFiller ->
+    classNameFilter, true, isLibrary, false, false, false
+) { dataEntryReader, classPoolFiller ->
     val dexReader = NameFilteredDataEntryReader(
         "classes*.dex",
         DexClassReader(
