@@ -199,62 +199,6 @@ public class TransformExample
     }
 
 
-    private static void readInput(boolean        android,
-                                  boolean        isLibrary,
-                                  boolean        skipNonPublicLibraryClasses,
-                                  boolean        skipNonPublicLibraryClassMembers,
-                                  boolean        ignoreStackMapAttributes,
-                                  ClassPath      classPath,
-                                  ClassVisitor   classPoolFiller)
-    throws IOException
-    {
-        DataEntryReader dataEntryReader = new ClassFilter(
-                new ClassReader(isLibrary,
-                        skipNonPublicLibraryClasses,
-                        skipNonPublicLibraryClassMembers,
-                        ignoreStackMapAttributes,
-                        null,
-                        classPoolFiller
-                ),
-                new NameFilteredDataEntryReader(
-                        "classes*.dex",
-                        new DexClassReader(
-                                true,
-                                classPoolFiller
-                        )
-                )
-        );
-
-        for (int index = 0; index < classPath.size(); index++)
-        {
-            ClassPathEntry entry = classPath.get(index);
-            if (!entry.isOutput())
-            {
-
-                try
-                {
-                    // Create a reader that can unwrap jars, wars, ears, jmods and zips.
-                    DataEntryReader reader =
-                            new DataEntryReaderFactory(android)
-                                    .createDataEntryReader(entry, dataEntryReader);
-
-                    // Create the data entry source.
-                    DataEntrySource source = new DirectorySource(entry.getFile());
-
-                    // Pump the data entries into the reader.
-                    source.pumpDataEntries(reader);
-                }
-                catch (IOException ex)
-                {
-                    throw new IOException("Can't read [" + entry + "] (" + ex.getMessage() + ")", ex);
-                }
-            }
-        }
-    }
-
-
-    // ......
-
     public static class MyTransformer implements ClassVisitor {
         @Override
         public void visitAnyClass(Clazz clazz) { }
