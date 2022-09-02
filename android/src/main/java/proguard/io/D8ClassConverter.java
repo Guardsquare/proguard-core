@@ -40,11 +40,7 @@ import java.util.Set;
 /**
  * This ClassVisitor converts and collects the classes that it visits, and uses D8
  * to convert them to the dex format.
- * <p>
- * Note: this converter works slightly different from our own or the dx-based one.
- *       When visiting the classes to convert we only convert them to class files
- *       and collect them. The actual conversion is done at the very end, as D8
- *       uses an approach similar to ProGuard.
+<p>
  *
  * @author Thomas Neidhart
  */
