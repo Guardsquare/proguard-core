@@ -20,8 +20,6 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import kotlin.reflect.full.functions
-import kotlin.reflect.jvm.isAccessible
 import proguard.analysis.cpa.defaults.HashMapAbstractState
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
@@ -66,6 +64,8 @@ import proguard.testutils.cpa.InstructionExpression
 import proguard.testutils.cpa.MethodExpression
 import proguard.testutils.cpa.UnknownValue
 import proguard.testutils.cpa.ValueExpression
+import kotlin.reflect.full.functions
+import kotlin.reflect.jvm.isAccessible
 
 class JvmTransferRelationTest : FreeSpec({
 
