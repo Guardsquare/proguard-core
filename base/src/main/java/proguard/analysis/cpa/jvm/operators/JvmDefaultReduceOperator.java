@@ -87,22 +87,10 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
         StackAbstractState<StateT> callStack = new StackAbstractState<>();
         JvmFrameAbstractState<StateT> frame = new JvmFrameAbstractState<>(localVariables, callStack);
 
-        // get total dimension of arguments
-        int argSize = 0;
-
-        boolean isStatic = call.invocationOpcode == Instruction.OP_INVOKESTATIC || call.invocationOpcode == Instruction.OP_INVOKEDYNAMIC;
-        if (!isStatic)
-        {
-            argSize++;
-        }
         int i = 0;
         if (call.getTarget().descriptor.argumentTypes != null)
         {
-            for (String type : call.getTarget().descriptor.argumentTypes)
-            {
-                argSize += ClassUtil.internalTypeSize(type);
-            }
-
+            int argSize = call.getJvmArgumentSize();
             ListIterator<String> iterator = call.getTarget().descriptor.argumentTypes.listIterator(call.getTarget().descriptor.argumentTypes.size());
 
             // set local variables in reverse order from the stack
@@ -131,7 +119,7 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
         reduceStaticFields(staticFields);
 
 
-        if (!isStatic)
+        if (!call.isStatic())
         {
             StateT state = initialJvmState.peek(i++);
 

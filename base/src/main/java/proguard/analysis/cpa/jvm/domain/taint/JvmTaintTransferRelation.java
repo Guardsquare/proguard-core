@@ -111,11 +111,10 @@ public class JvmTaintTransferRelation
                                     .map(treeHeap::getReferenceAbstractState)
                                     .forEach(r -> taintAbstractState.setObjectTaint(r, detectedTaint));
         // taint arguments
-        boolean isStatic = call.invocationOpcode == Instruction.OP_INVOKESTATIC || call.invocationOpcode == Instruction.OP_INVOKEDYNAMIC;
         String descriptor = call.getTarget().descriptor.toString();
-        int parameterSize = ClassUtil.internalMethodParameterSize(descriptor, isStatic);
+        int parameterSize = call.getJvmArgumentSize();
         detectedSource.taintsArgs.stream()
-                                 .map(a -> HeapUtil.getArgumentReference(treeHeap, parameterSize, descriptor, isStatic, a - 1))
+                                 .map(a -> HeapUtil.getArgumentReference(treeHeap, parameterSize, descriptor, call.isStatic(), a - 1))
                                  .forEach(r -> taintAbstractState.setObjectTaint(r, detectedTaint));
         // taint the calling instance
         if (detectedSource.taintsThis)

@@ -190,7 +190,6 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
      */
     protected void processCall(JvmAbstractState<StateT> state, Call call)
     {
-        boolean      isStatic = call.invocationOpcode == Instruction.OP_INVOKESTATIC || call.invocationOpcode == Instruction.OP_INVOKEDYNAMIC;
         List<StateT> operands = new ArrayList<>();
         if (call.getTarget().descriptor.argumentTypes != null)
         {
@@ -210,7 +209,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 }
             }
         }
-        if (!isStatic)
+        if (!call.isStatic())
         {
             operands.add(state.pop());
         }
@@ -559,7 +558,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                     processCall(abstractState, new SymbolicCall(new CodeLocation(clazz, method, offset, -1),
                                                                 calleeSignature,
                                                                 Value.MAYBE,
-                                                                constantInstruction.opcode,
+                                                                constantInstruction,
                                                                 false,
                                                                 false));
                     break;

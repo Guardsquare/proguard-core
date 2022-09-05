@@ -3,13 +3,16 @@
 ### Improved
 
 - Enable providing distinct abort operators for the main and trace reconstruction CPAs.
+- Add a heap model for taint CPA supporting tainting of whole objects.
+- `Call` API: Add a few utilities and fix inconsistent call argument count getter behavior.
 
 ### Bug fixes
 
 - Fix side effect on `DetailedArrayReferenceValue` modifying values at previous offsets on array store
   instructions during `PartialEvaluator` execution.
 - Fix `JvmTransferRelation` to produce a successor in case of missing interprocedural call edge
-  (e.g., in case of incomplete call resolution)
+  (e.g., in case of incomplete call resolution).
+- Fix call resolution for `invokedynamic` (issue #63).
 
 ## Version 9.0.3
 

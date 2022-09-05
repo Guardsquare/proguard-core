@@ -47,6 +47,7 @@ import proguard.classfile.constant.Utf8Constant
 import proguard.classfile.instruction.BranchInstruction
 import proguard.classfile.instruction.ConstantInstruction
 import proguard.classfile.instruction.Instruction
+import proguard.classfile.instruction.InstructionFactory
 import proguard.classfile.instruction.LookUpSwitchInstruction
 import proguard.classfile.instruction.SimpleInstruction
 import proguard.classfile.instruction.TableSwitchInstruction
@@ -1047,7 +1048,7 @@ class JvmTransferRelationTest : FreeSpec({
                     MethodDescriptor("()B")
                 ),
                 0,
-                Instruction.OP_INVOKEVIRTUAL,
+                InstructionFactory.create(Instruction.OP_INVOKEVIRTUAL),
                 false,
                 false
             )
@@ -1080,7 +1081,7 @@ class JvmTransferRelationTest : FreeSpec({
                     MethodDescriptor("()D")
                 ),
                 0,
-                Instruction.OP_INVOKEVIRTUAL,
+                InstructionFactory.create(Instruction.OP_INVOKEVIRTUAL),
                 false,
                 false
             )
@@ -1118,7 +1119,7 @@ class JvmTransferRelationTest : FreeSpec({
                     MethodDescriptor("(ID)I")
                 ),
                 0,
-                Instruction.OP_INVOKESTATIC,
+                InstructionFactory.create(Instruction.OP_INVOKESTATIC),
                 false,
                 false
             )
@@ -1139,7 +1140,7 @@ class JvmTransferRelationTest : FreeSpec({
                     MethodDescriptor("()V")
                 ),
                 0,
-                Instruction.OP_INVOKESTATIC,
+                InstructionFactory.create(Instruction.OP_INVOKESTATIC),
                 false,
                 false
             )

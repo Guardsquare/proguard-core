@@ -103,12 +103,11 @@ public class JvmTaintExpandOperator
         {
             return result;
         }
-        boolean isStatic = call.invocationOpcode == Instruction.OP_INVOKESTATIC || call.invocationOpcode == Instruction.OP_INVOKEDYNAMIC;
         String descriptor = call.getTarget().descriptor.toString();
-        int parameterSize = ClassUtil.internalMethodParameterSize(descriptor, isStatic);
+        int parameterSize = call.getJvmArgumentSize();
         // taint arguments
         detectedSource.taintsArgs.stream()
-                                 .map(a -> HeapUtil.getArgumentReference(expandedHeap, parameterSize, descriptor, isStatic, a - 1))
+                                 .map(a -> HeapUtil.getArgumentReference(expandedHeap, parameterSize, descriptor, call.isStatic(), a - 1))
                                  .forEach(r -> result.setObjectTaint(r, detectedTaint));
         // taint the calling instance
         if (detectedSource.taintsThis)

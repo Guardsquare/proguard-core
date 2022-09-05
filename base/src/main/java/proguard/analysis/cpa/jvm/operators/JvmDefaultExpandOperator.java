@@ -34,7 +34,6 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractStateFactory;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
-import proguard.analysis.cpa.jvm.util.CallUtil;
 import proguard.analysis.cpa.jvm.util.InstructionClassifier;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.Clazz;
@@ -110,8 +109,6 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
         // expand return exit location
         if (exitNode.isReturnExitNode())
         {
-            // get total dimension of arguments
-            int argSize = CallUtil.calculateArgumentSize(call);
 
             // the next node is the target of the intra-procedural method call edge
             JvmCfaNode nextNode = cfa.getFunctionNode((MethodSignature) call.caller.signature, call.caller.offset)
@@ -128,7 +125,8 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
                                                                           ((JvmAbstractState<StateT>) reducedExitState).getStaticFields().copy());
 
             // pop the arguments of the invoke instruction from the initial state stack
-            for (int i = 0; i < argSize; i++)
+            int elementsToPop = call.getJvmArgumentSize();
+            for (int i = 0; i < elementsToPop; i++)
             {
                 StateT top = returnState.pop();
             }

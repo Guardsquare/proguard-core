@@ -102,4 +102,22 @@ public class InstructionUtil
             default: throw new IllegalArgumentException("Unknown primitive type ["+internalType+"]");
         }
     }
+
+    /**
+     * Check if an instruction opcode refers to a static call (i.e. no calling instance needed).
+     *
+     * @param opcode The instruction opcode to check
+     * @return False if this call requires a calling instance, true otherwise.
+     */
+    public static boolean isStaticCall(byte opcode)
+    {
+        switch (opcode)
+        {
+            case Instruction.OP_INVOKESTATIC:
+            case Instruction.OP_INVOKEDYNAMIC:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

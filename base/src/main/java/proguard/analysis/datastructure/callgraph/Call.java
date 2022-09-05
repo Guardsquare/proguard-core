@@ -29,6 +29,8 @@ import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.InstructionUtil;
+import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.Value;
 
@@ -52,8 +54,7 @@ public abstract class Call
      */
     public final         int          throwsNullptr;
     /**
-     * The type of this call. There are several different ways of invoking
-     * a method call in the JVM:
+     * The instruction performing this call. There are several different ways of invoking a method call in the JVM:
      * <ul>
      *     <li>{@link Instruction#OP_INVOKESTATIC}</li>
      *     <li>{@link Instruction#OP_INVOKEVIRTUAL}</li>
@@ -63,17 +64,13 @@ public abstract class Call
      * </ul>
      * See the {@link CallResolver} for more details.
      */
-    public final         byte         invocationOpcode;
+    public final         Instruction  instruction;
     /**
-     * If false, control flow in the calling method will always reach this call.
-     * Otherwise, whether the call will be invoked at runtime might depend on
-     * e.g. specific branches being taken.
+     * If false, control flow in the calling method will always reach this call. Otherwise, whether the call will be invoked at runtime might depend on e.g. specific branches being taken.
      */
     public final         boolean      controlFlowDependent;
     /**
-     * If true, this call might only be one of several alternative targets,
-     * depending on the actual type of the called object during runtime.
-     * Otherwise, this call is the only possible target.
+     * If true, this call might only be one of several alternative targets, depending on the actual type of the called object during runtime. Otherwise, this call is the only possible target.
      */
     public final         boolean      runtimeTypeDependent;
     private              Value        instance;
@@ -86,7 +83,7 @@ public abstract class Call
                    List<Value> arguments,
                    Value returnValue,
                    int throwsNullptr,
-                   byte invocationOpcode,
+                   Instruction instruction,
                    boolean controlFlowDependent,
                    boolean runtimeTypeDependent)
     {
@@ -95,9 +92,18 @@ public abstract class Call
         this.arguments = arguments;
         this.returnValue = returnValue;
         this.throwsNullptr = throwsNullptr;
-        this.invocationOpcode = invocationOpcode;
+        this.instruction = instruction;
         this.controlFlowDependent = controlFlowDependent;
         this.runtimeTypeDependent = runtimeTypeDependent;
+    }
+
+
+    /**
+     * Check if this call is static (no implicit {@link #instance} set) or not.
+     */
+    public boolean isStatic()
+    {
+        return InstructionUtil.isStaticCall(instruction.opcode);
     }
 
     /**
@@ -106,15 +112,31 @@ public abstract class Call
     public abstract MethodSignature getTarget();
 
     /**
+     * Check if this call's target is fully known or only parts of it
+     * (e.g. only the descriptor).
+     */
+    public abstract boolean hasIncompleteTarget();
+
+    /**
      * Returns the number of arguments.
-     *
-     * <p><b>Note:</b> This is only to be used in implementations of {@link CallVisitor#visitCall(Call)}.
-     * Afterwards, the values will have been cleared to reduce unnecessary memory usage, as argument
-     * values are not needed for the full call graph reconstruction.</p>
      */
     public int getArgumentCount()
     {
-        return arguments.size();
+        if (!valuesCleared)
+        {
+            return arguments.size();
+        }
+
+        return ClassUtil.internalMethodParameterCount(getTarget().descriptor.toString());
+    }
+
+    /**
+     * Returns the number of elements that need to be popped from the JVM stack for this call.
+     */
+    public int getJvmArgumentSize()
+    {
+        return ClassUtil.internalMethodParameterSize(getTarget().descriptor.toString(),
+                                                     isStatic());
     }
 
     /**
@@ -223,7 +245,7 @@ public abstract class Call
             nullSuffix = " (might throw NullPointerException)";
         }
         String invocationType;
-        switch (invocationOpcode)
+        switch (instruction.opcode)
         {
             case Instruction.OP_INVOKEVIRTUAL:
                 invocationType = "[invokevirtual] ";
@@ -262,7 +284,7 @@ public abstract class Call
         return throwsNullptr == that.throwsNullptr
                && Objects.equals(caller, that.caller)
                && Objects.equals(arguments, that.arguments)
-               && Objects.equals(invocationOpcode, that.invocationOpcode);
+               && Objects.equals(instruction, that.instruction);
     }
 
     @Override

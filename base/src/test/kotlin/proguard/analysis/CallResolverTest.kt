@@ -115,7 +115,7 @@ class CallResolverTest : FreeSpec({
             "println",
             "()V"
         )
-    val LAMBDA = MethodSignature("Main", "lambda\$dynamic$0", "(Ljava/lang/String;)Z")
+    val LAMBDA_FACTORY = MethodSignature(null, null, "()Ljava/util/function/Predicate;")
     val topLevel = Paths.get("src", "test", "resources", "callResolver", "hierarchy")
 
     val classPools = ClassPoolBuilder.fromDirectory(topLevel.toFile())
@@ -280,13 +280,7 @@ class CallResolverTest : FreeSpec({
 
     "Invokedynamic" {
         val caller = MethodSignature("Main", "dynamic", "()V")
-        caller shouldCall LAMBDA andThrow NEVER
-
-        LAMBDA shouldCall MethodSignature(
-            "java/lang/String",
-            "length",
-            "()I"
-        ) andThrow MAYBE
+        caller shouldCall LAMBDA_FACTORY andThrow NEVER
     }
 
     "Invokeinterface" {

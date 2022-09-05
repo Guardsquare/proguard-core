@@ -27,6 +27,7 @@ import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
+import proguard.classfile.instruction.Instruction;
 import proguard.evaluation.value.Value;
 
 /**
@@ -41,29 +42,37 @@ public class ConcreteCall
     private final Clazz  targetClass;
     private final Method target;
 
+
     public ConcreteCall(CodeLocation caller,
-        Clazz targetClass,
-        Method target,
-        Value instance,
-        List<Value> arguments,
-        Value returnValue,
-        int throwsNullptr,
-        byte invocationOpcode,
-        boolean controlFlowDependent,
-        boolean runtimeTypeDependent)
+                        Clazz targetClass,
+                        Method target,
+                        Value instance,
+                        List<Value> arguments,
+                        Value returnValue,
+                        int throwsNullptr,
+                        Instruction instruction,
+                        boolean controlFlowDependent,
+                        boolean runtimeTypeDependent)
     {
-        super(caller, instance, arguments, returnValue, throwsNullptr, invocationOpcode, controlFlowDependent, runtimeTypeDependent);
+        super(caller,
+              instance,
+              arguments,
+              returnValue,
+              throwsNullptr,
+              instruction,
+              controlFlowDependent,
+              runtimeTypeDependent);
         this.targetClass = targetClass;
         this.target = target;
     }
 
     public ConcreteCall(CodeLocation caller,
-        Clazz targetClass,
-        Method target,
-        int throwsNullptr,
-        byte invocationOpcode,
-        boolean controlFlowDependent,
-        boolean runtimeTypeDependent)
+                        Clazz targetClass,
+                        Method target,
+                        int throwsNullptr,
+                        Instruction instruction,
+                        boolean controlFlowDependent,
+                        boolean runtimeTypeDependent)
     {
         this(caller,
              targetClass,
@@ -72,7 +81,7 @@ public class ConcreteCall
              Collections.emptyList(),
              null,
              throwsNullptr,
-             invocationOpcode,
+             instruction,
              controlFlowDependent,
              runtimeTypeDependent);
     }
@@ -81,6 +90,13 @@ public class ConcreteCall
     public MethodSignature getTarget()
     {
         return (MethodSignature) Signature.of(targetClass, target);
+    }
+
+    @Override
+    public boolean hasIncompleteTarget()
+    {
+        // Concrete calls by definition know what the target will be.
+        return false;
     }
 
     public Clazz getTargetClass()

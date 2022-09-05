@@ -25,6 +25,7 @@ import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
+import proguard.classfile.instruction.Instruction;
 import proguard.evaluation.value.Value;
 
 /**
@@ -41,7 +42,7 @@ public class SymbolicCall
     public SymbolicCall(CodeLocation caller,
                         MethodSignature target,
                         int throwsNullptr,
-                        byte invocationOpcode,
+                        Instruction instruction,
                         boolean controlFlowDependent,
                         boolean runtimeTypeDependent)
     {
@@ -50,7 +51,7 @@ public class SymbolicCall
              Collections.emptyList(),
              null,
              throwsNullptr,
-             invocationOpcode,
+             instruction,
              controlFlowDependent,
              runtimeTypeDependent);
 
@@ -61,6 +62,12 @@ public class SymbolicCall
     public MethodSignature getTarget()
     {
         return target;
+    }
+
+    @Override
+    public boolean hasIncompleteTarget()
+    {
+        return target.getClassName() == null || target.method == null || target.descriptor == null;
     }
 
     @Override

@@ -41,6 +41,7 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.AnyMethodrefConstant;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.InvokeDynamicConstant;
+import proguard.classfile.constant.NameAndTypeConstant;
 import proguard.classfile.instruction.ConstantInstruction;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
@@ -87,30 +88,24 @@ implements   AttributeVisitor,
              InstructionVisitor
 {
 
-    private static final Logger                                       log                       = LogManager.getLogger(CallResolver.class);
-    /**
-     * Used in {@link #handleInvokeDynamic(CodeLocation, InvokeDynamicConstant)} to
-     * resolve lambda expression invocations.
-     */
-    private final        Map<InvokeDynamicConstant, LambdaExpression> lambdaExpressionMap       = new HashMap<>();
-    private final        LambdaExpressionCollector                    lambdaExpressionCollector = new LambdaExpressionCollector(lambdaExpressionMap);
+    private static final Logger              log = LogManager.getLogger(CallResolver.class);
     /**
      * Used to fill the {@link Call#controlFlowDependent} flag.
      */
-    private final        DominatorCalculator                          dominatorCalculator;
-    private final        ClassPool                                    programClassPool;
-    private final        ClassPool                                    libraryClassPool;
-    private final        CallGraph                                    callGraph;
-    private final        boolean                                      clearCallValuesAfterVisit;
-    private final        boolean                                      useDominatorAnalysis;
-    private final        List<CallVisitor>                            visitors;
+    private final        DominatorCalculator dominatorCalculator;
+    private final        ClassPool           programClassPool;
+    private final        ClassPool           libraryClassPool;
+    private final        CallGraph           callGraph;
+    private final        boolean             clearCallValuesAfterVisit;
+    private final        boolean             useDominatorAnalysis;
+    private final        List<CallVisitor>   visitors;
     /**
      * Calculates concrete values that are created by the bytecode and stored in
      * variables or on the stack. Needed to reconstruct the actual arguments and
      * return value of method calls.
      */
-    private final        PartialEvaluator                             particularValueEvaluator;
-    private              boolean                                      particularValueEvaluationSuccessful;
+    private final        PartialEvaluator    particularValueEvaluator;
+    private              boolean             particularValueEvaluationSuccessful;
     /**
      * Only calculates the type of values on the stack or in variables, but is
      * capable of handling cases where this type may be different depending
@@ -118,9 +113,9 @@ implements   AttributeVisitor,
      * resolving all possible call targets of virtual calls that depend
      * on the type of the this pointer during runtime.
      */
-    private final        PartialEvaluator                             multiTypeValueEvaluator;
-    private              boolean                                      multiTypeEvaluationSuccessful;
-    private final        Supplier<Boolean>                            shouldAnalyzeNextCodeAttribute;
+    private final        PartialEvaluator    multiTypeValueEvaluator;
+    private              boolean             multiTypeEvaluationSuccessful;
+    private final        Supplier<Boolean>   shouldAnalyzeNextCodeAttribute;
 
     /**
      * Lightweight utility method to resolve the target of an invocation instruction on demand,
@@ -268,9 +263,7 @@ implements   AttributeVisitor,
     @Override
     public void visitProgramClass(ProgramClass programClass)
     {
-        lambdaExpressionMap.clear();
-        programClass.accept(new MultiClassVisitor(lambdaExpressionCollector,
-                                                  new AllAttributeVisitor(true, this)));
+        programClass.accept(new AllAttributeVisitor(true, this));
     }
 
     @Override
@@ -356,7 +349,7 @@ implements   AttributeVisitor,
         if (constantInstruction.opcode == Instruction.OP_INVOKEDYNAMIC
             && constant instanceof InvokeDynamicConstant)
         {
-            handleInvokeDynamic(location, (InvokeDynamicConstant) constant);
+            handleInvokeDynamic(location, constantInstruction, (InvokeDynamicConstant) constant);
         }
         else if (constant instanceof AnyMethodrefConstant)
         {
@@ -364,14 +357,14 @@ implements   AttributeVisitor,
             switch (constantInstruction.opcode)
             {
                 case Instruction.OP_INVOKESTATIC:
-                    handleInvokeStatic(location, (AnyMethodrefConstant) constant);
+                    handleInvokeStatic(location, constantInstruction, (AnyMethodrefConstant) constant);
                     break;
                 case Instruction.OP_INVOKEVIRTUAL:
                 case Instruction.OP_INVOKEINTERFACE:
-                    handleVirtualMethods(location, ref, constantInstruction.opcode);
+                    handleVirtualMethods(location, constantInstruction, ref);
                     break;
                 case Instruction.OP_INVOKESPECIAL:
-                    handleInvokeSpecial(location, ref);
+                    handleInvokeSpecial(location, constantInstruction, ref);
                     break;
                 default:
                     Metrics.increaseCount(MetricType.UNSUPPORTED_OPCODE);
@@ -385,7 +378,7 @@ implements   AttributeVisitor,
                          String targetMethod,
                          String targetDescriptor,
                          int throwsNullptr,
-                         byte invocationOpcode,
+                         Instruction instruction,
                          boolean runtimeTypeDependent)
     {
         boolean alwaysInvoked = true;
@@ -398,9 +391,24 @@ implements   AttributeVisitor,
                                     targetMethod,
                                     targetDescriptor,
                                     throwsNullptr,
-                                    invocationOpcode,
+                                    instruction,
                                     !alwaysInvoked,
                                     runtimeTypeDependent);
+
+        // Log some metrics about the call
+        if (call instanceof SymbolicCall)
+        {
+            Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
+        }
+        else
+        {
+            Metrics.increaseCount(MetricType.CONCRETE_CALL);
+            if ((((ConcreteCall) call).getTargetMethod().getAccessFlags() & AccessConstants.ABSTRACT) != 0)
+            {
+                Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
+            }
+        }
+
         initArgumentsAndReturnValue(call);
 
         visitors.forEach(d -> d.visitCall(call));
@@ -424,64 +432,47 @@ implements   AttributeVisitor,
                                  String targetMethod,
                                  String targetDescriptor,
                                  int throwsNullptr,
-                                 byte invocationOpcode,
+                                 Instruction instruction,
                                  boolean controlFlowDependent,
                                  boolean runtimeTypeDependent)
     {
-        Call call;
-        Clazz containingClass = programClassPool.getClass(targetClass);
-        if (containingClass == null)
+        if (targetClass != null && targetMethod != null && targetDescriptor != null)
         {
-            containingClass = libraryClassPool.getClass(targetClass);
-        }
-        if (containingClass == null)
-        {
-            call = new SymbolicCall(location,
-                                    new MethodSignature(targetClass, targetMethod, targetDescriptor),
-                                    throwsNullptr,
-                                    invocationOpcode,
-                                    controlFlowDependent,
-                                    runtimeTypeDependent);
-            Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
-        }
-        else
-        {
-            Method method = containingClass.findMethod(targetMethod, targetDescriptor);
-            if (method == null)
+            Clazz containingClass = programClassPool.getClass(targetClass);
+            if (containingClass == null)
             {
-                call = new SymbolicCall(location,
-                                        new MethodSignature(targetClass, targetMethod, targetDescriptor),
-                                        throwsNullptr,
-                                        invocationOpcode,
-                                        controlFlowDependent,
-                                        runtimeTypeDependent);
-                Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
+                containingClass = libraryClassPool.getClass(targetClass);
             }
-            else
+
+            if (containingClass != null)
             {
-                call = new ConcreteCall(location,
-                                        containingClass,
-                                        method,
-                                        throwsNullptr,
-                                        invocationOpcode,
-                                        controlFlowDependent,
-                                        runtimeTypeDependent);
-                Metrics.increaseCount(MetricType.CONCRETE_CALL);
-                if ((method.getAccessFlags() & AccessConstants.ABSTRACT) != 0)
+                Method method = containingClass.findMethod(targetMethod, targetDescriptor);
+                if (method != null)
                 {
-                    Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
+                    return new ConcreteCall(location,
+                                            containingClass,
+                                            method,
+                                            throwsNullptr,
+                                            instruction,
+                                            controlFlowDependent,
+                                            runtimeTypeDependent);
                 }
             }
         }
-        return call;
+
+        return new SymbolicCall(location,
+                                new MethodSignature(targetClass, targetMethod, targetDescriptor),
+                                throwsNullptr,
+                                instruction,
+                                controlFlowDependent,
+                                runtimeTypeDependent);
     }
 
     private void initArgumentsAndReturnValue(Call call)
     {
-        boolean         isStaticCall = call.invocationOpcode == Instruction.OP_INVOKESTATIC || call.invocationOpcode == Instruction.OP_INVOKEDYNAMIC;
         MethodSignature target       = call.getTarget();
-        List<Value>     arguments    = getArguments(call.caller, target, isStaticCall);
-        if (!isStaticCall && !arguments.isEmpty())
+        List<Value>     arguments    = getArguments(call.caller, target, call.isStatic());
+        if (!call.isStatic() && !arguments.isEmpty())
         {
             // Handle the instance pointer separately.
             call.setInstance(arguments.remove(0));
@@ -545,48 +536,44 @@ implements   AttributeVisitor,
     /**
      * Resolve <code>invokedynamic</code> instructions. See
      * <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.invokedynamic">JVM spec §6.5.invokedynamic</a>.
-     * In Java, this kind of invocation is used for lambda expressions, thus this handler depends on {@link
-     * LambdaExpressionCollector} having run beforehand.
      *
-     * @param location The {@link Location} of the instruction.
-     * @param constant The {@link InvokeDynamicConstant} (JVM spec: "symbolic reference R")
-     *                 containing the index to the corresponding bootstrap method that
-     *                 identifies the actual call target.
+     * @param location    The {@link Location} of the instruction.
+     * @param instruction The <code>invokedynamic</code> instruction.
+     * @param constant    The {@link InvokeDynamicConstant} (JVM spec: "symbolic reference R")
+     *                    containing the index to the corresponding bootstrap method that
+     *                    will be called to identify the actual call target. Additionally, it
+     *                    gives more details about that method through an {@link NameAndTypeConstant}.
      */
-    private void handleInvokeDynamic(CodeLocation location, InvokeDynamicConstant constant)
+    private void handleInvokeDynamic(CodeLocation location, Instruction instruction, InvokeDynamicConstant constant)
     {
-        if (lambdaExpressionMap.containsKey(constant))
-        {
-            LambdaExpression target = lambdaExpressionMap.get(constant);
-            addCall(location,
-                    target.invokedClassName,
-                    target.invokedMethodName,
-                    target.invokedMethodDesc,
-                    Value.NEVER,
-                    Instruction.OP_INVOKEDYNAMIC,
-                    false
-            );
-        }
-        else
-        {
-            log.debug("invokedynamic without matching lambda expression at {}", location);
-        }
+        // The actual target of the call is unknown, as the bootstrap method that is executed
+        // the first time this instruction is encountered, is able to freely determine what call
+        // site will be used for invocation. This can even be a completely new method that is
+        // injected at runtime, and the only thing we know about it for sure is the descriptor.
+        addCall(location,
+                null,
+                null,
+                constant.getType(location.clazz),
+                Value.NEVER,
+                instruction,
+                false);
     }
 
     /**
      * Resolve <code>invokestatic</code> instructions. See <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.invokestatic">JVM spec §6.5.invokestatic</a>
      *
-     * @param location The {@link Location} of the instruction.
-     * @param constant The {@link AnyMethodrefConstant} specifying the exact method to be invoked.
+     * @param location    The {@link Location} of the instruction.
+     * @param instruction The <code>invokestatic</code> instruction.
+     * @param constant    The {@link AnyMethodrefConstant} specifying the exact method to be invoked.
      */
-    private void handleInvokeStatic(CodeLocation location, AnyMethodrefConstant constant)
+    private void handleInvokeStatic(CodeLocation location, Instruction instruction, AnyMethodrefConstant constant)
     {
         addCall(location,
                 constant.getClassName(location.clazz),
                 constant.getName(location.clazz),
                 constant.getType(location.clazz),
                 Value.NEVER,
-                Instruction.OP_INVOKESTATIC,
+                instruction,
                 false
         );
     }
@@ -597,11 +584,12 @@ implements   AttributeVisitor,
      * <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.invokespecial">JVM spec §6.5.invokespecial</a>,
      * this opcode is also sometimes used for private method calls, but so far I haven't seen that in the wild.
      *
-     * @param location The {@link Location} of the instruction.
-     * @param ref      The {@link AnyMethodrefConstant} specifying name and descriptor
-     *                 of the method to be invoked.
+     * @param location    The {@link Location} of the instruction.
+     * @param instruction The <code>invokespecial</code> instruction.
+     * @param ref         The {@link AnyMethodrefConstant} specifying name and descriptor
+     *                    of the method to be invoked.
      */
-    private void handleInvokeSpecial(CodeLocation location, AnyMethodrefConstant ref)
+    private void handleInvokeSpecial(CodeLocation location, Instruction instruction, AnyMethodrefConstant ref)
     {
         Set<String> targets = resolveInvokeSpecial(location.clazz, ref);
         if (targets.isEmpty())
@@ -620,7 +608,7 @@ implements   AttributeVisitor,
                         name,
                         descriptor,
                         Value.NEVER,
-                        Instruction.OP_INVOKESPECIAL,
+                        instruction,
                         false
                 );
             }
@@ -721,11 +709,12 @@ implements   AttributeVisitor,
      * In order to get a good estimate of this type, the lookup process depends on the analysis by a
      * {@link PartialEvaluator} that yields {@link MultiTypedReferenceValue} elements.
      *
-     * @param location The {@link Location} of this instruction.
-     * @param ref      The {@link AnyMethodrefConstant} specifying name
-     *                 and descriptor of the method to be invoked.
+     * @param location    The {@link Location} of this instruction.
+     * @param instruction The invocation instruction.
+     * @param ref         The {@link AnyMethodrefConstant} specifying name
+     *                    and descriptor of the method to be invoked.
      */
-    private void handleVirtualMethods(CodeLocation location, AnyMethodrefConstant ref, byte invocationOpcode)
+    private void handleVirtualMethods(CodeLocation location, Instruction instruction, AnyMethodrefConstant ref)
     {
         String name       = ref.getName(location.clazz);
         String descriptor = ref.getType(location.clazz);
@@ -757,7 +746,7 @@ implements   AttributeVisitor,
                             ref.getName(location.clazz),
                             ref.getType(location.clazz),
                             Value.ALWAYS,
-                            invocationOpcode,
+                            instruction,
                             multiTypeThisPtr.getPotentialTypes().size() > 1
                     );
                     continue;
@@ -809,7 +798,7 @@ implements   AttributeVisitor,
                             name,
                             descriptor,
                             multiTypeThisPtr.isNull(),
-                            invocationOpcode,
+                            instruction,
                             multiTypeThisPtr.getPotentialTypes().size() > 1
                     );
                 }
