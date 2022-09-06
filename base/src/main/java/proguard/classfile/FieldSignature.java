@@ -52,6 +52,12 @@ public class FieldSignature
     }
 
     @Override
+    public boolean isIncomplete()
+    {
+        return className == null || memberName == null || descriptor == null;
+    }
+
+    @Override
     protected String calculateFqn()
     {
         return String.format("L%s;%s", className, memberName);

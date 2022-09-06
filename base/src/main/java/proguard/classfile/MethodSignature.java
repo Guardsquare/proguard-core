@@ -79,6 +79,12 @@ public class MethodSignature
     }
 
     @Override
+    public boolean isIncomplete()
+    {
+        return className == null || method == null || descriptor == null || descriptor.isIncomplete();
+    }
+
+    @Override
     protected String calculateFqn()
     {
         return String.format("L%s;%s%s", className == null ? "?" : className,

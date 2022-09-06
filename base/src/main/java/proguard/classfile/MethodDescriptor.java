@@ -69,6 +69,14 @@ public class MethodDescriptor
     }
 
     /**
+     * Check if this descriptor is missing information.
+     */
+    public boolean isIncomplete()
+    {
+        return returnType == null || argumentTypes == null;
+    }
+
+    /**
      * Analogous to {@link MethodSignature#matchesIgnoreNull(MethodSignature)}.
      *
      * @param other The {@link MethodDescriptor} to compare with this one

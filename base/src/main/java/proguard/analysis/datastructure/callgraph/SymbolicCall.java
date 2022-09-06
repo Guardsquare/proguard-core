@@ -67,7 +67,7 @@ public class SymbolicCall
     @Override
     public boolean hasIncompleteTarget()
     {
-        return target.getClassName() == null || target.method == null || target.descriptor == null;
+        return target == null || target.isIncomplete();
     }
 
     @Override

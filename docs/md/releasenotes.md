@@ -12,7 +12,9 @@
   instructions during `PartialEvaluator` execution.
 - Fix `JvmTransferRelation` to produce a successor in case of missing interprocedural call edge
   (e.g., in case of incomplete call resolution).
-- Fix call resolution for `invokedynamic` (issue #63).
+- Fix call resolution for `invokedynamic` (issue #63). There might now be calls with incomplete target
+  information. By default, these calls will not be distributed to visitors, but this can be enabled
+  by setting the `skipIncompleteCalls` option in the call resolver.
 
 ## Version 9.0.3
 

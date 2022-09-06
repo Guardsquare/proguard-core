@@ -32,6 +32,7 @@ import proguard.evaluation.value.Value.MAYBE
 import proguard.evaluation.value.Value.NEVER
 import proguard.testutils.ClassPoolBuilder
 import java.nio.file.Paths
+import proguard.classfile.instruction.Instruction
 
 class CallResolverTest : FreeSpec({
     testOrder = TestCaseOrder.Sequential
@@ -128,6 +129,7 @@ class CallResolverTest : FreeSpec({
             .setEvaluateAllCode(true)
             .setIncludeSubClasses(true)
             .setMaxPartialEvaluations(50)
+            .setSkipIncompleteCalls(false)
             .build()
 
     classPools.programClassPool.classesAccept(resolver)
@@ -153,6 +155,11 @@ class CallResolverTest : FreeSpec({
 
     infix fun Call.typeDependent(expected: Boolean): Call {
         runtimeTypeDependent shouldBe expected
+        return this
+    }
+
+    infix fun Call.incomplete(expected: Boolean): Call {
+        hasIncompleteTarget() shouldBe expected
         return this
     }
 
@@ -278,9 +285,28 @@ class CallResolverTest : FreeSpec({
         )
     }
 
-    "Invokedynamic" {
+    "Invokedynamic" - {
         val caller = MethodSignature("Main", "dynamic", "()V")
-        caller shouldCall LAMBDA_FACTORY andThrow NEVER
+
+        "Results in an incomplete call" {
+            caller shouldCall LAMBDA_FACTORY andThrow NEVER incomplete true
+        }
+
+        "Is skipped if skipIncompleteCalls is set to true" {
+            val callGraph = CallGraph()
+            val resolver =
+                CallResolver.Builder(classPools.programClassPool, classPools.libraryClassPool, callGraph)
+                    .setClearCallValuesAfterVisit(false)
+                    .setUseDominatorAnalysis(true)
+                    .setEvaluateAllCode(true)
+                    .setIncludeSubClasses(true)
+                    .setMaxPartialEvaluations(50)
+                    .setSkipIncompleteCalls(true)
+                    .build()
+            classPools.programClassPool.classesAccept(resolver)
+            callGraph.outgoing[caller]!!.any { it.hasIncompleteTarget() } shouldBe false
+            callGraph.outgoing[caller]!!.any { it.instruction.opcode == Instruction.OP_INVOKEDYNAMIC } shouldBe false
+        }
     }
 
     "Invokeinterface" {

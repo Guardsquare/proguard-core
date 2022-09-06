@@ -45,6 +45,12 @@ public class ClassSignature
     }
 
     @Override
+    public boolean isIncomplete()
+    {
+        return className == null;
+    }
+
+    @Override
     protected String calculateFqn()
     {
         return className;

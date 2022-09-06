@@ -116,6 +116,7 @@ implements   AttributeVisitor,
     private final        PartialEvaluator    multiTypeValueEvaluator;
     private              boolean             multiTypeEvaluationSuccessful;
     private final        Supplier<Boolean>   shouldAnalyzeNextCodeAttribute;
+    private final        boolean             skipIncompleteCalls;
 
     /**
      * Lightweight utility method to resolve the target of an invocation instruction on demand,
@@ -194,19 +195,23 @@ implements   AttributeVisitor,
      *                                       method, in order to be able to fill the
      *                                       {@link Call#controlFlowDependent} flag.
      * @param evaluateAllCode                See {@link PartialEvaluator.Builder#setEvaluateAllCode(boolean)}.
-     * @param includeSubClasses              If true, virtual calls on class fields, parameters and return values of other methods
-     *                                       will take all possible subclasses into account.
-     *                                       This is necessary for a more complete
-     *                                       call graph, because the runtime type of these objects is not controlled by the current
-     *                                       method. E.g. a method that declares its return type to be of type A might also return
-     *                                       an object of type B in case B extends A. The same is true for class fields and parameters,
-     *                                       so in order to really find all potential calls, this circumstance needs to be modeled.
-     *                                       For objects of declared type {@link java.lang.Object} this will be skipped, as the fact
-     *                                       that every single Java class is a subclass of object would lead to an immense blow-up
-     *                                       of the call graph.
+     * @param includeSubClasses              If true, virtual calls on class fields, parameters and return values of
+     *                                       other methods will take all possible subclasses into account.
+     *                                       This is necessary for a more complete call graph, because the runtime
+     *                                       type of these objects is not controlled by the current method.
+     *                                       E.g. a method that declares its return type to be of type A might also
+     *                                       return an object of type B in case B extends A. The same is true for
+     *                                       class fields and parameters, so in order to really find all potential
+     *                                       calls, this circumstance needs to be modeled. For objects of declared
+     *                                       type {@link java.lang.Object} this will be skipped, as the fact
+     *                                       that every single Java class is a subclass of object would lead to an
+     *                                       immense blow-up of the call graph.
      * @param maxPartialEvaluations          See {@link PartialEvaluator.Builder#stopAnalysisAfterNEvaluations(int)}.
-     * @param shouldAnalyzeNextCodeAttribute If returns true, the next code attribute will be analyzed. Otherwise, the code attribute
-     *                                       will be skipped.
+     * @param shouldAnalyzeNextCodeAttribute If returns true, the next code attribute will be analyzed. Otherwise,
+     *                                       the code attribute will be skipped.
+     * @param skipIncompleteCalls            If true, any discovered call that would return true for
+     *                                       {@link Call#hasIncompleteTarget()} will be discarded and not be
+     *                                       forwarded to {@link CallVisitor#visitCall(Call)}.
      * @param visitors                       {@link CallVisitor}s that are interested in the
      *                                       results of this analysis.
      */
@@ -219,6 +224,7 @@ implements   AttributeVisitor,
                         boolean includeSubClasses,
                         int maxPartialEvaluations,
                         Supplier<Boolean> shouldAnalyzeNextCodeAttribute,
+                        boolean skipIncompleteCalls,
                         CallVisitor... visitors)
     {
         this.programClassPool               = programClassPool;
@@ -227,6 +233,7 @@ implements   AttributeVisitor,
         this.clearCallValuesAfterVisit      = clearCallValuesAfterVisit;
         this.useDominatorAnalysis           = useDominatorAnalysis;
         this.shouldAnalyzeNextCodeAttribute = shouldAnalyzeNextCodeAttribute;
+        this.skipIncompleteCalls            = skipIncompleteCalls;
         this.visitors                       = Arrays.asList(visitors);
         dominatorCalculator                 = new DominatorCalculator();
 
@@ -381,6 +388,13 @@ implements   AttributeVisitor,
                          Instruction instruction,
                          boolean runtimeTypeDependent)
     {
+        if (skipIncompleteCalls
+            && (targetClass == null || targetMethod == null || targetDescriptor == null))
+        {
+            Metrics.increaseCount(MetricType.INCOMPLETE_CALL_SKIPPED);
+            return;
+        }
+
         boolean alwaysInvoked = true;
         if (useDominatorAnalysis)
         {
@@ -949,6 +963,7 @@ implements   AttributeVisitor,
         private       boolean           includeSubClasses              = false;
         private       int               maxPartialEvaluations          = 50;
         private       Supplier<Boolean> shouldAnalyzeNextCodeAttribute = () -> true;
+        private       boolean           skipIncompleteCalls            = true;
 
         public Builder(ClassPool programClassPool, ClassPool libraryClassPool, CallGraph callGraph, CallVisitor... visitors)
         {
@@ -1029,6 +1044,17 @@ implements   AttributeVisitor,
             return this;
         }
 
+        /**
+         * If true, any discovered call that would return true for
+         * {@link Call#hasIncompleteTarget()} will be discarded and not be
+         * forwarded to {@link CallVisitor#visitCall(Call)}.
+         */
+        public Builder setSkipIncompleteCalls(boolean skipIncompleteCalls)
+        {
+            this.skipIncompleteCalls = skipIncompleteCalls;
+            return this;
+        }
+
         public CallResolver build()
         {
             return new CallResolver(programClassPool,
@@ -1040,6 +1066,7 @@ implements   AttributeVisitor,
                                     includeSubClasses,
                                     maxPartialEvaluations,
                                     shouldAnalyzeNextCodeAttribute,
+                                    skipIncompleteCalls,
                                     visitors);
 
         }

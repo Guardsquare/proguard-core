@@ -49,6 +49,11 @@ public abstract class Signature
     }
 
     /**
+     * Check if this signature is missing information.
+     */
+    public abstract boolean isIncomplete();
+
+    /**
      * Convenience factory that takes any {@link Member} and generates the
      * appropriate signature, i.e. {@link MethodSignature}s for {@link Method}s
      * and {@link FieldSignature}s for {@link Field}s. If the member is null,

@@ -19,6 +19,7 @@
 package proguard.analysis.cpa.jvm.util;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.Supplier;
 import proguard.analysis.CallResolver;
 import proguard.analysis.cpa.defaults.Cfa;
@@ -96,7 +97,11 @@ public class CfaUtil
      */
     public static void addInterproceduralEdgesToCfa(JvmCfa cfa, CallGraph callGraph)
     {
-        callGraph.outgoing.values().forEach(calls -> calls.forEach(call ->
+        callGraph.outgoing.values()
+                          .stream()
+                          .flatMap(Collection::stream)
+                          .filter(call -> !call.hasIncompleteTarget())
+                          .forEach(call ->
         {
             if (call instanceof SymbolicCall
                 || ((ConcreteCall) call).getTargetClass() instanceof LibraryClass
@@ -109,7 +114,7 @@ public class CfaUtil
             {
                 cfa.addInterproceduralEdge(call);
             }
-        }));
+        });
     }
 
     /**

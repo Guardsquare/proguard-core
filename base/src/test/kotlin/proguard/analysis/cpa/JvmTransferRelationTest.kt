@@ -211,6 +211,10 @@ class JvmTransferRelationTest : FreeSpec({
                     public byte foo() {
                         return 1;
                     }
+                    
+                    public void apply(I i) {
+                        i.test(true);
+                    }
                 
                     public void main(){
                         double pi = 3.14;
@@ -226,12 +230,17 @@ class JvmTransferRelationTest : FreeSpec({
                         l = i;
                         new B();
                         fun();
+                        apply(x -> foo() == 1); // calls a lambda factory with A.this as an argument
                     }
                 }
             
                 class B {
                     public static int    i;
                     public static double d;
+                }
+                
+                interface I {
+                    boolean test(boolean x);
                 }
             """.trimIndent()
         )
@@ -1325,24 +1334,66 @@ class JvmTransferRelationTest : FreeSpec({
         ) shouldBe result
     }
 
-    "Regression test: successor is created for invoke instruction with no correspondent call edge" {
-        // test on this instruction: [36] invokevirtual #10 = Methodref(A.foo()B)
-        val mainMethod = clazzA.findMethod("main", "()V") as ProgramMethod
-        val mainSignature = Signature.of(clazzA, mainMethod) as MethodSignature
-        val sourceNode = JvmCfaNode(mainSignature, 36, clazzA)
-        val targetNode = JvmCfaNode(mainSignature, 39, clazzA)
-        val invokeEdge = JvmInstructionCfaEdge(sourceNode, targetNode, mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute, 36)
+    "Regression test: successor is created for invoke instruction with no correspondent call edge" - {
 
-        val sourceState = JvmAbstractState<ExpressionAbstractState>(
-            sourceNode,
-            JvmFrameAbstractState<ExpressionAbstractState>(),
-            JvmForgetfulHeapAbstractState<ExpressionAbstractState>(ExpressionAbstractState(setOf(ValueExpression(UnknownValue)))),
-            HashMapAbstractState<String, ExpressionAbstractState>()
-        )
-        val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
-        sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
+        "[36] invokevirtual #10 = Methodref(A.foo()B)" {
+            val mainMethod = clazzA.findMethod("main", "()V") as ProgramMethod
+            val mainSignature = Signature.of(clazzA, mainMethod) as MethodSignature
+            val sourceNode = JvmCfaNode(mainSignature, 36, clazzA)
+            val targetNode = JvmCfaNode(mainSignature, 39, clazzA)
+            val invokeEdge = JvmInstructionCfaEdge(
+                sourceNode,
+                targetNode,
+                mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute,
+                36)
 
-        val successors = transferRelation.getAbstractSuccessors(sourceState, null)
-        successors.size shouldBe 1
+            val sourceState = JvmAbstractState(
+                sourceNode,
+                JvmFrameAbstractState(),
+                JvmForgetfulHeapAbstractState(
+                    ExpressionAbstractState(
+                        setOf(
+                            ValueExpression(UnknownValue)
+                        )
+                    )
+                ),
+                HashMapAbstractState()
+            )
+            val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
+            sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
+
+            val successors = transferRelation.getAbstractSuccessors(sourceState, null)
+            successors.size shouldBe 1
+        }
+
+        "[76] invokedynamic #20, 0 = InvokeDynamic(NameAndType(test, ()LI;), #0)" {
+            val mainMethod = clazzA.findMethod("main", "()V") as ProgramMethod
+            val mainSignature = Signature.of(clazzA, mainMethod) as MethodSignature
+            val sourceNode = JvmCfaNode(mainSignature, 76, clazzA)
+            val targetNode = JvmCfaNode(mainSignature, 81, clazzA)
+            val invokeEdge = JvmInstructionCfaEdge(
+                sourceNode,
+                targetNode,
+                mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute,
+                76)
+
+            val sourceState = JvmAbstractState(
+                sourceNode,
+                JvmFrameAbstractState(),
+                JvmForgetfulHeapAbstractState(
+                    ExpressionAbstractState(
+                        setOf(
+                            ValueExpression(UnknownValue)
+                        )
+                    )
+                ),
+                HashMapAbstractState()
+            )
+            val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
+            sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
+
+            val successors = transferRelation.getAbstractSuccessors(sourceState, null)
+            successors.size shouldBe 1
+        }
     }
 })
