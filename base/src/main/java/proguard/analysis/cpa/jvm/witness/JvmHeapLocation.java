@@ -81,6 +81,6 @@ public class JvmHeapLocation
     {
         return "JvmHeapLocation(" + reference.stream()
                                              .sorted(Comparator.comparingInt(Reference::hashCode))
-                                             .collect(Collectors.toList()) + ", " + field + ")";
+                                             .collect(Collectors.toList()) + (field.length() > 0 ? ", " + field + ")" : "");
     }
 }

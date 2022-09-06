@@ -59,49 +59,72 @@ public class JvmTreeHeapPrincipalAbstractState
 
     private JvmTreeHeapPrincipalAbstractState(MapAbstractState<Reference, HeapNode<SetAbstractState<Reference>>> referenceToNode, MapAbstractStateFactory mapAbstractStateFactory)
     {
-        super(referenceToNode, mapAbstractStateFactory);
+        super(referenceToNode, mapAbstractStateFactory, new SetAbstractState<>());
     }
 
     // implementations for JvmHeapAbstractState
 
     @Override
-    public SetAbstractState<Reference> getField(SetAbstractState<Reference> object, String descriptor, SetAbstractState<Reference> defaultValue)
+    public <T> SetAbstractState<Reference> getField(T object, String fqn, SetAbstractState<Reference> defaultValue)
     {
-        return object.stream().reduce(new SetAbstractState<>(),
-                                      (result, reference) -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
-                                                                            .computeIfAbsent(descriptor, d -> new SetAbstractState<>(reference)),
-                                      SetAbstractState::join);
+        if (!(object instanceof SetAbstractState))
+        {
+            throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), object.getClass().getName()));
+        }
+        return ((SetAbstractState<Reference>) object).stream()
+                                                     .reduce(new SetAbstractState<>(),
+                                                             (result, reference) -> referenceToNode.computeIfAbsent(reference,
+                                                                                                                    r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                                                   .computeIfAbsent(fqn,
+                                                                                                                    d -> new SetAbstractState<>(reference)),
+                                                             SetAbstractState::join);
     }
 
     @Override
-    public void setField(SetAbstractState<Reference> object, String descriptor, SetAbstractState<Reference> value)
+    public <T> void setField(T object, String fqn, SetAbstractState<Reference> value)
     {
-        if (object.size() <= 1)
+        if (!(object instanceof SetAbstractState))
         {
-            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
-                                                       .setValue(descriptor, value));
+            throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), object.getClass().getName()));
+        }
+        SetAbstractState<Reference> objectReference = (SetAbstractState<Reference>) object;
+        if (objectReference.size() <= 1)
+        {
+            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                .put(fqn, value));
         }
         else
         {
-            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
-                                                       .mergeValue(descriptor, value));
+            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                .merge(fqn, value));
         }
     }
 
     @Override
-    public SetAbstractState<Reference> getArrayElementOrDefault(SetAbstractState<Reference> array, SetAbstractState<Reference> index, SetAbstractState<Reference> defaultValue)
+    public <T> SetAbstractState<Reference> getArrayElementOrDefault(T array, SetAbstractState<Reference> index, SetAbstractState<Reference> defaultValue)
     {
-        return array.stream().reduce(new SetAbstractState<Reference>(),
-                                     (result, reference) -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
-                                                                           .computeIfAbsent("[]", d -> new SetAbstractState<>(reference)),
-                                     SetAbstractState::join);
+        if (!(array instanceof SetAbstractState))
+        {
+            throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), array.getClass().getName()));
+        }
+        return ((SetAbstractState<Reference>) array).stream().reduce(new SetAbstractState<>(),
+                                                                     (result, reference) -> referenceToNode.computeIfAbsent(reference,
+                                                                                                                            r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                                                           .computeIfAbsent("[]",
+                                                                                                                            d -> new SetAbstractState<>(reference)),
+                                                                     SetAbstractState::join);
     }
 
     @Override
-    public void setArrayElement(SetAbstractState<Reference> array, SetAbstractState<Reference> index, SetAbstractState<Reference> value)
+    public <T> void setArrayElement(T array, SetAbstractState<Reference> index, SetAbstractState<Reference> value)
     {
-        array.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
-                                                  .mergeValue("[]", value));
+        if (!(array instanceof SetAbstractState))
+        {
+            throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), array.getClass().getName()));
+        }
+        ((SetAbstractState<Reference>) array).forEach(reference -> referenceToNode.computeIfAbsent(reference,
+                                                                                                   r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                                  .merge("[]", value));
     }
 
     @Override
@@ -121,14 +144,10 @@ public class JvmTreeHeapPrincipalAbstractState
      */
     public Set<Reference> getStaticCreationReferences()
     {
-        Set<Reference> references = new HashSet<>();
-
-        referenceToNode.keySet()
-                       .stream()
-                       .filter(ref -> ref.creationSite instanceof JvmStaticFieldLocation)
-                       .forEach(references::add);
-
-        return references;
+        return referenceToNode.keySet()
+                              .stream()
+                              .filter(ref -> ref.creationSite instanceof JvmStaticFieldLocation)
+                              .collect(Collectors.toSet());
     }
 
     /**

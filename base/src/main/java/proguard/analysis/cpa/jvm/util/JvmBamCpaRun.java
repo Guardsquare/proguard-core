@@ -97,6 +97,7 @@ public abstract class JvmBamCpaRun<CpaT extends ConfigurableProgramAnalysis, Abs
             case FORGETFUL:
                 return jvmReduceOperator;
             case TREE:
+            case TAINT_TREE:
                 return new JvmCompositeHeapReduceOperator(Arrays.asList(new JvmReferenceReduceOperator(reduceHeap),
                                                                         jvmReduceOperator));
             default:

@@ -45,7 +45,6 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.JvmForgetfulHeapAbstractState;
-import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapFollowerAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapPrincipalAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
@@ -108,6 +107,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
             case FORGETFUL:
                 return new JvmTaintCpa(taintSources);
             case TREE:
+            case TAINT_TREE:
                 AbstractDomain abstractDomain = new DelegateAbstractDomain<CompositeHeapJvmAbstractState>();
                 return new SimpleCpa(abstractDomain,
                                      new CompositeHeapTransferRelation(Arrays.asList(new JvmReferenceTransferRelation(),
@@ -129,6 +129,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
             case FORGETFUL:
                 return jvmExpandOperator;
             case TREE:
+            case TAINT_TREE:
                 return new JvmCompositeHeapExpandOperator(Arrays.asList(new JvmReferenceExpandOperator(cfa, reduceHeap), jvmExpandOperator));
             default:
                 throw new IllegalArgumentException("Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
@@ -152,19 +153,25 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
                                                                                           new JvmForgetfulHeapAbstractState<>(TaintAbstractState.bottom),
                                                                                           staticFieldMapAbstractStateFactory.createMapAbstractState()));
             case TREE:
+            case TAINT_TREE:
                 JvmReferenceAbstractState principalState = new JvmReferenceAbstractState(cfa.getFunctionEntryNode(mainMethodSignature),
                                                                                          new JvmFrameAbstractState<>(),
                                                                                          new JvmTreeHeapPrincipalAbstractState(heapNodeMapAbstractStateFactory),
                                                                                          staticFieldMapAbstractStateFactory.createMapAbstractState());
                 return (Collection<OuterAbstractStateT>) Collections.singleton(new CompositeHeapJvmAbstractState(Arrays.asList(
                     principalState,
-                    new JvmAbstractState<>(cfa.getFunctionEntryNode(mainMethodSignature),
-                                           new JvmFrameAbstractState<>(),
-                                           new JvmTreeHeapFollowerAbstractState<>(principalState,
-                                                                                  TaintAbstractState.bottom,
-                                                                                  heapNodeMapAbstractStateFactory.createMapAbstractState(),
-                                                                                  heapNodeMapAbstractStateFactory),
-                                           staticFieldMapAbstractStateFactory.createMapAbstractState()))));
+                    new JvmTaintAbstractState(cfa.getFunctionEntryNode(mainMethodSignature),
+                                              new JvmFrameAbstractState<>(),
+                                              heapModel == HeapModel.TAINT_TREE
+                                              ? new JvmTaintTreeHeapFollowerAbstractState(principalState,
+                                                                                          TaintAbstractState.bottom,
+                                                                                          heapNodeMapAbstractStateFactory.createMapAbstractState(),
+                                                                                          heapNodeMapAbstractStateFactory)
+                                              : new JvmBasicTaintTreeHeapFollowerAbstractState(principalState,
+                                                                                               TaintAbstractState.bottom,
+                                                                                               heapNodeMapAbstractStateFactory.createMapAbstractState(),
+                                                                                               heapNodeMapAbstractStateFactory),
+                                              staticFieldMapAbstractStateFactory.createMapAbstractState()))));
             default:
                 throw new IllegalStateException("Invalid heap model: " + heapModel.name());
         }

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import javax.swing.plaf.nimbus.State;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -157,7 +156,7 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
         // expand exception exit location
         if (exitNode.isExceptionExitNode())
         {
-            CallerExceptionHandlerFinder finder = new CallerExceptionHandlerFinder(call, (JvmCfa) cfa);
+            CallerExceptionHandlerFinder finder = new CallerExceptionHandlerFinder(call, cfa);
             call.caller.member.accept(call.caller.clazz, new AllAttributeVisitor(finder));
 
             JvmHeapAbstractState<StateT> heap = ((JvmAbstractState<StateT>) reducedExitState).getHeap();

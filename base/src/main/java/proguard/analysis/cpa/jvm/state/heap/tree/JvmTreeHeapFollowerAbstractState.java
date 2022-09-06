@@ -26,12 +26,11 @@ import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
-import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
+import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
 
 /**
@@ -44,8 +43,7 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     extends JvmTreeHeapAbstractState<StateT>
 {
 
-    private       JvmReferenceAbstractState principal;
-    private final StateT                    defaultValue;
+    protected JvmReferenceAbstractState principal;
 
     /**
      * Create a follower heap abstract state.
@@ -60,41 +58,86 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
                                             MapAbstractState<Reference, HeapNode<StateT>> referenceToNode,
                                             MapAbstractStateFactory mapAbstractStateFactory)
     {
-        super(referenceToNode, mapAbstractStateFactory);
+        super(referenceToNode, mapAbstractStateFactory, defaultValue);
         this.principal = principal;
-        this.defaultValue = defaultValue;
     }
 
     // implementations for JvmHeapAbstractState
 
     @Override
-    public StateT getField(StateT object, String descriptor, StateT defaultValue)
+    public <T> StateT getField(T object, String fqn, StateT defaultValue)
     {
-        return getField(object instanceof SetAbstractState ? (SetAbstractState<Reference>) object : getReferenceAbstractState(),
-                        descriptor,
-                        defaultValue);
+        if (object instanceof JvmMemoryLocation)
+        {
+            return getField(getReferenceAbstractState((JvmMemoryLocation) object),
+                            fqn,
+                            defaultValue);
+        }
+        if (object instanceof SetAbstractState)
+        {
+            return getField((SetAbstractState<Reference>) object,
+                            fqn,
+                            defaultValue);
+        }
+        throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), object.getClass().getName()));
     }
 
     @Override
-    public void setField(StateT object, String descriptor, StateT value)
+    public <T> void setField(T object, String fqn, StateT value)
     {
-        setField(getReferenceAbstractState(), descriptor, value);
-    }
-
-    @Override
-    public StateT getArrayElementOrDefault(StateT array, StateT index, StateT defaultValue)
-    {
-        return getArrayElementOrDefault(getReferenceAbstractState(),
-                                        index,
-                                        defaultValue);
-    }
-
-    @Override
-    public void setArrayElement(StateT array, StateT index, StateT value)
-    {
-        setArrayElement(getReferenceAbstractState(),
-                        index,
+        if (object instanceof JvmMemoryLocation)
+        {
+            assignField(getReferenceAbstractState((JvmMemoryLocation) object),
+                        fqn,
                         value);
+            return;
+        }
+        if (object instanceof SetAbstractState)
+        {
+            assignField((SetAbstractState<Reference>) object,
+                        fqn,
+                        value);
+            return;
+        }
+        throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), object.getClass().getName()));
+    }
+
+    @Override
+    public <T> StateT getArrayElementOrDefault(T array, StateT index, StateT defaultValue)
+    {
+        if (array instanceof JvmMemoryLocation)
+        {
+            return getArrayElementOrDefault(getReferenceAbstractState((JvmMemoryLocation) array),
+                                            index,
+                                            defaultValue);
+        }
+        if (array instanceof SetAbstractState)
+        {
+            return getArrayElementOrDefault((SetAbstractState<Reference>) array,
+                                            index,
+                                            defaultValue);
+        }
+        throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), array.getClass().getName()));
+    }
+
+    @Override
+    public <T> void setArrayElement(T array, StateT index, StateT value)
+    {
+        if (array instanceof JvmMemoryLocation)
+        {
+            setArrayElement(getReferenceAbstractState((JvmMemoryLocation) array),
+                            index,
+                            value);
+            return;
+        }
+        if (array instanceof SetAbstractState)
+        {
+            setArrayElement((SetAbstractState<Reference>) array,
+                            index,
+                            value);
+            return;
+        }
+        throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), array.getClass().getName()));
     }
 
     @Override
@@ -118,25 +161,25 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     public void reduce(Optional<Set<Reference>> references)
     {
         Set<Reference> toKeep = ((JvmTreeHeapPrincipalAbstractState) principal.getHeap()).referenceToNode.keySet();
-
         if (toKeep.size() >= referenceToNode.size())
+        {
             return;
-
-        referenceToNode.entrySet().removeIf(e -> !toKeep.contains(e.getKey()));
+        }
+        referenceToNode.keySet().retainAll(toKeep);
     }
 
-// implementations for LatticeAbstractState
+    // implementations for LatticeAbstractState
 
     @Override
     public JvmTreeHeapFollowerAbstractState<StateT> join(JvmHeapAbstractState<StateT> abstractState)
     {
         JvmTreeHeapFollowerAbstractState<StateT> other = (JvmTreeHeapFollowerAbstractState<StateT>) abstractState;
         MapAbstractState<Reference, HeapNode<StateT>> newReferenceToNode = referenceToNode.join(other.referenceToNode);
-        if (referenceToNode.equals(newReferenceToNode))
+        if (referenceToNode == newReferenceToNode)
         {
             return this;
         }
-        if (other.referenceToNode.equals(newReferenceToNode))
+        if (other.referenceToNode == newReferenceToNode)
         {
             return other;
         }
@@ -165,23 +208,17 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
                                                       mapAbstractStateFactory);
     }
 
+    /**
+     * Sets the {@code principal} abstract state containing references.
+     */
     public void setPrincipalState(JvmReferenceAbstractState principal)
     {
         this.principal = principal;
     }
 
-    // private methods
-
-    private SetAbstractState<Reference> getReferenceAbstractState()
+    public SetAbstractState<Reference> getReferenceAbstractState(JvmMemoryLocation principalMemoryLocation)
     {
-        // we abuse the fact that for all memory instructions the reference is the down-most operand on the stack
-        // hence, we get the instruction from the CFA edge (for memory operations there is exactly one edge) and return its first (= deepest) operand
-        return new JvmStackLocation(((JvmInstructionCfaEdge) principal.getProgramLocation()
-                                                                      .getLeavingEdges()
-                                                                      .stream()
-                                                                      .findFirst()
-                                                                      .get()).getInstruction().stackPopCount(principal.getProgramLocation()
-                                                                                                                      .getClazz()) - 1).extractValueOrDefault(principal,
-                                                                                                                                                              SetAbstractState.bottom);
+        return principalMemoryLocation.extractValueOrDefault(principal,
+                                                             SetAbstractState.bottom);
     }
 }

@@ -80,7 +80,7 @@ public class JvmReferenceAbstractState
     }
 
     @Override
-    public SetAbstractState<Reference> getFieldOrDefault(SetAbstractState<Reference> object, String descriptor, SetAbstractState<Reference> defaultValue)
+    public <T> SetAbstractState<Reference> getFieldOrDefault(T object, String descriptor, SetAbstractState<Reference> defaultValue)
     {
         return super.getFieldOrDefault(object, descriptor, defaultValue);
     }

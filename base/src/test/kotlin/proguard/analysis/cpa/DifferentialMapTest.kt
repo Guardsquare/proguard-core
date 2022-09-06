@@ -107,4 +107,17 @@ class DifferentialMapTest : FreeSpec({
         diffMap.values.clear()
         diffMap shouldBe mapOf()
     }
+
+    "Entries propagate modification" {
+        val diffMap = DifferentialMap(mapOf(1 to 2))
+        diffMap.entries.forEach { it.setValue(3) }
+        diffMap shouldBe mapOf(1 to 3)
+    }
+
+    "Entry modification does not leak" {
+        val map = mapOf(1 to 2)
+        val diffMap = DifferentialMap(map)
+        diffMap.entries.forEach { it.setValue(3) }
+        map shouldBe mapOf(1 to 2)
+    }
 })

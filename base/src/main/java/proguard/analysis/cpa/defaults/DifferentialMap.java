@@ -734,7 +734,7 @@ public class DifferentialMap<K, V>
                         continue;
                     }
                     passedKeys.add(action.key);
-                    return new SimpleEntry<>(action.key, ((PutAction<K, V>) action).value);
+                    return new DifferentialEntry(action.key, ((PutAction<K, V>) action).value);
                 }
                 if (rootIterator == null)
                 {
@@ -743,8 +743,32 @@ public class DifferentialMap<K, V>
                                                          .filter(e -> !passedKeys.contains(e.getKey()))
                                                          .iterator();
                 }
-                return rootIterator.hasNext() ? rootIterator.next() : null;
+                return rootIterator.hasNext() ? new DifferentialEntry(rootIterator.next()) : null;
             }
+        }
+    }
+
+    /**
+     * A map entry backed by the differential map.
+     */
+    private class DifferentialEntry
+        extends SimpleEntry<K, V>
+    {
+
+        public DifferentialEntry(K key, V value)
+        {
+            super(key, value);
+        }
+
+        public DifferentialEntry(Entry<? extends K, ? extends V> entry)
+        {
+            super(entry);
+        }
+
+        @Override
+        public V setValue(V value)
+        {
+            return put(getKey(), value);
         }
     }
 }

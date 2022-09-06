@@ -157,7 +157,6 @@ class TreeHeapTest : StringSpec({
 
                     val traces = taintMemoryLocationCpaRun.extractLinearTraces()
                     interproceduralCfa.clear()
-
                     traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                         listOf(
                             "JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:11",

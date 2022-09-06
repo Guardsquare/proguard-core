@@ -50,25 +50,25 @@ public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT
     StateT newObject(String className, JvmCfaNode creationCite);
 
     /**
-     * Returns a field {@code descriptor} from a reference {@code object}.
+     * Returns a field {@code fqn} from a reference {@code object}.
      * If there is no abstract state representing the field, returns the {@code defaultValue}
      */
-    StateT getField(StateT object, String descriptor, StateT defaultValue);
+    <T> StateT getField(T object, String fqn, StateT defaultValue);
 
     /**
-     * Sets a {@code value} to a field {@code descriptor} of a referenced {@code object} and returns the {@code value}.
+     * Sets a {@code value} to a field {@code fqn} of a referenced {@code object} and returns the {@code value}.
      */
-    void setField(StateT object, String descriptor, StateT value);
+    <T> void setField(T object, String fqn, StateT value);
 
     /**
      * Returns an {@code array} element at the specified {@code index} or the {@code defaultValue}, if the element is unset.
      */
-    StateT getArrayElementOrDefault(StateT array, StateT index, StateT defaultValue);
+    <T> StateT getArrayElementOrDefault(T array, StateT index, StateT defaultValue);
 
     /**
      * Sets the {@code array} element {@code value} at the specified {@code index}.
      */
-    void setArrayElement(StateT array, StateT index, StateT value);
+    <T> void setArrayElement(T array, StateT index, StateT value);
 
     /**
      * Discards unused parts of the heap. Does nothing in the default implementation.

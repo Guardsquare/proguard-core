@@ -243,13 +243,13 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
      * This {@link InstructionVisitor} performs generic operations (e.g., loads, stores) parametrized by the specific behavior of {@link JvmTransferRelation} for instruction applications, method
      * invocations, and constructing literals.
      */
-    private class InstructionAbstractInterpreter
+    protected class InstructionAbstractInterpreter
         implements InstructionVisitor
     {
 
-        private final JvmAbstractState<StateT>  abstractState;
-        private final ClassConstantValueFactory classConstantValueFactory = new ClassConstantValueFactory(new ParticularValueFactory());
-        private final ConstantLookupVisitor     constantLookupVisitor     = new ConstantLookupVisitor();
+        protected final JvmAbstractState<StateT>  abstractState;
+        protected final ClassConstantValueFactory classConstantValueFactory = new ClassConstantValueFactory(new ParticularValueFactory());
+        protected final ConstantLookupVisitor     constantLookupVisitor     = new ConstantLookupVisitor();
 
         public InstructionAbstractInterpreter(JvmAbstractState<StateT> abstractState)
         {

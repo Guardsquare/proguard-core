@@ -38,10 +38,10 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
                ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
-    protected final        JvmFrameAbstractState<StateT> frame;
-    protected final JvmHeapAbstractState<StateT>         heap;
-    protected final MapAbstractState<String, StateT>     staticFields;
-    protected       JvmCfaNode                           programLocation;
+    protected final        JvmFrameAbstractState<StateT>    frame;
+    protected final        JvmHeapAbstractState<StateT>     heap;
+    protected final        MapAbstractState<String, StateT> staticFields;
+    protected              JvmCfaNode                       programLocation;
     protected static final JvmCfaNode                       topLocation = new JvmCfaNode(null, -1, null);
 
     /**
@@ -238,15 +238,15 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     /**
      * Returns an abstract state representing the field {@code descriptor} of the {@code object} or {@code defaultState} if there is no entry.
      */
-    public StateT getFieldOrDefault(StateT object, String descriptor, StateT defaultValue)
+    public <T> StateT getFieldOrDefault(T object, String descriptor, StateT defaultValue)
     {
         return heap.getField(object, descriptor, defaultValue);
     }
 
     /**
-     * Sets the field {@code descriptor}of the {@code object} to {@code value}.
+     * Sets the field {@code descriptor} of the {@code object} to {@code value}.
      */
-    public void setField(StateT object, String descriptor, StateT value)
+    public <T> void setField(T object, String descriptor, StateT value)
     {
         heap.setField(object, descriptor, value);
     }
@@ -294,7 +294,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     /**
      * Returns an abstract state for the {@code array} element at the given {@code index} or the {@code abstractDefault} if there is no information available.
      */
-    public StateT getArrayElementOrDefault(StateT array, StateT index, StateT abstractDefault)
+    public <T> StateT getArrayElementOrDefault(T array, StateT index, StateT abstractDefault)
     {
         return heap.getArrayElementOrDefault(array, index, abstractDefault);
     }
@@ -302,7 +302,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     /**
      * Sets the {@code array} element at the given {@code index} to the {@code value}.
      */
-    public void setArrayElement(StateT array, StateT index, StateT value)
+    public <T> void setArrayElement(T array, StateT index, StateT value)
     {
         heap.setArrayElement(array, index, value);
     }

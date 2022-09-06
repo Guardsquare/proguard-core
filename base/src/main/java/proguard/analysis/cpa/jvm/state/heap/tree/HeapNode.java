@@ -19,7 +19,10 @@
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
 import java.util.Collection;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 
@@ -29,7 +32,8 @@ import proguard.analysis.cpa.defaults.MapAbstractState;
  * @author Dmitry Ivanov
  */
 public class HeapNode<StateT extends LatticeAbstractState<StateT>>
-    implements LatticeAbstractState<HeapNode<StateT>>
+    implements Map<String, StateT>,
+               LatticeAbstractState<HeapNode<StateT>>
 {
 
     private final MapAbstractState<String, StateT> fieldToAbstractState;
@@ -42,12 +46,81 @@ public class HeapNode<StateT extends LatticeAbstractState<StateT>>
         this.fieldToAbstractState = fieldToAbstractState;
     }
 
-    /**
-     * Returns all the values contained in the node.
-     */
+    // implementations for Map
+
+    @Override
+    public int size()
+    {
+        return fieldToAbstractState.size();
+    }
+
+    @Override
+    public boolean isEmpty()
+    {
+        return fieldToAbstractState.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object key)
+    {
+        return fieldToAbstractState.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(Object value)
+    {
+        return fieldToAbstractState.containsValue(value);
+    }
+
+    @Override
+    public StateT get(Object key)
+    {
+        return fieldToAbstractState.get(key);
+    }
+
+    @Nullable
+    @Override
+    public StateT put(String key, StateT value)
+    {
+        return fieldToAbstractState.put(key, value);
+    }
+
+    @Override
+    public StateT remove(Object key)
+    {
+        return fieldToAbstractState.remove(key);
+    }
+
+    @Override
+    public void putAll(@NotNull Map<? extends String, ? extends StateT> m)
+    {
+        fieldToAbstractState.putAll(m);
+    }
+
+    @Override
+    public void clear()
+    {
+        fieldToAbstractState.clear();
+    }
+
+    @NotNull
+    @Override
+    public Set<String> keySet()
+    {
+        return fieldToAbstractState.keySet();
+    }
+
+    @Override
     public Collection<StateT> values()
     {
         return fieldToAbstractState.values();
+    }
+
+    @NotNull
+    @Override
+    public Set<Entry<String, StateT>> entrySet()
+    {
+        return fieldToAbstractState.entrySet();
     }
 
     // implementations for LatticeAbstractState
@@ -96,34 +169,10 @@ public class HeapNode<StateT extends LatticeAbstractState<StateT>>
     }
 
     /**
-     * Returns an abstract state for the corresponding field or the {@code defaultValue} if there is no entry.
-     */
-    public StateT getValueOrDefault(String descriptor, StateT defaultValue)
-    {
-        return fieldToAbstractState.getOrDefault(descriptor, defaultValue);
-    }
-
-    /**
-     * Returns an abstract state for the corresponding field or computes it if there is no entry.
-     */
-    public StateT computeIfAbsent(String descriptor, Function<? super String, ? extends StateT> mappingFunction)
-    {
-        return fieldToAbstractState.computeIfAbsent(descriptor, mappingFunction);
-    }
-
-    /**
      * Joins the field value with the input {@code value}.
      */
-    public void mergeValue(String descriptor, StateT value)
+    public void merge(String descriptor, StateT value)
     {
         fieldToAbstractState.merge(descriptor, value, StateT::join);
-    }
-
-    /**
-     * Sets the field to the input {@code value}.
-     */
-    public void setValue(String descriptor, StateT value)
-    {
-        fieldToAbstractState.put(descriptor, value);
     }
 }

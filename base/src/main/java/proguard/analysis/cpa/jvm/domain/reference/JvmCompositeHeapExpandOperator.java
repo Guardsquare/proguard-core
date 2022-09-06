@@ -41,7 +41,7 @@ public class JvmCompositeHeapExpandOperator
     implements ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
-    private final List<? extends ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>> wrappedExpandOperators;
+    protected final List<? extends ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>> wrappedExpandOperators;
 
     /**
      * Create a composite expand operator from a list of expand operators.
@@ -58,7 +58,6 @@ public class JvmCompositeHeapExpandOperator
     @Override
     public CompositeHeapJvmAbstractState expand(AbstractState expandedInitialState, AbstractState reducedExitState, JvmCfaNode blockEntryNode, Call call)
     {
-
         if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState))
         {
             throw new IllegalArgumentException("The operator works on composite JVM states, states of type " + expandedInitialState.getClass().getName() + " are not supported");

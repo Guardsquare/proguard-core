@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.bam.BamCache;
@@ -212,11 +213,20 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                                 continue;
                             }
 
+                            JvmAbstractState<AbstractStateT> returnJvmAbstractState = (JvmAbstractState<AbstractStateT>) returnState.get().getStateByName(StateNames.Jvm);
                             AbstractStateT value = state.getLocationDependentMemoryLocation()
                                                         .getMemoryLocation()
-                                                        .extractValueOrDefault((JvmAbstractState<AbstractStateT>) returnState.get().getStateByName(StateNames.Jvm), threshold);
+                                                        .extractValueOrDefault(returnJvmAbstractState, threshold);
 
-                            if (value.isLessOrEqual(threshold)) // end of the trace
+                            boolean hasDirectPredecessor = !value.isLessOrEqual(threshold);
+                            boolean hasIndirectPredecessor = returnJvmAbstractState.getHeap() instanceof JvmTreeHeapFollowerAbstractState
+                                                             && !returnJvmAbstractState.getFieldOrDefault(state.getLocationDependentMemoryLocation()
+                                                                                                               .getMemoryLocation(),
+                                                                                                          "",
+                                                                                                          threshold)
+                                                                                       .isLessOrEqual(threshold);
+
+                            if (!hasDirectPredecessor && !hasIndirectPredecessor) // end of trace
                             {
                                 continue;
                             }
@@ -232,11 +242,17 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                                 callStack.push(new StackEntry(calleeExitNode.getSignature(),
                                                               state.getSourceReachedSet(),
                                                               intraproceduralParentState.get()));
-                                JvmMemoryLocationAbstractState successor = new JvmMemoryLocationAbstractState(parentLocation,
-                                                                                                              calleeExitNode,
-                                                                                                              (ProgramLocationDependentReachedSet) calleeAbstraction.getReachedSet(),
-                                                                                                              callStack);
-                                successors.add(successor);
+                                (hasDirectPredecessor
+                                 ? Stream.of(state.getLocationDependentMemoryLocation().getMemoryLocation())
+                                 : hasIndirectPredecessor
+                                   ? Stream.of(new JvmHeapLocation(((JvmTreeHeapFollowerAbstractState<AbstractStateT>) returnJvmAbstractState.getHeap())
+                                                                       .getReferenceAbstractState(state.getLocationDependentMemoryLocation().getMemoryLocation()),
+                                                                   ""))
+                                   : Stream.<JvmMemoryLocation>of()).map(l -> new JvmMemoryLocationAbstractState(l,
+                                                                                                                 calleeExitNode,
+                                                                                                                 (ProgramLocationDependentReachedSet) calleeAbstraction.getReachedSet(),
+                                                                                                                 callStack))
+                                                                    .forEach(successors::add);
                                 interproceduralSuccessorFound = true;
                             }
                         }
@@ -452,13 +468,27 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                                                                                         ProgramLocationDependentReachedSet successorsReachedSet,
                                                                                         LinkedList<StackEntry> callStack)
     {
-
-
-        return successorMemoryLocations.stream()
-                                       .filter(l -> !l.extractValueOrDefault(parentState, threshold)
-                                                      .isLessOrEqual(threshold))
-                                       .map(l -> new JvmMemoryLocationAbstractState(l, parentState.getProgramLocation(), successorsReachedSet, callStack))
-                                       .collect(Collectors.toList());
+        List<JvmMemoryLocation> resultMemoryLocations = new ArrayList<>();
+        for (JvmMemoryLocation location : successorMemoryLocations)
+        {
+            if (!location.extractValueOrDefault(parentState, threshold).isLessOrEqual(threshold))
+            {
+                resultMemoryLocations.add(location);
+                continue;
+            }
+            if (!(parentState.getHeap() instanceof JvmTreeHeapFollowerAbstractState))
+            {
+                continue;
+            }
+            JvmMemoryLocation heapLocation = new JvmHeapLocation(((JvmTreeHeapFollowerAbstractState<AbstractStateT>) parentState.getHeap()).getReferenceAbstractState(location), "");
+            if (!heapLocation.extractValueOrDefault(parentState, threshold).isLessOrEqual(threshold))
+            {
+                resultMemoryLocations.add(heapLocation);
+            }
+        }
+        return resultMemoryLocations.stream()
+                                    .map(l -> new JvmMemoryLocationAbstractState(l, parentState.getProgramLocation(), successorsReachedSet, callStack))
+                                    .collect(Collectors.toList());
     }
 
     private List<JvmMemoryLocation> backtraceStackLocation(JvmMemoryLocation memoryLocation,

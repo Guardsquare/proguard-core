@@ -21,8 +21,7 @@ package proguard.analysis.cpa.jvm.domain.taint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.instruction.Instruction;
+import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -30,6 +29,14 @@ import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.operators.JvmDefaultExpandOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
+import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.analysis.cpa.jvm.util.HeapUtil;
+import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
+import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.util.ClassUtil;
 
 /**
  * This {@link proguard.analysis.cpa.bam.ExpandOperator} inherits all the functionalities of a {@link JvmDefaultExpandOperator} and in addition taints the return values if the called function
@@ -67,17 +74,47 @@ public class JvmTaintExpandOperator
         this(cfa, fqnToSources, true);
     }
 
-    // Overrides of JvmDefaultExpandOperator
-
+    // implementations for JvmDefaultExpandOperator
 
     @Override
-    public JvmAbstractState<TaintAbstractState> expand(AbstractState expandedInitialState, AbstractState reducedExitState, JvmCfaNode blockEntryNode, Call call)
+    public JvmTaintAbstractState expand(AbstractState expandedInitialState, AbstractState reducedExitState, JvmCfaNode blockEntryNode, Call call)
     {
-        JvmAbstractState<TaintAbstractState> result = super.expand(expandedInitialState, reducedExitState, blockEntryNode, call);
+        JvmTaintAbstractState result = (JvmTaintAbstractState) super.expand(expandedInitialState, reducedExitState, blockEntryNode, call);
         TaintSource detectedSource = fqnToSources.get(call.getTarget().getFqn());
-        if (detectedSource != null)
+        if (detectedSource == null)
         {
-            detectedSource.taintsGlobals.forEach(g -> result.setStatic(g, new TaintAbstractState(detectedSource)));
+            return result;
+        }
+        TaintAbstractState detectedTaint = new TaintAbstractState(detectedSource);
+        // taint static fields
+        detectedSource.taintsGlobals.forEach(g -> result.setStatic(g, detectedTaint));
+        if (!(result.getHeap() instanceof JvmTaintTreeHeapFollowerAbstractState))
+        {
+            return result;
+        }
+        // taint heap
+        JvmTaintTreeHeapFollowerAbstractState expandedHeap = (JvmTaintTreeHeapFollowerAbstractState) ((JvmTaintAbstractState) expandedInitialState).getHeap();
+        // taint static references
+        detectedSource.taintsGlobals.stream()
+                                    .map(JvmStaticFieldLocation::new)
+                                    .map(expandedHeap::getReferenceAbstractState)
+                                    .forEach(r -> result.setObjectTaint(r, detectedTaint));
+        if (detectedSource.taintsArgs.isEmpty() && !detectedSource.taintsThis)
+        {
+            return result;
+        }
+        boolean isStatic = call.invocationOpcode == Instruction.OP_INVOKESTATIC || call.invocationOpcode == Instruction.OP_INVOKEDYNAMIC;
+        String descriptor = call.getTarget().descriptor.toString();
+        int parameterSize = ClassUtil.internalMethodParameterSize(descriptor, isStatic);
+        // taint arguments
+        detectedSource.taintsArgs.stream()
+                                 .map(a -> HeapUtil.getArgumentReference(expandedHeap, parameterSize, descriptor, isStatic, a - 1))
+                                 .forEach(r -> result.setObjectTaint(r, detectedTaint));
+        // taint the calling instance
+        if (detectedSource.taintsThis)
+        {
+            result.setObjectTaint(expandedHeap.getReferenceAbstractState(new JvmStackLocation(parameterSize - 1)),
+                                  detectedTaint);
         }
         return result;
     }
@@ -119,4 +156,22 @@ public class JvmTaintExpandOperator
         return returnValues;
     }
 
+    // implementations for JvmAbstractStateFactory
+
+    @Override
+    public JvmTaintAbstractState createJvmAbstractState(JvmCfaNode programLocation,
+                                                        JvmFrameAbstractState<TaintAbstractState> frame,
+                                                        JvmHeapAbstractState<TaintAbstractState> heap,
+                                                        MapAbstractState<String, TaintAbstractState> staticFields)
+    {
+        return new JvmTaintAbstractState(programLocation, frame, heap, staticFields);
+    }
+
+    /**
+     * Returns the mapping from fqns to taint sources.
+     */
+    public Map<String, TaintSource> getFqnToSources()
+    {
+        return fqnToSources;
+    }
 }

@@ -170,7 +170,11 @@ public class JvmTaintMemoryLocationBamCpaRun
                                                          .stream()
                                                          .filter(l -> !l.extractValueOrDefault((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm),
                                                                                                TaintAbstractState.bottom)
-                                                                        .isEmpty())
+                                                                        .isEmpty()
+                                                                      || !((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm)).getHeap()
+                                                                                                                                                       .getField(l,
+                                                                                                                                                                 "",
+                                                                                                                                                                 TaintAbstractState.bottom).isEmpty())
                                                          .forEach(l -> memoryLocations.add(
                                                              new BamLocationDependentJvmMemoryLocation(l,
                                                                                                        ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) state).getProgramLocation(),

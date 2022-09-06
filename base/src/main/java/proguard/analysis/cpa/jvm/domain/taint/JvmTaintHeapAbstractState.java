@@ -16,25 +16,20 @@
  * limitations under the License.
  */
 
-package proguard.analysis.cpa.jvm.state.heap;
+package proguard.analysis.cpa.jvm.domain.taint;
+
+import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 
 /**
- * An enumeration of supported heap models.
+ * An interface for object tainting.
  *
  * @author Dmitry Ivanov
  */
-public enum HeapModel
+public interface JvmTaintHeapAbstractState
 {
+
     /**
-     * a singleton heap model
-      */
-    FORGETFUL,
-    /**
-     * a heap model representing objects as reference graphs
-      */
-    TREE,
-    /**
-     * a taint tree heap model allowing to taint whole objects
-      */
-    TAINT_TREE
+     * Transitively applies the taint {@code value} to the {@code object}.
+     */
+    <T> void taintObject(T object, TaintAbstractState value);
 }

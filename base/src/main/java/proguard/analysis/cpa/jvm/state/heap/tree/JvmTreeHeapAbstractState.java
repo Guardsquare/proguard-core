@@ -36,6 +36,7 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
 
     protected final MapAbstractState<Reference, HeapNode<StateT>> referenceToNode;
     protected final MapAbstractStateFactory                       mapAbstractStateFactory;
+    protected final StateT                                        defaultValue;
 
     /**
      * Create a tree heap abstract state from a given memory layout.
@@ -44,41 +45,57 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
      * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
     protected JvmTreeHeapAbstractState(MapAbstractState<Reference, HeapNode<StateT>> referenceToNode,
-                                       MapAbstractStateFactory                       mapAbstractStateFactory)
+                                       MapAbstractStateFactory                       mapAbstractStateFactory,
+                                       StateT                                        defaultValue)
     {
         this.referenceToNode = referenceToNode;
         this.mapAbstractStateFactory = mapAbstractStateFactory;
+        this.defaultValue = defaultValue;
     }
-
-    // implementations for JvmHeapAbstractState
 
     /**
      * Returns a join over all fields aliased by the input {@link SetAbstractState}. The {@code defaultValue} is used when there is no information available.
      */
     protected StateT getField(SetAbstractState<Reference> object, String descriptor, StateT defaultValue)
     {
-        return object.stream().reduce(defaultValue,
+        return object.stream().reduce(this.defaultValue,
                                       (result, reference) -> result.join(referenceToNode.containsKey(reference)
-                                                                         ? referenceToNode.get(reference).getValueOrDefault(descriptor, defaultValue)
+                                                                         ? referenceToNode.get(reference).getOrDefault(descriptor, defaultValue)
                                                                          : defaultValue),
                                       StateT::join);
     }
 
     /**
-     * Sets the field value to the given one if the reference is unambiguous, joins otherwise.
+     * Assigns the field value to the given one if the reference is unambiguous, joins otherwise.
      */
-    protected void setField(SetAbstractState<Reference> object, String descriptor, StateT value)
+    protected void assignField(SetAbstractState<Reference> object, String descriptor, StateT value)
     {
         if (object.size() <= 1)
         {
-            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
-                                                       .setValue(descriptor, value));
+            setField(object, descriptor,value);
         }
         else
         {
-            object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
-                                                       .mergeValue(descriptor, value));
+            mergeField(object, descriptor,value);
         }
+    }
+
+    /**
+     * Merges the field value to the given one.
+     */
+    protected void mergeField(SetAbstractState<Reference> object, String descriptor, StateT value)
+    {
+        object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
+                                                   .merge(descriptor, value));
+    }
+
+    /**
+     * Replaces the field value with the given one.
+     */
+    protected void setField(SetAbstractState<Reference> object, String descriptor, StateT value)
+    {
+        object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
+                                                   .put(descriptor, value));
     }
 
     /**
@@ -86,9 +103,9 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
      */
     protected StateT getArrayElementOrDefault(SetAbstractState<Reference> array, StateT index, StateT defaultValue)
     {
-        return array.stream().reduce(defaultValue,
+        return array.stream().reduce(this.defaultValue,
                                      (result, reference) -> result.join(referenceToNode.containsKey(reference)
-                                                                        ? referenceToNode.get(reference).getValueOrDefault("[]", defaultValue)
+                                                                        ? referenceToNode.get(reference).getOrDefault("[]", defaultValue)
                                                                         : defaultValue),
                                      StateT::join);
     }
@@ -99,8 +116,18 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
     protected void setArrayElement(SetAbstractState<Reference> array, StateT index, StateT value)
     {
         array.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
-                                                  .mergeValue("[]", value));
+                                                  .merge("[]", value));
     }
+
+    /**
+     * Returns the heap node for the given {@code reference}.
+     */
+    public HeapNode<StateT> getHeapNode(Reference reference)
+    {
+        return referenceToNode.get(reference);
+    }
+
+    // implementations for JvmHeapAbstractState
 
     /**
      * Expands the state with all the entries from another heap state with reference not already known by the state.
