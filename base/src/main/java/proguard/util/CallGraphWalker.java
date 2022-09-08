@@ -27,6 +27,8 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proguard.analysis.Metrics;
+import proguard.analysis.Metrics.MetricType;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.Node;
@@ -286,6 +288,7 @@ public class CallGraphWalker
         {
             if (currLevel >= maxDepth)
             {
+                Metrics.increaseCount(MetricType.CALL_GRAPH_RECONSTRUCTION_MAX_DEPTH_REACHED);
                 worklist.forEach(n -> n.isTruncated = true);
                 break;
             }
@@ -332,6 +335,7 @@ public class CallGraphWalker
             {
                 if (nextLevel.size() >= maxWidth)
                 {
+                    Metrics.increaseCount(MetricType.CALL_GRAPH_RECONSTRUCTION_MAX_WIDTH_REACHED);
                     next.isTruncated = true;
                 }
                 else

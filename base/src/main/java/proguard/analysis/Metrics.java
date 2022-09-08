@@ -25,7 +25,9 @@ public class Metrics
         CONCRETE_CALL,
         INCOMPLETE_CALL_SKIPPED,
         INVALID_TYPE_STRING,
-        CALL_TO_ABSTRACT_METHOD
+        CALL_TO_ABSTRACT_METHOD,
+        CALL_GRAPH_RECONSTRUCTION_MAX_DEPTH_REACHED,
+        CALL_GRAPH_RECONSTRUCTION_MAX_WIDTH_REACHED
     }
 
     public static final Map<MetricType, Integer> counts = new TreeMap<>();
