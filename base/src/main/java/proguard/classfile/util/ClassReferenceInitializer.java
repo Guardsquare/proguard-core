@@ -51,6 +51,9 @@ import static proguard.classfile.kotlin.KotlinConstants.*;
  * All name and type constant pool entries get a list of direct references to
  * the classes listed in the type.
  * <p/>
+ * The classpools are searched by keys and not by Clazz.getName(), so after
+ * obfuscation make sure to pass a ClassPool.refreshedCopy() to this class.
+ * <p/>
  * All Kotlin metadata elements get references to their corresponding Java
  * implementation elements.
  * <p/>
