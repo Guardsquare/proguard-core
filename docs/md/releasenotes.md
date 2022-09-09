@@ -6,6 +6,11 @@
 - Add a heap model for taint CPA supporting tainting of whole objects.
 - `Call` API: Add a few utilities and fix inconsistent call argument count getter behavior.
 
+#### API Improvements
+
+- Add `referencedDefaultImplementationMethodAccept` to `KotlinFunctionMetadata` model class.
+- Deprecated `referencedMethodAccept(Clazz, MemberVisitor)` in favour of `referencedMethodAccept(MemberVisitor)` in `KotlinFunctionMetadata` model class.
+
 ### Bug fixes
 
 - Fix side effect on `DetailedArrayReferenceValue` modifying values at previous offsets on array store

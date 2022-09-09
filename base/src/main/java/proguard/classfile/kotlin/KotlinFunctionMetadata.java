@@ -153,12 +153,27 @@ implements   Processable
     }
 
 
-    // TODO: remove unused clazz parameter
+    @Deprecated
     public void referencedMethodAccept(Clazz clazz, MemberVisitor methodVisitor)
     {
-        if (referencedMethod != null)
+        referencedMethodAccept(methodVisitor);
+    }
+
+    public void referencedMethodAccept(MemberVisitor methodVisitor)
+    {
+        if (referencedMethod      != null &&
+            referencedMethodClass != null)
         {
             referencedMethod.accept(referencedMethodClass, methodVisitor);
+        }
+    }
+
+    public void referencedDefaultImplementationMethodAccept(MemberVisitor memberVisitor)
+    {
+        if (referencedDefaultImplementationMethodClass != null &&
+            referencedDefaultImplementationMethod      != null)
+        {
+            referencedDefaultImplementationMethod.accept(referencedDefaultImplementationMethodClass, memberVisitor);
         }
     }
 
