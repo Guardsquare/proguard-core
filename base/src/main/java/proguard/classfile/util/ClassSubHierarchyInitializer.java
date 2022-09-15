@@ -41,14 +41,15 @@ public class ClassSubHierarchyInitializer
 implements   ClassPoolVisitor,
              ClassVisitor
 {
-    private Map<Clazz, Set<Clazz>> subClassesMap = new HashMap<>();
+    private final Map<Clazz, Set<Clazz>> subClassesMap = new HashMap<>();
 
 
     // Implementations for ClassPoolVisitor.
 
     public void visitClassPool(ClassPool classPool)
     {
-        // Optimized implementation:
+        // Optimized implementation. Only this implementation supports proper
+        // sub-hierarchy re-initialization.
 
         // Collect the subclass information for all classes.
         classPool.classesAccept(new MySubclassCollector());
@@ -70,7 +71,7 @@ implements   ClassPoolVisitor,
     @Override
     public void visitProgramClass(ProgramClass programClass)
     {
-        // Direct implementation:
+        // Direct implementation.
 
         // Add this class to the subclasses of its superclass and interfaces
         // (through their class constants).
@@ -86,7 +87,7 @@ implements   ClassPoolVisitor,
     @Override
     public void visitLibraryClass(LibraryClass libraryClass)
     {
-        // Direct implementation:
+        // Direct implementation.
 
         // Add this class to the subclasses of its superclass and interfaces.
         ClassVisitor subClassCollector =
@@ -197,10 +198,15 @@ implements   ClassPoolVisitor,
             if (subClasses != null)
             {
                 // Set it to the class, as an array.
-                Clazz[] subClassesArray = subClasses.toArray(new Clazz[subClasses.size()]);
+                Clazz[] subClassesArray = subClasses.toArray(new Clazz[0]);
 
                 programClass.subClasses    = subClassesArray;
                 programClass.subClassCount = subClassesArray.length;
+            }
+            else
+            {
+                programClass.subClasses    = new Clazz[0];
+                programClass.subClassCount = 0;
             }
         }
 
@@ -213,10 +219,15 @@ implements   ClassPoolVisitor,
             if (subClasses != null)
             {
                 // Set it to the class, as an array.
-                Clazz[] subClassesArray = subClasses.toArray(new Clazz[subClasses.size()]);
+                Clazz[] subClassesArray = subClasses.toArray(new Clazz[0]);
 
                 libraryClass.subClasses    = subClassesArray;
                 libraryClass.subClassCount = subClassesArray.length;
+            }
+            else
+            {
+                libraryClass.subClasses    = new Clazz[0];
+                libraryClass.subClassCount = 0;
             }
         }
     }
