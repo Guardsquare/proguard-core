@@ -1345,7 +1345,8 @@ class JvmTransferRelationTest : FreeSpec({
                 sourceNode,
                 targetNode,
                 mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute,
-                36)
+                36
+            )
 
             val sourceState = JvmAbstractState(
                 sourceNode,
@@ -1375,7 +1376,8 @@ class JvmTransferRelationTest : FreeSpec({
                 sourceNode,
                 targetNode,
                 mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute,
-                76)
+                76
+            )
 
             val sourceState = JvmAbstractState(
                 sourceNode,

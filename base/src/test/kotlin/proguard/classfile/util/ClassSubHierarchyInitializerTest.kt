@@ -3,7 +3,12 @@ package proguard.classfile.util
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.collections.shouldHaveSize
-import proguard.classfile.*
+import proguard.classfile.AccessConstants
+import proguard.classfile.ClassConstants
+import proguard.classfile.ClassPool
+import proguard.classfile.Clazz
+import proguard.classfile.ProgramClass
+import proguard.classfile.VersionConstants
 import proguard.classfile.editor.ConstantPoolEditor
 import proguard.classfile.visitor.ClassCollector
 import proguard.testutils.ClassPoolBuilder
@@ -48,11 +53,13 @@ private class ClassBuilder {
          * Creates a Java 7 class without methods or attributes.
          */
         fun createClass(className: String, superClass: ProgramClass? = null): ProgramClass {
-            val clazz = ProgramClass(VersionConstants.CLASS_VERSION_1_7,
-                    1, arrayOfNulls(1),
-                    AccessConstants.PUBLIC,
-                    0,
-                    0)
+            val clazz = ProgramClass(
+                VersionConstants.CLASS_VERSION_1_7,
+                1, arrayOfNulls(1),
+                AccessConstants.PUBLIC,
+                0,
+                0
+            )
             val constantPoolEditor = ConstantPoolEditor(clazz)
             clazz.u2thisClass = constantPoolEditor.addClassConstant(className, null)
             clazz.u2superClass = constantPoolEditor.addClassConstant(ClassConstants.NAME_JAVA_LANG_OBJECT, null)

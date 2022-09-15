@@ -27,12 +27,12 @@ import proguard.analysis.datastructure.callgraph.Call
 import proguard.analysis.datastructure.callgraph.CallGraph
 import proguard.classfile.MethodSignature
 import proguard.classfile.Signature
+import proguard.classfile.instruction.Instruction
 import proguard.evaluation.value.Value.ALWAYS
 import proguard.evaluation.value.Value.MAYBE
 import proguard.evaluation.value.Value.NEVER
 import proguard.testutils.ClassPoolBuilder
 import java.nio.file.Paths
-import proguard.classfile.instruction.Instruction
 
 class CallResolverTest : FreeSpec({
     testOrder = TestCaseOrder.Sequential
