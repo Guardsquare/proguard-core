@@ -14,6 +14,7 @@
 - Add `TransformedStringMatcher`.
 - Add `ClassFeatureNameCollector`.
 - Add var-arg constructor to `ClassPath`.
+- Add `DataEntryClassInfoFilter`.
 
 ### Bug fixes
 
