@@ -20,6 +20,8 @@ package proguard.util;
 import proguard.classfile.*;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.visitor.*;
 import proguard.resources.file.ResourceFile;
 import proguard.resources.file.visitor.ResourceFileVisitor;
@@ -31,7 +33,8 @@ public interface ProcessableVisitor
 extends          ClassVisitor,
                  MemberVisitor,
                  AttributeVisitor,
-                 ResourceFileVisitor
+                 ResourceFileVisitor,
+                 ConstantVisitor
 {
     /**
      * Visits any Processable instance. The more specific default implementations of
@@ -72,5 +75,12 @@ extends          ClassVisitor,
     default void visitAnyResourceFile(ResourceFile resourceFile)
     {
         visitAnyProcessable(resourceFile);
+    }
+
+    // Implementations for ConstantVisitor.
+
+    default void visitAnyConstant(Clazz clazz, Constant constant)
+    {
+        visitAnyProcessable(constant);
     }
 }
