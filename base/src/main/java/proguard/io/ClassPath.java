@@ -18,6 +18,7 @@
 package proguard.io;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -28,8 +29,12 @@ import java.util.List;
  */
 public class ClassPath
 {
-    private final List<ClassPathEntry> classPathEntries = new ArrayList<>();
+    private final List<ClassPathEntry> classPathEntries;
 
+    public ClassPath(ClassPathEntry...entries)
+    {
+        classPathEntries = new ArrayList<>(Arrays.asList(entries));
+    }
 
     /**
      * Returns whether the class path contains any output entries.

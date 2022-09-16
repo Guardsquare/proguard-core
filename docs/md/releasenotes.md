@@ -13,6 +13,7 @@
 - Deprecated `referencedMethodAccept(Clazz, MemberVisitor)` in favour of `referencedMethodAccept(MemberVisitor)` in `KotlinFunctionMetadata` model class.
 - Add `TransformedStringMatcher`.
 - Add `ClassFeatureNameCollector`.
+- Add var-arg constructor to `ClassPath`.
 
 ### Bug fixes
 
