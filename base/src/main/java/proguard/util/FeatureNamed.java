@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import java.util.Set;
  * <p/>
  * The entities can for example be classes and resource files, and the feature
  * can be a dynamic feature in an Android app.
- *
- *
+ * <p>
  * @author Eric Lafortune
  */
 public interface FeatureNamed
@@ -34,7 +33,7 @@ public interface FeatureNamed
     /**
      * Returns the feature name for this entity.
      */
-    public String getFeatureName();
+    String getFeatureName();
 
 
     /**
@@ -42,7 +41,7 @@ public interface FeatureNamed
      *
      * @param featureName the feature Name to be set.
      */
-    public void setFeatureName(String featureName);
+    void setFeatureName(String featureName);
 
 
     /**
@@ -50,13 +49,13 @@ public interface FeatureNamed
      *
      * @param featureName the feature name to add.
      */
-    public void addExtraFeatureName(String featureName);
+    void addExtraFeatureName(String featureName);
 
 
     /**
      * Returns the set of feature names for this entity.
      */
-    public Set<String> getExtraFeatureNames();
+    Set<String> getExtraFeatureNames();
 
 
     /**
@@ -64,5 +63,5 @@ public interface FeatureNamed
      *
      * @param featureName the name of the feature to check.
      */
-    public boolean isInFeature(String featureName);
+    boolean isInFeature(String featureName);
 }
