@@ -11,6 +11,7 @@
 
 - Add `referencedDefaultImplementationMethodAccept` to `KotlinFunctionMetadata` model class.
 - Deprecated `referencedMethodAccept(Clazz, MemberVisitor)` in favour of `referencedMethodAccept(MemberVisitor)` in `KotlinFunctionMetadata` model class.
+- Add `TransformedStringMatcher`.
 
 ### Bug fixes
 

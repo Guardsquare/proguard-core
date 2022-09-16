@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,7 @@ public interface StringFunction
     /**
       * A StringFunction that returns the given string.
       */
-    StringFunction IDENTITY_FUNCTION = new StringFunction()
-     {
-         public String transform(String string)
-         {
-             return string;
-         }
-     };
+    StringFunction IDENTITY_FUNCTION = string -> string;
 
 
     /**
