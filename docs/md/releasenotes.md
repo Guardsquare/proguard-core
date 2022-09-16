@@ -15,6 +15,7 @@
 - Add `ClassFeatureNameCollector`.
 - Add var-arg constructor to `ClassPath`.
 - Add `DataEntryClassInfoFilter`.
+- Add `NamedDataEntry`.
 
 ### Bug fixes
 
