@@ -26,6 +26,8 @@
 - Fix call resolution for `invokedynamic` (issue #63). There might now be calls with incomplete target
   information. By default, these calls will not be distributed to visitors, but this can be enabled
   by setting the `skipIncompleteCalls` option in the call resolver.
+- Fix leading `$` being stripped from inner classes by the `ClassReferenceFixer`. This prevents classes
+  with names like `Foo$$Bar` incorrectly having their simple name changed from `$Bar` to `Bar`.
 
 ## Version 9.0.3
 

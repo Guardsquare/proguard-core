@@ -398,11 +398,24 @@ implements   ClassVisitor,
             innerNameIndex  != 0)
         {
             String newInnerName = clazz.getClassName(innerClassIndex);
-            int index = newInnerName.lastIndexOf(TypeConstants.INNER_CLASS_SEPARATOR);
-            if (index >= 0)
+
+            KotlinClassChecker checker = new KotlinClassChecker();
+            clazz.kotlinMetadataAccept(checker);
+            if (checker.isKotlin)
             {
+                newInnerName = shortKotlinNestedClassName(clazz.getName(), clazz.getString(innerNameIndex), newInnerName);
+
                 innerClassesInfo.u2innerNameIndex =
-                    new ConstantPoolEditor((ProgramClass)clazz).addUtf8Constant(newInnerName.substring(index + 1));
+                    new ConstantPoolEditor((ProgramClass)clazz).addUtf8Constant(newInnerName);
+            }
+            else
+            {
+                int index = newInnerName.lastIndexOf(TypeConstants.INNER_CLASS_SEPARATOR);
+                if (index >= 0)
+                {
+                    innerClassesInfo.u2innerNameIndex =
+                        new ConstantPoolEditor((ProgramClass)clazz).addUtf8Constant(newInnerName.substring(index + 1));
+                }
             }
         }
     }
@@ -858,10 +871,16 @@ implements   ClassVisitor,
                                                     String shortInnerClassName,
                                                     Clazz  referencedClass)
     {
-        String newFulllName = newClassName(enclosingClassName + "$" + shortInnerClassName,
-                                           referencedClass);
+        String referencedClassName = newClassName(enclosingClassName + "$" + shortInnerClassName,
+                                                  referencedClass);
+        return shortKotlinNestedClassName(enclosingClassName, shortInnerClassName, referencedClassName);
+    }
 
-        if (newFulllName.equals(enclosingClassName + "$" + shortInnerClassName))
+    public static String shortKotlinNestedClassName(String enclosingClassName,
+                                                    String shortInnerClassName,
+                                                    String referencedClassName)
+    {
+        if (referencedClassName.equals(enclosingClassName + "$" + shortInnerClassName))
         {
             // If the name has not changed, no need to recompute the short name.
             // Original names may contain `$` so reusing the name here avoids the problem of
@@ -870,10 +889,9 @@ implements   ClassVisitor,
         }
         else
         {
-            return ClassUtil.internalSimpleClassName(newFulllName);
+            return ClassUtil.internalSimpleClassName(referencedClassName);
         }
     }
-
 
     /**
      * Returns a new Kotlin function name, taking into account mangling.
@@ -1116,6 +1134,16 @@ implements   ClassVisitor,
             ));
 
             annotationsAttributeEditor.addAnnotation(jvmName);
+        }
+    }
+
+    private static class KotlinClassChecker implements KotlinMetadataVisitor
+    {
+        boolean isKotlin;
+
+        public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
+        {
+            isKotlin = true;
         }
     }
 }
