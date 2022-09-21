@@ -334,26 +334,26 @@ class ClassReferenceFixerTest : FreeSpec({
 
     "Given a nested class with a name starting with `$`" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-                KotlinSource(
-                        "Test.kt",
-                        """
+            KotlinSource(
+                "Test.kt",
+                """
                     class Foo {
                         inner class `${'$'}Bar`
                     }
                 """.trimIndent()
-                )
+            )
         )
 
         "When applying the ClassReferenceFixer" - {
             programClassPool.classesAccept(ClassReferenceFixer(false))
             lateinit var name: String
             programClassPool.classAccept(
-                    "Foo",
-                    AllAttributeVisitor(
-                            AllInnerClassesInfoVisitor { clazz, innerClassesInfo ->
-                                name = clazz.getString(innerClassesInfo.u2innerNameIndex)
-                            }
-                    )
+                "Foo",
+                AllAttributeVisitor(
+                    AllInnerClassesInfoVisitor { clazz, innerClassesInfo ->
+                        name = clazz.getString(innerClassesInfo.u2innerNameIndex)
+                    }
+                )
             )
 
             "Then the inner class' short name should remain unchanged" {
