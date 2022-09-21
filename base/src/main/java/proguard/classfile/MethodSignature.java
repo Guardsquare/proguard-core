@@ -24,6 +24,7 @@ import static proguard.classfile.util.ClassUtil.externalShortClassName;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a Method signature containing a class, method and a descriptor.
@@ -128,39 +129,59 @@ public class MethodSignature
 
     /**
      * Fuzzy check if two {@link MethodSignature} objects are equal. If any
-     * field is null, its value in the other object does not influence
+     * pattern field is null, its value in the matched object does not influence
      * the check result, providing a way to create a wildcard {@link MethodSignature}
      * that e.g. matches several methods of a class that have the same name
      * but a different {@link MethodDescriptor}.
      *
-     * @param other The {@link MethodSignature} to compare with this one
-     * @return true if the two objects match
+     * @param signature The {@link MethodSignature} to be compared
+     * @param wildcard  The {@link MethodSignature} pattern to be matched against
+     * @return true     if the two objects match
      */
-    public boolean matchesIgnoreNull(MethodSignature other)
+    public static boolean matchesIgnoreNull(MethodSignature signature, MethodSignature wildcard)
     {
-        return (this.className == null || other.className == null || this.className.equals(other.className))
-               && (this.method == null || other.method == null || this.method.equals(other.method))
-               && (this.descriptor == null || other.descriptor == null || this.descriptor.matchesIgnoreNull(other.descriptor));
+        return wildcard == null
+               || Optional.ofNullable(signature)
+                          .map(s -> (wildcard.className == null
+                                     || Objects.equals(s.className, wildcard.className))
+                                    && (wildcard.method == null
+                                        || Objects.equals(s.method, wildcard.method))
+                                    && (wildcard.descriptor == null
+                                        || MethodDescriptor.matchesIgnoreNull(s.descriptor, wildcard.descriptor)))
+                          .orElse(false);
     }
 
     /**
-     * Fuzzy check like {@link #matchesIgnoreNull(MethodSignature)} but allows
+     * Fuzzy check like {@link .matchesIgnoreNull(MethodSignature)} but allows
      * dollar signs in type strings. Usually the notation for inner classes
      * is {@code com/example/Foo$Bar}, but sometimes external systems call
      * this class {@code com/example/Foo/Bar}. These two names correspond to
      * the same class and thus should be treated as the same if they appear
      * in a {@link MethodSignature}. If it is to be expected that this situation
      * may occur, this method should be preferred over
-     * {@link #matchesIgnoreNull(MethodSignature)} to avoid false negatives.
+     * {@link .matchesIgnoreNull(MethodSignature)} to avoid false negatives.
      *
-     * @param other The {@link MethodSignature} to compare with this one
+     * @param signature The {@link MethodSignature} to be compared
+     * @param wildcard  The {@link MethodSignature} pattern to be matched against
      * @return true if the two objects match
      */
-    public boolean matchesIgnoreNullAndDollar(MethodSignature other)
+    public static boolean matchesIgnoreNullAndDollar(MethodSignature signature, MethodSignature wildcard)
     {
-        return (this.className == null || other.className == null || this.className.replace('$', '/').equals(other.className.replace('$', '/')))
-               && (this.method == null || other.method == null || this.method.replace('$', '/').equals(other.method.replace('$', '/')))
-               && (this.descriptor == null || other.descriptor == null || this.descriptor.matchesIgnoreNullAndDollar(other.descriptor));
+        return wildcard == null
+               || Optional.ofNullable(signature)
+                          .map(s -> (wildcard.className == null
+                                     || Objects.equals(Optional.ofNullable(s.className)
+                                                               .map(c -> c.replace('$', '/'))
+                                                               .orElse(null),
+                                                       wildcard.className.replace('$', '/')))
+                                    && (wildcard.method == null
+                                        || Objects.equals(Optional.ofNullable(s.method)
+                                                                  .map(m -> m.replace('$', '/'))
+                                                                  .orElse(null),
+                                                          wildcard.method.replace('$', '/')))
+                                    && (wildcard.descriptor == null
+                                        || MethodDescriptor.matchesIgnoreNullAndDollar(s.descriptor, wildcard.descriptor)))
+                          .orElse(false);
     }
 
     @Override

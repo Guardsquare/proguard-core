@@ -24,7 +24,9 @@ import static proguard.classfile.util.ClassUtil.externalType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.swing.text.html.Option;
 import proguard.classfile.util.ClassUtil;
 
 /**
@@ -77,29 +79,47 @@ public class MethodDescriptor
     }
 
     /**
-     * Analogous to {@link MethodSignature#matchesIgnoreNull(MethodSignature)}.
+     * Analogous to {@link MethodSignature.matchesIgnoreNull(MethodSignature, MethodSignature)}.
      *
-     * @param other The {@link MethodDescriptor} to compare with this one
+     * @param descriptor The {@link MethodDescriptor} to be compared
+     * @param wildcard   The {@link MethodDescriptor} pattern to be matched against
      * @return true if the two objects match
      */
-    public boolean matchesIgnoreNull(MethodDescriptor other)
+    public static boolean matchesIgnoreNull(MethodDescriptor descriptor, MethodDescriptor wildcard)
     {
-        return (returnType == null || other.returnType == null || Objects.equals(returnType, other.returnType))
-               && (argumentTypes == null || other.argumentTypes == null || Objects.equals(argumentTypes, other.argumentTypes));
+        return wildcard == null
+               || Optional.ofNullable(descriptor).map(d -> (wildcard.returnType == null
+                                                            || Objects.equals(d.returnType, wildcard.returnType))
+                                                           && (wildcard.argumentTypes == null
+                                                               || Objects.equals(d.argumentTypes, wildcard.argumentTypes)))
+                          .orElse(false);
     }
 
     /**
-     * Analogous to {@link MethodSignature#matchesIgnoreNullAndDollar(MethodSignature)}.
+     * Analogous to {@link MethodSignature.matchesIgnoreNullAndDollar(MethodSignature, MethodSignature)}.
      *
-     * @param other The {@link MethodDescriptor} to compare with this one
+     * @param descriptor The {@link MethodDescriptor} to be compared
+     * @param wildcard   The {@link MethodDescriptor} pattern to be matched against
      * @return true if the two objects match
      */
-    public boolean matchesIgnoreNullAndDollar(MethodDescriptor other)
+    public static boolean matchesIgnoreNullAndDollar(MethodDescriptor descriptor, MethodDescriptor wildcard)
     {
-        return (returnType == null || other.returnType == null || Objects.equals(returnType.replace('$', '/'), other.returnType.replace('$', '/')))
-               && (argumentTypes == null || other.argumentTypes == null || Objects
-            .equals(argumentTypes.stream().map(t -> t.replace('$', '/')).collect(Collectors.toList()), other.argumentTypes.stream().map(t -> t.replace('$', '/')).collect(
-                Collectors.toList())));
+        return wildcard == null
+               || Optional.ofNullable(descriptor).map(d -> (wildcard.returnType == null
+                                                            || Objects.equals(Optional.ofNullable(d.returnType)
+                                                                                      .map(s -> s.replace('$', '/'))
+                                                                                      .orElse(null),
+                                                                              wildcard.returnType.replace('$', '/')))
+                                                           && (wildcard.argumentTypes == null
+                                                               || Objects.equals(Optional.ofNullable(d.argumentTypes)
+                                                                                         .map(l -> l.stream()
+                                                                                                    .map(t -> t.replace('$', '/'))
+                                                                                                    .collect(Collectors.toList()))
+                                                                                         .orElse(null),
+                                                                                 wildcard.argumentTypes.stream()
+                                                                                                       .map(t -> t.replace('$', '/'))
+                                                                                                       .collect(Collectors.toList()))))
+                          .orElse(false);
     }
 
     /**
