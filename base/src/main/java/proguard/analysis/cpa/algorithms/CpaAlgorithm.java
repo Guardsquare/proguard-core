@@ -127,7 +127,7 @@ public class CpaAlgorithm
             }
             catch (Exception exception)
             {
-                log.error("CPA run stopped for the following error: {}", exception.getMessage());
+                log.error("CPA run stopped for the following error: ", exception);
                 waitlist.clear();
             }
         }
