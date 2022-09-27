@@ -103,23 +103,29 @@ implements   Processable,
     public void upperBoundsAccept(Clazz             clazz,
                                   KotlinTypeVisitor kotlinTypeVisitor)
     {
-        for (KotlinTypeMetadata upperBound : upperBounds)
+        if (upperBounds != null)
         {
-            upperBound.acceptAsUpperBound(clazz, this, kotlinTypeVisitor);
+            for (KotlinTypeMetadata upperBound : upperBounds)
+            {
+                upperBound.acceptAsUpperBound(clazz, this, kotlinTypeVisitor);
+            }
         }
     }
 
     public void typeArgumentsAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor)
     {
-        for (KotlinTypeMetadata typeArgument : typeArguments)
+        if (typeArguments != null)
         {
-            if (typeArgument.isStarProjection())
+            for (KotlinTypeMetadata typeArgument : typeArguments)
             {
-                kotlinTypeVisitor.visitStarProjection(clazz, this);
-            }
-            else
-            {
-                kotlinTypeVisitor.visitTypeArgument(clazz, this, typeArgument);
+                if (typeArgument.isStarProjection())
+                {
+                    kotlinTypeVisitor.visitStarProjection(clazz, this);
+                }
+                else
+                {
+                    kotlinTypeVisitor.visitTypeArgument(clazz, this, typeArgument);
+                }
             }
         }
     }
@@ -167,9 +173,12 @@ implements   Processable,
     public void annotationsAccept(Clazz                   clazz,
                                   KotlinAnnotationVisitor kotlinAnnotationVisitor)
     {
-        for (KotlinAnnotation annotation : annotations)
+        if (annotations != null)
         {
-            kotlinAnnotationVisitor.visitTypeAnnotation(clazz, this, annotation);
+            for (KotlinAnnotation annotation : annotations)
+            {
+                kotlinAnnotationVisitor.visitTypeAnnotation(clazz, this, annotation);
+            }
         }
     }
 

@@ -605,6 +605,18 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
+    public void visitFunctionContextReceiverType(Clazz                  clazz,
+                                                 KotlinMetadata         kotlinMetadata,
+                                                 KotlinFunctionMetadata kotlinFunctionMetadata,
+                                                 KotlinTypeMetadata     kotlinTypeMetadata)
+    {
+        print("[CTRE] ");
+        indent();
+        printKotlinTypeMetadata(clazz, kotlinTypeMetadata);
+        outdent();
+    }
+
+    @Override
     public void visitParameterUpperBound(Clazz                       clazz,
                                          KotlinTypeParameterMetadata boundedTypeParameter,
                                          KotlinTypeMetadata          upperBound)
@@ -699,12 +711,13 @@ implements KotlinMetadataVisitor,
 
         println();
 
-        kotlinFunctionMetadata.typeParametersAccept(    clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.receiverTypeAccept(      clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.valueParametersAccept(   clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.returnTypeAccept(        clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.contractsAccept(         clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.versionRequirementAccept(clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.typeParametersAccept(      clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.receiverTypeAccept(        clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.valueParametersAccept(     clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.returnTypeAccept(          clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.contractsAccept(           clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.versionRequirementAccept(  clazz, kotlinMetadata, this);
 
         if (kotlinFunctionMetadata.lambdaClassOriginName != null)
         {

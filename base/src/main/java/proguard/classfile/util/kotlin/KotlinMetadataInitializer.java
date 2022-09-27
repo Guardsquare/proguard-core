@@ -1139,14 +1139,16 @@ implements ClassVisitor,
         private final ArrayList<KotlinContractMetadata>       contracts;
         private final ArrayList<KotlinValueParameterMetadata> valueParameters;
         private final ArrayList<KotlinTypeParameterMetadata>  typeParameters;
+        private final ArrayList<KotlinTypeMetadata> contextReceivers;
 
         FunctionReader(KotlinFunctionMetadata kotlinFunctionMetadata)
         {
             this.kotlinFunctionMetadata = kotlinFunctionMetadata;
 
-            this.contracts       = new ArrayList<>(1);
-            this.valueParameters = new ArrayList<>(4);
-            this.typeParameters  = new ArrayList<>(1);
+            this.contracts        = new ArrayList<>(1);
+            this.valueParameters  = new ArrayList<>(4);
+            this.typeParameters   = new ArrayList<>(1);
+            this.contextReceivers = new ArrayList<>();
         }
 
         @Override
@@ -1164,6 +1166,14 @@ implements ClassVisitor,
             KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinFunctionMetadata.receiverType = receiverType;
 
+            return new TypeReader(receiverType);
+        }
+
+        @Override
+        public KmTypeVisitor visitContextReceiverType(int flags)
+        {
+            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
+            contextReceivers.add(receiverType);
             return new TypeReader(receiverType);
         }
 
@@ -1214,9 +1224,10 @@ implements ClassVisitor,
         @Override
         public void visitEnd()
         {
-            kotlinFunctionMetadata.contracts       = trimmed(this.contracts);
-            kotlinFunctionMetadata.valueParameters = trimmed(this.valueParameters);
-            kotlinFunctionMetadata.typeParameters  = trimmed(this.typeParameters);
+            kotlinFunctionMetadata.contracts        = trimmed(this.contracts);
+            kotlinFunctionMetadata.valueParameters  = trimmed(this.valueParameters);
+            kotlinFunctionMetadata.typeParameters   = trimmed(this.typeParameters);
+            kotlinFunctionMetadata.contextReceivers = trimmed(this.contextReceivers);
         }
 
 

@@ -36,9 +36,9 @@ import proguard.classfile.visitor.MultiClassVisitor
  * This therefore, ensures that the Kotlin metadata goes through the complete initialize -> write -> initialize cycle.
  */
 class ReWritingMetadataVisitor(private vararg val visitors: KotlinMetadataVisitor) : ClassVisitor {
-    override fun visitAnyClass(clazz: Clazz?) {
+    override fun visitAnyClass(clazz: Clazz) {
 
-        clazz?.accept(
+        clazz.accept(
             MultiClassVisitor(
                 KotlinMetadataWriter { _, message -> println(message) },
                 KotlinMetadataInitializer { _, message -> println(message) },

@@ -1007,11 +1007,12 @@ implements   ClassVisitor,
                 }
             }
 
-            kotlinFunctionMetadata.contractsAccept(      clazz, kotlinMetadata, new AllTypeVisitor(this));
-            kotlinFunctionMetadata.typeParametersAccept( clazz, kotlinMetadata, this);
-            kotlinFunctionMetadata.receiverTypeAccept(   clazz, kotlinMetadata, this);
-            kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
-            kotlinFunctionMetadata.returnTypeAccept(     clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.contractsAccept(           clazz, kotlinMetadata, new AllTypeVisitor(this));
+            kotlinFunctionMetadata.typeParametersAccept(      clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.receiverTypeAccept(        clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.valueParametersAccept(     clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.returnTypeAccept(          clazz, kotlinMetadata, this);
         }
 
 

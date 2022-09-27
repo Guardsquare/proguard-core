@@ -508,6 +508,9 @@ implements ClassVisitor,
             kotlinFunctionMetadata.receiverTypeAccept(clazz,
                                                       kotlinDeclarationContainerMetadata,
                                                       new TypeConstructor(kmdFunctionVisitor));
+            kotlinFunctionMetadata.contextReceiverTypesAccept(clazz,
+                                                              kotlinDeclarationContainerMetadata,
+                                                              new TypeConstructor(kmdFunctionVisitor));
             kotlinFunctionMetadata.typeParametersAccept(clazz,
                                                         kotlinDeclarationContainerMetadata,
                                                         new TypeParameterConstructor(kmdFunctionVisitor));
@@ -1032,6 +1035,16 @@ implements ClassVisitor,
                                               KotlinTypeMetadata     kotlinTypeMetadata)
         {
             typeVis = functionVis.visitReceiverParameterType(convertTypeFlags(kotlinTypeMetadata.flags));
+
+            visitAnyType(clazz, kotlinTypeMetadata);
+        }
+
+        @Override
+        public void visitAnyContextReceiverType(Clazz              clazz,
+                                                KotlinMetadata     kotlinMetadata,
+                                                KotlinTypeMetadata kotlinTypeMetadata)
+        {
+            typeVis = functionVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
