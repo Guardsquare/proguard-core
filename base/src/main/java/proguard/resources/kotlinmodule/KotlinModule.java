@@ -18,6 +18,7 @@
 
 package proguard.resources.kotlinmodule;
 
+import proguard.classfile.kotlin.KotlinMetadataVersion;
 import proguard.resources.file.ResourceFile;
 import proguard.resources.file.visitor.ResourceFileVisitor;
 import proguard.resources.kotlinmodule.visitor.*;
@@ -48,6 +49,7 @@ implements   Processable
      * The fileName is fixed to match after obfuscation by KotlinModuleReferenceFixer.
      */
     public String name;
+    public KotlinMetadataVersion version;
 
     public final List<KotlinModulePackage> modulePackages = new ArrayList<>();
 

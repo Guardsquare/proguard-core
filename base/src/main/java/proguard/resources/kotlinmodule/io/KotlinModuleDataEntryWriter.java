@@ -17,15 +17,12 @@
  */
 package proguard.resources.kotlinmodule.io;
 
-import proguard.classfile.kotlin.KotlinMetadataVersion;
 import proguard.resources.file.visitor.ResourceFileVisitor;
 import proguard.resources.kotlinmodule.KotlinModule;
 import proguard.io.*;
 import proguard.resources.file.ResourceFilePool;
 
 import java.io.*;
-
-import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION;
 
 /**
  * Write a {@link KotlinModule} from a {@link ResourceFilePool} to the supplied {@link DataEntryWriter}.
@@ -37,22 +34,13 @@ implements   DataEntryWriter
 {
     private final ResourceFilePool      resourceFilePool;
     private final DataEntryWriter       dataEntryWriter;
-    private final KotlinMetadataVersion version;
-
-
-    public KotlinModuleDataEntryWriter(ResourceFilePool resourceFilePool, DataEntryWriter dataEntryWriter)
-    {
-        this(resourceFilePool, dataEntryWriter, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION));
-    }
 
 
     public KotlinModuleDataEntryWriter(ResourceFilePool      resourceFilePool,
-                                       DataEntryWriter       dataEntryWriter,
-                                       KotlinMetadataVersion version)
+                                       DataEntryWriter       dataEntryWriter)
     {
         this.resourceFilePool = resourceFilePool;
         this.dataEntryWriter  = dataEntryWriter;
-        this.version          = version;
     }
 
 
@@ -81,7 +69,7 @@ implements   DataEntryWriter
         if (kotlinModule != null)
         {
             OutputStream outputStream = new BufferedOutputStream(dataEntryWriter.createOutputStream(dataEntry));
-            kotlinModule.accept(new KotlinModuleWriter(outputStream, version));
+            kotlinModule.accept(new KotlinModuleWriter(outputStream));
             outputStream.flush();
             outputStream.close();
         }

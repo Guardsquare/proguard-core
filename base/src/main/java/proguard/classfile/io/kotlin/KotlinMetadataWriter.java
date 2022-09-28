@@ -84,9 +84,8 @@ implements ClassVisitor,
 
     private final BiConsumer<Clazz, String> errorHandler;
 
-    private boolean hasVisitedAny = false;
-
-    private final KotlinMetadataVersion version;
+    private static final KotlinMetadataVersion COMPATIBLE_VERSION = new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION);
+    private KotlinMetadataVersion version;
 
     @Deprecated
     public KotlinMetadataWriter(WarningPrinter warningPrinter)
@@ -102,23 +101,12 @@ implements ClassVisitor,
 
     public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler)
     {
-        this(errorHandler, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION));
-    }
-
-    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, KotlinMetadataVersion version)
-    {
-        this(errorHandler, version, null);
+        this(errorHandler, null);
     }
 
     public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, ClassVisitor extraClassVisitor)
     {
-        this(errorHandler, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION), extraClassVisitor);
-    }
-
-    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, KotlinMetadataVersion version, ClassVisitor extraClassVisitor)
-    {
         this.errorHandler      = errorHandler;
-        this.version           = version;
         this.extraClassVisitor = extraClassVisitor;
     }
 
@@ -134,6 +122,17 @@ implements ClassVisitor,
     @Override
     public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
     {
+        // Set the metadata version we want to write.
+        KotlinMetadataVersion originalVersion = new KotlinMetadataVersion(kotlinMetadata.mv);
+        if (originalVersion.canBeWritten())
+        {
+            version = originalVersion;
+        }
+        else
+        {
+            version = COMPATIBLE_VERSION;
+        }
+
         switch (kotlinMetadata.k)
         {
             case METADATA_KIND_CLASS:
@@ -161,7 +160,6 @@ implements ClassVisitor,
         }
 
         this.constantPoolEditor = new ConstantPoolEditor((ProgramClass) clazz);
-        this.hasVisitedAny      = false;
 
         try
         {
@@ -190,12 +188,10 @@ implements ClassVisitor,
         }
     }
 
-
     // Implementations for ElementValueVisitor.
     @Override
     public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
     {
-        this.hasVisitedAny = true;
         this.currentType   = MetadataType.valueOf(constantElementValue.getMethodName(clazz));
 
         switch (currentType)
@@ -210,7 +206,6 @@ implements ClassVisitor,
     @Override
     public void visitArrayElementValue(Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue)
     {
-        this.hasVisitedAny = true;
         this.currentType   = MetadataType.valueOf(arrayElementValue.getMethodName(clazz));
 
         switch (currentType)

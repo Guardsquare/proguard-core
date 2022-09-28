@@ -24,6 +24,7 @@ import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyAll
+import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 import proguard.classfile.MethodSignature
 import proguard.classfile.kotlin.KotlinAnnotationArgument.ArrayValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.BooleanValue
@@ -50,8 +51,10 @@ import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MAX_SUPPORTED_VERSION
 import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
 
@@ -402,37 +405,74 @@ class KotlinMetadataWriterTest : FreeSpec({
         }
     }
 
-    "Given a Kotlin class" - {
+    "Given a Kotlin class with a incompatible metadata version" - {
+        val unsupportedVersion = KotlinMetadataVersion(1, 3, 0)
+
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-            KotlinSource(
-                "Test.kt",
-                "class Test"
+            JavaSource(
+                "TestCompatibleMetadata.java",
+                """
+                        @kotlin.Metadata(
+                            d1 = {"\u0000\n\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\u0018\u00002\u00020\u0001B\u0005¢\u0006\u0002\u0010\u0002"},
+                            d2 = {"LTestCompatibleMetadata;", "", "()V"},
+                            k = 1,
+                            mv = {${unsupportedVersion.major}, ${unsupportedVersion.minor}, ${unsupportedVersion.patch}}
+                        )
+                        public class TestCompatibleMetadata { }
+                """.trimIndent()
             )
         )
+        programClassPool.classesAccept(KotlinMetadataInitializer { _, _ -> })
+        val clazz = programClassPool.getClass("TestCompatibleMetadata")
 
-        val clazz = programClassPool.getClass("Test")
+        "Then the compatible version from the metadata library should be written" {
+            val visitor = spyk<KotlinMetadataVisitor>()
 
-        "When specifying a specific Kotlin version" - {
-            val maxVersion = MAX_SUPPORTED_VERSION
-            val version = KotlinMetadataVersion(maxVersion.major, maxVersion.minor, /* patch = */ 9999)
+            clazz.accept(ReWritingMetadataVisitor(visitor))
 
-            "Then the version should be written correctly " {
-                val visitor = spyk<KotlinMetadataVisitor>()
-                clazz.accept(
-                    ReWritingMetadataVisitor(
-                        visitor,
-                        version = version
-                    )
+            verify {
+                visitor.visitKotlinClassMetadata(
+                    clazz,
+                    withArg {
+                        it.mv shouldBe JvmMetadataVersion.INSTANCE.toArray()
+                    }
                 )
+            }
+        }
+    }
 
-                verify {
-                    visitor.visitKotlinClassMetadata(
-                        clazz,
-                        withArg {
-                            it.mv shouldBe version.toArray()
-                        }
-                    )
-                }
+    "Given a Kotlin class with a compatible metadata version" - {
+        val maxVersion = MAX_SUPPORTED_VERSION
+
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "TestCompatibleMetadata.java",
+                """
+                        @kotlin.Metadata(
+                            d1 = {"\u0000\n\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\u0018\u00002\u00020\u0001B\u0005¢\u0006\u0002\u0010\u0002"},
+                            d2 = {"LTestCompatibleMetadata;", "", "()V"},
+                            k = 1,
+                            mv = {${maxVersion.major}, ${maxVersion.minor}, ${maxVersion.patch}}
+                        )
+                        public class TestCompatibleMetadata { }
+                """.trimIndent()
+            )
+        )
+        programClassPool.classesAccept(KotlinMetadataInitializer { _, _ -> })
+        val clazz = programClassPool.getClass("TestCompatibleMetadata")
+
+        "Then the compatible version from the metadata library should be written" {
+            val visitor = spyk<KotlinMetadataVisitor>()
+
+            clazz.accept(ReWritingMetadataVisitor(visitor))
+
+            verify {
+                visitor.visitKotlinClassMetadata(
+                    clazz,
+                    withArg {
+                        it.mv shouldBe maxVersion.toArray()
+                    }
+                )
             }
         }
     }
