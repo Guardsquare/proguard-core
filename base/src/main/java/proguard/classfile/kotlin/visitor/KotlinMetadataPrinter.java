@@ -915,6 +915,11 @@ implements KotlinMetadataVisitor,
             pw.print("?");
         }
 
+        if (kotlinTypeMetadata.flags.isDefinitelyNonNull)
+        {
+            pw.print(" & Any");
+        }
+
         pw.print(" ");
 
         if (kotlinTypeMetadata.flexibilityID != null)
@@ -1161,7 +1166,11 @@ implements KotlinMetadataVisitor,
     private String typeFlags(KotlinTypeFlags flags)
     {
         return
-            //(flags.isNullable ? "nullable " : "") + //printed as ? after name in printKotlinTypeMetadata
+            /**
+             * The following flags are printed after the name in printKotlinTypeMetadata.
+             * (flags.isNullable ? "nullable " : "") +                      // printed as '?'
+             * (flags.isDefinitelyNonNull ? "definitely non null " : "") +  // printed as '& Any'
+             */
             (flags.isSuspend  ? "suspend " : "");
     }
 

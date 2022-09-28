@@ -1903,8 +1903,9 @@ implements ClassVisitor,
             convertCommonFlags(kotlinFlags)
         );
 
-        flags.isNullable = Flag.Type.IS_NULLABLE.invoke(kotlinFlags);
-        flags.isSuspend  = Flag.Type.IS_SUSPEND.invoke(kotlinFlags);
+        flags.isNullable          = Flag.Type.IS_NULLABLE.invoke(kotlinFlags);
+        flags.isSuspend           = Flag.Type.IS_SUSPEND.invoke(kotlinFlags);
+        flags.isDefinitelyNonNull = Flag.Type.IS_DEFINITELY_NON_NULL.invoke(kotlinFlags);
 
         return flags;
     }

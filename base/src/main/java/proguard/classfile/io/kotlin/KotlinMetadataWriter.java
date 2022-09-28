@@ -1709,8 +1709,9 @@ implements ClassVisitor,
 
         flagSet.addAll(convertCommonFlags(flags.common));
 
-        if (flags.isNullable) flagSet.add(Flag.Type.IS_NULLABLE);
-        if (flags.isSuspend)  flagSet.add(Flag.Type.IS_SUSPEND);
+        if (flags.isNullable)          flagSet.add(Flag.Type.IS_NULLABLE);
+        if (flags.isSuspend)           flagSet.add(Flag.Type.IS_SUSPEND);
+        if (flags.isDefinitelyNonNull) flagSet.add(Flag.Type.IS_DEFINITELY_NON_NULL);
 
         return flagsOf(flagSet.toArray(new Flag[0]));
     }
