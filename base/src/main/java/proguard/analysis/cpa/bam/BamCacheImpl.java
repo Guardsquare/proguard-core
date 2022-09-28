@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -91,6 +92,12 @@ public class BamCacheImpl<SignatureT extends Signature>
     public int size()
     {
         return size;
+    }
+
+    @Override
+    public Set<SignatureT> getAllMethods()
+    {
+        return Collections.unmodifiableSet(cache.keySet());
     }
 
     private HashKey getHashKey(AbstractState stateKey, Precision precisionKey)

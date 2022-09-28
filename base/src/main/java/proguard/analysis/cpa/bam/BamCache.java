@@ -19,6 +19,7 @@
 package proguard.analysis.cpa.bam;
 
 import java.util.Collection;
+import java.util.Set;
 import proguard.analysis.cpa.defaults.Cfa;
 import proguard.classfile.Signature;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -51,12 +52,12 @@ public interface BamCache<SignatureT extends Signature>
     /**
      * Returns a collection of all the cache entries for a specified method, empty in case there are not such entries.
      */
-    public Collection<BlockAbstraction> get(SignatureT blockKey);
+    Collection<BlockAbstraction> get(SignatureT blockKey);
 
     /**
      * Returns a collection of all the cache entries for a specified method with a certain precision, empty in case there are not such entries.
      */
-    public Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey);
+    Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey);
 
     /**
      * Returns block abstractions stored in the cache.
@@ -67,4 +68,9 @@ public interface BamCache<SignatureT extends Signature>
      * Returns the size of the cache.
      */
     int size();
+
+    /**
+     * Returns a set of all the methods that have an entry in the cache.
+     */
+    Set<SignatureT> getAllMethods();
 }
