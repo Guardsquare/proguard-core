@@ -591,6 +591,7 @@ implements   ClassVisitor,
             }
 
             kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+            kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, this);
             kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
             kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
             kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);

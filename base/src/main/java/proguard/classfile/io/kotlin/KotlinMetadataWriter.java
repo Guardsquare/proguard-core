@@ -630,6 +630,7 @@ implements ClassVisitor,
             kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
             kotlinClassKindMetadata.superTypesAccept(                       clazz, new TypeConstructor(classKmdWriter));
             kotlinClassKindMetadata.typeParametersAccept(                   clazz, new TypeParameterConstructor(classKmdWriter));
+            kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, new TypeConstructor(classKmdWriter));
             kotlinClassKindMetadata.versionRequirementAccept(               clazz, new VersionRequirementConstructor(classKmdWriter));
             kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, new TypeConstructor(classKmdWriter));
 
@@ -1040,11 +1041,22 @@ implements ClassVisitor,
         }
 
         @Override
-        public void visitAnyContextReceiverType(Clazz              clazz,
-                                                KotlinMetadata     kotlinMetadata,
-                                                KotlinTypeMetadata kotlinTypeMetadata)
+        public void visitFunctionContextReceiverType(Clazz                  clazz,
+                                                     KotlinMetadata         kotlinMetadata,
+                                                     KotlinFunctionMetadata kotlinFunctionMetadata,
+                                                     KotlinTypeMetadata     kotlinTypeMetadata)
         {
             typeVis = functionVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
+
+            visitAnyType(clazz, kotlinTypeMetadata);
+        }
+
+        @Override
+        public void visitClassContextReceiverType(Clazz              clazz,
+                                                  KotlinMetadata     kotlinMetadata,
+                                                  KotlinTypeMetadata kotlinTypeMetadata)
+        {
+            typeVis = classVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }

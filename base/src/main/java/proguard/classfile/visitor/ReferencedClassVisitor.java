@@ -352,6 +352,14 @@ implements   ClassVisitor,
 
 
         @Override
+        public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
+        {
+            kotlinClassKindMetadata.contextReceiverTypesAccept(clazz, this);
+
+            visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
+        }
+
+        @Override
         public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
                                                             KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
         {

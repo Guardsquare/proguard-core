@@ -59,6 +59,7 @@ implements   KotlinMetadataVisitor,
     public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
     {
         kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+        kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, this);
         kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
         kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
         kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
@@ -327,6 +328,16 @@ implements   KotlinMetadataVisitor,
                                                  KotlinTypeMetadata     kotlinTypeMetadata)
     {
         delegate.visitFunctionContextReceiverType(clazz, kotlinMetadata, kotlinFunctionMetadata, kotlinTypeMetadata);
+
+        visitAnyType(clazz, kotlinTypeMetadata);
+    }
+
+    @Override
+    public void visitClassContextReceiverType(Clazz              clazz,
+                                              KotlinMetadata     kotlinMetadata,
+                                              KotlinTypeMetadata kotlinTypeMetadata)
+    {
+        delegate.visitClassContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
 
         visitAnyType(clazz, kotlinTypeMetadata);
     }

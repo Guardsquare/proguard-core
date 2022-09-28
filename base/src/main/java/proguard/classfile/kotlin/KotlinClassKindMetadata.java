@@ -52,6 +52,8 @@ extends KotlinDeclarationContainerMetadata
 
     public List<KotlinTypeParameterMetadata> typeParameters;
 
+    public List<KotlinTypeMetadata> contextReceivers;
+
     public KotlinVersionRequirementMetadata versionRequirement;
 
     public KotlinClassFlags flags;
@@ -165,6 +167,18 @@ extends KotlinDeclarationContainerMetadata
         if (underlyingPropertyType != null)
         {
             underlyingPropertyType.underlyingPropertyTypeAccept(clazz, this, kotlinTypeVisitor);
+        }
+    }
+
+    public void contextReceiverTypesAccept(Clazz             clazz,
+                                           KotlinTypeVisitor kotlinTypeVisitor)
+    {
+        if (contextReceivers != null)
+        {
+            for (KotlinTypeMetadata contextReceiver : contextReceivers)
+            {
+                kotlinTypeVisitor.visitClassContextReceiverType(clazz, this, contextReceiver);
+            }
         }
     }
 

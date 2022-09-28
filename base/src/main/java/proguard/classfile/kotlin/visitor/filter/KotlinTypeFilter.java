@@ -289,6 +289,19 @@ implements   KotlinTypeVisitor
         }
     }
 
+    @Override
+    public void visitClassContextReceiverType(Clazz              clazz,
+                                              KotlinMetadata     kotlinMetadata,
+                                              KotlinTypeMetadata kotlinTypeMetadata)
+    {
+        if (this.predicate.test(kotlinTypeMetadata))
+        {
+            this.kotlinTypeVisitor.visitClassContextReceiverType(
+                clazz, kotlinMetadata, kotlinTypeMetadata
+            );
+        }
+    }
+
 
     @Override
     public void visitFunctionValParamType(Clazz clazz,

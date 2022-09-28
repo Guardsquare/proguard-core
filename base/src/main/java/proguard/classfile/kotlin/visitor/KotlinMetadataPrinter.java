@@ -117,6 +117,7 @@ implements KotlinMetadataVisitor,
         pw.println();
         indent();
 
+        kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, this);
         kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
         kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
         kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
@@ -605,10 +606,9 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
-    public void visitFunctionContextReceiverType(Clazz                  clazz,
-                                                 KotlinMetadata         kotlinMetadata,
-                                                 KotlinFunctionMetadata kotlinFunctionMetadata,
-                                                 KotlinTypeMetadata     kotlinTypeMetadata)
+    public void visitAnyContextReceiverType(Clazz             clazz,
+                                           KotlinMetadata     kotlinMetadata,
+                                           KotlinTypeMetadata kotlinTypeMetadata)
     {
         print("[CTRE] ");
         indent();
