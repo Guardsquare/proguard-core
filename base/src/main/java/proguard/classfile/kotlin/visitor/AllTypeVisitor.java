@@ -80,10 +80,11 @@ implements   KotlinMetadataVisitor,
                                  KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                  KotlinPropertyMetadata             kotlinPropertyMetadata)
     {
-        kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.typeParametersAccept(      clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.receiverTypeAccept(        clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.contextReceiverTypesAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.typeAccept(                clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.setterParametersAccept(    clazz, kotlinDeclarationContainerMetadata, this);
     }
 
 
@@ -338,6 +339,17 @@ implements   KotlinMetadataVisitor,
                                               KotlinTypeMetadata kotlinTypeMetadata)
     {
         delegate.visitClassContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
+
+        visitAnyType(clazz, kotlinTypeMetadata);
+    }
+
+    @Override
+    public void visitPropertyContextReceiverType(Clazz                  clazz,
+                                                 KotlinMetadata         kotlinMetadata,
+                                                 KotlinPropertyMetadata kotlinPropertyMetadata,
+                                                 KotlinTypeMetadata     kotlinTypeMetadata)
+    {
+        delegate.visitPropertyContextReceiverType(clazz, kotlinMetadata, kotlinPropertyMetadata, kotlinTypeMetadata);
 
         visitAnyType(clazz, kotlinTypeMetadata);
     }

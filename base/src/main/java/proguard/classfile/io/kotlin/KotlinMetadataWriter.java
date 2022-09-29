@@ -416,6 +416,9 @@ implements ClassVisitor,
             kotlinPropertyMetadata.receiverTypeAccept(clazz,
                                                       kotlinDeclarationContainerMetadata,
                                                       new TypeConstructor(kmdPropertyVisitor));
+            kotlinPropertyMetadata.contextReceiverTypesAccept(clazz,
+                                                              kotlinDeclarationContainerMetadata,
+                                                              new TypeConstructor(kmdPropertyVisitor));
             kotlinPropertyMetadata.setterParametersAccept(clazz,
                                                           kotlinDeclarationContainerMetadata,
                                                           new ValueParameterConstructor(kmdPropertyVisitor));
@@ -1057,6 +1060,17 @@ implements ClassVisitor,
                                                   KotlinTypeMetadata kotlinTypeMetadata)
         {
             typeVis = classVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
+
+            visitAnyType(clazz, kotlinTypeMetadata);
+        }
+
+        @Override
+        public void visitPropertyContextReceiverType(Clazz clazz,
+                                                     KotlinMetadata kotlinMetadata,
+                                                     KotlinPropertyMetadata kotlinPropertyMetadata,
+                                                     KotlinTypeMetadata kotlinTypeMetadata)
+        {
+            typeVis = propertyVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }

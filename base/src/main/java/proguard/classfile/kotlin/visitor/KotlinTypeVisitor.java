@@ -189,6 +189,13 @@ public interface KotlinTypeVisitor
         visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
     }
 
+    default void visitPropertyContextReceiverType(Clazz                  clazz,
+                                                  KotlinMetadata         kotlinMetadata,
+                                                  KotlinPropertyMetadata kotlinPropertyMetadata,
+                                                  KotlinTypeMetadata     kotlinTypeMetadata)
+    {
+        visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
+    }
 
     default void visitFunctionValParamType(Clazz                       clazz,
                                           KotlinMetadata               kotlinMetadata,

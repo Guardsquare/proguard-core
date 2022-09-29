@@ -851,6 +851,7 @@ implements ClassVisitor,
 
         private final ArrayList<KotlinValueParameterMetadata> setterParameters;
         private final ArrayList<KotlinTypeParameterMetadata>  typeParameters;
+        private final ArrayList<KotlinTypeMetadata>           contextReceivers;
 
 
         PropertyReader(KotlinPropertyMetadata kotlinPropertyMetadata)
@@ -859,6 +860,7 @@ implements ClassVisitor,
 
             this.setterParameters = new ArrayList<>(4);
             this.typeParameters   = new ArrayList<>(1);
+            this.contextReceivers = new ArrayList<>();
         }
 
         /**
@@ -870,6 +872,14 @@ implements ClassVisitor,
             KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinPropertyMetadata.receiverType = receiverType;
 
+            return new TypeReader(receiverType);
+        }
+
+        @Override
+        public KmTypeVisitor visitContextReceiverType(int flags)
+        {
+            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
+            contextReceivers.add(receiverType);
             return new TypeReader(receiverType);
         }
 
@@ -930,6 +940,7 @@ implements ClassVisitor,
         {
             kotlinPropertyMetadata.setterParameters = trimmed(this.setterParameters);
             kotlinPropertyMetadata.typeParameters   = trimmed(this.typeParameters);
+            kotlinPropertyMetadata.contextReceivers = trimmed(this.contextReceivers);
         }
 
 
