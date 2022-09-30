@@ -23,7 +23,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.kotlin.visitor.AllTypeVisitor
-import proguard.classfile.kotlin.visitor.KotlinMetadataPrinter
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor

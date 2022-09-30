@@ -99,7 +99,6 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
                 )
             )
 
-
             "Then there should be processingInfo" {
                 val visitor = spyk<KotlinTypeVisitor>()
                 programClassPool.getClass("TestKt").kotlinMetadataAccept(

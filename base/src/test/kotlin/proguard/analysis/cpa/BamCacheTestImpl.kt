@@ -3,15 +3,15 @@ package proguard.analysis.cpa
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import java.lang.UnsupportedOperationException
 import proguard.analysis.cpa.bam.BamCacheImpl
 import proguard.analysis.cpa.bam.BlockAbstraction
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist
 import proguard.analysis.cpa.defaults.DefaultReachedSet
 import proguard.classfile.MethodSignature
 import proguard.testutils.cpa.IntegerAbstractState
+import java.lang.UnsupportedOperationException
 
-class BamCacheTestImpl : FreeSpec ({
+class BamCacheTestImpl : FreeSpec({
 
     "getAllMethods works correctly" - {
         val cache = BamCacheImpl<MethodSignature>()

@@ -102,7 +102,6 @@ class KotlinClassContextReceiversTest : FreeSpec({
                 }
             )
 
-
             "Then there should be processingInfo" {
                 val visitor = spyk<KotlinTypeVisitor>()
 
@@ -227,9 +226,11 @@ class KotlinClassContextReceiversTest : FreeSpec({
             val typeVisitor = spyk<KotlinTypeVisitor>()
             programClassPool.classAccept(
                 "Bar",
-                ReferencedKotlinMetadataVisitor(KotlinClassKindFilter { clazz, kotlinMetadata ->
-                    (kotlinMetadata as KotlinClassKindMetadata).contextReceiverTypesAccept(clazz, typeVisitor)
-                })
+                ReferencedKotlinMetadataVisitor(
+                    KotlinClassKindFilter { clazz, kotlinMetadata ->
+                        (kotlinMetadata as KotlinClassKindMetadata).contextReceiverTypesAccept(clazz, typeVisitor)
+                    }
+                )
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
@@ -252,9 +253,11 @@ class KotlinClassContextReceiversTest : FreeSpec({
             val typeVisitor = spyk<KotlinTypeVisitor>()
             programClassPool.classAccept(
                 "Bar",
-                ReferencedKotlinMetadataVisitor(KotlinClassKindFilter { clazz, kotlinMetadata ->
-                    (kotlinMetadata as KotlinClassKindMetadata).contextReceiverTypesAccept(clazz, typeVisitor)
-                })
+                ReferencedKotlinMetadataVisitor(
+                    KotlinClassKindFilter { clazz, kotlinMetadata ->
+                        (kotlinMetadata as KotlinClassKindMetadata).contextReceiverTypesAccept(clazz, typeVisitor)
+                    }
+                )
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
