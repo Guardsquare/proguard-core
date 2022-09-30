@@ -20,8 +20,10 @@ import proguard.evaluation.value.Value
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
+import proguard.testutils.RequiresJavaVersion
 import java.lang.reflect.Modifier
 
+@RequiresJavaVersion(8, to = 11 /* reflective access for static fields is disallowed in Java 12 */)
 class MultiTypeTest : FreeSpec({
 
     val valueFactory = MultiTypedReferenceValueFactory()
