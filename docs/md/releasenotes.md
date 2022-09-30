@@ -18,6 +18,7 @@
 - Add var-arg constructor to `ClassPath`.
 - Add `DataEntryClassInfoFilter`.
 - Add `NamedDataEntry`.
+- Refactor `CodeLocation#getClassName` as `getExternalClassName` to comply with the types naming convention.
 
 ### Bug fixes
 
