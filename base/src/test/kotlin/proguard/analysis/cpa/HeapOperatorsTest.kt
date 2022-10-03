@@ -26,9 +26,11 @@ import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import proguard.testutils.RequiresJavaVersion
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
+@RequiresJavaVersion(8, 17) // TODO: fails on Java 18+
 class HeapOperatorsTest : FreeSpec({
 
     fun <StateT : LatticeAbstractState<StateT>?> JvmTreeHeapAbstractState<StateT>.assertKeysCount(expected: Int) {
