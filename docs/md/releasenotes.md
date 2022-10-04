@@ -8,6 +8,7 @@
 - `Call` API: Add a few utilities and fix inconsistent call argument count getter behavior.
 - Only change the Kotlin metadata version if the original version is unsupported.
 - Add support for Kotlin context receivers in Kotlin metadata.
+- Add support for reading & writing Kotlin 1.8 metadata.
 
 #### API Improvements
 
