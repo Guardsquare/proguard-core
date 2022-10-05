@@ -45,8 +45,8 @@ public class CpaAlgorithm
     implements Algorithm
 {
 
-    private static final Logger           log = LogManager.getLogger(CpaAlgorithm.class);
-    private final        TransferRelation transferRelation;
+    private static final Logger              log = LogManager.getLogger(CpaAlgorithm.class);
+    private final        TransferRelation    transferRelation;
     private final        MergeOperator       mergeOperator;
     private final        StopOperator        stopOperator;
     private final        PrecisionAdjustment precisionAdjustment;

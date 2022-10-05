@@ -1,5 +1,8 @@
 ## Version 9.0.5
 
+### Bug fixes
+- Do not add interprocedural CFA edges for methods missing intraprocedural CFA.
+
 ## Version 9.0.4
 
 ### Improved

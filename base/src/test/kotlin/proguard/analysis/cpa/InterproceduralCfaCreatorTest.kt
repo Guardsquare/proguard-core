@@ -21,9 +21,13 @@ package proguard.analysis.cpa
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import proguard.analysis.CallResolver
+import proguard.analysis.cpa.jvm.cfa.JvmCfa
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.util.CfaUtil
+import proguard.analysis.datastructure.callgraph.CallGraph
+import proguard.classfile.ClassPool
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
@@ -75,6 +79,45 @@ class InterproceduralCfaCreatorTest : FreeSpec({
             val calleeEntry = cfa.functionEntryNodes.first { n -> n.signature.method == "callee" }
             callEdge.target shouldBeSameInstanceAs calleeEntry
             checkNode(calleeEntry, 0, false, 1, 1)
+        }
+
+        cfa.clear()
+    }
+
+    "Regression test: no nodes/edges added if caller and callee CFA are missing" - {
+
+        val classPool = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                    public class A
+                    {
+                        public static void caller()
+                        {
+                            callee();
+                        }
+                
+                        public static void callee()
+                        {
+                        }
+                    }
+                """.trimIndent()
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+        ).programClassPool
+        val cfa = JvmCfa()
+        val callGraph = CallGraph()
+        val resolver = CallResolver.Builder(
+            classPool,
+            ClassPool(),
+            callGraph)
+            .setEvaluateAllCode(true)
+            .build()
+        classPool.classesAccept(resolver)
+        CfaUtil.addInterproceduralEdgesToCfa(cfa, callGraph)
+
+        "No nodes added" {
+            cfa.allNodes.size shouldBe 0
         }
 
         cfa.clear()

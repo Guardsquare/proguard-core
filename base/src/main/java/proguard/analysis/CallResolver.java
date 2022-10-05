@@ -19,7 +19,13 @@
 package proguard.analysis;
 
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -31,9 +37,14 @@ import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
-import proguard.backport.LambdaExpression;
-import proguard.backport.LambdaExpressionCollector;
-import proguard.classfile.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.MethodSignature;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
@@ -48,14 +59,19 @@ import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.LineNumberFinder;
-import proguard.classfile.visitor.MultiClassVisitor;
 import proguard.evaluation.BasicInvocationUnit;
 import proguard.evaluation.ExcessiveComplexityException;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.InvocationUnit;
 import proguard.evaluation.PartialEvaluator;
-import proguard.evaluation.value.*;
+import proguard.evaluation.value.ArrayReferenceValueFactory;
+import proguard.evaluation.value.MultiTypedReferenceValue;
+import proguard.evaluation.value.MultiTypedReferenceValueFactory;
+import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory;
+import proguard.evaluation.value.TypedReferenceValue;
+import proguard.evaluation.value.Value;
+import proguard.evaluation.value.ValueFactory;
 import proguard.util.PartialEvaluatorUtils;
 
 /**
@@ -409,20 +425,6 @@ implements   AttributeVisitor,
                                     !alwaysInvoked,
                                     runtimeTypeDependent);
 
-        // Log some metrics about the call
-        if (call instanceof SymbolicCall)
-        {
-            Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
-        }
-        else
-        {
-            Metrics.increaseCount(MetricType.CONCRETE_CALL);
-            if ((((ConcreteCall) call).getTargetMethod().getAccessFlags() & AccessConstants.ABSTRACT) != 0)
-            {
-                Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
-            }
-        }
-
         initArgumentsAndReturnValue(call);
 
         visitors.forEach(d -> d.visitCall(call));
@@ -463,6 +465,17 @@ implements   AttributeVisitor,
                 Method method = containingClass.findMethod(targetMethod, targetDescriptor);
                 if (method != null)
                 {
+                    Metrics.increaseCount(MetricType.CONCRETE_CALL);
+                    if ((method.getAccessFlags() & AccessConstants.ABSTRACT) != 0)
+                    {
+                        Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
+                    }
+                    if (method instanceof ProgramMethod
+                        && Arrays.stream(((ProgramMethod) method).attributes).noneMatch(a -> a instanceof CodeAttribute))
+                    {
+                        Metrics.increaseCount(MetricType.CONCRETE_CALL_NO_CODE_ATTRIBUTE);
+                    }
+
                     return new ConcreteCall(location,
                                             containingClass,
                                             method,
@@ -474,6 +487,7 @@ implements   AttributeVisitor,
             }
         }
 
+        Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
         return new SymbolicCall(location,
                                 new MethodSignature(targetClass, targetMethod, targetDescriptor),
                                 throwsNullptr,
