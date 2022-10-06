@@ -7,12 +7,12 @@
 
 package proguard.testutils
 
+import com.guardsquare.proguard.assembler.io.JbcReader
 import com.tschuchort.compiletesting.KotlinCompilation
 import io.kotest.assertions.fail
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.AutoScan
 import io.kotest.core.test.TestCase
-import proguard.JbcReader
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.util.ClassReferenceInitializer

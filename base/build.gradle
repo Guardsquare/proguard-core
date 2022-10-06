@@ -35,11 +35,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0' // for junit framework
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0' // for junit framework
 
-    // For assembling ProGuard assembler snippets
-    testFixturesImplementation ('com.github.Guardsquare:proguard-assembler:master-SNAPSHOT') {
-        exclude group: 'com.guardsquare', module: 'proguard-core'
-    }
-
+    testFixturesImplementation("com.guardsquare:proguard-assembler:1.0.0")
 }
 
 jar {
