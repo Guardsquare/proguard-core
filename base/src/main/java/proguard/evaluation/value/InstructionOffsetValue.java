@@ -17,6 +17,9 @@
  */
 package proguard.evaluation.value;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import proguard.classfile.TypeConstants;
 
 /**
@@ -41,7 +44,8 @@ public class InstructionOffsetValue extends Category1Value
     public static final int EXCEPTION_HANDLER       = 0x20000000;
 
 
-    private int[] values;
+    private final int[] values;
+    private final Set<Integer> valuesMap = new HashSet<>();
 
 
     /**
@@ -50,6 +54,7 @@ public class InstructionOffsetValue extends Category1Value
     public InstructionOffsetValue(int value)
     {
         this.values = new int[] { value };
+        valuesMap.add(value);
     }
 
 
@@ -60,6 +65,10 @@ public class InstructionOffsetValue extends Category1Value
     public InstructionOffsetValue(int[] values)
     {
         this.values = values;
+        for (int value : values)
+        {
+            valuesMap.add(value);
+        }
     }
 
 
@@ -87,15 +96,7 @@ public class InstructionOffsetValue extends Category1Value
      */
     public boolean contains(int value)
     {
-        for (int index = 0; index < values.length; index++)
-        {
-            if (values[index] == value)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return valuesMap.contains(value);
     }
 
 
