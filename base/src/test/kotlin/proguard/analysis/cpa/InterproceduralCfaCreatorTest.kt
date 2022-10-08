@@ -110,7 +110,8 @@ class InterproceduralCfaCreatorTest : FreeSpec({
         val resolver = CallResolver.Builder(
             classPool,
             ClassPool(),
-            callGraph)
+            callGraph
+        )
             .setEvaluateAllCode(true)
             .build()
         classPool.classesAccept(resolver)
