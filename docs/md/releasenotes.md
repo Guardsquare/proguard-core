@@ -1,5 +1,9 @@
 ## Version 9.0.5
 
+### Improved
+
+- Replace `proguard-assembler` dependency in test fixtures with Maven Central version.
+
 ### Bug fixes
 - Do not add interprocedural CFA edges for methods missing intraprocedural CFA.
 
