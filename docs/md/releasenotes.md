@@ -1,6 +1,7 @@
 ## Version 9.0.6
 
-
+### Bug fixes
+- Fix `ldc_w` method in the `InstructionSequenceBuilder` generating a `ldc` instruction instead of a `ldc_w`.
 
 ## Version 9.0.5
 
