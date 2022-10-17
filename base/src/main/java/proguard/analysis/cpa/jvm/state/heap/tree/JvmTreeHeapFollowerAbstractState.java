@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
@@ -48,17 +49,19 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     /**
      * Create a follower heap abstract state.
      *
-     * @param principal               the principal heap abstract state containing reference abstract states
-     * @param defaultValue            the default value representing unknown values
-     * @param referenceToNode         the mapping from references to heap nodes
-     * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
+     * @param principal                       the principal heap abstract state containing reference abstract states
+     * @param defaultValue                    the default value representing unknown values
+     * @param referenceToNode                 the mapping from references to heap nodes
+     * @param heapMapAbstractStateFactory     a map abstract state factory used for constructing the mapping from references to objects
+     * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
     public JvmTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal,
                                             StateT defaultValue,
                                             MapAbstractState<Reference, HeapNode<StateT>> referenceToNode,
-                                            MapAbstractStateFactory mapAbstractStateFactory)
+                                            MapAbstractStateFactory<Reference, HeapNode<StateT>> heapMapAbstractStateFactory,
+                                            MapAbstractStateFactory<String, StateT> heapNodeMapAbstractStateFactory)
     {
-        super(referenceToNode, mapAbstractStateFactory, defaultValue);
+        super(referenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory, defaultValue);
         this.principal = principal;
     }
 
@@ -183,7 +186,7 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
         {
             return other;
         }
-        return new JvmTreeHeapFollowerAbstractState<>(principal, defaultValue, newReferenceToNode, mapAbstractStateFactory);
+        return new JvmTreeHeapFollowerAbstractState<>(principal, defaultValue, newReferenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory);
     }
 
     @Override
@@ -204,8 +207,9 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
                                                                      .collect(Collectors.toMap(Entry::getKey,
                                                                                                e -> e.getValue().copy(),
                                                                                                HeapNode::join,
-                                                                                               mapAbstractStateFactory::createMapAbstractState)),
-                                                      mapAbstractStateFactory);
+                                                                                               () -> new HashMapAbstractState<>(referenceToNode))),
+                                                      heapMapAbstractStateFactory,
+                                                      heapNodeMapAbstractStateFactory);
     }
 
     /**

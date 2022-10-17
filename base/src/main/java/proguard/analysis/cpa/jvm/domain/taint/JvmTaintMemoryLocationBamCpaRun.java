@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import proguard.analysis.cpa.bam.BlockAbstraction;
 import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
@@ -41,8 +42,11 @@ import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLoca
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationBamCpaRun;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
+import proguard.analysis.cpa.jvm.domain.reference.Reference;
+import proguard.analysis.cpa.jvm.domain.taint.JvmTaintBamCpaRun.Builder;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
+import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
@@ -81,18 +85,21 @@ public class JvmTaintMemoryLocationBamCpaRun
     /**
      * Create a traced taint CPA run.
      *
-     * @param cfa                             a CFA
-     * @param taintSources                    a set of taint sources
-     * @param mainSignature                   the main signature of the main method
-     * @param maxCallStackDepth               the maximum depth of the call stack analyzed interprocedurally.
-     *                                        0 means intraprocedural analysis.
-     *                                        < 0 means no maximum depth.
-     * @param threshold                       a cut-off threshold
-     * @param taintSinks                      a collection of taint sinks
-     * @param abortOperator                   an abort operator
-     * @param memoryLocationAbortOperator     an abort operator for trace reconstruction
-     * @param reduceHeap                      whether reduction/expansion of the heap state is performed at call/return sites
-     * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
+     * @param cfa                                      a CFA
+     * @param taintSources                             a set of taint sources
+     * @param mainSignature                            the main signature of the main method
+     * @param maxCallStackDepth                        the maximum depth of the call stack analyzed interprocedurally.
+     *                                                 0 means intraprocedural analysis.
+     *                                                 < 0 means no maximum depth.
+     * @param threshold                                a cut-off threshold
+     * @param taintSinks                               a collection of taint sinks
+     * @param abortOperator                            an abort operator
+     * @param memoryLocationAbortOperator              an abort operator for trace reconstruction
+     * @param reduceHeap                               whether reduction/expansion of the heap state is performed at call/return sites
+     * @param principalHeapMapAbstractStateFactory     a map abstract state factory used for constructing the mapping from references to objects in the principal heap model
+     * @param principalHeapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values in the principal heap model
+     * @param followerHeapMapAbstractStateFactory      a map abstract state factory used for constructing the mapping from references to objects in the follower heap model
+     * @param followerHeapNodeMapAbstractStateFactory  a map abstract state factory used for constructing the mapping from fields to values in the follower heap model
      */
     protected JvmTaintMemoryLocationBamCpaRun(JvmCfa cfa,
                                               Set<? extends TaintSource> taintSources,
@@ -104,8 +111,11 @@ public class JvmTaintMemoryLocationBamCpaRun
                                               AbortOperator abortOperator,
                                               AbortOperator memoryLocationAbortOperator,
                                               boolean reduceHeap,
-                                              MapAbstractStateFactory heapNodeMapAbstractStateFactory,
-                                              MapAbstractStateFactory staticFieldMapAbstractStateFactory)
+                                              MapAbstractStateFactory<String, TaintAbstractState> staticFieldMapAbstractStateFactory,
+                                              MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> principalHeapMapAbstractStateFactory,
+                                              MapAbstractStateFactory<String, SetAbstractState<Reference>> principalHeapNodeMapAbstractStateFactory,
+                                              MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>> followerHeapMapAbstractStateFactory,
+                                              MapAbstractStateFactory<String, TaintAbstractState> followerHeapNodeMapAbstractStateFactory)
     {
         this(new JvmTaintBamCpaRun<JvmAbstractState<TaintAbstractState>>(cfa,
                                                                          taintSources,
@@ -114,8 +124,11 @@ public class JvmTaintMemoryLocationBamCpaRun
                                                                          heapModel,
                                                                          abortOperator,
                                                                          reduceHeap,
-                                                                         heapNodeMapAbstractStateFactory,
-                                                                         staticFieldMapAbstractStateFactory),
+                                                                         staticFieldMapAbstractStateFactory,
+                                                                         principalHeapMapAbstractStateFactory,
+                                                                         principalHeapNodeMapAbstractStateFactory,
+                                                                         followerHeapMapAbstractStateFactory,
+                                                                         followerHeapNodeMapAbstractStateFactory),
              threshold,
              taintSinks,
              memoryLocationAbortOperator);
@@ -191,18 +204,21 @@ public class JvmTaintMemoryLocationBamCpaRun
     public static class Builder
     {
 
-        private JvmCfa                             cfa;
-        private MethodSignature                    mainSignature;
-        private Set<? extends TaintSource>         taintSources                       = Collections.emptySet();
-        private int                                maxCallStackDepth                  = -1;
-        private HeapModel                          heapModel                          = HeapModel.FORGETFUL;
-        private TaintAbstractState                 threshold                          = TaintAbstractState.bottom;
-        private Collection<? extends JvmTaintSink> taintSinks                         = Collections.emptySet();
-        private AbortOperator                      abortOperator                      = NeverAbortOperator.INSTANCE;
-        private AbortOperator                      memoryLocationAbortOperator        = NeverAbortOperator.INSTANCE;
-        private boolean                            reduceHeap                         = true;
-        private MapAbstractStateFactory            heapNodeMapAbstractStateFactory    = HashMapAbstractStateFactory.INSTANCE;;
-        private MapAbstractStateFactory            staticFieldMapAbstractStateFactory = HashMapAbstractStateFactory.INSTANCE;;
+        private JvmCfa                                                                    cfa;
+        private MethodSignature                                                           mainSignature;
+        private Set<? extends TaintSource>                                                taintSources                             = Collections.emptySet();
+        private int                                                                       maxCallStackDepth                        = -1;
+        private HeapModel                                                                 heapModel                                = HeapModel.FORGETFUL;
+        private TaintAbstractState                                                        threshold                                = TaintAbstractState.bottom;
+        private Collection<? extends JvmTaintSink>                                        taintSinks                               = Collections.emptySet();
+        private AbortOperator                                                             abortOperator                            = NeverAbortOperator.INSTANCE;
+        private AbortOperator                                                             memoryLocationAbortOperator              = NeverAbortOperator.INSTANCE;
+        private boolean                                                                   reduceHeap                               = true;
+        private MapAbstractStateFactory<String, TaintAbstractState>                       staticFieldMapAbstractStateFactory       = HashMapAbstractStateFactory.getInstance();
+        private MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> principalHeapMapAbstractStateFactory     = HashMapAbstractStateFactory.getInstance();
+        private MapAbstractStateFactory<String, SetAbstractState<Reference>>              principalHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
+        private MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>>          followerHeapMapAbstractStateFactory      = HashMapAbstractStateFactory.getInstance();
+        private MapAbstractStateFactory<String, TaintAbstractState>                       followerHeapNodeMapAbstractStateFactory  = HashMapAbstractStateFactory.getInstance();
 
         /**
          * Returns the {@link JvmTaintMemoryLocationBamCpaRun} for given parameters.
@@ -223,8 +239,11 @@ public class JvmTaintMemoryLocationBamCpaRun
                                                        abortOperator,
                                                        memoryLocationAbortOperator,
                                                        reduceHeap,
-                                                       heapNodeMapAbstractStateFactory,
-                                                       staticFieldMapAbstractStateFactory);
+                                                       staticFieldMapAbstractStateFactory,
+                                                       principalHeapMapAbstractStateFactory,
+                                                       principalHeapNodeMapAbstractStateFactory,
+                                                       followerHeapMapAbstractStateFactory,
+                                                       followerHeapNodeMapAbstractStateFactory);
         }
 
         /**
@@ -318,20 +337,47 @@ public class JvmTaintMemoryLocationBamCpaRun
         }
 
         /**
-         * Sets the heap node abstract state factory.
+         * Sets the static field map abstract state factory.
          */
-        public Builder setHeapNodeMapAbstractStateFactory(MapAbstractStateFactory heapNodeMapAbstractStateFactory)
+        public Builder setStaticFieldMapAbstractStateFactory(MapAbstractStateFactory<String, TaintAbstractState> staticFieldMapAbstractStateFactory)
         {
-            this.heapNodeMapAbstractStateFactory = heapNodeMapAbstractStateFactory;
+            this.staticFieldMapAbstractStateFactory = staticFieldMapAbstractStateFactory;
             return this;
         }
 
         /**
-         * Sets the static field map abstract state factory.
+         * Sets the map abstract state factory used for constructing the mapping from references to objects in the principal heap model.
          */
-        public Builder setStaticFieldMapAbstractStateFactory(MapAbstractStateFactory staticFieldMapAbstractStateFactory)
+        public Builder setPrincipalHeapMapAbstractStateFactory(MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> principalHeapMapAbstractStateFactory)
         {
-            this.staticFieldMapAbstractStateFactory = staticFieldMapAbstractStateFactory;
+            this.principalHeapMapAbstractStateFactory = principalHeapMapAbstractStateFactory;
+            return this;
+        }
+
+        /**
+         * Sets the map abstract state factory used for constructing the mapping from fields to values in the principal heap model.
+         */
+        public Builder setPrincipalHeapNodeMapAbstractStateFactory(MapAbstractStateFactory<String, SetAbstractState<Reference>> principalHeapNodeMapAbstractStateFactory)
+        {
+            this.principalHeapNodeMapAbstractStateFactory = principalHeapNodeMapAbstractStateFactory;
+            return this;
+        }
+
+        /**
+         * Sets the map abstract state factory used for constructing the mapping from references to objects in the follower heap model.
+         */
+        public Builder setFollowerHeapMapAbstractStateFactory(MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>> followerHeapMapAbstractStateFactory)
+        {
+            this.followerHeapMapAbstractStateFactory = followerHeapMapAbstractStateFactory;
+            return this;
+        }
+
+        /**
+         * Sets the map abstract state factory used for constructing the mapping from fields to values in the follower heap model.
+         */
+        public Builder setFollowerHeapNodeMapAbstractStateFactory(MapAbstractStateFactory<String, TaintAbstractState> followerHeapNodeMapAbstractStateFactory)
+        {
+            this.followerHeapNodeMapAbstractStateFactory = followerHeapNodeMapAbstractStateFactory;
             return this;
         }
     }

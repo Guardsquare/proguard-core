@@ -46,9 +46,8 @@ public class DifferentialMap<K, V>
     implements Map<K, V>
 {
 
-    private DifferentialMapNode<K, V> node;
-
-    protected final             Predicate<DifferentialMap<?, ?>> shouldCollapse;
+    private         DifferentialMapNode<K, V>        node;
+    protected final Predicate<DifferentialMap<K, V>> shouldCollapse;
 
     /**
      * Create an empty differential map.
@@ -75,7 +74,7 @@ public class DifferentialMap<K, V>
      * @param m              initial map
      * @param shouldCollapse whether the map should collapse into a root node
      */
-    public DifferentialMap(Map<K, V> m, Predicate<DifferentialMap<?, ?>> shouldCollapse)
+    public DifferentialMap(Map<K, V> m, Predicate<DifferentialMap<K, V>> shouldCollapse)
     {
         node = m instanceof DifferentialMap ? ((DifferentialMap<K, V>) m).node : new DifferentialMapRootNode<>(m);
         this.shouldCollapse = shouldCollapse;

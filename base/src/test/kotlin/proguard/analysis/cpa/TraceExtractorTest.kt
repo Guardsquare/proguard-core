@@ -20,12 +20,14 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSink
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory
+import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
@@ -81,8 +83,9 @@ class TraceExtractorTest : StringSpec({
     val jvmTaintMemoryLocationBamCpaRunBuilder = JvmTaintMemoryLocationBamCpaRun.Builder().setReduceHeap(false)
 
     listOf(
-        HashMapAbstractStateFactory.INSTANCE,
-        DifferentialMapAbstractStateFactory { false }
+        HashMapAbstractStateFactory.getInstance(),
+        DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false },
+        LimitedHashMapAbstractStateFactory { _, _, _ -> false }
     ).forEach { staticFieldMapAbstractStateFactory ->
 
         val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"

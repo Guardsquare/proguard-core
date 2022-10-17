@@ -1,5 +1,8 @@
 ## Version 9.0.6
 
+### Improved
+- Add support for limiting the size of the CPA tree heap model with `LimitedHashMap`s.
+
 ### Bug fixes
 - Fix `ldc_w` method in the `InstructionSequenceBuilder` generating a `ldc` instruction instead of a `ldc_w`.
 

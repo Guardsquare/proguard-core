@@ -66,8 +66,8 @@ class JvmTaintCpaTest : FreeSpec({
     )
 
     listOf(
-        HashMapAbstractStateFactory.INSTANCE,
-        DifferentialMapAbstractStateFactory { false }
+        HashMapAbstractStateFactory.getInstance(),
+        DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false }
     ).forEach { staticFieldMapAbstractStateFactory ->
 
         val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"

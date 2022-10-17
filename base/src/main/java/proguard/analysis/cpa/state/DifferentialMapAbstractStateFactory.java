@@ -28,18 +28,18 @@ import proguard.analysis.cpa.defaults.LatticeAbstractState;
  *
  * @author Dmitry Ivanov
  */
-public class DifferentialMapAbstractStateFactory
-    implements MapAbstractStateFactory
+public class DifferentialMapAbstractStateFactory<KeyT, StateT extends LatticeAbstractState<StateT>>
+    implements MapAbstractStateFactory<KeyT, StateT>
 {
 
-    private final Predicate<DifferentialMap<?, ?>> shouldCollapse;
+    private final Predicate<DifferentialMap<KeyT, StateT>> shouldCollapse;
 
     /**
      * Create a differential map abstract state factory.
      *
      * @param shouldCollapse a collapse criterion
      */
-    public DifferentialMapAbstractStateFactory(Predicate<DifferentialMap<?, ?>> shouldCollapse)
+    public DifferentialMapAbstractStateFactory(Predicate<DifferentialMap<KeyT, StateT>> shouldCollapse)
     {
         this.shouldCollapse = shouldCollapse;
     }
@@ -47,7 +47,7 @@ public class DifferentialMapAbstractStateFactory
     // implementations for MapAbstractStateFactory
 
     @Override
-    public <KeyT, StateT extends LatticeAbstractState<StateT>> DifferentialMapAbstractState<KeyT, StateT> createMapAbstractState()
+    public DifferentialMapAbstractState<KeyT, StateT> createMapAbstractState()
     {
         return new DifferentialMapAbstractState<>(shouldCollapse);
     }

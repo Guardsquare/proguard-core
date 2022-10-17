@@ -40,7 +40,7 @@ public class DifferentialMapAbstractState<KeyT, AbstractSpaceT extends LatticeAb
         super(m);
     }
 
-    public DifferentialMapAbstractState(Predicate<DifferentialMap<?, ?>> shouldCollapse) {
+    public DifferentialMapAbstractState(Predicate<DifferentialMap<KeyT, AbstractSpaceT>> shouldCollapse) {
         super(Collections.emptyMap(), shouldCollapse);
     }
 

@@ -26,11 +26,11 @@ import proguard.analysis.cpa.defaults.MapAbstractState;
  *
  * @author Dmitry Ivanov
  */
-public interface MapAbstractStateFactory
+public interface MapAbstractStateFactory<KeyT, StateT extends LatticeAbstractState<StateT>>
 {
 
     /**
      * Returns an instance of MapAbstractState.
      */
-    <KeyT, StateT extends LatticeAbstractState<StateT>> MapAbstractState<KeyT, StateT> createMapAbstractState();
+    MapAbstractState<KeyT, StateT> createMapAbstractState();
 }

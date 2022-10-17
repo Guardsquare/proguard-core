@@ -43,14 +43,18 @@ public class JvmBasicTaintTreeHeapFollowerAbstractState
     /**
      * Create a taint follower heap abstract state.
      *
-     * @param principal               the principal heap abstract state containing reference abstract states
-     * @param defaultValue            the default value representing unknown values
-     * @param referenceToNode         the mapping from references to heap nodes
-     * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
+     * @param principal                     the principal heap abstract state containing reference abstract states
+     * @param defaultValue                  the default value representing unknown values
+     * @param referenceToNode               the mapping from references to heap nodes
+     * @param heapMapAbstractStateFactory   a map abstract state factory used for constructing the mapping from references to objects
+     * @param objectMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
-    public JvmBasicTaintTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal, TaintAbstractState defaultValue, MapAbstractState<Reference, HeapNode<TaintAbstractState>> referenceToNode, MapAbstractStateFactory mapAbstractStateFactory)
+    public JvmBasicTaintTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal,
+                                                      TaintAbstractState defaultValue, MapAbstractState<Reference, HeapNode<TaintAbstractState>> referenceToNode,
+                                                      MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>> heapMapAbstractStateFactory,
+                                                      MapAbstractStateFactory<String, TaintAbstractState> objectMapAbstractStateFactory)
     {
-        super(principal, defaultValue, referenceToNode, mapAbstractStateFactory);
+        super(principal, defaultValue, referenceToNode, heapMapAbstractStateFactory, objectMapAbstractStateFactory);
     }
 
     // implementations for JvmTaintHeapAbstractState
@@ -75,7 +79,7 @@ public class JvmBasicTaintTreeHeapFollowerAbstractState
         {
             return other;
         }
-        return new JvmBasicTaintTreeHeapFollowerAbstractState(principal, defaultValue, newReferenceToNode, mapAbstractStateFactory);
+        return new JvmBasicTaintTreeHeapFollowerAbstractState(principal, defaultValue, newReferenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory);
     }
 
     // implementations for AbstractState
@@ -90,7 +94,8 @@ public class JvmBasicTaintTreeHeapFollowerAbstractState
                                                                         .collect(Collectors.toMap(Entry::getKey,
                                                                                                   e -> e.getValue().copy(),
                                                                                                   HeapNode::join,
-                                                                                                  mapAbstractStateFactory::createMapAbstractState)),
-                                                              mapAbstractStateFactory);
+                                                                                                  heapMapAbstractStateFactory::createMapAbstractState)),
+                                                              heapMapAbstractStateFactory,
+                                                              heapNodeMapAbstractStateFactory);
     }
 }

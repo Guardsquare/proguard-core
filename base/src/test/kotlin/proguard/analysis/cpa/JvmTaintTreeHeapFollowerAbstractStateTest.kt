@@ -20,13 +20,19 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import proguard.analysis.cpa.defaults.SetAbstractState
+import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
+import proguard.analysis.cpa.jvm.domain.reference.Reference
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSink
 import proguard.analysis.cpa.jvm.state.heap.HeapModel
+import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory
+import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
+import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
@@ -140,30 +146,50 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
     "Object tainting behaves as expected" - {
 
         listOf(
-            HashMapAbstractStateFactory.INSTANCE,
-            DifferentialMapAbstractStateFactory { false }
-        ).forEach { heapNodeMapAbstractStateFactory ->
-            listOf(
-                HashMapAbstractStateFactory.INSTANCE,
-                DifferentialMapAbstractStateFactory { false }
-            ).forEach { staticFieldMapAbstractStateFactory ->
-                listOf(false, true).forEach { reduceHeap ->
-                    listOf(-1, 0).forEach { stackDepth ->
+            HashMapAbstractStateFactory.getInstance(),
+            DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false },
+            LimitedHashMapAbstractStateFactory { _, _, _ -> false }
+        ).forEach { staticFieldMapAbstractStateFactory ->
+            listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>>>>(
+                Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
+                Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
+                Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> false }, LimitedHashMapAbstractStateFactory { _, _, _ -> false })
+            ).forEach { (principalHeapMapAbstractStateFactory, followerHeapMapAbstractStateFactory) ->
+                listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, TaintAbstractState>>>(
+                    Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
+                    Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
+                    Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> false }, LimitedHashMapAbstractStateFactory { _, _, _ -> false })
+                ).forEach { (principalHeapNodeMapAbstractStateFactory, followerHeapNodeMapAbstractStateFactory) ->
+                    listOf(false, true).forEach { reduceHeap ->
+                        listOf(-1, 0).forEach { stackDepth ->
 
-                        val testNameSuffix = " for heap node ${heapNodeMapAbstractStateFactory.javaClass.simpleName}, static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}, ${booleanToPreposition(reduceHeap)} heap reduction, and ${depthToInterprocedurality(stackDepth)} analysis"
+                            val testNameSuffix =
+                                """
+                            for the
+                             static field map factory ${staticFieldMapAbstractStateFactory.javaClass.simpleName}
+                             principal heap map factory ${principalHeapMapAbstractStateFactory.javaClass.simpleName},
+                             follower heap map factory ${followerHeapMapAbstractStateFactory.javaClass.simpleName},
+                             principal object map factory ${principalHeapNodeMapAbstractStateFactory.javaClass.simpleName},
+                             follower object map factory ${followerHeapNodeMapAbstractStateFactory.javaClass.simpleName},
+                             ${booleanToPreposition(reduceHeap)} heap reduction,
+                             and ${depthToInterprocedurality(stackDepth)} analysis
+                                """.trimIndent()
 
-                        jvmTaintMemoryLocationBamCpaRunBuilder
-                            .setReduceHeap(reduceHeap)
-                            .setHeapNodeMapAbstractStateFactory(heapNodeMapAbstractStateFactory)
-                            .setStaticFieldMapAbstractStateFactory(staticFieldMapAbstractStateFactory)
-                            .setMaxCallStackDepth(stackDepth)
+                            jvmTaintMemoryLocationBamCpaRunBuilder
+                                .setReduceHeap(reduceHeap)
+                                .setStaticFieldMapAbstractStateFactory(staticFieldMapAbstractStateFactory)
+                                .setPrincipalHeapMapAbstractStateFactory(principalHeapMapAbstractStateFactory)
+                                .setFollowerHeapMapAbstractStateFactory(followerHeapMapAbstractStateFactory)
+                                .setPrincipalHeapNodeMapAbstractStateFactory(principalHeapNodeMapAbstractStateFactory)
+                                .setFollowerHeapNodeMapAbstractStateFactory(followerHeapNodeMapAbstractStateFactory)
+                                .setMaxCallStackDepth(stackDepth)
 
-                        "Arguments can be tainted$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                            "Arguments can be tainted$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -183,34 +209,34 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument2))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;)V:5",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:4"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument2))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Argument fields are tainted$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;)V:5",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:4"
+                                    )
+                                )
+                            }
+
+                            "Argument fields are tainted$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -230,37 +256,37 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;)V:8",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:4"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Null return fields are not tainted$testNameSuffix" {
-                            // the test makes sense only interprocedurally
-                            if (stackDepth > 0 || stackDepth == -1) {
-                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                    ClassPoolBuilder.fromSource(
-                                        JavaSource(
-                                            "A.java",
-                                            """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;)V:8",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:4"
+                                    )
+                                )
+                            }
+
+                            "Null return fields are not tainted$testNameSuffix" {
+                                // the test makes sense only interprocedurally
+                                if (stackDepth > 0 || stackDepth == -1) {
+                                    val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                        ClassPoolBuilder.fromSource(
+                                            JavaSource(
+                                                "A.java",
+                                                """
                                             class A {
                         
                                                 public void main(){
@@ -280,30 +306,30 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                            """.trimIndent()
-                                        )
-                                    ).programClassPool
-                                )
-                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                    .setCfa(interproceduralCfa)
-                                    .setMainSignature(mainSignature)
-                                    .setTaintSources(setOf(taintSourceReturn1))
-                                    .setTaintSinks(setOf(taintSinkArgument1))
-                                    .build()
-                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                                interproceduralCfa.clear()
+                                                """.trimIndent()
+                                            )
+                                        ).programClassPool
+                                    )
+                                    val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                    val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                        .setCfa(interproceduralCfa)
+                                        .setMainSignature(mainSignature)
+                                        .setTaintSources(setOf(taintSourceReturn1))
+                                        .setTaintSinks(setOf(taintSinkArgument1))
+                                        .build()
+                                    val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                    interproceduralCfa.clear()
 
-                                traces.size shouldBe 0
+                                    traces.size shouldBe 0
+                                }
                             }
-                        }
 
-                        "Return fields are tainted$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                            "Return fields are tainted$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(){
@@ -323,34 +349,34 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceReturn1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main()V:6",
-                                    "JvmStackLocation(0)@LA;main()V:3"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceReturn1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Argument field taint can be overwritten$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main()V:6",
+                                        "JvmStackLocation(0)@LA;main()V:3"
+                                    )
+                                )
+                            }
+
+                            "Argument field taint can be overwritten$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -371,29 +397,29 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
+                                )
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                            traces.size shouldBe 0
-                        }
+                                traces.size shouldBe 0
+                            }
 
-                        "Return field taint can be overwritten$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                            "Return field taint can be overwritten$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(){
@@ -415,29 +441,29 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
+                                )
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                            traces.size shouldBe 0
-                        }
+                                traces.size shouldBe 0
+                            }
 
-                        "Calling instance can be tainted$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                            "Calling instance can be tainted$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                                             
                                                 private String s;
@@ -455,34 +481,34 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 {
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceInstance1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main()V:8",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)]@LA;main()V:5",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)]@LA;main()V:4"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceInstance1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main()V:8",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)]@LA;main()V:5",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)]@LA;main()V:4"
+                                    )
+                                )
+                            }
 
-                        "Static field fields can be tainted$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                            "Static field fields can be tainted$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                                             
                                                 public static B b;
@@ -504,39 +530,39 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceStatic1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main()V:10",
-                                    "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main()V:7",
-                                    "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main()V:4"
-                                ),
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main()V:10",
-                                    "JvmStackLocation(0)@LA;main()V:7",
-                                    "JvmStaticFieldLocation(A.b)@LA;main()V:4"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceStatic1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main()V:10",
+                                        "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main()V:7",
+                                        "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main()V:4"
+                                    ),
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main()V:10",
+                                        "JvmStackLocation(0)@LA;main()V:7",
+                                        "JvmStaticFieldLocation(A.b)@LA;main()V:4"
+                                    )
+                                )
+                            }
 
-                        "Array elements can be tainted$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                            "Array elements can be tainted$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(int[] a){
@@ -552,35 +578,35 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 {
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg6))
-                                .setTaintSinks(setOf(taintSinkArgument3))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main([I)V:7",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main([I)V:0)]@LA;main([I)V:6",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main([I)V:0)]@LA;main([I)V:5",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main([I)V:0)]@LA;main([I)V:4"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg6))
+                                    .setTaintSinks(setOf(taintSinkArgument3))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main([I)V:7",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main([I)V:0)]@LA;main([I)V:6",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main([I)V:0)]@LA;main([I)V:5",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main([I)V:0)]@LA;main([I)V:4"
+                                    )
+                                )
+                            }
 
-                        "Object taints are accumulated$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                            "Object taints are accumulated$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -605,37 +631,37 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1, taintSourceArg2))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;)V:12",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:9",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:8",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:4"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1, taintSourceArg2))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "First argument position is calculated correctly$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;)V:12",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:9",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:8",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:4"
+                                    )
+                                )
+                            }
+
+                            "First argument position is calculated correctly$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -659,35 +685,35 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg3))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;)V:9",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:6",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg3))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Last argument position is calculated correctly$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;)V:9",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:6",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5"
+                                    )
+                                )
+                            }
+
+                            "Last argument position is calculated correctly$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -711,35 +737,35 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg4))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;)V:9",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:6",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg4))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Argument position is calculated correctly for category 2 irrelevant argument$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;)V:9",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:6",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5"
+                                    )
+                                )
+                            }
+
+                            "Argument position is calculated correctly for category 2 irrelevant argument$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -763,35 +789,35 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg5))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;)V:9",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:6",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg5))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Object taint propagates to discovered fields$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;)V:9",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:6",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:5"
+                                    )
+                                )
+                            }
+
+                            "Object taint propagates to discovered fields$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b){
@@ -812,35 +838,35 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;)V:13",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:10",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:9"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Object taint propagates to discovered fields upon right join$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;)V:13",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:10",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;)V:0)]@LA;main(LA\$B;)V:9"
+                                    )
+                                )
+                            }
+
+                            "Object taint propagates to discovered fields upon right join$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b, boolean cond){
@@ -867,36 +893,36 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:20",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:17",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:16",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:8"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Object taint propagates to discovered fields upon left join$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:20",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:17",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:16",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:8"
+                                    )
+                                )
+                            }
+
+                            "Object taint propagates to discovered fields upon left join$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b, boolean cond){
@@ -923,35 +949,35 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:20",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:17",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:16"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Object taint transitively propagates to discovered fields upon right join$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:20",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:17",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:16"
+                                    )
+                                )
+                            }
+
+                            "Object taint transitively propagates to discovered fields upon right join$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b, boolean cond){
@@ -982,44 +1008,44 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:24",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:21",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:8"
-                                ),
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:24",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:21",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:8"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
-                        }
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
 
-                        "Object taint transitively propagates to discovered fields upon left join$testNameSuffix" {
-                            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                                ClassPoolBuilder.fromSource(
-                                    JavaSource(
-                                        "A.java",
-                                        """
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:24",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:21",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:8"
+                                    ),
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:24",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:21",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:8"
+                                    )
+                                )
+                            }
+
+                            "Object taint transitively propagates to discovered fields upon left join$testNameSuffix" {
+                                val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+                                    ClassPoolBuilder.fromSource(
+                                        JavaSource(
+                                            "A.java",
+                                            """
                                             class A {
                         
                                                 public void main(B b, boolean cond){
@@ -1050,34 +1076,35 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                     public String s;
                                                 }
                                             }
-                                        """.trimIndent()
-                                    )
-                                ).programClassPool
-                            )
-                            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-                            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                                .setCfa(interproceduralCfa)
-                                .setMainSignature(mainSignature)
-                                .setTaintSources(setOf(taintSourceArg1))
-                                .setTaintSinks(setOf(taintSinkArgument1))
-                                .build()
-                            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
-                            interproceduralCfa.clear()
-
-                            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:24",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:21",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20"
-                                ),
-                                listOf(
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
-                                    "JvmStackLocation(0)@LA;main(LA\$B;Z)V:24",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:21",
-                                    "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20"
+                                            """.trimIndent()
+                                        )
+                                    ).programClassPool
                                 )
-                            )
+                                val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                                val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                                    .setCfa(interproceduralCfa)
+                                    .setMainSignature(mainSignature)
+                                    .setTaintSources(setOf(taintSourceArg1))
+                                    .setTaintSinks(setOf(taintSinkArgument1))
+                                    .build()
+                                val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+                                interproceduralCfa.clear()
+
+                                traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:24",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)], A\$C#s)@LA;main(LA\$B;Z)V:21",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20"
+                                    ),
+                                    listOf(
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:27",
+                                        "JvmStackLocation(0)@LA;main(LA\$B;Z)V:24",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:21",
+                                        "JvmHeapLocation([Reference(JvmLocalVariableLocation(1)@LA;main(LA\$B;Z)V:0)]@LA;main(LA\$B;Z)V:20"
+                                    )
+                                )
+                            }
                         }
                     }
                 }

@@ -20,33 +20,32 @@ package proguard.analysis.cpa.state;
 
 import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.LimitedHashMap;
+import proguard.analysis.cpa.defaults.LimitedHashMapAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
+import proguard.analysis.cpa.jvm.util.TriPredicate;
 
 /**
- * This interface contains a method creating a fresh instance of {@link HashMapAbstractState}.
+ * This interface contains a method creating a fresh instance of {@link LimitedHashMapAbstractState}.
  *
  * @author Dmitry Ivanov
  */
-public class HashMapAbstractStateFactory<KeyT, StateT extends LatticeAbstractState<StateT>>
-    implements MapAbstractStateFactory<KeyT, StateT>
+public class LimitedHashMapAbstractStateFactory<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
+    implements MapAbstractStateFactory<KeyT, AbstractSpaceT>
 {
 
-    private static final HashMapAbstractStateFactory<?, ?> INSTANCE = new HashMapAbstractStateFactory<>();
+    private final TriPredicate<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT> limitReached;
 
-    private HashMapAbstractStateFactory()
+    public LimitedHashMapAbstractStateFactory(TriPredicate<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT> limitReached)
     {
-    }
-
-    public static <K, V extends LatticeAbstractState<V>> HashMapAbstractStateFactory<K, V> getInstance()
-    {
-        return (HashMapAbstractStateFactory<K, V>) INSTANCE;
+        this.limitReached = limitReached;
     }
 
     // implementations for MapAbstractStateFactory
 
     @Override
-    public MapAbstractState<KeyT, StateT> createMapAbstractState()
+    public LimitedHashMapAbstractState<KeyT, AbstractSpaceT> createMapAbstractState()
     {
-        return new HashMapAbstractState<>();
+        return new LimitedHashMapAbstractState<>(limitReached);
     }
 }
