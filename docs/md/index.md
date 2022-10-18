@@ -61,7 +61,7 @@ disadvantages.
 ### Dependency injection
 
 The library classes heavily use _constructor-based dependency injection_, to
-create immutable instances. Notably the visitor classess are often like
+create immutable instances. Notably the visitor classes are often like
 commands that are combined in an immutable structure, via constructors. You
 can execute such commands by applying the visitors to the data classes.
 
