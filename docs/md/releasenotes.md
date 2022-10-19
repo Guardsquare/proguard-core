@@ -6,6 +6,10 @@
 ### Bug fixes
 - Fix `ldc_w` method in the `InstructionSequenceBuilder` generating a `ldc` instruction instead of a `ldc_w`.
 
+### API Improvements
+
+- Add `referencedDefaultMethodAccept` to `KotlinFunctionMetadata` model.
+
 ## Version 9.0.5
 
 ### Improved

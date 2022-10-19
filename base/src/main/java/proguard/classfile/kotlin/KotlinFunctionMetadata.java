@@ -191,6 +191,15 @@ implements   Processable
         }
     }
 
+    public void referencedDefaultMethodAccept(MemberVisitor methodVisitor)
+    {
+        if (referencedDefaultMethod      != null &&
+            referencedDefaultMethodClass != null)
+        {
+            referencedDefaultMethod.accept(referencedDefaultMethodClass, methodVisitor);
+        }
+    }
+
     public void referencedDefaultImplementationMethodAccept(MemberVisitor memberVisitor)
     {
         if (referencedDefaultImplementationMethodClass != null &&
