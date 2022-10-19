@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,99 @@ package proguard.classfile.editor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.annotation.*;
-import proguard.classfile.attribute.annotation.visitor.*;
-import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.constant.*;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.Clazz;
+import proguard.classfile.Field;
+import proguard.classfile.FieldSignature;
+import proguard.classfile.JavaTypeConstants;
+import proguard.classfile.LibraryClass;
+import proguard.classfile.LibraryField;
+import proguard.classfile.LibraryMethod;
+import proguard.classfile.Member;
+import proguard.classfile.Method;
+import proguard.classfile.MethodSignature;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramField;
+import proguard.classfile.ProgramMember;
+import proguard.classfile.ProgramMethod;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.InnerClassesAttribute;
+import proguard.classfile.attribute.InnerClassesInfo;
+import proguard.classfile.attribute.LocalVariableInfo;
+import proguard.classfile.attribute.LocalVariableTableAttribute;
+import proguard.classfile.attribute.LocalVariableTypeInfo;
+import proguard.classfile.attribute.LocalVariableTypeTableAttribute;
+import proguard.classfile.attribute.RecordAttribute;
+import proguard.classfile.attribute.RecordComponentInfo;
+import proguard.classfile.attribute.SignatureAttribute;
+import proguard.classfile.attribute.annotation.Annotation;
+import proguard.classfile.attribute.annotation.AnnotationDefaultAttribute;
+import proguard.classfile.attribute.annotation.AnnotationElementValue;
+import proguard.classfile.attribute.annotation.AnnotationsAttribute;
+import proguard.classfile.attribute.annotation.ArrayElementValue;
+import proguard.classfile.attribute.annotation.ClassElementValue;
+import proguard.classfile.attribute.annotation.ConstantElementValue;
+import proguard.classfile.attribute.annotation.ElementValue;
+import proguard.classfile.attribute.annotation.EnumConstantElementValue;
+import proguard.classfile.attribute.annotation.ParameterAnnotationsAttribute;
+import proguard.classfile.attribute.annotation.RuntimeInvisibleAnnotationsAttribute;
+import proguard.classfile.attribute.annotation.visitor.AllAnnotationVisitor;
+import proguard.classfile.attribute.annotation.visitor.AnnotationTypeFilter;
+import proguard.classfile.attribute.annotation.visitor.AnnotationVisitor;
+import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.attribute.visitor.InnerClassesInfoVisitor;
+import proguard.classfile.attribute.visitor.LocalVariableInfoVisitor;
+import proguard.classfile.attribute.visitor.LocalVariableTypeInfoVisitor;
+import proguard.classfile.attribute.visitor.RecordComponentInfoVisitor;
+import proguard.classfile.constant.ClassConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.DynamicConstant;
+import proguard.classfile.constant.InvokeDynamicConstant;
+import proguard.classfile.constant.MethodTypeConstant;
+import proguard.classfile.constant.StringConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.KotlinAnnotatable;
+import proguard.classfile.kotlin.KotlinAnnotation;
+import proguard.classfile.kotlin.KotlinAnnotationArgument;
+import proguard.classfile.kotlin.KotlinClassKindMetadata;
+import proguard.classfile.kotlin.KotlinConstructorMetadata;
+import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
+import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata;
+import proguard.classfile.kotlin.KotlinFunctionMetadata;
+import proguard.classfile.kotlin.KotlinMetadata;
+import proguard.classfile.kotlin.KotlinMultiFileFacadeKindMetadata;
+import proguard.classfile.kotlin.KotlinMultiFilePartKindMetadata;
+import proguard.classfile.kotlin.KotlinPropertyMetadata;
+import proguard.classfile.kotlin.KotlinSyntheticClassKindMetadata;
+import proguard.classfile.kotlin.KotlinTypeAliasMetadata;
+import proguard.classfile.kotlin.KotlinTypeMetadata;
+import proguard.classfile.kotlin.KotlinTypeParameterMetadata;
+import proguard.classfile.kotlin.KotlinValueParameterMetadata;
 import proguard.classfile.kotlin.flags.KotlinPropertyAccessorFlags;
-import proguard.classfile.kotlin.visitor.*;
-import proguard.classfile.util.*;
-import proguard.classfile.visitor.*;
+import proguard.classfile.kotlin.visitor.AllTypeVisitor;
+import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor;
+import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
+import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor;
+import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
+import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeAliasVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
+import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor;
+import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.DescriptorClassEnumeration;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberVisitor;
 
-import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
+import static proguard.classfile.kotlin.KotlinAnnotationArgument.EnumValue;
+import static proguard.classfile.kotlin.KotlinAnnotationArgument.Value;
 import static proguard.classfile.kotlin.KotlinConstants.FUNCTION_NAME_MANGLE_SEPARATOR;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
+import static proguard.classfile.util.ClassUtil.internalSimpleClassName;
 
 /**
  * This {@link ClassVisitor} fixes references of constant pool entries, fields,
@@ -566,7 +643,10 @@ implements   ClassVisitor,
 
             if (kotlinClassKindMetadata.companionObjectName != null)
             {
-                kotlinClassKindMetadata.companionObjectName = kotlinClassKindMetadata.referencedCompanionField.getName(clazz);
+                kotlinClassKindMetadata.companionObjectName =
+                    shortKotlinNestedClassName(kotlinClassKindMetadata.className,
+                                               kotlinClassKindMetadata.companionObjectName,
+                                               kotlinClassKindMetadata.referencedCompanionClass);
             }
 
             for (int k = 0; k < kotlinClassKindMetadata.enumEntryNames.size(); k++)
@@ -879,7 +959,7 @@ implements   ClassVisitor,
         }
         else
         {
-            return ClassUtil.internalSimpleClassName(newFulllName);
+            return internalSimpleClassName(newFulllName);
         }
     }
 
