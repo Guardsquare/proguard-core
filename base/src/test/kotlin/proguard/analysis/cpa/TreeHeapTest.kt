@@ -35,7 +35,9 @@ import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import proguard.testutils.RequiresJavaVersion
 
+@RequiresJavaVersion(8, 8) // Run only for Java 8, since this test can be slow.
 class TreeHeapTest : StringSpec({
 
     fun booleanToPreposition(b: Boolean): String {
