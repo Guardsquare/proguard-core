@@ -1,6 +1,7 @@
 package proguard.analysis.cpa
 
 import io.kotest.assertions.fail
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
@@ -35,6 +36,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
 @RequiresJavaVersion(8, 17) // TODO: fails on Java 18+
+@Ignored
 class HeapOperatorsTest : FreeSpec({
 
     fun <StateT : LatticeAbstractState<StateT>?> JvmTreeHeapAbstractState<StateT>.assertKeysCount(expected: Int) {
