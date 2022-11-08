@@ -18,6 +18,7 @@
 
 package proguard.analysis.cpa
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.SetAbstractState
@@ -36,6 +37,7 @@ import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
+@Ignored
 class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
 
     fun booleanToPreposition(b: Boolean): String {
