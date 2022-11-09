@@ -18,6 +18,7 @@
 
 package proguard.analysis.cpa
 
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.SetAbstractState
@@ -35,9 +36,8 @@ import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
-import proguard.testutils.RequiresJavaVersion
 
-@RequiresJavaVersion(8, 8) // Run only for Java 8, since this test can be slow.
+@Ignored
 class TreeHeapTest : StringSpec({
 
     fun booleanToPreposition(b: Boolean): String {
