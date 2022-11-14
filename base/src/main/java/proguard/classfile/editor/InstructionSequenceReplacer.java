@@ -145,7 +145,7 @@ implements   InstructionVisitor,
 
 
     private final InstructionSequenceMatcher instructionSequenceMatcher;
-    private final Constant[]                 patternConstants;
+    private final Constant[]                 replacementConstants;
     private final Instruction[]              replacementInstructions;
     private final BranchTargetFinder         branchTargetFinder;
     private final CodeAttributeEditor        codeAttributeEditor;
@@ -218,12 +218,49 @@ implements   InstructionVisitor,
     }
 
 
-
     /**
      * Creates a new InstructionSequenceReplacer.
      * @param instructionSequenceMatcher a suitable instruction sequence matcher.
      * @param patternConstants           any constants referenced by the pattern
      *                                   instructions.
+     * @param patternInstructions        the pattern instruction sequence.
+     * @param replacementConstants       any constants referenced by the
+     *                                   replacement instructions.
+     * @param replacementInstructions    the replacement instruction sequence.
+     * @param branchTargetFinder         a branch target finder that has been
+     *                                   initialized to indicate branch targets
+     *                                   in the visited code.
+     * @param codeAttributeEditor        a code editor that can be used for
+     *                                   accumulating changes to the code.
+     * @param extraInstructionVisitor    an optional extra visitor for all deleted
+     *                                   load instructions.
+     * @deprecated Use {@link InstructionSequenceReplacer#InstructionSequenceReplacer(InstructionSequenceMatcher, Constant[], Instruction[], BranchTargetFinder, CodeAttributeEditor, InstructionVisitor)} instead.
+     */
+    @Deprecated
+    public InstructionSequenceReplacer(InstructionSequenceMatcher instructionSequenceMatcher,
+                                       Constant[]                 patternConstants,
+                                       Instruction[]              patternInstructions,
+                                       Constant[]                 replacementConstants,
+                                       Instruction[]              replacementInstructions,
+                                       BranchTargetFinder         branchTargetFinder,
+                                       CodeAttributeEditor        codeAttributeEditor,
+                                       InstructionVisitor         extraInstructionVisitor)
+    {
+        this(instructionSequenceMatcher,
+             replacementConstants,
+             replacementInstructions,
+             branchTargetFinder,
+             codeAttributeEditor,
+             extraInstructionVisitor);
+    }
+
+
+
+    /**
+     * Creates a new InstructionSequenceReplacer.
+     * @param instructionSequenceMatcher a suitable instruction sequence matcher.
+     * @param replacementConstants       any constants referenced by the
+     *                                   replacement instructions.
      * @param replacementInstructions    the replacement instruction sequence.
      * @param branchTargetFinder         a branch target finder that has been
      *                                   initialized to indicate branch targets
@@ -234,14 +271,14 @@ implements   InstructionVisitor,
      *                                   load instructions.
      */
     protected InstructionSequenceReplacer(InstructionSequenceMatcher instructionSequenceMatcher,
-                                          Constant[]                 patternConstants,
+                                          Constant[]                 replacementConstants,
                                           Instruction[]              replacementInstructions,
                                           BranchTargetFinder         branchTargetFinder,
                                           CodeAttributeEditor        codeAttributeEditor,
                                           InstructionVisitor         extraInstructionVisitor)
     {
         this.instructionSequenceMatcher = instructionSequenceMatcher;
-        this.patternConstants           = patternConstants;
+        this.replacementConstants       = replacementConstants;
         this.replacementInstructions    = replacementInstructions;
         this.branchTargetFinder         = branchTargetFinder;
         this.codeAttributeEditor        = codeAttributeEditor;
@@ -615,7 +652,7 @@ implements   InstructionVisitor,
         // Otherwise, we still have to create a new constant.
         // This currently only works for constants without any wildcards.
         ProgramClass dummyClass = new ProgramClass();
-        dummyClass.constantPool = patternConstants;
+        dummyClass.constantPool = replacementConstants;
 
         return new ConstantAdder(programClass).addConstant(dummyClass, constantIndex);
     }
