@@ -17,13 +17,28 @@
  */
 package proguard.classfile.editor;
 
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.constant.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.DoubleConstant;
+import proguard.classfile.constant.FloatConstant;
+import proguard.classfile.constant.IntegerConstant;
+import proguard.classfile.constant.LongConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.instruction.*;
+import proguard.classfile.instruction.BranchInstruction;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.InstructionFactory;
+import proguard.classfile.instruction.LookUpSwitchInstruction;
+import proguard.classfile.instruction.SimpleInstruction;
+import proguard.classfile.instruction.TableSwitchInstruction;
+import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.*;
+import proguard.classfile.util.BranchTargetFinder;
+import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.InstructionSequenceMatcher;
 
 import java.util.Objects;
 
@@ -195,8 +210,6 @@ implements   InstructionVisitor,
                                        InstructionVisitor  extraInstructionVisitor)
     {
         this(new InstructionSequenceMatcher(patternConstants, patternInstructions),
-             patternConstants,
-             patternInstructions,
              replacementConstants,
              replacementInstructions,
              branchTargetFinder,
@@ -211,9 +224,6 @@ implements   InstructionVisitor,
      * @param instructionSequenceMatcher a suitable instruction sequence matcher.
      * @param patternConstants           any constants referenced by the pattern
      *                                   instructions.
-     * @param patternInstructions        the pattern instruction sequence.
-     * @param replacementConstants       any constants referenced by the
-     *                                   replacement instructions.
      * @param replacementInstructions    the replacement instruction sequence.
      * @param branchTargetFinder         a branch target finder that has been
      *                                   initialized to indicate branch targets
@@ -225,8 +235,6 @@ implements   InstructionVisitor,
      */
     protected InstructionSequenceReplacer(InstructionSequenceMatcher instructionSequenceMatcher,
                                           Constant[]                 patternConstants,
-                                          Instruction[]              patternInstructions,
-                                          Constant[]                 replacementConstants,
                                           Instruction[]              replacementInstructions,
                                           BranchTargetFinder         branchTargetFinder,
                                           CodeAttributeEditor        codeAttributeEditor,
@@ -243,7 +251,12 @@ implements   InstructionVisitor,
 
     // Implementations for InstructionVisitor.
 
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
+    @Override
+    public void visitAnyInstruction(Clazz         clazz,
+                                    Method        method,
+                                    CodeAttribute codeAttribute,
+                                    int           offset,
+                                    Instruction   instruction)
     {
         // Reset the instruction sequence matcher if the instruction is a branch
         // target or if it has already been modified.
@@ -266,18 +279,29 @@ implements   InstructionVisitor,
 
             if (DEBUG)
             {
-                System.out.println("InstructionSequenceReplacer: ["+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz)+"]");
+                System.out.println("InstructionSequenceReplacer: [" +
+                                   clazz.getName() +
+                                   "." +
+                                   method.getName(clazz)+method.getDescriptor(clazz) +
+                                   "]");
                 System.out.println("  Matched:");
                 for (int index = 0; index < patternCount; index++)
                 {
                     int matchedOffset = instructionSequenceMatcher.matchedInstructionOffset(index);
-                    System.out.println("    "+InstructionFactory.create(codeAttribute.code, matchedOffset).toString(matchedOffset));
+                    System.out.println(
+                        "    " +
+                        InstructionFactory.create(codeAttribute.code, matchedOffset).toString(matchedOffset));
                 }
                 System.out.println("  Replacement:");
                 for (int index = 0; index < replacementCount; index++)
                 {
-                    int matchedOffset = instructionSequenceMatcher.matchedInstructionOffset(Math.min(index, patternCount-1));
-                    System.out.println("    " + replacementInstructionFactory.create(clazz, codeAttribute, index).shrink().toString(matchedOffset));
+                    int matchedOffset =
+                        instructionSequenceMatcher.matchedInstructionOffset(Math.min(index, patternCount-1));
+                    System.out.println("    " +
+                                       replacementInstructionFactory
+                                           .create(clazz, codeAttribute, index)
+                                           .shrink()
+                                           .toString(matchedOffset));
                 }
             }
 
@@ -287,8 +311,9 @@ implements   InstructionVisitor,
                 // Replace the instruction sequence.
                 for (int index = 0; index < replacementCount; index++)
                 {
-                    codeAttributeEditor.replaceInstruction(instructionSequenceMatcher.matchedInstructionOffset(index),
-                                                           replacementInstructionFactory.create(clazz, codeAttribute, index));
+                    codeAttributeEditor.replaceInstruction(
+                        instructionSequenceMatcher.matchedInstructionOffset(index),
+                        replacementInstructionFactory.create(clazz, codeAttribute, index));
                 }
 
                 // Delete any remaining instructions in the matched sequence.
@@ -302,8 +327,9 @@ implements   InstructionVisitor,
                 // Replace the instruction sequence.
                 for (int index = 0; index < patternCount; index++)
                 {
-                    codeAttributeEditor.replaceInstruction(instructionSequenceMatcher.matchedInstructionOffset(index),
-                                                           replacementInstructionFactory.create(clazz, codeAttribute, index));
+                    codeAttributeEditor.replaceInstruction(
+                        instructionSequenceMatcher.matchedInstructionOffset(index),
+                        replacementInstructionFactory.create(clazz, codeAttribute, index));
                 }
 
                 // Append the remaining instructions in the replacement
@@ -311,11 +337,13 @@ implements   InstructionVisitor,
                 Instruction[] extraInstructions = new Instruction[replacementCount - patternCount];
                 for (int index = 0; index < extraInstructions.length; index++)
                 {
-                    extraInstructions[index] = replacementInstructionFactory.create(clazz, codeAttribute, patternCount + index);
+                    extraInstructions[index] =
+                        replacementInstructionFactory.create(clazz, codeAttribute, patternCount + index);
                 }
 
-                codeAttributeEditor.insertAfterInstruction(instructionSequenceMatcher.matchedInstructionOffset(patternCount - 1),
-                                                           extraInstructions);
+                codeAttributeEditor.insertAfterInstruction(
+                    instructionSequenceMatcher.matchedInstructionOffset(patternCount - 1),
+                    extraInstructions);
             }
 
             // Visit the instruction, if required.
@@ -389,24 +417,39 @@ implements   InstructionVisitor,
 
         // Implementations for InstructionVisitor.
 
-        public void visitSimpleInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SimpleInstruction simpleInstruction)
+        @Override
+        public void visitSimpleInstruction(Clazz             clazz,
+                                           Method            method,
+                                           CodeAttribute     codeAttribute,
+                                           int               offset,
+                                           SimpleInstruction simpleInstruction)
         {
-            replacementInstruction =
-                new SimpleInstruction(simpleInstruction.opcode,
-                                      matchedArgument(clazz, method, codeAttribute, offset, simpleInstruction.constant));
+            replacementInstruction = new SimpleInstruction(
+                simpleInstruction.opcode,
+                matchedArgument(clazz, method, codeAttribute, offset, simpleInstruction.constant));
         }
 
 
-        public void visitVariableInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, VariableInstruction variableInstruction)
+        @Override
+        public void visitVariableInstruction(Clazz               clazz,
+                                             Method              method,
+                                             CodeAttribute       codeAttribute,
+                                             int                 offset,
+                                             VariableInstruction variableInstruction)
         {
-            replacementInstruction =
-                new VariableInstruction(variableInstruction.opcode,
-                                        matchedArgument(clazz, method, codeAttribute, offset, variableInstruction.variableIndex),
-                                        instructionSequenceMatcher.matchedArgument(variableInstruction.constant));
+            replacementInstruction = new VariableInstruction(
+                variableInstruction.opcode,
+                matchedArgument(clazz, method, codeAttribute, offset, variableInstruction.variableIndex),
+                instructionSequenceMatcher.matchedArgument(variableInstruction.constant));
         }
 
 
-        public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
+        @Override
+        public void visitConstantInstruction(Clazz               clazz,
+                                             Method              method,
+                                             CodeAttribute       codeAttribute,
+                                             int                 offset,
+                                             ConstantInstruction constantInstruction)
         {
             replacementInstruction =
                 new ConstantInstruction(constantInstruction.opcode,
@@ -416,7 +459,12 @@ implements   InstructionVisitor,
         }
 
 
-        public void visitBranchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, BranchInstruction branchInstruction)
+        @Override
+        public void visitBranchInstruction(Clazz             clazz,
+                                           Method            method,
+                                           CodeAttribute     codeAttribute,
+                                           int               offset,
+                                           BranchInstruction branchInstruction)
         {
             replacementInstruction =
                 new BranchInstruction(branchInstruction.opcode,
@@ -424,7 +472,12 @@ implements   InstructionVisitor,
         }
 
 
-        public void visitTableSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, TableSwitchInstruction tableSwitchInstruction)
+        @Override
+        public void visitTableSwitchInstruction(Clazz                  clazz,
+                                                Method                 method,
+                                                CodeAttribute          codeAttribute,
+                                                int                    offset,
+                                                TableSwitchInstruction tableSwitchInstruction)
         {
             replacementInstruction =
                 new TableSwitchInstruction(tableSwitchInstruction.opcode,
@@ -435,7 +488,12 @@ implements   InstructionVisitor,
         }
 
 
-        public void visitLookUpSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, LookUpSwitchInstruction lookUpSwitchInstruction)
+        @Override
+        public void visitLookUpSwitchInstruction(Clazz                   clazz,
+                                                 Method                  method,
+                                                 CodeAttribute           codeAttribute,
+                                                 int                     offset,
+                                                 LookUpSwitchInstruction lookUpSwitchInstruction)
         {
             replacementInstruction =
                 new LookUpSwitchInstruction(lookUpSwitchInstruction.opcode,
@@ -447,7 +505,11 @@ implements   InstructionVisitor,
 
         // Similar methods for pseudo-instructions.
 
-        public void visitLabelInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Label label)
+        public void visitLabelInstruction(Clazz         clazz,
+                                          Method        method,
+                                          CodeAttribute codeAttribute,
+                                          int           offset,
+                                          Label         label)
         {
             // Convert this pseudo-instruction into a corresponding
             // pseudo-instruction for the code attribute editor.
@@ -458,7 +520,11 @@ implements   InstructionVisitor,
         }
 
 
-        public void visitCatchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Catch catch_)
+        public void visitCatchInstruction(Clazz         clazz,
+                                          Method        method,
+                                          CodeAttribute codeAttribute,
+                                          int           offset,
+                                          Catch         catch_)
         {
             // Convert this pseudo-instruction into a corresponding
             // pseudo-instruction for the code attribute editor.
@@ -521,7 +587,8 @@ implements   InstructionVisitor,
         {
             // Create a new name string constant and return its index.
             return new ConstantPoolEditor(programClass).addStringConstant(
-                ClassUtil.externalClassName(programClass.getClassName(instructionSequenceMatcher.matchedConstantIndex(A))),
+                ClassUtil.externalClassName(
+                    programClass.getClassName(instructionSequenceMatcher.matchedConstantIndex(A))),
                 null,
                 null);
         }
@@ -529,7 +596,8 @@ implements   InstructionVisitor,
         {
             // Create a new simple name string constant and return its index.
             return new ConstantPoolEditor(programClass).addStringConstant(
-                ClassUtil.internalSimpleClassName(programClass.getClassName(instructionSequenceMatcher.matchedConstantIndex(A))),
+                ClassUtil.internalSimpleClassName(
+                    programClass.getClassName(instructionSequenceMatcher.matchedConstantIndex(A))),
                 null,
                 null);
         }
@@ -746,36 +814,46 @@ implements   InstructionVisitor,
 
         // Implementations for Instruction.
 
+        @Override
         public Instruction shrink()
         {
             return this;
         }
 
 
+        @Override
         public void write(byte[] code, int offset)
         {
         }
 
 
+        @Override
         protected void readInfo(byte[] code, int offset)
         {
             throw new UnsupportedOperationException("Can't read label instruction");
         }
 
 
+        @Override
         protected void writeInfo(byte[] code, int offset)
         {
             throw new UnsupportedOperationException("Can't write label instruction");
         }
 
 
+        @Override
         public int length(int offset)
         {
             return 0;
         }
 
 
-        public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, InstructionVisitor instructionVisitor)
+        @Override
+        public void accept(Clazz              clazz,
+                           Method             method,
+                           CodeAttribute      codeAttribute,
+                           int                offset,
+                           InstructionVisitor instructionVisitor)
         {
             // Since this is not a standard instruction, it only works with
             // our own instruction visitor.
@@ -852,36 +930,46 @@ implements   InstructionVisitor,
 
        // Implementations for Instruction.
 
+        @Override
         public Instruction shrink()
         {
             return this;
         }
 
 
+        @Override
         public void write(byte[] code, int offset)
         {
         }
 
 
+        @Override
         protected void readInfo(byte[] code, int offset)
         {
             throw new UnsupportedOperationException("Can't read catch instruction");
         }
 
 
+        @Override
         protected void writeInfo(byte[] code, int offset)
         {
             throw new UnsupportedOperationException("Can't write catch instruction");
         }
 
 
+        @Override
         public int length(int offset)
         {
             return super.length(offset);
         }
 
 
-        public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, InstructionVisitor instructionVisitor)
+        @Override
+        public void accept(Clazz              clazz,
+                           Method             method,
+                           CodeAttribute      codeAttribute,
+                           int                offset,
+                           InstructionVisitor instructionVisitor)
         {
             // Since this is not a standard instruction, it only works with
             // our own instruction visitor.
