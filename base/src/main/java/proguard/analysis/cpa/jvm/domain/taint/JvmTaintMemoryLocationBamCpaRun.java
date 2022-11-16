@@ -21,6 +21,8 @@ package proguard.analysis.cpa.jvm.domain.taint;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,8 +35,10 @@ import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbortOperator;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
+import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
@@ -43,7 +47,6 @@ import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationBamCpaRun;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintBamCpaRun.Builder;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode;
@@ -62,8 +65,9 @@ public class JvmTaintMemoryLocationBamCpaRun
     extends JvmMemoryLocationBamCpaRun<SimpleCpa, TaintAbstractState>
 {
 
-    private final Collection<? extends JvmTaintSink>             taintSinks;
-    private       List<BamLocationDependentJvmMemoryLocation<?>> endPoints;
+    private final Collection<? extends JvmTaintSink>                                taintSinks;
+    private       List<BamLocationDependentJvmMemoryLocation<?>>                    endPoints;
+    private       Map<BamLocationDependentJvmMemoryLocation<?>, List<JvmTaintSink>> endPointToSinks;
 
     /**
      * Create a traced taint CPA run.
@@ -134,6 +138,16 @@ public class JvmTaintMemoryLocationBamCpaRun
              memoryLocationAbortOperator);
     }
 
+    public Collection<? extends JvmTaintSink> getTaintSinks()
+    {
+        return taintSinks;
+    }
+
+    public Map<BamLocationDependentJvmMemoryLocation<?>, List<JvmTaintSink>> getEndPointToSinks()
+    {
+        return endPointToSinks;
+    }
+
     // implementations for CpaRun
 
     @Override
@@ -149,8 +163,6 @@ public class JvmTaintMemoryLocationBamCpaRun
     @Override
     public Collection<BamLocationDependentJvmMemoryLocation<?>> getEndPoints()
     {
-        List<BamLocationDependentJvmMemoryLocation<?>> memoryLocations = new ArrayList<>();
-        Map<String, Set<JvmMemoryLocation>> fqnToLocations = JvmTaintSink.convertSinksToMemoryLocations(taintSinks);
         // if the end points have been already computed, return their cached set
         if (endPoints != null)
         {
@@ -163,6 +175,10 @@ public class JvmTaintMemoryLocationBamCpaRun
             execute();
             return endPoints;
         }
+
+        Set<BamLocationDependentJvmMemoryLocation<?>> memoryLocations = new HashSet<>();
+        Map<BamLocationDependentJvmMemoryLocation<?>, List<JvmTaintSink>> endPointToSinks = new HashMap<>();
+        Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> fqnToSinkLocations = JvmTaintSink.convertSinksToMemoryLocations(taintSinks);
 
         // find reached taint sinks in all cached reached sets
         inputCpaRun.getCpa()
@@ -179,21 +195,67 @@ public class JvmTaintMemoryLocationBamCpaRun
                            .stream()
                            .filter(e -> e instanceof CallEdge)
                            .map(e -> ((CallEdge) e).getCall().getTarget().getFqn())
-                           .forEach(fqn -> fqnToLocations.getOrDefault(fqn, Collections.emptySet())
-                                                         .stream()
-                                                         .filter(l -> !l.extractValueOrDefault((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm),
-                                                                                               TaintAbstractState.bottom)
-                                                                        .isEmpty()
-                                                                      || !((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm)).getHeap()
-                                                                                                                                                       .getField(l,
-                                                                                                                                                                 "",
-                                                                                                                                                                 TaintAbstractState.bottom).isEmpty())
-                                                         .forEach(l -> memoryLocations.add(
-                                                             new BamLocationDependentJvmMemoryLocation(l,
-                                                                                                       ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) state).getProgramLocation(),
-                                                                                                       (ProgramLocationDependentReachedSet) reachedSet))))));
+                           .forEach(fqn -> createEndpointsForFqnSinksIfTainted(reachedSet, state, fqn, fqnToSinkLocations, memoryLocations, endPointToSinks))));
 
-        return endPoints = memoryLocations;
+        this.endPointToSinks = endPointToSinks;
+        return endPoints = new ArrayList<>(memoryLocations);
+    }
+
+    /**
+     * Creates a endpoint (entry point of the {@link JvmMemoryLocationCpa}) for each tainted location of a sink.
+     *
+     * @param reachedSet         A reached set containing the abstraction for one (or multiple if the entry states match) method calls
+     * @param state              A state that has to be checked to be a sink reached by a taint
+     * @param fqn                The fqn of the potential sink
+     * @param fqnToSinkLocations A map from fqn to corresponding {@link JvmTaintSink}s to all the locations that trigger the sink if tainted
+     * @param memoryLocations    A set of endpoints. In case of tainted sink locations new states are added here
+     * @param endPointToSinks    A mapping from the detected endpoints to corresponding sinks. In case of tainted sink locations new states are added here
+     */
+    private void createEndpointsForFqnSinksIfTainted(ReachedSet reachedSet,
+                                                     AbstractState state,
+                                                     String fqn,
+                                                     Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> fqnToSinkLocations,
+                                                     Set<BamLocationDependentJvmMemoryLocation<?>> memoryLocations,
+                                                     Map<BamLocationDependentJvmMemoryLocation<?>, List<JvmTaintSink>> endPointToSinks)
+    {
+        fqnToSinkLocations.getOrDefault(fqn, Collections.emptyMap())
+                          .entrySet()
+                          .stream()
+                          .forEach(
+                              e -> e.getValue()
+                                    .stream()
+                                    .filter(l -> isStateTaintedForMemoryLocation((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm), l))
+                                    .forEach(l -> createAndAddEndpoint(reachedSet, state, l, e.getKey(), memoryLocations, endPointToSinks)));
+    }
+
+    /**
+     * Creates and adds an endpoint for a sink memory location triggered by a taint.
+     *
+     * @param reachedSet      A reached set containing the abstraction for one (or multiple if the entry states match) method calls
+     * @param state           A state where a sink is reached by a taint
+     * @param taintLocation   A sensitive location where the taint reaches the sink
+     * @param sink            A sink reached by a taint
+     * @param memoryLocations A set of endpoints. The new state is added here
+     * @param endPointToSinks A mapping from the detected endpoints to corresponding sinks. The new state is added here
+     */
+    private void createAndAddEndpoint(ReachedSet reachedSet,
+                                      AbstractState state,
+                                      JvmMemoryLocation taintLocation,
+                                      JvmTaintSink sink,
+                                      Set<BamLocationDependentJvmMemoryLocation<?>> memoryLocations,
+                                      Map<BamLocationDependentJvmMemoryLocation<?>, List<JvmTaintSink>> endPointToSinks)
+    {
+        BamLocationDependentJvmMemoryLocation<?> memoryLocation = new BamLocationDependentJvmMemoryLocation(taintLocation,
+                                                                                                            ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) state).getProgramLocation(),
+                                                                                                            (ProgramLocationDependentReachedSet) reachedSet);
+        memoryLocations.add(memoryLocation);
+        endPointToSinks.computeIfAbsent(memoryLocation, x -> new ArrayList<>()).add(sink);
+    }
+
+    private boolean isStateTaintedForMemoryLocation(JvmAbstractState<TaintAbstractState> state, JvmMemoryLocation memoryLocation)
+    {
+        return !memoryLocation.extractValueOrDefault(state, TaintAbstractState.bottom).isEmpty()
+               || !state.getHeap().getField(memoryLocation, "", TaintAbstractState.bottom).isEmpty();
     }
 
     /**

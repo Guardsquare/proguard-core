@@ -68,17 +68,13 @@ public class JvmTaintSink
         return result;
     }
 
-    public static Map<String, Set<JvmMemoryLocation>> convertSinksToMemoryLocations(Collection<? extends JvmTaintSink> taintSinks)
+    public static Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> convertSinksToMemoryLocations(Collection<? extends JvmTaintSink> taintSinks)
     {
-        Map<String, Set<JvmMemoryLocation>> result = new HashMap<>();
+        Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> result = new HashMap<>();
         for (JvmTaintSink taintSink : taintSinks)
         {
             Set<JvmMemoryLocation> memoryLocations = taintSink.getMemoryLocations();
-            result.merge(taintSink.fqn, memoryLocations, (fqn, ls) ->
-            {
-                ls.addAll(memoryLocations);
-                return ls;
-            });
+            result.computeIfAbsent(taintSink.fqn, x -> new HashMap<>()).put(taintSink, memoryLocations);
         }
         return result;
     }

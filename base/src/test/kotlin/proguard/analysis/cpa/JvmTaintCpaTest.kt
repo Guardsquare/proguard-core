@@ -73,7 +73,7 @@ class JvmTaintCpaTest : FreeSpec({
         val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"
         val jvmTaintBamCpaRunBuilder = JvmTaintBamCpaRun.Builder().setStaticFieldMapAbstractStateFactory(staticFieldMapAbstractStateFactory)
 
-        "Simple flow is detected$testNameSuffix" - {
+        "Simple flow is detected$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -117,7 +117,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf(taintSourceReturn1)
         }
 
-        "Taint can be overwritten$testNameSuffix" - {
+        "Taint can be overwritten$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -162,7 +162,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf()
         }
 
-        "Taints combine upon merge$testNameSuffix" - {
+        "Taints combine upon merge$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -218,7 +218,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf(taintSourceReturn1, taintSourceReturn2)
         }
 
-        "Taint propagates along loops$testNameSuffix" - {
+        "Taint propagates along loops$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -272,7 +272,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf(taintSourceReturn1, taintSourceReturn2)
         }
 
-        "Taint propagates through static fields$testNameSuffix" - {
+        "Taint propagates through static fields$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -314,7 +314,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).getStaticOrDefault("A.s", TaintAbstractState.bottom) shouldBe setOf(taintSourceStatic)
         }
 
-        "Taint flows through the return value of a non-tainting function$testNameSuffix" - {
+        "Taint flows through the return value of a non-tainting function$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -363,7 +363,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf(taintSourceReturn1)
         }
 
-        "Taint flows through static field tainted in a function call$testNameSuffix" - {
+        "Taint flows through static field tainted in a function call$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -412,7 +412,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).getStaticOrDefault("A.s", TaintAbstractState.bottom) shouldBe setOf(taintSourceReturn1)
         }
 
-        "Recursive function analysis converges$testNameSuffix" - {
+        "Recursive function analysis converges$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -468,7 +468,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf(taintSourceReturn1)
         }
 
-        "Merging works interprocedurally$testNameSuffix" - {
+        "Merging works interprocedurally$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -529,7 +529,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).peek() shouldBe setOf(taintSourceReturn1, taintSourceReturn2)
         }
 
-        "Tail recursion analysis converges$testNameSuffix" - {
+        "Tail recursion analysis converges$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
@@ -587,7 +587,7 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<TaintAbstractState>).getStaticOrDefault("A.s", TaintAbstractState.bottom) shouldBe setOf(taintSourceStatic)
         }
 
-        "Category 2 taint sources taint only top of the stack$testNameSuffix" - {
+        "Category 2 taint sources taint only top of the stack$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
                 ClassPoolBuilder.fromSource(
                     JavaSource(
