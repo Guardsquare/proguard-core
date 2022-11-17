@@ -1,3 +1,9 @@
+## Version 9.0.7
+
+### Improved
+
+- Don't report warnings for missing Kotlin default implementation classes when initiazing with `ClassReferenceInitializer`.
+
 ## Version 9.0.6
 
 ### Improved
