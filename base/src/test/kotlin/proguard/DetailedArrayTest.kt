@@ -41,7 +41,7 @@ class DetailedArrayTest : FreeSpec({
             """
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g"))
+            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",

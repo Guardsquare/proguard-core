@@ -31,7 +31,8 @@ class MethodLinkerTest : FreeSpec({
                         public final void foo() { }
                     }
                 """.trimIndent()
-            )
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8")
         )
 
         "When the subclass is repackaged" - {

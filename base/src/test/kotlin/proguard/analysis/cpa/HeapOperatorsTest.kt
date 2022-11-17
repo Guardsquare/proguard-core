@@ -35,7 +35,6 @@ import proguard.testutils.RequiresJavaVersion
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
-@RequiresJavaVersion(8, 17) // TODO: fails on Java 18+
 @Ignored
 class HeapOperatorsTest : FreeSpec({
 
@@ -180,7 +179,8 @@ class HeapOperatorsTest : FreeSpec({
                     }
                 }
                                 """.trimIndent()
-                            )
+                            ),
+                            javacArguments = listOf("-source", "1.8", "-target", "1.8")
                         ).programClassPool
                     )
 

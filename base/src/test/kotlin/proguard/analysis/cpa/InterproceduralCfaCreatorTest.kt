@@ -64,7 +64,8 @@ class InterproceduralCfaCreatorTest : FreeSpec({
                         }
                     }
                 """.trimIndent()
-            )
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8")
         ).programClassPool
         val cfa = CfaUtil.createInterproceduralCfaFromClassPool(classPool)
 

@@ -87,7 +87,7 @@ public class MultiTypedReferenceValue extends ReferenceValue
                 {
                     generalizedType = (TypedReferenceValue) newGeneralizedType;
                 }
-                else if ((newGeneralizedType instanceof UnknownReferenceValue) && TypedReferenceValue.ALLOW_INCOMPLETE_CLASS_HIERARCHY)
+                else if ((newGeneralizedType instanceof UnknownReferenceValue) && TypedReferenceValue.allowsIncompleteClassHierarchy())
                 {
                     if (type.isNull() == Value.NEVER)
                     {

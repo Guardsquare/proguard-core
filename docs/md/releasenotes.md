@@ -47,6 +47,7 @@
 - Add `DataEntryClassInfoFilter`.
 - Add `NamedDataEntry`.
 - Refactor `CodeLocation#getClassName` as `getExternalClassName` to comply with the types naming convention.
+- Make `TypedReferenceValue.ALLOW_INCOMPLETE_CLASS_HIERARCHY` private, add a getter `TypedReferenceValue.allowsIncompleteClassHierarchy()` instead.
 
 ### Bug fixes
 

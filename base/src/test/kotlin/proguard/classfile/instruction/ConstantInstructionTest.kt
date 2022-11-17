@@ -44,7 +44,8 @@ class ConstantInstructionTest : FreeSpec({
                     }
                 }
                     """.trimIndent()
-                )
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8")
             )
 
             val clazz = programClassPool.getClass("Foo")

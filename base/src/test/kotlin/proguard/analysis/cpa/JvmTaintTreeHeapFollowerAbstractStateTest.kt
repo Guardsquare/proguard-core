@@ -212,7 +212,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -259,7 +260,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -309,7 +311,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                                 """.trimIndent()
-                                            )
+                                            ),
+                                            javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                         ).programClassPool
                                     )
                                     val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -352,7 +355,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -400,7 +404,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -444,7 +449,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -484,7 +490,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -533,7 +540,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -581,7 +589,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -634,7 +643,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -688,7 +698,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -740,7 +751,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -792,7 +804,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -841,7 +854,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -896,7 +910,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -952,7 +967,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -1011,7 +1027,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
@@ -1079,7 +1096,8 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
                                                 }
                                             }
                                             """.trimIndent()
-                                        )
+                                        ),
+                                        javacArguments = listOf("-source", "1.8", "-target", "1.8")
                                     ).programClassPool
                                 )
                                 val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
