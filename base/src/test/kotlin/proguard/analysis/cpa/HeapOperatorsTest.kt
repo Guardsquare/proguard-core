@@ -31,7 +31,6 @@ import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
-import proguard.testutils.RequiresJavaVersion
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 

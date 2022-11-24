@@ -20,7 +20,6 @@ import proguard.evaluation.value.Value
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
-import proguard.testutils.RequiresJavaVersion
 
 class MultiTypeTest : FreeSpec({
 
