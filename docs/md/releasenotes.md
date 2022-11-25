@@ -7,6 +7,10 @@
 ### Bug fixes
 - Fix the reduce operator producing a wrong `JvmAbstractState` for the composite taint analysis.
 
+### Bug fixes
+
+- Fix potential `expected Precise Reference` runtime verifier error.
+
 ## Version 9.0.6
 
 ### Improved

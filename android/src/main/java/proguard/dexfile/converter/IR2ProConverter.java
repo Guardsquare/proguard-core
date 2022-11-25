@@ -734,7 +734,7 @@ public class IR2ProConverter {
                 sb.append(nmae.baseType);
                 return code.multianewarray(sb.toString(), null, value.ops.length);
             case INVOKE_NEW:
-                code.new_(toInternal(((InvokeExpr) value).getOwner()))
+                code.new_(toInternal(((InvokeNewExpr) value).getClassName()))
                         .dup();
                 // pass through
             case INVOKE_INTERFACE:
