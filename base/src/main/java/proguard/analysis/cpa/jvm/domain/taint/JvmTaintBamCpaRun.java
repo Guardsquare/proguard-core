@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import proguard.analysis.cpa.bam.ExpandOperator;
+import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.SetAbstractState;
@@ -39,10 +40,13 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.reference.CompositeHeapJvmAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.CompositeHeapTransferRelation;
 import proguard.analysis.cpa.jvm.domain.reference.JvmCompositeHeapExpandOperator;
+import proguard.analysis.cpa.jvm.domain.reference.JvmCompositeHeapReduceOperator;
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceExpandOperator;
+import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceReduceOperator;
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceTransferRelation;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
+import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
@@ -130,6 +134,20 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
                                                                                      new JvmTaintTransferRelation(JvmTaintCpa.createSourcesMap(taintSources)))),
                                      new MergeJoinOperator(abstractDomain),
                                      new StopJoinOperator(abstractDomain));
+            default:
+                throw new IllegalArgumentException("Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
+        }
+    }
+
+    @Override
+    public ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createReduceOperator()
+    {
+        switch (heapModel)
+        {
+            case TREE:
+            case TAINT_TREE:
+                return new JvmCompositeHeapReduceOperator(Arrays.asList(new JvmReferenceReduceOperator(reduceHeap),
+                                                                        new JvmTaintReduceOperator(reduceHeap)));
             default:
                 throw new IllegalArgumentException("Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
         }

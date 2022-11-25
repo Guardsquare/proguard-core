@@ -2,7 +2,10 @@
 
 ### Improved
 
-- Don't report warnings for missing Kotlin default implementation classes when initiazing with `ClassReferenceInitializer`.
+- Don't report warnings for missing Kotlin default implementation classes when initializing with `ClassReferenceInitializer`.
+
+### Bug fixes
+- Fix the reduce operator producing a wrong `JvmAbstractState` for the composite taint analysis.
 
 ## Version 9.0.6
 

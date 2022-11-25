@@ -47,7 +47,6 @@ import proguard.classfile.util.ClassUtil;
 public class JvmTaintTransferRelation
     extends JvmTransferRelation<TaintAbstractState>
 {
-
     private final Map<String, TaintSource> taintSources;
 
     /**
