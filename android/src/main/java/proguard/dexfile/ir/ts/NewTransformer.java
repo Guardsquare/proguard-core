@@ -72,7 +72,7 @@ public class NewTransformer implements Transformer {
             if (p.st == Stmt.ST.ASSIGN && p.getOp1().vt == Value.VT.LOCAL && p.getOp2().vt == Value.VT.NEW) {
                 // the stmt is a new assign stmt
                 Local local = (Local) p.getOp1();
-                init.put(local, new TObject(local, (AssignStmt) p));
+                init.put(local, new TObject(local, (NewExpr)p.getOp2()));
             }
         }
 
@@ -153,7 +153,7 @@ public class NewTransformer implements Transformer {
             InvokeExpr ie = findInvokeExpr(obj.invokeStmt);
             Value[] orgOps = ie.getOps();
             Value[] nOps = Arrays.copyOfRange(orgOps, 1, orgOps.length);
-            InvokeExpr invokeNew = Exprs.nInvokeNew(nOps, ie.getArgs(), ie.getOwner());
+            InvokeExpr invokeNew = Exprs.nInvokeNew(nOps, ie.getArgs(), ie.getOwner(), obj.init.type);
             method.stmts.replace(obj.invokeStmt, Stmts.nAssign(obj.local, invokeNew));
         }
     }
@@ -368,9 +368,9 @@ public class NewTransformer implements Transformer {
         public Stmt invokeStmt;
         Local local;
         boolean useBeforeInit;
-        private AssignStmt init;
+        private final NewExpr init;
 
-        TObject(Local local, AssignStmt init) {
+        TObject(Local local, NewExpr init) {
             this.local = local;
             this.init = init;
         }

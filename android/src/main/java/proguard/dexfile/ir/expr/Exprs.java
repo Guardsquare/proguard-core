@@ -177,7 +177,11 @@ public final class Exprs {
     }
 
     public static InvokeExpr nInvokeNew(Value[] regs, String[] argmentTypes, String owner) {
-        return new InvokeExpr(Value.VT.INVOKE_NEW, regs, owner, "<init>", argmentTypes, owner);
+        return new InvokeNewExpr(Value.VT.INVOKE_NEW, regs, owner, "<init>", argmentTypes, owner);
+    }
+
+    public static InvokeExpr nInvokeNew(Value[] regs, String[] argmentTypes, String owner, String className) {
+        return new InvokeNewExpr(Value.VT.INVOKE_NEW, regs, owner, "<init>", argmentTypes, owner, className);
     }
 
     public static InvokeExpr nInvokeSpecial(Value[] regs, String owner, String name, String[] argmentTypes,
