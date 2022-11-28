@@ -149,7 +149,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
                 return new JvmCompositeHeapReduceOperator(Arrays.asList(new JvmReferenceReduceOperator(reduceHeap),
                                                                         new JvmTaintReduceOperator(reduceHeap)));
             default:
-                throw new IllegalArgumentException("Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
+                return super.createReduceOperator();
         }
     }
 
