@@ -3,10 +3,12 @@
 ### Improved
 
 - Don't report warnings for missing Kotlin default implementation classes when initializing with `ClassReferenceInitializer`.
+- Only link matching methods in Kotlin file facades with `MethodLinker`.
 
 ### Bug fixes
 - Fix the reduce operator producing a wrong `JvmAbstractState` for the composite taint analysis.
 - Fix potential `expected Precise Reference` runtime verifier error.
+- Don't report warnings for missing Kotlin default implementation classes when initiazing with `ClassReferenceInitializer`.
 
 ## Version 9.0.6
 

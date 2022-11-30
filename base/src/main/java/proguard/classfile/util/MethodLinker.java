@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,30 @@
  */
 package proguard.classfile.util;
 
-import proguard.classfile.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.Clazz;
+import proguard.classfile.LibraryMember;
+import proguard.classfile.Member;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
-import proguard.classfile.constant.*;
+import proguard.classfile.constant.AnyMethodrefConstant;
+import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.instruction.visitor.*;
-import proguard.classfile.kotlin.*;
+import proguard.classfile.instruction.visitor.AllInstructionVisitor;
+import proguard.classfile.instruction.visitor.InstructionConstantVisitor;
+import proguard.classfile.instruction.visitor.InstructionOpCodeFilter;
+import proguard.classfile.kotlin.KotlinMetadata;
+import proguard.classfile.kotlin.KotlinMultiFileFacadeKindMetadata;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
-import proguard.classfile.visitor.*;
+import proguard.classfile.visitor.AllMethodVisitor;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberAccessFilter;
+import proguard.classfile.visitor.MemberVisitor;
 import proguard.util.Processable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import static proguard.classfile.instruction.Instruction.OP_INVOKESTATIC;
 
 /**
  * This {@link ClassVisitor} links all corresponding non-private, non-static,
@@ -194,7 +207,8 @@ implements   ClassVisitor,
             multiFileFacadeMember.accept(clazz,
                 new AllAttributeVisitor(
                 new AllInstructionVisitor(
-                new InstructionConstantVisitor(this))));
+                new InstructionOpCodeFilter(new int[] { OP_INVOKESTATIC },
+                new InstructionConstantVisitor(this)))));
         }
 
         // Implementations for ConstantVisitor.
@@ -205,7 +219,12 @@ implements   ClassVisitor,
         @Override
         public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant)
         {
-            link(multiFileFacadeMember, anyMethodrefConstant.referencedMethod);
+            if (multiFileFacadeMember.getName(clazz).equals(anyMethodrefConstant.getName(clazz))       &&
+                multiFileFacadeMember.getDescriptor(clazz).equals(anyMethodrefConstant.getType(clazz)) &&
+                anyMethodrefConstant.referencedMethod != null)
+            {
+                link(multiFileFacadeMember, anyMethodrefConstant.referencedMethod);
+            }
         }
     }
 }
