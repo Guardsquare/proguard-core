@@ -265,7 +265,7 @@ implements   AttributeVisitor
      * Adds the required instructions to the provided CodeAttributeComposer
      * to convert the current value on the stack to the given targetType.
      */
-    public void convertToTargetType(String sourceType, String targetType)
+    public CompactCodeAttributeComposer convertToTargetType(String sourceType, String targetType)
     {
         if (ClassUtil.isInternalPrimitiveType(sourceType) &&
             !ClassUtil.isInternalPrimitiveType(targetType))
@@ -295,6 +295,7 @@ implements   AttributeVisitor
             char target = targetType.charAt(0);
             this.convertPrimitiveType(source, target);
         }
+        return this;
     }
 
     /**
@@ -305,7 +306,7 @@ implements   AttributeVisitor
      *
      * @param sourceType type of the primitive on the stack.
      */
-    public void boxPrimitiveType(char sourceType)
+    public CompactCodeAttributeComposer boxPrimitiveType(char sourceType)
     {
         // Perform auto-boxing.
         switch (sourceType)
@@ -358,10 +359,16 @@ implements   AttributeVisitor
                         METHOD_TYPE_VALUE_OF_DOUBLE);
                 break;
         }
+        return this;
     }
 
 
-    public void convertPrimitiveType(char source, char target)
+    /**
+     * Add instructions to convert the primitive on the stack to a different primitive type.
+     * @param source The source type.
+     * @param target The target type.
+     */
+    public CompactCodeAttributeComposer convertPrimitiveType(char source, char target)
     {
         //If we start from a short, byte or char, we can treat it as an int without instructions
         if (source == TypeConstants.SHORT ||
@@ -475,6 +482,7 @@ implements   AttributeVisitor
                 }
                 break;
         }
+        return this;
     }
 
 
@@ -487,7 +495,7 @@ implements   AttributeVisitor
      * @param sourceType type of the primitive that should be unboxed.
      * @param targetType resulting type.
      */
-    public void unboxPrimitiveType(String sourceType, String targetType)
+    public CompactCodeAttributeComposer unboxPrimitiveType(String sourceType, String targetType)
     {
         boolean castRequired = sourceType.equals(TYPE_JAVA_LANG_OBJECT);
 
@@ -558,6 +566,7 @@ implements   AttributeVisitor
                 this.invokevirtual(NAME_JAVA_LANG_NUMBER, METHOD_NAME_DOUBLE_VALUE, METHOD_TYPE_DOUBLE_VALUE);
                 break;
         }
+        return this;
     }
 
 
