@@ -10,6 +10,9 @@
 - Fix potential `expected Precise Reference` runtime verifier error.
 - Don't report warnings for missing Kotlin default implementation classes when initiazing with `ClassReferenceInitializer`.
 
+### API Improvements
+- Add `KotlinMetadataAsserter` to check the integrity of Kotlin metadata.
+
 ## Version 9.0.6
 
 ### Improved
