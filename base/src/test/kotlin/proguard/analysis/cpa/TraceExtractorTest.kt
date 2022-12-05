@@ -30,6 +30,7 @@ import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import java.util.Optional
 
 class TraceExtractorTest : StringSpec({
 
@@ -85,7 +86,7 @@ class TraceExtractorTest : StringSpec({
     listOf(
         HashMapAbstractStateFactory.getInstance(),
         DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false },
-        LimitedHashMapAbstractStateFactory { _, _, _ -> false }
+        LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
     ).forEach { staticFieldMapAbstractStateFactory ->
 
         val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"

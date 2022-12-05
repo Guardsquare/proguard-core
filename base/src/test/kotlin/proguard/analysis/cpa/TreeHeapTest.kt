@@ -36,6 +36,7 @@ import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import java.util.Optional
 
 @Ignored
 class TreeHeapTest : StringSpec({
@@ -67,17 +68,17 @@ class TreeHeapTest : StringSpec({
     listOf(
         HashMapAbstractStateFactory.getInstance(),
         DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false },
-        LimitedHashMapAbstractStateFactory { _, _, _ -> false }
+        LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
     ).forEach { staticFieldMapAbstractStateFactory ->
         listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>>>>(
             Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
             Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
-            Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> false }, LimitedHashMapAbstractStateFactory { _, _, _ -> false })
+            Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
         ).forEach { (principalHeapMapAbstractStateFactory, followerHeapMapAbstractStateFactory) ->
             listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, TaintAbstractState>>>(
                 Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
                 Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
-                Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> false }, LimitedHashMapAbstractStateFactory { _, _, _ -> false })
+                Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
             ).forEach { (principalHeapNodeMapAbstractStateFactory, followerHeapNodeMapAbstractStateFactory) ->
                 listOf(false, true).forEach { reduceHeap ->
 

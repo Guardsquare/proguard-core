@@ -24,13 +24,14 @@ import proguard.analysis.cpa.defaults.DifferentialMapAbstractState
 import proguard.analysis.cpa.defaults.HashMapAbstractState
 import proguard.analysis.cpa.defaults.LimitedHashMapAbstractState
 import proguard.testutils.cpa.IntegerAbstractState
+import java.util.Optional
 
 class MapAbstractStateTest : FreeSpec({
 
     listOf(
         { HashMapAbstractState<Int, IntegerAbstractState>() },
         { DifferentialMapAbstractState() },
-        { LimitedHashMapAbstractState { _, _, _ -> false } }
+        { LimitedHashMapAbstractState { _, _, _ -> Optional.empty() } }
     ).forEach { supplier ->
 
         val stateEmpty = supplier.invoke()

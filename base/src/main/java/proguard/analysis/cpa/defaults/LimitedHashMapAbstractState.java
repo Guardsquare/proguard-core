@@ -19,7 +19,9 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.Map;
-import proguard.analysis.cpa.jvm.util.TriPredicate;
+import java.util.Optional;
+import proguard.analysis.cpa.util.TriFunction;
+import proguard.analysis.cpa.util.TriPredicate;
 
 /**
  * This {@link LimitedHashMapAbstractState} represents a limited map to {@link LatticeAbstractState}s with the semilattice operators lifted to the map.
@@ -34,33 +36,39 @@ public class LimitedHashMapAbstractState<KeyT, AbstractSpaceT extends LatticeAbs
     /**
      * Create an empty limited hash map abstract state.
      *
-     * @param limitReached    whether the size limit of the map is reached and no further mappings can be added
+     * @param removeElement determines whether the map limit is reached
+     *                      if it returns an empty value, the map behaves as usual
+     *                      otherwise, the returned key is removed from the map
      */
-    public LimitedHashMapAbstractState(TriPredicate<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT> limitReached)
+    public LimitedHashMapAbstractState(TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>> removeElement)
     {
-        super(limitReached);
+        super(removeElement);
     }
 
     /**
      * Create an empty limited hash map abstract state with reserved initial capacity.
      *
      * @param initialCapacity the initial capacity of the hash table
-     * @param limitReached    whether the size limit of the map is reached and no further mappings can be added
+     * @param removeElement   determines whether the map limit is reached
+     *                        if it returns an empty value, the map behaves as usual
+     *                        otherwise, the returned key is removed from the map
      *
      */
-    public LimitedHashMapAbstractState(int initialCapacity, TriPredicate<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT> limitReached)
+    public LimitedHashMapAbstractState(int initialCapacity, TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>> removeElement)
     {
-        super(initialCapacity, limitReached);
+        super(initialCapacity, removeElement);
     }
 
     /**
      * Create a hash map abstract state from another map.
      *
-     * @param m map which elements are used for initialization
-     * @param limitReached    whether the size limit of the map is reached and no further mappings can be added
+     * @param m             map which elements are used for initialization
+     * @param removeElement determines whether the map limit is reached
+     *                      if it returns an empty value, the map behaves as usual
+     *                      otherwise, the returned key is removed from the map
      */
-    public LimitedHashMapAbstractState(Map<? extends KeyT, ? extends AbstractSpaceT> m, TriPredicate<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT> limitReached) {
-        super(m, limitReached);
+    public LimitedHashMapAbstractState(Map<? extends KeyT, ? extends AbstractSpaceT> m, TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>> removeElement) {
+        super(m, removeElement);
     }
 
     // implementations for AbstractState
@@ -68,7 +76,7 @@ public class LimitedHashMapAbstractState<KeyT, AbstractSpaceT extends LatticeAbs
     @Override
     public LimitedHashMapAbstractState<KeyT, AbstractSpaceT> copy()
     {
-        return new LimitedHashMapAbstractState<>(this, limitReached);
+        return new LimitedHashMapAbstractState<>(this, removeElement);
     }
 
 }

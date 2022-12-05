@@ -207,7 +207,7 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
                                                                      .collect(Collectors.toMap(Entry::getKey,
                                                                                                e -> e.getValue().copy(),
                                                                                                HeapNode::join,
-                                                                                               () -> new HashMapAbstractState<>(referenceToNode))),
+                                                                                               heapMapAbstractStateFactory::createMapAbstractState)),
                                                       heapMapAbstractStateFactory,
                                                       heapNodeMapAbstractStateFactory);
     }

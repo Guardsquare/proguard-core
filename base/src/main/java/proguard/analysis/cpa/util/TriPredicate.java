@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package proguard.analysis.cpa.jvm.util;
+package proguard.analysis.cpa.util;
 
 import java.util.Objects;
 

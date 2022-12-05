@@ -18,12 +18,11 @@
 
 package proguard.analysis.cpa.state;
 
-import proguard.analysis.cpa.defaults.HashMapAbstractState;
+import java.util.Optional;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.LimitedHashMap;
 import proguard.analysis.cpa.defaults.LimitedHashMapAbstractState;
-import proguard.analysis.cpa.defaults.MapAbstractState;
-import proguard.analysis.cpa.jvm.util.TriPredicate;
+import proguard.analysis.cpa.util.TriFunction;
 
 /**
  * This interface contains a method creating a fresh instance of {@link LimitedHashMapAbstractState}.
@@ -34,11 +33,11 @@ public class LimitedHashMapAbstractStateFactory<KeyT, AbstractSpaceT extends Lat
     implements MapAbstractStateFactory<KeyT, AbstractSpaceT>
 {
 
-    private final TriPredicate<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT> limitReached;
+    private final TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>> removeElement;
 
-    public LimitedHashMapAbstractStateFactory(TriPredicate<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT> limitReached)
+    public LimitedHashMapAbstractStateFactory(TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>> removeElement)
     {
-        this.limitReached = limitReached;
+        this.removeElement = removeElement;
     }
 
     // implementations for MapAbstractStateFactory
@@ -46,6 +45,6 @@ public class LimitedHashMapAbstractStateFactory<KeyT, AbstractSpaceT extends Lat
     @Override
     public LimitedHashMapAbstractState<KeyT, AbstractSpaceT> createMapAbstractState()
     {
-        return new LimitedHashMapAbstractState<>(limitReached);
+        return new LimitedHashMapAbstractState<>(removeElement);
     }
 }
