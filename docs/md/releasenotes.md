@@ -13,6 +13,10 @@
 
 ### API Improvements
 - Add `KotlinMetadataAsserter` to check the integrity of Kotlin metadata.
+- Add `JvmReturnTaintSink` to support return instruction sinks in taint analysis.
+
+### API changes
+- `JvmTaintSink` has been generalized, use `JvmInvokeTaintSink` to have the old functionalities.
 
 ## Version 9.0.6
 

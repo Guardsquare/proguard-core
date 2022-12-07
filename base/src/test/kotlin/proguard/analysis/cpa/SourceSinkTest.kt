@@ -3,8 +3,8 @@ package proguard.analysis.cpa
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import proguard.analysis.cpa.domain.taint.TaintSink
 import proguard.analysis.cpa.domain.taint.TaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 
 class SourceSinkTest : FreeSpec({
     "Taint sources" - {
@@ -42,19 +42,19 @@ class SourceSinkTest : FreeSpec({
     }
 
     "Taint sinks" - {
-        val sink1 = TaintSink(
+        val sink1 = JvmInvokeTaintSink(
             "LTest;sink1(Ljava/lang/String;II)V",
             true,
             setOf(1, 3),
             setOf("Test.field", "Test.other")
         )
-        val sink1Copy = TaintSink(
+        val sink1Copy = JvmInvokeTaintSink(
             "LTest;sink1(Ljava/lang/String;II)V",
             true,
             setOf(1, 3),
             setOf("Test.field", "Test.other")
         )
-        val sink2 = TaintSink(
+        val sink2 = JvmInvokeTaintSink(
             "LTest;sink2(Ljava/lang/String;)V",
             false,
             setOf(1),

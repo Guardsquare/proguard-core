@@ -36,7 +36,6 @@ import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
@@ -188,14 +187,10 @@ public class JvmTaintMemoryLocationBamCpaRun
                    .map(BlockAbstraction::getReachedSet)
                    .forEach(reachedSet -> reachedSet
                        .asCollection()
-                       .stream()
                        .forEach(state -> ((JvmAbstractState<TaintAbstractState>) state.getStateByName(StateNames.Jvm))
                            .getProgramLocation()
                            .getLeavingEdges()
-                           .stream()
-                           .filter(e -> e instanceof CallEdge)
-                           .map(e -> ((CallEdge) e).getCall().getTarget().getFqn())
-                           .forEach(fqn -> createEndpointsForFqnSinksIfTainted(reachedSet, state, fqn, fqnToSinkLocations, memoryLocations, endPointToSinks))));
+                           .forEach(edge -> createEndpointsForEdgeIfTainted(reachedSet, state, edge, fqnToSinkLocations, memoryLocations, endPointToSinks))));
 
         this.endPointToSinks = endPointToSinks;
         return endPoints = new ArrayList<>(memoryLocations);
@@ -206,21 +201,22 @@ public class JvmTaintMemoryLocationBamCpaRun
      *
      * @param reachedSet         A reached set containing the abstraction for one (or multiple if the entry states match) method calls
      * @param state              A state that has to be checked to be a sink reached by a taint
-     * @param fqn                The fqn of the potential sink
+     * @param edge               A CFA edge that will be checked if it corresponds to a sink
      * @param fqnToSinkLocations A map from fqn to corresponding {@link JvmTaintSink}s to all the locations that trigger the sink if tainted
      * @param memoryLocations    A set of endpoints. In case of tainted sink locations new states are added here
      * @param endPointToSinks    A mapping from the detected endpoints to corresponding sinks. In case of tainted sink locations new states are added here
      */
-    private void createEndpointsForFqnSinksIfTainted(ReachedSet reachedSet,
+    private void createEndpointsForEdgeIfTainted(ReachedSet reachedSet,
                                                      AbstractState state,
-                                                     String fqn,
+                                                     JvmCfaEdge edge,
                                                      Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> fqnToSinkLocations,
                                                      Set<BamLocationDependentJvmMemoryLocation<?>> memoryLocations,
                                                      Map<BamLocationDependentJvmMemoryLocation<?>, List<JvmTaintSink>> endPointToSinks)
     {
-        fqnToSinkLocations.getOrDefault(fqn, Collections.emptyMap())
+        fqnToSinkLocations.getOrDefault(edge.targetSignature().getFqn(), Collections.emptyMap())
                           .entrySet()
                           .stream()
+                          .filter(e -> e.getKey().matchCfaEdge(edge))
                           .forEach(
                               e -> e.getValue()
                                     .stream()
@@ -229,7 +225,7 @@ public class JvmTaintMemoryLocationBamCpaRun
     }
 
     /**
-     * Creates and adds an endpoint for a sink memory location triggered by a taint.
+     * Creates and adds an endpoint for each taint sink corresponding to a CFA edge triggered by a taint.
      *
      * @param reachedSet      A reached set containing the abstraction for one (or multiple if the entry states match) method calls
      * @param state           A state where a sink is reached by a taint

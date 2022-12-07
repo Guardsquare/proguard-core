@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.classfile.util.ClassUtil;
 import proguard.analysis.cpa.domain.taint.TaintSink;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
@@ -30,43 +31,29 @@ import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 
 /**
- * The {@link JvmTaintSink} adds an interface for extracting sensitive JVM memory locations.
+ * The {@link JvmTaintSink} adds an interface for extracting sensitive JVM memory locations and to check
+ * if the sink matches a given cfa edge.
  *
  * @author Dmitry Ivanov
  */
-public class JvmTaintSink
+public abstract class JvmTaintSink
     extends TaintSink
 {
 
-    /**
-     * Create a taint sink.
-     *
-     * @param fqn           the fully qualified name of a sink method
-     * @param takesInstance whether the sink is sensitive to the calling instance
-     * @param takesArgs     a set of sensitive arguments
-     * @param takesGlobals  a set of sensitive global variables
-     */
-    public JvmTaintSink(String fqn, boolean takesInstance, Set<Integer> takesArgs, Set<String> takesGlobals)
+    public JvmTaintSink(String fqn)
     {
-        super(fqn, takesInstance, takesArgs, takesGlobals);
+        super(fqn);
     }
 
     /**
      * Returns memory locations which trigger this taint sink.
      */
-    public Set<JvmMemoryLocation> getMemoryLocations()
-    {
-        Set<JvmMemoryLocation> result = new HashSet<>();
-        String descriptor = fqn.substring(fqn.indexOf("("));
-        int parameterSize = ClassUtil.internalMethodParameterSize(descriptor);
-        if (takesInstance)
-        {
-            result.add(new JvmStackLocation(parameterSize));
-        }
-        takesArgs.forEach(i -> result.add(new JvmStackLocation(parameterSize - ClassUtil.internalMethodVariableIndex(descriptor, true, i))));
-        takesGlobals.forEach(fqn -> result.add(new JvmStaticFieldLocation(fqn)));
-        return result;
-    }
+    public abstract Set<JvmMemoryLocation> getMemoryLocations();
+
+    /**
+     * Returns whether the sink matches a given CFA edge.
+     */
+    public abstract boolean matchCfaEdge(JvmCfaEdge edge);
 
     public static Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> convertSinksToMemoryLocations(Collection<? extends JvmTaintSink> taintSinks)
     {

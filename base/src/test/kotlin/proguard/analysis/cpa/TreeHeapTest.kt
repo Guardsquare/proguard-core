@@ -26,7 +26,6 @@ import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
 import proguard.analysis.cpa.jvm.domain.reference.Reference
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSink
 import proguard.analysis.cpa.jvm.state.heap.HeapModel
 import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode
 import proguard.analysis.cpa.jvm.util.CfaUtil
@@ -37,6 +36,7 @@ import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.util.Optional
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 
 @Ignored
 class TreeHeapTest : StringSpec({
@@ -53,7 +53,7 @@ class TreeHeapTest : StringSpec({
         setOf()
     )
 
-    val taintSinkArgument = JvmTaintSink(
+    val taintSinkArgument = JvmInvokeTaintSink(
         "LA;sink(Ljava/lang/String;)V",
         false,
         setOf(1),

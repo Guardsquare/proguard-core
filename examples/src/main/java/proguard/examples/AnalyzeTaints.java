@@ -8,6 +8,7 @@ import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation;
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSink;
 import proguard.analysis.cpa.jvm.util.CfaUtil;
@@ -37,16 +38,16 @@ public class AnalyzeTaints
 
             // Create a taint source.
             TaintSource source = new TaintSource("LA;source()Ljava/lang/String;", // the fully qualified name of a source method
-                                                 false,                           // whether the source taints the calling instance
-                                                 true,                            // whether the source taints its return
-                                                 Collections.emptySet(),          // a set of tainted arguments
-                                                 Collections.emptySet());         // taintsGlobals - a set of tainted global variables
+                                                 false, // whether the source taints the calling instance
+                                                 true, // whether the source taints its return
+                                                 Collections.emptySet(), // a set of tainted arguments
+                                                 Collections.emptySet()); // taintsGlobals - a set of tainted global variables
 
             // Create a taint sink.
-            JvmTaintSink sink = new JvmTaintSink("LA;sink(Ljava/lang/String;)V", // the fully qualified name of a sink method
-                                                 false,                          // whether the sink is sensitive to the calling instance
-                                                 Collections.singleton(1),       // a set of sensitive arguments
-                                                 Collections.emptySet());        // a set of sensitive global variables
+            JvmTaintSink sink = new JvmInvokeTaintSink("LA;sink(Ljava/lang/String;)V", // the fully qualified name of a sink method
+                                                       false, // whether the sink is sensitive to the calling instance
+                                                       Collections.singleton(1), // a set of sensitive arguments
+                                                       Collections.emptySet()); // a set of sensitive global variables
 
             // Create the CPA run.
             JvmTaintMemoryLocationBamCpaRun cpaRun =
