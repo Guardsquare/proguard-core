@@ -15,6 +15,7 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.domain.reference.CompositeHeapJvmAbstractState
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState
 import proguard.analysis.cpa.jvm.domain.reference.Reference
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
 import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.state.heap.HeapModel
@@ -33,7 +34,6 @@ import proguard.testutils.JavaSource
 import java.util.Optional
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
-import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 
 @Ignored
 class HeapOperatorsTest : FreeSpec({

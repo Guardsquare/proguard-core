@@ -26,14 +26,16 @@ import proguard.testutils.KotlinSource
 class KotlinMetadataAsserterTest : FreeSpec({
     "Given an interface with default implementation" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt",
+            KotlinSource(
+                "Test.kt",
                 """
                 interface Test {
                     fun foo() {
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent())
+                """.trimIndent()
+            )
         )
 
         "When the KotlinMetadataAsserter is run" - {
@@ -59,14 +61,16 @@ class KotlinMetadataAsserterTest : FreeSpec({
 
     "Given an interface with default implementation and missing \$DefaultImpls class" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt",
+            KotlinSource(
+                "Test.kt",
                 """
                 interface Test {
                     fun foo() {
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent())
+                """.trimIndent()
+            )
         )
 
         "When the KotlinMetadataAsserter is run" - {
@@ -94,14 +98,16 @@ class KotlinMetadataAsserterTest : FreeSpec({
 
     "Given an interface with default implementation using Java 8+ default methods" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt",
+            KotlinSource(
+                "Test.kt",
                 """
                 interface Test {
                     fun foo() {
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent()),
+                """.trimIndent()
+            ),
             kotlincArguments = listOf("-Xjvm-default=all")
         )
 
@@ -126,13 +132,15 @@ class KotlinMetadataAsserterTest : FreeSpec({
 
     "Given an enum" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt",
+            KotlinSource(
+                "Test.kt",
                 """
                 enum class Test {
                     CENTER,
                     BOTTOM
                 }
-                """.trimIndent())
+                """.trimIndent()
+            )
         )
 
         "When the referencedEnumEntries are set to null" - {

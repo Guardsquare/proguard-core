@@ -25,6 +25,7 @@ import proguard.analysis.cpa.defaults.SetAbstractState
 import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
 import proguard.analysis.cpa.jvm.domain.reference.Reference
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
 import proguard.analysis.cpa.jvm.state.heap.HeapModel
 import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode
@@ -36,7 +37,6 @@ import proguard.analysis.cpa.state.MapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.util.Optional
-import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 
 @Ignored
 class TreeHeapTest : StringSpec({

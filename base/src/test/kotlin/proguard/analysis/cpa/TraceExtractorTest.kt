@@ -22,6 +22,8 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.domain.taint.TaintAbstractState
 import proguard.analysis.cpa.domain.taint.TaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
+import proguard.analysis.cpa.jvm.domain.taint.JvmReturnTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
@@ -30,8 +32,6 @@ import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.util.Optional
-import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmReturnTaintSink
 
 class TraceExtractorTest : StringSpec({
 
