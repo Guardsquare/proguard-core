@@ -69,8 +69,8 @@ class SourceSinkTest : FreeSpec({
         }
 
         "Should have an informative String representation" {
-            sink1.toString() shouldBe "[TaintSink] LTest;sink1(Ljava/lang/String;II)V, takes instance, takes args (1, 3), takes globals (Test.field, Test.other)"
-            sink2.toString() shouldBe "[TaintSink] LTest;sink2(Ljava/lang/String;)V, takes args (1)"
+            sink1.toString() shouldBe "[JvmInvokeTaintSink] LTest;sink1(Ljava/lang/String;II)V, takes instance, takes args (1, 3), takes globals (Test.field, Test.other)"
+            sink2.toString() shouldBe "[JvmInvokeTaintSink] LTest;sink2(Ljava/lang/String;)V, takes args (1)"
         }
     }
 })
