@@ -20,11 +20,14 @@ package proguard.classfile.kotlin;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.flags.KotlinCommonFlags;
 import proguard.classfile.kotlin.flags.KotlinTypeFlags;
-import proguard.classfile.kotlin.visitor.*;
+import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeAliasVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
 import proguard.classfile.visitor.ClassVisitor;
-import proguard.util.*;
+import proguard.util.Processable;
+import proguard.util.SimpleProcessable;
 
-import java.util.*;
+import java.util.List;
 
 public class KotlinTypeMetadata
 extends      SimpleProcessable
@@ -187,6 +190,15 @@ implements   Processable,
         if (this.referencedClass != null)
         {
             this.referencedClass.accept(classVisitor);
+        }
+    }
+    
+    public void referencedTypeAliasAccept(Clazz clazz, KotlinTypeAliasVisitor kotlinTypeAliasVisitor)
+    {
+        if (this.referencedTypeAlias != null &&
+            this.referencedTypeAlias.referencedDeclarationContainer != null)
+        {
+            this.referencedTypeAlias.accept(clazz, this.referencedTypeAlias.referencedDeclarationContainer, kotlinTypeAliasVisitor);
         }
     }
 

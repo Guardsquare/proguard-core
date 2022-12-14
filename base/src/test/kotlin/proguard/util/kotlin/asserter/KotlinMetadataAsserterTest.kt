@@ -17,13 +17,19 @@ import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
 import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinMetadata
+import proguard.classfile.kotlin.visitor.KotlinMetadataPrinter
+import proguard.classfile.kotlin.visitor.KotlinMetadataRemover
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
+import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
+import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.WarningLogger
+import proguard.classfile.util.kotlin.KotlinMetadataInitializer
 import proguard.resources.file.ResourceFilePool
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 
 class KotlinMetadataAsserterTest : FreeSpec({
+    val warningLogger = WarningLogger(LogManager.getLogger(KotlinMetadataAsserter::class.java))
     "Given an interface with default implementation" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             KotlinSource(
@@ -40,8 +46,7 @@ class KotlinMetadataAsserterTest : FreeSpec({
 
         "When the KotlinMetadataAsserter is run" - {
 
-            // remove invalid kotlin metadata
-            val warningLogger = WarningLogger(LogManager.getLogger(KotlinMetadataAsserter::class.java))
+            // Remove invalid kotlin metadata
             KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
             "Then the metadata should not be thrown away" {
                 val visitor = spyk<KotlinMetadataVisitor>()
@@ -77,7 +82,6 @@ class KotlinMetadataAsserterTest : FreeSpec({
 
             programClassPool.removeClass("Test\$DefaultImpls")
 
-            val warningLogger = WarningLogger(LogManager.getLogger(KotlinMetadataAsserter::class.java))
             KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
 
             "Then the metadata should be thrown away" {
@@ -112,7 +116,6 @@ class KotlinMetadataAsserterTest : FreeSpec({
         )
 
         "When the KotlinMetadataAsserter is run" - {
-            val warningLogger = WarningLogger(LogManager.getLogger(KotlinMetadataAsserter::class.java))
             KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
             "Then the metadata should not be thrown away" {
                 val visitor = spyk<KotlinMetadataVisitor>()
@@ -163,9 +166,52 @@ class KotlinMetadataAsserterTest : FreeSpec({
                 (programClassPool.getClass("Test") as ProgramClass).kotlinMetadata shouldNotBe null
                 // KotlinMetadataAsserter should remove Test enum's metadata because
                 // null entries of kotlinClassKindMetadata.referencedEnumEntries violates the ClassIntegrity.
-                val warningLogger = WarningLogger(LogManager.getLogger(KotlinMetadataAsserter::class.java))
                 KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
                 (programClassPool.getClass("Test") as ProgramClass).kotlinMetadata shouldBe null
+            }
+        }
+    }
+
+    "Given a user of a type alias for a library class" - {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "ATest.kt",
+                """
+                class ATest : MyAlias()
+                """.trimIndent()
+            ),
+            KotlinSource(
+                "FileFacade.kt",
+                """
+                 typealias MyAlias = Exception
+                """.trimIndent()
+            )
+        )
+
+        "When the library class has no metadata" - {
+            // Simulate missing metadata by removing the metadata
+            // from the library classes and re-initialize.
+            with(KotlinMetadataInitializer(warningLogger)) {
+                libraryClassPool.classesAccept(KotlinMetadataRemover())
+                programClassPool.classesAccept(this)
+                libraryClassPool.classesAccept(this)
+                programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+            }
+
+            // Run the asserter to remove invalid metadata.
+            KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+
+            // Re-initialize after running the asserter.
+            programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+
+            "Then the asserter should remove metadata for file facade where the alias is defined" {
+                (programClassPool.getClass("FileFacadeKt") as ProgramClass).kotlinMetadata shouldBe null
+            }
+
+            "Then the asserter should remove metadata for the class where the alias is used" {
+                // Since the metadata where the alias is declared is now invalid,
+                // ATest references now invalid metadata and is itself invalid.
+                (programClassPool.getClass("ATest") as ProgramClass).kotlinMetadata shouldBe null
             }
         }
     }

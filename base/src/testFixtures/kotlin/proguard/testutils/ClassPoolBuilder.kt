@@ -206,6 +206,7 @@ private class LibraryClassPoolBuilder(private val compiler: KotlinCompilation) {
             false,
             false,
             true,
+            true,
             null,
             ClassPoolFiller(this)
         )
