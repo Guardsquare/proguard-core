@@ -59,7 +59,7 @@ task testAllJavaVersions() { testAllTask ->
 
     javaVersionsForTest.each {version ->
     
-        if (version != 10) task("testJava$version", type: Test) {
+        task("testJava$version", type: Test) {
 
             // The version of bytebuddy used by mockk only supports Java 19 experimentally so far
             if (version == 19) systemProperty 'net.bytebuddy.experimental', true
