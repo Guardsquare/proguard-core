@@ -22,11 +22,10 @@ import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.SetAbstractState
-import proguard.analysis.cpa.domain.taint.TaintAbstractState
-import proguard.analysis.cpa.domain.taint.TaintSource
 import proguard.analysis.cpa.jvm.domain.reference.Reference
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
+import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
 import proguard.analysis.cpa.jvm.state.heap.HeapModel
 import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode
 import proguard.analysis.cpa.jvm.util.CfaUtil
@@ -34,6 +33,7 @@ import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.analysis.cpa.state.MapAbstractStateFactory
+import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.util.Optional
@@ -45,8 +45,8 @@ class TreeHeapTest : StringSpec({
         return if (b) "with" else "without"
     }
 
-    val taintSourceReturn1 = TaintSource(
-        "LA;source1()Ljava/lang/String;",
+    val taintSourceReturn1 = JvmTaintSource(
+        MethodSignature("A", "source1", "()Ljava/lang/String;"),
         false,
         true,
         setOf(),
@@ -54,7 +54,7 @@ class TreeHeapTest : StringSpec({
     )
 
     val taintSinkArgument = JvmInvokeTaintSink(
-        "LA;sink(Ljava/lang/String;)V",
+        MethodSignature("A", "sink", "(Ljava/lang/String;)V"),
         false,
         setOf(1),
         setOf()
@@ -67,15 +67,15 @@ class TreeHeapTest : StringSpec({
 
     listOf(
         HashMapAbstractStateFactory.getInstance(),
-        DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false },
+        DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
         LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
     ).forEach { staticFieldMapAbstractStateFactory ->
-        listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>>>>(
+        listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>>>(
             Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
             Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
             Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
         ).forEach { (principalHeapMapAbstractStateFactory, followerHeapMapAbstractStateFactory) ->
-            listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, TaintAbstractState>>>(
+            listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>>>(
                 Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
                 Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
                 Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })

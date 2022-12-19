@@ -19,7 +19,7 @@
 package proguard.analysis.cpa.jvm.domain.taint;
 
 import proguard.analysis.cpa.defaults.MapAbstractState;
-import proguard.analysis.cpa.domain.taint.TaintAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
@@ -31,7 +31,7 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
  * @author Dmitry Ivanov
  */
 public class JvmTaintReduceOperator
-    extends JvmDefaultReduceOperator<TaintAbstractState>
+    extends JvmDefaultReduceOperator<SetAbstractState<JvmTaintSource>>
 {
 
     /**
@@ -48,9 +48,9 @@ public class JvmTaintReduceOperator
 
     @Override
     public JvmTaintAbstractState createJvmAbstractState(JvmCfaNode programLocation,
-                                                        JvmFrameAbstractState<TaintAbstractState> frame,
-                                                        JvmHeapAbstractState<TaintAbstractState> heap,
-                                                        MapAbstractState<String, TaintAbstractState> staticFields)
+                                                        JvmFrameAbstractState<SetAbstractState<JvmTaintSource>> frame,
+                                                        JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> heap,
+                                                        MapAbstractState<String, SetAbstractState<JvmTaintSource>> staticFields)
     {
         return new JvmTaintAbstractState(programLocation, frame, heap, staticFields);
     }

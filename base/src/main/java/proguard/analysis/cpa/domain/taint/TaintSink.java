@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.domain.taint;
 
+import proguard.classfile.Signature;
+
 /**
  * A {@link TaintSink} specifies a sink for the taint analysis. A sink can be sensitive to
  * the instance, the arguments, or the static fields. If a sink S is sensitive to X, then
@@ -27,16 +29,16 @@ package proguard.analysis.cpa.domain.taint;
  */
 public abstract class TaintSink
 {
-    public final String fqn;
+    public final Signature signature;
 
     /**
      * Create a taint sink.
      *
-     * @param fqn           the fully qualified name of a sink method
+     * @param signature the signature of a sink method
      */
-    public TaintSink(String fqn)
+    public TaintSink(Signature signature)
     {
-        this.fqn = fqn;
+        this.signature = signature;
     }
 
     @Override

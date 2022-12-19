@@ -29,8 +29,6 @@ import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StopJoinOperator;
-import proguard.analysis.cpa.domain.taint.TaintAbstractState;
-import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -46,7 +44,6 @@ import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceExpandOperator;
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceReduceOperator;
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceTransferRelation;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
-import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
@@ -64,16 +61,16 @@ import proguard.classfile.MethodSignature;
  * @author Dmitry Ivanov
  */
 public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
-    extends JvmBamCpaRun<SimpleCpa, TaintAbstractState, OuterAbstractStateT>
+    extends JvmBamCpaRun<SimpleCpa, SetAbstractState<JvmTaintSource>, OuterAbstractStateT>
 {
 
-    private final Set<? extends TaintSource>                                                taintSources;
-    private final MethodSignature                                                           mainMethodSignature;
-    private final MapAbstractStateFactory<String, TaintAbstractState>                       staticFieldMapAbstractStateFactory;
-    private final MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> principalHeapMapAbstractStateFactory;
-    private final MapAbstractStateFactory<String, SetAbstractState<Reference>>              principalHeapNodeMapAbstractStateFactory;
-    private final MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>>          followerHeapMapAbstractStateFactory;
-    private final MapAbstractStateFactory<String, TaintAbstractState>                       followerHeapNodeMapAbstractStateFactory;
+    private final Set<? extends JvmTaintSource>                                                     taintSources;
+    private final MethodSignature                                                                mainMethodSignature;
+    private final MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>              staticFieldMapAbstractStateFactory;
+    private final MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>      principalHeapMapAbstractStateFactory;
+    private final MapAbstractStateFactory<String, SetAbstractState<Reference>>                   principalHeapNodeMapAbstractStateFactory;
+    private final MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> followerHeapMapAbstractStateFactory;
+    private final MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>              followerHeapNodeMapAbstractStateFactory;
 
     /**
      * Create a CPA run. If reduceHeap is set to false no reduction/expansion is applied to the heap states at call/return sites
@@ -94,17 +91,17 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
      * @param followerHeapNodeMapAbstractStateFactory  a map abstract state factory used for constructing the mapping from fields to values in the follower heap model
      */
     protected JvmTaintBamCpaRun(JvmCfa cfa,
-                                Set<? extends TaintSource> taintSources,
+                                Set<? extends JvmTaintSource> taintSources,
                                 MethodSignature mainMethodSignature,
                                 int maxCallStackDepth,
                                 HeapModel heapModel,
                                 AbortOperator abortOperator,
                                 boolean reduceHeap,
-                                MapAbstractStateFactory<String, TaintAbstractState> staticFieldMapAbstractStateFactory,
+                                MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> staticFieldMapAbstractStateFactory,
                                 MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> principalHeapMapAbstractStateFactory,
                                 MapAbstractStateFactory<String, SetAbstractState<Reference>> principalHeapNodeMapAbstractStateFactory,
-                                MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>> followerHeapMapAbstractStateFactory,
-                                MapAbstractStateFactory<String, TaintAbstractState> followerHeapNodeMapAbstractStateFactory)
+                                MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> followerHeapMapAbstractStateFactory,
+                                MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> followerHeapNodeMapAbstractStateFactory)
     {
         super(cfa, maxCallStackDepth, heapModel, abortOperator, reduceHeap);
         this.taintSources                             = taintSources;
@@ -184,7 +181,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
             case FORGETFUL:
                 return Collections.singleton((OuterAbstractStateT) new JvmAbstractState<>(cfa.getFunctionEntryNode(mainMethodSignature),
                                                                                           new JvmFrameAbstractState<>(),
-                                                                                          new JvmForgetfulHeapAbstractState<>(TaintAbstractState.bottom),
+                                                                                          new JvmForgetfulHeapAbstractState<>(SetAbstractState.bottom),
                                                                                           staticFieldMapAbstractStateFactory.createMapAbstractState()));
             case TREE:
             case TAINT_TREE:
@@ -199,12 +196,12 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
                                               new JvmFrameAbstractState<>(),
                                               heapModel == HeapModel.TAINT_TREE
                                               ? new JvmTaintTreeHeapFollowerAbstractState(principalState,
-                                                                                          TaintAbstractState.bottom,
+                                                                                          SetAbstractState.bottom,
                                                                                           followerHeapMapAbstractStateFactory.createMapAbstractState(),
                                                                                           followerHeapMapAbstractStateFactory,
                                                                                           followerHeapNodeMapAbstractStateFactory)
                                               : new JvmBasicTaintTreeHeapFollowerAbstractState(principalState,
-                                                                                               TaintAbstractState.bottom,
+                                                                                               SetAbstractState.bottom,
                                                                                                followerHeapMapAbstractStateFactory.createMapAbstractState(),
                                                                                                followerHeapMapAbstractStateFactory,
                                                                                                followerHeapNodeMapAbstractStateFactory),
@@ -222,13 +219,13 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     public static class Builder extends JvmBamCpaRun.Builder
     {
 
-        protected MethodSignature                                                           mainSignature;
-        protected Set<? extends TaintSource>                                                taintSources                             = Collections.emptySet();
-        protected MapAbstractStateFactory<String, TaintAbstractState>                       staticFieldMapAbstractStateFactory       = HashMapAbstractStateFactory.getInstance();
-        protected MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> principalHeapMapAbstractStateFactory     = HashMapAbstractStateFactory.getInstance();
-        protected MapAbstractStateFactory<String, SetAbstractState<Reference>>              principalHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
-        protected MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>>          followerHeapMapAbstractStateFactory      = HashMapAbstractStateFactory.getInstance();
-        protected MapAbstractStateFactory<String, TaintAbstractState>                       followerHeapNodeMapAbstractStateFactory  = HashMapAbstractStateFactory.getInstance();
+        protected MethodSignature                                                                mainSignature;
+        protected Set<? extends JvmTaintSource>                                                  taintSources                             = Collections.emptySet();
+        protected MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>              staticFieldMapAbstractStateFactory       = HashMapAbstractStateFactory.getInstance();
+        protected MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>      principalHeapMapAbstractStateFactory     = HashMapAbstractStateFactory.getInstance();
+        protected MapAbstractStateFactory<String, SetAbstractState<Reference>>                   principalHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
+        protected MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> followerHeapMapAbstractStateFactory      = HashMapAbstractStateFactory.getInstance();
+        protected MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>              followerHeapNodeMapAbstractStateFactory  = HashMapAbstractStateFactory.getInstance();
 
         // implementations for JvmBamCpaRun.Builder
 
@@ -289,7 +286,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
         /**
          * Sets the taint sources.
          */
-        public Builder setTaintSources(Set<? extends TaintSource> taintSources)
+        public Builder setTaintSources(Set<? extends JvmTaintSource> taintSources)
         {
             this.taintSources = taintSources;
             return this;
@@ -307,7 +304,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
         /**
          * Sets the static field map abstract state factory.
          */
-        public Builder setStaticFieldMapAbstractStateFactory(MapAbstractStateFactory<String, TaintAbstractState> staticFieldMapAbstractStateFactory)
+        public Builder setStaticFieldMapAbstractStateFactory(MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> staticFieldMapAbstractStateFactory)
         {
             this.staticFieldMapAbstractStateFactory = staticFieldMapAbstractStateFactory;
             return this;
@@ -334,7 +331,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
         /**
          * Sets the map abstract state factory used for constructing the mapping from references to objects in the follower heap model.
          */
-        public Builder setFollowerHeapMapAbstractStateFactory(MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>> followerHeapMapAbstractStateFactory)
+        public Builder setFollowerHeapMapAbstractStateFactory(MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> followerHeapMapAbstractStateFactory)
         {
             this.followerHeapMapAbstractStateFactory = followerHeapMapAbstractStateFactory;
             return this;
@@ -343,7 +340,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
         /**
          * Sets the map abstract state factory used for constructing the mapping from fields to values in the follower heap model.
          */
-        public Builder setFollowerHeapNodeMapAbstractStateFactory(MapAbstractStateFactory<String, TaintAbstractState> followerHeapNodeMapAbstractStateFactory)
+        public Builder setFollowerHeapNodeMapAbstractStateFactory(MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> followerHeapNodeMapAbstractStateFactory)
         {
             this.followerHeapNodeMapAbstractStateFactory = followerHeapNodeMapAbstractStateFactory;
             return this;

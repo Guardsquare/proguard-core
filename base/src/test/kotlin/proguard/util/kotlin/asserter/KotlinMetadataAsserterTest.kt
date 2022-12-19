@@ -17,10 +17,8 @@ import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
 import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinMetadata
-import proguard.classfile.kotlin.visitor.KotlinMetadataPrinter
 import proguard.classfile.kotlin.visitor.KotlinMetadataRemover
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
-import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.WarningLogger
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer

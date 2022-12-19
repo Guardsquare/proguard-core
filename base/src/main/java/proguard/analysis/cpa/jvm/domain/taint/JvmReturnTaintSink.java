@@ -19,15 +19,13 @@
 package proguard.analysis.cpa.jvm.domain.taint;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
+import proguard.classfile.Signature;
 
 /**
  * A {@link JvmTaintSink} triggered if the return value of
@@ -39,9 +37,9 @@ public class JvmReturnTaintSink
     extends JvmTaintSink
 {
 
-    public JvmReturnTaintSink(String fqn)
+    public JvmReturnTaintSink(Signature signature)
     {
-        super(fqn);
+        super(signature);
     }
 
     // Implementations for JvmTaintSink
@@ -80,18 +78,18 @@ public class JvmReturnTaintSink
             return false;
         }
         JvmReturnTaintSink taintSink = (JvmReturnTaintSink) o;
-        return Objects.equals(fqn, taintSink.fqn);
+        return Objects.equals(signature, taintSink.signature);
     }
 
     @Override
     public int hashCode()
     {
-        return fqn.hashCode();
+        return signature.hashCode();
     }
 
     @Override
     public String toString()
     {
-        return "[JvmReturnTaintSink] " + fqn;
+        return "[JvmReturnTaintSink] " + signature;
     }
 }

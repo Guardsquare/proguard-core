@@ -45,7 +45,7 @@ public class MethodSignature
 {
 
     public static final            MethodSignature              UNKNOWN        = new MethodSignature(null, null, (MethodDescriptor) null);
-    private static final transient Map<Method, MethodSignature> signatureCache = new IdentityHashMap<>();
+    private static final           Map<Method, MethodSignature> signatureCache = new IdentityHashMap<>();
     public final                   String                       method;
     public final                   MethodDescriptor             descriptor;
 

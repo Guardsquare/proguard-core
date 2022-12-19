@@ -5,6 +5,7 @@
 - Don't report warnings for missing Kotlin default implementation classes when initializing with `ClassReferenceInitializer`.
 - Only link matching methods in Kotlin file facades with `MethodLinker`.
 - Extend the `LimitedHashMap` parameterization with an element exclusion selector.
+- Add the possibility to add a predicate to taint sources and sinks for selective response to calls.
 
 ### Bug fixes
 - Fix the reduce operator producing a wrong `JvmAbstractState` for the composite taint analysis.
@@ -14,6 +15,7 @@
 ### API Improvements
 - Add `KotlinMetadataAsserter` to check the integrity of Kotlin metadata.
 - Add `JvmReturnTaintSink` to support return instruction sinks in taint analysis.
+- Use method signatures instead of fully qualified names in taint sources and sinks.
 
 ### API changes
 - `JvmTaintSink` has been generalized, use `JvmInvokeTaintSink` to have the old functionalities.

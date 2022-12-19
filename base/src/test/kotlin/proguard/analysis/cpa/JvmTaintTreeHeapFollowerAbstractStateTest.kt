@@ -22,11 +22,10 @@ import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.SetAbstractState
-import proguard.analysis.cpa.domain.taint.TaintAbstractState
-import proguard.analysis.cpa.domain.taint.TaintSource
 import proguard.analysis.cpa.jvm.domain.reference.Reference
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
+import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
 import proguard.analysis.cpa.jvm.state.heap.HeapModel
 import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode
 import proguard.analysis.cpa.jvm.util.CfaUtil
@@ -34,6 +33,7 @@ import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
 import proguard.analysis.cpa.state.MapAbstractStateFactory
+import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.util.Optional
@@ -49,72 +49,72 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
         return if (i == -1) "interprocedural" else "intraprocedural"
     }
 
-    val taintSourceReturn1 = TaintSource(
-        "LA;source1()LA\$B;",
+    val taintSourceReturn1 = JvmTaintSource(
+        MethodSignature("A", "source1", "()LA\$B;"),
         false,
         true,
         setOf(),
         setOf()
     )
 
-    val taintSourceArg1 = TaintSource(
-        "LA;source1(LA\$B;)V",
+    val taintSourceArg1 = JvmTaintSource(
+        MethodSignature("A", "source1", "(LA\$B;)V"),
         false,
         false,
         setOf(1),
         setOf()
     )
 
-    val taintSourceArg2 = TaintSource(
-        "LA;source2(LA\$B;)V",
+    val taintSourceArg2 = JvmTaintSource(
+        MethodSignature("A", "source2", "(LA\$B;)V"),
         false,
         false,
         setOf(1),
         setOf()
     )
 
-    val taintSourceArg3 = TaintSource(
-        "LA;source1(LA\$B;Ljava/lang/Object;)V",
+    val taintSourceArg3 = JvmTaintSource(
+        MethodSignature("A", "source1", "(LA\$B;Ljava/lang/Object;)V"),
         false,
         false,
         setOf(1),
         setOf()
     )
 
-    val taintSourceArg4 = TaintSource(
-        "LA;source1(Ljava/lang/Object;LA\$B;)V",
+    val taintSourceArg4 = JvmTaintSource(
+        MethodSignature("A", "source1", "(Ljava/lang/Object;LA\$B;)V"),
         false,
         false,
         setOf(2),
         setOf()
     )
 
-    val taintSourceArg5 = TaintSource(
-        "LA;source1(LA\$B;J)V",
+    val taintSourceArg5 = JvmTaintSource(
+        MethodSignature("A", "source1", "(LA\$B;J)V"),
         false,
         false,
         setOf(1),
         setOf()
     )
 
-    val taintSourceArg6 = TaintSource(
-        "LA;source1([I)V",
+    val taintSourceArg6 = JvmTaintSource(
+        MethodSignature("A", "source1", "([I)V"),
         false,
         false,
         setOf(1),
         setOf()
     )
 
-    val taintSourceInstance1 = TaintSource(
-        "LA;source1()V",
+    val taintSourceInstance1 = JvmTaintSource(
+        MethodSignature("A", "source1", "()V"),
         true,
         false,
         setOf(),
         setOf()
     )
 
-    val taintSourceStatic1 = TaintSource(
-        "LA;source1()V",
+    val taintSourceStatic1 = JvmTaintSource(
+        MethodSignature("A", "source1", "()V"),
         false,
         false,
         setOf(),
@@ -122,21 +122,21 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
     )
 
     val taintSinkArgument1 = JvmInvokeTaintSink(
-        "LA;sink(Ljava/lang/String;)V",
+        MethodSignature("A", "sink", "(Ljava/lang/String;)V"),
         false,
         setOf(1),
         setOf()
     )
 
     val taintSinkArgument2 = JvmInvokeTaintSink(
-        "LA;sink(LA\$B;)V",
+        MethodSignature("A", "sink", "(LA\$B;)V"),
         false,
         setOf(1),
         setOf()
     )
 
     val taintSinkArgument3 = JvmInvokeTaintSink(
-        "LA;sink(I)V",
+        MethodSignature("A", "sink", "(I)V"),
         false,
         setOf(1),
         setOf()
@@ -150,15 +150,15 @@ class JvmTaintTreeHeapFollowerAbstractStateTest : FreeSpec({
 
         listOf(
             HashMapAbstractStateFactory.getInstance(),
-            DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false },
+            DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
             LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
         ).forEach { staticFieldMapAbstractStateFactory ->
-            listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<TaintAbstractState>>>>(
+            listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>>>(
                 Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
                 Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
                 Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
             ).forEach { (principalHeapMapAbstractStateFactory, followerHeapMapAbstractStateFactory) ->
-                listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, TaintAbstractState>>>(
+                listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>>>(
                     Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
                     Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
                     Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })

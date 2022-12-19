@@ -20,7 +20,9 @@ package proguard.analysis.cpa.jvm.domain.taint;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
@@ -28,6 +30,8 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.Signature;
 import proguard.classfile.util.ClassUtil;
 
 /**
@@ -41,6 +45,8 @@ public class JvmInvokeTaintSink
     extends JvmTaintSink
 {
 
+    public final Optional<Predicate<Call>> callMatcher;
+
     public final boolean      takesInstance;
     public final Set<Integer> takesArgs;
     public final Set<String>  takesGlobals;
@@ -48,20 +54,49 @@ public class JvmInvokeTaintSink
     /**
      * Create a taint sink.
      *
-     * @param fqn           the fully qualified name of a sink method
+     * @param signature     the signature of a sink method
      * @param takesInstance whether the sink is sensitive to the calling instance
      * @param takesArgs     a set of sensitive arguments
      * @param takesGlobals  a set of sensitive global variables
      */
-    public JvmInvokeTaintSink(String fqn, boolean takesInstance, Set<Integer> takesArgs, Set<String> takesGlobals)
+    public JvmInvokeTaintSink(Signature signature, boolean takesInstance, Set<Integer> takesArgs, Set<String> takesGlobals)
     {
-        super(fqn);
+        this(signature, Optional.empty(), takesInstance, takesArgs, takesGlobals);
+    }
+
+    /**
+     * Create a taint sink.
+     *
+     * @param signature     the signature of a sink method
+     * @param callMatcher   whether the call matches this taint sink
+     * @param takesInstance whether the sink is sensitive to the calling instance
+     * @param takesArgs     a set of sensitive arguments
+     * @param takesGlobals  a set of sensitive global variables
+     */
+    public JvmInvokeTaintSink(Signature signature, Predicate<Call> callMatcher, boolean takesInstance, Set<Integer> takesArgs, Set<String> takesGlobals)
+    {
+        this(signature, Optional.of(callMatcher), takesInstance, takesArgs, takesGlobals);
+    }
+
+    /**
+     * Create a taint sink.
+     *
+     * @param signature     the signature of a sink method
+     * @param callMatcher   an optional predicate on whether the call matches this taint sink
+     * @param takesInstance whether the sink is sensitive to the calling instance
+     * @param takesArgs     a set of sensitive arguments
+     * @param takesGlobals  a set of sensitive global variables
+     */
+    private JvmInvokeTaintSink(Signature signature, Optional<Predicate<Call>> callMatcher, boolean takesInstance, Set<Integer> takesArgs, Set<String> takesGlobals)
+    {
+        super(signature);
 
         if (!takesInstance && takesArgs.isEmpty() && takesGlobals.isEmpty())
         {
-            throw new RuntimeException(String.format("Tainted sink for method %s must have taint somewhere!", fqn));
+            throw new RuntimeException(String.format("Tainted sink for method %s must have taint somewhere!", signature));
         }
 
+        this.callMatcher = callMatcher;
         this.takesInstance = takesInstance;
         this.takesArgs = takesArgs;
         this.takesGlobals = takesGlobals;
@@ -74,6 +109,7 @@ public class JvmInvokeTaintSink
     public Set<JvmMemoryLocation> getMemoryLocations()
     {
         Set<JvmMemoryLocation> result = new HashSet<>();
+        String fqn = signature.getFqn();
         String descriptor = fqn.substring(fqn.indexOf("("));
         int parameterSize = ClassUtil.internalMethodParameterSize(descriptor);
         if (takesInstance)
@@ -81,7 +117,7 @@ public class JvmInvokeTaintSink
             result.add(new JvmStackLocation(parameterSize));
         }
         takesArgs.forEach(i -> result.add(new JvmStackLocation(parameterSize - ClassUtil.internalMethodVariableIndex(descriptor, true, i))));
-        takesGlobals.forEach(fqn -> result.add(new JvmStaticFieldLocation(fqn)));
+        takesGlobals.forEach(n -> result.add(new JvmStaticFieldLocation(n)));
         return result;
     }
 
@@ -91,7 +127,12 @@ public class JvmInvokeTaintSink
     @Override
     public boolean matchCfaEdge(JvmCfaEdge edge)
     {
-        return edge instanceof JvmCallCfaEdge && fqn.equals(((CallEdge) edge).getCall().getTarget().getFqn());
+        if (!(edge instanceof JvmCallCfaEdge))
+        {
+            return false;
+        }
+        CallEdge callEdge = (CallEdge) edge;
+        return signature.equals(callEdge.getCall().getTarget()) && callMatcher.map(p -> p.test(callEdge.getCall())).orElse(true);
     }
 
     @Override
@@ -107,21 +148,22 @@ public class JvmInvokeTaintSink
         }
         JvmInvokeTaintSink taintSink = (JvmInvokeTaintSink) o;
         return takesInstance == taintSink.takesInstance
-               && Objects.equals(fqn, taintSink.fqn)
+               && Objects.equals(signature, taintSink.signature)
                && Objects.equals(takesArgs, taintSink.takesArgs)
-               && Objects.equals(takesGlobals, taintSink.takesGlobals);
+               && Objects.equals(takesGlobals, taintSink.takesGlobals)
+               && Objects.equals(callMatcher, taintSink.callMatcher);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(fqn, takesInstance, takesArgs, takesGlobals);
+        return Objects.hash(signature, takesInstance, takesArgs, takesGlobals, callMatcher);
     }
 
     @Override
     public String toString()
     {
-        StringBuilder result = new StringBuilder("[JvmInvokeTaintSink] ").append(fqn);
+        StringBuilder result = new StringBuilder("[JvmInvokeTaintSink] ").append(signature);
         if (takesInstance)
         {
             result.append(", takes instance");
@@ -143,6 +185,7 @@ public class JvmInvokeTaintSink
                                       .collect(Collectors.joining(", ")))
                   .append(")");
         }
+        callMatcher.ifPresent(p -> result.append(" filtered by ").append(p));
 
         return result.toString();
     }

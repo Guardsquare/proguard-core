@@ -19,7 +19,7 @@
 package proguard.analysis.cpa.jvm.domain.taint;
 
 import proguard.analysis.cpa.defaults.MapAbstractState;
-import proguard.analysis.cpa.domain.taint.TaintAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
@@ -31,7 +31,7 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
  * @author Dmitry Ivanov
  */
 public class JvmTaintAbstractState
-    extends JvmAbstractState<TaintAbstractState>
+    extends JvmAbstractState<SetAbstractState<JvmTaintSource>>
 {
 
     /**
@@ -43,9 +43,9 @@ public class JvmTaintAbstractState
      * @param staticFields    a static field table
      */
     public JvmTaintAbstractState(JvmCfaNode programLocation,
-                                 JvmFrameAbstractState<TaintAbstractState> frame,
-                                 JvmHeapAbstractState<TaintAbstractState> heap,
-                                 MapAbstractState<String, TaintAbstractState> staticFields)
+                                 JvmFrameAbstractState<SetAbstractState<JvmTaintSource>> frame,
+                                 JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> heap,
+                                 MapAbstractState<String, SetAbstractState<JvmTaintSource>> staticFields)
     {
         super(programLocation, frame, heap, staticFields);
     }
@@ -53,7 +53,7 @@ public class JvmTaintAbstractState
     /**
      * Adds transitively taints from {@code value} to all fields of {@code object}.
      */
-    public <T> void setObjectTaint(T object, TaintAbstractState value)
+    public <T> void setObjectTaint(T object, SetAbstractState<JvmTaintSource> value)
     {
         if (!(heap instanceof JvmTaintTreeHeapFollowerAbstractState))
         {
@@ -65,7 +65,7 @@ public class JvmTaintAbstractState
     // implementations for LatticeAbstractState
 
     @Override
-    public JvmTaintAbstractState join(JvmAbstractState<TaintAbstractState> abstractState)
+    public JvmTaintAbstractState join(JvmAbstractState<SetAbstractState<JvmTaintSource>> abstractState)
     {
         JvmTaintAbstractState answer = new JvmTaintAbstractState(programLocation.equals(abstractState.getProgramLocation()) ? programLocation : topLocation,
                                                                  frame.join(abstractState.getFrame()),

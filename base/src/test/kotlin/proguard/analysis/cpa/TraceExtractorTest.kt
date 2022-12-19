@@ -20,37 +20,38 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import proguard.analysis.cpa.domain.taint.TaintAbstractState
-import proguard.analysis.cpa.domain.taint.TaintSource
+import proguard.analysis.cpa.defaults.SetAbstractState
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmReturnTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
+import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
+import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.util.Optional
 
 class TraceExtractorTest : StringSpec({
 
-    val taintSourceReturn1 = TaintSource(
-        "LA;source1()Ljava/lang/String;",
+    val taintSourceReturn1 = JvmTaintSource(
+        MethodSignature("A", "source1", "()Ljava/lang/String;"),
         false,
         true,
         setOf(),
         setOf()
     )
-    val taintSourceReturn2 = TaintSource(
-        "LA;source2()Ljava/lang/String;",
+    val taintSourceReturn2 = JvmTaintSource(
+        MethodSignature("A", "source2", "()Ljava/lang/String;"),
         false,
         true,
         setOf(),
         setOf()
     )
-    val taintSourceStatic = TaintSource(
-        "LA;source()V",
+    val taintSourceStatic = JvmTaintSource(
+        MethodSignature("A", "source", "()V"),
         false,
         false,
         setOf(),
@@ -58,36 +59,36 @@ class TraceExtractorTest : StringSpec({
     )
 
     val taintSinkArgument = JvmInvokeTaintSink(
-        "LA;sink(Ljava/lang/String;)V",
+        MethodSignature("A", "sink", "(Ljava/lang/String;)V"),
         false,
         setOf(1),
         setOf()
     )
     val taintSinkArgumentLong = JvmInvokeTaintSink(
-        "LA;sink(J)V",
+        MethodSignature("A", "sink", "(J)V"),
         false,
         setOf(1),
         setOf()
     )
     val taintSinkArgumentMultiple = JvmInvokeTaintSink(
-        "LA;sink(Ljava/lang/String;Ljava/lang/String;)V",
+        MethodSignature("A", "sink", "(Ljava/lang/String;Ljava/lang/String;)V"),
         false,
         setOf(2),
         setOf()
     )
     val taintSinkStatic = JvmInvokeTaintSink(
-        "LA;sink()V",
+        MethodSignature("A", "sink", "()V"),
         false,
         setOf(),
         setOf("A.s")
     )
-    val taintSinkReturn = JvmReturnTaintSink("LA;sink(Ljava/lang/String;)Ljava/lang/String;")
+    val taintSinkReturn = JvmReturnTaintSink(MethodSignature("A", "sink", "(Ljava/lang/String;)Ljava/lang/String;"))
 
     val jvmTaintMemoryLocationBamCpaRunBuilder = JvmTaintMemoryLocationBamCpaRun.Builder().setReduceHeap(false)
 
     listOf(
         HashMapAbstractStateFactory.getInstance(),
-        DifferentialMapAbstractStateFactory<String, TaintAbstractState> { false },
+        DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
         LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
     ).forEach { staticFieldMapAbstractStateFactory ->
 

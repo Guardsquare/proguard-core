@@ -18,7 +18,7 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
-import proguard.analysis.cpa.domain.taint.TaintAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 
 /**
  * An interface for object tainting.
@@ -31,5 +31,5 @@ public interface JvmTaintHeapAbstractState
     /**
      * Transitively applies the taint {@code value} to the {@code object}.
      */
-    <T> void taintObject(T object, TaintAbstractState value);
+    <T> void taintObject(T object, SetAbstractState<JvmTaintSource> value);
 }

@@ -20,15 +20,12 @@ package proguard.analysis.cpa.jvm.domain.taint;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.classfile.util.ClassUtil;
 import proguard.analysis.cpa.domain.taint.TaintSink;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
-import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
-import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
+import proguard.classfile.Signature;
 
 /**
  * The {@link JvmTaintSink} adds an interface for extracting sensitive JVM memory locations and to check
@@ -40,9 +37,9 @@ public abstract class JvmTaintSink
     extends TaintSink
 {
 
-    public JvmTaintSink(String fqn)
+    public JvmTaintSink(Signature signature)
     {
-        super(fqn);
+        super(signature);
     }
 
     /**
@@ -55,13 +52,13 @@ public abstract class JvmTaintSink
      */
     public abstract boolean matchCfaEdge(JvmCfaEdge edge);
 
-    public static Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> convertSinksToMemoryLocations(Collection<? extends JvmTaintSink> taintSinks)
+    public static Map<Signature, Map<JvmTaintSink, Set<JvmMemoryLocation>>> convertSinksToMemoryLocations(Collection<? extends JvmTaintSink> taintSinks)
     {
-        Map<String, Map<JvmTaintSink, Set<JvmMemoryLocation>>> result = new HashMap<>();
+        Map<Signature, Map<JvmTaintSink, Set<JvmMemoryLocation>>> result = new HashMap<>();
         for (JvmTaintSink taintSink : taintSinks)
         {
             Set<JvmMemoryLocation> memoryLocations = taintSink.getMemoryLocations();
-            result.computeIfAbsent(taintSink.fqn, x -> new HashMap<>()).put(taintSink, memoryLocations);
+            result.computeIfAbsent(taintSink.signature, x -> new HashMap<>()).put(taintSink, memoryLocations);
         }
         return result;
     }
