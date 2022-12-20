@@ -17,6 +17,9 @@
  */
 package proguard.evaluation.value;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import proguard.classfile.TypeConstants;
 
 /**
@@ -41,7 +44,8 @@ public class InstructionOffsetValue extends Category1Value
     public static final int EXCEPTION_HANDLER       = 0x20000000;
 
 
-    private int[] values;
+    private final int[] values;
+    private Set<Integer> valuesMap;
 
 
     /**
@@ -49,7 +53,7 @@ public class InstructionOffsetValue extends Category1Value
      */
     public InstructionOffsetValue(int value)
     {
-        this.values = new int[] { value };
+        this.values = new int[]{value};
     }
 
 
@@ -60,6 +64,18 @@ public class InstructionOffsetValue extends Category1Value
     public InstructionOffsetValue(int[] values)
     {
         this.values = values;
+        // If there are a lot of values, it's faster to use a set
+        // for the "contains" method, than doing a linear search
+        // The threshold for this is chosen by experimentation
+        // to find a balance between memory footprint and performance
+        if (values.length > 100)
+        {
+            valuesMap = new HashSet<>();
+            for (int index = 0; index < values.length; index++)
+            {
+                valuesMap.add(values[index]);
+            }
+        }
     }
 
 
@@ -87,15 +103,18 @@ public class InstructionOffsetValue extends Category1Value
      */
     public boolean contains(int value)
     {
-        for (int index = 0; index < values.length; index++)
+        if (valuesMap == null)
         {
-            if (values[index] == value)
+            for (int index = 0; index < values.length; index++)
             {
-                return true;
+                if (values[index] == value)
+                {
+                    return true;
+                }
             }
+            return false;
         }
-
-        return false;
+        return valuesMap.contains(value);
     }
 
 
