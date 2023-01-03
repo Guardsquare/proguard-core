@@ -18,13 +18,18 @@
 
 package proguard.analysis.cpa.jvm.cfa.visitors;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proguard.analysis.cpa.jvm.cfa.JvmCfa;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeCaseCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeDefaultCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeExceptionCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCatchCfaNode;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
@@ -41,17 +46,12 @@ import proguard.classfile.instruction.SwitchInstruction;
 import proguard.classfile.instruction.TableSwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.analysis.cpa.defaults.Cfa;
-import proguard.analysis.cpa.jvm.cfa.JvmCfa;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeCaseCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeDefaultCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeExceptionCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCatchCfaNode;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This {@link AttributeVisitor} visits the {@link CodeAttribute} of a {@link Method} and performs two different tasks:
@@ -72,30 +72,28 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
     implements AttributeVisitor
 {
 
-    private final        Cfa<JvmCfaNode, JvmCfaEdge, MethodSignature> cfa;
-    private static final Logger                                       log = LogManager.getLogger(JvmIntraproceduralCfaFillerAllInstructionVisitor.class);
+    private final        JvmCfa cfa;
+    private static final Logger log = LogManager.getLogger(JvmIntraproceduralCfaFillerAllInstructionVisitor.class);
 
     public JvmIntraproceduralCfaFillerAllInstructionVisitor(JvmCfa cfa)
     {
         this.cfa = cfa;
     }
 
+    @Override
     public void visitAnyAttribute(Clazz clazz, Attribute attribute)
     {
     }
 
+    @Override
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         MethodSignature signature = MethodSignature.computeIfAbsent(clazz, method);
 
         generateCatchNodes(signature, codeAttribute, clazz);
 
-        JvmIntraproceduralCfaFillerVisitor instructionVisitor = new JvmIntraproceduralCfaFillerVisitor((JvmCfa) cfa);
-
-        instructionVisitor.setSignature(signature);
-
         // visit all the instructions of the current method
-        codeAttribute.instructionsAccept(clazz, method, instructionVisitor);
+        codeAttribute.instructionsAccept(clazz, method, new JvmIntraproceduralCfaFillerVisitor(signature, cfa));
     }
 
     private void generateCatchNodes(MethodSignature signature, CodeAttribute codeAttribute, Clazz clazz)
@@ -105,9 +103,10 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
         if (codeAttribute.exceptionTable != null)
         {
             // get the position of all handlers, use a LinkedHashSet to remove duplicates and keep order
-            Set<Integer> handlersOffset = new LinkedHashSet<>(Arrays.stream(codeAttribute.exceptionTable)
-                                                                    .map(x -> x.u2handlerPC)
-                                                                    .collect(Collectors.toList()));
+            Set<Integer> handlersOffset =
+                    Arrays.stream(codeAttribute.exceptionTable)
+                          .map(x -> x.u2handlerPC)
+                          .collect(Collectors.toCollection(LinkedHashSet::new));
 
             // create the nodes for code locations at beginning of catch/finally statement
             for (int handlerOffset : handlersOffset)
@@ -119,11 +118,11 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
                                                                       .findFirst()
                                                                       .get().u2catchType,
                                                                 clazz);
-                ((JvmCfa) cfa).addFunctionCatchNode(signature, catchNode, handlerOffset);
+                cfa.addFunctionCatchNode(signature, catchNode, handlerOffset);
 
                 // link the catch node to the starting node of the handler block with a true exception assumption
                 new JvmAssumeExceptionCfaEdge(catchNode,
-                                              ((JvmCfa) cfa).addNodeIfAbsent(signature, handlerOffset, clazz),
+                                              cfa.addNodeIfAbsent(signature, handlerOffset, clazz),
                                               true,
                                               catchNode.getCatchType());
             }
@@ -150,8 +149,8 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
                     {
                         // if there is a following catch block we link it with a false assume exception edge with the previous catch node type
                         // i.e. the following catch block is considered only if the exception is not caught by the block before
-                        JvmCatchCfaNode currNode = ((JvmCfa) cfa).getFunctionCatchNode(signature, currHandlerOffset);
-                        JvmCatchCfaNode nextNode = ((JvmCfa) cfa).getFunctionCatchNode(signature, followingCatch.get().u2handlerPC);
+                        JvmCatchCfaNode currNode = cfa.getFunctionCatchNode(signature, currHandlerOffset);
+                        JvmCatchCfaNode nextNode = cfa.getFunctionCatchNode(signature, followingCatch.get().u2handlerPC);
 
                         new JvmAssumeExceptionCfaEdge(currNode,
                                                       nextNode,
@@ -165,11 +164,11 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
 
         // if the last node of a catch chain (i.e. linked only to the beginning of the corresponding catch block and not to other catch nodes)is not a `finally` (catch type == 0) which always throws
         // an exception in the end, add an edge to the exception exit block, since this is an intra-procedural implementation
-        for (JvmCatchCfaNode node : ((JvmCfa) cfa).getFunctionCatchNodes(signature))
+        for (JvmCatchCfaNode node : cfa.getFunctionCatchNodes(signature))
         {
             if (node.getLeavingEdges().size() == 1 && node.getCatchType() != 0)
             {
-                JvmCfaNode exitNode = ((JvmCfa) cfa).getFunctionExceptionExitNode(signature, clazz);
+                JvmCfaNode exitNode = cfa.getFunctionExceptionExitNode(signature, clazz);
 
                 // add edge for exception not caught
                 new JvmAssumeExceptionCfaEdge(node, exitNode, false, node.getCatchType());
@@ -182,21 +181,22 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
      * plus eventual additional nodes (i.e. in case of a branch instruction a node for the code location of the jump is added).
      *
      * <p>The edge from the previously visited instruction is linked to the current instruction if the control flows from one to the other (e.g. the previous edge is linked if it represents an iadd
-     * instruction but it's not if it represents a goto instruction).
+     * instruction but not if it represents a goto instruction).
      *
      * @author Carlo Alberto Pozzoli
      */
-    private class JvmIntraproceduralCfaFillerVisitor
+    private static class JvmIntraproceduralCfaFillerVisitor
         implements InstructionVisitor
     {
 
-        private final Cfa<JvmCfaNode, JvmCfaEdge, MethodSignature> cfa;
-        private       MethodSignature                              signature;
-        private       JvmCfaEdge                                   previousEdge;
+        private final JvmCfa          cfa;
+        private final MethodSignature signature;
+        private       JvmCfaEdge      previousEdge;
 
-        public JvmIntraproceduralCfaFillerVisitor(JvmCfa cfa)
+        public JvmIntraproceduralCfaFillerVisitor(MethodSignature methodSignature, JvmCfa cfa)
         {
-            this.cfa = cfa;
+            this.signature = methodSignature;
+            this.cfa       = cfa;
         }
 
         @Override
@@ -275,11 +275,6 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
             }
         }
 
-        public void setSignature(MethodSignature signature)
-        {
-            this.signature = signature;
-        }
-
         /**
          * Performs the default operations needed for each instruction, must be called by all the other specific addNode methods:
          *
@@ -289,7 +284,7 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
          */
         private JvmCfaNode connect(int offset, Clazz clazz)
         {
-            JvmCfaNode currentNode = ((JvmCfa) cfa).addNodeIfAbsent(signature, offset, clazz);
+            JvmCfaNode currentNode = cfa.addNodeIfAbsent(signature, offset, clazz);
 
             if (previousEdge != null)
             {
@@ -322,7 +317,7 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
             // next instruction will not continue the control flow
             previousEdge = null;
 
-            JvmCfaNode exitNode = ((JvmCfa) cfa).getFunctionReturnExitNode(signature, clazz);
+            JvmCfaNode exitNode = cfa.getFunctionReturnExitNode(signature, clazz);
 
             // create and add edge to nodes
             new JvmInstructionCfaEdge(currentNode, exitNode, methodCode, offset);
@@ -356,7 +351,7 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
             int branchTarget = offset + instruction.branchOffset;
 
             // get the goto location node
-            JvmCfaNode jumpNode = ((JvmCfa) cfa).addNodeIfAbsent(signature, branchTarget, clazz);
+            JvmCfaNode jumpNode = cfa.addNodeIfAbsent(signature, branchTarget, clazz);
 
             // create and add edge to nodes
             new JvmInstructionCfaEdge(currentNode, jumpNode, methodCode, offset);
@@ -376,7 +371,7 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
             // create the branch taken edge with the corresponding node
             int branchTarget = offset + instruction.branchOffset;
 
-            JvmCfaNode jumpNode = ((JvmCfa) cfa).addNodeIfAbsent(signature, branchTarget, clazz);
+            JvmCfaNode jumpNode = cfa.addNodeIfAbsent(signature, branchTarget, clazz);
 
             new JvmAssumeCfaEdge(currentNode, jumpNode, methodCode, offset, true);
         }
@@ -400,7 +395,7 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
             // add the default node/edge pair
             int branchTarget = offset + instruction.defaultOffset;
 
-            JvmCfaNode jumpNode = ((JvmCfa) cfa).addNodeIfAbsent(signature, branchTarget, clazz);
+            JvmCfaNode jumpNode = cfa.addNodeIfAbsent(signature, branchTarget, clazz);
 
             new JvmAssumeDefaultCfaEdge(currentNode, jumpNode, methodCode, offset);
 
@@ -410,7 +405,7 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
                 branchTarget = offset + instruction.jumpOffsets[index];
                 int caseAssumption = instruction instanceof TableSwitchInstruction ? ((TableSwitchInstruction) instruction).lowCase + index : ((LookUpSwitchInstruction) instruction).cases[index];
 
-                jumpNode = ((JvmCfa) cfa).addNodeIfAbsent(signature, branchTarget, clazz);
+                jumpNode = cfa.addNodeIfAbsent(signature, branchTarget, clazz);
 
                 new JvmAssumeCaseCfaEdge(currentNode, jumpNode, methodCode, offset, caseAssumption);
             }
@@ -443,12 +438,12 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor
             // link edge to the first catch block
             if (firstCatch.isPresent())
             {
-                new JvmInstructionCfaEdge(currentNode, ((JvmCfa) cfa).getFunctionCatchNode(signature, firstCatch.get().u2handlerPC), methodCode, offset);
+                new JvmInstructionCfaEdge(currentNode, cfa.getFunctionCatchNode(signature, firstCatch.get().u2handlerPC), methodCode, offset);
             }
             // since this is an intra-procedural implementation if the thrown exception is not caught just add an edge to the exception exit node
             else
             {
-                JvmCfaNode exitNode = ((JvmCfa) cfa).getFunctionExceptionExitNode(signature, clazz);
+                JvmCfaNode exitNode = cfa.getFunctionExceptionExitNode(signature, clazz);
 
                 // add edge for the throw instruction
                 new JvmInstructionCfaEdge(currentNode, exitNode, methodCode, offset);
