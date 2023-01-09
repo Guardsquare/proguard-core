@@ -22,6 +22,7 @@ publishing {
             artifactId = 'proguard-core-tools'
             from components.java
             pom {
+                name = 'ProGuardCORE'
                 description = 'ProGuardCORE is a free library to read, analyze, modify, and write Java class files.'
                 url = 'https://guardsquare.github.io/proguard-core'
 
