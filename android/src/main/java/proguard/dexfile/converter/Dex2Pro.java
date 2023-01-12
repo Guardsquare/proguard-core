@@ -530,7 +530,7 @@ public class Dex2Pro {
         if (clzInfo != null) {
 //            isInnerClass = clzInfo.enclosingClass != null || clzInfo.enclosingMethod != null;
             if (clzInfo.enclosingClass != null || clzInfo.enclosingMethod != null) {
-                if (classNode.anns.stream().noneMatch(x ->
+                if (classNode.anns != null && classNode.anns.stream().noneMatch(x ->
                         x.type.equals("Ldalvik/annotation/EnclosingMethod;"))) {
                     isInnerClass = true;
                 } else if (clzInfo.enclosingClass != null) {
