@@ -22,6 +22,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation
 import proguard.analysis.datastructure.callgraph.Call
 import proguard.classfile.instruction.Instruction
+import proguard.classfile.instruction.VariableInstruction
 import proguard.classfile.util.ClassUtil
 import proguard.evaluation.value.ParticularDoubleValue
 import proguard.evaluation.value.ParticularFloatValue
@@ -59,6 +60,17 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
                     )
                 )
             )
+    }
+
+    override fun computeIncrement(state: ExpressionAbstractState, value: Int): ExpressionAbstractState {
+        return ExpressionAbstractState(
+            setOf(
+                InstructionExpression(
+                    VariableInstruction(Instruction.OP_IINC, 0, value),
+                    listOf(state)
+                )
+            )
+        )
     }
 
     override fun getAbstractDoubleConstant(d: Double): MutableList<ExpressionAbstractState> {

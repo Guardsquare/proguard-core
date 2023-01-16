@@ -736,8 +736,7 @@ class JvmTransferRelationTest : FreeSpec({
                         InstructionExpression(
                             VariableInstruction(Instruction.OP_IINC, 0, 1),
                             listOf(
-                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2)))),
-                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1))))
+                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2))))
                             )
                         )
                     )

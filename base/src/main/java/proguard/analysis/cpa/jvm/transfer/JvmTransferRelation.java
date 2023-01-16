@@ -125,6 +125,14 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     }
 
     /**
+     * Returns the abstract state of the incremented input {@code state} by {@code value}. The default implementation computes the join.
+     */
+    protected StateT computeIncrement(StateT state, int value)
+    {
+        return state.join(getAbstractIntegerConstant(value));
+    }
+
+    /**
      * Returns an abstract representation of a byte constant {@code b}.
      */
     public StateT getAbstractByteConstant(byte b)
@@ -459,31 +467,25 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         {
             if (variableInstruction.opcode == Instruction.OP_IINC)
             {
-                List<StateT> operands = new ArrayList<>(2);
-                operands.add(abstractState.getVariableOrDefault(variableInstruction.variableIndex, getAbstractDefault()));
-                operands.add(getAbstractIntegerConstant(variableInstruction.constant));
-                List<StateT> res = applyInstruction(variableInstruction, operands, 1);
-                if (res.size() != 1)
-                {
-                    throw new IllegalStateException("applyInstruction should return a list of size 1");
-                }
-                abstractState.setVariable(variableInstruction.variableIndex, res.get(0), getAbstractDefault());
+                abstractState.setVariable(variableInstruction.variableIndex,
+                                          computeIncrement(abstractState.getVariableOrDefault(variableInstruction.variableIndex, getAbstractDefault()), variableInstruction.constant),
+                                          getAbstractDefault());
+                return;
             }
-            else if (variableInstruction.isLoad())
+            if (variableInstruction.isLoad())
             {
                 if (variableInstruction.isCategory2())
                 {
                     abstractState.push(abstractState.getVariableOrDefault(variableInstruction.variableIndex + 1, getAbstractDefault()));
                 }
                 abstractState.push(abstractState.getVariableOrDefault(variableInstruction.variableIndex, getAbstractDefault()));
+                return;
             }
-            else if (variableInstruction.isStore())
+            // process store instruction
+            abstractState.setVariable(variableInstruction.variableIndex, abstractState.pop(), getAbstractDefault());
+            if (variableInstruction.isCategory2())
             {
-                abstractState.setVariable(variableInstruction.variableIndex, abstractState.pop(), getAbstractDefault());
-                if (variableInstruction.isCategory2())
-                {
-                    abstractState.setVariable(variableInstruction.variableIndex + 1, abstractState.pop(), getAbstractDefault());
-                }
+                abstractState.setVariable(variableInstruction.variableIndex + 1, abstractState.pop(), getAbstractDefault());
             }
         }
 

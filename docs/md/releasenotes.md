@@ -1,3 +1,8 @@
+## Version 9.0.8
+
+### API changes
+- `JvmTransferRelation` has been refactored to model `IINC` in a separate `computeIncrement` method.
+
 ## Version 9.0.7
 
 ### Improved

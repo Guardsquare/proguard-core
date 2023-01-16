@@ -19,7 +19,6 @@
 package proguard.analysis.cpa.jvm.domain.reference;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.instruction.Instruction;
@@ -63,17 +62,19 @@ public class JvmReferenceTransferRelation
     @Override
     protected List<SetAbstractState<Reference>> applyInstruction(Instruction instruction, List<SetAbstractState<Reference>> operands, int resultCount)
     {
-        // the increment doesn't affect the reference
-        if (instruction.opcode == Instruction.OP_IINC)
-        {
-            return Collections.singletonList(operands.get(0));
-        }
         List<SetAbstractState<Reference>> answer = new ArrayList<>(resultCount);
         for (int i = 0; i < resultCount; i++)
         {
             answer.add(getAbstractDefault());
         }
         return answer;
+    }
+
+    @Override
+    protected SetAbstractState<Reference> computeIncrement(SetAbstractState<Reference> state, int value)
+    {
+        // references cannot be incremented
+        return getAbstractDefault();
     }
 
     @Override
