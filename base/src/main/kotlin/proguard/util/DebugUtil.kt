@@ -2,11 +2,13 @@ package proguard.util
 
 import proguard.analysis.cpa.jvm.cfa.JvmCfa
 import proguard.classfile.ClassPool
+import proguard.classfile.Clazz
 import proguard.classfile.Method
 import proguard.classfile.MethodSignature
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramMethod
 import proguard.classfile.attribute.Attribute
+import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.visitor.ClassPrinter
@@ -22,10 +24,10 @@ import java.io.StringWriter
 object DebugUtil {
 
     /**
-     * Get the bytecode of a particular [ProgramClass].
+     * Get the bytecode of a particular [Clazz].
      */
     @JvmStatic
-    fun asString(clazz: ProgramClass): String {
+    fun asString(clazz: Clazz): String {
         val sw = StringWriter()
         val pw = PrintWriter(sw)
         clazz.accept(ClassPrinter(pw))
@@ -33,41 +35,41 @@ object DebugUtil {
     }
 
     /**
-     * Get the bytecode of a particular [ProgramMethod].
+     * Get the bytecode of a particular [Method].
      */
     @JvmStatic
     @JvmOverloads
-    fun asString(clazz: ProgramClass, method: ProgramMethod, verbose: Boolean = false): String {
+    fun asString(clazz: Clazz, method: Method, verbose: Boolean = false): String {
         val sw = StringWriter()
         val pw = PrintWriter(sw)
         if (verbose) {
             method.accept(clazz, ClassPrinter(pw))
         } else {
-            method.attributesAccept(clazz, AttributeNameFilter(Attribute.CODE, AllInstructionVisitor(ClassPrinter(pw))))
+            method.accept(clazz, AllAttributeVisitor(AttributeNameFilter(Attribute.CODE, AllInstructionVisitor(ClassPrinter(pw)))))
         }
         return sw.toString()
     }
 
     /**
-     * Get the bytecode of a particular [ProgramMethod] from your [ClassPool].
+     * Get the bytecode of a particular [Method] from your [ClassPool].
      */
     @JvmStatic
     @JvmOverloads
     fun asString(classPool: ClassPool, signature: MethodSignature, verbose: Boolean = false): String {
         val clazz = classPool.getClass(signature.className)
-        check(clazz is ProgramClass) { "Program class " + clazz.name + " not found in class pool" }
+        check(clazz is Clazz) { "Class " + clazz.name + " not found in class pool" }
         val method = clazz.findMethod(signature.method, signature.descriptor.toString())
-        check(method is ProgramMethod) { "Program method " + signature + " not found in class " + clazz.getName() }
+        check(method is Method) { "Method " + signature + " not found in class " + clazz.name }
         return asString(clazz, method, verbose)
     }
 
     /**
-     * Get the bytecode of all methods in a [ProgramClass] from your [ClassPool].
+     * Get the bytecode of all methods in a [Class] from your [ClassPool].
      */
     @JvmStatic
     fun asString(classPool: ClassPool, className: String): String {
         val clazz = classPool.getClass(className)
-        check(clazz is ProgramClass) { "Program class $className not found in class pool" }
+        check(clazz is Clazz) { "Class $className not found in class pool" }
         return asString(clazz)
     }
 
