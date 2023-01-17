@@ -17,11 +17,27 @@
  */
 package proguard.evaluation;
 
-import proguard.classfile.*;
-import proguard.classfile.constant.*;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.Clazz;
+import proguard.classfile.LibraryClass;
+import proguard.classfile.LibraryField;
+import proguard.classfile.LibraryMethod;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramField;
+import proguard.classfile.ProgramMethod;
+import proguard.classfile.constant.AnyMethodrefConstant;
+import proguard.classfile.constant.ClassConstant;
+import proguard.classfile.constant.FieldrefConstant;
+import proguard.classfile.constant.InvokeDynamicConstant;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.MemberVisitor;
-import proguard.evaluation.value.*;
+import proguard.evaluation.value.ReferenceValue;
+import proguard.evaluation.value.Value;
+import proguard.evaluation.value.ValueFactory;
+
+import static proguard.classfile.AccessConstants.FINAL;
+import static proguard.classfile.AccessConstants.STATIC;
 
 /**
  * This {@link InvocationUnit} sets up the variables for entering a method,
@@ -65,7 +81,7 @@ implements   InvocationUnit,
 
         return valueFactory.createReferenceValue(ClassUtil.internalTypeFromClassName(catchClassName),
                                                  catchClass,
-                                                 true,
+                                                 mayBeExtension(catchClass),
                                                  false);
     }
 
@@ -88,9 +104,10 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         returnTypeClass,
-                                        true,
+                                        mayBeExtension(returnTypeClass),
                                         true);
     }
+
 
 
     public void setFieldValue(Clazz            clazz,
@@ -111,7 +128,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         returnTypeClass,
-                                        true,
+                                        mayBeExtension(returnTypeClass),
                                         true);
     }
 
@@ -134,11 +151,11 @@ implements   InvocationUnit,
         // A "this" parameter can never be null.
         boolean isThis =
             parameterIndex == 0 &&
-            (method.getAccessFlags() & AccessConstants.STATIC) == 0;
+            (method.getAccessFlags() & STATIC) == 0;
 
         return valueFactory.createValue(type,
                                         referencedClass,
-                                        true,
+                                        mayBeExtension(referencedClass),
                                         !isThis);
     }
 
@@ -161,7 +178,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         returnTypeClass,
-                                        true,
+                                        mayBeExtension(returnTypeClass),
                                         true);
     }
 
@@ -184,7 +201,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         referencedClass,
-                                        true,
+                                        mayBeExtension(referencedClass),
                                         true);
     }
 
@@ -222,5 +239,9 @@ implements   InvocationUnit,
         {
             returnTypeClass = referencedClasses[referencedClasses.length - 1];
         }
+    }
+
+    private boolean mayBeExtension(Clazz clazz) {
+        return clazz == null || (clazz.getAccessFlags() & FINAL) == 0;
     }
 }
