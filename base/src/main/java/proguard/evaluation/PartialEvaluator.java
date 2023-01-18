@@ -19,15 +19,31 @@ package proguard.evaluation;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.visitor.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.ExceptionInfo;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.attribute.visitor.ExceptionInfoVisitor;
 import proguard.classfile.editor.ClassEstimates;
-import proguard.classfile.instruction.*;
+import proguard.classfile.instruction.BranchInstruction;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.InstructionFactory;
+import proguard.classfile.instruction.LookUpSwitchInstruction;
+import proguard.classfile.instruction.SimpleInstruction;
+import proguard.classfile.instruction.TableSwitchInstruction;
+import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.*;
-import proguard.classfile.visitor.*;
-import proguard.evaluation.value.*;
+import proguard.classfile.util.BranchTargetFinder;
+import proguard.classfile.util.ClassUtil;
+import proguard.classfile.visitor.ClassPrinter;
+import proguard.classfile.visitor.ExceptionHandlerFilter;
+import proguard.evaluation.value.BasicValueFactory;
+import proguard.evaluation.value.InstructionOffsetValue;
+import proguard.evaluation.value.Value;
+import proguard.evaluation.value.ValueFactory;
 
 import java.util.Arrays;
 
@@ -81,8 +97,8 @@ implements   AttributeVisitor,
     private final BasicBranchUnit    branchUnit;
     private final BranchTargetFinder branchTargetFinder;
 
-    private final java.util.Stack callingInstructionBlockStack;
-    private final java.util.Stack instructionBlockStack = new java.util.Stack();
+    private final java.util.Stack<MyInstructionBlock> callingInstructionBlockStack;
+    private final java.util.Stack<MyInstructionBlock> instructionBlockStack = new java.util.Stack<>();
 
 
     /**
@@ -195,13 +211,13 @@ implements   AttributeVisitor,
      * @param callingInstructionBlockStack the stack of instruction blocks to
      *                                     be evaluated
      */
-    private PartialEvaluator(ValueFactory       valueFactory,
-                             InvocationUnit     invocationUnit,
-                             boolean            evaluateAllCode,
-                             InstructionVisitor extraInstructionVisitor,
-                             BasicBranchUnit    branchUnit,
-                             BranchTargetFinder branchTargetFinder,
-                             java.util.Stack    callingInstructionBlockStack)
+    private PartialEvaluator(ValueFactory                        valueFactory,
+                             InvocationUnit                      invocationUnit,
+                             boolean                             evaluateAllCode,
+                             InstructionVisitor                  extraInstructionVisitor,
+                             BasicBranchUnit                     branchUnit,
+                             BranchTargetFinder                  branchTargetFinder,
+                             java.util.Stack<MyInstructionBlock> callingInstructionBlockStack)
     {
         this.valueFactory                 = valueFactory;
         this.invocationUnit               = invocationUnit;
@@ -233,14 +249,14 @@ implements   AttributeVisitor,
     }
 
     public static class Builder {
-        private ValueFactory       valueFactory;
-        private InvocationUnit     invocationUnit;
-        private boolean            evaluateAllCode               = true;
-        private InstructionVisitor extraInstructionVisitor;
-        private BasicBranchUnit    branchUnit;
-        private BranchTargetFinder branchTargetFinder;
-        private java.util.Stack    callingInstructionBlockStack;
-        private int                stopAnalysisAfterNEvaluations = -1; // disabled by default
+        private ValueFactory                        valueFactory;
+        private InvocationUnit                      invocationUnit;
+        private boolean                             evaluateAllCode               = true;
+        private InstructionVisitor                  extraInstructionVisitor;
+        private BasicBranchUnit                     branchUnit;
+        private BranchTargetFinder                  branchTargetFinder;
+        private java.util.Stack<MyInstructionBlock> callingInstructionBlockStack;
+        private int                                 stopAnalysisAfterNEvaluations = -1; // disabled by default
 
         public static Builder create()
         {
@@ -311,7 +327,7 @@ implements   AttributeVisitor,
         /**
          * the stack of instruction blocks to be evaluated.
          */
-        public Builder setCallingInstructionBlockStack(java.util.Stack callingInstructionBlockStack)
+        public Builder setCallingInstructionBlockStack(java.util.Stack<MyInstructionBlock> callingInstructionBlockStack)
         {
             this.callingInstructionBlockStack = callingInstructionBlockStack;
             return this;
@@ -835,8 +851,7 @@ implements   AttributeVisitor,
         {
             if (DEBUG) System.out.println("Popping alternative branch out of "+instructionBlockStack.size()+" blocks");
 
-            MyInstructionBlock instructionBlock =
-                (MyInstructionBlock)instructionBlockStack.pop();
+            MyInstructionBlock instructionBlock = instructionBlockStack.pop();
 
             evaluateSingleInstructionBlock(clazz,
                                            method,
@@ -1566,9 +1581,9 @@ implements   AttributeVisitor,
      */
     private static class MyInstructionBlock
     {
-        private TracedVariables variables;
-        private TracedStack     stack;
-        private int             startOffset;
+        private final TracedVariables variables;
+        private final TracedStack     stack;
+        private final int             startOffset;
 
 
         private MyInstructionBlock(TracedVariables variables,
