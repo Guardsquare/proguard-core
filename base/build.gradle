@@ -23,7 +23,7 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
     testFixturesImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-    testFixturesImplementation 'com.github.tschuchortdev:kotlin-compile-testing:1.4.9'
+    testFixturesImplementation group: "dev.zacsweers.kctfork", name: "core", version: "0.2.1"
     testFixturesImplementation 'io.kotest:kotest-runner-junit5-jvm:5.5.4' // for kotest framework
     testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.5.4' // for kotest framework
     testImplementation 'io.kotest:kotest-assertions-core-jvm:5.5.4' // for kotest core jvm assertions
@@ -31,7 +31,7 @@ dependencies {
 
     testImplementation 'io.kotest:kotest-property-jvm:5.5.4' // for kotest property test
     testImplementation 'io.kotest:kotest-framework-datatest:5.5.4'
-    testImplementation 'io.mockk:mockk:1.13.2' // for mocking
+    testImplementation 'io.mockk:mockk:1.13.3' // for mocking
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0' // for junit framework
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0' // for junit framework
 
@@ -61,8 +61,8 @@ task testAllJavaVersions() { testAllTask ->
     
         task("testJava$version", type: Test) {
 
-            // The version of bytebuddy used by mockk only supports Java 19 experimentally so far
-            if (version == 19) systemProperty 'net.bytebuddy.experimental', true
+            // The version of bytebuddy used by mockk only supports Java 20 experimentally so far
+            if (version == 20) systemProperty 'net.bytebuddy.experimental', true
 
             useJUnitPlatform()
 

@@ -5,6 +5,8 @@
  * Copyright (c) 2002-2021 Guardsquare NV
  */
 
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package proguard.testutils
 
 import com.guardsquare.proguard.assembler.io.JbcReader
@@ -13,6 +15,7 @@ import io.kotest.assertions.fail
 import io.kotest.core.listeners.TestListener
 import io.kotest.core.spec.AutoScan
 import io.kotest.core.test.TestCase
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.util.ClassReferenceInitializer
