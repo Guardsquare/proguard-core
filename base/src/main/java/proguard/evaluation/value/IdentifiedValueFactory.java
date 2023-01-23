@@ -77,6 +77,16 @@ extends      ParticularValueFactory
     }
 
 
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               Object  value)
+    {
+        return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
+
+
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength)
