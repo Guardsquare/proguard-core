@@ -119,6 +119,7 @@ public class ClassUtil
             externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_17)  ? VersionConstants.CLASS_VERSION_17  :
             externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_18)  ? VersionConstants.CLASS_VERSION_18  :
             externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_19)  ? VersionConstants.CLASS_VERSION_19  :
+            externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_20)  ? VersionConstants.CLASS_VERSION_20  :
                                                                                   0;
     }
 
@@ -151,6 +152,7 @@ public class ClassUtil
             case VersionConstants.CLASS_VERSION_17:  return JavaVersionConstants.CLASS_VERSION_17;
             case VersionConstants.CLASS_VERSION_18:  return JavaVersionConstants.CLASS_VERSION_18;
             case VersionConstants.CLASS_VERSION_19:  return JavaVersionConstants.CLASS_VERSION_19;
+            case VersionConstants.CLASS_VERSION_20:  return JavaVersionConstants.CLASS_VERSION_20;
             default:                                 return null;
         }
     }

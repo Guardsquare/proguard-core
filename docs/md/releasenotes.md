@@ -1,5 +1,11 @@
 ## Version 9.0.8
 
+### Improved
+
+- Increase `proguard.classfile.VersionConstants.MAX_SUPPORTED_VERSION` to `64.65535` (Java 20 + preview enabled).
+
+## Version 9.0.8
+
 ### API changes
 - `JvmTransferRelation` has been refactored to model `IINC` in a separate `computeIncrement` method.
 
