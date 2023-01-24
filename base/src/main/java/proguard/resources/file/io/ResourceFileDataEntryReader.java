@@ -63,7 +63,7 @@ public class ResourceFileDataEntryReader implements DataEntryReader
     {
         if (!dataEntry.isDirectory())
         {
-            ResourceFile resourceFile = new ResourceFile(dataEntry.getName(), 0L);
+            ResourceFile resourceFile = new ResourceFile(dataEntry.getName(), dataEntry.getSize());
 
             // Collect references to Java tokens, if specified.
             if (adaptedDataEntryFilter != null &&
