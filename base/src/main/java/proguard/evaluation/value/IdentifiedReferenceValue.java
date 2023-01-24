@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,10 +93,19 @@ public class IdentifiedReferenceValue extends TypedReferenceValue
     // Implementations of binary ReferenceValue methods with
     // IdentifiedReferenceValue arguments.
 
-//    public ReferenceValue generalize(IdentifiedReferenceValue other)
-//    {
-//        return generalize((TypedReferenceValue)other);
-//    }
+    public ReferenceValue generalize(IdentifiedReferenceValue other)
+    {
+        if (this.equals(other)) return this;
+
+        if (!super.equals(other) ||
+            !this.valuefactory.equals(other.valuefactory) ||
+             this.id != other.id)
+        {
+            return generalize((TypedReferenceValue)other);
+        }
+
+        return new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, valuefactory, id);
+    }
 
 
     public int equal(IdentifiedReferenceValue other)

@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ implements   ValueFactory
     static final DoubleValue  DOUBLE_VALUE_1   = new ParticularDoubleValue(1.0);
 
 
-    private static int  POS_ZERO_FLOAT_BITS  = Float.floatToIntBits(0.0f);
-    private static long POS_ZERO_DOUBLE_BITS = Double.doubleToLongBits(0.0);
+    private static final int  POS_ZERO_FLOAT_BITS  = Float.floatToIntBits(0.0f);
+    private static final long POS_ZERO_DOUBLE_BITS = Double.doubleToLongBits(0.0);
 
 
     private final ValueFactory arrayReferenceValueFactory;
@@ -166,6 +166,21 @@ implements   ValueFactory
                                                           value);
     }
 
+    @Override
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               int     id,
+                                               Object  value)
+    {
+        return referenceValueFactory.createReferenceValue(type,
+                                                          referencedClass,
+                                                          mayBeExtension,
+                                                          mayBeNull,
+                                                          id,
+                                                          value);
+    }
 
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
@@ -202,8 +217,8 @@ implements   ValueFactory
 
         // Implementations for ReferenceValue.
         @Override
-        public ReferenceValue createReferenceValue(String type,
-                                                   Clazz referencedClass,
+        public ReferenceValue createReferenceValue(String  type,
+                                                   Clazz   referencedClass,
                                                    boolean mayBeExtension,
                                                    boolean mayBeNull)
         {
@@ -211,13 +226,24 @@ implements   ValueFactory
         }
 
         @Override
-        public ReferenceValue createReferenceValue(String type,
-                                                   Clazz referencedClass,
+        public ReferenceValue createReferenceValue(String  type,
+                                                   Clazz   referencedClass,
                                                    boolean mayBeExtension,
                                                    boolean mayBeNull,
-                                                   Object value)
+                                                   Object  value)
         {
-            return new ParticularReferenceValue(type, referencedClass, this, referenceID++, value);
+            return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, referenceID++, value);
+        }
+
+        @Override
+        public ReferenceValue createReferenceValue(String  type,
+                                                   Clazz   referencedClass,
+                                                   boolean mayBeExtension,
+                                                   boolean mayBeNull,
+                                                   int     id,
+                                                   Object  value)
+        {
+            return new ParticularReferenceValue(type, referencedClass, this, id, value);
         }
     }
 }

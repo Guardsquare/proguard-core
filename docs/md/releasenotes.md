@@ -3,6 +3,7 @@
 ### Improved
 
 - Increase `proguard.classfile.VersionConstants.MAX_SUPPORTED_VERSION` to `64.65535` (Java 20 + preview enabled).
+- Fix tracking of `IdentifiedReferenceValue` IDs.
 
 ## Version 9.0.8
 

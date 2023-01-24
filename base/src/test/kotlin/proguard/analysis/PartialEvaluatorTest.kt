@@ -2,6 +2,7 @@ package proguard.analysis
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.classfile.attribute.Attribute.CODE
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
@@ -97,6 +98,22 @@ class PartialEvaluatorTest : FreeSpec({
                 
                 final class FinalFoo { }
                 final class FinalFooException extends RuntimeException { }
+                """.trimIndent()
+            ),
+            JavaSource(
+                "StringBuilderBranchClass.java",
+                """
+                public class StringBuilderBranchClass {
+                    public String foo() {
+                        StringBuilder sb = new StringBuilder();
+                        if (System.currentTimeMillis() > 0) {
+                            sb.append("x");
+                        } else {
+                            sb.append("y");
+                        }
+                        return sb.toString();
+                    }
+                }
                 """.trimIndent()
             ),
             // Target Java 8 only to ensure consistent bytecode sequences.
@@ -314,6 +331,28 @@ class PartialEvaluatorTest : FreeSpec({
                 .getTop(0) as TypedReferenceValue
 
             value.mayBeExtension() shouldBe false
+        }
+
+        "StringBuilderBranchClass" {
+            programClassPool.classesAccept(
+                "StringBuilderBranchClass",
+                NamedMethodVisitor(
+                    "foo", "()Ljava/lang/String;",
+                    AllAttributeVisitor(
+                        AttributeNameFilter(CODE, particularValueEvaluator)
+                    )
+                )
+            )
+            val stackTopAfterStringBuilderInit = particularValueEvaluator
+                .getStackAfter(0)
+                .getTop(0) as IdentifiedReferenceValue
+            val stackTopAfterGeneralize = particularValueEvaluator
+                .getStackAfter(33)
+                .getTop(0)
+
+            // The instance should be tracked from the creation to the last usage.
+            stackTopAfterGeneralize.shouldBeInstanceOf<IdentifiedReferenceValue>()
+            stackTopAfterGeneralize.id shouldBe stackTopAfterStringBuilderInit.id
         }
     }
 })

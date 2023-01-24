@@ -73,7 +73,7 @@ class JvmValueAbstractStateTest : FreeSpec({
             a.join(b) shouldBe JvmValueAbstractState.top
         }
     }
-    
+
     "Abstract states with particular StringBuilders" - {
         val valueFactory = ParticularValueFactory(ReferenceValueFactory())
 
@@ -96,7 +96,6 @@ class JvmValueAbstractStateTest : FreeSpec({
             a.join(b) shouldBe JvmValueAbstractState.top
         }
     }
-
 })
 
 private fun ValueFactory.createString(s: String): Value = createReferenceValue(

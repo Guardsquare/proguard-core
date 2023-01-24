@@ -194,13 +194,14 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
 
 
     @Override
-    public boolean equals(Object object)
+    public boolean equals(Object o)
     {
-        return super.equals(object) &&
-                object instanceof ParticularReferenceValue &&
-                Objects.equals(value, ((ParticularReferenceValue) object).value);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ParticularReferenceValue that = (ParticularReferenceValue) o;
+        return Objects.equals(value, that.value);
     }
-
 
     @Override
     public int equal(ReferenceValue other)

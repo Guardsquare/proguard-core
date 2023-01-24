@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
  */
 package proguard.evaluation.value;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.TypeConstants;
 
 /**
  * This class provides methods to create and reuse Value instances.
@@ -139,6 +140,16 @@ implements   ValueFactory
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
+                                               Object  value)
+    {
+        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
+
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               int     id,
                                                Object  value)
     {
         return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);

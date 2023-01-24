@@ -255,11 +255,11 @@ implements   InstructionVisitor,
                                                        mayBeNull));
     }
 
-    public ReferenceValue createReferenceValue(String type,
-                                               Clazz referencedClass,
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
-                                               Object value)
+                                               Object  value)
     {
         return trace(valueFactory.createReferenceValue(type,
                                                        referencedClass,
@@ -269,6 +269,22 @@ implements   InstructionVisitor,
         ));
     }
 
+
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               int     id,
+                                               Object  value)
+    {
+        return trace(valueFactory.createReferenceValue(type,
+                                                       referencedClass,
+                                                       mayBeExtension,
+                                                       mayBeNull,
+                                                       id,
+                                                       value
+        ));
+    }
 
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,

@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,76 +31,76 @@ public interface ValueFactory
      * The type must be a fully specified internal type for primitives, classes,
      * or arrays.
      */
-    public Value createValue(String  type,
-                             Clazz   referencedClass,
-                             boolean mayBeExtension,
-                             boolean mayBeNull);
+    Value createValue(String  type,
+                      Clazz   referencedClass,
+                      boolean mayBeExtension,
+                      boolean mayBeNull);
 
 
     /**
      * Creates a new IntegerValue with an undefined value.
      */
-    public IntegerValue createIntegerValue();
+    IntegerValue createIntegerValue();
 
 
     /**
      * Creates a new IntegerValue with a given particular value.
      */
-    public IntegerValue createIntegerValue(int value);
+    IntegerValue createIntegerValue(int value);
 
 
     /**
      * Creates a new IntegerValue with a given possible range.
      */
-    public IntegerValue createIntegerValue(int min, int max);
+    IntegerValue createIntegerValue(int min, int max);
 
 
     /**
      * Creates a new LongValue with an undefined value.
      */
-    public LongValue createLongValue();
+    LongValue createLongValue();
 
 
     /**
      * Creates a new LongValue with a given particular value.
      */
-    public LongValue createLongValue(long value);
+    LongValue createLongValue(long value);
 
 
     /**
      * Creates a new FloatValue with an undefined value.
      */
-    public FloatValue createFloatValue();
+    FloatValue createFloatValue();
 
 
     /**
      * Creates a new FloatValue with a given particular value.
      */
-    public FloatValue createFloatValue(float value);
+    FloatValue createFloatValue(float value);
 
 
     /**
      * Creates a new DoubleValue with an undefined value.
      */
-    public DoubleValue createDoubleValue();
+    DoubleValue createDoubleValue();
 
 
     /**
      * Creates a new DoubleValue with a given particular value.
      */
-    public DoubleValue createDoubleValue(double value);
+    DoubleValue createDoubleValue(double value);
 
 
     /**
      * Creates a new ReferenceValue of an undefined type.
      */
-    public ReferenceValue createReferenceValue();
+    ReferenceValue createReferenceValue();
 
 
     /**
      * Creates a new ReferenceValue that represents <code>null</code>.
      */
-    public ReferenceValue createReferenceValueNull();
+    ReferenceValue createReferenceValueNull();
 
 
     /**
@@ -108,10 +108,10 @@ public interface ValueFactory
      * must be an internal class name or an array type. If the type is
      * <code>null</code>, the ReferenceValue represents <code>null</code>.
      */
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull);
+    ReferenceValue createReferenceValue(String  type,
+                                        Clazz   referencedClass,
+                                        boolean mayBeExtension,
+                                        boolean mayBeNull);
 
     /**
      * Creates a new ReferenceValue that represents the given type. The type
@@ -119,19 +119,32 @@ public interface ValueFactory
      * <code>null</code>, the ReferenceValue represents <code>null</code>.
      * The object is the actual value of the reference during execution (can be null).
      */
-    public ReferenceValue createReferenceValue(String type,
-                                               Clazz referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean maybeNull,
-                                               Object value);
+    ReferenceValue createReferenceValue(String  type,
+                                        Clazz   referencedClass,
+                                        boolean mayBeExtension,
+                                        boolean maybeNull,
+                                        Object  value);
+
+    /**
+     * Creates a new ReferenceValue that represents the given type with a specified ID.
+     * The type must be an internal class name or an array type. If the type is
+     * <code>null</code>, the ReferenceValue represents <code>null</code>.
+     * The object is the actual value of the reference during execution (can be null).
+     */
+    ReferenceValue createReferenceValue(String  type,
+                                        Clazz   referencedClass,
+                                        boolean mayBeExtension,
+                                        boolean maybeNull,
+                                        int     id,
+                                        Object  value);
 
     /**
      * Creates a new ReferenceValue that represents a non-null array with
      * elements of the given type, with the given length.
      */
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength);
+    ReferenceValue createArrayReferenceValue(String       type,
+                                             Clazz        referencedClass,
+                                             IntegerValue arrayLength);
 
 
     /**
@@ -139,8 +152,8 @@ public interface ValueFactory
      * elements of the given type, with the given length and initial element
      * values.
      */
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength,
-                                                    Value        elementValue);
+    ReferenceValue createArrayReferenceValue(String       type,
+                                             Clazz        referencedClass,
+                                             IntegerValue arrayLength,
+                                             Value        elementValue);
 }

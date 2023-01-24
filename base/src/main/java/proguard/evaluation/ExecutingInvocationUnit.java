@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,13 @@
 
 package proguard.evaluation;
 
-import static proguard.classfile.AccessConstants.*;
-import static proguard.classfile.ClassConstants.*;
+import static proguard.classfile.AccessConstants.FINAL;
+import static proguard.classfile.AccessConstants.STATIC;
+import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
@@ -47,6 +52,7 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.MemberAccessFilter;
 import proguard.classfile.visitor.MemberVisitor;
+import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.ReflectiveMethodCallUtil;
@@ -129,11 +135,12 @@ public class ExecutingInvocationUnit
                                       String               returnType)
     {
 
-        String baseClassName = anyMethodrefConstant.getClassName(clazz);
+        String baseClassName   = anyMethodrefConstant.getClassName(clazz);
+        Clazz  referencedClass = getReferencedClass(anyMethodrefConstant, false);
 
         if (!isSupportedMethodCall(baseClassName))
         {
-            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, false), true, true);
+            return valueFactory.createValue(returnType, referencedClass, mayBeExtension(referencedClass), true);
         }
 
         Value reflectedReturnValue = handleMethodCall(clazz, anyMethodrefConstant, returnType, parameters, isStatic);
@@ -148,7 +155,7 @@ public class ExecutingInvocationUnit
         else if (reflectedReturnValue == null)
         {
             // The reflective call failed. Create a simple new Value of the correct type.
-            return valueFactory.createValue(returnType, getReferencedClass(anyMethodrefConstant, false), true, true);
+            return valueFactory.createValue(returnType, referencedClass, mayBeExtension(referencedClass), true);
         }
         else
         {
@@ -254,7 +261,7 @@ public class ExecutingInvocationUnit
         {
             value = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING,
                                                       currentField.referencedClass,
-                                                      false,
+                                                      mayBeExtension(currentField.referencedClass),
                                                       false,
                                                       stringConstant.getString(clazz));
         }
@@ -272,15 +279,15 @@ public class ExecutingInvocationUnit
      * @param isStatic is this a static method call.
      * @return the return value of the method call. Even for a void method, a created value might be returned, which might need to be replaced on stack/values (e.g. for Constructors).
      */
-    private Value handleMethodCall(Clazz clazz,
+    private Value handleMethodCall(Clazz                clazz,
                                    AnyMethodrefConstant anyMethodrefConstant,
-                                   String returnType,
-                                   Value[] parameter,
-                                   boolean isStatic)
+                                   String               returnType,
+                                   Value[]              parameter,
+                                   boolean              isStatic)
     {
 
         String baseClassName = anyMethodrefConstant.getClassName(clazz);
-        String methodName = anyMethodrefConstant.getName(clazz);
+        String methodName    = anyMethodrefConstant.getName(clazz);
         String parameterType = anyMethodrefConstant.getType(clazz);
 
         if (!isStatic)
@@ -293,7 +300,7 @@ public class ExecutingInvocationUnit
 
         // if this is a non-static call, the first parameter is the instance, so all accesses to the arrays need to be offset by 1.
         // if this is a static call, the first parameter is actually the first.
-        int paramOffset = (isStatic ? 0 : 1);
+        int paramOffset = isStatic ? 0 : 1;
 
         // check if any of the parameters is Unknown. If yes, the result is unknown as well.
         for (int i = paramOffset; i < parameter.length; i++)
@@ -304,9 +311,12 @@ public class ExecutingInvocationUnit
             }
         }
 
-        boolean resultMayBeNull = true;
-        boolean resultMayBeExtension = true;
-        Object methodResult;
+        boolean        resultMayBeNull      = true;
+        boolean        resultMayBeExtension = true;
+        Object         methodResult;
+
+        ReferenceValue instance = !isStatic ? parameter[0].referenceValue() : null;
+        int            objectId = instance instanceof IdentifiedReferenceValue ? ((IdentifiedReferenceValue) instance).id : -1;
 
         try
         {
@@ -326,17 +336,14 @@ public class ExecutingInvocationUnit
                                                                         parameterClasses,
                                                                         parameterObjects);
 
-
                 resultMayBeNull = false; // the return of the ctor will not be null if it does not throw.
                 resultMayBeExtension = false; // the return of the ctor will always be this specific type.
             }
             else // non-constructor method call.
             {
                 Object callingInstance = null; // correct for static
-                if (!isStatic)
+                if (instance != null)
                 {
-                    ReferenceValue instance = parameter[0].referenceValue();
-
                     switch (baseClassName)
                     {
                         // create a copy of the object stored in the ParticularReferenceValue.
@@ -384,19 +391,34 @@ public class ExecutingInvocationUnit
         // To create a referenceValue with a correct type (i.e. not void), we update the type from the instance we called upon.
         if (!isStatic && returnType.equals("V"))
         {
-            returnType = parameter[0].referenceValue().getType();
+            returnType = instance.referenceValue().getType();
         }
         // the referencedClass could be any Type. We do not have a reference to that class at this point.
-        return valueFactory.createReferenceValue(returnType,
-                                                 // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
-                                                 // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
-                                                 ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
-                                                    ? null
-                                                    : getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
-                                                 resultMayBeExtension,
-                                                 resultMayBeNull,
-                                                 methodResult);
-
+        if (objectId != -1)
+        {
+             return valueFactory.createReferenceValue(returnType,
+                                                      // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
+                                                      // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
+                                                      ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
+                                                         ? null
+                                                         : getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
+                                                      resultMayBeExtension,
+                                                      resultMayBeNull,
+                                                      objectId,
+                                                      methodResult);
+        }
+        else
+        {
+             return valueFactory.createReferenceValue(returnType,
+                                                      // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
+                                                      // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
+                                                      ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
+                                                         ? null
+                                                         : getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
+                                                      resultMayBeExtension,
+                                                      resultMayBeNull,
+                                                      methodResult);
+        }
     }
 
 
