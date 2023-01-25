@@ -103,7 +103,6 @@ public abstract class JvmBamCpaRun<CpaT extends ConfigurableProgramAnalysis, Abs
             default:
                 throw new IllegalArgumentException("Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
         }
-
     }
 
     // implementations for CpaRun

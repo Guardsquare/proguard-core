@@ -59,6 +59,7 @@ implements   KotlinMetadataVisitor,
     public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
     {
         kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+        kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, this);
         kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
         kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
         kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
@@ -79,10 +80,11 @@ implements   KotlinMetadataVisitor,
                                  KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                  KotlinPropertyMetadata             kotlinPropertyMetadata)
     {
-        kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.typeParametersAccept(      clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.receiverTypeAccept(        clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.contextReceiverTypesAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.typeAccept(                clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.setterParametersAccept(    clazz, kotlinDeclarationContainerMetadata, this);
     }
 
 
@@ -93,11 +95,12 @@ implements   KotlinMetadataVisitor,
                                  KotlinMetadata         kotlinMetadata,
                                  KotlinFunctionMetadata kotlinFunctionMetadata)
     {
-        kotlinFunctionMetadata.typeParametersAccept( clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.receiverTypeAccept(   clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.returnTypeAccept(     clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.contractsAccept(      clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.typeParametersAccept(      clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.receiverTypeAccept(        clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.valueParametersAccept(     clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.returnTypeAccept(          clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.contractsAccept(           clazz, kotlinMetadata, this);
     }
 
     // Implementations for KotlinContractVisitor.
@@ -319,6 +322,37 @@ implements   KotlinMetadataVisitor,
         visitAnyType(clazz, kotlinTypeMetadata);
     }
 
+    @Override
+    public void visitFunctionContextReceiverType(Clazz                  clazz,
+                                                 KotlinMetadata         kotlinMetadata,
+                                                 KotlinFunctionMetadata kotlinFunctionMetadata,
+                                                 KotlinTypeMetadata     kotlinTypeMetadata)
+    {
+        delegate.visitFunctionContextReceiverType(clazz, kotlinMetadata, kotlinFunctionMetadata, kotlinTypeMetadata);
+
+        visitAnyType(clazz, kotlinTypeMetadata);
+    }
+
+    @Override
+    public void visitClassContextReceiverType(Clazz              clazz,
+                                              KotlinMetadata     kotlinMetadata,
+                                              KotlinTypeMetadata kotlinTypeMetadata)
+    {
+        delegate.visitClassContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
+
+        visitAnyType(clazz, kotlinTypeMetadata);
+    }
+
+    @Override
+    public void visitPropertyContextReceiverType(Clazz                  clazz,
+                                                 KotlinMetadata         kotlinMetadata,
+                                                 KotlinPropertyMetadata kotlinPropertyMetadata,
+                                                 KotlinTypeMetadata     kotlinTypeMetadata)
+    {
+        delegate.visitPropertyContextReceiverType(clazz, kotlinMetadata, kotlinPropertyMetadata, kotlinTypeMetadata);
+
+        visitAnyType(clazz, kotlinTypeMetadata);
+    }
 
     @Override
     public void visitPropertyType(Clazz clazz,

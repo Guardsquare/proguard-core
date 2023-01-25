@@ -20,11 +20,14 @@ package proguard.classfile.kotlin;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.flags.KotlinCommonFlags;
 import proguard.classfile.kotlin.flags.KotlinTypeFlags;
-import proguard.classfile.kotlin.visitor.*;
+import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeAliasVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
 import proguard.classfile.visitor.ClassVisitor;
-import proguard.util.*;
+import proguard.util.Processable;
+import proguard.util.SimpleProcessable;
 
-import java.util.*;
+import java.util.List;
 
 public class KotlinTypeMetadata
 extends      SimpleProcessable
@@ -103,23 +106,29 @@ implements   Processable,
     public void upperBoundsAccept(Clazz             clazz,
                                   KotlinTypeVisitor kotlinTypeVisitor)
     {
-        for (KotlinTypeMetadata upperBound : upperBounds)
+        if (upperBounds != null)
         {
-            upperBound.acceptAsUpperBound(clazz, this, kotlinTypeVisitor);
+            for (KotlinTypeMetadata upperBound : upperBounds)
+            {
+                upperBound.acceptAsUpperBound(clazz, this, kotlinTypeVisitor);
+            }
         }
     }
 
     public void typeArgumentsAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor)
     {
-        for (KotlinTypeMetadata typeArgument : typeArguments)
+        if (typeArguments != null)
         {
-            if (typeArgument.isStarProjection())
+            for (KotlinTypeMetadata typeArgument : typeArguments)
             {
-                kotlinTypeVisitor.visitStarProjection(clazz, this);
-            }
-            else
-            {
-                kotlinTypeVisitor.visitTypeArgument(clazz, this, typeArgument);
+                if (typeArgument.isStarProjection())
+                {
+                    kotlinTypeVisitor.visitStarProjection(clazz, this);
+                }
+                else
+                {
+                    kotlinTypeVisitor.visitTypeArgument(clazz, this, typeArgument);
+                }
             }
         }
     }
@@ -167,9 +176,12 @@ implements   Processable,
     public void annotationsAccept(Clazz                   clazz,
                                   KotlinAnnotationVisitor kotlinAnnotationVisitor)
     {
-        for (KotlinAnnotation annotation : annotations)
+        if (annotations != null)
         {
-            kotlinAnnotationVisitor.visitTypeAnnotation(clazz, this, annotation);
+            for (KotlinAnnotation annotation : annotations)
+            {
+                kotlinAnnotationVisitor.visitTypeAnnotation(clazz, this, annotation);
+            }
         }
     }
 
@@ -178,6 +190,15 @@ implements   Processable,
         if (this.referencedClass != null)
         {
             this.referencedClass.accept(classVisitor);
+        }
+    }
+    
+    public void referencedTypeAliasAccept(Clazz clazz, KotlinTypeAliasVisitor kotlinTypeAliasVisitor)
+    {
+        if (this.referencedTypeAlias != null &&
+            this.referencedTypeAlias.referencedDeclarationContainer != null)
+        {
+            this.referencedTypeAlias.accept(clazz, this.referencedTypeAlias.referencedDeclarationContainer, kotlinTypeAliasVisitor);
         }
     }
 

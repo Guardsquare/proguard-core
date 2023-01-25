@@ -139,6 +139,23 @@ public class EntryPoint
         this.methodName = methodName;
     }
 
+    public static List<EntryPoint> getEntryPointsForType(Type type)
+    {
+        switch(type)
+        {
+            case ACTIVITY:
+                return ENTRY_POINTS_ACTIVITY;
+            case SERVICE:
+                return ENTRY_POINTS_SERVICE;
+            case BROADCAST_RECEIVER:
+                return ENTRY_POINTS_BROADCAST_RECEIVER;
+            case CONTENT_PROVIDER:
+                return ENTRY_POINTS_CONTENT_PROVIDER;
+            default:
+                throw new IllegalStateException("Unsupported entry point type");
+        }
+    }
+
     public MethodSignature toSignature()
     {
         return new MethodSignature(className.replace('.', '/'), methodName, (MethodDescriptor) null);

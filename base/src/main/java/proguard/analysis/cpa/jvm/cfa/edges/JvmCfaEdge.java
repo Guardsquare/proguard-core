@@ -20,6 +20,7 @@ package proguard.analysis.cpa.jvm.cfa.edges;
 
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.classfile.MethodSignature;
 
 /**
  * Default implementation of {@link CfaEdge} for JVM instructions.
@@ -82,5 +83,14 @@ public abstract class JvmCfaEdge
     {
         this.target = target;
         target.addEnteringEdge(this);
+    }
+
+    /**
+     * Returns the signature of the target method. This is the current method or, for call edges,
+     * the target method of the call.
+     */
+    public MethodSignature targetSignature()
+    {
+        return target.getSignature();
     }
 }

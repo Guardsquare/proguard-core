@@ -455,6 +455,7 @@ implements ClassVisitor,
         private final ArrayList<String>                      sealedSubClassNames;
         private final ArrayList<KotlinTypeAliasMetadata>     typeAliases;
         private final ArrayList<KotlinTypeParameterMetadata> typeParameters;
+        private final ArrayList<KotlinTypeMetadata>          contextReceivers;
 
         ClassReader(KotlinClassKindMetadata kotlinClassKindMetadata)
         {
@@ -466,6 +467,7 @@ implements ClassVisitor,
             this.nestedClassNames         = new ArrayList<>(1);
             this.sealedSubClassNames      = new ArrayList<>(2);
             this.typeParameters           = new ArrayList<>(2);
+            this.contextReceivers         = new ArrayList<>();
 
             this.properties               = new ArrayList<>(8);
             this.functions                = new ArrayList<>(8);
@@ -554,6 +556,14 @@ implements ClassVisitor,
         }
 
         @Override
+        public KmTypeVisitor visitContextReceiverType(int flags)
+        {
+            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
+            contextReceivers.add(receiverType);
+            return new TypeReader(receiverType);
+        }
+
+        @Override
         public KmVersionRequirementVisitor visitVersionRequirement()
         {
             KotlinVersionRequirementMetadata versionReq = new KotlinVersionRequirementMetadata();
@@ -613,6 +623,7 @@ implements ClassVisitor,
             kotlinClassKindMetadata.nestedClassNames         = trimmed(this.nestedClassNames);
             kotlinClassKindMetadata.sealedSubclassNames      = trimmed(this.sealedSubClassNames);
             kotlinClassKindMetadata.typeParameters           = trimmed(this.typeParameters);
+            kotlinClassKindMetadata.contextReceivers         = trimmed(this.contextReceivers);
 
             kotlinClassKindMetadata.properties               = trimmed(this.properties);
             kotlinClassKindMetadata.functions                = trimmed(this.functions);
@@ -840,6 +851,7 @@ implements ClassVisitor,
 
         private final ArrayList<KotlinValueParameterMetadata> setterParameters;
         private final ArrayList<KotlinTypeParameterMetadata>  typeParameters;
+        private final ArrayList<KotlinTypeMetadata>           contextReceivers;
 
 
         PropertyReader(KotlinPropertyMetadata kotlinPropertyMetadata)
@@ -848,6 +860,7 @@ implements ClassVisitor,
 
             this.setterParameters = new ArrayList<>(4);
             this.typeParameters   = new ArrayList<>(1);
+            this.contextReceivers = new ArrayList<>();
         }
 
         /**
@@ -859,6 +872,14 @@ implements ClassVisitor,
             KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinPropertyMetadata.receiverType = receiverType;
 
+            return new TypeReader(receiverType);
+        }
+
+        @Override
+        public KmTypeVisitor visitContextReceiverType(int flags)
+        {
+            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
+            contextReceivers.add(receiverType);
             return new TypeReader(receiverType);
         }
 
@@ -919,6 +940,7 @@ implements ClassVisitor,
         {
             kotlinPropertyMetadata.setterParameters = trimmed(this.setterParameters);
             kotlinPropertyMetadata.typeParameters   = trimmed(this.typeParameters);
+            kotlinPropertyMetadata.contextReceivers = trimmed(this.contextReceivers);
         }
 
 
@@ -1139,14 +1161,16 @@ implements ClassVisitor,
         private final ArrayList<KotlinContractMetadata>       contracts;
         private final ArrayList<KotlinValueParameterMetadata> valueParameters;
         private final ArrayList<KotlinTypeParameterMetadata>  typeParameters;
+        private final ArrayList<KotlinTypeMetadata> contextReceivers;
 
         FunctionReader(KotlinFunctionMetadata kotlinFunctionMetadata)
         {
             this.kotlinFunctionMetadata = kotlinFunctionMetadata;
 
-            this.contracts       = new ArrayList<>(1);
-            this.valueParameters = new ArrayList<>(4);
-            this.typeParameters  = new ArrayList<>(1);
+            this.contracts        = new ArrayList<>(1);
+            this.valueParameters  = new ArrayList<>(4);
+            this.typeParameters   = new ArrayList<>(1);
+            this.contextReceivers = new ArrayList<>();
         }
 
         @Override
@@ -1164,6 +1188,14 @@ implements ClassVisitor,
             KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
             kotlinFunctionMetadata.receiverType = receiverType;
 
+            return new TypeReader(receiverType);
+        }
+
+        @Override
+        public KmTypeVisitor visitContextReceiverType(int flags)
+        {
+            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
+            contextReceivers.add(receiverType);
             return new TypeReader(receiverType);
         }
 
@@ -1214,9 +1246,10 @@ implements ClassVisitor,
         @Override
         public void visitEnd()
         {
-            kotlinFunctionMetadata.contracts       = trimmed(this.contracts);
-            kotlinFunctionMetadata.valueParameters = trimmed(this.valueParameters);
-            kotlinFunctionMetadata.typeParameters  = trimmed(this.typeParameters);
+            kotlinFunctionMetadata.contracts        = trimmed(this.contracts);
+            kotlinFunctionMetadata.valueParameters  = trimmed(this.valueParameters);
+            kotlinFunctionMetadata.typeParameters   = trimmed(this.typeParameters);
+            kotlinFunctionMetadata.contextReceivers = trimmed(this.contextReceivers);
         }
 
 
@@ -1903,8 +1936,9 @@ implements ClassVisitor,
             convertCommonFlags(kotlinFlags)
         );
 
-        flags.isNullable = Flag.Type.IS_NULLABLE.invoke(kotlinFlags);
-        flags.isSuspend  = Flag.Type.IS_SUSPEND.invoke(kotlinFlags);
+        flags.isNullable          = Flag.Type.IS_NULLABLE.invoke(kotlinFlags);
+        flags.isSuspend           = Flag.Type.IS_SUSPEND.invoke(kotlinFlags);
+        flags.isDefinitelyNonNull = Flag.Type.IS_DEFINITELY_NON_NULL.invoke(kotlinFlags);
 
         return flags;
     }

@@ -30,6 +30,7 @@ import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
@@ -50,16 +51,20 @@ public class JvmTreeHeapPrincipalAbstractState
     /**
      * Create an empty principal heap model.
      *
-     * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
+     * @param heapMapAbstractStateFactory     a map abstract state factory used for constructing the mapping from references to objects
+     * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
-    public JvmTreeHeapPrincipalAbstractState(MapAbstractStateFactory mapAbstractStateFactory)
+    public JvmTreeHeapPrincipalAbstractState(MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> heapMapAbstractStateFactory,
+                                             MapAbstractStateFactory<String, SetAbstractState<Reference>> heapNodeMapAbstractStateFactory)
     {
-        this(mapAbstractStateFactory.createMapAbstractState(), mapAbstractStateFactory);
+        this(heapMapAbstractStateFactory.createMapAbstractState(), heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory);
     }
 
-    private JvmTreeHeapPrincipalAbstractState(MapAbstractState<Reference, HeapNode<SetAbstractState<Reference>>> referenceToNode, MapAbstractStateFactory mapAbstractStateFactory)
+    private JvmTreeHeapPrincipalAbstractState(MapAbstractState<Reference, HeapNode<SetAbstractState<Reference>>> referenceToNode,
+                                              MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>> heapMapAbstractStateFactory,
+                                              MapAbstractStateFactory<String, SetAbstractState<Reference>> heapNodeMapAbstractStateFactory)
     {
-        super(referenceToNode, mapAbstractStateFactory, new SetAbstractState<>());
+        super(referenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory, new SetAbstractState<>());
     }
 
     // implementations for JvmHeapAbstractState
@@ -74,7 +79,7 @@ public class JvmTreeHeapPrincipalAbstractState
         return ((SetAbstractState<Reference>) object).stream()
                                                      .reduce(new SetAbstractState<>(),
                                                              (result, reference) -> referenceToNode.computeIfAbsent(reference,
-                                                                                                                    r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                                                                    r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                                                                    .computeIfAbsent(fqn,
                                                                                                                     d -> new SetAbstractState<>(reference)),
                                                              SetAbstractState::join);
@@ -90,12 +95,12 @@ public class JvmTreeHeapPrincipalAbstractState
         SetAbstractState<Reference> objectReference = (SetAbstractState<Reference>) object;
         if (objectReference.size() <= 1)
         {
-            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                                 .put(fqn, value));
         }
         else
         {
-            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                                 .merge(fqn, value));
         }
     }
@@ -109,7 +114,7 @@ public class JvmTreeHeapPrincipalAbstractState
         }
         return ((SetAbstractState<Reference>) array).stream().reduce(new SetAbstractState<>(),
                                                                      (result, reference) -> referenceToNode.computeIfAbsent(reference,
-                                                                                                                            r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                                                                            r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                                                                            .computeIfAbsent("[]",
                                                                                                                             d -> new SetAbstractState<>(reference)),
                                                                      SetAbstractState::join);
@@ -123,7 +128,7 @@ public class JvmTreeHeapPrincipalAbstractState
             throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), array.getClass().getName()));
         }
         ((SetAbstractState<Reference>) array).forEach(reference -> referenceToNode.computeIfAbsent(reference,
-                                                                                                   r -> new HeapNode<SetAbstractState<Reference>>(mapAbstractStateFactory.createMapAbstractState()))
+                                                                                                   r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                                                   .merge("[]", value));
     }
 
@@ -201,7 +206,7 @@ public class JvmTreeHeapPrincipalAbstractState
         {
             return other;
         }
-        return new JvmTreeHeapPrincipalAbstractState(newReferenceToNode, mapAbstractStateFactory);
+        return new JvmTreeHeapPrincipalAbstractState(newReferenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory);
     }
 
     // implementations for AbstractState
@@ -214,7 +219,8 @@ public class JvmTreeHeapPrincipalAbstractState
                                                                     .collect(Collectors.toMap(Entry::getKey,
                                                                                               e -> e.getValue().copy(),
                                                                                               HeapNode::join,
-                                                                                              HashMapAbstractState::new)),
-                                                     mapAbstractStateFactory);
+                                                                                              heapMapAbstractStateFactory::createMapAbstractState)),
+                                                     heapMapAbstractStateFactory,
+                                                     heapNodeMapAbstractStateFactory);
     }
 }

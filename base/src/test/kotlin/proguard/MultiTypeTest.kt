@@ -20,7 +20,6 @@ import proguard.evaluation.value.Value
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
-import java.lang.reflect.Modifier
 
 class MultiTypeTest : FreeSpec({
 
@@ -125,7 +124,7 @@ class MultiTypeTest : FreeSpec({
         }
         """
     )
-    val (classPool, _) = ClassPoolBuilder.fromSource(codeSuper, codeRemovedSuper, codeA, codeB, codeC, codeTarget, javacArguments = listOf("-g"), initialize = false)
+    val (classPool, _) = ClassPoolBuilder.fromSource(codeSuper, codeRemovedSuper, codeA, codeB, codeC, codeTarget, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"), initialize = false)
     classPool.removeClass("RemovedSuper")
     ClassPoolBuilder.initialize(classPool, false)
 
@@ -165,9 +164,6 @@ class MultiTypeTest : FreeSpec({
             // Allow incomplete Class Hierarchies
             val allowIncompleteClassHierarchy = TypedReferenceValue::class.java.getDeclaredField("ALLOW_INCOMPLETE_CLASS_HIERARCHY")
             allowIncompleteClassHierarchy.isAccessible = true
-            val modifiers = allowIncompleteClassHierarchy::class.java.getDeclaredField("modifiers")
-            modifiers.isAccessible = true
-            modifiers.setInt(allowIncompleteClassHierarchy, allowIncompleteClassHierarchy.modifiers and Modifier.FINAL.inv())
             allowIncompleteClassHierarchy.setBoolean(TypedReferenceValue(null, null, true, true), true)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -183,7 +179,6 @@ class MultiTypeTest : FreeSpec({
             s.generalizedType.type shouldBe "Ljava/lang/Object;"
             s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LC;", "LA;")
 
-            modifiers.setInt(allowIncompleteClassHierarchy, allowIncompleteClassHierarchy.modifiers and Modifier.FINAL)
             allowIncompleteClassHierarchy.setBoolean(TypedReferenceValue(null, null, true, true), false)
         }
         "If else" {

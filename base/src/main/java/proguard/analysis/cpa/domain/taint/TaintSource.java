@@ -21,6 +21,7 @@ package proguard.analysis.cpa.domain.taint;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import proguard.classfile.Signature;
 
 /**
  * A {@link TaintSource} specifies a method which can taint any (subset) of the following: the instance, the return value, the argument objects, or static fields.
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 public class TaintSource
 {
 
-    public final String       fqn;
+    public final Signature    signature;
     public final boolean      taintsThis;
     public final boolean      taintsReturn;
     public final Set<Integer> taintsArgs;
@@ -39,15 +40,15 @@ public class TaintSource
     /**
      * Create a taint source.
      *
-     * @param fqn           the fully qualified name of a source method
+     * @param signature     the signature a source method
      * @param taintsThis    whether the source taints the calling instance
      * @param taintsReturn  whether the source taints its return
      * @param taintsArgs    a set of tainted arguments
      * @param taintsGlobals a set of tainted global variables
      */
-    public TaintSource(String fqn, boolean taintsThis, boolean taintsReturn, Set<Integer> taintsArgs, Set<String> taintsGlobals)
+    public TaintSource(Signature signature, boolean taintsThis, boolean taintsReturn, Set<Integer> taintsArgs, Set<String> taintsGlobals)
     {
-        this.fqn = fqn;
+        this.signature = signature;
         this.taintsThis = taintsThis;
         this.taintsReturn = taintsReturn;
         this.taintsArgs = taintsArgs;
@@ -68,7 +69,7 @@ public class TaintSource
             return false;
         }
         TaintSource other = (TaintSource) obj;
-        return Objects.equals(fqn, other.fqn)
+        return Objects.equals(signature, other.signature)
                && taintsThis == other.taintsThis
                && taintsReturn == other.taintsReturn
                && Objects.equals(taintsArgs, other.taintsArgs)
@@ -78,13 +79,13 @@ public class TaintSource
     @Override
     public int hashCode()
     {
-        return Objects.hash(fqn, taintsThis, taintsReturn, taintsArgs, taintsGlobals);
+        return Objects.hash(signature, taintsThis, taintsReturn, taintsArgs, taintsGlobals);
     }
 
     @Override
     public String toString()
     {
-        StringBuilder builder = new StringBuilder("[TaintSource] ").append(fqn);
+        StringBuilder builder = new StringBuilder("[TaintSource] ").append(signature);
         if (taintsThis)
         {
             builder.append(", taints this");

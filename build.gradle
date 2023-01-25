@@ -16,7 +16,6 @@ allprojects {
 
     repositories {
         mavenCentral()
-        maven { url 'https://jitpack.io' }
         google()
     }
     
@@ -77,6 +76,9 @@ distributions {
             }
             from(rootDir) {
                 include 'examples/'
+                exclude 'examples/build'
+                exclude 'examples/.gradle'
+                exclude 'examples/.idea'
                 include 'LICENSE'
             }
         }

@@ -19,6 +19,7 @@ package proguard.io;
 
 import proguard.classfile.constant.PrimitiveArrayConstant;
 import proguard.classfile.util.PrimitiveArrayConstantReplacer;
+import proguard.dexfile.reader.DexException;
 import proguard.dexfile.reader.DexFileReader;
 import proguard.dexfile.reader.node.DexFileNode;
 import proguard.dexfile.converter.Dex2Pro;
@@ -85,7 +86,8 @@ public class DexClassReader implements DataEntryReader {
     public void read(DataEntry dataEntry) throws IOException {
         // Get the input.
         InputStream inputStream = dataEntry.getInputStream();
-        try {
+        try
+        {
             // Fill out a Dex2jar file node.
             DexFileNode fileNode = new DexFileNode();
             int readerConfig = readCode ? 0 : (DexFileReader.SKIP_CODE |
@@ -97,7 +99,13 @@ public class DexClassReader implements DataEntryReader {
             new Dex2Pro()
                     .usePrimitiveArrayConstants(usePrimitiveArrayConstants)
                     .convertDex(fileNode, classVisitor);
-        } finally {
+        }
+        catch (DexException e)
+        {
+            throw new IOException("Dex file conversion failed: " + e.getMessage(), e);
+        }
+        finally
+        {
             inputStream.close();
         }
     }

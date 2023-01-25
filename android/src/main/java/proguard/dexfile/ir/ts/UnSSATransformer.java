@@ -572,7 +572,10 @@ public class UnSSATransformer implements Transformer {
 
         @Override
         protected void onUseLocal(LiveV aValue, Local local) {
-            aValue.used = true;
+            if (aValue != null)
+            {
+                aValue.used = true;
+            }
         }
 
     }

@@ -18,10 +18,13 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import proguard.analysis.cpa.domain.taint.TaintAbstractState;
+import java.util.Set;
+import java.util.stream.Collectors;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
@@ -33,6 +36,7 @@ import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
+import proguard.classfile.Signature;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.ConstantInstruction;
 import proguard.classfile.instruction.Instruction;
@@ -45,17 +49,16 @@ import proguard.classfile.util.ClassUtil;
  * @author Dmitry Ivanov
  */
 public class JvmTaintTransferRelation
-    extends JvmTransferRelation<TaintAbstractState>
+    extends JvmTransferRelation<SetAbstractState<JvmTaintSource>>
 {
-
-    private final Map<String, TaintSource> taintSources;
+    private final Map<Signature, Set<JvmTaintSource>> taintSources;
 
     /**
      * Create a taint transfer relation.
      *
      * @param taintSources a mapping from fully qualified names to taint sources
      */
-    public JvmTaintTransferRelation(Map<String, TaintSource> taintSources)
+    public JvmTaintTransferRelation(Map<Signature, Set<JvmTaintSource>> taintSources)
     {
         this.taintSources = taintSources;
     }
@@ -63,18 +66,24 @@ public class JvmTaintTransferRelation
     // implementations for JvmTransferRelation
 
     @Override
-    public void invokeMethod(JvmAbstractState<TaintAbstractState> state, Call call, List<TaintAbstractState> operands)
+    public void invokeMethod(JvmAbstractState<SetAbstractState<JvmTaintSource>> state, Call call, List<SetAbstractState<JvmTaintSource>> operands)
     {
         MethodSignature target = call.getTarget();
-        TaintSource detectedSource = taintSources.get(target.getFqn());
+        List<JvmTaintSource> detectedSources = taintSources.getOrDefault(target, Collections.emptySet())
+                                                           .stream()
+                                                           .filter(s -> s.callMatcher.map(m -> m.test(call)).orElse(true))
+                                                           .collect(Collectors.toList());
         int pushCount = ClassUtil.internalTypeSize(target.descriptor.returnType == null ? "?" : target.descriptor.returnType);
-        TaintAbstractState answerContent = operands.stream().reduce(getAbstractDefault(), TaintAbstractState::join);
+        SetAbstractState<JvmTaintSource> answerContent = operands.stream().reduce(getAbstractDefault(), SetAbstractState::join);
 
         // taint the return
-        if (detectedSource != null && detectedSource.taintsReturn && !answerContent.contains(detectedSource))
+        List<JvmTaintSource> detectedReturnSources = detectedSources.stream()
+                                                                    .filter(s -> s.taintsReturn)
+                                                                    .collect(Collectors.toList());
+        if (!detectedReturnSources.isEmpty() && !answerContent.containsAll(detectedReturnSources))
         {
             answerContent = answerContent.copy();
-            answerContent.add(detectedSource);
+            answerContent.addAll(detectedReturnSources);
         }
 
         // pad to the return type size and put the abstract state on the top of the stack
@@ -88,13 +97,18 @@ public class JvmTaintTransferRelation
         }
 
         // taint static fields
-        if (detectedSource == null)
+        if (detectedSources.isEmpty())
         {
             return;
         }
-        Map<String, TaintAbstractState> fqnToValue = new HashMap<>();
-        TaintAbstractState newValue = new TaintAbstractState(detectedSource);
-        detectedSource.taintsGlobals.forEach(fqn -> fqnToValue.merge(fqn, newValue, TaintAbstractState::join));
+        Map<String, SetAbstractState<JvmTaintSource>> fqnToValue = new HashMap<>();
+        detectedSources.stream()
+                       .filter(s -> !s.taintsGlobals.isEmpty())
+                       .forEach(s ->
+                                {
+                                    SetAbstractState<JvmTaintSource> newValue = new SetAbstractState<>(s);
+                                    s.taintsGlobals.forEach(fqn -> fqnToValue.merge(fqn, newValue, SetAbstractState::join));
+                                });
         fqnToValue.forEach(state::setStatic);
 
         // taint heap
@@ -104,43 +118,50 @@ public class JvmTaintTransferRelation
         }
         JvmTaintAbstractState taintAbstractState = (JvmTaintAbstractState) state;
         JvmTaintTreeHeapFollowerAbstractState treeHeap = (JvmTaintTreeHeapFollowerAbstractState) taintAbstractState.getHeap();
-        TaintAbstractState detectedTaint = new TaintAbstractState(detectedSource);
         // taint static fields
-        detectedSource.taintsGlobals.stream()
-                                    .map(JvmStaticFieldLocation::new)
-                                    .map(treeHeap::getReferenceAbstractState)
-                                    .forEach(r -> taintAbstractState.setObjectTaint(r, detectedTaint));
+        fqnToValue.forEach((key, value) -> taintAbstractState.setObjectTaint(treeHeap.getReferenceAbstractState(new JvmStaticFieldLocation(key)), value));
         // taint arguments
         String descriptor = call.getTarget().descriptor.toString();
         int parameterSize = call.getJvmArgumentSize();
-        detectedSource.taintsArgs.stream()
-                                 .map(a -> HeapUtil.getArgumentReference(treeHeap, parameterSize, descriptor, call.isStatic(), a - 1))
-                                 .forEach(r -> taintAbstractState.setObjectTaint(r, detectedTaint));
+        Map<Integer, SetAbstractState<JvmTaintSource>> argToValue = new HashMap<>();
+        detectedSources.stream()
+                       .filter(s -> !s.taintsArgs.isEmpty())
+                       .forEach(s ->
+                                {
+                                    SetAbstractState<JvmTaintSource> newValue = new SetAbstractState<>(s);
+                                    s.taintsArgs.forEach(a -> argToValue.merge(a, newValue, SetAbstractState::join));
+                                });
+        argToValue.forEach((a, value) -> taintAbstractState.setObjectTaint(HeapUtil.getArgumentReference(treeHeap, parameterSize, descriptor, call.isStatic(), a - 1),
+                                                                           value));
         // taint the calling instance
-        if (detectedSource.taintsThis)
+        List<JvmTaintSource> sourcesTaintingThis = detectedSources.stream().filter(s -> s.taintsThis).collect(Collectors.toList());
+        if (!sourcesTaintingThis.isEmpty())
         {
             taintAbstractState.setObjectTaint(treeHeap.getReferenceAbstractState(new JvmStackLocation(parameterSize - 1)),
-                                              detectedTaint);
+                                              new SetAbstractState<>(sourcesTaintingThis));
         }
     }
 
     @Override
-    public TaintAbstractState getAbstractDefault()
+    public SetAbstractState<JvmTaintSource> getAbstractDefault()
     {
-        return TaintAbstractState.bottom;
+        return SetAbstractState.bottom;
     }
 
     @Override
-    protected JvmAbstractState<TaintAbstractState> getAbstractSuccessorForInstruction(JvmAbstractState<TaintAbstractState> abstractState, Instruction instruction, Clazz clazz, Precision precision)
+    protected JvmAbstractState<SetAbstractState<JvmTaintSource>> getAbstractSuccessorForInstruction(JvmAbstractState<SetAbstractState<JvmTaintSource>> abstractState,
+                                                                                                    Instruction instruction,
+                                                                                                    Clazz clazz,
+                                                                                                    Precision precision)
     {
         instruction.accept(clazz, null, null, 0, new InstructionAbstractInterpreter(abstractState));
         return abstractState;
     }
 
-    protected class InstructionAbstractInterpreter extends JvmTransferRelation<TaintAbstractState>.InstructionAbstractInterpreter
+    protected class InstructionAbstractInterpreter extends JvmTransferRelation<SetAbstractState<JvmTaintSource>>.InstructionAbstractInterpreter
     {
 
-        public InstructionAbstractInterpreter(JvmAbstractState<TaintAbstractState> abstractState)
+        public InstructionAbstractInterpreter(JvmAbstractState<SetAbstractState<JvmTaintSource>> abstractState)
         {
             super(abstractState);
         }
@@ -157,14 +178,14 @@ public class JvmTaintTransferRelation
                 case Instruction.OP_CALOAD:
                 case Instruction.OP_SALOAD:
                 {
-                    TaintAbstractState index = abstractState.pop();
+                    SetAbstractState<JvmTaintSource> index = abstractState.pop();
                     abstractState.push(abstractState.getArrayElementOrDefault(new JvmStackLocation(simpleInstruction.stackPopCount(clazz) - 1), index, abstractState.pop()));
                     break;
                 }
                 case Instruction.OP_LALOAD:
                 case Instruction.OP_DALOAD:
                 {
-                    TaintAbstractState index = abstractState.pop();
+                    SetAbstractState<JvmTaintSource> index = abstractState.pop();
                     abstractState.push(getAbstractDefault());
                     abstractState.push(abstractState.getArrayElementOrDefault(new JvmStackLocation(simpleInstruction.stackPopCount(clazz) - 1), index, abstractState.pop()));
                     break;
@@ -176,8 +197,8 @@ public class JvmTaintTransferRelation
                 case Instruction.OP_CASTORE:
                 case Instruction.OP_SASTORE:
                 {
-                    TaintAbstractState value = abstractState.pop();
-                    TaintAbstractState index = abstractState.pop();
+                    SetAbstractState<JvmTaintSource> value = abstractState.pop();
+                    SetAbstractState<JvmTaintSource> index = abstractState.pop();
                     abstractState.pop();
                     abstractState.setArrayElement(new JvmStackLocation(simpleInstruction.stackPopCount(clazz) - 1), index, value);
                     break;
@@ -185,9 +206,9 @@ public class JvmTaintTransferRelation
                 case Instruction.OP_LASTORE:
                 case Instruction.OP_DASTORE:
                 {
-                    TaintAbstractState value = abstractState.pop();
+                    SetAbstractState<JvmTaintSource> value = abstractState.pop();
                     abstractState.pop();
-                    TaintAbstractState index = abstractState.pop();
+                    SetAbstractState<JvmTaintSource> index = abstractState.pop();
                     abstractState.pop();
                     abstractState.setArrayElement(new JvmStackLocation(simpleInstruction.stackPopCount(clazz) - 1), index, value);
                     break;
@@ -207,9 +228,9 @@ public class JvmTaintTransferRelation
                 {
                     constantLookupVisitor.isStatic = false;
                     clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-                    TaintAbstractState result = abstractState.getFieldOrDefault(new JvmStackLocation(constantInstruction.stackPopCount(clazz) - 1),
-                                                                                constantLookupVisitor.result,
-                                                                                abstractState.pop());
+                    SetAbstractState<JvmTaintSource> result = abstractState.getFieldOrDefault(new JvmStackLocation(constantInstruction.stackPopCount(clazz) - 1),
+                                                                                              constantLookupVisitor.result,
+                                                                                              abstractState.pop());
                     if (constantLookupVisitor.resultSize > 1)
                     {
                         abstractState.push(getAbstractDefault());
@@ -221,7 +242,7 @@ public class JvmTaintTransferRelation
                 {
                     constantLookupVisitor.isStatic = false;
                     clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-                    TaintAbstractState value = abstractState.pop();
+                    SetAbstractState<JvmTaintSource> value = abstractState.pop();
                     if (constantLookupVisitor.resultSize > 1)
                     {
                         abstractState.pop();

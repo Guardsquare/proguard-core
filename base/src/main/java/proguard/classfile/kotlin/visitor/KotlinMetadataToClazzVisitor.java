@@ -37,7 +37,10 @@ implements   KotlinMetadataVisitor
     public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
                                                         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
     {
-        kotlinDeclarationContainerMetadata.ownerReferencedClass.accept(this.classVisitor);
+        if (kotlinDeclarationContainerMetadata.ownerReferencedClass != null)
+        {
+            kotlinDeclarationContainerMetadata.ownerReferencedClass.accept(this.classVisitor);
+        }
     }
 
     @Override

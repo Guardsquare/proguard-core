@@ -84,9 +84,8 @@ implements ClassVisitor,
 
     private final BiConsumer<Clazz, String> errorHandler;
 
-    private boolean hasVisitedAny = false;
-
-    private final KotlinMetadataVersion version;
+    private static final KotlinMetadataVersion COMPATIBLE_VERSION = new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION);
+    private KotlinMetadataVersion version;
 
     @Deprecated
     public KotlinMetadataWriter(WarningPrinter warningPrinter)
@@ -102,23 +101,12 @@ implements ClassVisitor,
 
     public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler)
     {
-        this(errorHandler, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION));
-    }
-
-    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, KotlinMetadataVersion version)
-    {
-        this(errorHandler, version, null);
+        this(errorHandler, null);
     }
 
     public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, ClassVisitor extraClassVisitor)
     {
-        this(errorHandler, new KotlinMetadataVersion(COMPATIBLE_METADATA_VERSION), extraClassVisitor);
-    }
-
-    public KotlinMetadataWriter(BiConsumer<Clazz, String> errorHandler, KotlinMetadataVersion version, ClassVisitor extraClassVisitor)
-    {
         this.errorHandler      = errorHandler;
-        this.version           = version;
         this.extraClassVisitor = extraClassVisitor;
     }
 
@@ -134,6 +122,17 @@ implements ClassVisitor,
     @Override
     public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
     {
+        // Set the metadata version we want to write.
+        KotlinMetadataVersion originalVersion = new KotlinMetadataVersion(kotlinMetadata.mv);
+        if (originalVersion.canBeWritten())
+        {
+            version = originalVersion;
+        }
+        else
+        {
+            version = COMPATIBLE_VERSION;
+        }
+
         switch (kotlinMetadata.k)
         {
             case METADATA_KIND_CLASS:
@@ -161,7 +160,6 @@ implements ClassVisitor,
         }
 
         this.constantPoolEditor = new ConstantPoolEditor((ProgramClass) clazz);
-        this.hasVisitedAny      = false;
 
         try
         {
@@ -190,12 +188,10 @@ implements ClassVisitor,
         }
     }
 
-
     // Implementations for ElementValueVisitor.
     @Override
     public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
     {
-        this.hasVisitedAny = true;
         this.currentType   = MetadataType.valueOf(constantElementValue.getMethodName(clazz));
 
         switch (currentType)
@@ -210,7 +206,6 @@ implements ClassVisitor,
     @Override
     public void visitArrayElementValue(Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue)
     {
-        this.hasVisitedAny = true;
         this.currentType   = MetadataType.valueOf(arrayElementValue.getMethodName(clazz));
 
         switch (currentType)
@@ -421,6 +416,9 @@ implements ClassVisitor,
             kotlinPropertyMetadata.receiverTypeAccept(clazz,
                                                       kotlinDeclarationContainerMetadata,
                                                       new TypeConstructor(kmdPropertyVisitor));
+            kotlinPropertyMetadata.contextReceiverTypesAccept(clazz,
+                                                              kotlinDeclarationContainerMetadata,
+                                                              new TypeConstructor(kmdPropertyVisitor));
             kotlinPropertyMetadata.setterParametersAccept(clazz,
                                                           kotlinDeclarationContainerMetadata,
                                                           new ValueParameterConstructor(kmdPropertyVisitor));
@@ -513,6 +511,9 @@ implements ClassVisitor,
             kotlinFunctionMetadata.receiverTypeAccept(clazz,
                                                       kotlinDeclarationContainerMetadata,
                                                       new TypeConstructor(kmdFunctionVisitor));
+            kotlinFunctionMetadata.contextReceiverTypesAccept(clazz,
+                                                              kotlinDeclarationContainerMetadata,
+                                                              new TypeConstructor(kmdFunctionVisitor));
             kotlinFunctionMetadata.typeParametersAccept(clazz,
                                                         kotlinDeclarationContainerMetadata,
                                                         new TypeParameterConstructor(kmdFunctionVisitor));
@@ -632,6 +633,7 @@ implements ClassVisitor,
             kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
             kotlinClassKindMetadata.superTypesAccept(                       clazz, new TypeConstructor(classKmdWriter));
             kotlinClassKindMetadata.typeParametersAccept(                   clazz, new TypeParameterConstructor(classKmdWriter));
+            kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, new TypeConstructor(classKmdWriter));
             kotlinClassKindMetadata.versionRequirementAccept(               clazz, new VersionRequirementConstructor(classKmdWriter));
             kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, new TypeConstructor(classKmdWriter));
 
@@ -1037,6 +1039,38 @@ implements ClassVisitor,
                                               KotlinTypeMetadata     kotlinTypeMetadata)
         {
             typeVis = functionVis.visitReceiverParameterType(convertTypeFlags(kotlinTypeMetadata.flags));
+
+            visitAnyType(clazz, kotlinTypeMetadata);
+        }
+
+        @Override
+        public void visitFunctionContextReceiverType(Clazz                  clazz,
+                                                     KotlinMetadata         kotlinMetadata,
+                                                     KotlinFunctionMetadata kotlinFunctionMetadata,
+                                                     KotlinTypeMetadata     kotlinTypeMetadata)
+        {
+            typeVis = functionVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
+
+            visitAnyType(clazz, kotlinTypeMetadata);
+        }
+
+        @Override
+        public void visitClassContextReceiverType(Clazz              clazz,
+                                                  KotlinMetadata     kotlinMetadata,
+                                                  KotlinTypeMetadata kotlinTypeMetadata)
+        {
+            typeVis = classVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
+
+            visitAnyType(clazz, kotlinTypeMetadata);
+        }
+
+        @Override
+        public void visitPropertyContextReceiverType(Clazz clazz,
+                                                     KotlinMetadata kotlinMetadata,
+                                                     KotlinPropertyMetadata kotlinPropertyMetadata,
+                                                     KotlinTypeMetadata kotlinTypeMetadata)
+        {
+            typeVis = propertyVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
 
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -1714,8 +1748,9 @@ implements ClassVisitor,
 
         flagSet.addAll(convertCommonFlags(flags.common));
 
-        if (flags.isNullable) flagSet.add(Flag.Type.IS_NULLABLE);
-        if (flags.isSuspend)  flagSet.add(Flag.Type.IS_SUSPEND);
+        if (flags.isNullable)          flagSet.add(Flag.Type.IS_NULLABLE);
+        if (flags.isSuspend)           flagSet.add(Flag.Type.IS_SUSPEND);
+        if (flags.isDefinitelyNonNull) flagSet.add(Flag.Type.IS_DEFINITELY_NON_NULL);
 
         return flagsOf(flagSet.toArray(new Flag[0]));
     }

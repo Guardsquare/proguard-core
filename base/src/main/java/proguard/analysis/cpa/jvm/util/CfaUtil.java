@@ -100,13 +100,15 @@ public class CfaUtil
         callGraph.outgoing.values()
                           .stream()
                           .flatMap(Collection::stream)
-                          .filter(call -> !call.hasIncompleteTarget())
+                          .filter(call -> !call.hasIncompleteTarget()
+                                          && cfa.getFunctionNode((MethodSignature) call.caller.signature, call.caller.offset) != null)
                           .forEach(call ->
         {
             if (call instanceof SymbolicCall
                 || ((ConcreteCall) call).getTargetClass() instanceof LibraryClass
                 || ((ConcreteCall) call).getTargetMethod() instanceof ProgramMethod
-                   && Arrays.stream(((ProgramMethod) ((ConcreteCall) call).getTargetMethod()).attributes).noneMatch(a -> a instanceof CodeAttribute))
+                   && Arrays.stream(((ProgramMethod) ((ConcreteCall) call).getTargetMethod()).attributes).noneMatch(a -> a instanceof CodeAttribute)
+                || cfa.getFunctionEntryNode(call.getTarget()) == null)
             {
                 cfa.addUnknownTargetInterproceduralEdge(call);
             }

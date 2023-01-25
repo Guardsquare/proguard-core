@@ -52,7 +52,8 @@ class TestCodePreverifier : FreeSpec({
                      }
                  }
                 """.trimIndent()
-            )
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8")
         )
 
         "Then the local variable should be correct" {
@@ -170,7 +171,8 @@ class TestCodePreverifier : FreeSpec({
                      }
                  }
                 """.trimIndent()
-            )
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8")
         )
         "Then the local variable should be correct" {
             val verificationTypeVisitor = spyk(object : VerificationTypeVisitor {

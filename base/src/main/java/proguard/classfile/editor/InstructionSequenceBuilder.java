@@ -436,7 +436,7 @@ public class InstructionSequenceBuilder
      */
     public InstructionSequenceBuilder ldc_w(int value)
     {
-        return ldc_(constantPoolEditor.addIntegerConstant(value));
+        return ldc_w_(constantPoolEditor.addIntegerConstant(value));
     }
 
     /**
@@ -444,7 +444,7 @@ public class InstructionSequenceBuilder
      */
     public InstructionSequenceBuilder ldc_w(float value)
     {
-        return ldc_(constantPoolEditor.addFloatConstant(value));
+        return ldc_w_(constantPoolEditor.addFloatConstant(value));
     }
 
     /**
@@ -460,7 +460,7 @@ public class InstructionSequenceBuilder
      */
     public InstructionSequenceBuilder ldc_w(Object primitiveArray)
     {
-        return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
+        return ldc_w_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
     }
 
     /**
@@ -480,7 +480,7 @@ public class InstructionSequenceBuilder
                                             Clazz  referencedClass,
                                             Member referencedMember)
     {
-        return ldc_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
+        return ldc_w_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
     }
 
     /**
@@ -498,7 +498,7 @@ public class InstructionSequenceBuilder
     public InstructionSequenceBuilder ldc_w(String       string,
                                             ResourceFile referencedResourceFile)
     {
-        return ldc_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
+        return ldc_w_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
     }
 
     /**
@@ -516,7 +516,7 @@ public class InstructionSequenceBuilder
     public InstructionSequenceBuilder ldc_w(String typeName,
                                             Clazz  referencedClass)
     {
-        return ldc_(constantPoolEditor.addClassConstant(typeName, referencedClass));
+        return ldc_w_(constantPoolEditor.addClassConstant(typeName, referencedClass));
     }
 
     /**
@@ -541,6 +541,40 @@ public class InstructionSequenceBuilder
     public InstructionSequenceBuilder ldc2_w(double value)
     {
         return ldc2_w(constantPoolEditor.addDoubleConstant(value));
+    }
+
+    /**
+     * Appends an ldc or ldc_w instruction that loads the constant at the given index, using the correct instruction for
+     * the given index.
+     */
+    private InstructionSequenceBuilder ldc_x_(int constantIndex)
+    {
+        if (constantIndex > 255)
+        {
+            return ldc_w_(constantIndex);
+        }
+        else
+        {
+            return ldc_(constantIndex);
+        }
+    }
+
+    /**
+     * Appends an ldc or ldc_w instruction that loads an integer constant with the given value, using the correct
+     * instruction for the constant index the given value will get.
+     */
+    private InstructionSequenceBuilder ldc_x(int value)
+    {
+        return ldc_x_(constantPoolEditor.addIntegerConstant(value));
+    }
+
+    /**
+     * Appends an ldc or ldc_w instruction that loads a float constant with the given value, using the correct
+     * instruction for the constant index the given value will get.
+     */
+    private InstructionSequenceBuilder ldc_x(float value)
+    {
+        return ldc_x_(constantPoolEditor.addFloatConstant(value));
     }
 
     /**
@@ -2146,7 +2180,7 @@ public class InstructionSequenceBuilder
             case  5: return iconst_5();
             default: return value == (byte)value  ? bipush(value) :
                             value == (short)value ? sipush(value) :
-                                                    ldc(value);
+                                                    ldc_x(value);
         }
     }
 
@@ -2163,7 +2197,7 @@ public class InstructionSequenceBuilder
             value == 0f ? fconst_0() :
             value == 1f ? fconst_1() :
             value == 2f ? fconst_2() :
-                          ldc(value);
+                          ldc_x(value);
     }
 
 

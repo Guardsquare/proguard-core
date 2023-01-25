@@ -15,7 +15,7 @@ import java.lang.reflect.InvocationTargetException
  * @throws RuntimeException
  */
 @Throws(RuntimeException::class)
-fun runClassPool(programClassPool: ClassPool?, mainClass: String?, args: Array<String?>?): String {
+fun runClassPool(programClassPool: ClassPool, mainClass: String, args: Array<String> = emptyArray()): String {
     val clazzLoader = ClassPoolClassLoader(programClassPool)
     return try {
         // set stdout to a new ByteArrayOutputStream to capture anything put on stdout

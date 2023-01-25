@@ -20,6 +20,7 @@ package proguard.resources.kotlinmodule.io;
 
 import kotlinx.metadata.jvm.*;
 import proguard.classfile.*;
+import proguard.classfile.kotlin.KotlinMetadataVersion;
 import proguard.resources.file.visitor.*;
 import proguard.resources.kotlinmodule.*;
 
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static java.util.Objects.requireNonNull;
+import static proguard.classfile.kotlin.KotlinMetadataVersion.UNKNOWN_VERSION;
 
 /**
  * Read an input stream into a KotlinModule object.
@@ -72,6 +74,8 @@ implements   ResourceFileVisitor
             KotlinModuleMetadata kotlinModuleMetadata = KotlinModuleMetadata.read(bytes);
             KmModule kmModule                         = requireNonNull(kotlinModuleMetadata).toKmModule();
 
+            kotlinModule.version = getKotlinModuleMetadataVersion(bytes);
+
             // Now we have the KmModule object we can
             // use a visitor to initialize our own KotlinModule object.
             kmModule.accept(new KmModuleVisitor()
@@ -97,6 +101,40 @@ implements   ResourceFileVisitor
             {
                 throw new RuntimeException("Error while reading Kotlin module file", e);
             }
+        }
+    }
+
+
+    /**
+     * Collects the KotlinMetadataVersion of the module.
+     * @param module a byte[] of the KotlinModule.
+     * @return The KotlinMetadataVersion of the module.
+     */
+    private KotlinMetadataVersion getKotlinModuleMetadataVersion(byte[] module)
+    {
+        try
+        {
+            // The version number of a module can be found from the first bytes of the module.
+            // https://github.com/JetBrains/kotlin/blob/master/core/metadata.jvm/src/org/jetbrains/kotlin/metadata/jvm/deserialization/ModuleMapping.kt#L40
+            // module: [ size, int[size] | ... ]
+            // module: [ size, KmVersion | ... ]
+            DataInputStream bytes = new DataInputStream(new ByteArrayInputStream(module));
+            int size = bytes.readInt();
+            if (size < 0 || size > 1024)
+            {
+                return UNKNOWN_VERSION;
+            }
+
+            int[] version = new int[size];
+            for (int i=0; i<size; i++)
+            {
+                version[i] = bytes.readInt();
+            }
+            return new KotlinMetadataVersion(version);
+        }
+        catch ( IOException e)
+        {
+            return UNKNOWN_VERSION;
         }
     }
 }

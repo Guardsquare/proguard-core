@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@
 package proguard.classfile.kotlin.visitor;
 
 import proguard.classfile.Clazz;
-import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.KotlinFunctionMetadata;
+import proguard.classfile.kotlin.KotlinMetadata;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
@@ -38,10 +39,6 @@ implements   KotlinFunctionVisitor
                                  KotlinMetadata         kotlinMetadata,
                                  KotlinFunctionMetadata kotlinFunctionMetadata)
     {
-        if (kotlinFunctionMetadata.referencedDefaultMethod != null)
-        {
-            kotlinFunctionMetadata.referencedDefaultMethod.accept(
-                kotlinFunctionMetadata.referencedDefaultMethodClass, memberVisitor);
-        }
+        kotlinFunctionMetadata.referencedDefaultMethodAccept(memberVisitor);
     }
 }

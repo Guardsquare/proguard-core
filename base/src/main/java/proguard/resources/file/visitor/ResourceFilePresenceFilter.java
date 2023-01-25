@@ -17,23 +17,43 @@
  */
 package proguard.resources.file.visitor;
 
-import proguard.resources.file.*;
+import proguard.resources.file.FilePool;
+import proguard.resources.file.ResourceFile;
+import proguard.resources.file.ResourceFilePool;
 import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
  * This {@link ResourceFileVisitor} delegates its visits to one of two
  * {@link ResourceFileVisitor} instances, depending on whether the name of
- * the visited resource file is present in a given {@link ResourceFilePool} or not.
+ * the visited resource file is present in a given {@link FilePool} or not.
  *
  * @author Thomas Neidhart
  */
 public class ResourceFilePresenceFilter
-implements   ResourceFileVisitor
+    implements   ResourceFileVisitor
 {
-    private final ResourceFilePool    resourceFilePool;
+    private final FilePool            filePool;
     private final ResourceFileVisitor presentResourceFileVisitor;
     private final ResourceFileVisitor missingResourceFileVisitor;
 
+
+    /**
+     * Creates a new ResourceFilePresenceFilter.
+     * @param filePool           the <code>ResourceFilePool</code> in which the
+     *                                   presence will be tested.
+     * @param presentResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits
+     *                                   of present resource files will be delegated.
+     * @param missingResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits
+     *                                   of missing resource files will be delegated.
+     */
+    public ResourceFilePresenceFilter(FilePool            filePool,
+                                      ResourceFileVisitor presentResourceFileVisitor,
+                                      ResourceFileVisitor missingResourceFileVisitor)
+    {
+        this.filePool                   = filePool;
+        this.presentResourceFileVisitor = presentResourceFileVisitor;
+        this.missingResourceFileVisitor = missingResourceFileVisitor;
+    }
 
     /**
      * Creates a new ResourceFilePresenceFilter.
@@ -44,15 +64,15 @@ implements   ResourceFileVisitor
      * @param missingResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits
      *                                   of missing resource files will be delegated.
      */
+    @Deprecated
     public ResourceFilePresenceFilter(ResourceFilePool    resourceFilePool,
                                       ResourceFileVisitor presentResourceFileVisitor,
                                       ResourceFileVisitor missingResourceFileVisitor)
     {
-        this.resourceFilePool           = resourceFilePool;
+        this.filePool                   = resourceFilePool;
         this.presentResourceFileVisitor = presentResourceFileVisitor;
         this.missingResourceFileVisitor = missingResourceFileVisitor;
     }
-
 
     // Implementations for ResourceFileVisitor.
 
@@ -84,10 +104,10 @@ implements   ResourceFileVisitor
     /**
      * Returns the appropriate <code>ResourceFileVisitor</code>.
      */
-    private ResourceFileVisitor resourceFileVisitor(ResourceFile resourceFile)
+    protected ResourceFileVisitor resourceFileVisitor(ResourceFile resourceFile)
     {
-        return resourceFilePool.getResourceFile(resourceFile.getFileName()) != null ?
-            presentResourceFileVisitor :
-            missingResourceFileVisitor;
+        return filePool.getResourceFile(resourceFile.getFileName()) != null ?
+               presentResourceFileVisitor :
+               missingResourceFileVisitor;
     }
 }

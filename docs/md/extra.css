@@ -27,3 +27,9 @@
   --md-code-fg-color:                ...;
 */
 }
+
+p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+

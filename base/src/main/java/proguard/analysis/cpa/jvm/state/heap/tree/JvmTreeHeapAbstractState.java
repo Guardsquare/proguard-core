@@ -23,6 +23,7 @@ import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
 
 /**
@@ -34,22 +35,27 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
     implements JvmHeapAbstractState<StateT>
 {
 
-    protected final MapAbstractState<Reference, HeapNode<StateT>> referenceToNode;
-    protected final MapAbstractStateFactory                       mapAbstractStateFactory;
-    protected final StateT                                        defaultValue;
+    protected final MapAbstractState<Reference, HeapNode<StateT>>        referenceToNode;
+    protected final MapAbstractStateFactory<String, StateT>              heapNodeMapAbstractStateFactory;
+    protected final MapAbstractStateFactory<Reference, HeapNode<StateT>> heapMapAbstractStateFactory;
+    protected final StateT                                               defaultValue;
 
     /**
      * Create a tree heap abstract state from a given memory layout.
      *
-     * @param referenceToNode         a mapping from references to their objects/arrays
-     * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
+     * @param referenceToNode                 a mapping from references to their objects/arrays
+     * @param heapMapAbstractStateFactory     a map abstract state factory used for constructing the mapping from references to objects
+     * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
+     * @param defaultValue                    a default value for undefined fields
      */
-    protected JvmTreeHeapAbstractState(MapAbstractState<Reference, HeapNode<StateT>> referenceToNode,
-                                       MapAbstractStateFactory                       mapAbstractStateFactory,
-                                       StateT                                        defaultValue)
+    protected JvmTreeHeapAbstractState(MapAbstractState<Reference, HeapNode<StateT>>        referenceToNode,
+                                       MapAbstractStateFactory<Reference, HeapNode<StateT>> heapMapAbstractStateFactory,
+                                       MapAbstractStateFactory<String, StateT>              heapNodeMapAbstractStateFactory,
+                                       StateT                                               defaultValue)
     {
         this.referenceToNode = referenceToNode;
-        this.mapAbstractStateFactory = mapAbstractStateFactory;
+        this.heapMapAbstractStateFactory = heapMapAbstractStateFactory;
+        this.heapNodeMapAbstractStateFactory = heapNodeMapAbstractStateFactory;
         this.defaultValue = defaultValue;
     }
 
@@ -85,7 +91,7 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
      */
     protected void mergeField(SetAbstractState<Reference> object, String descriptor, StateT value)
     {
-        object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
+        object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                    .merge(descriptor, value));
     }
 
@@ -94,7 +100,7 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
      */
     protected void setField(SetAbstractState<Reference> object, String descriptor, StateT value)
     {
-        object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
+        object.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                    .put(descriptor, value));
     }
 
@@ -115,7 +121,7 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
      */
     protected void setArrayElement(SetAbstractState<Reference> array, StateT index, StateT value)
     {
-        array.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<StateT>(mapAbstractStateFactory.createMapAbstractState()))
+        array.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
                                                   .merge("[]", value));
     }
 

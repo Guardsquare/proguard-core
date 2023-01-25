@@ -1,3 +1,51 @@
+## Version 9.0.8
+
+### API changes
+- `JvmTransferRelation` has been refactored to model `IINC` in a separate `computeIncrement` method.
+
+## Version 9.0.7
+
+### Improved
+
+- Don't report warnings for missing Kotlin default implementation classes when initializing with `ClassReferenceInitializer`.
+- Only link matching methods in Kotlin file facades with `MethodLinker`.
+- Extend the `LimitedHashMap` parameterization with an element exclusion selector.
+- Add the possibility to add a predicate to taint sources and sinks for selective response to calls.
+
+### Bug fixes
+- Fix the reduce operator producing a wrong `JvmAbstractState` for the composite taint analysis.
+- Fix potential `expected Precise Reference` runtime verifier error.
+- Don't report warnings for missing Kotlin default implementation classes when initiazing with `ClassReferenceInitializer`.
+
+### API Improvements
+- Add `KotlinMetadataAsserter` to check the integrity of Kotlin metadata.
+- Add `JvmReturnTaintSink` to support return instruction sinks in taint analysis.
+- Use method signatures instead of fully qualified names in taint sources and sinks.
+
+### API changes
+- `JvmTaintSink` has been generalized, use `JvmInvokeTaintSink` to have the old functionalities.
+
+## Version 9.0.6
+
+### Improved
+- Add support for limiting the size of the CPA tree heap model with `LimitedHashMap`s.
+
+### Bug fixes
+- Fix `ldc_w` method in the `InstructionSequenceBuilder` generating a `ldc` instruction instead of a `ldc_w`.
+
+### API Improvements
+
+- Add `referencedDefaultMethodAccept` to `KotlinFunctionMetadata` model.
+
+## Version 9.0.5
+
+### Improved
+
+- Replace `proguard-assembler` dependency in test fixtures with Maven Central version.
+
+### Bug fixes
+- Do not add interprocedural CFA edges for methods missing intraprocedural CFA.
+
 ## Version 9.0.4
 
 ### Improved
@@ -6,6 +54,9 @@
 - Enable providing distinct abort operators for the main and trace reconstruction CPAs.
 - Add a heap model for taint CPA supporting tainting of whole objects.
 - `Call` API: Add a few utilities and fix inconsistent call argument count getter behavior.
+- Only change the Kotlin metadata version if the original version is unsupported.
+- Add support for Kotlin context receivers in Kotlin metadata.
+- Add support for reading & writing Kotlin 1.8 metadata.
 
 #### API Improvements
 
@@ -16,6 +67,8 @@
 - Add var-arg constructor to `ClassPath`.
 - Add `DataEntryClassInfoFilter`.
 - Add `NamedDataEntry`.
+- Refactor `CodeLocation#getClassName` as `getExternalClassName` to comply with the types naming convention.
+- Make `TypedReferenceValue.ALLOW_INCOMPLETE_CLASS_HIERARCHY` private, add a getter `TypedReferenceValue.allowsIncompleteClassHierarchy()` instead.
 
 ### Bug fixes
 
@@ -26,6 +79,8 @@
 - Fix call resolution for `invokedynamic` (issue #63). There might now be calls with incomplete target
   information. By default, these calls will not be distributed to visitors, but this can be enabled
   by setting the `skipIncompleteCalls` option in the call resolver.
+- Fix leading `$` being stripped from inner classes by the `ClassReferenceFixer`. This prevents classes
+  with names like `Foo$$Bar` incorrectly having their simple name changed from `$Bar` to `Bar`.
 
 ## Version 9.0.3
 

@@ -18,6 +18,7 @@
 
 package proguard.analysis.cpa.defaults;
 
+import java.util.Set;
 import proguard.analysis.cpa.bam.BamCache;
 import proguard.analysis.cpa.bam.BamCacheImpl;
 import proguard.analysis.cpa.bam.BamCpa;
@@ -145,6 +146,11 @@ public abstract class BamCpaRun<CpaT extends ConfigurableProgramAnalysis,
     public int getMaxCallStackDepth()
     {
         return maxCallStackDepth;
+    }
+
+    public Set<SignatureT> getAnalyzedMethods()
+    {
+        return getCpa().getCache().getAllMethods();
     }
 
     /**

@@ -424,6 +424,7 @@ implements   ClassVisitor,
             visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
 
             kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
+            kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, this);
             kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
             kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
             kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
@@ -446,10 +447,11 @@ implements   ClassVisitor,
         {
             clean(kotlinPropertyMetadata);
 
-            kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
-            kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
-            kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
-            kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.typeParametersAccept(      clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.receiverTypeAccept(        clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.contextReceiverTypesAccept(clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.typeAccept(                clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.setterParametersAccept(    clazz, kotlinDeclarationContainerMetadata, this);
         }
 
 
@@ -461,11 +463,12 @@ implements   ClassVisitor,
         {
             clean(kotlinFunctionMetadata);
 
-            kotlinFunctionMetadata.typeParametersAccept( clazz, kotlinMetadata, this);
-            kotlinFunctionMetadata.receiverTypeAccept(   clazz, kotlinMetadata, this);
-            kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
-            kotlinFunctionMetadata.returnTypeAccept(     clazz, kotlinMetadata, this);
-            kotlinFunctionMetadata.contractsAccept(      clazz, kotlinMetadata, new AllTypeVisitor(this));
+            kotlinFunctionMetadata.typeParametersAccept(      clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.receiverTypeAccept(        clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.valueParametersAccept(     clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.returnTypeAccept(          clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.contractsAccept(           clazz, kotlinMetadata, new AllTypeVisitor(this));
         }
 
 

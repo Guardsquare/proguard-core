@@ -117,6 +117,7 @@ implements KotlinMetadataVisitor,
         pw.println();
         indent();
 
+        kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, this);
         kotlinClassKindMetadata.typeParametersAccept(                   clazz, this);
         kotlinClassKindMetadata.superTypesAccept(                       clazz, this);
         kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
@@ -392,11 +393,12 @@ implements KotlinMetadataVisitor,
             );
         }
 
-        kotlinPropertyMetadata.receiverTypeAccept(      clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.typeParametersAccept(    clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.typeAccept(              clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.setterParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
-        kotlinPropertyMetadata.versionRequirementAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.receiverTypeAccept(        clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.contextReceiverTypesAccept(clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.typeParametersAccept(      clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.typeAccept(                clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.setterParametersAccept(    clazz, kotlinDeclarationContainerMetadata, this);
+        kotlinPropertyMetadata.versionRequirementAccept(  clazz, kotlinDeclarationContainerMetadata, this);
 
         outdent();
     }
@@ -605,6 +607,17 @@ implements KotlinMetadataVisitor,
     }
 
     @Override
+    public void visitAnyContextReceiverType(Clazz             clazz,
+                                           KotlinMetadata     kotlinMetadata,
+                                           KotlinTypeMetadata kotlinTypeMetadata)
+    {
+        print("[CTRE] ");
+        indent();
+        printKotlinTypeMetadata(clazz, kotlinTypeMetadata);
+        outdent();
+    }
+
+    @Override
     public void visitParameterUpperBound(Clazz                       clazz,
                                          KotlinTypeParameterMetadata boundedTypeParameter,
                                          KotlinTypeMetadata          upperBound)
@@ -699,12 +712,13 @@ implements KotlinMetadataVisitor,
 
         println();
 
-        kotlinFunctionMetadata.typeParametersAccept(    clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.receiverTypeAccept(      clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.valueParametersAccept(   clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.returnTypeAccept(        clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.contractsAccept(         clazz, kotlinMetadata, this);
-        kotlinFunctionMetadata.versionRequirementAccept(clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.typeParametersAccept(      clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.receiverTypeAccept(        clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.valueParametersAccept(     clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.returnTypeAccept(          clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.contractsAccept(           clazz, kotlinMetadata, this);
+        kotlinFunctionMetadata.versionRequirementAccept(  clazz, kotlinMetadata, this);
 
         if (kotlinFunctionMetadata.lambdaClassOriginName != null)
         {
@@ -913,6 +927,11 @@ implements KotlinMetadataVisitor,
         if (kotlinTypeMetadata.flags.isNullable)
         {
             pw.print("?");
+        }
+
+        if (kotlinTypeMetadata.flags.isDefinitelyNonNull)
+        {
+            pw.print(" & Any");
         }
 
         pw.print(" ");
@@ -1161,7 +1180,11 @@ implements KotlinMetadataVisitor,
     private String typeFlags(KotlinTypeFlags flags)
     {
         return
-            //(flags.isNullable ? "nullable " : "") + //printed as ? after name in printKotlinTypeMetadata
+            /**
+             * The following flags are printed after the name in printKotlinTypeMetadata.
+             * (flags.isNullable ? "nullable " : "") +                      // printed as '?'
+             * (flags.isDefinitelyNonNull ? "definitely non null " : "") +  // printed as '& Any'
+             */
             (flags.isSuspend  ? "suspend " : "");
     }
 

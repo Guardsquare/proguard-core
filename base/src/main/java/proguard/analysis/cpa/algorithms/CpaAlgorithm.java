@@ -45,8 +45,8 @@ public class CpaAlgorithm
     implements Algorithm
 {
 
-    private static final Logger           log = LogManager.getLogger(CpaAlgorithm.class);
-    private final        TransferRelation transferRelation;
+    private static final Logger              log = LogManager.getLogger(CpaAlgorithm.class);
+    private final        TransferRelation    transferRelation;
     private final        MergeOperator       mergeOperator;
     private final        StopOperator        stopOperator;
     private final        PrecisionAdjustment precisionAdjustment;
@@ -127,7 +127,7 @@ public class CpaAlgorithm
             }
             catch (Exception exception)
             {
-                log.error("CPA run stopped for the following error: {}", exception.getMessage());
+                log.error("CPA run stopped for the following error: ", exception);
                 waitlist.clear();
             }
         }

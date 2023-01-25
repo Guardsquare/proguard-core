@@ -19,6 +19,8 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -40,7 +42,17 @@ public class SetAbstractState<T>
      */
     public SetAbstractState(T... items)
     {
-        addAll(Arrays.asList(items));
+        this(Arrays.asList(items));
+    }
+
+    /**
+     * Create a set abstract state from a collection.
+     *
+     * @param c a collection of elements
+     */
+    public SetAbstractState(Collection<? extends T> c)
+    {
+        super(c);
     }
 
     // implementations for LatticeAbstractState

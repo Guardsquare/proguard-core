@@ -20,6 +20,7 @@ package proguard.analysis.cpa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static proguard.testutils.JavaUtilKt.getCurrentJavaHome;
 
 import io.kotest.core.spec.style.AnnotationSpec.After;
 import java.io.File;
@@ -73,6 +74,8 @@ import proguard.classfile.instruction.SimpleInstruction;
 import proguard.evaluation.value.ParticularDoubleValue;
 import proguard.evaluation.value.ParticularIntegerValue;
 import proguard.testutils.ClassPoolBuilder;
+import proguard.testutils.FileSource;
+import proguard.testutils.TestSource;
 import proguard.testutils.cpa.ExpressionAbstractState;
 import proguard.testutils.cpa.ExpressionTransferRelation;
 import proguard.testutils.cpa.InstructionExpression;
@@ -100,7 +103,12 @@ public class BamCpaAlgorithmTest
     @Test
     public void interproceduralResultsTest()
     {
-        ClassPool programClassPool = ClassPoolBuilder.Companion.fromFiles(new File("src/test/resources/BamCpaAlgorithmTest/interprocedural.java")).getProgramClassPool();
+        ClassPool programClassPool = ClassPoolBuilder.Companion.fromSource(new TestSource[]{new FileSource(new File("src/test/resources/BamCpaAlgorithmTest/interprocedural.java"))},
+                                                                           Arrays.asList("-source", "1.8", "-target", "1.8"),
+                                                                           Collections.emptyList(),
+                                                                           getCurrentJavaHome(),
+                                                                           true)
+                                                               .getProgramClassPool();
         cfa                        = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
 
         AbstractDomain abstractDomain      = new DelegateAbstractDomain<ExpressionAbstractState>();
@@ -239,7 +247,12 @@ public class BamCpaAlgorithmTest
     @Test
     public void limitedRecursionTest()
     {
-        ClassPool programClassPool = ClassPoolBuilder.Companion.fromFiles(new File("src/test/resources/BamCpaAlgorithmTest/recursive.java")).getProgramClassPool();
+        ClassPool programClassPool = ClassPoolBuilder.Companion.fromSource(new TestSource[]{new FileSource(new File("src/test/resources/BamCpaAlgorithmTest/recursive.java"))},
+                                                                           Arrays.asList("-source", "1.8", "-target", "1.8"),
+                                                                           Collections.emptyList(),
+                                                                           getCurrentJavaHome(),
+                                                                           true)
+                                                               .getProgramClassPool();
         cfa                        = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
 
         AbstractDomain                                                                    abstractDomain      = new DelegateAbstractDomain<ExpressionAbstractState>();
@@ -357,8 +370,12 @@ public class BamCpaAlgorithmTest
     @Test
     public void uncaughtExceptionTest()
     {
-        ClassPool                                                    programClassPool    = ClassPoolBuilder.Companion
-            .fromFiles(new File("src/test/resources/BamCpaAlgorithmTest/uncaughtException.java")).getProgramClassPool();
+        ClassPool                                                    programClassPool    = ClassPoolBuilder.Companion.fromSource(new TestSource[]{new FileSource(new File("src/test/resources/BamCpaAlgorithmTest/uncaughtException.java"))},
+                                                                                                                                 Arrays.asList("-source", "1.8", "-target", "1.8"),
+                                                                                                                                 Collections.emptyList(),
+                                                                                                                                 getCurrentJavaHome(),
+                                                                                                                                 true)
+                                                                                                                     .getProgramClassPool();
         cfa                                                                              = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
         AbstractDomain                                               abstractDomain      = new DelegateAbstractDomain<ExpressionAbstractState>();
         ProgramLocationDependentTransferRelation<JvmCfaNode,
@@ -411,8 +428,12 @@ public class BamCpaAlgorithmTest
     @Test
     public void caughtExceptionTest()
     {
-        ClassPool                                                                         programClassPool    = ClassPoolBuilder.Companion
-            .fromFiles(new File("src/test/resources/BamCpaAlgorithmTest/caughtException.java")).getProgramClassPool();
+        ClassPool                                                                         programClassPool    = ClassPoolBuilder.Companion.fromSource(new TestSource[]{new FileSource(new File("src/test/resources/BamCpaAlgorithmTest/caughtException.java"))},
+                                                                                                                                                      Arrays.asList("-source", "1.8", "-target", "1.8"),
+                                                                                                                                                      Collections.emptyList(),
+                                                                                                                                                      getCurrentJavaHome(),
+                                                                                                                                                      true)
+                                                                                                                                          .getProgramClassPool();
         cfa                                                                                                   = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
         AbstractDomain                                                                    abstractDomain      = new DelegateAbstractDomain<ExpressionAbstractState>();
         ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature> transferRelation    = new ExpressionTransferRelation();
@@ -461,7 +482,12 @@ public class BamCpaAlgorithmTest
     {
         // Regression test: tests that a successor state is produced if the inter-procedural call edge is missing from the CFA
 
-        ClassPool programClassPool = ClassPoolBuilder.Companion.fromFiles(new File("src/test/resources/BamCpaAlgorithmTest/interprocedural.java")).getProgramClassPool();
+        ClassPool programClassPool = ClassPoolBuilder.Companion.fromSource(new TestSource[]{new FileSource(new File("src/test/resources/BamCpaAlgorithmTest/interprocedural.java"))},
+                                                                           Arrays.asList("-source", "1.8", "-target", "1.8"),
+                                                                           Collections.emptyList(),
+                                                                           getCurrentJavaHome(),
+                                                                           true)
+                                                               .getProgramClassPool();
         // create just intra-procedural CFA, all inter-procedural call edges are missing
         cfa                        = CfaUtil.createIntraproceduralCfaFromClassPool(programClassPool);
 

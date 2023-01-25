@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,13 @@
  */
 package proguard.classfile.util;
 
-import proguard.classfile.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.JavaAccessConstants;
+import proguard.classfile.JavaTypeConstants;
+import proguard.classfile.JavaVersionConstants;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.VersionConstants;
 
 import java.util.List;
 
@@ -398,6 +404,26 @@ public class ClassUtil
 
 
     /**
+     * Returns whether the given type is an internal type, i.e. one of:
+     *
+     * - an internal array type;
+     * - an internal primitive type;
+     * - an internal class type.
+     *
+     * @param type the type,
+     *             e.g. "<code>Ljava/lang/String;</code>", "<code>I</code>"
+     * @return <code>true</code> if the given type is a class type,
+     *         <code>false</code> otherwise.
+     */
+    public static boolean isInternalType(String type)
+    {
+        return isInternalArrayType(type)     ||
+               isInternalPrimitiveType(type) ||
+               isInternalClassType(type);
+    }
+
+
+    /**
      * Returns the internal type of a given class name.
      * @param internalClassName the internal class name,
      *                          e.g. "<code>java/lang/Object</code>".
@@ -423,7 +449,7 @@ public class ClassUtil
     public static String internalArrayTypeFromClassName(String internalClassName,
                                                         int    dimensionCount)
     {
-        StringBuffer buffer = new StringBuffer(internalClassName.length() + dimensionCount + 2);
+        StringBuilder buffer = new StringBuilder(internalClassName.length() + dimensionCount + 2);
 
         for (int dimension = 0; dimension < dimensionCount; dimension++)
         {
@@ -450,7 +476,7 @@ public class ClassUtil
     public static String internalArrayTypeFromType(String internalType,
                                                    int    dimensionDelta)
     {
-        StringBuffer buffer = new StringBuffer(internalType.length() + dimensionDelta);
+        StringBuilder buffer = new StringBuilder(internalType.length() + dimensionDelta);
 
         for (int dimension = 0; dimension < dimensionDelta; dimension++)
         {
@@ -1278,7 +1304,7 @@ public class ClassUtil
     public static String internalMethodDescriptor(String externalReturnType,
                                                   String externalMethodNameAndArguments)
     {
-        StringBuffer internalMethodDescriptor = new StringBuffer();
+        StringBuilder internalMethodDescriptor = new StringBuilder();
         internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_OPEN);
 
         ExternalTypeEnumeration externalTypeEnumeration =
@@ -1306,15 +1332,15 @@ public class ClassUtil
      * @return the internal method descriptor,
      *                                       e.g. "<code>(II)Z</code>".
      */
-    public static String internalMethodDescriptor(String externalReturnType,
-                                                  List   externalArguments)
+    public static String internalMethodDescriptor(String       externalReturnType,
+                                                  List<String> externalArguments)
     {
-        StringBuffer internalMethodDescriptor = new StringBuffer();
+        StringBuilder internalMethodDescriptor = new StringBuilder();
         internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_OPEN);
 
-        for (int index = 0; index < externalArguments.size(); index++)
+        for (String externalArgument : externalArguments)
         {
-            internalMethodDescriptor.append(internalType((String)externalArguments.get(index)));
+            internalMethodDescriptor.append(internalType(externalArgument));
         }
 
         internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_CLOSE);
@@ -1428,7 +1454,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.PUBLIC) != 0)
         {
@@ -1508,7 +1534,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.PUBLIC) != 0)
         {
@@ -1573,7 +1599,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.PUBLIC) != 0)
         {
@@ -1656,7 +1682,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.FINAL) != 0)
         {
@@ -1716,7 +1742,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.OPEN) != 0)
         {
@@ -1763,7 +1789,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.TRANSITIVE) != 0)
         {
@@ -1814,7 +1840,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.SYNTHETIC) != 0)
         {
@@ -1857,7 +1883,7 @@ public class ClassUtil
             return EMPTY_STRING;
         }
 
-        StringBuffer string = new StringBuffer(50);
+        StringBuilder string = new StringBuilder(50);
 
         if ((accessFlags & AccessConstants.SYNTHETIC) != 0)
         {
@@ -1908,7 +1934,7 @@ public class ClassUtil
      */
     public static String externalMethodArguments(String internalMethodDescriptor)
     {
-        StringBuffer externalMethodNameAndArguments = new StringBuffer();
+        StringBuilder externalMethodNameAndArguments = new StringBuilder();
 
         InternalTypeEnumeration internalTypeEnumeration =
             new InternalTypeEnumeration(internalMethodDescriptor);

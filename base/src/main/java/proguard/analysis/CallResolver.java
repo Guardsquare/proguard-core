@@ -18,10 +18,6 @@
 
 package proguard.analysis;
 
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proguard.analysis.Metrics.MetricType;
@@ -31,9 +27,14 @@ import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
-import proguard.backport.LambdaExpression;
-import proguard.backport.LambdaExpressionCollector;
-import proguard.classfile.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.MethodSignature;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
@@ -48,15 +49,31 @@ import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.LineNumberFinder;
-import proguard.classfile.visitor.MultiClassVisitor;
 import proguard.evaluation.BasicInvocationUnit;
 import proguard.evaluation.ExcessiveComplexityException;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.InvocationUnit;
 import proguard.evaluation.PartialEvaluator;
-import proguard.evaluation.value.*;
+import proguard.evaluation.value.ArrayReferenceValueFactory;
+import proguard.evaluation.value.MultiTypedReferenceValue;
+import proguard.evaluation.value.MultiTypedReferenceValueFactory;
+import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory;
+import proguard.evaluation.value.TypedReferenceValue;
+import proguard.evaluation.value.Value;
+import proguard.evaluation.value.ValueFactory;
 import proguard.util.PartialEvaluatorUtils;
+
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Collects all method invocations inside the analyzed methods.
@@ -161,13 +178,13 @@ implements   AttributeVisitor,
         switch (instruction.opcode)
         {
             case Instruction.OP_INVOKESTATIC:
-                // This is always clear, so we can just return it directly
+                // This is always clear, so we can just return it directly.
                 return new MethodSignature(methodRef.getClassName(clazz), methodRef.getName(clazz), methodRef.getType(clazz));
             case Instruction.OP_INVOKESPECIAL:
             case Instruction.OP_INVOKEVIRTUAL:
             case Instruction.OP_INVOKEINTERFACE:
                 // Virtual method invocation targets will always have the expected name and descriptor,
-                // but to know the exact target class we would need more in-depth analysis
+                // but to know the exact target class we would need more in-depth analysis.
                 return new MethodSignature(null, methodRef.getName(clazz), methodRef.getType(clazz));
         }
 
@@ -249,7 +266,7 @@ implements   AttributeVisitor,
                                                                               .stopAnalysisAfterNEvaluations(maxPartialEvaluations)
                                                                               .build();
 
-        // Initialize the particular value evaluator
+        // Initialize the particular value evaluator.
         ValueFactory particularValueFactory          = new ParticularValueFactory(new ArrayReferenceValueFactory(),
                                                                                   new ReferenceValueFactory());
         InvocationUnit particularValueInvocationUnit = new ExecutingInvocationUnit(particularValueFactory);
@@ -282,7 +299,7 @@ implements   AttributeVisitor,
     @Override
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
-        // Check whether this code attribute should be analyzed
+        // Check whether this code attribute should be analyzed.
         if (!shouldAnalyzeNextCodeAttribute.get())
         {
             return;
@@ -307,7 +324,6 @@ implements   AttributeVisitor,
             {
                 Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
             }
-            log.debug("Exception during evaluating types", e);
         }
 
         try
@@ -327,7 +343,6 @@ implements   AttributeVisitor,
             {
                 Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
             }
-            log.debug("Exception during evaluating values", e);
         }
 
         if (useDominatorAnalysis)
@@ -341,7 +356,7 @@ implements   AttributeVisitor,
     @Override
     public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
     {
-        // Only interested in ConstantInstructions
+        // Only interested in ConstantInstructions.
     }
 
     @Override
@@ -409,20 +424,6 @@ implements   AttributeVisitor,
                                     !alwaysInvoked,
                                     runtimeTypeDependent);
 
-        // Log some metrics about the call
-        if (call instanceof SymbolicCall)
-        {
-            Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
-        }
-        else
-        {
-            Metrics.increaseCount(MetricType.CONCRETE_CALL);
-            if ((((ConcreteCall) call).getTargetMethod().getAccessFlags() & AccessConstants.ABSTRACT) != 0)
-            {
-                Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
-            }
-        }
-
         initArgumentsAndReturnValue(call);
 
         visitors.forEach(d -> d.visitCall(call));
@@ -463,6 +464,17 @@ implements   AttributeVisitor,
                 Method method = containingClass.findMethod(targetMethod, targetDescriptor);
                 if (method != null)
                 {
+                    Metrics.increaseCount(MetricType.CONCRETE_CALL);
+                    if ((method.getAccessFlags() & AccessConstants.ABSTRACT) != 0)
+                    {
+                        Metrics.increaseCount(MetricType.CALL_TO_ABSTRACT_METHOD);
+                    }
+                    if (method instanceof ProgramMethod
+                        && Arrays.stream(((ProgramMethod) method).attributes).noneMatch(a -> a instanceof CodeAttribute))
+                    {
+                        Metrics.increaseCount(MetricType.CONCRETE_CALL_NO_CODE_ATTRIBUTE);
+                    }
+
                     return new ConcreteCall(location,
                                             containingClass,
                                             method,
@@ -474,6 +486,7 @@ implements   AttributeVisitor,
             }
         }
 
+        Metrics.increaseCount(MetricType.SYMBOLIC_CALL);
         return new SymbolicCall(location,
                                 new MethodSignature(targetClass, targetMethod, targetDescriptor),
                                 throwsNullptr,
@@ -609,7 +622,6 @@ implements   AttributeVisitor,
         if (targets.isEmpty())
         {
             Metrics.increaseCount(MetricType.MISSING_METHODS);
-            log.debug("Missing method {}", ref.getClassName(location.clazz));
         }
         else
         {
@@ -646,7 +658,7 @@ implements   AttributeVisitor,
         String name       = ref.getName(callingClass);
         String descriptor = ref.getType(callingClass);
 
-        // "If all of the following are true, let C be the direct superclass of the current class:"
+        // "If all the following are true, let C be the direct superclass of the current class:"
         Clazz c;
         // ACC_SUPER flag is set (should always be the case, legacy flag). See JVM Spec §4.1.
         if ((callingClass.getAccessFlags() & AccessConstants.SUPER) != 0
@@ -668,7 +680,6 @@ implements   AttributeVisitor,
             // In this case, we don't have the referenced class in our class pool, so we can't be more specific here.
             String className = ref.getClassName(callingClass);
             Metrics.increaseCount(MetricType.MISSING_CLASS);
-            log.debug("Missing class {}", className);
             return Collections.singleton(className);
         }
 
@@ -741,9 +752,7 @@ implements   AttributeVisitor,
             // If the partial evaluation has not finished, this is to be expected and does not warrant an error message.
             if (multiTypeEvaluationSuccessful)
             {
-                String classInfo = (thisPtr == null ? "null" : thisPtr.getClass().toString());
                 Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_VALUE_IMPRECISE);
-                log.debug("Virtual call at {}: this-pointer is not a multi typed reference value but {}", location, classInfo);
             }
         }
         else
@@ -791,7 +800,6 @@ implements   AttributeVisitor,
                 {
                     // Class still wasn't found, add it to the missing classes.
                     Metrics.increaseCount(MetricType.MISSING_CLASS);
-                    log.info("Missing class {}", possibleType.getType());
                 }
 
                 Set<String> targetClasses = resolveVirtual(location.clazz, referencedClass, ref);
@@ -800,7 +808,6 @@ implements   AttributeVisitor,
                     if (referencedClass != null)
                     {
                         Metrics.increaseCount(MetricType.MISSING_METHODS);
-                        log.debug("Missing method {}", ref.getClassName(location.clazz));
                     }
                     targetClasses = Collections.singleton(ClassUtil.internalClassNameFromClassType(possibleType.getType()));
                 }
@@ -938,7 +945,6 @@ implements   AttributeVisitor,
             if (iface == null)
             {
                 Metrics.increaseCount(MetricType.MISSING_CLASS);
-                log.info("Missing class {}", start.getName());
                 continue;
             }
             accumulator.add(iface);

@@ -34,6 +34,8 @@ extends      SimpleProcessable
 
     public KotlinTypeMetadata receiverType;
 
+    public List<KotlinTypeMetadata> contextReceivers;
+
     public List<KotlinValueParameterMetadata> setterParameters;
 
     public KotlinTypeMetadata type;
@@ -113,6 +115,19 @@ extends      SimpleProcessable
                                                         kotlinDeclarationContainerMetadata,
                                                         this,
                                                         receiverType);
+        }
+    }
+
+    public void contextReceiverTypesAccept(Clazz             clazz,
+                                           KotlinMetadata    kotlinMetadata,
+                                           KotlinTypeVisitor kotlinTypeVisitor)
+    {
+        if (contextReceivers != null)
+        {
+            for (KotlinTypeMetadata contextReceiver : contextReceivers)
+            {
+                kotlinTypeVisitor.visitPropertyContextReceiverType(clazz, kotlinMetadata, this, contextReceiver);
+            }
         }
     }
 

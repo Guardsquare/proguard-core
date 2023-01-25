@@ -779,6 +779,7 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                 case Instruction.OP_INVOKESPECIAL:
                 case Instruction.OP_INVOKEINTERFACE:
                     answer.addAll(processCall(memoryLocation, constantInstruction, clazz));
+                    break;
                 case Instruction.OP_NEW: // TODO creating objects on the heap is not yet modeled
                 case Instruction.OP_NEWARRAY:
                 case Instruction.OP_ANEWARRAY:

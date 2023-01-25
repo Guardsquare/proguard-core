@@ -17,10 +17,14 @@
  */
 package proguard.resources.file;
 
-import proguard.resources.file.visitor.*;
-import proguard.util.*;
-
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import proguard.resources.file.visitor.ResourceFileVisitor;
+import proguard.util.FileNameParser;
+import proguard.util.ListParser;
+import proguard.util.StringMatcher;
 
 /**
  * This is a set of {@link ResourceFile} instances. They can be enumerated or
@@ -29,16 +33,19 @@ import java.util.*;
  * @author Johan Leys
  */
 public class ResourceFilePool
+    implements FilePool
 {
+
     // We're using a sorted tree map instead of a hash map to store the
     // instances, in order to make the processing more deterministic.
-    private final Map<String, ResourceFile>  resourceFileMap  = new TreeMap<String, ResourceFile>();
+    private final Map<String, ResourceFile> resourceFileMap = new TreeMap<>();
 
     /**
      * Creates a new empty ResourceFilePool.
      */
-    public ResourceFilePool() {}
-
+    public ResourceFilePool()
+    {
+    }
 
     /**
      * Creates a new ResourceFilePool with the given resource files.
@@ -53,7 +60,6 @@ public class ResourceFilePool
         }
     }
 
-
     /**
      * Creates a new ResourceFilePool with the given resource files.
      *
@@ -67,7 +73,6 @@ public class ResourceFilePool
         }
     }
 
-
     /**
      * Clears the pool.
      */
@@ -75,7 +80,6 @@ public class ResourceFilePool
     {
         resourceFileMap.clear();
     }
-
 
     /**
      * Adds the given ResourceFile to this pool.
@@ -85,7 +89,6 @@ public class ResourceFilePool
         addResourceFile(resourceFile.getFileName(), resourceFile);
     }
 
-
     /**
      * Adds the given ResourceFile with the given name to this pool.
      */
@@ -93,7 +96,6 @@ public class ResourceFilePool
     {
         resourceFileMap.put(fileName, resourceFile);
     }
-
 
     /**
      * Removes the specified ResourceFile from this pool.
@@ -103,16 +105,14 @@ public class ResourceFilePool
         resourceFileMap.remove(fileName);
     }
 
-
     /**
-     * Returns a ResourceFile from this pool, based on its name.
-     * Returns <code>null</code> if the instance with the given name is not in the pool.
+     * Returns a ResourceFile from this pool, based on its name. Returns <code>null</code> if the instance with the given name is not in the pool.
      */
+    @Override
     public ResourceFile getResourceFile(String fileName)
     {
         return resourceFileMap.get(fileName);
     }
-
 
     /**
      * Returns the number of resource files in this pool.
@@ -122,72 +122,70 @@ public class ResourceFilePool
         return resourceFileMap.size();
     }
 
-
     /**
-     * Returns a ResourceFilePool with the same resource files, but with the
-     * keys that correspond to the names of the resource file instances.
-     * This can be useful to create a resource file pool with obfuscated names.
+     * Returns a ResourceFilePool with the same resource files, but with the keys that correspond to the names of the resource file instances. This can be useful to create a resource file pool with
+     * obfuscated names.
      */
     public ResourceFilePool refreshedCopy()
     {
         return new ResourceFilePool(resourceFileMap.values());
     }
 
-
     // Note: for consistency, use visitors whenever possible.
+
     /**
      * Returns a Set of all resource file names in this resource file pool.
      */
+    @Override
     public Set<String> resourceFileNames()
     {
         return resourceFileMap.keySet();
     }
 
-
     /**
      * Applies the given ResourceFileVisitor to all instances in this pool.
      */
+    @Override
     public void resourceFilesAccept(ResourceFileVisitor resourceFileVisitor)
     {
-        for (Map.Entry<String, ResourceFile> entry : resourceFileMap.entrySet())
+        for (ResourceFile resourceFile : resourceFileMap.values())
         {
-            entry.getValue().accept(resourceFileVisitor);
+            resourceFile.accept(resourceFileVisitor);
         }
     }
-
 
     /**
      * Applies the given ResourceFileVisitor to all resource files in this pool matching the given file name filter.
      */
-    public void resourceFilesAccept(String              fileNameFilter,
-                                    ResourceFileVisitor resourceFileVisitor)
+    @Override
+    public void resourceFilesAccept(String fileNameFilter,
+        ResourceFileVisitor resourceFileVisitor)
     {
         resourceFilesAccept(new ListParser(new FileNameParser()).parse(fileNameFilter),
                             resourceFileVisitor);
     }
-
 
     /**
      * Applies the given ResourceFileVisitor to all resource files in this pool matching the given file name filters.
      */
-    public void resourceFilesAccept(List<String>        fileNameFilter,
-                                    ResourceFileVisitor resourceFileVisitor)
+    @Override
+    public void resourceFilesAccept(List<String> fileNameFilter,
+        ResourceFileVisitor resourceFileVisitor)
     {
         resourceFilesAccept(new ListParser(new FileNameParser()).parse(fileNameFilter),
                             resourceFileVisitor);
     }
 
-
     /**
      * Applies the given ResourceFileVisitor to all resource files in this pool matching the given file name filter.
      */
-    public void resourceFilesAccept(StringMatcher       fileNameFilter,
-                                    ResourceFileVisitor resourceFileVisitor)
+    @Override
+    public void resourceFilesAccept(StringMatcher fileNameFilter,
+        ResourceFileVisitor resourceFileVisitor)
     {
-        for (Map.Entry<String,ResourceFile> entry : resourceFileMap.entrySet())
+        for (Map.Entry<String, ResourceFile> entry : resourceFileMap.entrySet())
         {
             String fileName = entry.getKey();
-
             if (fileNameFilter.matches(fileName))
             {
                 ResourceFile resourceFile = entry.getValue();
@@ -195,21 +193,6 @@ public class ResourceFilePool
             }
         }
     }
-
-
-    /**
-     * Applies the given ResourceFileVisitor to the instance with the given name, if it is present in this pool.
-     */
-    public void resourceFileAccept(String              fileName,
-                                   ResourceFileVisitor resourceFileVisitor)
-    {
-        ResourceFile resourceFile = getResourceFile(fileName);
-        if (resourceFile != null)
-        {
-            resourceFile.accept(resourceFileVisitor);
-        }
-    }
-
 
     // Implementations for Object.
 

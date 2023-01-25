@@ -30,7 +30,6 @@ import proguard.classfile.kotlin.visitor.filter.KotlinTypeFilter
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
-import java.util.function.Predicate
 
 class KotlinTypeFlagsTest : FreeSpec({
     val clazz = ClassPoolBuilder.fromSource(
@@ -39,6 +38,7 @@ class KotlinTypeFlagsTest : FreeSpec({
             """
             @Suppress("UNUSED_PARAMETER")
             fun foo(bar: suspend () -> Unit, string: String): Int? = 42
+            fun <T> elvisLike(x: T, y: T & Any): T & Any = x ?: y
             """
         )
     ).programClassPool.getClass("TestKt")
@@ -155,12 +155,56 @@ class KotlinTypeFlagsTest : FreeSpec({
             }
         }
     }
+
+    "Given a definitely non-null type" - {
+        "Then the flags should be initialized correctly" {
+            val typeVisitor = spyk<KotlinTypeVisitor>()
+
+            clazz.accept(ReWritingMetadataVisitor(createVisitor(0, typeVisitor)))
+
+            verify {
+                typeVisitor.visitAnyType(
+                    clazz,
+                    withArg {
+                        it.flags.isNullable shouldBe false
+                        it.flags.isSuspend shouldBe false
+                        it.flags.isDefinitelyNonNull shouldBe true
+
+                        it.flags.common.hasAnnotations shouldBe false
+                    }
+                )
+            }
+        }
+
+        "Then the flags should be written and re-initialized correctly" {
+            val typeVisitor = spyk<KotlinTypeVisitor>()
+
+            clazz.accept(ReWritingMetadataVisitor(createVisitor(0, typeVisitor)))
+
+            verify {
+                typeVisitor.visitAnyType(
+                    clazz,
+                    withArg {
+                        it.flags.isDefinitelyNonNull shouldBe true
+                    }
+                )
+            }
+        }
+    }
 })
 
 private fun createVisitor(className: String, typeVisitor: KotlinTypeVisitor): KotlinMetadataVisitor =
     AllTypeVisitor(
         KotlinTypeFilter(
-            Predicate { it.className == className },
+            { it.className == className },
+            typeVisitor
+        )
+    )
+
+private fun createVisitor(typeParamId: Int, typeVisitor: KotlinTypeVisitor): KotlinMetadataVisitor =
+    AllTypeVisitor(
+        KotlinTypeFilter(
+            { it.typeParamID == typeParamId },
             typeVisitor
         )
     )

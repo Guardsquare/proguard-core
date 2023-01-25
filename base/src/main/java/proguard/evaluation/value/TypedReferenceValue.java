@@ -37,7 +37,7 @@ import static proguard.classfile.util.ClassUtil.*;
  */
 public class TypedReferenceValue extends ReferenceValue
 {
-    public  static final boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
+    private static       boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
     private static final boolean DEBUG = false;
 
     protected final String  type;
@@ -379,6 +379,13 @@ public class TypedReferenceValue extends ReferenceValue
                 TypedReferenceValueFactory.REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL;
     }
 
+    /**
+     * Returns whether incomplete class hierarchies are allowed.
+     */
+    public static boolean allowsIncompleteClassHierarchy()
+    {
+        return ALLOW_INCOMPLETE_CLASS_HIERARCHY;
+    }
 
     /**
      * Returns the most specific common superclass or interface of the given

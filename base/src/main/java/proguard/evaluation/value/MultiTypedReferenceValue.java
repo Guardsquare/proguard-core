@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
 
 /**
@@ -88,7 +87,7 @@ public class MultiTypedReferenceValue extends ReferenceValue
                 {
                     generalizedType = (TypedReferenceValue) newGeneralizedType;
                 }
-                else if ((newGeneralizedType instanceof UnknownReferenceValue) && TypedReferenceValue.ALLOW_INCOMPLETE_CLASS_HIERARCHY)
+                else if ((newGeneralizedType instanceof UnknownReferenceValue) && TypedReferenceValue.allowsIncompleteClassHierarchy())
                 {
                     if (type.isNull() == Value.NEVER)
                     {

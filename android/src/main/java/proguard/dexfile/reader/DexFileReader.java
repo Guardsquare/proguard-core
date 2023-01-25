@@ -155,8 +155,14 @@ public class DexFileReader
     public DexFileReader(ByteBuffer in) {
         ((Buffer) in).position(0);
         in = in.asReadOnlyBuffer().order(ByteOrder.BIG_ENDIAN);
-        int magic = in.getInt() & 0xFFFFFF00;
 
+        // Size of the dex file header must be at least 0x70 bytes, see: https://source.android.com/docs/core/runtime/constraints
+        if (in.remaining() < 0x70)
+        {
+            throw new DexException(String.format("Dex file is shorter than the mandated header size: only %d bytes.", in.remaining()));
+        }
+
+        int magic = in.getInt() & 0xFFFFFF00;
         final int MAGIC_DEX = 0x6465780A & 0xFFFFFF00;// hex for 'dex ', ignore the 0A
         final int MAGIC_ODEX = 0x6465790A & 0xFFFFFF00;// hex for 'dey ', ignore the 0A
 

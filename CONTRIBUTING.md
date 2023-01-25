@@ -176,8 +176,7 @@ operators, etc.
   should stick to this limit. Code that has a nice table-like structure can
   exceed it.
 
-- Imports of multiple classes in the same package are specified with a
-  wildcard '*'.
+- Imports of multiple classes in the same package are declared explicitly, **no wildcard imports**.
 
 - Try to preserve a logical, consistent order in fields, getters/setters,
   methods, variables.

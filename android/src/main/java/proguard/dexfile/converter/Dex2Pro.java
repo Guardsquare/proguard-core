@@ -64,6 +64,12 @@ public class Dex2Pro {
 
 //    private static final Logger  logger                   = LogManager.getLogger(Dex2Pro.class);
 
+    /**
+     * Similar to {@link #MAX_PHI_LABELS}, if set to >0, methods with more statements
+     * than this threshold are not converted to bytecode.
+     */
+    private static final int     MAX_STATEMENTS           = Integer.parseInt(System.getProperty("proguard.dexconversion.maxstatements", "0"));
+
     private boolean usePrimitiveArrayConstants = false;
 
 
@@ -524,7 +530,7 @@ public class Dex2Pro {
         if (clzInfo != null) {
 //            isInnerClass = clzInfo.enclosingClass != null || clzInfo.enclosingMethod != null;
             if (clzInfo.enclosingClass != null || clzInfo.enclosingMethod != null) {
-                if (classNode.anns.stream().noneMatch(x ->
+                if (classNode.anns != null && classNode.anns.stream().noneMatch(x ->
                         x.type.equals("Ldalvik/annotation/EnclosingMethod;"))) {
                     isInnerClass = true;
                 } else if (clzInfo.enclosingClass != null) {
@@ -719,10 +725,10 @@ public class Dex2Pro {
     }
 
     private boolean shouldSkipMethod(IrMethod method) {
-        if (MAX_PHI_LABELS > 0) {
-            return method.phiLabels != null && method.phiLabels.size() > MAX_PHI_LABELS;
+        if (MAX_PHI_LABELS > 0 && method.phiLabels != null && method.phiLabels.size() > MAX_PHI_LABELS) {
+            return true;
         }
-        return false;
+        return MAX_STATEMENTS > 0 && method.stmts.getSize() > MAX_STATEMENTS;
     }
 
     private void convertField(DexClassNode classNode, DexFieldNode fieldNode, ClassBuilder classBuilder) {

@@ -36,6 +36,11 @@ public class KotlinTypeFlags implements KotlinFlags
     public boolean isNullable;
 
     /**
+     * Signifies that the corresponding type is [definitely non-null](https://kotlinlang.org/docs/whatsnew17.html#stable-definitely-non-nullable-types).
+     */
+    public boolean isDefinitelyNonNull;
+
+    /**
      * Signifies that the corresponding type is `suspend`.
      */
     public boolean isSuspend;

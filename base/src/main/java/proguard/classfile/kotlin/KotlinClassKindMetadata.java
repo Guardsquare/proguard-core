@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,16 @@
  */
 package proguard.classfile.kotlin;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.Field;
 import proguard.classfile.kotlin.flags.KotlinClassFlags;
-import proguard.classfile.kotlin.visitor.*;
+import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
+import proguard.classfile.kotlin.visitor.KotlinVersionRequirementVisitor;
 import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberVisitor;
 
 import java.util.List;
 
@@ -51,6 +57,8 @@ extends KotlinDeclarationContainerMetadata
     public Clazz referencedDefaultImplsClass;
 
     public List<KotlinTypeParameterMetadata> typeParameters;
+
+    public List<KotlinTypeMetadata> contextReceivers;
 
     public KotlinVersionRequirementMetadata versionRequirement;
 
@@ -92,6 +100,14 @@ extends KotlinDeclarationContainerMetadata
         }
     }
 
+    public void referencedCompanionFieldAccept(MemberVisitor memberVisitor)
+    {
+        if (referencedClass          != null &&
+            referencedCompanionField != null)
+        {
+            referencedCompanionField.accept(referencedClass, memberVisitor);
+        }
+    }
 
     public void nestedClassesAccept(boolean visitCompanion, ClassVisitor classVisitor)
     {
@@ -165,6 +181,18 @@ extends KotlinDeclarationContainerMetadata
         if (underlyingPropertyType != null)
         {
             underlyingPropertyType.underlyingPropertyTypeAccept(clazz, this, kotlinTypeVisitor);
+        }
+    }
+
+    public void contextReceiverTypesAccept(Clazz             clazz,
+                                           KotlinTypeVisitor kotlinTypeVisitor)
+    {
+        if (contextReceivers != null)
+        {
+            for (KotlinTypeMetadata contextReceiver : contextReceivers)
+            {
+                kotlinTypeVisitor.visitClassContextReceiverType(clazz, this, contextReceiver);
+            }
         }
     }
 

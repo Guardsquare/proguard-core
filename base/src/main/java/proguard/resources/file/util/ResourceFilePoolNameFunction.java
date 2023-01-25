@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2022 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package proguard.resources.file.util;
 
-import proguard.resources.file.*;
-import proguard.util.*;
+import proguard.resources.file.ResourceFile;
+import proguard.resources.file.ResourceFilePool;
+import proguard.util.StringFunction;
 
 /**
  * This {@link StringFunction} maps resource file names on their (obfuscated) resource file name, as present on the
@@ -26,42 +28,17 @@ import proguard.util.*;
  *
  * @author Johan Leys
  */
-public class ResourceFilePoolNameFunction implements StringFunction
+@Deprecated
+public class ResourceFilePoolNameFunction
+    extends FilePoolNameFunction
 {
-    private final ResourceFilePool resourceFilePool;
-    private final String           defaultResourceFileName;
-
 
     /**
-     * Creates a new ResourceFileNameFunction based on the given resource file
+     * Creates a new ResourceFilePoolNameFunction based on the given resource file
      * pool.
      */
     public ResourceFilePoolNameFunction(ResourceFilePool resourceFilePool)
     {
-        this(resourceFilePool, null);
-    }
-
-
-    /**
-     * Creates a new ResourceFileNameFunction based on the given resource file
-     * pool, with a default string for resource files that are not in the
-     * resource file pool.
-     */
-    public ResourceFilePoolNameFunction(ResourceFilePool resourceFilePool,
-                                        String           defaultResourceFileName)
-    {
-        this.resourceFilePool        = resourceFilePool;
-        this.defaultResourceFileName = defaultResourceFileName;
-    }
-
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        ResourceFile resourceFile = resourceFilePool.getResourceFile(string);
-
-        return resourceFile != null ? resourceFile.getFileName() : defaultResourceFileName;
+        super(resourceFilePool);
     }
 }

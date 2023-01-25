@@ -352,6 +352,14 @@ implements   ClassVisitor,
 
 
         @Override
+        public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
+        {
+            kotlinClassKindMetadata.contextReceiverTypesAccept(clazz, this);
+
+            visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
+        }
+
+        @Override
         public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
                                                             KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
         {
@@ -391,10 +399,11 @@ implements   ClassVisitor,
                                      KotlinMetadata         kotlinMetadata,
                                      KotlinFunctionMetadata kotlinFunctionMetadata)
         {
-            kotlinFunctionMetadata.receiverTypeAccept(clazz,    kotlinMetadata, this);
-            kotlinFunctionMetadata.returnTypeAccept(clazz,      kotlinMetadata, this);
-            kotlinFunctionMetadata.typeParametersAccept(clazz,  kotlinMetadata, this);
-            kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.receiverTypeAccept(        clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.returnTypeAccept(          clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.typeParametersAccept(      clazz, kotlinMetadata, this);
+            kotlinFunctionMetadata.valueParametersAccept(     clazz, kotlinMetadata, this);
         }
 
 
@@ -451,10 +460,11 @@ implements   ClassVisitor,
                                      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                      KotlinPropertyMetadata             kotlinPropertyMetadata)
         {
-            kotlinPropertyMetadata.receiverTypeAccept(    clazz, kotlinDeclarationContainerMetadata, this);
-            kotlinPropertyMetadata.typeAccept(            clazz, kotlinDeclarationContainerMetadata, this);
-            kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
-            kotlinPropertyMetadata.typeParametersAccept(  clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.receiverTypeAccept(        clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.contextReceiverTypesAccept(clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.typeAccept(                clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.setterParametersAccept(    clazz, kotlinDeclarationContainerMetadata, this);
+            kotlinPropertyMetadata.typeParametersAccept(      clazz, kotlinDeclarationContainerMetadata, this);
 
             if (kotlinPropertyMetadata.referencedSyntheticMethodClass != null)
             {

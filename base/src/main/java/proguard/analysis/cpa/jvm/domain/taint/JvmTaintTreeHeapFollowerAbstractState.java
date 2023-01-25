@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
-import proguard.analysis.cpa.domain.taint.TaintAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
@@ -44,27 +43,32 @@ import proguard.analysis.cpa.state.MapAbstractStateFactory;
  * @author Dmitry Ivanov
  */
 public class JvmTaintTreeHeapFollowerAbstractState
-    extends JvmTreeHeapFollowerAbstractState<TaintAbstractState>
+    extends JvmTreeHeapFollowerAbstractState<SetAbstractState<JvmTaintSource>>
     implements JvmTaintHeapAbstractState
 {
 
     /**
      * Create a taint follower heap abstract state.
      *
-     * @param principal               the principal heap abstract state containing reference abstract states
-     * @param defaultValue            the default value representing unknown values
-     * @param referenceToNode         the mapping from references to heap nodes
-     * @param mapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
+     * @param principal                       the principal heap abstract state containing reference abstract states
+     * @param defaultValue                    the default value representing unknown values
+     * @param referenceToNode                 the mapping from references to heap nodes
+     * @param heapMapAbstractStateFactory     a map abstract state factory used for constructing the mapping from references to objects
+     * @param heapNodeMapAbstractStateFactory a map abstract state factory used for constructing the mapping from fields to values
      */
-    public JvmTaintTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal, TaintAbstractState defaultValue, MapAbstractState<Reference, HeapNode<TaintAbstractState>> referenceToNode, MapAbstractStateFactory mapAbstractStateFactory)
+    public JvmTaintTreeHeapFollowerAbstractState(JvmReferenceAbstractState principal,
+                                                 SetAbstractState<JvmTaintSource> defaultValue,
+                                                 MapAbstractState<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> referenceToNode,
+                                                 MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> heapMapAbstractStateFactory,
+                                                 MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> heapNodeMapAbstractStateFactory)
     {
-        super(principal, defaultValue, referenceToNode, mapAbstractStateFactory);
+        super(principal, defaultValue, referenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory);
     }
 
     // implementations for JvmTaintHeapAbstractState
 
     @Override
-    public <T> void taintObject(T object, TaintAbstractState value)
+    public <T> void taintObject(T object, SetAbstractState<JvmTaintSource> value)
     {
         setField(object, "", value);
     }
@@ -72,21 +76,21 @@ public class JvmTaintTreeHeapFollowerAbstractState
     // implementations for JvmTreeHeapFollowerAbstractState
 
     @Override
-    public <T> TaintAbstractState getField(T object, String fqn, TaintAbstractState defaultValue)
+    public <T> SetAbstractState<JvmTaintSource> getField(T object, String fqn, SetAbstractState<JvmTaintSource> defaultValue)
     {
-        return super.getField(object, fqn, defaultValue.join(super.getField(object, "", TaintAbstractState.bottom)));
+        return super.getField(object, fqn, defaultValue.join(super.getField(object, "", SetAbstractState.bottom)));
     }
 
     @Override
-    public <T> TaintAbstractState getArrayElementOrDefault(T array, TaintAbstractState index, TaintAbstractState defaultValue)
+    public <T> SetAbstractState<JvmTaintSource> getArrayElementOrDefault(T array, SetAbstractState<JvmTaintSource> index, SetAbstractState<JvmTaintSource> defaultValue)
     {
-        return super.getArrayElementOrDefault(array, index, defaultValue.join(super.getField(array, "", TaintAbstractState.bottom)));
+        return super.getArrayElementOrDefault(array, index, defaultValue.join(super.getField(array, "", SetAbstractState.bottom)));
     }
 
     // implementations for JvmTreeHeapAbstractState
 
     @Override
-    protected void assignField(SetAbstractState<Reference> object, String descriptor, TaintAbstractState value)
+    protected void assignField(SetAbstractState<Reference> object, String descriptor, SetAbstractState<JvmTaintSource> value)
     {
         // ordinary field assignment
         if (!descriptor.equals(""))
@@ -101,10 +105,10 @@ public class JvmTaintTreeHeapFollowerAbstractState
     // implementations for LatticeAbstractState
 
     @Override
-    public JvmTaintTreeHeapFollowerAbstractState join(JvmHeapAbstractState<TaintAbstractState> abstractState)
+    public JvmTaintTreeHeapFollowerAbstractState join(JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> abstractState)
     {
         JvmTaintTreeHeapFollowerAbstractState other = (JvmTaintTreeHeapFollowerAbstractState) abstractState;
-        MapAbstractState<Reference, HeapNode<TaintAbstractState>> newReferenceToNode = referenceToNode.join(other.referenceToNode);
+        MapAbstractState<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> newReferenceToNode = referenceToNode.join(other.referenceToNode);
         if (referenceToNode == newReferenceToNode)
         {
             return this;
@@ -115,7 +119,7 @@ public class JvmTaintTreeHeapFollowerAbstractState
         }
         propagateObjectTaint(referenceToNode, newReferenceToNode, other.principal.getHeap());
         propagateObjectTaint(other.referenceToNode, newReferenceToNode, principal.getHeap());
-        return new JvmTaintTreeHeapFollowerAbstractState(principal, defaultValue, newReferenceToNode, mapAbstractStateFactory);
+        return new JvmTaintTreeHeapFollowerAbstractState(principal, defaultValue, newReferenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory);
     }
 
     // implementations for AbstractState
@@ -130,8 +134,9 @@ public class JvmTaintTreeHeapFollowerAbstractState
                                                                         .collect(Collectors.toMap(Entry::getKey,
                                                                                                   e -> e.getValue().copy(),
                                                                                                   HeapNode::join,
-                                                                                                  mapAbstractStateFactory::createMapAbstractState)),
-                                                         mapAbstractStateFactory);
+                                                                                                  heapMapAbstractStateFactory::createMapAbstractState)),
+                                                         heapMapAbstractStateFactory,
+                                                         heapNodeMapAbstractStateFactory);
     }
 
     // private methods
@@ -159,7 +164,7 @@ public class JvmTaintTreeHeapFollowerAbstractState
         return result;
     }
 
-    private void taintObjects(SetAbstractState<Reference> references, Map<Reference, HeapNode<TaintAbstractState>> referenceToNode, TaintAbstractState value)
+    private void taintObjects(SetAbstractState<Reference> references, Map<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> referenceToNode, SetAbstractState<JvmTaintSource> value)
     {
         // taint all fields as values
         references.stream()
@@ -172,8 +177,8 @@ public class JvmTaintTreeHeapFollowerAbstractState
                   .forEach(r -> mergeField(r, "", value));
     }
 
-    private void propagateObjectTaint(MapAbstractState<Reference, HeapNode<TaintAbstractState>> leftReferenceToNode,
-                                      MapAbstractState<Reference, HeapNode<TaintAbstractState>> joinedReferenceToNode,
+    private void propagateObjectTaint(MapAbstractState<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> leftReferenceToNode,
+                                      MapAbstractState<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> joinedReferenceToNode,
                                       JvmHeapAbstractState<SetAbstractState<Reference>> rightPrincipalHeap)
     {
         leftReferenceToNode.entrySet()

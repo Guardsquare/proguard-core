@@ -21,6 +21,7 @@ package proguard.analysis.cpa.jvm.cfa.edges;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.classfile.MethodSignature;
 
 /**
  * A {@link JvmCfaEdge} representing a call to another method, linking to the first node of the called method.
@@ -55,6 +56,12 @@ public class JvmCallCfaEdge
     {
         super(source, target);
         this.call = call;
+    }
+
+    @Override
+    public MethodSignature targetSignature()
+    {
+        return call.getTarget();
     }
 
     // Implementations for CallEdge

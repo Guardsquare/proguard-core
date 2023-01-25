@@ -91,7 +91,7 @@ extends      Location
         this.signature = Signature.of(clazz, member);
     }
 
-    public String getClassName()
+    public String getExternalClassName()
     {
         return externalClassName(clazz.getName());
     }

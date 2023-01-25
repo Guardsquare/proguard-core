@@ -36,6 +36,8 @@ implements   Processable
 
     public KotlinTypeMetadata receiverType;
 
+    public List<KotlinTypeMetadata> contextReceivers;
+
     public KotlinTypeMetadata returnType;
 
     public List<KotlinTypeParameterMetadata> typeParameters;
@@ -93,18 +95,24 @@ implements   Processable
                                       KotlinMetadata              kotlinMetadata,
                                       KotlinValueParameterVisitor kotlinValueParameterVisitor)
     {
-        for (KotlinValueParameterMetadata valueParameter : valueParameters)
+        if (valueParameters != null)
         {
-            valueParameter.accept(clazz, kotlinMetadata, this, kotlinValueParameterVisitor);
+            for (KotlinValueParameterMetadata valueParameter : valueParameters)
+            {
+                valueParameter.accept(clazz, kotlinMetadata, this, kotlinValueParameterVisitor);
+            }
         }
     }
 
 
     public void typeParametersAccept(Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeParameterVisitor kotlinTypeParameterVisitor)
     {
-        for (KotlinTypeParameterMetadata typeParameter : typeParameters)
+        if (typeParameters != null)
         {
-            typeParameter.accept(clazz, kotlinMetadata, this, kotlinTypeParameterVisitor);
+            for (KotlinTypeParameterMetadata typeParameter : typeParameters)
+            {
+                typeParameter.accept(clazz, kotlinMetadata, this, kotlinTypeParameterVisitor);
+            }
         }
     }
 
@@ -130,14 +138,29 @@ implements   Processable
         }
     }
 
+    public void contextReceiverTypesAccept(Clazz             clazz,
+                                           KotlinMetadata    kotlinMetadata,
+                                           KotlinTypeVisitor kotlinTypeVisitor)
+    {
+        if (contextReceivers != null)
+        {
+            for (KotlinTypeMetadata contextReceiver : contextReceivers)
+            {
+                kotlinTypeVisitor.visitFunctionContextReceiverType(clazz, kotlinMetadata, this, contextReceiver);
+            }
+        }
+    }
 
     public void contractsAccept(Clazz                 clazz,
                                 KotlinMetadata        kotlinMetadata,
                                 KotlinContractVisitor kotlinContractVisitor)
     {
-        for (KotlinContractMetadata contract : contracts)
+        if (contracts != null)
         {
-            contract.accept(clazz, kotlinMetadata, this, kotlinContractVisitor);
+            for (KotlinContractMetadata contract : contracts)
+            {
+                contract.accept(clazz, kotlinMetadata, this, kotlinContractVisitor);
+            }
         }
     }
 
@@ -165,6 +188,15 @@ implements   Processable
             referencedMethodClass != null)
         {
             referencedMethod.accept(referencedMethodClass, methodVisitor);
+        }
+    }
+
+    public void referencedDefaultMethodAccept(MemberVisitor methodVisitor)
+    {
+        if (referencedDefaultMethod      != null &&
+            referencedDefaultMethodClass != null)
+        {
+            referencedDefaultMethod.accept(referencedDefaultMethodClass, methodVisitor);
         }
     }
 

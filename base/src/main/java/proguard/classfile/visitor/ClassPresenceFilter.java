@@ -17,7 +17,8 @@
  */
 package proguard.classfile.visitor;
 
-import proguard.classfile.*;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
 
 /**
  * This {@link ClassVisitor} delegates its visits to one of two
@@ -50,6 +51,19 @@ implements   ClassVisitor
         this.classPool           = classPool;
         this.presentClassVisitor = presentClassVisitor;
         this.missingClassVisitor = missingClassVisitor;
+    }
+
+    /**
+     * Creates a new ClassPresenceFilter.
+     * @param classPool           the <code>ClassPool</code> in which the
+     *                            presence will be tested.
+     * @param presentClassVisitor the <code>ClassVisitor</code> to which visits
+     *                            of present class files will be delegated.
+     */
+    public ClassPresenceFilter(ClassPool    classPool,
+                               ClassVisitor presentClassVisitor)
+    {
+        this(classPool, presentClassVisitor, null);
     }
 
 
