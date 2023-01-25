@@ -23,7 +23,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
@@ -68,7 +67,7 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     // implementations for JvmHeapAbstractState
 
     @Override
-    public <T> StateT getField(T object, String fqn, StateT defaultValue)
+    public <T> StateT getFieldOrDefault(T object, String fqn, StateT defaultValue)
     {
         if (object instanceof JvmMemoryLocation)
         {
@@ -163,12 +162,12 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     @Override
     public void reduce(Optional<Set<Reference>> references)
     {
-        Set<Reference> toKeep = ((JvmTreeHeapPrincipalAbstractState) principal.getHeap()).referenceToNode.keySet();
-        if (toKeep.size() >= referenceToNode.size())
+        Set<Reference> toKeep = ((JvmTreeHeapPrincipalAbstractState) principal.getHeap()).referenceToObject.keySet();
+        if (toKeep.size() >= referenceToObject.size())
         {
             return;
         }
-        referenceToNode.keySet().retainAll(toKeep);
+        referenceToObject.keySet().retainAll(toKeep);
     }
 
     // implementations for LatticeAbstractState
@@ -177,22 +176,16 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     public JvmTreeHeapFollowerAbstractState<StateT> join(JvmHeapAbstractState<StateT> abstractState)
     {
         JvmTreeHeapFollowerAbstractState<StateT> other = (JvmTreeHeapFollowerAbstractState<StateT>) abstractState;
-        MapAbstractState<Reference, HeapNode<StateT>> newReferenceToNode = referenceToNode.join(other.referenceToNode);
-        if (referenceToNode == newReferenceToNode)
+        MapAbstractState<Reference, HeapNode<StateT>> newReferenceToNode = referenceToObject.join(other.referenceToObject);
+        if (referenceToObject == newReferenceToNode)
         {
             return this;
         }
-        if (other.referenceToNode == newReferenceToNode)
+        if (other.referenceToObject == newReferenceToNode)
         {
             return other;
         }
         return new JvmTreeHeapFollowerAbstractState<>(principal, defaultValue, newReferenceToNode, heapMapAbstractStateFactory, heapNodeMapAbstractStateFactory);
-    }
-
-    @Override
-    public boolean isLessOrEqual(JvmHeapAbstractState<StateT> abstractState)
-    {
-        return abstractState instanceof JvmTreeHeapFollowerAbstractState;
     }
 
     // implementations for AbstractState
@@ -202,9 +195,9 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     {
         return new JvmTreeHeapFollowerAbstractState<>(principal,
                                                       defaultValue,
-                                                      referenceToNode.entrySet()
-                                                                     .stream()
-                                                                     .collect(Collectors.toMap(Entry::getKey,
+                                                      referenceToObject.entrySet()
+                                                                       .stream()
+                                                                       .collect(Collectors.toMap(Entry::getKey,
                                                                                                e -> e.getValue().copy(),
                                                                                                HeapNode::join,
                                                                                                heapMapAbstractStateFactory::createMapAbstractState)),

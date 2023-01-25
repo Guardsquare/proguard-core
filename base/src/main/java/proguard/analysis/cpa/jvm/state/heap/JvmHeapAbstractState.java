@@ -53,7 +53,7 @@ public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT
      * Returns a field {@code fqn} from a reference {@code object}.
      * If there is no abstract state representing the field, returns the {@code defaultValue}
      */
-    <T> StateT getField(T object, String fqn, StateT defaultValue);
+    <T> StateT getFieldOrDefault(T object, String fqn, StateT defaultValue);
 
     /**
      * Sets a {@code value} to a field {@code fqn} of a referenced {@code object} and returns the {@code value}.

@@ -70,12 +70,12 @@ public class JvmBasicTaintTreeHeapFollowerAbstractState
     public JvmBasicTaintTreeHeapFollowerAbstractState join(JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> abstractState)
     {
         JvmBasicTaintTreeHeapFollowerAbstractState other = (JvmBasicTaintTreeHeapFollowerAbstractState) abstractState;
-        MapAbstractState<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> newReferenceToNode = referenceToNode.join(other.referenceToNode);
-        if (referenceToNode == newReferenceToNode)
+        MapAbstractState<Reference, HeapNode<SetAbstractState<JvmTaintSource>>> newReferenceToNode = referenceToObject.join(other.referenceToObject);
+        if (referenceToObject == newReferenceToNode)
         {
             return this;
         }
-        if (other.referenceToNode == newReferenceToNode)
+        if (other.referenceToObject == newReferenceToNode)
         {
             return other;
         }
@@ -89,9 +89,9 @@ public class JvmBasicTaintTreeHeapFollowerAbstractState
     {
         return new JvmBasicTaintTreeHeapFollowerAbstractState(principal,
                                                               defaultValue,
-                                                              referenceToNode.entrySet()
-                                                                        .stream()
-                                                                        .collect(Collectors.toMap(Entry::getKey,
+                                                              referenceToObject.entrySet()
+                                                                               .stream()
+                                                                               .collect(Collectors.toMap(Entry::getKey,
                                                                                                   e -> e.getValue().copy(),
                                                                                                   HeapNode::join,
                                                                                                   heapMapAbstractStateFactory::createMapAbstractState)),

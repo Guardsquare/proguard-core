@@ -240,7 +240,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
      */
     public <T> StateT getFieldOrDefault(T object, String descriptor, StateT defaultValue)
     {
-        return heap.getField(object, descriptor, defaultValue);
+        return heap.getFieldOrDefault(object, descriptor, defaultValue);
     }
 
     /**

@@ -26,11 +26,9 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
@@ -70,7 +68,7 @@ public class JvmTreeHeapPrincipalAbstractState
     // implementations for JvmHeapAbstractState
 
     @Override
-    public <T> SetAbstractState<Reference> getField(T object, String fqn, SetAbstractState<Reference> defaultValue)
+    public <T> SetAbstractState<Reference> getFieldOrDefault(T object, String fqn, SetAbstractState<Reference> defaultValue)
     {
         if (!(object instanceof SetAbstractState))
         {
@@ -78,9 +76,9 @@ public class JvmTreeHeapPrincipalAbstractState
         }
         return ((SetAbstractState<Reference>) object).stream()
                                                      .reduce(new SetAbstractState<>(),
-                                                             (result, reference) -> referenceToNode.computeIfAbsent(reference,
+                                                             (result, reference) -> referenceToObject.computeIfAbsent(reference,
                                                                                                                     r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
-                                                                                                   .computeIfAbsent(fqn,
+                                                                                                     .computeIfAbsent(fqn,
                                                                                                                     d -> new SetAbstractState<>(reference)),
                                                              SetAbstractState::join);
     }
@@ -95,13 +93,13 @@ public class JvmTreeHeapPrincipalAbstractState
         SetAbstractState<Reference> objectReference = (SetAbstractState<Reference>) object;
         if (objectReference.size() <= 1)
         {
-            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
-                                                                .put(fqn, value));
+            objectReference.forEach(reference -> referenceToObject.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
+                                                                  .put(fqn, value));
         }
         else
         {
-            objectReference.forEach(reference -> referenceToNode.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
-                                                                .merge(fqn, value));
+            objectReference.forEach(reference -> referenceToObject.computeIfAbsent(reference, r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
+                                                                  .merge(fqn, value));
         }
     }
 
@@ -113,9 +111,9 @@ public class JvmTreeHeapPrincipalAbstractState
             throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), array.getClass().getName()));
         }
         return ((SetAbstractState<Reference>) array).stream().reduce(new SetAbstractState<>(),
-                                                                     (result, reference) -> referenceToNode.computeIfAbsent(reference,
+                                                                     (result, reference) -> referenceToObject.computeIfAbsent(reference,
                                                                                                                             r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
-                                                                                                           .computeIfAbsent("[]",
+                                                                                                             .computeIfAbsent("[]",
                                                                                                                             d -> new SetAbstractState<>(reference)),
                                                                      SetAbstractState::join);
     }
@@ -127,9 +125,9 @@ public class JvmTreeHeapPrincipalAbstractState
         {
             throw new IllegalStateException(String.format("%s does not support %s as reference type", getClass().getName(), array.getClass().getName()));
         }
-        ((SetAbstractState<Reference>) array).forEach(reference -> referenceToNode.computeIfAbsent(reference,
+        ((SetAbstractState<Reference>) array).forEach(reference -> referenceToObject.computeIfAbsent(reference,
                                                                                                    r -> new HeapNode<SetAbstractState<Reference>>(heapNodeMapAbstractStateFactory.createMapAbstractState()))
-                                                                                  .merge("[]", value));
+                                                                                    .merge("[]", value));
     }
 
     @Override
@@ -149,10 +147,10 @@ public class JvmTreeHeapPrincipalAbstractState
      */
     public Set<Reference> getStaticCreationReferences()
     {
-        return referenceToNode.keySet()
-                              .stream()
-                              .filter(ref -> ref.creationSite instanceof JvmStaticFieldLocation)
-                              .collect(Collectors.toSet());
+        return referenceToObject.keySet()
+                                .stream()
+                                .filter(ref -> ref.creationSite instanceof JvmStaticFieldLocation)
+                                .collect(Collectors.toSet());
     }
 
     /**
@@ -176,7 +174,7 @@ public class JvmTreeHeapPrincipalAbstractState
         while (!worklist.isEmpty())
         {
             Reference reference = worklist.pop();
-            HeapNode<SetAbstractState<Reference>> node = referenceToNode.get(reference);
+            HeapNode<SetAbstractState<Reference>> node = referenceToObject.get(reference);
 
             if (node == null)
             {
@@ -188,7 +186,7 @@ public class JvmTreeHeapPrincipalAbstractState
                                         .forEach(worklist::add));
         }
 
-        referenceToNode.entrySet().removeIf(e -> !discoveredReferences.contains(e.getKey()));
+        referenceToObject.entrySet().removeIf(e -> !discoveredReferences.contains(e.getKey()));
     }
 
     // implementations for LatticeAbstractState
@@ -197,12 +195,12 @@ public class JvmTreeHeapPrincipalAbstractState
     public JvmTreeHeapPrincipalAbstractState join(JvmHeapAbstractState<SetAbstractState<Reference>> abstractState)
     {
         JvmTreeHeapPrincipalAbstractState other = (JvmTreeHeapPrincipalAbstractState) abstractState;
-        MapAbstractState<Reference, HeapNode<SetAbstractState<Reference>>> newReferenceToNode = referenceToNode.join(other.referenceToNode);
-        if (referenceToNode.equals(newReferenceToNode))
+        MapAbstractState<Reference, HeapNode<SetAbstractState<Reference>>> newReferenceToNode = referenceToObject.join(other.referenceToObject);
+        if (referenceToObject.equals(newReferenceToNode))
         {
             return this;
         }
-        if (other.referenceToNode.equals(newReferenceToNode))
+        if (other.referenceToObject.equals(newReferenceToNode))
         {
             return other;
         }
@@ -214,9 +212,9 @@ public class JvmTreeHeapPrincipalAbstractState
     @Override
     public JvmTreeHeapPrincipalAbstractState copy()
     {
-        return new JvmTreeHeapPrincipalAbstractState(referenceToNode.entrySet()
-                                                                    .stream()
-                                                                    .collect(Collectors.toMap(Entry::getKey,
+        return new JvmTreeHeapPrincipalAbstractState(referenceToObject.entrySet()
+                                                                      .stream()
+                                                                      .collect(Collectors.toMap(Entry::getKey,
                                                                                               e -> e.getValue().copy(),
                                                                                               HeapNode::join,
                                                                                               heapMapAbstractStateFactory::createMapAbstractState)),

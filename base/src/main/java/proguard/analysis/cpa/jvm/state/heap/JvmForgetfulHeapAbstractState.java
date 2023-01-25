@@ -46,7 +46,7 @@ public class JvmForgetfulHeapAbstractState<StateT extends LatticeAbstractState<S
     // implementations for JvmHeapAbstractState
 
     @Override
-    public <T> StateT getField(T object, String fqn, StateT defaultValue)
+    public <T> StateT getFieldOrDefault(T object, String fqn, StateT defaultValue)
     {
         return defaultValue;
     }

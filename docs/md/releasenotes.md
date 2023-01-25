@@ -14,6 +14,12 @@
 
 ### Improved
 
+- Add `JvmShallowHeapModel` for selective heap modeling.
+
+## Version 9.0.7
+
+### Improved
+
 - Don't report warnings for missing Kotlin default implementation classes when initializing with `ClassReferenceInitializer`.
 - Only link matching methods in Kotlin file facades with `MethodLinker`.
 - Extend the `LimitedHashMap` parameterization with an element exclusion selector.

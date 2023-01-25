@@ -54,7 +54,7 @@ public class JvmHeapLocation
     @Override
     public <T extends LatticeAbstractState> T extractValueOrDefault(JvmAbstractState abstractState, T defaultValue)
     {
-        return (T) abstractState.getHeap().getField(reference, field, defaultValue);
+        return (T) abstractState.getHeap().getFieldOrDefault(reference, field, defaultValue);
     }
 
     // implementations for Object

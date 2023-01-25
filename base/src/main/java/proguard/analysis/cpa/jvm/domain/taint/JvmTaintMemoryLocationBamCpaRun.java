@@ -250,7 +250,7 @@ public class JvmTaintMemoryLocationBamCpaRun
     private boolean isStateTaintedForMemoryLocation(JvmAbstractState<SetAbstractState<JvmTaintSource>> state, JvmMemoryLocation memoryLocation)
     {
         return !memoryLocation.extractValueOrDefault(state, SetAbstractState.bottom).isEmpty()
-               || !state.getHeap().getField(memoryLocation, "", SetAbstractState.bottom).isEmpty();
+               || !state.getHeap().getFieldOrDefault(memoryLocation, "", SetAbstractState.bottom).isEmpty();
     }
 
     /**
