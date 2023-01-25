@@ -574,7 +574,7 @@ class ParticularReferenceTest : FreeSpec({
 
             checkExpectedValueParticularReferenceValue(invocationsWithStack, 44, 0, "41 !dlrow olleh")
 
-            uniqueIDs shouldHaveSize 7
+            uniqueIDs shouldHaveSize 3
         }
     }
 
@@ -643,7 +643,7 @@ class ParticularReferenceTest : FreeSpec({
 
             checkExpectedValueParticularReferenceValue(invocationsWithStack, 44, 0, "41 !dlrow olleh")
 
-            uniqueIDs shouldHaveSize 7
+            uniqueIDs shouldHaveSize 3
         }
     }
 
