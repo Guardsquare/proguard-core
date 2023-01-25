@@ -19,7 +19,15 @@ package proguard.io;
 
 import proguard.classfile.ClassPool;
 import proguard.resources.file.ResourceFilePool;
-import proguard.util.*;
+import proguard.util.ConstantStringFunction;
+import proguard.util.ExtensionMatcher;
+import proguard.util.FileNameParser;
+import proguard.util.ListFunctionParser;
+import proguard.util.ListParser;
+import proguard.util.SingleFunctionParser;
+import proguard.util.StringFunction;
+import proguard.util.StringMatcher;
+import proguard.util.WildcardManager;
 
 import java.io.File;
 import java.security.KeyStore;

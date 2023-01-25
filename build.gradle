@@ -16,6 +16,7 @@ allprojects {
 
     repositories {
         mavenCentral()
+        google()
     }
     
     pluginManager.withPlugin('java') {
