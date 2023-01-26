@@ -5,10 +5,9 @@
 - Increase `proguard.classfile.VersionConstants.MAX_SUPPORTED_VERSION` to `64.65535` (Java 20 + preview enabled).
 - Fix tracking of `IdentifiedReferenceValue` IDs.
 
-## Version 9.0.8
-
 ### API changes
-- `JvmTransferRelation` has been refactored to model `IINC` in a separate `computeIncrement` method.
+- `JvmTransferRelation` has been refactored to model `IINC` in a separate `computeIncrement` method. 
+- The `ProcessingFlag.DONT_PROCESS_KOTLIN_MODULE` value was changed from `0x00002000` to `0x00008000`.
 
 ## Version 9.0.7
 

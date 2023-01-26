@@ -39,7 +39,7 @@ public class ProcessingFlags
     public static final int REMOVED_METHODS               = 0x00000040; // Marks whether a class has (at least one) methods removed.
     public static final int REMOVED_PUBLIC_METHODS        = 0x00000080; // Marks whether a class has (at least one) public methods removed.
     public static final int INJECTED                      = 0x00000200; // Marks whether an entity was injected by DexGuard.
-    public static final int DONT_PROCESS_KOTLIN_MODULE    = 0x00002000; // Marks whether to processing a Kotlin module file.
+    public static final int DONT_PROCESS_KOTLIN_MODULE    = 0x00008000; // Marks whether to processing a Kotlin module file.
     public static final int MODIFIED                      = 0x00004000; // Marks whether an entity has been modified.
 
     // A mask for processing flags that can be copied as well when e.g. inlining a method / merging a class.
