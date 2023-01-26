@@ -34,6 +34,14 @@ import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.constant.ClassConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.DoubleConstant;
+import proguard.classfile.constant.FloatConstant;
+import proguard.classfile.constant.IntegerConstant;
+import proguard.classfile.constant.LongConstant;
+import proguard.classfile.constant.StringConstant;
+import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.instruction.BranchInstruction;
 import proguard.classfile.instruction.ConstantInstruction;
 import proguard.classfile.instruction.Instruction;
@@ -52,14 +60,19 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.util.ConstantLookupVisitor;
 import proguard.analysis.cpa.jvm.util.InstructionClassifier;
-import proguard.evaluation.ClassConstantValueFactory;
 import proguard.evaluation.value.DoubleValue;
 import proguard.evaluation.value.FloatValue;
 import proguard.evaluation.value.IntegerValue;
 import proguard.evaluation.value.LongValue;
 import proguard.evaluation.value.ParticularValueFactory;
+import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
+import proguard.evaluation.value.ValueFactory;
+
+import static proguard.classfile.AccessConstants.FINAL;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
+import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
 
 /**
  * The {@link JvmTransferRelation} computes the successors of an {@link JvmAbstractState} for a given instruction. It stores category 2 computational types as tuples of the abstract state containing
@@ -70,6 +83,8 @@ import proguard.evaluation.value.Value;
 public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<StateT>>
     implements ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
+
+    private final ValueFactory valueFactory = new ParticularValueFactory(new ReferenceValueFactory());
 
     // implementations for ProgramLocationDependentTransferRelation
 
@@ -113,7 +128,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns the result of the instruction application. The default implementation computes join over its arguments.
      */
-    protected List<StateT> applyInstruction(Instruction instruction, List<StateT> operands, int resultCount)
+    protected List<StateT> applyArithmeticInstruction(Instruction instruction, List<StateT> operands, int resultCount)
     {
         List<StateT> answer        = new ArrayList<>(resultCount);
         StateT       answerContent = operands.stream().reduce(getAbstractDefault(), StateT::join);
@@ -129,13 +144,13 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
      */
     protected StateT computeIncrement(StateT state, int value)
     {
-        return state.join(getAbstractIntegerConstant(value));
+        return state.join(getAbstractIntegerConstant(valueFactory.createIntegerValue(value)));
     }
 
     /**
      * Returns an abstract representation of a byte constant {@code b}.
      */
-    public StateT getAbstractByteConstant(byte b)
+    public StateT getAbstractByteConstant(IntegerValue b)
     {
         return getAbstractDefault();
     }
@@ -148,7 +163,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a double constant {@code d}.
      */
-    public List<StateT> getAbstractDoubleConstant(double d)
+    public List<StateT> getAbstractDoubleConstant(DoubleValue d)
     {
         return Arrays.asList(getAbstractDefault(), getAbstractDefault());
     }
@@ -156,7 +171,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a float constant {@code f}.
      */
-    public StateT getAbstractFloatConstant(float f)
+    public StateT getAbstractFloatConstant(FloatValue f)
     {
         return getAbstractDefault();
     }
@@ -164,7 +179,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of an integer constant {@code i}.
      */
-    public StateT getAbstractIntegerConstant(int i)
+    public StateT getAbstractIntegerConstant(IntegerValue i)
     {
         return getAbstractDefault();
     }
@@ -172,7 +187,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a long constant {@code l}.
      */
-    public List<StateT> getAbstractLongConstant(long l)
+    public List<StateT> getAbstractLongConstant(LongValue l)
     {
         return Arrays.asList(getAbstractDefault(), getAbstractDefault());
     }
@@ -188,9 +203,25 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a short constant {@code s}.
      */
-    public StateT getAbstractShortConstant(short s)
+    public StateT getAbstractShortConstant(IntegerValue s)
     {
         return getAbstractDefault();
+    }
+
+    /**
+     * Returns an abstract representation of a reference value {@code object}.
+     */
+    public StateT getAbstractReferenceValue(ReferenceValue object)
+    {
+        return getAbstractDefault();
+    }
+
+    /**
+     * Returns the {@link ValueFactory} used to create values for the abstract values.
+     */
+    public ValueFactory getValueFactory()
+    {
+        return this.valueFactory;
     }
 
     /**
@@ -254,9 +285,9 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         implements InstructionVisitor
     {
 
-        protected final JvmAbstractState<StateT>  abstractState;
-        protected final ClassConstantValueFactory classConstantValueFactory = new ClassConstantValueFactory(new ParticularValueFactory());
-        protected final ConstantLookupVisitor     constantLookupVisitor     = new ConstantLookupVisitor();
+        protected final JvmAbstractState<StateT>    abstractState;
+        protected final ConstantLookupVisitor       constantLookupVisitor    = new ConstantLookupVisitor();
+        private   final LdcConstantValueStatePusher constantValueStatePusher = new LdcConstantValueStatePusher();
 
         public InstructionAbstractInterpreter(JvmAbstractState<StateT> abstractState)
         {
@@ -280,20 +311,20 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 case Instruction.OP_ICONST_3:
                 case Instruction.OP_ICONST_4:
                 case Instruction.OP_ICONST_5:
-                    abstractState.push(getAbstractIntegerConstant(simpleInstruction.constant));
+                    abstractState.push(getAbstractIntegerConstant(valueFactory.createIntegerValue(simpleInstruction.constant)));
                     break;
                 case Instruction.OP_LCONST_0:
                 case Instruction.OP_LCONST_1:
-                    abstractState.pushAll(getAbstractLongConstant(simpleInstruction.constant));
+                    abstractState.pushAll(getAbstractLongConstant(valueFactory.createLongValue(simpleInstruction.constant)));
                     break;
                 case Instruction.OP_FCONST_0:
                 case Instruction.OP_FCONST_1:
                 case Instruction.OP_FCONST_2:
-                    abstractState.push(getAbstractFloatConstant(simpleInstruction.constant));
+                    abstractState.push(getAbstractFloatConstant(valueFactory.createFloatValue(simpleInstruction.constant)));
                     break;
                 case Instruction.OP_DCONST_0:
                 case Instruction.OP_DCONST_1:
-                    abstractState.pushAll(getAbstractDoubleConstant(simpleInstruction.constant));
+                    abstractState.pushAll(getAbstractDoubleConstant(valueFactory.createDoubleValue(simpleInstruction.constant)));
                     break;
                 case Instruction.OP_IALOAD:
                 case Instruction.OP_FALOAD:
@@ -337,10 +368,10 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                     break;
                 }
                 case Instruction.OP_BIPUSH:
-                    abstractState.push(getAbstractByteConstant((byte) simpleInstruction.constant));
+                    abstractState.push(getAbstractByteConstant(valueFactory.createIntegerValue((byte) simpleInstruction.constant)));
                     break;
                 case Instruction.OP_SIPUSH:
-                    abstractState.push(getAbstractShortConstant((short) simpleInstruction.constant));
+                    abstractState.push(getAbstractShortConstant(valueFactory.createIntegerValue((short) simpleInstruction.constant)));
                     break;
                 case Instruction.OP_POP:
                 case Instruction.OP_MONITORENTER: // TODO synchronization is not yet modeled
@@ -457,7 +488,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                         }
                     }
                     Collections.reverse(operands);
-                    abstractState.pushAll(applyInstruction(simpleInstruction, operands, simpleInstruction.stackPushCount(clazz)));
+                    abstractState.pushAll(applyArithmeticInstruction(simpleInstruction, operands, simpleInstruction.stackPushCount(clazz)));
                 }
             }
         }
@@ -498,7 +529,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 case Instruction.OP_LDC:
                 case Instruction.OP_LDC_W:
                 case Instruction.OP_LDC2_W:
-                    abstractState.pushAll(getAbstactValue(classConstantValueFactory.constantValue(clazz, constantInstruction.constantIndex)));
+                    clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantValueStatePusher);
                     break;
                 case Instruction.OP_GETSTATIC:
                     constantLookupVisitor.isStatic = true;
@@ -623,29 +654,62 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
             }
         }
 
-        private List<StateT> getAbstactValue(Value value)
+        private class LdcConstantValueStatePusher implements ConstantVisitor
         {
-            if (value instanceof IntegerValue)
+            @Override
+            public void visitAnyConstant(Clazz clazz, Constant constant)
             {
-                return Collections.singletonList(getAbstractIntegerConstant(((IntegerValue) value).value()));
+                abstractState.push(getAbstractDefault());
             }
-            else if (value instanceof LongValue)
+
+            @Override
+            public void visitLongConstant(Clazz clazz, LongConstant longConstant)
             {
-                return getAbstractLongConstant(((LongValue) value).value());
+                abstractState.pushAll(getAbstractLongConstant(valueFactory.createLongValue(longConstant.u8value)));
             }
-            else if (value instanceof FloatValue)
+
+            @Override
+            public void visitDoubleConstant(Clazz clazz, DoubleConstant doubleConstant)
             {
-                return Collections.singletonList(getAbstractFloatConstant(((FloatValue) value).value()));
+                abstractState.pushAll(getAbstractDoubleConstant(valueFactory.createDoubleValue(doubleConstant.f8value)));
             }
-            else if (value instanceof DoubleValue)
+
+            @Override
+            public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant)
             {
-                return getAbstractDoubleConstant(((DoubleValue) value).value());
+                abstractState.push(getAbstractIntegerConstant(valueFactory.createIntegerValue(integerConstant.u4value)));
             }
-            else if (value instanceof ReferenceValue)
+
+            @Override
+            public void visitFloatConstant(Clazz clazz, FloatConstant floatConstant)
             {
-                return Collections.singletonList(getAbstractDefault());
+                abstractState.push(getAbstractFloatConstant(valueFactory.createFloatValue(floatConstant.f4value)));
             }
-            return Collections.singletonList(getAbstractDefault());
+
+            @Override
+            public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
+            {
+                abstractState.push(getAbstractReferenceValue(
+                    valueFactory.createReferenceValue(
+                        TYPE_JAVA_LANG_STRING,
+                        stringConstant.javaLangStringClass,
+                        false,
+                        false,
+                        stringConstant.getString(clazz)
+                )));
+            }
+
+            @Override
+            public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
+            {
+                abstractState.push(getAbstractReferenceValue(
+                    valueFactory.createReferenceValue(
+                        internalTypeFromClassName(classConstant.getName(clazz)),
+                        clazz,
+                        (clazz.getAccessFlags() & FINAL) == 0,
+                        true
+                )));
+            }
         }
     }
 }

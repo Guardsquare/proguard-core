@@ -41,6 +41,15 @@ public class JvmValueAbstractState implements LatticeAbstractState<JvmValueAbstr
         this.value = value;
     }
 
+
+    /**
+     * Returns the {@link Value} associated with this abstract state.
+     */
+    public Value getValue()
+    {
+        return value;
+    }
+
     @Override
     public JvmValueAbstractState join(JvmValueAbstractState abstractState)
     {
@@ -91,6 +100,6 @@ public class JvmValueAbstractState implements LatticeAbstractState<JvmValueAbstr
 
     @Override
     public String toString() {
-        return "JvmValueAbstractState(" + value + ")";
+        return "JvmValueAbstractState(" + (this == top ? "top" : value) + ")";
     }
 }
