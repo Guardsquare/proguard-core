@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,6 @@
 
 package proguard.analysis.datastructure.callgraph;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proguard.analysis.CallResolver;
@@ -33,6 +30,10 @@ import proguard.classfile.instruction.InstructionUtil;
 import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.Value;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a method call. If the call target is a {@link Method} that is present
@@ -244,30 +245,20 @@ public abstract class Call
         {
             nullSuffix = " (might throw NullPointerException)";
         }
-        String invocationType;
-        switch (instruction.opcode)
-        {
-            case Instruction.OP_INVOKEVIRTUAL:
-                invocationType = "[invokevirtual] ";
-                break;
-            case Instruction.OP_INVOKEINTERFACE:
-                invocationType = "[invokeinterface] ";
-                break;
-            case Instruction.OP_INVOKESTATIC:
-                invocationType = "[invokestatic] ";
-                break;
-            case Instruction.OP_INVOKEDYNAMIC:
-                invocationType = "[invokedynamic] ";
-                break;
-            case Instruction.OP_INVOKESPECIAL:
-                invocationType = "[invokespecial] ";
-                break;
-            default:
-                invocationType = "[unknown call type] ";
-        }
 
-        return invocationType + caller + " -> " + getTarget() + nullSuffix;
+        return "[" + instruction.getName() + "] " + caller + " -> " + getTarget() + nullSuffix;
     }
+
+
+    /**
+     * Prints a shorter version of the regular `toString()`
+     * without the caller or null pointer information.
+     */
+    public String toSimpleString()
+    {
+        return "[" + instruction.getName() + "] " + getTarget();
+    }
+
 
     @Override
     public boolean equals(Object o)

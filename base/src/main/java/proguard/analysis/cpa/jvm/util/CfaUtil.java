@@ -26,6 +26,7 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
 import proguard.analysis.cpa.jvm.cfa.visitors.JvmIntraproceduralCfaFillerAllInstructionVisitor;
+import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
@@ -34,11 +35,13 @@ import proguard.classfile.Clazz;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
+import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.visitor.AllMethodVisitor;
+import proguard.evaluation.value.Value;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -197,7 +200,7 @@ public class CfaUtil
                     Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
                     sb.append(instruction.toString(edge.getTarget().getClazz(), edge.getSource().getOffset()).replace("\"", "\\\""));
                 } else if (edge instanceof JvmCallCfaEdge) {
-                    sb.append(((JvmCallCfaEdge) edge).getCall());
+                    sb.append(((JvmCallCfaEdge) edge).getCall().toSimpleString());
                 } else {
                     sb.append(edge);
                 }
