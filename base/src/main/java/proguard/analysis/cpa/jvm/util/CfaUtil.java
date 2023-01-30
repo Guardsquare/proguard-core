@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2022 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,14 @@
 
 package proguard.analysis.cpa.jvm.util;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.function.Supplier;
 import proguard.analysis.CallResolver;
 import proguard.analysis.cpa.defaults.Cfa;
+import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
+import proguard.analysis.cpa.jvm.cfa.visitors.JvmIntraproceduralCfaFillerAllInstructionVisitor;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
@@ -38,14 +37,12 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
-import proguard.classfile.constant.Constant;
-import proguard.classfile.constant.RefConstant;
-import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.instruction.ConstantInstruction;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.visitor.AllMethodVisitor;
-import proguard.analysis.cpa.jvm.cfa.JvmCfa;
-import proguard.analysis.cpa.jvm.cfa.visitors.JvmIntraproceduralCfaFillerAllInstructionVisitor;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.Supplier;
 
 /**
  * This is a util class for creating {@link Cfa}s.
@@ -139,9 +136,19 @@ public class CfaUtil
      */
     public static JvmCfa createInterproceduralCfaFromClassPool(ClassPool programClassPool)
     {
+        return createInterproceduralCfaFromClassPool(programClassPool, new ClassPool());
+    }
+
+    /**
+     * Create an interprocedural CFA from the given program class pool.
+     *
+     * @param programClassPool a program class pool
+     */
+    public static JvmCfa createInterproceduralCfaFromClassPool(ClassPool programClassPool, ClassPool libraryClassPool)
+    {
         CallGraph callGraph = new CallGraph();
         CallResolver resolver = new CallResolver.Builder(programClassPool,
-                                                         new ClassPool(),
+                                                         libraryClassPool,
                                                          callGraph)
             .setEvaluateAllCode(true)
             .build();
@@ -188,27 +195,7 @@ public class CfaUtil
                         .append("[label=\"");
                 if (edge instanceof JvmInstructionCfaEdge) {
                     Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
-                    sb.append(instruction);
-                    if (instruction instanceof ConstantInstruction) {
-                        edge.getSource().getClazz().constantPoolEntryAccept(((ConstantInstruction) instruction).constantIndex, new ConstantVisitor()
-                        {
-                            @Override
-                            public void visitAnyConstant(Clazz clazz, Constant constant)
-                            {
-                                sb.append(constant);
-                            }
-
-                            @Override
-                            public void visitAnyRefConstant(Clazz clazz, RefConstant refConstant)
-                            {
-                                sb.append(" ")
-                                        .append(refConstant.getClassName(clazz)).append(".")
-                                        .append(refConstant.getName(clazz))
-                                        .append(refConstant.getType(clazz));
-                            }
-                        });
-
-                    }
+                    sb.append(instruction.toString(edge.getTarget().getClazz(), edge.getSource().getOffset()).replace("\"", "\\\""));
                 } else if (edge instanceof JvmCallCfaEdge) {
                     sb.append(((JvmCallCfaEdge) edge).getCall());
                 } else {
