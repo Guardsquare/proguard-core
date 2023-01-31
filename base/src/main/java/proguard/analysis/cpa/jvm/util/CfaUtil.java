@@ -26,7 +26,6 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
 import proguard.analysis.cpa.jvm.cfa.visitors.JvmIntraproceduralCfaFillerAllInstructionVisitor;
-import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.CallGraph;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
@@ -35,13 +34,11 @@ import proguard.classfile.Clazz;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
-import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.visitor.AllMethodVisitor;
-import proguard.evaluation.value.Value;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -60,9 +57,32 @@ public class CfaUtil
      *
      * @param programClassPool a program class pool
      */
+    @Deprecated
     public static JvmCfa createIntraproceduralCfaFromClassPool(ClassPool programClassPool)
     {
+        return createIntraproceduralCfa(programClassPool);
+    }
+
+    /**
+     * Returns a CFA for the given program class pool.
+     *
+     * @param programClassPool a program class pool
+     */
+    public static JvmCfa createIntraproceduralCfa(ClassPool programClassPool)
+    {
         return createIntraproceduralCfaFromClassPool(programClassPool, () -> true);
+    }
+
+
+    /**
+     * Returns a CFA for the given program class pool. Allows to limit the number of processed code attributes with {@code shouldAnalyzeNextCodeAttribute}.
+     *
+     * @param programClassPool a program class pool
+     */
+    @Deprecated
+    public static JvmCfa createIntraproceduralCfaFromClassPool(ClassPool programClassPool, Supplier<Boolean> shouldAnalyzeNextCodeAttribute)
+    {
+        return createIntraproceduralCfa(programClassPool, shouldAnalyzeNextCodeAttribute);
     }
 
     /**
@@ -70,7 +90,7 @@ public class CfaUtil
      *
      * @param programClassPool a program class pool
      */
-    public static JvmCfa createIntraproceduralCfaFromClassPool(ClassPool programClassPool, Supplier<Boolean> shouldAnalyzeNextCodeAttribute)
+    public static JvmCfa createIntraproceduralCfa(ClassPool programClassPool, Supplier<Boolean> shouldAnalyzeNextCodeAttribute)
     {
         JvmCfa cfa = new JvmCfa();
         programClassPool.classesAccept(new AllMethodVisitor(new AllAttributeVisitor(new JvmIntraproceduralCfaFillerAllInstructionVisitor(cfa)
@@ -125,7 +145,19 @@ public class CfaUtil
      * @param programClassPool a program class pool
      * @param callGraph        a call graph
      */
+    @Deprecated
     public static JvmCfa createInterproceduralCfaFromClassPoolAndCallGraph(ClassPool programClassPool, CallGraph callGraph)
+    {
+        return createInterproceduralCfa(programClassPool, callGraph);
+    }
+
+    /**
+     * Create an interprocedural CFA from the given program class pool and call graph.
+     *
+     * @param programClassPool a program class pool
+     * @param callGraph        a call graph
+     */
+    public static JvmCfa createInterproceduralCfa(ClassPool programClassPool, CallGraph callGraph)
     {
         JvmCfa cfa = createIntraproceduralCfaFromClassPool(programClassPool);
         addInterproceduralEdgesToCfa(cfa, callGraph);
@@ -137,7 +169,18 @@ public class CfaUtil
      *
      * @param programClassPool a program class pool
      */
+    @Deprecated
     public static JvmCfa createInterproceduralCfaFromClassPool(ClassPool programClassPool)
+    {
+        return createInterproceduralCfa(programClassPool);
+    }
+
+    /**
+     * Create an interprocedural CFA from the given program class pool.
+     *
+     * @param programClassPool a program class pool
+     */
+    public static JvmCfa createInterproceduralCfa(ClassPool programClassPool)
     {
         return createInterproceduralCfaFromClassPool(programClassPool, new ClassPool());
     }
@@ -147,7 +190,18 @@ public class CfaUtil
      *
      * @param programClassPool a program class pool
      */
+    @Deprecated
     public static JvmCfa createInterproceduralCfaFromClassPool(ClassPool programClassPool, ClassPool libraryClassPool)
+    {
+        return createInterproceduralCfa(programClassPool, libraryClassPool);
+    }
+
+    /**
+     * Create an interprocedural CFA from the given program class pool.
+     *
+     * @param programClassPool a program class pool
+     */
+    public static JvmCfa createInterproceduralCfa(ClassPool programClassPool, ClassPool libraryClassPool)
     {
         CallGraph callGraph = new CallGraph();
         CallResolver resolver = new CallResolver.Builder(programClassPool,
