@@ -24,10 +24,6 @@ import proguard.analysis.datastructure.callgraph.Call
 import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.VariableInstruction
 import proguard.classfile.util.ClassUtil
-import proguard.evaluation.value.DoubleValue
-import proguard.evaluation.value.FloatValue
-import proguard.evaluation.value.IntegerValue
-import proguard.evaluation.value.LongValue
 import proguard.evaluation.value.ParticularDoubleValue
 import proguard.evaluation.value.ParticularFloatValue
 import proguard.evaluation.value.ParticularIntegerValue
@@ -77,25 +73,25 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
         )
     }
 
-    override fun getAbstractDoubleConstant(d: DoubleValue): MutableList<ExpressionAbstractState> {
+    override fun getAbstractDoubleConstant(d: Double): MutableList<ExpressionAbstractState> {
         return mutableListOf(
             abstractDefault,
-            ExpressionAbstractState(setOf(ValueExpression(d)))
+            ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(d))))
         )
     }
 
-    override fun getAbstractFloatConstant(f: FloatValue): ExpressionAbstractState {
-        return ExpressionAbstractState(setOf(ValueExpression(f)))
+    override fun getAbstractFloatConstant(f: Float): ExpressionAbstractState {
+        return ExpressionAbstractState(setOf(ValueExpression(ParticularFloatValue(f))))
     }
 
-    override fun getAbstractIntegerConstant(i: IntegerValue): ExpressionAbstractState {
-        return ExpressionAbstractState(setOf(ValueExpression(i)))
+    override fun getAbstractIntegerConstant(i: Int): ExpressionAbstractState {
+        return ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(i))))
     }
 
-    override fun getAbstractLongConstant(l: LongValue): MutableList<ExpressionAbstractState> {
+    override fun getAbstractLongConstant(l: Long): MutableList<ExpressionAbstractState> {
         return mutableListOf(
             abstractDefault,
-            ExpressionAbstractState(setOf(ValueExpression(l)))
+            ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(l))))
         )
     }
 
@@ -115,8 +111,8 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
         )
     }
 
-    override fun getAbstractShortConstant(s: IntegerValue): ExpressionAbstractState {
-        return ExpressionAbstractState(setOf(ValueExpression(s)))
+    override fun getAbstractShortConstant(s: Short): ExpressionAbstractState {
+        return ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(s.toInt()))))
     }
 
     override fun invokeMethod(
@@ -158,7 +154,7 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
         return ExpressionAbstractState(setOf(ValueExpression(UnknownValue)))
     }
 
-    override fun getAbstractByteConstant(b: IntegerValue): ExpressionAbstractState {
-        return ExpressionAbstractState(setOf(ValueExpression(b)))
+    override fun getAbstractByteConstant(b: Byte): ExpressionAbstractState {
+        return ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(b.toInt()))))
     }
 }

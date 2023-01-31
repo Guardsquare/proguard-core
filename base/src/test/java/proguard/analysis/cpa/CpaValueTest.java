@@ -31,7 +31,10 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.Signature;
 import proguard.evaluation.value.ParticularReferenceValue;
+import proguard.evaluation.value.ParticularValueFactory;
+import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory;
 import proguard.evaluation.value.UnknownReferenceValue;
+import proguard.evaluation.value.ValueFactory;
 import proguard.testutils.ClassPoolBuilder;
 import proguard.testutils.FileSource;
 import proguard.testutils.TestSource;
@@ -106,7 +109,8 @@ public class CpaValueTest {
 
         AbstractDomain abstractDomain = new DelegateAbstractDomain<JvmValueAbstractState>();
 
-        JvmValueTransferRelation transferRelation = new JvmValueTransferRelation();
+        ValueFactory valueFactory = new ParticularValueFactory(new ReferenceValueFactory());
+        JvmValueTransferRelation transferRelation = new JvmValueTransferRelation(valueFactory);
 
         MergeOperator mergeJoinOperator = new MergeJoinOperator(abstractDomain);
         StopOperator stopAlwaysOperator = new StopAlwaysOperator();

@@ -18,14 +18,18 @@
 
 package proguard.analysis.cpa.jvm.transfer;
 
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import proguard.analysis.CallResolver;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentForwardTransferRelation;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.analysis.cpa.jvm.util.ConstantLookupVisitor;
+import proguard.analysis.cpa.jvm.util.InstructionClassifier;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
@@ -50,25 +54,13 @@ import proguard.classfile.instruction.SwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.ClassUtil;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.Precision;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.state.JvmAbstractState;
-import proguard.analysis.cpa.jvm.util.ConstantLookupVisitor;
-import proguard.analysis.cpa.jvm.util.InstructionClassifier;
-import proguard.evaluation.value.DoubleValue;
-import proguard.evaluation.value.FloatValue;
-import proguard.evaluation.value.IntegerValue;
-import proguard.evaluation.value.LongValue;
-import proguard.evaluation.value.ParticularValueFactory;
-import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory;
-import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
-import proguard.evaluation.value.ValueFactory;
+
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static proguard.classfile.AccessConstants.FINAL;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
@@ -84,7 +76,6 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     implements ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
-    private final ValueFactory valueFactory = new ParticularValueFactory(new ReferenceValueFactory());
 
     // implementations for ProgramLocationDependentTransferRelation
 
@@ -144,13 +135,13 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
      */
     protected StateT computeIncrement(StateT state, int value)
     {
-        return state.join(getAbstractIntegerConstant(valueFactory.createIntegerValue(value)));
+        return state.join(getAbstractIntegerConstant(value));
     }
 
     /**
      * Returns an abstract representation of a byte constant {@code b}.
      */
-    public StateT getAbstractByteConstant(IntegerValue b)
+    public StateT getAbstractByteConstant(byte b)
     {
         return getAbstractDefault();
     }
@@ -163,7 +154,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a double constant {@code d}.
      */
-    public List<StateT> getAbstractDoubleConstant(DoubleValue d)
+    public List<StateT> getAbstractDoubleConstant(double d)
     {
         return Arrays.asList(getAbstractDefault(), getAbstractDefault());
     }
@@ -171,7 +162,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a float constant {@code f}.
      */
-    public StateT getAbstractFloatConstant(FloatValue f)
+    public StateT getAbstractFloatConstant(float f)
     {
         return getAbstractDefault();
     }
@@ -179,7 +170,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of an integer constant {@code i}.
      */
-    public StateT getAbstractIntegerConstant(IntegerValue i)
+    public StateT getAbstractIntegerConstant(int i)
     {
         return getAbstractDefault();
     }
@@ -187,7 +178,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a long constant {@code l}.
      */
-    public List<StateT> getAbstractLongConstant(LongValue l)
+    public List<StateT> getAbstractLongConstant(long l)
     {
         return Arrays.asList(getAbstractDefault(), getAbstractDefault());
     }
@@ -203,7 +194,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a short constant {@code s}.
      */
-    public StateT getAbstractShortConstant(IntegerValue s)
+    public StateT getAbstractShortConstant(short s)
     {
         return getAbstractDefault();
     }
@@ -211,17 +202,25 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a reference value {@code object}.
      */
-    public StateT getAbstractReferenceValue(ReferenceValue object)
+    public StateT getAbstractReferenceValue(String className)
     {
         return getAbstractDefault();
     }
 
     /**
-     * Returns the {@link ValueFactory} used to create values for the abstract values.
+     * Returns an abstract representation of a reference value {@code object}.
      */
-    public ValueFactory getValueFactory()
+    public StateT getAbstractReferenceValue(String className, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull)
     {
-        return this.valueFactory;
+        return getAbstractDefault();
+    }
+
+    /**
+     * Returns an abstract representation of a reference value {@code object}.
+     */
+    public StateT getAbstractReferenceValue(String className, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull, Object value)
+    {
+        return getAbstractDefault();
     }
 
     /**
@@ -311,20 +310,20 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 case Instruction.OP_ICONST_3:
                 case Instruction.OP_ICONST_4:
                 case Instruction.OP_ICONST_5:
-                    abstractState.push(getAbstractIntegerConstant(valueFactory.createIntegerValue(simpleInstruction.constant)));
+                    abstractState.push(getAbstractIntegerConstant(simpleInstruction.constant));
                     break;
                 case Instruction.OP_LCONST_0:
                 case Instruction.OP_LCONST_1:
-                    abstractState.pushAll(getAbstractLongConstant(valueFactory.createLongValue(simpleInstruction.constant)));
+                    abstractState.pushAll(getAbstractLongConstant(simpleInstruction.constant));
                     break;
                 case Instruction.OP_FCONST_0:
                 case Instruction.OP_FCONST_1:
                 case Instruction.OP_FCONST_2:
-                    abstractState.push(getAbstractFloatConstant(valueFactory.createFloatValue(simpleInstruction.constant)));
+                    abstractState.push(getAbstractFloatConstant(simpleInstruction.constant));
                     break;
                 case Instruction.OP_DCONST_0:
                 case Instruction.OP_DCONST_1:
-                    abstractState.pushAll(getAbstractDoubleConstant(valueFactory.createDoubleValue(simpleInstruction.constant)));
+                    abstractState.pushAll(getAbstractDoubleConstant(simpleInstruction.constant));
                     break;
                 case Instruction.OP_IALOAD:
                 case Instruction.OP_FALOAD:
@@ -368,10 +367,10 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                     break;
                 }
                 case Instruction.OP_BIPUSH:
-                    abstractState.push(getAbstractByteConstant(valueFactory.createIntegerValue((byte) simpleInstruction.constant)));
+                    abstractState.push(getAbstractByteConstant((byte) simpleInstruction.constant));
                     break;
                 case Instruction.OP_SIPUSH:
-                    abstractState.push(getAbstractShortConstant(valueFactory.createIntegerValue((short) simpleInstruction.constant)));
+                    abstractState.push(getAbstractShortConstant((short) simpleInstruction.constant));
                     break;
                 case Instruction.OP_POP:
                 case Instruction.OP_MONITORENTER: // TODO synchronization is not yet modeled
@@ -665,50 +664,48 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
             @Override
             public void visitLongConstant(Clazz clazz, LongConstant longConstant)
             {
-                abstractState.pushAll(getAbstractLongConstant(valueFactory.createLongValue(longConstant.u8value)));
+                abstractState.pushAll(getAbstractLongConstant(longConstant.u8value));
             }
 
             @Override
             public void visitDoubleConstant(Clazz clazz, DoubleConstant doubleConstant)
             {
-                abstractState.pushAll(getAbstractDoubleConstant(valueFactory.createDoubleValue(doubleConstant.f8value)));
+                abstractState.pushAll(getAbstractDoubleConstant(doubleConstant.f8value));
             }
 
             @Override
             public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant)
             {
-                abstractState.push(getAbstractIntegerConstant(valueFactory.createIntegerValue(integerConstant.u4value)));
+                abstractState.push(getAbstractIntegerConstant(integerConstant.u4value));
             }
 
             @Override
             public void visitFloatConstant(Clazz clazz, FloatConstant floatConstant)
             {
-                abstractState.push(getAbstractFloatConstant(valueFactory.createFloatValue(floatConstant.f4value)));
+                abstractState.push(getAbstractFloatConstant(floatConstant.f4value));
             }
 
             @Override
             public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
             {
                 abstractState.push(getAbstractReferenceValue(
-                    valueFactory.createReferenceValue(
                         TYPE_JAVA_LANG_STRING,
                         stringConstant.javaLangStringClass,
                         false,
                         false,
                         stringConstant.getString(clazz)
-                )));
+                ));
             }
 
             @Override
             public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
             {
                 abstractState.push(getAbstractReferenceValue(
-                    valueFactory.createReferenceValue(
                         internalTypeFromClassName(classConstant.getName(clazz)),
-                        clazz,
-                        (clazz.getAccessFlags() & FINAL) == 0,
+                        classConstant.referencedClass,
+                        classConstant.referencedClass == null || (classConstant.referencedClass.getAccessFlags() & FINAL) == 0,
                         true
-                )));
+                ));
             }
         }
     }
