@@ -125,7 +125,7 @@ class ClassPoolBuilder private constructor() {
             }
 
             if (initialize) {
-                initialize(programClassPool, source.any { it is KotlinSource })
+                initialize(programClassPool, libraryClassPool, source.any { it is KotlinSource })
             }
 
             compiler.workingDir.deleteRecursively()
@@ -134,6 +134,10 @@ class ClassPoolBuilder private constructor() {
         }
 
         fun initialize(programClassPool: ClassPool, containsKotlinCode: Boolean) {
+            initialize(programClassPool, libraryClassPool, containsKotlinCode)
+        }
+
+        fun initialize(programClassPool: ClassPool, libraryClassPool: ClassPool, containsKotlinCode: Boolean) {
             val classReferenceInitializer =
                 ClassReferenceInitializer(programClassPool, libraryClassPool)
             val classSuperHierarchyInitializer =
@@ -174,6 +178,7 @@ private class LibraryClassPoolBuilder(private val compiler: KotlinCompilation) {
             compiler.kotlinStdLibJar?.let { libraryClassPool.fromFile(it) }
             compiler.kotlinReflectJar?.let { libraryClassPool.fromFile(it) }
             libraryClassPools[key] = libraryClassPool
+            ClassPoolBuilder.initialize(ClassPool(), libraryClassPool, containsKotlinCode = true)
         }
 
         return libraryClassPools[key]!!
