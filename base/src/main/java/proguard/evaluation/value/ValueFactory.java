@@ -18,6 +18,9 @@
 package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
+import proguard.classfile.util.ClassUtil;
+
+import static proguard.classfile.AccessConstants.FINAL;
 
 /**
  * This interface provides methods to create {@link Value} instances.
@@ -102,6 +105,38 @@ public interface ValueFactory
      */
     ReferenceValue createReferenceValueNull();
 
+    default ReferenceValue createReferenceValue(Clazz clazz)
+    {
+        return createReferenceValue(
+            ClassUtil.internalTypeFromClassName(clazz.getName()),
+            clazz,
+            (clazz.getAccessFlags() & FINAL) == 0,
+            true
+        );
+    }
+
+    default ReferenceValue createReferenceValue(Clazz clazz, Object value)
+    {
+        return createReferenceValue(
+                ClassUtil.internalTypeFromClassName(clazz.getName()),
+                clazz,
+                (clazz.getAccessFlags() & FINAL) == 0,
+                true,
+                value
+        );
+    }
+
+    default ReferenceValue createReferenceValue(Clazz clazz, int id, Object value)
+    {
+        return createReferenceValue(
+                ClassUtil.internalTypeFromClassName(clazz.getName()),
+                clazz,
+                (clazz.getAccessFlags() & FINAL) == 0,
+                true,
+                id,
+                value
+        );
+    }
 
     /**
      * Creates a new ReferenceValue that represents the given type. The type

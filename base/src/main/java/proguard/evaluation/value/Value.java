@@ -28,6 +28,7 @@ public abstract class Value
     public static final int MAYBE  = 0;
     public static final int ALWAYS = 1;
 
+    public static final int TYPE_UNKNOWN            = -1;
     public static final int TYPE_INTEGER            = 1;
     public static final int TYPE_LONG               = 2;
     public static final int TYPE_FLOAT              = 3;

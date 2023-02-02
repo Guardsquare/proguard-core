@@ -18,25 +18,15 @@
 
 package proguard.evaluation;
 
-import static proguard.classfile.AccessConstants.FINAL;
-import static proguard.classfile.AccessConstants.STATIC;
-import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
-import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Objects;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryMethod;
 import proguard.classfile.Member;
+import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
-import proguard.classfile.TypeConstants;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.ConstantValueAttribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
@@ -58,6 +48,28 @@ import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.ReflectiveMethodCallUtil;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
+
+import static proguard.classfile.AccessConstants.FINAL;
+import static proguard.classfile.AccessConstants.STATIC;
+import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
+import static proguard.classfile.TypeConstants.BOOLEAN;
+import static proguard.classfile.TypeConstants.BYTE;
+import static proguard.classfile.TypeConstants.CHAR;
+import static proguard.classfile.TypeConstants.DOUBLE;
+import static proguard.classfile.TypeConstants.FLOAT;
+import static proguard.classfile.TypeConstants.INT;
+import static proguard.classfile.TypeConstants.LONG;
+import static proguard.classfile.TypeConstants.SHORT;
+import static proguard.classfile.TypeConstants.VOID;
+import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
+import static proguard.evaluation.value.ReflectiveMethodCallUtil.callMethod;
 
 /**
  * <p>This {@link ExecutingInvocationUnit} reflectively executes the method calls it visits on a given
@@ -138,29 +150,17 @@ public class ExecutingInvocationUnit
         String baseClassName   = anyMethodrefConstant.getClassName(clazz);
         Clazz  referencedClass = getReferencedClass(anyMethodrefConstant, false);
 
-        if (!isSupportedMethodCall(baseClassName))
+        if (!isSupportedMethodCall(baseClassName, anyMethodrefConstant.getName(clazz)))
         {
             return valueFactory.createValue(returnType, referencedClass, mayBeExtension(referencedClass), true);
         }
 
-        Value reflectedReturnValue = handleMethodCall(clazz, anyMethodrefConstant, returnType, parameters, isStatic);
+        Value reflectedReturnValue = executeMethod(anyMethodrefConstant.referencedClass, anyMethodrefConstant.referencedMethod, parameters);
 
         updateStackAndVariables(clazz, anyMethodrefConstant, returnType, reflectedReturnValue);
 
-        if (returnType.charAt(0) == TypeConstants.VOID)
-        {
-            // For a void-method, null is expected as return value.
-            return null;
-        }
-        else if (reflectedReturnValue == null)
-        {
-            // The reflective call failed. Create a simple new Value of the correct type.
-            return valueFactory.createValue(returnType, referencedClass, mayBeExtension(referencedClass), true);
-        }
-        else
-        {
-            return reflectedReturnValue;
-        }
+        // For a void-method, null is expected as return value.
+        return returnType.charAt(0) == VOID ? null : reflectedReturnValue;
     }
 
 
@@ -267,34 +267,55 @@ public class ExecutingInvocationUnit
         }
     }
 
-    // private methods
+    /**
+     * Returns true if a method call can be called reflectively.
+     *
+     * Currently, supports all methods of String, StringBuilder, StringBuffer.
+     */
+    public boolean isSupportedMethodCall(String internalClassName, String methodName)
+    {
+        switch (internalClassName)
+        {
+            case NAME_JAVA_LANG_STRING_BUILDER:
+            case NAME_JAVA_LANG_STRING_BUFFER:
+            case NAME_JAVA_LANG_STRING:
+                return true;
+            default:
+                return false;
+        }
+    }
+
 
     /**
-     * Handles a method call, by reflectively trying to call it with the given parameters.
+     * Executes a method, by reflectively trying to call it with the given parameters.
      *
-     * @param clazz the class this call is contained in.
-     * @param anyMethodrefConstant the method to be called
-     * @param returnType the return type.
      * @param parameter an array containing the parameter values (for a non-static call, parameter[0] is the instance.
-     * @param isStatic is this a static method call.
      * @return the return value of the method call. Even for a void method, a created value might be returned, which might need to be replaced on stack/values (e.g. for Constructors).
      */
-    private Value handleMethodCall(Clazz                clazz,
-                                   AnyMethodrefConstant anyMethodrefConstant,
-                                   String               returnType,
-                                   Value[]              parameter,
-                                   boolean              isStatic)
+    public Value executeMethod(Clazz clazz, Method  method, Value[] parameter)
     {
+        if (clazz == null || method == null)
+        {
+            return UNKNOWN_VALUE;
+        }
 
-        String baseClassName = anyMethodrefConstant.getClassName(clazz);
-        String methodName    = anyMethodrefConstant.getName(clazz);
-        String parameterType = anyMethodrefConstant.getType(clazz);
+        boolean isStatic      = (method.getAccessFlags() & STATIC) != 0;
+        String  baseClassName = clazz.getName();
+        String  methodName    = method.getName(clazz);
+        String  descriptor    = method.getDescriptor(clazz);
+        String  returnType    = ClassUtil.internalMethodReturnType(descriptor);
+        Clazz   returnClazz   = getReferencedClass(clazz, method, methodName.equals(METHOD_NAME_INIT));
+
+        if (!isSupportedMethodCall(baseClassName, methodName))
+        {
+            return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+        }
 
         if (!isStatic)
         {
             if (!parameter[0].isSpecific()) // instance must be at least specific.
             {
-                return null;
+                return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
             }
         }
 
@@ -307,7 +328,7 @@ public class ExecutingInvocationUnit
         {
             if (!parameter[i].isParticular())
             {
-                return null;
+                return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
             }
         }
 
@@ -321,7 +342,7 @@ public class ExecutingInvocationUnit
         try
         {
             // collect all class types of the parameters (to search for the correct method reflectively).
-            Class<?>[] parameterClasses = ReflectiveMethodCallUtil.stringtypesToClasses(parameterType);
+            Class<?>[] parameterClasses = ReflectiveMethodCallUtil.stringtypesToClasses(descriptor);
 
             // collect all objects of the parameters.
             Object[] parameterObjects = new Object[parameter.length - paramOffset];
@@ -341,7 +362,7 @@ public class ExecutingInvocationUnit
             }
             else // non-constructor method call.
             {
-                Object callingInstance = null; // correct for static
+                Object callingInstance = null; // null for static
                 if (instance != null)
                 {
                     switch (baseClassName)
@@ -354,11 +375,19 @@ public class ExecutingInvocationUnit
                             callingInstance = new StringBuffer((StringBuffer) instance.value());
                             break;
                         case NAME_JAVA_LANG_STRING:
-                            callingInstance = (String) instance.value();
+                            callingInstance = (String)instance.value();
                             break;
                     }
                 }
-                methodResult = ReflectiveMethodCallUtil.callMethod(ClassUtil.externalClassName(baseClassName), methodName, callingInstance, parameterClasses, parameterObjects);
+
+                if (isStatic || callingInstance != null)
+                {
+                    methodResult = callMethod(ClassUtil.externalClassName(baseClassName), methodName, callingInstance, parameterClasses, parameterObjects);
+                }
+                else
+                {
+                    return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+                }
             }
         }
         catch (NullPointerException | InvocationTargetException e)
@@ -367,17 +396,17 @@ public class ExecutingInvocationUnit
             // an index might be wrongly / not initialized -> StringIndexOutOfBoundsException.
             if (DEBUG)
             {
-                System.err.println("Invocation exception during method execution: " + e.getCause().getClass().getSimpleName() + ": - " + e.getCause().getMessage());
+                System.err.println("Invocation exception during method execution: " + e.getClass().getSimpleName() + ": - " + e.getMessage());
             }
-            return null;
+            return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
         }
         catch (RuntimeException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException e)
         {
             if (DEBUG)
             {
-                System.err.println("Error reflectively calling " + baseClassName + "." + methodName + parameterType + ": " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                System.err.println("Error reflectively calling " + baseClassName + "." + methodName + descriptor + ": " + e.getClass().getSimpleName() + " - " + e.getMessage());
             }
-            return null;
+            return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
         }
 
         // If the return value is a primitive, store this inside its corresponding ParticularValue, e.g. int -> ParticularIntegerValue.
@@ -401,7 +430,7 @@ public class ExecutingInvocationUnit
                                                       // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
                                                       ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
                                                          ? null
-                                                         : getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
+                                                         : returnClazz,
                                                       resultMayBeExtension,
                                                       resultMayBeNull,
                                                       objectId,
@@ -414,13 +443,14 @@ public class ExecutingInvocationUnit
                                                       // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
                                                       ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
                                                          ? null
-                                                         : getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
+                                                         : returnClazz,
                                                       resultMayBeExtension,
                                                       resultMayBeNull,
                                                       methodResult);
         }
     }
 
+    // private methods
 
     /**
      * Create a ParticularValue containing the object, using the factory of this instance
@@ -433,38 +463,25 @@ public class ExecutingInvocationUnit
     {
         switch (type.charAt(0))
         {
-            case TypeConstants.BOOLEAN:
+            case BOOLEAN:
                 return valueFactory.createIntegerValue(((Boolean) obj) ? 1 : 0);
-            case TypeConstants.CHAR:
+            case CHAR:
                 return valueFactory.createIntegerValue((Character) obj);
-            case TypeConstants.BYTE:
+            case BYTE:
                 return valueFactory.createIntegerValue((Byte) obj);
-            case TypeConstants.SHORT:
+            case SHORT:
                 return valueFactory.createIntegerValue((Short) obj);
-            case TypeConstants.INT:
+            case INT:
                 return valueFactory.createIntegerValue((Integer) obj);
-            case TypeConstants.FLOAT:
+            case FLOAT:
                 return valueFactory.createFloatValue((Float) obj);
-            case TypeConstants.DOUBLE:
+            case DOUBLE:
                 return valueFactory.createDoubleValue((Double) obj);
-            case TypeConstants.LONG:
+            case LONG:
                 return valueFactory.createLongValue((Long) obj);
         }
         // unknown type
         return null;
-    }
-
-    private boolean isSupportedMethodCall(String baseClassName)
-    {
-        switch (baseClassName)
-        {
-            case NAME_JAVA_LANG_STRING_BUILDER:
-            case NAME_JAVA_LANG_STRING_BUFFER:
-            case NAME_JAVA_LANG_STRING:
-                return true;
-            default:
-                return false;
-        }
     }
 
     /**
@@ -523,15 +540,15 @@ public class ExecutingInvocationUnit
 
 
     /**
-     * Returns true, if a call to clazzName.methodName should return a new (i.e. not-linked) instance.
+     * Returns true, if a call to internalClassName.methodName should return a new (i.e. not-linked) instance.
      *
-     * @param clazzName full class name of the base class of the method (e.g. java/lang/StringBuilder).
+     * @param internalClassName full class name of the base class of the method (e.g. java/lang/StringBuilder).
      * @param methodName method name.
      * @return if it should create a new instance.
      */
-    private static boolean alwaysReturnsNewInstance(String clazzName, String methodName)
+    private static boolean alwaysReturnsNewInstance(String internalClassName, String methodName)
     {
-        switch (clazzName)
+        switch (internalClassName)
         {
             case NAME_JAVA_LANG_STRING_BUILDER:
                 if ("toString".equals(methodName))
@@ -553,14 +570,14 @@ public class ExecutingInvocationUnit
     }
 
     /**
-     * Returns true, if a call to clazzName.methodName always modified the called upon instance.
+     * Returns true, if a call to internalClassName.methodName always modified the called upon instance.
      * The modified value will be returned by the reflective method call
      *
-     * @param clazzName full class name of the base class of the method (e.g. java/lang/StringBuilder).
+     * @param internalClassName full class name of the base class of the method (e.g. java/lang/StringBuilder).
      * @param methodName method name.
      * @return if the instance is always modified.
      */
-    private static boolean alwaysModifiesInstance(String clazzName, String methodName)
+    private static boolean alwaysModifiesInstance(String internalClassName, String methodName)
     {
         // The constructor always modifies the instance.
         return methodName.equals(METHOD_NAME_INIT);
@@ -608,7 +625,7 @@ public class ExecutingInvocationUnit
             if (updateValue == null)
             {
                 // To create a correct (failed) object, we need to know the type. For void methods, we use the type of the instance
-                updateValue = valueFactory.createValue((returnType.charAt(0) == TypeConstants.VOID) ?
+                updateValue = valueFactory.createValue((returnType.charAt(0) == VOID) ?
                                                            ClassUtil.internalTypeFromClassName(baseClassName) :
                                                            returnType,
                                                        getReferencedClass(anyMethodrefConstant, methodName.equals(METHOD_NAME_INIT)),
@@ -619,6 +636,19 @@ public class ExecutingInvocationUnit
             replaceReferenceInVariables(updateValue, parameters[0], variables);
             replaceReferenceOnStack(updateValue, parameters[0], stack);
         }
+    }
+
+    private Clazz getReferencedClass(Clazz clazz, Method method, boolean isCtor)
+    {
+        if (isCtor)
+        {
+            return clazz; // this is the class of "this", i.e., the type of this constructor.
+        }
+
+        // extract the class from the referenced classes
+        ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
+        method.accept(clazz, returnClassExtractor);
+        return returnClassExtractor.returnClass; // can be null
     }
 
     /**

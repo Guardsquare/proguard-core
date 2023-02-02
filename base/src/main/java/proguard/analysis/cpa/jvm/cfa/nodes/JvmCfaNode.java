@@ -183,7 +183,7 @@ public class JvmCfaNode
     }
 
     /**
-     * Returns the edges entering the node that do not come from another method.
+     * Returns the edges leaving the node that do not come from another method.
      */
     public Collection<JvmCfaEdge> getLeavingIntraproceduralEdges()
     {
@@ -194,14 +194,24 @@ public class JvmCfaNode
     }
 
     /**
+     * Returns the edges entering the node that come from another method.
+     */
+    public Collection<JvmCallCfaEdge> getLeavingInterproceduralEdges()
+    {
+        return leavingEdges.stream()
+                           .filter(e -> e instanceof JvmCallCfaEdge)
+                           .map(JvmCallCfaEdge.class::cast)
+                           .collect(Collectors.toList());
+    }
+
+    /**
      * Returns all the interprocedural call edges leaving the node with target method the code of which is known.
      */
     public Collection<JvmCallCfaEdge> getKnownMethodCallEdges()
     {
-        return leavingEdges.stream()
-                           .filter(e -> e instanceof JvmCallCfaEdge && !(e.getTarget() instanceof JvmUnknownCfaNode))
-                           .map(JvmCallCfaEdge.class::cast)
-                           .collect(Collectors.toList());
+        return getLeavingInterproceduralEdges().stream()
+                                               .filter(e -> !(e.getTarget() instanceof JvmUnknownCfaNode))
+                                               .collect(Collectors.toList());
     }
 
     @Override

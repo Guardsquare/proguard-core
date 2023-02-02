@@ -1203,6 +1203,8 @@ public abstract class IntegerValue extends Category1Value
 
     public final Value generalize(Value other)
     {
+        if (other instanceof UnknownValue) return other;
+
         return this.generalize(other.integerValue());
     }
 

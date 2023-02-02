@@ -24,6 +24,7 @@ import java.util.Set;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
+import proguard.classfile.Clazz;
 
 /**
  * The {@link JvmHeapAbstractState} provides the interfaces for heap operations over objects and arrays.
@@ -33,6 +34,7 @@ import proguard.analysis.cpa.jvm.domain.reference.Reference;
 public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT>>
     extends LatticeAbstractState<JvmHeapAbstractState<StateT>>
 {
+    String FAKE_FIELD = "";
 
     // overrides for LatticeAbstractState
 
@@ -48,6 +50,14 @@ public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT
      * Creates a new object of a given class at a specific program point and returns a reference to it.
      */
     StateT newObject(String className, JvmCfaNode creationCite);
+
+    /**
+     * Creates a new object of a given {@link Clazz} at a specific program point and returns a reference to it.
+     */
+    default StateT newObject(Clazz clazz, JvmCfaNode creationCite)
+    {
+        return newObject(clazz.getName(), creationCite);
+    }
 
     /**
      * Returns a field {@code fqn} from a reference {@code object}.

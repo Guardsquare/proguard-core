@@ -341,6 +341,8 @@ public abstract class DoubleValue extends Category2Value
 
     public final Value generalize(Value other)
     {
+        if (other instanceof UnknownValue) return other;
+
         return this.generalize(other.doubleValue());
     }
 

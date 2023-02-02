@@ -20,6 +20,7 @@ package proguard.analysis.cpa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
 import static proguard.testutils.JavaUtilKt.getCurrentJavaHome;
 
 import io.kotest.core.spec.style.AnnotationSpec.After;
@@ -71,8 +72,10 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.SimpleInstruction;
+import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.ParticularDoubleValue;
 import proguard.evaluation.value.ParticularIntegerValue;
+import proguard.evaluation.value.UnknownValue;
 import proguard.testutils.ClassPoolBuilder;
 import proguard.testutils.FileSource;
 import proguard.testutils.TestSource;
@@ -80,7 +83,6 @@ import proguard.testutils.cpa.ExpressionAbstractState;
 import proguard.testutils.cpa.ExpressionTransferRelation;
 import proguard.testutils.cpa.InstructionExpression;
 import proguard.testutils.cpa.MethodExpression;
-import proguard.testutils.cpa.UnknownValue;
 import proguard.testutils.cpa.ValueExpression;
 
 /**
@@ -136,7 +138,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> emptyState = new JvmAbstractState<>(
             node,
             new JvmFrameAbstractState<>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>()
         );
 
@@ -163,7 +165,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> expected8 = new JvmAbstractState<>(
             cfa.getFunctionNode(mainSignature, 8),
             new JvmFrameAbstractState<>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             staticFields
         );
 
@@ -206,7 +208,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> expected26 = new JvmAbstractState<>(
             cfa.getFunctionNode(mainSignature, 26),
             new JvmFrameAbstractState<>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             staticFields
         );
 
@@ -229,17 +231,17 @@ public class BamCpaAlgorithmTest
                     new SimpleInstruction(Instruction.OP_DADD),
                     Arrays.asList(
                         i2dResult26,
-                        new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE))),
+                        new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE))),
                         new ExpressionAbstractState(Collections.singleton(new ValueExpression(new ParticularDoubleValue(2.0)))),
-                        new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))
+                        new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))
                     )
                 )
             )
         );
 
-        expected26.push(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE))));
+        expected26.push(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE))));
         expected26.push(new ExpressionAbstractState(Collections.singleton(new ValueExpression(new ParticularDoubleValue(42.0)))));
-        expected26.push(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE))));
+        expected26.push(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE))));
         expected26.push(addResult26);
         assertEquals(expected26, returnState26);
     }
@@ -280,7 +282,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> emptyState = new JvmAbstractState<ExpressionAbstractState>(
             node,
             new JvmFrameAbstractState<>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>()
         );
 
@@ -305,7 +307,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> expected = new JvmAbstractState<>(
             cfa.getFunctionNode(mainSignature, 5),
             new JvmFrameAbstractState<ExpressionAbstractState>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>()
         );
 
@@ -409,7 +411,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> emptyState = new JvmAbstractState<ExpressionAbstractState>(
             node,
             new JvmFrameAbstractState<>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>()
         );
 
@@ -460,7 +462,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> emptyState = new JvmAbstractState<ExpressionAbstractState>(
             node,
             new JvmFrameAbstractState<>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>()
         );
 
@@ -516,7 +518,7 @@ public class BamCpaAlgorithmTest
         JvmAbstractState<ExpressionAbstractState> emptyState = new JvmAbstractState<>(
             node,
             new JvmFrameAbstractState<>(),
-            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UnknownValue.INSTANCE)))),
+            new JvmForgetfulHeapAbstractState<>(new ExpressionAbstractState(Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>()
         );
 

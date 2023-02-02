@@ -26,6 +26,7 @@ import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
 
 /**
@@ -289,6 +290,14 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     public StateT newObject(String className)
     {
         return heap.newObject(className, programLocation);
+    }
+
+    /**
+     * Returns an abstract state for a new object of the given {@link Clazz}.
+     */
+    public StateT newObject(Clazz clazz)
+    {
+        return heap.newObject(clazz, programLocation);
     }
 
     /**

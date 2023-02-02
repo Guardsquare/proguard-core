@@ -29,11 +29,12 @@ public class BasicValueFactory
 implements   ValueFactory
 {
     // Shared copies of Value objects, to avoid creating a lot of objects.
-    static final IntegerValue   INTEGER_VALUE   = new UnknownIntegerValue();
-    static final LongValue      LONG_VALUE      = new UnknownLongValue();
-    static final FloatValue     FLOAT_VALUE     = new UnknownFloatValue();
-    static final DoubleValue    DOUBLE_VALUE    = new UnknownDoubleValue();
-    static final ReferenceValue REFERENCE_VALUE = new UnknownReferenceValue();
+    public static final UnknownValue   UNKNOWN_VALUE   = new UnknownValue();
+    public static final IntegerValue   INTEGER_VALUE   = new UnknownIntegerValue();
+    public static final LongValue      LONG_VALUE      = new UnknownLongValue();
+    public static final FloatValue     FLOAT_VALUE     = new UnknownFloatValue();
+    public static final DoubleValue    DOUBLE_VALUE    = new UnknownDoubleValue();
+    public static final ReferenceValue REFERENCE_VALUE = new UnknownReferenceValue();
 
 
     // Implementations for BasicValueFactory.

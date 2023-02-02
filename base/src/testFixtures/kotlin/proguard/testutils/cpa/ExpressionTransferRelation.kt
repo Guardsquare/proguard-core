@@ -24,6 +24,7 @@ import proguard.analysis.datastructure.callgraph.Call
 import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.VariableInstruction
 import proguard.classfile.util.ClassUtil
+import proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE
 import proguard.evaluation.value.ParticularDoubleValue
 import proguard.evaluation.value.ParticularFloatValue
 import proguard.evaluation.value.ParticularIntegerValue
@@ -116,9 +117,9 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
     }
 
     override fun invokeMethod(
-        state: JvmAbstractState<ExpressionAbstractState>?,
+        state: JvmAbstractState<ExpressionAbstractState>,
         call: Call?,
-        operands: MutableList<ExpressionAbstractState>?
+        operands: MutableList<ExpressionAbstractState>
     ) {
         when (ClassUtil.internalTypeSize(call!!.target.descriptor.returnType ?: "?")) {
             0 -> return
@@ -151,7 +152,7 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
     }
 
     override fun getAbstractDefault(): ExpressionAbstractState {
-        return ExpressionAbstractState(setOf(ValueExpression(UnknownValue)))
+        return ExpressionAbstractState(setOf(ValueExpression(UNKNOWN_VALUE)))
     }
 
     override fun getAbstractByteConstant(b: Byte): ExpressionAbstractState {

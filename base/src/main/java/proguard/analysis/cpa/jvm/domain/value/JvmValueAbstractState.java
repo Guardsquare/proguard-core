@@ -26,15 +26,20 @@ import proguard.evaluation.value.Value;
 
 import java.util.Objects;
 
+import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
+
 
 /**
  * An {@link AbstractState} for tracking JVM values.
+ *
+ * @author James Hamilton
  */
 public class JvmValueAbstractState implements LatticeAbstractState<JvmValueAbstractState>
 {
-    
-    private        final Value                 value;
-    public  static final JvmValueAbstractState top = new JvmValueAbstractState(null);
+    private static final boolean DEBUG = System.getProperty("jvas") != null;
+
+    public static final JvmValueAbstractState UNKNOWN = new JvmValueAbstractState(UNKNOWN_VALUE);
+    private       final Value                 value;
 
     public JvmValueAbstractState(Value value)
     {
@@ -53,13 +58,19 @@ public class JvmValueAbstractState implements LatticeAbstractState<JvmValueAbstr
     @Override
     public JvmValueAbstractState join(JvmValueAbstractState abstractState)
     {
-        return abstractState.equals(this) ? this : top;
+        JvmValueAbstractState result = abstractState.equals(this) ?
+                this :
+                new JvmValueAbstractState(this.value.generalize(abstractState.value));
+
+        if (DEBUG) System.out.println("join(" + this + ", " + abstractState + ") = " + result);
+
+        return result;
     }
 
     @Override
     public boolean isLessOrEqual(JvmValueAbstractState abstractState)
     {
-        return abstractState == top || abstractState.equals(this);
+        return abstractState == UNKNOWN || abstractState.equals(this);
     }
 
     @Override
@@ -74,18 +85,17 @@ public class JvmValueAbstractState implements LatticeAbstractState<JvmValueAbstr
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         JvmValueAbstractState that = (JvmValueAbstractState) o;
-        
-        if (value instanceof ParticularReferenceValue &&
-            that.value instanceof ParticularReferenceValue &&    
-            ((ParticularReferenceValue)value).value() instanceof String &&
-            ((ParticularReferenceValue)that.value).value() instanceof String
-        )
+
+        // We want all equal strings to be treated as the same
+        // regardless if it's a different particular reference.
+        if (isParticularString(this.value) && isParticularString(that.value))
         {
-            return ((ParticularReferenceValue)value).value().equals(((ParticularReferenceValue)that.value).value());
+            return this.value.referenceValue().value().equals(that.value.referenceValue().value());
         }
-        
+
         return Objects.equals(value, that.value);
     }
+
 
     @Override
     public int hashCode()
@@ -100,6 +110,12 @@ public class JvmValueAbstractState implements LatticeAbstractState<JvmValueAbstr
 
     @Override
     public String toString() {
-        return "JvmValueAbstractState(" + (this == top ? "top" : value) + ")";
+        return "JvmValueAbstractState(" + value + ")";
+    }
+
+    private static boolean isParticularString(Value value)
+    {
+        return value instanceof ParticularReferenceValue &&
+                ((ParticularReferenceValue) value).value() instanceof String;
     }
 }

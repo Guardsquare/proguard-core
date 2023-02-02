@@ -52,6 +52,7 @@ import proguard.classfile.instruction.LookUpSwitchInstruction
 import proguard.classfile.instruction.SimpleInstruction
 import proguard.classfile.instruction.TableSwitchInstruction
 import proguard.classfile.instruction.VariableInstruction
+import proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE
 import proguard.evaluation.value.ParticularDoubleValue
 import proguard.evaluation.value.ParticularFloatValue
 import proguard.evaluation.value.ParticularIntegerValue
@@ -63,7 +64,6 @@ import proguard.testutils.cpa.ExpressionAbstractState
 import proguard.testutils.cpa.ExpressionTransferRelation
 import proguard.testutils.cpa.InstructionExpression
 import proguard.testutils.cpa.MethodExpression
-import proguard.testutils.cpa.UnknownValue
 import proguard.testutils.cpa.ValueExpression
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.isAccessible
@@ -266,7 +266,7 @@ class JvmTransferRelationTest : FreeSpec({
     val emptyState = JvmAbstractState<ExpressionAbstractState>(
         node,
         JvmFrameAbstractState<ExpressionAbstractState>(),
-        JvmForgetfulHeapAbstractState<ExpressionAbstractState>(ExpressionAbstractState(setOf(ValueExpression(UnknownValue)))),
+        JvmForgetfulHeapAbstractState<ExpressionAbstractState>(ExpressionAbstractState(setOf(ValueExpression(UNKNOWN_VALUE)))),
         HashMapAbstractState<String, ExpressionAbstractState>()
     )
 
@@ -1353,7 +1353,7 @@ class JvmTransferRelationTest : FreeSpec({
                 JvmForgetfulHeapAbstractState(
                     ExpressionAbstractState(
                         setOf(
-                            ValueExpression(UnknownValue)
+                            ValueExpression(UNKNOWN_VALUE)
                         )
                     )
                 ),
@@ -1384,7 +1384,7 @@ class JvmTransferRelationTest : FreeSpec({
                 JvmForgetfulHeapAbstractState(
                     ExpressionAbstractState(
                         setOf(
-                            ValueExpression(UnknownValue)
+                            ValueExpression(UNKNOWN_VALUE)
                         )
                     )
                 ),

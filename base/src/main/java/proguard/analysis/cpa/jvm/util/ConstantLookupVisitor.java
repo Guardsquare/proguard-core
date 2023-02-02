@@ -33,14 +33,16 @@ import proguard.classfile.util.ClassUtil;
  */
 public class ConstantLookupVisitor implements ConstantVisitor
 {
-    public String  result     = null;
-    public int     resultSize = -1;
-    public boolean isStatic   = false;
+    public String  result      = null;
+    public Clazz   resultClazz = null;
+    public int     resultSize  = -1;
+    public boolean isStatic    = false;
 
     public void resetResult()
     {
-        result     = null;
-        resultSize = -1;
+        result      = null;
+        resultClazz = null;
+        resultSize  = -1;
     }
 
     // implementations for ConstantVisitor
@@ -57,7 +59,8 @@ public class ConstantLookupVisitor implements ConstantVisitor
     @Override
     public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
     {
-        resultSize = 1;
-        result = classConstant.getName(clazz);
+        resultSize  = 1;
+        result      = classConstant.getName(clazz);
+        resultClazz = classConstant.referencedClass;
     }
 }

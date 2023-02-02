@@ -76,7 +76,6 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     implements ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
 
-
     // implementations for ProgramLocationDependentTransferRelation
 
     @Override
@@ -100,7 +99,16 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
             successor.setProgramLocation(edge.getTarget());
             if (edge instanceof JvmInstructionCfaEdge)
             {
-                successor = getAbstractSuccessorForInstruction(successor, ((JvmInstructionCfaEdge) edge).getInstruction(), state.getProgramLocation().getClazz(), precision);
+                Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
+                boolean isInterproceduralInvoke = InstructionClassifier.isInvoke(instruction.opcode) &&
+                                                 !((JvmAbstractState<?>) abstractState).getProgramLocation().getLeavingInterproceduralEdges().isEmpty();
+                if (isInterproceduralInvoke)
+                {
+                    // If we have at least one JvmCallCfaEdge we produce the successor(s) for the method invocation
+                    // when those edges are analyzed, so we skip the corresponding JvmInstructionEdge.
+                    return null;
+                }
+                successor = getAbstractSuccessorForInstruction(successor, instruction, state.getProgramLocation().getClazz(), precision);
             }
         }
 
@@ -226,7 +234,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Pops the arguments from the operand stack and passes them to {@code invokeMethod}.
      */
-    protected void processCall(JvmAbstractState<StateT> state, Call call)
+    private void processCall(JvmAbstractState<StateT> state, Call call)
     {
         List<StateT> operands = new ArrayList<>();
         if (call.getTarget().descriptor.argumentTypes != null)
@@ -459,6 +467,10 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                     abstractState.clearOperandStack();
                     abstractState.push(exceptionState);
                     break;
+                case Instruction.OP_ARRAYLENGTH:
+                    StateT array = abstractState.pop();
+                    abstractState.push(getAbstractDefault());
+                    break;
                 default: // arithmetic instructions
                 {
                     List<StateT> operands = new ArrayList<>(simpleInstruction.stackPopCount(clazz));
@@ -600,7 +612,10 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                     break;
                 case Instruction.OP_NEW:
                     clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-                    abstractState.push(abstractState.newObject(constantLookupVisitor.result));
+                    abstractState.push(constantLookupVisitor.resultClazz != null ?
+                        abstractState.newObject(constantLookupVisitor.resultClazz) :
+                        abstractState.newObject(constantLookupVisitor.result)
+                    );
                     break;
                 case Instruction.OP_NEWARRAY:
                     abstractState.push(abstractState.newArray(String.valueOf(proguard.classfile.instruction.InstructionUtil.internalTypeFromArrayType((byte) constantInstruction.constant)),

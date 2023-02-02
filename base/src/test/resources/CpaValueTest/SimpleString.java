@@ -1,4 +1,4 @@
-public class A
+public class SimpleString
 {
     public static void main(String[] args)
     {

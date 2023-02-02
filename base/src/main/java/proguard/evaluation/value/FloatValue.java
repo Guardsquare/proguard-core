@@ -341,6 +341,8 @@ public abstract class FloatValue extends Category1Value
 
     public final Value generalize(Value other)
     {
+        if (other instanceof UnknownValue) return other;
+
         return this.generalize(other.floatValue());
     }
 

@@ -34,9 +34,9 @@ public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstr
     implements JvmHeapAbstractState<StateT>
 {
 
-    private final MapAbstractState<ReferenceT, StateT> referenceToObject;
-    private final Class<ReferenceT>                    referenceClass;
-    private final StateT                               defaultValue;
+    public    final MapAbstractState<ReferenceT, StateT> referenceToObject;
+    protected final Class<ReferenceT>                    referenceClass;
+    protected final StateT                               defaultValue;
 
     /**
      * Create a shallow heap abstract state returning the specified value for all queries from an existing reference to abstract state map.
