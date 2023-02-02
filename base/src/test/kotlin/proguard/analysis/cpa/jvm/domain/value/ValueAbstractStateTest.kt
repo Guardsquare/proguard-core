@@ -16,7 +16,7 @@ import proguard.evaluation.value.ValueFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 
-class JvmValueAbstractStateTest : FreeSpec({
+class ValueAbstractStateTest : FreeSpec({
     beforeContainer {
         // TODO(D17756): for now, this will trigger initialization of the libraryClassPool
         ClassPoolBuilder.initialize(ClassPool(), false)
@@ -29,16 +29,16 @@ class JvmValueAbstractStateTest : FreeSpec({
         val myOtherString = valueFactory.createString("myOtherString")
 
         "Two abstract states with the same string should be equal" {
-            val a = JvmValueAbstractState(myString)
-            val b = JvmValueAbstractState(myString)
+            val a = ValueAbstractState(myString)
+            val b = ValueAbstractState(myString)
             a shouldBe b
             a.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
         }
 
         "Two abstract states with the different strings should not be equal" {
-            val a = JvmValueAbstractState(myString)
-            val b = JvmValueAbstractState(myOtherString)
+            val a = ValueAbstractState(myString)
+            val b = ValueAbstractState(myOtherString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
@@ -46,8 +46,9 @@ class JvmValueAbstractStateTest : FreeSpec({
         }
 
         "Two abstract states with different instances but equal strings should be equal" {
-            val a = JvmValueAbstractState(myString)
-            val b = JvmValueAbstractState(valueFactory.createString("myString"))
+            val a = ValueAbstractState(myString)
+            val b =
+                ValueAbstractState(valueFactory.createString("myString"))
             a shouldBe b
             a.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
@@ -61,16 +62,16 @@ class JvmValueAbstractStateTest : FreeSpec({
         val myOtherString = valueFactory.createString("myOtherString")
 
         "Two abstract states with the same string should be equal" {
-            val a = JvmValueAbstractState(myString)
-            val b = JvmValueAbstractState(myString)
-            a shouldBe JvmValueAbstractState(myString)
+            val a = ValueAbstractState(myString)
+            val b = ValueAbstractState(myString)
+            a shouldBe ValueAbstractState(myString)
             b.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
         }
 
         "Two abstract states with the different strings should not be equal" {
-            val b = JvmValueAbstractState(myOtherString)
-            val a = JvmValueAbstractState(myString)
+            val b = ValueAbstractState(myOtherString)
+            val a = ValueAbstractState(myString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
@@ -78,8 +79,9 @@ class JvmValueAbstractStateTest : FreeSpec({
         }
 
         "Two abstract states with different instances but equal strings should not be equal" {
-            val a = JvmValueAbstractState(myString)
-            val b = JvmValueAbstractState(valueFactory.createString("myString"))
+            val a = ValueAbstractState(myString)
+            val b =
+                ValueAbstractState(valueFactory.createString("myString"))
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
@@ -94,16 +96,16 @@ class JvmValueAbstractStateTest : FreeSpec({
         val myOtherStringBuilder = valueFactory.createStringBuilder(StringBuilder())
 
         "Two abstract states with the same string builder should be equal" {
-            val a = JvmValueAbstractState(myStringBuilder)
-            val b = JvmValueAbstractState(myStringBuilder)
+            val a = ValueAbstractState(myStringBuilder)
+            val b = ValueAbstractState(myStringBuilder)
             a shouldBe b
             a.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
         }
 
         "Two abstract states with the different string builders should not be equal" {
-            val a = JvmValueAbstractState(myStringBuilder)
-            val b = JvmValueAbstractState(myOtherStringBuilder)
+            val a = ValueAbstractState(myStringBuilder)
+            val b = ValueAbstractState(myOtherStringBuilder)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
@@ -118,8 +120,8 @@ class JvmValueAbstractStateTest : FreeSpec({
         val myString = valueFactory.createString("MyString")
 
         "Joining a string builder with a string should result a common type" {
-            val a = JvmValueAbstractState(myStringBuilder)
-            val b = JvmValueAbstractState(myString)
+            val a = ValueAbstractState(myStringBuilder)
+            val b = ValueAbstractState(myString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
@@ -129,8 +131,8 @@ class JvmValueAbstractStateTest : FreeSpec({
         }
 
         "Joining a string with a string builder should result a common type" {
-            val a = JvmValueAbstractState(myString)
-            val b = JvmValueAbstractState(myStringBuilder)
+            val a = ValueAbstractState(myString)
+            val b = ValueAbstractState(myStringBuilder)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
@@ -138,16 +140,16 @@ class JvmValueAbstractStateTest : FreeSpec({
         }
 
         "Joining a string with an unknown type should result in an unknown type" {
-            val a = JvmValueAbstractState(myString)
-            val b = JvmValueAbstractState(UNKNOWN_VALUE)
+            val a = ValueAbstractState(myString)
+            val b = ValueAbstractState(UNKNOWN_VALUE)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<UnknownValue>()
         }
 
         "Joining an unknown type with a string should result in an unknown type" {
-            val a = JvmValueAbstractState(UNKNOWN_VALUE)
-            val b = JvmValueAbstractState(myString)
+            val a = ValueAbstractState(UNKNOWN_VALUE)
+            val b = ValueAbstractState(myString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<UnknownValue>()

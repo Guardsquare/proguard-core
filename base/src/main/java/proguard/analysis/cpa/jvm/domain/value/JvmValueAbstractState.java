@@ -16,106 +16,150 @@
  * limitations under the License.
  */
 
-
 package proguard.analysis.cpa.jvm.domain.value;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.evaluation.value.ParticularReferenceValue;
-import proguard.evaluation.value.Value;
+import proguard.analysis.cpa.defaults.MapAbstractState;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
+import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.classfile.Clazz;
+import proguard.evaluation.value.IdentifiedReferenceValue;
+import proguard.evaluation.value.ValueFactory;
 
 import java.util.Objects;
 
-import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
-
+import static proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState.FAKE_FIELD;
+import static proguard.evaluation.value.ParticularReferenceValue.UNINITIALIZED;
 
 /**
- * An {@link AbstractState} for tracking JVM values.
- *
- * @author James Hamilton
  */
-public class JvmValueAbstractState implements LatticeAbstractState<JvmValueAbstractState>
+public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
 {
-    private static final boolean DEBUG = System.getProperty("jvas") != null;
-
-    public static final JvmValueAbstractState UNKNOWN = new JvmValueAbstractState(UNKNOWN_VALUE);
-    private       final Value                 value;
-
-    public JvmValueAbstractState(Value value)
-    {
-        this.value = value;
-    }
-
+    private final ValueFactory valueFactory;
 
     /**
-     * Returns the {@link Value} associated with this abstract state.
+     * Create a JVM value abstract state.
+     *
+     * @param valueFactory    a ValueFactory which is used to create abstract values.
+     * @param programLocation a CFA node
+     * @param frame           a frame abstract state
+     * @param heap            a heap abstract state
+     * @param staticFields    a static field table
      */
-    public Value getValue()
+    public JvmValueAbstractState(ValueFactory                                 valueFactory,
+                                 JvmCfaNode                                   programLocation,
+                                 JvmFrameAbstractState<ValueAbstractState>    frame,
+                                 JvmHeapAbstractState<ValueAbstractState>     heap,
+                                 MapAbstractState<String, ValueAbstractState> staticFields)
     {
-        return value;
+        super(programLocation, frame, heap, staticFields);
+        this.valueFactory = valueFactory;
     }
 
-    @Override
-    public JvmValueAbstractState join(JvmValueAbstractState abstractState)
+    /**
+     * Returns the {@link ValueFactory}. 
+     */
+    public ValueFactory getValueFactory()
     {
-        JvmValueAbstractState result = abstractState.equals(this) ?
-                this :
-                new JvmValueAbstractState(this.value.generalize(abstractState.value));
-
-        if (DEBUG) System.out.println("join(" + this + ", " + abstractState + ") = " + result);
-
-        return result;
+        return valueFactory;
     }
 
+    /**
+     * Returns an abstract state at the {@code index}th position of the variable array,
+     * the corresponding heap value for an {@link IdentifiedReferenceValue} or {@code defaultState} if there is no entry.
+     */
     @Override
-    public boolean isLessOrEqual(JvmValueAbstractState abstractState)
+    public ValueAbstractState getVariableOrDefault(int index, ValueAbstractState defaultState)
     {
-        return abstractState == UNKNOWN || abstractState.equals(this);
+        ValueAbstractState value = super.getVariableOrDefault(index, defaultState);
+        return value.getValue() instanceof IdentifiedReferenceValue ?
+                heap.getFieldOrDefault(((IdentifiedReferenceValue) value.getValue()).id, FAKE_FIELD, defaultState) :
+                value;
     }
 
+    /**
+     * Sets the {@code index}th position of the variable array to {@code state} and returns {@code state}.
+     * If the array has to be extended, the added cells are padded with {@code defaultState}.
+     * 
+     * If the value is an {@link IdentifiedReferenceValue}, the corresponding heap value is also updated.
+     */
     @Override
-    public AbstractState copy()
+    public ValueAbstractState setVariable(int index, ValueAbstractState state, ValueAbstractState defaultState)
     {
-        return new JvmValueAbstractState(value);
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        JvmValueAbstractState that = (JvmValueAbstractState) o;
-
-        // We want all equal strings to be treated as the same
-        // regardless if it's a different particular reference.
-        if (isParticularString(this.value) && isParticularString(that.value))
+        if (state.getValue() instanceof IdentifiedReferenceValue)
         {
-            return this.value.referenceValue().value().equals(that.value.referenceValue().value());
+            heap.setField(((IdentifiedReferenceValue) state.getValue()).id, FAKE_FIELD, state);
         }
 
-        return Objects.equals(value, that.value);
+        return super.setVariable(index, state, defaultState);
     }
 
+    /**
+     * Returns an {@link ValueAbstractState} for a new object of the given {@code className}.
+     */
+    @Override
+    public ValueAbstractState newObject(String className)
+    {
+        IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(className, null, true, true, UNINITIALIZED);
+        ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
+        setField(value.id, FAKE_FIELD, jvmValueAbstractState);
+        return jvmValueAbstractState;
+    }
+
+    /**
+     * Returns an {@link ValueAbstractState} state for a new object of the given {@link Clazz}.
+     */
+    @Override
+    public ValueAbstractState newObject(Clazz clazz)
+    {
+        IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(clazz, UNINITIALIZED);
+        ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
+        setField(value.id, FAKE_FIELD, jvmValueAbstractState);
+        return jvmValueAbstractState;
+    }
 
     @Override
-    public int hashCode()
+    public JvmValueAbstractState join(JvmAbstractState<ValueAbstractState> abstractState)
     {
-        if (value instanceof ParticularReferenceValue && ((ParticularReferenceValue)value).value() instanceof String)
+        JvmValueAbstractState answer = new JvmValueAbstractState(
+            valueFactory,
+            programLocation.equals(abstractState.getProgramLocation()) ? programLocation : topLocation,
+            frame.join(abstractState.getFrame()),
+            heap.join(abstractState.getHeap()),
+            staticFields.join(abstractState.getStaticFields())
+        );
+        return equals(answer) ? this : answer;
+    }
+
+    @Override
+    public JvmValueAbstractState copy()
+    {
+        return new JvmValueAbstractState(valueFactory, programLocation, frame.copy(), heap.copy(), staticFields.copy());
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
         {
-            return ((ParticularReferenceValue)value).value().hashCode();
+            return true;
         }
-
-        return Objects.hash(value);
+        if (!(obj instanceof JvmAbstractState))
+        {
+            return false;
+        }
+        JvmValueAbstractState other = (JvmValueAbstractState) obj;
+        return valueFactory.equals(other.valueFactory) &&
+                programLocation.equals(other.programLocation) &&
+                frame.equals(other.frame) &&
+                heap.equals(other.heap) &&
+                staticFields.equals(other.staticFields);
     }
+
 
     @Override
-    public String toString() {
-        return "JvmValueAbstractState(" + value + ")";
-    }
-
-    private static boolean isParticularString(Value value)
-    {
-        return value instanceof ParticularReferenceValue &&
-                ((ParticularReferenceValue) value).value() instanceof String;
+    public int hashCode() {
+        return Objects.hash(valueFactory, programLocation, frame, heap, staticFields);
     }
 }
