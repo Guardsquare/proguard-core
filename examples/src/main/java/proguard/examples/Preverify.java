@@ -4,7 +4,6 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
-import proguard.io.*;
 import proguard.preverify.CodePreverifier;
 
 import java.io.*;
@@ -35,8 +34,17 @@ public class Preverify
             ClassPool libraryClassPool = JarUtil.readJar(runtimeFileName, true);
             ClassPool programClassPool = JarUtil.readJar(inputJarFileName, false);
 
+            // We may get some warnings about missing dependencies.
+            // They're a pain, but for proper results, we really need to have
+            // all dependencies.
+            PrintWriter printWriter    = new PrintWriter(System.err);
+            WarningPrinter warningPrinter = new WarningPrinter(printWriter);
+
             // Initialize all cross-references.
-            InitializationUtil.initialize(programClassPool, libraryClassPool);
+            InitializationUtil.initialize(programClassPool, libraryClassPool, warningPrinter);
+
+            // Flush the warnings.
+            printWriter.flush();
 
             // Preverify the program classes.
             preverify(programClassPool);

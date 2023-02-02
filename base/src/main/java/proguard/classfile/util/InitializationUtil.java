@@ -1,4 +1,4 @@
-package proguard.examples;
+package proguard.classfile.util;
 
 import proguard.classfile.*;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
@@ -20,6 +20,10 @@ public class InitializationUtil
     /**
      * Initializes the cached cross-references of the classes in the given
      * class pools.
+     * <p>
+     * Note: no warnings are given when classes are missing: if you require
+     *       warnings about missing classes use
+     *       {@link InitializationUtil#initialize(ClassPool, ClassPool, WarningPrinter)} instead.
      * @param programClassPool the program class pool, typically with processed
      *                         classes.
      * @param libraryClassPool the library class pool, typically with run-time
@@ -28,12 +32,28 @@ public class InitializationUtil
     public static void initialize(ClassPool programClassPool,
                                   ClassPool libraryClassPool)
     {
-        // We may get some warnings about missing dependencies.
-        // They're a pain, but for proper results, we really need to have
-        // all dependencies.
-        PrintWriter    printWriter    = new PrintWriter(System.err);
-        WarningPrinter warningPrinter = new WarningPrinter(printWriter);
+        WarningPrinter nullWarningPrinter = new WarningPrinter(new PrintWriter(new OutputStream()
+        {
+            @Override
+            public void write(int i) { }
+        }));
+        initialize(programClassPool, libraryClassPool, nullWarningPrinter);
+    }
 
+    /**
+     * Initializes the cached cross-references of the classes in the given
+     * class pools.
+     * @param programClassPool the program class pool, typically with processed
+     *                         classes.
+     * @param libraryClassPool the library class pool, typically with run-time
+     *                         classes.
+     * @param warningPrinter   the {@link WarningPrinter} to use for printing warnings
+     *                         about missing classes.
+     */
+    public static void initialize(ClassPool      programClassPool,
+                                  ClassPool      libraryClassPool,
+                                  WarningPrinter warningPrinter)
+    {
         // Initialize the class hierarchies.
         libraryClassPool.classesAccept(
             new ClassSuperHierarchyInitializer(programClassPool,
@@ -55,8 +75,5 @@ public class InitializationUtil
                                           warningPrinter,
                                           warningPrinter,
                                           null));
-
-        // Flush the warnings.
-        printWriter.flush();
     }
 }
