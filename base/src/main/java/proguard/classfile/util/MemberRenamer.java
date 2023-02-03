@@ -36,8 +36,6 @@ import java.util.function.Function;
 /**
  * This <code>MemberVisitor</code> renames the class member
  * names of the classes it visits.
- *
- * @author Eric Lafortune
  */
 public class MemberRenamer
 implements MemberVisitor
