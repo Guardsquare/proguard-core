@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2022 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
 
 package proguard.io.util;
 
+import org.jetbrains.annotations.NotNull;
 import proguard.classfile.ClassPool;
+import proguard.classfile.util.WarningPrinter;
 import proguard.classfile.visitor.ClassNameFilter;
 import proguard.classfile.visitor.ClassPoolFiller;
 import proguard.classfile.visitor.ClassVisitor;
@@ -71,6 +73,26 @@ public class IOUtil
         return read(new File(fileName), isLibrary);
     }
 
+
+    /**
+     * Reads the classes from the specified jar file and returns them as a class
+     * pool.
+     *
+     * @param fileName    the file name.
+     * @param isLibrary   specifies whether classes should be represented as
+     *                    ProgramClass instances (for processing) or
+     *                    LibraryClass instances (more compact).
+     * @param initializeKotlinMetadata specifies to initialize the Kotlin metadata model.
+     * @return a new class pool with the read classes.
+     */
+    public static ClassPool read(String   fileName,
+                                 boolean isLibrary,
+                                 boolean initializeKotlinMetadata)
+            throws IOException
+    {
+        return read(new File(fileName), isLibrary, initializeKotlinMetadata);
+    }
+
     /**
      * Reads the classes from the specified jar file and returns them as a class
      * pool.
@@ -83,9 +105,28 @@ public class IOUtil
      */
     public static ClassPool read(File    file,
                                  boolean isLibrary)
+            throws IOException
+    {
+        return read(file, isLibrary, false);
+    }
+
+    /**
+     * Reads the classes from the specified jar file and returns them as a class
+     * pool.
+     *
+     * @param file        the file.
+     * @param isLibrary   specifies whether classes should be represented as
+     *                    ProgramClass instances (for processing) or
+     *                    LibraryClass instances (more compact).
+     * @param initializeKotlinMetadata specifies to initialize the Kotlin metadata model.
+     * @return a new class pool with the read classes.
+     */
+    public static ClassPool read(File    file,
+                                 boolean isLibrary,
+                                 boolean initializeKotlinMetadata)
     throws IOException
     {
-        return read(file, isLibrary, (dataEntryReader, classPool) -> dataEntryReader);
+        return read(file, isLibrary, initializeKotlinMetadata, (dataEntryReader, classPool) -> dataEntryReader);
     }
 
 
@@ -97,17 +138,30 @@ public class IOUtil
      * @param isLibrary   specifies whether classes should be represented as
      *                    ProgramClass instances (for processing) or
      *                    LibraryClass instances (more compact).
+     * @param initializeKotlinMetadata specifies to initialize the Kotlin metadata model.
      * @param extraDataEntryReader Optionally provide a function that wraps the reader in another reader.
      * @return a new class pool with the read classes.
      */
     public static ClassPool read(File    file,
                                  boolean isLibrary,
+                                 boolean initializeKotlinMetadata,
                                  BiFunction<DataEntryReader, ClassVisitor, DataEntryReader> extraDataEntryReader)
     throws IOException
     {
-        return read(new ClassPath(new ClassPathEntry(file, false)), "**",false, isLibrary, false, false, false, extraDataEntryReader);
+        return read(new ClassPath(new ClassPathEntry(file, false)), "**",false, isLibrary, initializeKotlinMetadata, false, false, false, extraDataEntryReader);
     }
 
+
+    /**
+     * Reads the classes from the specified jar file and returns them as a class
+     * pool.
+     *
+     * @param isLibrary   specifies whether classes should be represented as
+     *                    ProgramClass instances (for processing) or
+     *                    LibraryClass instances (more compact).
+     * @param extraDataEntryReader Optionally provide a function that wraps the reader in another reader.
+     * @return a new class pool with the read classes.
+     */
     public static ClassPool read(ClassPath      classPath,
                                  String         classNameFilter,
                                  boolean        android,
@@ -118,6 +172,35 @@ public class IOUtil
                                  BiFunction<DataEntryReader, ClassVisitor, DataEntryReader> extraDataEntryReader)
     throws IOException
     {
+        return read(
+                classPath,
+                classNameFilter,
+                android,
+                isLibrary,
+                false,
+                skipNonPublicLibraryClasses,
+                skipNonPublicLibraryClassMembers,
+                ignoreStackMapAttributes,
+                extraDataEntryReader
+        );
+    }
+
+    public static ClassPool read(ClassPath      classPath,
+                                 String         classNameFilter,
+                                 boolean        android,
+                                 boolean        isLibrary,
+                                 boolean        initializeKotlinMetadata,
+                                 boolean        skipNonPublicLibraryClasses,
+                                 boolean        skipNonPublicLibraryClassMembers,
+                                 boolean        ignoreStackMapAttributes,
+                                 BiFunction<DataEntryReader, ClassVisitor, DataEntryReader> extraDataEntryReader)
+    throws IOException
+    {
+        WarningPrinter nullWarningPrinter = new WarningPrinter(new PrintWriter(new OutputStream()
+        {
+            @Override
+            public void write(int i) { }
+        }));
         ClassPool classPool = new ClassPool();
         ClassVisitor classPoolFiller = new ClassPoolFiller(classPool);
 
@@ -131,7 +214,8 @@ public class IOUtil
                         skipNonPublicLibraryClasses,
                         skipNonPublicLibraryClassMembers,
                         ignoreStackMapAttributes,
-                        null,
+                        initializeKotlinMetadata,
+                        nullWarningPrinter,
                         classPoolFiller));
 
         classReader = extraDataEntryReader.apply(classReader, classPoolFiller);

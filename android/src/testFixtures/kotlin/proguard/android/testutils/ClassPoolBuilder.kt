@@ -19,7 +19,7 @@ fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {
     val file = File.createTempFile("tmp", ".smali")
     file.writeText(smali.contents)
 
-    val classPool = IOUtil.read(file, false) { dataEntryReader, classPoolFiller ->
+    val classPool = IOUtil.read(file, false, true) { dataEntryReader, classPoolFiller ->
         // Convert dex files
         val dexReader = NameFilteredDataEntryReader(
             "classes*.dex",
