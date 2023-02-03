@@ -55,6 +55,14 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
         return value;
     }
 
+    /**
+     * Update the {@link Value} associated with this abstract state.
+     */
+    public void setValue(Value value)
+    {
+        this.value = value;
+    }
+
     @Override
     public ValueAbstractState join(ValueAbstractState abstractState)
     {
@@ -119,8 +127,4 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
                 ((ParticularReferenceValue) value).value() instanceof String;
     }
 
-    public void setValue(Value value)
-    {
-        this.value = value;
-    }
 }

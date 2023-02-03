@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
-import static proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState.FAKE_FIELD;
 import static proguard.classfile.TypeConstants.VOID;
 import static proguard.classfile.util.ClassUtil.internalMethodReturnType;
 
@@ -141,7 +140,6 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
                 state.push(new ValueAbstractState(result));
             }
 
-            // TODO: update these conditionally like in ExecutingInvocationUnit?
             updateStack(state, result, isVoidReturnType);
             updateHeap( state, result);
         }
@@ -166,8 +164,8 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
         for (int i = start; i >= 0; i--)
         {
-            ValueAbstractState stackEntry = operandStack.get(i);
-            Value valueOnStack = stackEntry.getValue();
+            ValueAbstractState stackEntry   = operandStack.get(i);
+            Value              valueOnStack = stackEntry.getValue();
             if (valueOnStack instanceof IdentifiedReferenceValue &&
                 ((IdentifiedReferenceValue) valueOnStack).id == identifiedReferenceValue.id)
             {
@@ -178,9 +176,12 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
     private void updateHeap(JvmAbstractState<ValueAbstractState> state, Value result)
     {
-        if (!(result instanceof IdentifiedReferenceValue)) return;
+        if (!(result instanceof IdentifiedReferenceValue))
+        {
+            return;
+        }
 
         IdentifiedReferenceValue identifiedReferenceValue = (IdentifiedReferenceValue) result;
-        state.getHeap().setField(identifiedReferenceValue.id, FAKE_FIELD, new ValueAbstractState(identifiedReferenceValue));
+        state.setField(identifiedReferenceValue.id, new ValueAbstractState(identifiedReferenceValue));
     }
 }

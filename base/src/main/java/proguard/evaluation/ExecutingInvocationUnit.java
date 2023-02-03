@@ -332,12 +332,13 @@ public class ExecutingInvocationUnit
             }
         }
 
-        boolean        resultMayBeNull      = true;
-        boolean        resultMayBeExtension = true;
-        Object         methodResult;
+        boolean resultMayBeNull      = true;
+        boolean resultMayBeExtension = true;
+        Object  methodResult;
 
-        ReferenceValue instance = !isStatic ? parameter[0].referenceValue() : null;
-        int            objectId = instance instanceof IdentifiedReferenceValue ? ((IdentifiedReferenceValue) instance).id : -1;
+        ReferenceValue instance        = !isStatic ? parameter[0].referenceValue() : null;
+        Object         callingInstance = null; // null for static
+        int            objectId        = instance instanceof IdentifiedReferenceValue ? ((IdentifiedReferenceValue) instance).id : -1;
 
         try
         {
@@ -362,7 +363,6 @@ public class ExecutingInvocationUnit
             }
             else // non-constructor method call.
             {
-                Object callingInstance = null; // null for static
                 if (instance != null)
                 {
                     switch (baseClassName)
@@ -422,10 +422,12 @@ public class ExecutingInvocationUnit
         {
             returnType = instance.referenceValue().getType();
         }
-        // the referencedClass could be any Type. We do not have a reference to that class at this point.
-        if (objectId != -1)
+
+        // If there ID is already know, use the same ID;
+        // unless the instance modifies itself or is different.
+        if (objectId != -1 && (alwaysModifiesInstance(baseClassName, methodName) || callingInstance == methodResult))
         {
-             return valueFactory.createReferenceValue(returnType,
+            return valueFactory.createReferenceValue(returnType,
                                                       // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
                                                       // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
                                                       ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))

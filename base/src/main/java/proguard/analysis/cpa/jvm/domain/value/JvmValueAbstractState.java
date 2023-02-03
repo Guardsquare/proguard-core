@@ -25,11 +25,13 @@ import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.classfile.Clazz;
 import proguard.evaluation.value.IdentifiedReferenceValue;
+import proguard.evaluation.value.TypedReferenceValue;
+import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 
 import java.util.Objects;
 
-import static proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState.FAKE_FIELD;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.evaluation.value.ParticularReferenceValue.UNINITIALIZED;
 
 /**
@@ -67,15 +69,27 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
 
     /**
      * Returns an abstract state at the {@code index}th position of the variable array,
-     * the corresponding heap value for an {@link IdentifiedReferenceValue} or {@code defaultState} if there is no entry.
+     * the corresponding heap value for an {@link IdentifiedReferenceValue} or
+     * {@code defaultState} if there is no entry.
      */
     @Override
     public ValueAbstractState getVariableOrDefault(int index, ValueAbstractState defaultState)
     {
         ValueAbstractState value = super.getVariableOrDefault(index, defaultState);
-        return value.getValue() instanceof IdentifiedReferenceValue ?
-                heap.getFieldOrDefault(((IdentifiedReferenceValue) value.getValue()).id, FAKE_FIELD, defaultState) :
-                value;
+
+        if (!(value.getValue() instanceof IdentifiedReferenceValue) || isString(value.getValue()))
+        {
+            // Non-references and strings are directly
+            // stored in the locals.
+            return value;
+        }
+        else
+        {
+            // Reference values are stored on the heap: the ID of
+            // the IdentifiedReferenceValue is the ID of the reference
+            // on the heap.
+            return getFieldOrDefault(((IdentifiedReferenceValue) value.getValue()).id, defaultState);
+        }
     }
 
     /**
@@ -89,7 +103,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     {
         if (state.getValue() instanceof IdentifiedReferenceValue)
         {
-            heap.setField(((IdentifiedReferenceValue) state.getValue()).id, FAKE_FIELD, state);
+            setField(((IdentifiedReferenceValue) state.getValue()).id, state);
         }
 
         return super.setVariable(index, state, defaultState);
@@ -103,7 +117,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     {
         IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(className, null, true, true, UNINITIALIZED);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
-        setField(value.id, FAKE_FIELD, jvmValueAbstractState);
+        setField(value.id, jvmValueAbstractState);
         return jvmValueAbstractState;
     }
 
@@ -115,8 +129,20 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     {
         IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(clazz, UNINITIALIZED);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
-        setField(value.id, FAKE_FIELD, jvmValueAbstractState);
+        setField(value.id, jvmValueAbstractState);
         return jvmValueAbstractState;
+    }
+
+    @Override
+    public <T> void setField(T object, ValueAbstractState value)
+    {
+        if (isString(value.getValue()))
+        {
+            // Never store strings on the heap for the default field.
+            return;
+        }
+
+        super.setField(object, value);
     }
 
     @Override
@@ -161,5 +187,11 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     @Override
     public int hashCode() {
         return Objects.hash(valueFactory, programLocation, frame, heap, staticFields);
+    }
+
+    private static boolean isString(Value value)
+    {
+        return value instanceof TypedReferenceValue &&
+               value.internalType().equals(TYPE_JAVA_LANG_STRING);
     }
 }

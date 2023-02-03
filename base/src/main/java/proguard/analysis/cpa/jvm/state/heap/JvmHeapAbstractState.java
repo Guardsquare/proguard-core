@@ -34,7 +34,6 @@ import proguard.classfile.Clazz;
 public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT>>
     extends LatticeAbstractState<JvmHeapAbstractState<StateT>>
 {
-    String FAKE_FIELD = "";
 
     // overrides for LatticeAbstractState
 
@@ -66,7 +65,7 @@ public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT
     <T> StateT getFieldOrDefault(T object, String fqn, StateT defaultValue);
 
     /**
-     * Sets a {@code value} to a field {@code fqn} of a referenced {@code object} and returns the {@code value}.
+     * Sets a {@code value} to a field {@code fqn} of a referenced {@code object}.
      */
     <T> void setField(T object, String fqn, StateT value);
 

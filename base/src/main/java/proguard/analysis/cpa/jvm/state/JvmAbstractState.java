@@ -38,6 +38,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     implements LatticeAbstractState<JvmAbstractState<StateT>>,
                ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>
 {
+    public static final String DEFAULT_FIELD = "";
 
     protected final        JvmFrameAbstractState<StateT>    frame;
     protected final        JvmHeapAbstractState<StateT>     heap;
@@ -245,11 +246,27 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     }
 
     /**
+     * Returns an abstract state representing the default field of the {@code object} or {@code defaultState} if there is no entry.
+     */
+    public <T> StateT getFieldOrDefault(T object, StateT defaultValue)
+    {
+        return this.getFieldOrDefault(object, DEFAULT_FIELD, defaultValue);
+    }
+
+    /**
      * Sets the field {@code descriptor} of the {@code object} to {@code value}.
      */
     public <T> void setField(T object, String descriptor, StateT value)
     {
         heap.setField(object, descriptor, value);
+    }
+
+    /**
+     * Sets the default field of the {@code object} to {@code value}.
+     */
+    public <T> void setField(T object, StateT value)
+    {
+        this.setField(object, DEFAULT_FIELD, value);
     }
 
     /**

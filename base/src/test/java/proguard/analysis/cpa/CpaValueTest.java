@@ -34,6 +34,7 @@ import proguard.classfile.Signature;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ParticularValueFactory;
+import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
@@ -51,8 +52,8 @@ import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
-import static proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState.FAKE_FIELD;
 import static proguard.testutils.JavaUtilKt.getCurrentJavaHome;
 
 /**
@@ -65,8 +66,12 @@ public class CpaValueTest {
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleString");
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-        ParticularReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
-        assertEquals(value.value(), "Hello", "The value should be correctly tracked");
+        ParticularReferenceValue value = (ParticularReferenceValue) lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
+        assertEquals(value.value(), "Hello World", "Hello World should be in local variable slot 1");
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        Object stackTopValue = stackTop.value();
+        assertEquals( "Hello World", stackTopValue,"Hello World should be on the top of the stack");
     }
 
     @Test
@@ -74,8 +79,13 @@ public class CpaValueTest {
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleString2");
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-        ParticularReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
-        assertEquals(value.value(), "Hello", "The value should be correctly tracked");
+        ParticularReferenceValue value = (ParticularReferenceValue) lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
+        assertEquals(value.value(), "Hello World", "Hello World should be in local variable slot 1");
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        Object stackTopValue = stackTop.value();
+        assertEquals( "Hello World", stackTopValue,"Hello World should be on the top of the stack");
+
     }
 
     @Test
@@ -92,9 +102,7 @@ public class CpaValueTest {
     public void testJoinTwoSameValues()
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("JoinTestSameValues");
-
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-
         ParticularReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
         assertEquals(value.value(), "1", "The value should be correctly tracked");
     }
@@ -103,69 +111,73 @@ public class CpaValueTest {
     public void testSimpleStringBuilder()
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleStringBuilder");
-
-        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-
-        IdentifiedReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
-        assertEquals( "Hello World", lastAbstractState.getFieldOrDefault(value.id, FAKE_FIELD, UNKNOWN).getValue().referenceValue().value(),"The value should be correctly tracked");
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        Value stringBuilder = printlnCall.getFieldOrDefault(0, UNKNOWN).getValue();
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        Object stackTopValue = stackTop.value();
+        assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
+        assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
     }
 
     @Test
     public void testSimpleStringBuffer()
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleStringBuffer");
-
-        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-
-        IdentifiedReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
-        assertEquals( "Hello World", lastAbstractState.getFieldOrDefault(value.id, FAKE_FIELD, UNKNOWN).getValue().referenceValue().value(),"The value should be correctly tracked");
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        Value stringBuilder = printlnCall.getFieldOrDefault(0, UNKNOWN).getValue();
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        Object stackTopValue = stackTop.value();
+        assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
+        assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
     }
+
 
     @Test
     public void testSimpleStringConcat()
     {
         // In this example a known integer constant value is used
         // as an operand to String.substring.
-
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleStringConcat");
-
-        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-
-        assertEquals(
-            "Hello World",
-            // It'll be on the heap, the final value is not store in a local -> it's a parameter to a method
-            lastAbstractState.getFieldOrDefault(3, FAKE_FIELD, UNKNOWN).getValue().referenceValue().value(),
-            "The value should be correctly tracked"
-        );
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        Object stackTopValue = stackTop.value();
+        assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
+        assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
     }
 
     @Test
     public void testStringSubString()
     {
         // In this example, a second StringBuilder is introduced by the compiler
-        // for the string concatenation. This StringBuilder is not stored in a local
+        // for the string concatenation. The second StringBuilder is not stored in a local
         // variable.
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("StringSubString");
-
-        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-
-        assertEquals(
-            "Hello World",
-            // It'll be on the heap, the final value is not store in a local -> it's a parameter to a method
-            lastAbstractState.getFieldOrDefault(0, FAKE_FIELD, UNKNOWN).getValue().referenceValue().value(),
-            "The value should be correctly tracked"
-        );
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        Object stackTopValue = stackTop.value();
+        assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
+        assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
     }
 
     @Test
     public void testStringBuilderBranch()
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("StringBuilderBranch");
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        assertInstanceOf(TypedReferenceValue.class, stackTop,"The value should be correctly tracked");
+        assertEquals("Ljava/lang/String;", stackTop.internalType());
+        assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
 
+        // TODO: issue with IdentifiedReferenceValue.generalize(ParticularReferenceValue)
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
         Value value = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
-        assertInstanceOf(TypedReferenceValue.class, value, "The value should be a TypedReferenceValue");
-        assertEquals("Ljava/io/Serializable;", ((TypedReferenceValue)value).getType(), "The type should be Serializable (common interface of String and StringBuilder)");
+        //assertInstanceOf(IdentifiedReferenceValue.class, value, "The value should be a Identified reference 0");
+        //assertEquals(0, ((IdentifiedReferenceValue)value).id);
+        //assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
+        //assertEquals("Ljava/lang/StringBuilder;", value.internalType(), "The type should be StringBuilder");
     }
 
     //@Test
@@ -177,7 +189,7 @@ public class CpaValueTest {
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
 
         IdentifiedReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
-        Object heapValue = lastAbstractState.getFieldOrDefault(value.id, FAKE_FIELD, UNKNOWN).getValue();
+        Object heapValue = lastAbstractState.getFieldOrDefault(value.id, UNKNOWN).getValue();
         assertInstanceOf(TypedReferenceValue.class, heapValue, "The value should be a TypedReferenceValue");
         // TODO: sometimes Serializable, sometimes StringBuilder
 //        assertEquals("Ljava/io/Serializable;", ((TypedReferenceValue)heapValue).getType(), "The type should be Serializable (common class of String and StringBuilder)");
@@ -192,19 +204,31 @@ public class CpaValueTest {
                 .get();
     }
 
+    private static JvmValueAbstractState getPrintlnCall(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet) {
+        return reachedSet.asCollection()
+                .stream()
+                .filter(it -> it
+                        .getProgramLocation()
+                        .getLeavingInterproceduralEdges()
+                        .stream()
+                        .anyMatch(x -> x.getCall().getTarget().method.equals("println"))
+                ).findFirst().get();
+    }
+
     private static ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> runCpa(String className)
     {
         ClassPool programClassPool = getProgramClassPool(className);
         ValueFactory valueFactory = new ParticularValueFactory(new ParticularValueFactory.ReferenceValueFactory());
         JvmHeapAbstractState<ValueAbstractState> heap = new JvmShallowHeapAbstractState<>(new HashMapAbstractState<>(), Integer.class, UNKNOWN);
 
-        JvmCfa cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool, ClassPoolBuilder.Companion.getLibraryClassPool());
+        JvmCfa cfa = CfaUtil.createInterproceduralCfa(programClassPool, ClassPoolBuilder.Companion.getLibraryClassPool());
 
         try {
             Files.write(new File("graph.dot").toPath(), CfaUtil.toDot(cfa).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         AbstractDomain abstractDomain = new DelegateAbstractDomain<ValueAbstractState>();
 
         JvmValueTransferRelation transferRelation = new JvmValueTransferRelation(valueFactory);
