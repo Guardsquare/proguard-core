@@ -1,16 +1,39 @@
 package proguard.examples;
 
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.visitor.*;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.util.*;
-import proguard.classfile.visitor.*;
-import proguard.evaluation.*;
-import proguard.evaluation.value.*;
+import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.InitializationUtil;
+import proguard.classfile.util.WarningPrinter;
+import proguard.classfile.visitor.AllMethodVisitor;
+import proguard.classfile.visitor.ClassNameFilter;
+import proguard.classfile.visitor.MemberNameFilter;
+import proguard.evaluation.BasicInvocationUnit;
+import proguard.evaluation.InvocationUnit;
+import proguard.evaluation.PartialEvaluator;
+import proguard.evaluation.ReferenceTracingInvocationUnit;
+import proguard.evaluation.ReferenceTracingValueFactory;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
+import proguard.evaluation.value.ArrayReferenceValueFactory;
+import proguard.evaluation.value.BasicValueFactory;
+import proguard.evaluation.value.DetailedArrayValueFactory;
+import proguard.evaluation.value.IdentifiedValueFactory;
+import proguard.evaluation.value.ParticularValueFactory;
+import proguard.evaluation.value.RangeValueFactory;
+import proguard.evaluation.value.TypedReferenceValueFactory;
+import proguard.evaluation.value.Value;
+import proguard.evaluation.value.ValueFactory;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * This sample application illustrates how to evaluate the bytecode of a method
@@ -69,8 +92,17 @@ public class EvaluateCode
             ClassPool libraryClassPool = JarUtil.readJar(runtimeFileName, true);
             ClassPool programClassPool = JarUtil.readJar(inputJarFileName, classNameFilter, false);
 
+            // We may get some warnings about missing dependencies.
+            // They're a pain, but for proper results, we really need to have
+            // all dependencies.
+            PrintWriter printWriter       = new PrintWriter(System.err);
+            WarningPrinter warningPrinter = new WarningPrinter(printWriter);
+
             // Initialize all cross-references.
-            InitializationUtil.initialize(programClassPool, libraryClassPool);
+            InitializationUtil.initialize(programClassPool, libraryClassPool, warningPrinter);
+
+            // Flush the warnings.
+            printWriter.flush();
 
             // Create a partial evaluator for the specified precision.
             PartialEvaluator partialEvaluator =
