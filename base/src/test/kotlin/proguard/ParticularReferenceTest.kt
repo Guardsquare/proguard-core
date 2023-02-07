@@ -21,7 +21,9 @@ import proguard.classfile.util.ClassUtil
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularReferenceValue
+import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
+import proguard.evaluation.value.UnknownReferenceValue
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
@@ -786,6 +788,123 @@ class ParticularReferenceTest : FreeSpec({
             value.shouldBeInstanceOf<ParticularReferenceValue>()
             value.type shouldBe "[B"
             value.value() shouldBe arrayOf(52.toByte(), 50.toByte())
+        }
+    }
+
+    "Given an identified and a particular value" - {
+        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
+        val identified = IdentifiedReferenceValue(
+            "Ljava/lang/StringBuilder;",
+            stringBuilderClazz,
+            false,
+            false,
+            valueFactory,
+            0
+        )
+        val particular = ParticularReferenceValue(
+            "Ljava/lang/StringBuilder;",
+            stringBuilderClazz,
+            valueFactory,
+            0,
+            StringBuilder()
+        )
+
+        "Then identified.generalize(particular) should be identified" {
+            val generalized = identified.generalize(particular)
+            generalized.shouldBeInstanceOf<IdentifiedReferenceValue>()
+            generalized.id shouldBe 0
+        }
+
+        "Then particular.generalize(identified) should be identified" {
+            val generalized = particular.generalize(identified)
+            generalized.shouldBeInstanceOf<IdentifiedReferenceValue>()
+            generalized.id shouldBe 0
+        }
+    }
+
+    "Given two particular values" - {
+        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
+        val stringBuilder = StringBuilder()
+        val particular1 = ParticularReferenceValue(
+            "Ljava/lang/StringBuilder;",
+            stringBuilderClazz,
+            valueFactory,
+            0,
+            stringBuilder
+        )
+        val particular2 = ParticularReferenceValue(
+            "Ljava/lang/StringBuilder;",
+            stringBuilderClazz,
+            valueFactory,
+            0,
+            stringBuilder
+        )
+
+        "Then particular1.generalize(particular2) should be particular" {
+            val generalized = particular1.generalize(particular2)
+            generalized.shouldBeInstanceOf<ParticularReferenceValue>()
+            generalized.id shouldBe 0
+        }
+
+        "Then particular2.generalize(particular1) should be particular" {
+            val generalized = particular2.generalize(particular1)
+            generalized.shouldBeInstanceOf<ParticularReferenceValue>()
+            generalized.id shouldBe 0
+        }
+    }
+
+    "Given an identified and a typed value" - {
+        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
+        val identified = IdentifiedReferenceValue(
+            "Ljava/lang/StringBuilder;",
+            stringBuilderClazz,
+            false,
+            false,
+            valueFactory,
+            0
+        )
+        val typed = TypedReferenceValue(
+            "Ljava/lang/StringBuilder;",
+            stringBuilderClazz,
+            false,
+            false
+        )
+
+        "Then identified.generalize(typed) should be typed" {
+            val generalized = identified.generalize(typed)
+            generalized.shouldBeInstanceOf<TypedReferenceValue>()
+        }
+
+        "Then typed.generalize(identified) should be typed" {
+            val generalized = typed.generalize(identified)
+            generalized.shouldBeInstanceOf<TypedReferenceValue>()
+        }
+    }
+
+    "Given an identified and a unknown reference" - {
+        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
+        val identified = IdentifiedReferenceValue(
+            "Ljava/lang/StringBuilder;",
+            stringBuilderClazz,
+            false,
+            false,
+            valueFactory,
+            0
+        )
+        val unknown = UnknownReferenceValue()
+
+        "Then identified.generalize(typed) should be unknown" {
+            val generalized = identified.generalize(unknown)
+            generalized.shouldBeInstanceOf<UnknownReferenceValue>()
+        }
+
+        "Then typed.generalize(identified) should be unknown" {
+            val generalized = unknown.generalize(identified)
+            generalized.shouldBeInstanceOf<UnknownReferenceValue>()
         }
     }
 })

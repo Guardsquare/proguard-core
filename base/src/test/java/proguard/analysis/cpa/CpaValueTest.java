@@ -171,13 +171,12 @@ public class CpaValueTest {
         assertEquals("Ljava/lang/String;", stackTop.internalType());
         assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
 
-        // TODO: issue with IdentifiedReferenceValue.generalize(ParticularReferenceValue)
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
         Value value = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
-        //assertInstanceOf(IdentifiedReferenceValue.class, value, "The value should be a Identified reference 0");
-        //assertEquals(0, ((IdentifiedReferenceValue)value).id);
-        //assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
-        //assertEquals("Ljava/lang/StringBuilder;", value.internalType(), "The type should be StringBuilder");
+        assertInstanceOf(IdentifiedReferenceValue.class, value, "The value should be a Identified reference 0");
+        assertEquals(0, ((IdentifiedReferenceValue)value).id);
+        assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
+        assertEquals("Ljava/lang/StringBuilder;", value.internalType(), "The type should be StringBuilder");
     }
 
     //@Test

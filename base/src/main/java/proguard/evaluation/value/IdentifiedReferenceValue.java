@@ -19,6 +19,8 @@ package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
 
+import java.util.Objects;
+
 /**
  * This {@link ReferenceValue} represents a reference value that is identified by a
  * unique ID.
@@ -97,14 +99,22 @@ public class IdentifiedReferenceValue extends TypedReferenceValue
     {
         if (this.equals(other)) return this;
 
-        if (!super.equals(other) ||
-            !this.valuefactory.equals(other.valuefactory) ||
-             this.id != other.id)
+        if (Objects.equals(this.type, other.type)         &&
+            this.referencedClass == other.referencedClass &&
+            this.id              == other.id              &&
+            this.valuefactory    == other.valuefactory)
         {
-            return generalize((TypedReferenceValue)other);
+            return new IdentifiedReferenceValue(
+                 type,
+                 referencedClass,
+                 mayBeExtension || other.mayBeExtension,
+                 mayBeNull || other.mayBeNull,
+                 valuefactory,
+                 id
+            );
         }
 
-        return new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, valuefactory, id);
+        return generalize((TypedReferenceValue)other);
     }
 
 
