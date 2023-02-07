@@ -21,6 +21,7 @@ package proguard.analysis.cpa.jvm.util;
 import proguard.analysis.CallResolver;
 import proguard.analysis.cpa.defaults.Cfa;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmAssumeCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
@@ -253,6 +254,9 @@ public class CfaUtil
                 if (edge instanceof JvmInstructionCfaEdge) {
                     Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
                     sb.append(instruction.toString(edge.getTarget().getClazz(), edge.getSource().getOffset()).replace("\"", "\\\""));
+                    if (edge instanceof JvmAssumeCfaEdge) {
+                        sb.append("\n(").append(((JvmAssumeCfaEdge) edge).isSatisfied()).append(")");
+                    }
                 } else if (edge instanceof JvmCallCfaEdge) {
                     sb.append(((JvmCallCfaEdge) edge).getCall().toSimpleString());
                 } else {
