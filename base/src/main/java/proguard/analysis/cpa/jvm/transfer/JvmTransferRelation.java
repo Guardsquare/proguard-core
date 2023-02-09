@@ -234,7 +234,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Pops the arguments from the operand stack and passes them to {@code invokeMethod}.
      */
-    private void processCall(JvmAbstractState<StateT> state, Call call)
+    protected void processCall(JvmAbstractState<StateT> state, Call call)
     {
         List<StateT> operands = new ArrayList<>();
         if (call.getTarget().descriptor.argumentTypes != null)
