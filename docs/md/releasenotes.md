@@ -9,6 +9,7 @@
 - `JvmTransferRelation` has been refactored to model `IINC` in a separate `computeIncrement` method. 
 - The `ProcessingFlag.DONT_PROCESS_KOTLIN_MODULE` value was changed from `0x00002000` to `0x00008000`.
 - Remove `fromClassPool` suffixes in `CfaUtil` methods.
+- Refactor `CodeLocation` to only take the signature and offset into consideration.
 
 ## Version 9.0.7
 

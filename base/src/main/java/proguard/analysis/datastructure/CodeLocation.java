@@ -126,14 +126,13 @@ extends      Location
         }
         CodeLocation codeLocation = (CodeLocation) o;
         return Objects.equals(signature, codeLocation.signature)
-               && line == codeLocation.line
                && offset == codeLocation.offset;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(signature, line);
+        return Objects.hash(signature, offset);
     }
 
     @Override
