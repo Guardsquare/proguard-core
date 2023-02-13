@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
  */
 package proguard.classfile.visitor;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.Member;
 
 import java.util.Set;
 
@@ -34,7 +35,7 @@ implements   MemberVisitor
     private final boolean includeMemberName;
     private final boolean includeMemberDescriptor;
 
-    private final Set set;
+    private final Set<String> set;
 
 
     /**
@@ -48,10 +49,10 @@ implements   MemberVisitor
      * @param set                     the Set in which all strings will be
      *                                collected.
      */
-    public MemberCollector(boolean includeClassName,
-                           boolean includeMemberName,
-                           boolean includeMemberDescriptor,
-                           Set     set)
+    public MemberCollector(boolean     includeClassName,
+                           boolean     includeMemberName,
+                           boolean     includeMemberDescriptor,
+                           Set<String> set)
     {
         this.includeClassName        = includeClassName;
         this.includeMemberName       = includeMemberName;
@@ -65,7 +66,7 @@ implements   MemberVisitor
 
     public void visitAnyMember(Clazz clazz, Member member)
     {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         if (includeClassName)
         {

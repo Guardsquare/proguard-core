@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
  */
 package proguard.classfile.visitor;
 
-import proguard.classfile.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.Clazz;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This {@link ClassVisitor} delegates its visits to another given
@@ -68,8 +70,8 @@ public class FunctionalInterfaceFilter implements ClassVisitor
 
         // Count the abstract methods and the default methods in the
         // interface hierarchy (including Object).
-        Set<Method> abstractMethods = new HashSet<>();
-        Set<Method> defaultMethods  = new HashSet<>();
+        Set<String> abstractMethods = new HashSet<>();
+        Set<String> defaultMethods  = new HashSet<>();
 
         clazz.hierarchyAccept(true, true, true, false,
                               new AllMethodVisitor(
