@@ -60,6 +60,8 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 
 import static proguard.classfile.AccessConstants.FINAL;
@@ -236,7 +238,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
      */
     protected void processCall(JvmAbstractState<StateT> state, Call call)
     {
-        List<StateT> operands = new ArrayList<>();
+        Deque<StateT> operands = new LinkedList<>();
         if (call.getTarget().descriptor.argumentTypes != null)
         {
             List<String> argumentTypes = call.getTarget().descriptor.argumentTypes;
@@ -246,21 +248,20 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 if (isCategory2)
                 {
                     StateT higherByte = state.pop();
-                    operands.add(state.pop());
-                    operands.add(higherByte);
+                    operands.offerFirst(state.pop());
+                    operands.offerFirst(higherByte);
                 }
                 else
                 {
-                    operands.add(state.pop());
+                    operands.offerFirst(state.pop());
                 }
             }
         }
         if (!call.isStatic())
         {
-            operands.add(state.pop());
+            operands.offerFirst(state.pop());
         }
-        Collections.reverse(operands);
-        invokeMethod(state, call, operands);
+        invokeMethod(state, call, (List<StateT>)operands);
     }
 
     /**
