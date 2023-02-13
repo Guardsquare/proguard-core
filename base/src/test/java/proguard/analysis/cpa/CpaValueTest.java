@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
@@ -177,6 +178,22 @@ public class CpaValueTest {
         assertEquals(0, ((IdentifiedReferenceValue)value).id);
         assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
         assertEquals("Ljava/lang/StringBuilder;", value.internalType(), "The type should be StringBuilder");
+    }
+
+    @Test
+    public void testSimpleSwitch()
+    {
+        ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleSwitch");
+        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
+        Value value = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
+        assertInstanceOf(TypedReferenceValue.class, value);
+        assertEquals("Ljava/lang/String;", value.internalType());
+        assertFalse(value.isParticular());
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        assertInstanceOf(TypedReferenceValue.class, stackTop);
+        assertEquals("Ljava/lang/String;", stackTop.internalType());
+        assertFalse(stackTop.isParticular());
     }
 
     //@Test
