@@ -34,8 +34,8 @@ import proguard.evaluation.value.ParticularReferenceValue
 class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>() {
 
     override fun applyArithmeticInstruction(
-        instruction: Instruction?,
-        operands: MutableList<ExpressionAbstractState>?,
+        instruction: Instruction,
+        operands: MutableList<ExpressionAbstractState>,
         resultCount: Int
     ): MutableList<ExpressionAbstractState> {
         return if (resultCount == 2)
@@ -44,8 +44,8 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
                 ExpressionAbstractState(
                     setOf(
                         InstructionExpression(
-                            instruction!!,
-                            operands!!
+                            instruction,
+                            operands
                         )
                     )
                 )
@@ -55,8 +55,8 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
                 ExpressionAbstractState(
                     setOf(
                         InstructionExpression(
-                            instruction!!,
-                            operands!!
+                            instruction,
+                            operands
                         )
                     )
                 )
@@ -118,31 +118,31 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
 
     override fun invokeMethod(
         state: JvmAbstractState<ExpressionAbstractState>,
-        call: Call?,
+        call: Call,
         operands: MutableList<ExpressionAbstractState>
     ) {
-        when (ClassUtil.internalTypeSize(call!!.target.descriptor.returnType ?: "?")) {
+        when (ClassUtil.internalTypeSize(call.target.descriptor.returnType ?: "?")) {
             0 -> return
-            1 -> state!!.pushAll(
+            1 -> state.pushAll(
                 mutableListOf(
                     ExpressionAbstractState(
                         setOf(
                             MethodExpression(
                                 call.target.fqn ?: "?",
-                                operands ?: listOf()
+                                operands
                             )
                         )
                     )
                 )
             )
-            else -> state!!.pushAll(
+            else -> state.pushAll(
                 mutableListOf(
                     abstractDefault,
                     ExpressionAbstractState(
                         setOf(
                             MethodExpression(
                                 call.target.fqn ?: "?",
-                                operands ?: listOf()
+                                operands
                             )
                         )
                     )
