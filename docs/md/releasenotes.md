@@ -4,6 +4,8 @@
 
 - Increase `proguard.classfile.VersionConstants.MAX_SUPPORTED_VERSION` to `64.65535` (Java 20 + preview enabled).
 - Fix tracking of `IdentifiedReferenceValue` IDs.
+- Add new Kotlin visitor SAM interfaces: `KotlinClassVisitor`, `KotlinFileFacadeVisitor`,
+  `KotlinMultiFileFacadeVisitor`, `KotlinMultiFilePartVisitor`, `KotlinSyntheticClassVisitor`.
 
 ### API changes
 - `JvmTransferRelation` has been refactored to model `IINC` in a separate `computeIncrement` method. 
