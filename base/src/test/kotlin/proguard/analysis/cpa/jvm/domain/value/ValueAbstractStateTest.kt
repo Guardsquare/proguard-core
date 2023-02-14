@@ -4,7 +4,10 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldNotBeInstanceOf
+import proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER
 import proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE
+import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.IdentifiedValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory
@@ -26,6 +29,7 @@ class ValueAbstractStateTest : FreeSpec({
             val a = ValueAbstractState(myString)
             val b = ValueAbstractState(myString)
             a shouldBe b
+            a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
         }
@@ -44,6 +48,7 @@ class ValueAbstractStateTest : FreeSpec({
             val b =
                 ValueAbstractState(valueFactory.createString("myString"))
             a shouldBe b
+            a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
         }
@@ -58,7 +63,8 @@ class ValueAbstractStateTest : FreeSpec({
         "Two abstract states with the same string should be equal" {
             val a = ValueAbstractState(myString)
             val b = ValueAbstractState(myString)
-            a shouldBe ValueAbstractState(myString)
+            a shouldBe b
+            a.hashCode() shouldBe b.hashCode()
             b.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
         }
@@ -93,6 +99,7 @@ class ValueAbstractStateTest : FreeSpec({
             val a = ValueAbstractState(myStringBuilder)
             val b = ValueAbstractState(myStringBuilder)
             a shouldBe b
+            a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
             a.join(b) shouldBe a
         }
@@ -104,6 +111,44 @@ class ValueAbstractStateTest : FreeSpec({
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
             (a.join(b).value as TypedReferenceValue).type shouldBe "Ljava/lang/StringBuilder;"
+        }
+    }
+
+    "Abstract states with particular StringBuilders with the same ID" - {
+        val valueFactory = ParticularValueFactory(ReferenceValueFactory())
+
+        val myStringBuilder = valueFactory.createStringBuilder(StringBuilder(), 1)
+        val myOtherStringBuilder = valueFactory.createStringBuilder(StringBuilder(), 1)
+
+        "Two abstract states with the same string builder instances should be equal" {
+            val a = ValueAbstractState(myStringBuilder)
+            val b = ValueAbstractState(myStringBuilder)
+            a shouldBe b
+            a.hashCode() shouldBe b.hashCode()
+            a.isLessOrEqual(b) shouldBe true
+            a.join(b) shouldBe a
+        }
+
+        "Two abstract states with the different string builder instances but the same ID should be equal" {
+            val a = ValueAbstractState(myStringBuilder)
+            val b = ValueAbstractState(myOtherStringBuilder)
+            a shouldBe b
+            a.hashCode() shouldBe b.hashCode()
+            a.isLessOrEqual(b) shouldBe true
+            a.join(b) shouldBe a
+        }
+
+        "Two abstract states with the different string builder instances and the different ID should not be equal" {
+            val a = ValueAbstractState(myStringBuilder)
+            val b = ValueAbstractState(valueFactory.createStringBuilder(StringBuilder(), 2))
+            a shouldNotBe b
+            a.hashCode() shouldNotBe b.hashCode()
+            a.isLessOrEqual(b) shouldNotBe true
+            a.join(b) shouldNotBe a
+            val value = a.join(b).value
+            value.shouldBeInstanceOf<TypedReferenceValue>()
+            value.shouldNotBeInstanceOf<IdentifiedReferenceValue>()
+            value.internalType() shouldBe TYPE_JAVA_LANG_STRING_BUILDER
         }
     }
 
@@ -163,5 +208,14 @@ private fun ValueFactory.createStringBuilder(sb: StringBuilder): Value = createR
     libraryClassPool.getClass("java/lang/StringBuilder"),
     false,
     false,
+    sb
+)
+
+private fun ValueFactory.createStringBuilder(sb: StringBuilder, id: Int): Value = createReferenceValue(
+    "Ljava/lang/StringBuilder;",
+    libraryClassPool.getClass("java/lang/StringBuilder"),
+    false,
+    false,
+    id,
     sb
 )

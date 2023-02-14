@@ -21,11 +21,14 @@ package proguard.analysis.cpa.jvm.domain.value;
 
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.evaluation.value.ParticularReferenceValue;
+import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.Value;
 
 import java.util.Objects;
 
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUFFER;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER;
 import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
 
 
@@ -94,37 +97,76 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
         if (o == null || getClass() != o.getClass()) return false;
         ValueAbstractState that = (ValueAbstractState) o;
 
-        // We want all equal strings to be treated as the same
-        // regardless if it's a different particular reference.
-        if (isParticularString(this.value) && isParticularString(that.value))
+
+        if (value.internalType() != null)
         {
-            return this.value.referenceValue().value().equals(that.value.referenceValue().value());
+            switch(value.internalType())
+            {
+                case TYPE_JAVA_LANG_STRING:
+                    // We want all equal strings to be treated as the same
+                    // regardless if it's a different particular reference.
+                    if (value.isParticular() && that.value.isParticular())
+                    {
+                        String stringA = value.referenceValue().value().toString();
+                        String stringB = that.value.referenceValue().value().toString();
+
+                        return stringA.equals(stringB);
+                    }
+                    break;
+                case TYPE_JAVA_LANG_STRING_BUILDER:
+                case TYPE_JAVA_LANG_STRING_BUFFER:
+                    // String String(Builder|Buffer) don't implement equals; we
+                    // need to check if they're the same by checking their ID
+                    // and their String value.
+                    if (value.isParticular() && that.value.isParticular())
+                    {
+                        int idA        = ((IdentifiedReferenceValue) value).id;
+                        int idB        = ((IdentifiedReferenceValue) that.value).id;
+                        String stringA = value.referenceValue().value().toString();
+                        String stringB = that.value.referenceValue().value().toString();
+
+                        return idA == idB && stringA.equals(stringB);
+                    }
+                    break;
+            }
         }
 
-        return Objects.equals(value, that.value);
+        return value.equals(that.value);
     }
 
 
     @Override
     public int hashCode()
     {
-        if (value instanceof ParticularReferenceValue && ((ParticularReferenceValue)value).value() instanceof String)
+        if (value.internalType() != null)
         {
-            return ((ParticularReferenceValue)value).value().hashCode();
+            switch (value.internalType())
+            {
+                case TYPE_JAVA_LANG_STRING:
+                    // For particular Strings, we simply use the String hashCode.
+                    if (value.isParticular())
+                    {
+                        return value.referenceValue().value().hashCode();
+                    }
+                    break;
+                case TYPE_JAVA_LANG_STRING_BUILDER:
+                case TYPE_JAVA_LANG_STRING_BUFFER:
+                    // Since String(Builder|Buffer) don't implement hashCode,
+                    // we use their type and ID for the hash code.
+                    if (value.isSpecific())
+                    {
+                        return Objects.hash(value.internalType(), ((IdentifiedReferenceValue) value).id);
+                    }
+                    break;
+            }
         }
 
         return Objects.hash(value);
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "JvmValueAbstractState(" + value + ")";
     }
-
-    private static boolean isParticularString(Value value)
-    {
-        return value instanceof ParticularReferenceValue &&
-                ((ParticularReferenceValue) value).value() instanceof String;
-    }
-
 }
