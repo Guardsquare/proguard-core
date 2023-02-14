@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import proguard.classfile.ClassPool
 import proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE
 import proguard.evaluation.value.IdentifiedValueFactory
 import proguard.evaluation.value.ParticularValueFactory
@@ -13,14 +12,9 @@ import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownValue
 import proguard.evaluation.value.Value
 import proguard.evaluation.value.ValueFactory
-import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 
 class ValueAbstractStateTest : FreeSpec({
-    beforeContainer {
-        // TODO(D17756): for now, this will trigger initialization of the libraryClassPool
-        ClassPoolBuilder.initialize(ClassPool(), false)
-    }
 
     "Abstract states with particular strings" - {
         val valueFactory = ParticularValueFactory(ReferenceValueFactory())
