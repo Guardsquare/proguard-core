@@ -19,6 +19,8 @@
 
 package proguard.analysis.cpa.jvm.domain.value;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.evaluation.value.IdentifiedReferenceValue;
@@ -39,7 +41,7 @@ import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
  */
 public class ValueAbstractState implements LatticeAbstractState<ValueAbstractState>
 {
-    private static final boolean DEBUG = System.getProperty("jvas") != null;
+    private static final Logger logger = LogManager.getLogger(ValueAbstractState.class);
 
     public static final ValueAbstractState UNKNOWN = new ValueAbstractState(UNKNOWN_VALUE);
     private Value                 value;
@@ -73,7 +75,7 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
                 this :
                 new ValueAbstractState(this.value.generalize(abstractState.value));
 
-        if (DEBUG) System.out.println("join(" + this + ", " + abstractState + ") = " + result);
+        logger.trace("join({}, {}) = {}", this, abstractState, result);
 
         return result;
     }
@@ -81,7 +83,7 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
     @Override
     public boolean isLessOrEqual(ValueAbstractState abstractState)
     {
-        return abstractState == UNKNOWN || abstractState.equals(this);
+        return abstractState == UNKNOWN || join(abstractState).equals(abstractState);
     }
 
     @Override
@@ -167,6 +169,6 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
     @Override
     public String toString()
     {
-        return "JvmValueAbstractState(" + value + ")";
+        return "ValueAbstractState(" + value + ")";
     }
 }

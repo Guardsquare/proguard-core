@@ -174,6 +174,16 @@ public interface ValueFactory
                                         Object  value);
 
     /**
+     * Creates a new ReferenceValue that represents the given type with a specified ID.
+     * The type must be an internal class name or an array type. If the type is
+     * <code>null</code>, the ReferenceValue represents <code>null</code>.
+     */
+    ReferenceValue createReferenceValue(String  type,
+                                        Clazz   referencedClass,
+                                        boolean mayBeExtension,
+                                        boolean maybeNull,
+                                        int     id);
+    /**
      * Creates a new ReferenceValue that represents a non-null array with
      * elements of the given type, with the given length.
      */

@@ -182,7 +182,7 @@ class ValueAbstractStateTest : FreeSpec({
             val a = ValueAbstractState(myString)
             val b = ValueAbstractState(UNKNOWN_VALUE)
             a shouldNotBe b
-            a.isLessOrEqual(b) shouldBe false
+            a.isLessOrEqual(b) shouldBe true
             a.join(b).value.shouldBeInstanceOf<UnknownValue>()
         }
 

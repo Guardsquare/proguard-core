@@ -182,6 +182,20 @@ implements   ValueFactory
                                                           value);
     }
 
+    @Override
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               int     id)
+    {
+        return referenceValueFactory.createReferenceValue(type,
+                                                          referencedClass,
+                                                          mayBeExtension,
+                                                          mayBeNull,
+                                                          id);
+    }
+
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength)
@@ -244,6 +258,16 @@ implements   ValueFactory
                                                    Object  value)
         {
             return new ParticularReferenceValue(type, referencedClass, this, id, value);
+        }
+
+        @Override
+        public ReferenceValue createReferenceValue(String  type,
+                                                   Clazz   referencedClass,
+                                                   boolean mayBeExtension,
+                                                   boolean mayBeNull,
+                                                   int     id)
+        {
+            return new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, id);
         }
     }
 }

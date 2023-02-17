@@ -50,7 +50,9 @@ import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 import static proguard.classfile.AccessConstants.FINAL;
 import static proguard.classfile.AccessConstants.STATIC;
@@ -68,6 +70,8 @@ import static proguard.classfile.TypeConstants.INT;
 import static proguard.classfile.TypeConstants.LONG;
 import static proguard.classfile.TypeConstants.SHORT;
 import static proguard.classfile.TypeConstants.VOID;
+import static proguard.classfile.util.ClassUtil.externalClassName;
+import static proguard.classfile.util.ClassUtil.isInternalPrimitiveType;
 import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
 import static proguard.evaluation.value.ReflectiveMethodCallUtil.callMethod;
 
@@ -85,10 +89,10 @@ import static proguard.evaluation.value.ReflectiveMethodCallUtil.callMethod;
  *
  * <p>There are some methods which always return a new object when the method is actually executed in the
  * JVM (e.g. StringBuilder.toString). For such method calls, we never update the stack/variables
- * (Blacklist, Case 1)</p>
+ * (Denylist, Case 1)</p>
  *
  * <p>For certain methods (e.g. the Constructor), we always need to replace the value on stack/variables
- * (Whitelist, Case 3)</p>
+ * (Allowlist, Case 3)</p>
  *
  * <p>In all other cases, we assume the underlying object was changed if the returned value is of the same
  * type as the called upon instance. This is an approximation, which works well for Strings, StringBuffer,
@@ -289,10 +293,10 @@ public class ExecutingInvocationUnit
     /**
      * Executes a method, by reflectively trying to call it with the given parameters.
      *
-     * @param parameter an array containing the parameter values (for a non-static call, parameter[0] is the instance.
+     * @param parameters an array containing the parameters values (for a non-static call, parameters[0] is the instance.
      * @return the return value of the method call. Even for a void method, a created value might be returned, which might need to be replaced on stack/values (e.g. for Constructors).
      */
-    public Value executeMethod(Clazz clazz, Method  method, Value[] parameter)
+    public Value executeMethod(Clazz clazz, Method  method, Value...parameters)
     {
         if (clazz == null || method == null)
         {
@@ -306,16 +310,40 @@ public class ExecutingInvocationUnit
         String  returnType    = ClassUtil.internalMethodReturnType(descriptor);
         Clazz   returnClazz   = getReferencedClass(clazz, method, methodName.equals(METHOD_NAME_INIT));
 
+
+        // On error: return at least a typed reference and potentially a replacement
+        // for the instance, if we know that the method call should return its own instance
+        // according the approximation of `returnsOwnInstance`.
+        String finalReturnType = returnType;
+        BiFunction<ReferenceValue, Integer, Value> errorHandler = (instance, objectId) -> {
+
+            if (objectId != -1 && returnsOwnInstance(finalReturnType, methodName, descriptor, isStatic, instance == null ? null : instance.internalType()))
+            {
+                return valueFactory.createReferenceValue(finalReturnType, returnClazz, mayBeExtension(returnClazz), true, objectId.intValue());
+            }
+            else if (isInternalPrimitiveType(finalReturnType))
+            {
+                return createPrimitiveValue(finalReturnType);
+            }
+            else
+            {
+                return valueFactory.createValue(finalReturnType, returnClazz, mayBeExtension(returnClazz), true);
+            }
+        };
+
+        ReferenceValue instance = !isStatic ? parameters[0].referenceValue() : null;
+        int            objectId = instance instanceof IdentifiedReferenceValue ? ((IdentifiedReferenceValue) instance).id : -1;
+
         if (!isSupportedMethodCall(baseClassName, methodName))
         {
-            return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+             return errorHandler.apply(instance, objectId);
         }
 
         if (!isStatic)
         {
-            if (!parameter[0].isSpecific()) // instance must be at least specific.
+            if (!instance.isSpecific()) // instance must be at least specific.
             {
-                return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+                return errorHandler.apply(instance, objectId);
             }
         }
 
@@ -324,21 +352,18 @@ public class ExecutingInvocationUnit
         int paramOffset = isStatic ? 0 : 1;
 
         // check if any of the parameters is Unknown. If yes, the result is unknown as well.
-        for (int i = paramOffset; i < parameter.length; i++)
+        for (int i = paramOffset; i < parameters.length; i++)
         {
-            if (!parameter[i].isParticular())
+            if (!parameters[i].isParticular())
             {
-                return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+                return errorHandler.apply(instance, objectId);
             }
         }
 
         boolean resultMayBeNull      = true;
         boolean resultMayBeExtension = true;
+        Object  callingInstance      = null; // null for static
         Object  methodResult;
-
-        ReferenceValue instance        = !isStatic ? parameter[0].referenceValue() : null;
-        Object         callingInstance = null; // null for static
-        int            objectId        = instance instanceof IdentifiedReferenceValue ? ((IdentifiedReferenceValue) instance).id : -1;
 
         try
         {
@@ -346,24 +371,24 @@ public class ExecutingInvocationUnit
             Class<?>[] parameterClasses = ReflectiveMethodCallUtil.stringtypesToClasses(descriptor);
 
             // collect all objects of the parameters.
-            Object[] parameterObjects = new Object[parameter.length - paramOffset];
-            for (int i = paramOffset; i < parameter.length; i++)
+            Object[] parameterObjects = new Object[parameters.length - paramOffset];
+            for (int i = paramOffset; i < parameters.length; i++)
             {
-                parameterObjects[i - paramOffset] = ReflectiveMethodCallUtil.getObjectForValue(parameter[i], parameterClasses[i - paramOffset]);
+                parameterObjects[i - paramOffset] = ReflectiveMethodCallUtil.getObjectForValue(parameters[i], parameterClasses[i - paramOffset]);
             }
 
             if (methodName.equals(METHOD_NAME_INIT)) //CTOR
             {
-                methodResult = ReflectiveMethodCallUtil.callConstructor(baseClassName.replace('/', '.'),
+                methodResult = ReflectiveMethodCallUtil.callConstructor(externalClassName(baseClassName),
                                                                         parameterClasses,
                                                                         parameterObjects);
 
-                resultMayBeNull = false; // the return of the ctor will not be null if it does not throw.
+                resultMayBeNull      = false; // the return of the ctor will not be null if it does not throw.
                 resultMayBeExtension = false; // the return of the ctor will always be this specific type.
             }
             else // non-constructor method call.
             {
-                if (instance != null)
+                if (instance != null && instance.isParticular())
                 {
                     switch (baseClassName)
                     {
@@ -386,7 +411,7 @@ public class ExecutingInvocationUnit
                 }
                 else
                 {
-                    return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+                    return errorHandler.apply(instance, objectId);
                 }
             }
         }
@@ -398,7 +423,7 @@ public class ExecutingInvocationUnit
             {
                 System.err.println("Invocation exception during method execution: " + e.getClass().getSimpleName() + ": - " + e.getMessage());
             }
-            return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+            return errorHandler.apply(instance, objectId);
         }
         catch (RuntimeException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException e)
         {
@@ -406,11 +431,11 @@ public class ExecutingInvocationUnit
             {
                 System.err.println("Error reflectively calling " + baseClassName + "." + methodName + descriptor + ": " + e.getClass().getSimpleName() + " - " + e.getMessage());
             }
-            return valueFactory.createValue(returnType, returnClazz, mayBeExtension(returnClazz), true);
+            return errorHandler.apply(instance, objectId);
         }
 
         // If the return value is a primitive, store this inside its corresponding ParticularValue, e.g. int -> ParticularIntegerValue.
-        if (returnType.length() == 1 && ClassUtil.isInternalPrimitiveType(returnType))
+        if (returnType.length() == 1 && isInternalPrimitiveType(returnType))
         {
             return createPrimitiveValue(methodResult, returnType);
         }
@@ -453,6 +478,33 @@ public class ExecutingInvocationUnit
     }
 
     // private methods
+
+    /**
+     * Create a ParticularValue containing the object, using the factory of this instance
+     *
+     * @param type the type the resulting Value should have.
+     * @return the new ParticularValue, or null if the type cannot be converted to a ParticularValue.
+     */
+    private Value createPrimitiveValue(String type)
+    {
+        switch (type.charAt(0))
+        {
+            case BOOLEAN:
+            case INT:
+            case SHORT:
+            case BYTE:
+            case CHAR:
+                return valueFactory.createIntegerValue();
+            case FLOAT:
+                return valueFactory.createFloatValue();
+            case DOUBLE:
+                return valueFactory.createDoubleValue();
+            case LONG:
+                return valueFactory.createLongValue();
+        }
+        // unknown type
+        return null;
+    }
 
     /**
      * Create a ParticularValue containing the object, using the factory of this instance
@@ -548,7 +600,7 @@ public class ExecutingInvocationUnit
      * @param methodName method name.
      * @return if it should create a new instance.
      */
-    private static boolean alwaysReturnsNewInstance(String internalClassName, String methodName)
+    public boolean alwaysReturnsNewInstance(String internalClassName, String methodName)
     {
         switch (internalClassName)
         {
@@ -563,7 +615,7 @@ public class ExecutingInvocationUnit
                     return true;
                 }
             case NAME_JAVA_LANG_STRING:
-                if ("valueOf".equals(methodName))
+                if ("valueOf".equals(methodName) || "toString".equals(methodName))
                 {
                     return true;
                 }
@@ -586,7 +638,27 @@ public class ExecutingInvocationUnit
     }
 
     /**
-     * Determines if the stack/variables need to be updated and initiates the updating.
+     * Determines if the stack/variables need to be updated.
+     *
+     * Limitations:
+     * We are only checking if the instance of the call was modified, i.e.
+     * - for static calls, no value should be replaced on stack/variables (since no instance exists), and
+     * - the method call assumes that the parameters are not changed.
+     *
+     * This is an approximation which works well for StringBuilder/StringBuffer and Strings.
+     */
+    public boolean returnsOwnInstance(Clazz clazz, Method method, ReferenceValue instance)
+    {
+        String  instanceType      = instance == null ? null : instance.internalType();
+        String  internalClassName = clazz.getName();
+        String  methodName        = method.getName(clazz);
+        boolean isStatic          = (method.getAccessFlags() & STATIC) != 0;
+
+        return returnsOwnInstance(internalClassName, methodName, method.getDescriptor(clazz), isStatic, instanceType);
+    }
+
+    /**
+     * Determines if the stack/variables need to be updated.
      *
      * Limitations:
      * We are only checking if the instance of the call was modified, i.e.
@@ -595,30 +667,48 @@ public class ExecutingInvocationUnit
      *
      * This is an approximation which works well for StringBuilder/StringBuffer and Strings.
      */
-    private void updateStackAndVariables(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant, String returnType, Value reflectedReturnValue)
+    private boolean returnsOwnInstance(String internalClassName, String methodName, String methodDescriptor, boolean isStatic, String instanceType)
     {
-        String baseClassName = anyMethodrefConstant.getClassName(clazz);
-        String methodName = anyMethodrefConstant.getName(clazz);
+        String returnType = ClassUtil.internalMethodReturnType(methodDescriptor);
+
+        if (isInternalPrimitiveType(returnType))
+        {
+            return false;
+        }
 
         if (isStatic)
         {
             // For a static method, there is never an instance to update,
             // we do not track internal state, so no static internals of the class are stored.
-            return;
+            return false;
         }
 
-        if (alwaysReturnsNewInstance(baseClassName, methodName))
+        if (alwaysReturnsNewInstance(internalClassName, methodName))
         {
-            // Blacklist (Case 1).
+            // Denylist (Case 1).
             // The value returned by the PartialEvaluator never needs to be replaced.
-            return;
+            return false;
         }
 
-        if (alwaysModifiesInstance(baseClassName, methodName) || // Whitelist (Case 2). The instance always needs to be replaced.
-            Objects.equals(returnType, parameters[0].referenceValue().getType())) // Approximation (Case 3)
-            // For now, we assume that the instance is changed, if the method is not in the Blacklist, and the returnType equals
+        if (alwaysModifiesInstance(internalClassName, methodName) || // Allowlist (Case 2). The instance always needs to be replaced.
+            Objects.equals(returnType, instanceType)) // Approximation (Case 3)
+            // For now, we assume that the instance is changed, if the method is not in the Denylist, and the returnType equals
             // the type of the called upon instance. E.g., if StringBuilder.append() returns a StringBuilder, we assume that this
-            // is the instance which needs to be replace.
+            // is the instance which needs to be replaced.
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    private void updateStackAndVariables(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant, String returnType, Value reflectedReturnValue)
+    {
+        String baseClassName = anyMethodrefConstant.getClassName(clazz);
+        String methodName    = anyMethodrefConstant.getName(clazz);
+
+        if (returnsOwnInstance(clazz, anyMethodrefConstant.referencedMethod, parameters[0].referenceValue()))
         {
             Value updateValue = reflectedReturnValue;
 

@@ -9,9 +9,7 @@ import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
-import proguard.analysis.cpa.defaults.StopAlwaysOperator;
-import proguard.analysis.cpa.defaults.StopContainedOperator;
-import proguard.analysis.cpa.defaults.StopSepOperator;
+import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
@@ -31,10 +29,13 @@ import proguard.classfile.ClassPool;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.Signature;
+import proguard.evaluation.value.DoubleValue;
 import proguard.evaluation.value.IdentifiedReferenceValue;
+import proguard.evaluation.value.ParticularDoubleValue;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ReferenceValue;
+import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
@@ -54,13 +55,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
 import static proguard.testutils.JavaUtilKt.getCurrentJavaHome;
 
 /**
- * @author james
+ * Tests for CPA value analysis.
  */
 public class CpaValueTest {
+    private static final boolean DEBUG = false;
 
     @Test
     public void testSimpleString()
@@ -73,6 +76,26 @@ public class CpaValueTest {
         ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
         Object stackTopValue = stackTop.value();
         assertEquals( "Hello World", stackTopValue,"Hello World should be on the top of the stack");
+    }
+
+    @Test
+    public void testSimpleDouble()
+    {
+        ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleDouble");
+        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
+
+        ParticularDoubleValue value = (ParticularDoubleValue) lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
+        assertEquals(1.0, value.doubleValue().value(), "1.0 should be in local variable slot 1");
+
+        TopValue topValue = (TopValue) lastAbstractState.getVariableOrDefault(2, UNKNOWN).getValue();
+        assertEquals(topValue, new TopValue(), "The top value should be in local variable slot 2");
+
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        Value stackTopValue = printlnCall.getFrame().getOperandStack().peek(1).getValue();
+        assertInstanceOf(TopValue.class, stackTopValue);
+
+        DoubleValue doubleValue = printlnCall.getFrame().getOperandStack().peek(0).getValue().doubleValue();
+        assertEquals(1.0, doubleValue.value());
     }
 
     @Test
@@ -170,13 +193,12 @@ public class CpaValueTest {
         ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
         assertInstanceOf(TypedReferenceValue.class, stackTop,"The value should be correctly tracked");
         assertEquals("Ljava/lang/String;", stackTop.internalType());
-        assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
+        assertFalse(stackTop instanceof ParticularReferenceValue);
 
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
         Value value = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
         assertInstanceOf(IdentifiedReferenceValue.class, value, "The value should be a Identified reference 0");
         assertEquals(0, ((IdentifiedReferenceValue)value).id);
-        assertNotEquals(true, stackTop instanceof ParticularReferenceValue);
         assertEquals("Ljava/lang/StringBuilder;", value.internalType(), "The type should be StringBuilder");
     }
 
@@ -190,25 +212,46 @@ public class CpaValueTest {
         assertEquals("Ljava/lang/String;", value.internalType());
         assertFalse(value.isParticular());
         JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
-        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek()
+                .getValue()
+                .referenceValue();
         assertInstanceOf(TypedReferenceValue.class, stackTop);
         assertEquals("Ljava/lang/String;", stackTop.internalType());
         assertFalse(stackTop.isParticular());
     }
 
-    //@Test
+    @Test
+    public void testStringBuilderLoopNested()
+    {
+        ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("StringBuilderLoopNested");
+
+        // Parameter to System.out.println is a typed String but
+        // the actual value is unknown.
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek()
+                .getValue()
+                .referenceValue();
+        assertInstanceOf(TypedReferenceValue.class, stackTop,"The value should be correctly tracked");
+        assertEquals("Ljava/lang/String;", stackTop.internalType());
+        assertTrue(stackTop instanceof TypedReferenceValue);
+        assertFalse(stackTop instanceof ParticularReferenceValue);
+    }
+
+
+    @Test
     public void testStringBuilderLoop()
     {
-        // TODO: gets stuck in a loop!
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("StringBuilderLoop");
 
-        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
-
-        IdentifiedReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
-        Object heapValue = lastAbstractState.getFieldOrDefault(value.id, UNKNOWN).getValue();
-        assertInstanceOf(TypedReferenceValue.class, heapValue, "The value should be a TypedReferenceValue");
-        // TODO: sometimes Serializable, sometimes StringBuilder
-//        assertEquals("Ljava/io/Serializable;", ((TypedReferenceValue)heapValue).getType(), "The type should be Serializable (common class of String and StringBuilder)");
+        // Parameter to System.out.println is a typed String but the actual value is unknown.
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek()
+                .getValue()
+                .referenceValue();
+        assertInstanceOf(TypedReferenceValue.class, stackTop,"The value should be correctly tracked");
+        assertEquals("Ljava/lang/String;", stackTop.internalType());
+        assertTrue(stackTop instanceof TypedReferenceValue);
+        assertFalse(stackTop instanceof ParticularReferenceValue);
     }
 
     private static JvmValueAbstractState getLastAbstractState(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet)
@@ -239,21 +282,19 @@ public class CpaValueTest {
 
         JvmCfa cfa = CfaUtil.createInterproceduralCfa(programClassPool, ClassPoolBuilder.Companion.getLibraryClassPool());
 
-        try {
-            Files.write(new File("graph.dot").toPath(), CfaUtil.toDot(cfa).getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (DEBUG)
+        {
+            try {
+                Files.write(new File("graph.dot").toPath(), CfaUtil.toDot(cfa).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         AbstractDomain abstractDomain = new DelegateAbstractDomain<ValueAbstractState>();
-
         JvmValueTransferRelation transferRelation = new JvmValueTransferRelation(valueFactory);
-
         MergeOperator mergeJoinOperator = new MergeJoinOperator(abstractDomain);
-        StopOperator stopAlwaysOperator = new StopAlwaysOperator();
-        StopOperator stopContainedOperator = new StopContainedOperator();
-        StopSepOperator stopSepOperator = new StopSepOperator(abstractDomain);
-
+        StopOperator stopOperator = new StopJoinOperator(abstractDomain);
         PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
 
         ProgramClass clazz = (ProgramClass) programClassPool.getClass(className);
@@ -278,7 +319,7 @@ public class CpaValueTest {
                         abstractDomain,
                         transferRelation,
                         mergeJoinOperator,
-                        stopContainedOperator,
+                        stopOperator,
                         precisionAdjustment
                 )
         ).run(reachedSet, waitlist);

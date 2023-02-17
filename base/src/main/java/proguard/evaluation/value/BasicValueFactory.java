@@ -150,6 +150,15 @@ implements   ValueFactory
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
+                                               int     id)
+    {
+        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
+
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
                                                int     id,
                                                Object  value)
     {

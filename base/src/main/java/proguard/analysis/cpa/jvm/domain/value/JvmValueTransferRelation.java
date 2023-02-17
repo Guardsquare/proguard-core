@@ -19,6 +19,7 @@ import java.util.List;
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
 import static proguard.classfile.TypeConstants.VOID;
 import static proguard.classfile.util.ClassUtil.internalMethodReturnType;
+import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
 
 /**
  * A {@link JvmTransferRelation} that tracks values.
@@ -28,7 +29,9 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     private final ValueFactory            valueFactory;
     public  final ExecutingInvocationUnit executingInvocationUnit;
 
-    private static final TopValue TOP_VALUE = new TopValue();
+    // Represents the dummy value that takes up the extra space when storing a long value or a
+    // double value.
+    private static final ValueAbstractState TOP_VALUE = new ValueAbstractState(new TopValue());
 
     public JvmValueTransferRelation(ValueFactory valueFactory)
     {
@@ -57,8 +60,8 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     public List<ValueAbstractState> getAbstractDoubleConstant(double d)
     {
         return Arrays.asList(
-            new ValueAbstractState(valueFactory.createDoubleValue(d)),
-            new ValueAbstractState(TOP_VALUE)
+            TOP_VALUE,
+            new ValueAbstractState(valueFactory.createDoubleValue(d))
         );
 
     }
@@ -80,8 +83,8 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     public List<ValueAbstractState> getAbstractLongConstant(long l)
     {
         return Arrays.asList(
-            new ValueAbstractState(valueFactory.createLongValue(l)),
-            new ValueAbstractState(TOP_VALUE)
+            TOP_VALUE,
+            new ValueAbstractState(valueFactory.createLongValue(l))
         );
     }
 
@@ -132,16 +135,23 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
             Value result = executingInvocationUnit.executeMethod(targetClass, targetMethod, operandsArray);
 
-            boolean isVoidReturnType = internalMethodReturnType(targetMethod.getDescriptor(targetClass)).equals(String.valueOf(VOID));
+            String  returnType       = internalMethodReturnType(targetMethod.getDescriptor(targetClass));
+            boolean isVoidReturnType = returnType.equals(String.valueOf(VOID));
 
             if (!isVoidReturnType)
             {
-                // Assume no category2 values are returned, for now.
+                if (isInternalCategory2Type(returnType))
+                {
+                    state.push(TOP_VALUE);
+                }
                 state.push(new ValueAbstractState(result));
             }
 
-            updateStack(state, result, isVoidReturnType);
-            updateHeap( state, result);
+            if (executingInvocationUnit.returnsOwnInstance(targetClass, targetMethod, operandsArray[0].referenceValue()))
+            {
+                updateStack(state, result, isVoidReturnType);
+                updateHeap( state, result);
+            }
         }
         else
         {

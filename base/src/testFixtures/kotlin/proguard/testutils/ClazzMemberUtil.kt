@@ -57,3 +57,4 @@ fun ClazzMemberPair.match(builder: InstructionBuilder.() -> InstructionBuilder):
 
     return matcher.isMatching
 }
+fun Clazz.findMethod(name: String) = findMethod(name, null)

@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.value;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
@@ -38,6 +40,8 @@ import static proguard.evaluation.value.ParticularReferenceValue.UNINITIALIZED;
  */
 public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
 {
+    private static final Logger logger = LogManager.getLogger(JvmValueAbstractState.class);
+
     private final ValueFactory valueFactory;
 
     /**
@@ -116,6 +120,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     public ValueAbstractState newObject(String className)
     {
         IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(className, null, true, true, UNINITIALIZED);
+        logger.trace("newObject(className = {}): {}", className, value);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
         setField(value.id, jvmValueAbstractState);
         return jvmValueAbstractState;
@@ -128,6 +133,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     public ValueAbstractState newObject(Clazz clazz)
     {
         IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(clazz, UNINITIALIZED);
+        logger.trace("newObject(clazz = {}): {}", clazz.getName(), value);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
         setField(value.id, jvmValueAbstractState);
         return jvmValueAbstractState;
@@ -187,6 +193,12 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     @Override
     public int hashCode() {
         return Objects.hash(valueFactory, programLocation, frame, heap, staticFields);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "JvmValueAbstractState(" + getProgramLocation() + ")";
     }
 
     private static boolean isString(Value value)

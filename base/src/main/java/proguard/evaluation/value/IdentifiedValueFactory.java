@@ -76,6 +76,22 @@ extends      ParticularValueFactory
                                          referenceID++);
     }
 
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               int     id)
+    {
+        return type == null ?
+            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
+            new IdentifiedReferenceValue(type,
+                                         referencedClass,
+                                         mayBeExtension,
+                                         mayBeNull,
+                                         this,
+                                         id);
+    }
+
 
     public ReferenceValue createReferenceValue(String  type,
                                                Clazz   referencedClass,
