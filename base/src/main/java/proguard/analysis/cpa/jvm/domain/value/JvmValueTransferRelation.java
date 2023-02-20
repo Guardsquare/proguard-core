@@ -33,10 +33,10 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     // double value.
     private static final ValueAbstractState TOP_VALUE = new ValueAbstractState(new TopValue());
 
-    public JvmValueTransferRelation(ValueFactory valueFactory)
+    public JvmValueTransferRelation(ValueFactory valueFactory, ExecutingInvocationUnit executingInvocationUnit)
     {
         this.valueFactory            = valueFactory;
-        this.executingInvocationUnit = new ExecutingInvocationUnit(valueFactory);
+        this.executingInvocationUnit = executingInvocationUnit;
     }
 
     public ValueFactory getValueFactory()

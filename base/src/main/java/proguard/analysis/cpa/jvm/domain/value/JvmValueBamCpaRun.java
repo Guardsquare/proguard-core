@@ -24,6 +24,7 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
 import proguard.classfile.MethodSignature;
+import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ValueFactory;
 
@@ -40,6 +41,7 @@ public class JvmValueBamCpaRun
 {
     private final MethodSignature mainMethodSignature;
     private final ValueFactory valueFactory;
+    private final ExecutingInvocationUnit executingInvocationUnit;
     private final JvmHeapAbstractState<ValueAbstractState> heap = new JvmShallowHeapAbstractState<>(new HashMapAbstractState<>(), Integer.class, UNKNOWN);
     private final MapAbstractState<String, ValueAbstractState> staticFields;
 
@@ -47,6 +49,7 @@ public class JvmValueBamCpaRun
     private JvmValueBamCpaRun(JvmCfa                                       cfa,
                               MethodSignature                              mainMethodSignature,
                               ValueFactory                                 valueFactory,
+                              ExecutingInvocationUnit                      executingInvocationUnit,
                               int                                          maxCallStackDepth,
                               HeapModel                                    heapModel,
                               MapAbstractState<String, ValueAbstractState> staticFields,
@@ -54,9 +57,10 @@ public class JvmValueBamCpaRun
                               boolean                                      reduceHeap)
     {
         super(cfa, maxCallStackDepth, heapModel, abortOperator, reduceHeap);
-        this.valueFactory        = valueFactory;
-        this.mainMethodSignature = mainMethodSignature;
-        this.staticFields        = staticFields;
+        this.valueFactory            = valueFactory;
+        this.executingInvocationUnit = executingInvocationUnit;
+        this.mainMethodSignature     = mainMethodSignature;
+        this.staticFields            = staticFields;
     }
 
     @Override
@@ -65,7 +69,7 @@ public class JvmValueBamCpaRun
         DelegateAbstractDomain<ValueAbstractState> abstractDomain = new DelegateAbstractDomain<>();
         return new SimpleCpa(
             abstractDomain,
-            new JvmValueTransferRelation(valueFactory),
+            new JvmValueTransferRelation(valueFactory, executingInvocationUnit),
             new MergeJoinOperator(abstractDomain),
             new StopContainedOperator(),
             new StaticPrecisionAdjustment()
@@ -75,7 +79,7 @@ public class JvmValueBamCpaRun
     @Override
     public ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createReduceOperator()
     {
-        return new JvmValueReduceOperator(valueFactory);
+        return new JvmValueReduceOperator(valueFactory, executingInvocationUnit);
     }
 
     @Override
@@ -92,7 +96,7 @@ public class JvmValueBamCpaRun
     @Override
     public ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createExpandOperator()
     {
-        return new JvmValueExpandOperator(valueFactory, cfa);
+        return new JvmValueExpandOperator(valueFactory, executingInvocationUnit, cfa);
     }
 
     @Override
@@ -106,6 +110,7 @@ public class JvmValueBamCpaRun
     {
         return singletonList(new JvmValueAbstractState(
             valueFactory,
+            executingInvocationUnit,
             cfa.getFunctionEntryNode(getMainSignature()),
             new JvmFrameAbstractState<>(),
             heap,
@@ -136,6 +141,7 @@ public class JvmValueBamCpaRun
                 cfa,
                 mainSignature,
                 valueFactory,
+                new ExecutingInvocationUnit(valueFactory),
                 maxCallStackDepth,
                 heapModel,
                 staticFields,

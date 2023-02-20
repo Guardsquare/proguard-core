@@ -29,6 +29,7 @@ import proguard.classfile.ClassPool;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.Signature;
+import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.DoubleValue;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ParticularDoubleValue;
@@ -37,6 +38,7 @@ import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.TypedReferenceValue;
+import proguard.evaluation.value.UnknownReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 import proguard.testutils.ClassPoolBuilder;
@@ -254,6 +256,18 @@ public class CpaValueTest {
         assertFalse(stackTop instanceof ParticularReferenceValue);
     }
 
+    @Test
+    public void testUnsupportedClass()
+    {
+        ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("UnsupportedClass");
+        JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
+        assertInstanceOf(UnknownReferenceValue.class, lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue());
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
+        assertInstanceOf(UnknownReferenceValue.class, stackTop);
+        assertTrue(((JvmShallowHeapAbstractState)lastAbstractState.getHeap()).referenceToObject.isEmpty());
+    }
+
     private static JvmValueAbstractState getLastAbstractState(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet)
     {
         return reachedSet
@@ -298,7 +312,8 @@ public class CpaValueTest {
         }
 
         AbstractDomain abstractDomain = new DelegateAbstractDomain<ValueAbstractState>();
-        JvmValueTransferRelation transferRelation = new JvmValueTransferRelation(valueFactory);
+        ExecutingInvocationUnit executingInvocationUnit = new ExecutingInvocationUnit(valueFactory);
+        JvmValueTransferRelation transferRelation = new JvmValueTransferRelation(valueFactory, executingInvocationUnit);
         MergeOperator mergeJoinOperator = new MergeJoinOperator(abstractDomain);
         StopOperator stopOperator = new StopJoinOperator(abstractDomain);
         PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
@@ -310,6 +325,7 @@ public class CpaValueTest {
         JvmValueAbstractState initialStates =
             new JvmValueAbstractState(
                 valueFactory,
+                    executingInvocationUnit,
                 cfa.getFunctionEntryNode(mainSignature),
                 frame,
                 heap,

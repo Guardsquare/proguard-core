@@ -26,6 +26,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.classfile.Clazz;
+import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
@@ -33,6 +34,7 @@ import proguard.evaluation.value.ValueFactory;
 
 import java.util.Objects;
 
+import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.evaluation.value.ParticularReferenceValue.UNINITIALIZED;
 
@@ -44,23 +46,28 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
 
     private final ValueFactory valueFactory;
 
+    private final ExecutingInvocationUnit executingInvocationUnit;
+
     /**
      * Create a JVM value abstract state.
      *
-     * @param valueFactory    a ValueFactory which is used to create abstract values.
-     * @param programLocation a CFA node
-     * @param frame           a frame abstract state
-     * @param heap            a heap abstract state
-     * @param staticFields    a static field table
+     * @param valueFactory            a ValueFactory which is used to create abstract values.
+     * @param executingInvocationUnit an ExecutingInvocationUnit which is used to execute methods reflectively.
+     * @param programLocation         a CFA node
+     * @param frame                   a frame abstract state
+     * @param heap                    a heap abstract state
+     * @param staticFields            a static field table
      */
     public JvmValueAbstractState(ValueFactory                                 valueFactory,
+                                 ExecutingInvocationUnit                      executingInvocationUnit,
                                  JvmCfaNode                                   programLocation,
                                  JvmFrameAbstractState<ValueAbstractState>    frame,
                                  JvmHeapAbstractState<ValueAbstractState>     heap,
                                  MapAbstractState<String, ValueAbstractState> staticFields)
     {
         super(programLocation, frame, heap, staticFields);
-        this.valueFactory = valueFactory;
+        this.valueFactory            = valueFactory;
+        this.executingInvocationUnit = executingInvocationUnit;
     }
 
     /**
@@ -119,6 +126,11 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     @Override
     public ValueAbstractState newObject(String className)
     {
+        if (!executingInvocationUnit.isSupportedMethodCall(className, METHOD_NAME_INIT))
+        {
+            return new ValueAbstractState(valueFactory.createReferenceValue());
+        }
+
         IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(className, null, true, true, UNINITIALIZED);
         logger.trace("newObject(className = {}): {}", className, value);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
@@ -132,6 +144,11 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     @Override
     public ValueAbstractState newObject(Clazz clazz)
     {
+        if (!executingInvocationUnit.isSupportedMethodCall(clazz.getName(), METHOD_NAME_INIT))
+        {
+            return new ValueAbstractState(valueFactory.createReferenceValue());
+        }
+
         IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(clazz, UNINITIALIZED);
         logger.trace("newObject(clazz = {}): {}", clazz.getName(), value);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
@@ -156,6 +173,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     {
         JvmValueAbstractState answer = new JvmValueAbstractState(
             valueFactory,
+            executingInvocationUnit,
             programLocation.equals(abstractState.getProgramLocation()) ? programLocation : topLocation,
             frame.join(abstractState.getFrame()),
             heap.join(abstractState.getHeap()),
@@ -167,7 +185,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
     @Override
     public JvmValueAbstractState copy()
     {
-        return new JvmValueAbstractState(valueFactory, programLocation, frame.copy(), heap.copy(), staticFields.copy());
+        return new JvmValueAbstractState(valueFactory, executingInvocationUnit, programLocation, frame.copy(), heap.copy(), staticFields.copy());
     }
 
     @Override
