@@ -263,14 +263,20 @@ public class CpaValueTest {
                 .get();
     }
 
-    private static JvmValueAbstractState getPrintlnCall(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet) {
+    private static JvmValueAbstractState getPrintlnCall(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet)
+    {
+        return getMethodCall(reachedSet, "println");
+    }
+
+    private static JvmValueAbstractState getMethodCall(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet, String methodName)
+    {
         return reachedSet.asCollection()
                 .stream()
                 .filter(it -> it
                         .getProgramLocation()
                         .getLeavingInterproceduralEdges()
                         .stream()
-                        .anyMatch(x -> x.getCall().getTarget().method.equals("println"))
+                        .anyMatch(x -> x.getCall().getTarget().method.equals(methodName))
                 ).findFirst().get();
     }
 

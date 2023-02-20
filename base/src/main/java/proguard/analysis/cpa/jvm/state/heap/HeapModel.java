@@ -34,6 +34,10 @@ public enum HeapModel
       */
     TREE,
     /**
+     * A shallow heap models objects as atomic abstract states.
+     */
+    SHALLOW,
+    /**
      * a taint tree heap model allowing to taint whole objects
       */
     TAINT_TREE
