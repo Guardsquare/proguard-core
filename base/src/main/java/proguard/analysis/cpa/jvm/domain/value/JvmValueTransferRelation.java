@@ -147,7 +147,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
                 state.push(new ValueAbstractState(result));
             }
 
-            if (executingInvocationUnit.returnsOwnInstance(targetClass, targetMethod, operandsArray[0].referenceValue()))
+            if (executingInvocationUnit.returnsOwnInstance(targetClass, targetMethod, operandsArray[0]))
             {
                 updateStack(state, result, isVoidReturnType);
                 updateHeap( state, result);

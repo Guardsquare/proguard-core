@@ -331,7 +331,7 @@ public class ExecutingInvocationUnit
             }
         };
 
-        ReferenceValue instance = !isStatic ? parameters[0].referenceValue() : null;
+        ReferenceValue instance = !isStatic && parameters[0] instanceof ReferenceValue ? parameters[0].referenceValue() : null;
         int            objectId = instance instanceof IdentifiedReferenceValue ? ((IdentifiedReferenceValue) instance).id : -1;
 
         if (!isSupportedMethodCall(baseClassName, methodName))
@@ -341,8 +341,8 @@ public class ExecutingInvocationUnit
 
         if (!isStatic)
         {
-            if (!instance.isSpecific()) // instance must be at least specific.
-            {
+            // instance must be at least specific.
+            if (instance == null || !instance.isSpecific()) {
                 return errorHandler.apply(instance, objectId);
             }
         }
@@ -647,9 +647,11 @@ public class ExecutingInvocationUnit
      *
      * This is an approximation which works well for StringBuilder/StringBuffer and Strings.
      */
-    public boolean returnsOwnInstance(Clazz clazz, Method method, ReferenceValue instance)
+    public boolean returnsOwnInstance(Clazz clazz, Method method, Value instance)
     {
-        String  instanceType      = instance == null ? null : instance.internalType();
+        if (!(instance instanceof ReferenceValue)) return false;
+
+        String  instanceType      = instance.internalType();
         String  internalClassName = clazz.getName();
         String  methodName        = method.getName(clazz);
         boolean isStatic          = (method.getAccessFlags() & STATIC) != 0;

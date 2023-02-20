@@ -43,8 +43,13 @@ class ExecutingInvocationUnitTest : FreeSpec({
     "String method tests" - {
         val length = javaLangString.findMethod("length")
         val concat = javaLangString.findMethod("concat")
-        "Unknown String length" {
+        "Unknown reference String length" {
             invocationUnit.executeMethod(javaLangString, length, UnknownReferenceValue()) shouldBe UnknownIntegerValue()
+            invocationUnit.executeMethod(javaLangString, length, UnknownString()) shouldBe UnknownIntegerValue()
+        }
+
+        "Unknown String length" {
+            invocationUnit.executeMethod(javaLangString, length, UNKNOWN_VALUE) shouldBe UnknownIntegerValue()
             invocationUnit.executeMethod(javaLangString, length, UnknownString()) shouldBe UnknownIntegerValue()
         }
 
