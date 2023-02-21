@@ -710,7 +710,7 @@ public class ExecutingInvocationUnit
         String baseClassName = anyMethodrefConstant.getClassName(clazz);
         String methodName    = anyMethodrefConstant.getName(clazz);
 
-        if (returnsOwnInstance(clazz, anyMethodrefConstant.referencedMethod, parameters[0].referenceValue()))
+        if (returnsOwnInstance(clazz, anyMethodrefConstant.referencedMethod, parameters.length > 0 ? parameters[0] : null))
         {
             Value updateValue = reflectedReturnValue;
 

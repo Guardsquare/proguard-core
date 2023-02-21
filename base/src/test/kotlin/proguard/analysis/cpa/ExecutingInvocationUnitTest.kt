@@ -7,8 +7,11 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldNotBeInstanceOf
 import proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING
 import proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER
+import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.util.ClassUtil
+import proguard.classfile.visitor.AllMethodVisitor
 import proguard.evaluation.ExecutingInvocationUnit
+import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularReferenceValue
@@ -19,7 +22,9 @@ import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownIntegerValue
 import proguard.evaluation.value.UnknownReferenceValue
 import proguard.evaluation.value.Value
+import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
+import proguard.testutils.JavaSource
 import proguard.testutils.findMethod
 
 private val javaLangString = libraryClassPool.getClass("java/lang/String")
@@ -68,6 +73,13 @@ class ExecutingInvocationUnitTest : FreeSpec({
             result.shouldBeInstanceOf<TypedReferenceValue>()
             result.shouldNotBeInstanceOf<ParticularReferenceValue>()
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING
+        }
+
+        "Static valueOf(I)" {
+            val result = invocationUnit.executeMethod(javaLangString, javaLangString.findMethod("valueOf", "(I)Ljava/lang/String;"), 1.toValue())
+            result.shouldBeInstanceOf<ParticularReferenceValue>()
+            result.internalType() shouldBe TYPE_JAVA_LANG_STRING
+            result.value() shouldBe "1"
         }
     }
 
@@ -134,5 +146,29 @@ class ExecutingInvocationUnitTest : FreeSpec({
             result.id shouldBe stringBuilder.id
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING_BUILDER
         }
+    }
+
+    "Test String static method valueOf(I) with the PartialEvaluator" {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Test.java",
+                """
+                import java.math.BigDecimal;
+                public class Test {
+                    public static String test() {
+                        return String.valueOf(1);       
+                    }
+                }
+                """.trimIndent()
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
+        )
+
+        val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, true)
+
+        programClassPool.classAccept("Test", AllMethodVisitor(AllAttributeVisitor(partialEvaluator)))
+        val stackTop = partialEvaluator.getStackAfter(1).getTop(0)
+        stackTop.shouldBeInstanceOf<ParticularReferenceValue>()
+        stackTop.value() shouldBe "1"
     }
 })
