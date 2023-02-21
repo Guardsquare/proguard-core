@@ -53,42 +53,42 @@ public final class ProgramLocationDependentReachedSet<CfaNodeT extends CfaNode<C
     @Override
     public boolean add(AbstractState abstractState)
     {
-        final boolean[]     result   = {false};
-        Set<AbstractStateT> newValue = new HashSet<>();
-        AbstractStateT      state    = (AbstractStateT) abstractState;
-        newValue.add(state);
-        locationToStates.merge(state.getProgramLocation(), newValue, (oldStates, newStates) ->
-        {
-            result[0] = oldStates.addAll(newStates);
-            return oldStates;
-        });
-        return result[0];
+        AbstractStateT state = (AbstractStateT) abstractState;
+        return locationToStates.computeIfAbsent(state.getProgramLocation(), x -> new HashSet<>()).add(state);
     }
 
     @Override
     public boolean addAll(Collection<? extends AbstractState> abstractStates)
     {
-        return abstractStates.stream().map(this::add).collect(Collectors.toCollection(HashSet::new)).stream().anyMatch(b -> b);
+        boolean result = false;
+
+        for (AbstractState state: abstractStates)
+        {
+            result |= add(state);
+        }
+
+        return result;
     }
 
     @Override
     public boolean remove(AbstractState abstractState)
     {
-        AtomicBoolean       result   = new AtomicBoolean(false);
-        AbstractStateT      state    = (AbstractStateT) abstractState;
-        Set<AbstractStateT> newValue = new HashSet<>();
-        locationToStates.merge(state.getProgramLocation(), newValue, (oldStates, newStates) ->
-        {
-            result.set(oldStates.remove(state));
-            return oldStates;
-        });
-        return result.get();
+        AbstractStateT state = (AbstractStateT) abstractState;
+        CfaNodeT location = state.getProgramLocation();
+        return locationToStates.containsKey(location) && locationToStates.get(location).remove(state);
     }
 
     @Override
     public boolean removeAll(Collection<?> abstractStates)
     {
-        return abstractStates.stream().map(state -> remove((AbstractState) state)).collect(Collectors.toCollection(HashSet::new)).stream().anyMatch(b -> b);
+        boolean result = false;
+
+        for (Object state: abstractStates)
+        {
+            result |= remove((AbstractState) state);
+        }
+
+        return result;
     }
 
     @Override
