@@ -19,6 +19,7 @@ import proguard.classfile.Signature;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
+import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.testutils.ClassPoolBuilder;
 import proguard.testutils.FileSource;
@@ -33,8 +34,10 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
 import static proguard.testutils.JavaUtilKt.getCurrentJavaHome;
 
@@ -111,6 +114,31 @@ public class BamCpaValueTest {
         Object stackTopValue = stackTop.value();
         assertEquals( "MyAPIKey", stackTopValue,"MyAPIKey should be on the top of the stack");
     }
+
+    @Test
+    public void testStringBuilderLoop()
+    {
+        // this doesn't include any interprocedural analysis, just checking the code with a loop is terminating correctly
+        BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoop");
+
+        ProgramLocationDependentReachedSet reachedSet = (ProgramLocationDependentReachedSet) cache
+            .get(new MethodSignature("StringBuilderLoop", "main", "([Ljava/lang/String;)V"))
+            .stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new DefaultReachedSet());
+
+        // Parameter to System.out.println is a typed String but the actual value is unknown.
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek()
+                                             .getValue()
+                                             .referenceValue();
+        assertInstanceOf(TypedReferenceValue.class, stackTop, "The value should be correctly tracked");
+        assertEquals("Ljava/lang/String;", stackTop.internalType());
+        assertTrue(stackTop instanceof TypedReferenceValue);
+        assertFalse(stackTop instanceof ParticularReferenceValue);
+    }
+
 
     private static JvmValueAbstractState getLastAbstractState(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet)
     {

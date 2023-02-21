@@ -10,7 +10,7 @@ import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
-import proguard.analysis.cpa.defaults.StopContainedOperator;
+import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.Waitlist;
@@ -71,7 +71,7 @@ public class JvmValueBamCpaRun
             abstractDomain,
             new JvmValueTransferRelation(valueFactory, executingInvocationUnit),
             new MergeJoinOperator(abstractDomain),
-            new StopContainedOperator(),
+            new StopJoinOperator(abstractDomain),
             new StaticPrecisionAdjustment()
         );
     }
