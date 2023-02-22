@@ -139,6 +139,24 @@ public class BamCpaValueTest {
         assertFalse(stackTop instanceof ParticularReferenceValue);
     }
 
+    @Test
+    public void testSimpleRecursive()
+    {
+        BamCache<MethodSignature> cache = runBamCpa("SimpleInterproceduralRecursive");
+
+        ProgramLocationDependentReachedSet mainReachedSet = (ProgramLocationDependentReachedSet) cache
+            .get(new MethodSignature("SimpleInterproceduralRecursive", "main", "([Ljava/lang/String;)V"))
+            .stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new DefaultReachedSet());
+
+        JvmValueAbstractState lastAbstractState = getLastAbstractState(mainReachedSet);
+        Value local1 = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
+        assertTrue(local1 instanceof TypedReferenceValue);
+        assertFalse(local1 instanceof ParticularReferenceValue);
+    }
+
 
     private static JvmValueAbstractState getLastAbstractState(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet)
     {
