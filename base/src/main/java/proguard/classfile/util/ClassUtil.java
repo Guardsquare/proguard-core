@@ -17,8 +17,11 @@
  */
 package proguard.classfile.util;
 
+import static proguard.classfile.AccessConstants.FINAL;
+
 import proguard.classfile.AccessConstants;
 import proguard.classfile.ClassConstants;
+import proguard.classfile.Clazz;
 import proguard.classfile.JavaAccessConstants;
 import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.JavaVersionConstants;
@@ -2013,5 +2016,13 @@ public class ClassUtil
     {
         return externalClassName.substring(0, externalClassName.lastIndexOf(JavaTypeConstants.PACKAGE_SEPARATOR,
                                                                             externalClassName.length() - 2) + 1);
+    }
+
+    /**
+     * Returns `true` if a {@link Clazz} is null or if it represents a final class.
+     */
+    public static boolean isNullOrFinal(Clazz clazz)
+    {
+        return clazz == null || (clazz.getAccessFlags() & FINAL) == 0;
     }
 }

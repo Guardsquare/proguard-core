@@ -1,5 +1,12 @@
 package proguard.analysis.cpa.jvm.domain.value;
 
+import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
+import static proguard.classfile.TypeConstants.VOID;
+import static proguard.classfile.util.ClassUtil.internalMethodReturnType;
+import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
+
+import java.util.Arrays;
+import java.util.List;
 import proguard.analysis.cpa.defaults.StackAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
@@ -7,19 +14,13 @@ import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
+import proguard.classfile.util.ClassUtil;
+import proguard.classfile.visitor.ReturnClassExtractor;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
-import static proguard.classfile.TypeConstants.VOID;
-import static proguard.classfile.util.ClassUtil.internalMethodReturnType;
-import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
 
 /**
  * A {@link JvmTransferRelation} that tracks values.
@@ -122,52 +123,106 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     @Override
     public void invokeMethod(JvmAbstractState<ValueAbstractState> state, Call call, List<ValueAbstractState> operands)
     {
-        if (call instanceof ConcreteCall &&
-            executingInvocationUnit.isSupportedMethodCall(call.getTarget().getClassName(), call.getTarget().method))
+        if (call instanceof ConcreteCall)
         {
             Clazz  targetClass  = ((ConcreteCall) call).getTargetClass();
             Method targetMethod = ((ConcreteCall) call).getTargetMethod();
 
-            Value[] operandsArray = operands
-                    .stream()
-                    .map(ValueAbstractState::getValue)
-                    .toArray(Value[]::new);
-
-            Value result = executingInvocationUnit.executeMethod(targetClass, targetMethod, operandsArray);
-
-            String  returnType       = internalMethodReturnType(targetMethod.getDescriptor(targetClass));
-            boolean isVoidReturnType = returnType.equals(String.valueOf(VOID));
-
-            if (!isVoidReturnType)
+            if (executingInvocationUnit.isSupportedMethodCall(call.getTarget().getClassName(), call.getTarget().method))
             {
-                if (isInternalCategory2Type(returnType))
-                {
-                    state.push(TOP_VALUE);
-                }
-                state.push(new ValueAbstractState(result));
+                // we can try to execute the method with reflection
+                executeMethod(state,
+                              operands,
+                              targetClass,
+                              targetMethod);
+                return;
             }
 
-            if (executingInvocationUnit.returnsOwnInstance(targetClass, targetMethod, operandsArray[0]))
+            String returnType = call.getTarget().descriptor.returnType;
+            String internalReturnClassName = ClassUtil.internalClassNameFromType(returnType);
+            if (returnType != null
+                && internalReturnClassName != null
+                && executingInvocationUnit.isSupportedClass(internalReturnClassName))
             {
-                updateStack(state, result, isVoidReturnType);
-                updateHeap( state, result);
+                // we can at most know the return type
+                pushReturnTypedValue(state,
+                                     operands,
+                                     call,
+                                     targetClass,
+                                     targetMethod,
+                                     returnType);
+                return;
             }
         }
-        else
+
+        super.invokeMethod(state, call, operands);
+    }
+
+    private void executeMethod(JvmAbstractState<ValueAbstractState> state,
+                               List<ValueAbstractState>             operands,
+                               Clazz                                targetClass,
+                               Method                               targetMethod)
+    {
+        Value[] operandsArray = operands
+            .stream()
+            .map(ValueAbstractState::getValue)
+            .toArray(Value[]::new);
+
+        Value result = executingInvocationUnit.executeMethod(targetClass, targetMethod, operandsArray);
+        String returnType = internalMethodReturnType(targetMethod.getDescriptor(targetClass));
+
+        pushReturnValue(state, result, returnType);
+
+        if (executingInvocationUnit.returnsOwnInstance(targetClass, targetMethod, operandsArray[0]))
         {
-            super.invokeMethod(state, call, operands);
+            updateStack(state, result, returnType);
+            updateHeap(state, result);
         }
     }
 
+    private void pushReturnTypedValue(JvmAbstractState<ValueAbstractState> state,
+                                     List<ValueAbstractState>              operands,
+                                     Call                                  call,
+                                     Clazz                                 targetClass,
+                                     Method                                targetMethod,
+                                     String                                returnType)
+    {
+        ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
+        targetMethod.accept(targetClass, returnClassExtractor);
+        if (returnClassExtractor.returnClass == null)
+        {
+            super.invokeMethod(state, call, operands);
+        }
+        else
+        {
+            Value result = valueFactory.createReferenceValue(ClassUtil.internalMethodReturnType(returnType),
+                                                             returnClassExtractor.returnClass,
+                                                             ClassUtil.isNullOrFinal(returnClassExtractor.returnClass),
+                                                             true);
+            pushReturnValue(state, result, returnType);
+        }
+    }
 
-    private void updateStack(JvmAbstractState<ValueAbstractState> state, Value result, boolean isVoidReturnType)
+    private void pushReturnValue(JvmAbstractState<ValueAbstractState> state, Value result, String returnType)
+    {
+        if (!isVoidReturnType(returnType))
+        {
+            if (isInternalCategory2Type(returnType))
+            {
+                state.push(TOP_VALUE);
+            }
+            state.push(new ValueAbstractState(result));
+        }
+    }
+
+    private void updateStack(JvmAbstractState<ValueAbstractState> state, Value result, String returnType)
     {
         if (!(result instanceof IdentifiedReferenceValue)) return;
 
         IdentifiedReferenceValue identifiedReferenceValue   = (IdentifiedReferenceValue) result;
         StackAbstractState<ValueAbstractState> operandStack = state.getFrame().getOperandStack();
 
-        int start = isVoidReturnType ?
+        int start = isVoidReturnType(returnType) ?
                 operandStack.size() - 1 :
                 // If we just pushed something, no need to update it.
                 operandStack.size() - 2;
@@ -182,6 +237,11 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
                 stackEntry.setValue(identifiedReferenceValue);
             }
         }
+    }
+
+    private boolean isVoidReturnType(String returnType)
+    {
+        return returnType.equals(String.valueOf(VOID));
     }
 
     private void updateHeap(JvmAbstractState<ValueAbstractState> state, Value result)

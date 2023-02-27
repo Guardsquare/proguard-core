@@ -81,7 +81,7 @@ implements   InvocationUnit,
 
         return valueFactory.createReferenceValue(ClassUtil.internalTypeFromClassName(catchClassName),
                                                  catchClass,
-                                                 mayBeExtension(catchClass),
+                                                 ClassUtil.isNullOrFinal(catchClass),
                                                  false);
     }
 
@@ -104,7 +104,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         returnTypeClass,
-                                        mayBeExtension(returnTypeClass),
+                                        ClassUtil.isNullOrFinal(returnTypeClass),
                                         true);
     }
 
@@ -128,7 +128,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         returnTypeClass,
-                                        mayBeExtension(returnTypeClass),
+                                        ClassUtil.isNullOrFinal(returnTypeClass),
                                         true);
     }
 
@@ -155,7 +155,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         referencedClass,
-                                        mayBeExtension(referencedClass),
+                                        ClassUtil.isNullOrFinal(referencedClass),
                                         !isThis);
     }
 
@@ -178,7 +178,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         returnTypeClass,
-                                        mayBeExtension(returnTypeClass),
+                                        ClassUtil.isNullOrFinal(returnTypeClass),
                                         true);
     }
 
@@ -201,7 +201,7 @@ implements   InvocationUnit,
 
         return valueFactory.createValue(type,
                                         referencedClass,
-                                        mayBeExtension(referencedClass),
+                                        ClassUtil.isNullOrFinal(referencedClass),
                                         true);
     }
 
@@ -239,10 +239,5 @@ implements   InvocationUnit,
         {
             returnTypeClass = referencedClasses[referencedClasses.length - 1];
         }
-    }
-
-    protected boolean mayBeExtension(Clazz clazz)
-    {
-        return clazz == null || (clazz.getAccessFlags() & FINAL) == 0;
     }
 }

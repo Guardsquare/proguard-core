@@ -42,6 +42,7 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.MemberAccessFilter;
 import proguard.classfile.visitor.MemberVisitor;
+import proguard.classfile.visitor.ReturnClassExtractor;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
@@ -50,7 +51,6 @@ import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
@@ -156,7 +156,7 @@ public class ExecutingInvocationUnit
 
         if (!isSupportedMethodCall(baseClassName, anyMethodrefConstant.getName(clazz)))
         {
-            return valueFactory.createValue(returnType, referencedClass, mayBeExtension(referencedClass), true);
+            return valueFactory.createValue(returnType, referencedClass, ClassUtil.isNullOrFinal(referencedClass), true);
         }
 
         Value reflectedReturnValue = executeMethod(anyMethodrefConstant.referencedClass, anyMethodrefConstant.referencedMethod, parameters);
@@ -265,7 +265,7 @@ public class ExecutingInvocationUnit
         {
             value = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING,
                                                       currentField.referencedClass,
-                                                      mayBeExtension(currentField.referencedClass),
+                                                      ClassUtil.isNullOrFinal(currentField.referencedClass),
                                                       false,
                                                       stringConstant.getString(clazz));
         }
@@ -278,6 +278,14 @@ public class ExecutingInvocationUnit
      */
     public boolean isSupportedMethodCall(String internalClassName, String methodName)
     {
+        return isSupportedClass(internalClassName);
+    }
+
+    /**
+     * Returns true if the class is supported by the invocation unit.
+     */
+    public boolean isSupportedClass(String internalClassName)
+    {
         switch (internalClassName)
         {
             case NAME_JAVA_LANG_STRING_BUILDER:
@@ -288,7 +296,6 @@ public class ExecutingInvocationUnit
                 return false;
         }
     }
-
 
     /**
      * Executes a method, by reflectively trying to call it with the given parameters.
@@ -319,7 +326,7 @@ public class ExecutingInvocationUnit
 
             if (objectId != -1 && returnsOwnInstance(finalReturnType, methodName, descriptor, isStatic, instance == null ? null : instance.internalType()))
             {
-                return valueFactory.createReferenceValue(finalReturnType, returnClazz, mayBeExtension(returnClazz), true, objectId.intValue());
+                return valueFactory.createReferenceValue(finalReturnType, returnClazz, ClassUtil.isNullOrFinal(returnClazz), true, objectId.intValue());
             }
             else if (isInternalPrimitiveType(finalReturnType))
             {
@@ -327,7 +334,7 @@ public class ExecutingInvocationUnit
             }
             else
             {
-                return valueFactory.createValue(finalReturnType, returnClazz, mayBeExtension(returnClazz), true);
+                return valueFactory.createValue(finalReturnType, returnClazz, ClassUtil.isNullOrFinal(returnClazz), true);
             }
         };
 
@@ -761,39 +768,5 @@ public class ExecutingInvocationUnit
         ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
         anyMethodrefConstant.referencedMethodAccept(returnClassExtractor);
         return returnClassExtractor.returnClass; // can be null
-    }
-
-    /**
-     * Returns the last referenced class of referencedClasses from the program-/ librarymethod.
-     */
-    private static class ReturnClassExtractor
-        implements MemberVisitor
-    {
-
-        private Clazz returnClass;
-
-        @Override
-        public void visitAnyMember(Clazz clazz, Member member)
-        {
-            // only interested in program and librarymethods
-        }
-
-        @Override
-        public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-        {
-            if (programMethod.referencedClasses != null)
-            {
-                this.returnClass = programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
-            }
-        }
-
-        @Override
-        public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-        {
-            if (libraryMethod.referencedClasses != null)
-            {
-                this.returnClass = libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
-            }
-        }
     }
 }
