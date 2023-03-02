@@ -12,6 +12,48 @@
 - The `ProcessingFlag.DONT_PROCESS_KOTLIN_MODULE` value was changed from `0x00002000` to `0x00008000`.
 - Remove `fromClassPool` suffixes in `CfaUtil` methods.
 - Refactor `CodeLocation` to only take the signature and offset into consideration.
+- `IdentifiedReferenceValue` `id` field changed from `int` to `Object`.
+- `ParticularValueFactory.ReferenceFactory` replaced by `ParticularReferenceValueFactory`.
+- Add `ValueFactory.createReferenceValue(String type, Clazz referencedClass, boolean mayBeExtension, boolean maybeNull, Clazz   creationClass, Method  creationMethod, int creationOffset)` to allow creating references identified by their creation site.
+- Add `JvmCfaReferenceValueFactory` to create references identified by the `JvmCfaNode` creation site.
+
+## Upgrade considerations
+
+Identified and particular references can now be identified by any `Object` instead of a simple `int`. 
+However, this means that code which compared the IDs may need to be modified. For example, the following
+code should be changed:
+
+```java
+    public static boolean equal(IdentifiedReferenceValue a, IdentifiedReferenceValue b) {
+        return a.id == b.id;
+    }
+```
+
+It should use the `equals` method instead.
+
+```java
+    public static boolean equal(IdentifiedReferenceValue a, IdentifiedReferenceValue b) {
+        return a.id.equals(b.id);
+    }
+```
+
+The `ParticularReferenceValueFactory` identifies references with integers by default:
+
+```java
+ValueFactory valueFactory = new ParticularReferenceFactory(new ParticularReferenceValueFactory());
+Value a = valueFactory.createReferenceValue("Ljava/lang/String;", clazz, false, false);
+// a.id will be an integer.
+```
+
+Any `Object` can be used as an ID using the `createReferenceValueForId` method:
+
+```java
+String objectId = "myId";
+ValueFactory valueFactory = new ParticularReferenceFactory(new ParticularReferenceValueFactory());
+Value a = valueFactory.createReferenceValueForId("Ljava/lang/String;", clazz, false, false, objectId);
+// a.id will be objectId
+```
+
 
 ## Version 9.0.7
 

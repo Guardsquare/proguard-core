@@ -9,10 +9,10 @@ import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
+import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
-import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
@@ -124,7 +124,7 @@ class PartialEvaluatorTest : FreeSpec({
         val maxPartialEvaluations = 50
         val particularValueFactory = ParticularValueFactory(
             ArrayReferenceValueFactory(),
-            ReferenceValueFactory()
+            ParticularReferenceValueFactory()
         )
         val particularValueInvocationUnit = BasicInvocationUnit(particularValueFactory)
         val particularValueEvaluator = PartialEvaluator.Builder.create()

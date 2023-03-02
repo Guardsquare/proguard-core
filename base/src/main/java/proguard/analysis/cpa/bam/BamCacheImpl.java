@@ -54,7 +54,7 @@ public class BamCacheImpl<SignatureT extends Signature>
         if (cache.computeIfAbsent(blockKey, k -> new HashMap<>()).put(getHashKey(stateKey, precisionKey), blockAbstraction) == null)
         {
             size++;
-            log.debug(size);
+            log.trace("BamCacheSize: {}", size);
         }
     }
 

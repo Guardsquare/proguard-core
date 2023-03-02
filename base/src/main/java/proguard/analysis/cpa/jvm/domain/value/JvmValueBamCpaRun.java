@@ -42,7 +42,7 @@ public class JvmValueBamCpaRun
     private final MethodSignature mainMethodSignature;
     private final ValueFactory valueFactory;
     private final ExecutingInvocationUnit executingInvocationUnit;
-    private final JvmHeapAbstractState<ValueAbstractState> heap = new JvmShallowHeapAbstractState<>(new HashMapAbstractState<>(), Integer.class, UNKNOWN);
+    private final JvmHeapAbstractState<ValueAbstractState> heap = new JvmShallowHeapAbstractState<>(new HashMapAbstractState<>(), JvmCfaNode.class, UNKNOWN);
     private final MapAbstractState<String, ValueAbstractState> staticFields;
 
 
@@ -122,7 +122,7 @@ public class JvmValueBamCpaRun
     {
 
         private final MethodSignature                              mainSignature;
-        private       ValueFactory                                 valueFactory = new ParticularValueFactory(new ParticularValueFactory.ReferenceValueFactory());
+        private       ValueFactory                                 valueFactory;
         private       MapAbstractState<String, ValueAbstractState> staticFields = new HashMapAbstractState<>();
 
 
@@ -137,6 +137,9 @@ public class JvmValueBamCpaRun
         @Override
         public JvmValueBamCpaRun build()
         {
+            ValueFactory valueFactory = this.valueFactory == null ?
+                    new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa)) :
+                    this.valueFactory;
             return new JvmValueBamCpaRun(
                 cfa,
                 mainSignature,

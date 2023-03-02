@@ -12,6 +12,7 @@ import proguard.classfile.instruction.InstructionFactory
 import proguard.classfile.util.ClassUtil
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
+import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
@@ -24,7 +25,7 @@ class PartialEvaluatorHelper {
         fun evaluateMethod(className: String, methodName: String, methodDescriptor: String, programClassPool: ClassPool): HashMap<Int, MethodWithStack> {
             val clazz = programClassPool.getClass(className) as ProgramClass
 
-            val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularValueFactory.ReferenceValueFactory())
+            val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
             val invocationUnit = ExecutingInvocationUnit(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, true)
 

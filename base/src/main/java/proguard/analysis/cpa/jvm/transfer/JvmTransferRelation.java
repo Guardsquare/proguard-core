@@ -64,9 +64,9 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
-import static proguard.classfile.AccessConstants.FINAL;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
+import static proguard.classfile.util.ClassUtil.isNullOrFinal;
 
 /**
  * The {@link JvmTransferRelation} computes the successors of an {@link JvmAbstractState} for a given instruction. It stores category 2 computational types as tuples of the abstract state containing
@@ -98,7 +98,6 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         }
         else
         {
-            successor.setProgramLocation(edge.getTarget());
             if (edge instanceof JvmInstructionCfaEdge)
             {
                 Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
@@ -112,6 +111,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 }
                 successor = getAbstractSuccessorForInstruction(successor, instruction, state.getProgramLocation().getClazz(), precision);
             }
+            successor.setProgramLocation(edge.getTarget());
         }
 
         return successor;
@@ -228,7 +228,14 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     /**
      * Returns an abstract representation of a reference value {@code object}.
      */
-    public StateT getAbstractReferenceValue(String className, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull, Object value)
+    public StateT getAbstractReferenceValue(String  className,
+                                            Clazz   referencedClazz,
+                                            boolean mayBeExtension,
+                                            boolean mayBeNull,
+                                            Clazz   creationClass,
+                                            Method  creationMethod,
+                                            int     creationOffset,
+                                            Object  value)
     {
         return getAbstractDefault();
     }
@@ -704,13 +711,16 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
             @Override
             public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
             {
+                JvmCfaNode programLocation = abstractState.getProgramLocation();
                 abstractState.push(getAbstractReferenceValue(
                         TYPE_JAVA_LANG_STRING,
                         stringConstant.javaLangStringClass,
                         false,
                         false,
-                        stringConstant.getString(clazz)
-                ));
+                        programLocation.getClazz(),
+                        programLocation.getSignature().getReferencedMethod(),
+                        programLocation.getOffset(),
+                        stringConstant.getString(clazz)));
             }
 
             @Override
@@ -719,7 +729,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                 abstractState.push(getAbstractReferenceValue(
                         internalTypeFromClassName(classConstant.getName(clazz)),
                         classConstant.referencedClass,
-                        classConstant.referencedClass == null || (classConstant.referencedClass.getAccessFlags() & FINAL) == 0,
+                        isNullOrFinal(classConstant.referencedClass),
                         true
                 ));
             }

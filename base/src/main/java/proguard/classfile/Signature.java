@@ -42,10 +42,17 @@ public abstract class Signature
     protected final String packageName;
     protected final String className;
 
-    protected Signature(String className)
+    /**
+     * The {@link Clazz} that the {@link Signature#className}
+     * references. May be <code>null</code> if there is no
+     * reference available (e.g. class is missing from the class pool).
+     */
+    protected Clazz referencedClass;
+
+    protected Signature(String internalClassName)
     {
-        this.className = className;
-        this.packageName = className == null ? "?" : externalPackageName(externalClassName(className));
+        this.className   = internalClassName;
+        this.packageName = internalClassName == null ? "?" : externalPackageName(externalClassName(internalClassName));
     }
 
     /**
@@ -172,6 +179,16 @@ public abstract class Signature
     protected abstract String calculateFqn();
 
     protected abstract String calculatePrettyFqn();
+
+    /**
+     * Returns the {@link Clazz} reference corresponding
+     * to the class returned by {@link Signature#getClassName()}
+     * or <code>null</code> if no reference is available (e.g. class is missing from the class pool).
+     */
+    public Clazz getReferencedClass()
+    {
+        return referencedClass;
+    }
 
     @Override
     public boolean equals(Object o)

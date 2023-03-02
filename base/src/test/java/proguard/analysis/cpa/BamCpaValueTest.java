@@ -1,7 +1,6 @@
 package proguard.analysis.cpa;
 
 import org.junit.jupiter.api.Test;
-import proguard.analysis.cpa.algorithms.CpaAlgorithm;
 import proguard.analysis.cpa.bam.BamCache;
 import proguard.analysis.cpa.bam.BlockAbstraction;
 import proguard.analysis.cpa.defaults.DefaultReachedSet;
@@ -39,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.testutils.JavaUtilKt.getCurrentJavaHome;
 
 /**
@@ -59,7 +59,7 @@ public class BamCpaValueTest {
                 .map(BlockAbstraction::getReachedSet)
                 .orElse(new DefaultReachedSet());
         JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
-        Value stringBuilder = printlnCall.getFieldOrDefault(0, UNKNOWN).getValue();
+        Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
         ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
         Object stackTopValue = stackTop.value();
         assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
@@ -157,6 +157,24 @@ public class BamCpaValueTest {
         assertFalse(local1 instanceof ParticularReferenceValue);
     }
 
+
+    @Test
+    public void testStringBuilderLoopReassign()
+    {
+        BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoopReassign");
+        ProgramLocationDependentReachedSet reachedSet = (ProgramLocationDependentReachedSet) cache
+                .get(new MethodSignature("StringBuilderLoopReassign", "main", "([Ljava/lang/String;)V"))
+                .stream()
+                .findFirst()
+                .map(BlockAbstraction::getReachedSet)
+                .orElse(new DefaultReachedSet());
+        // Parameter to System.out.println is a typed String but the actual value is unknown.
+        JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+        Value stackTop = printlnCall.getFrame().getOperandStack().peek().getValue();
+        assertInstanceOf(TypedReferenceValue.class, stackTop,"The value should be correctly tracked");
+        assertFalse(stackTop.isParticular());
+        assertEquals(TYPE_JAVA_LANG_STRING, stackTop.internalType());
+    }
 
     private static JvmValueAbstractState getLastAbstractState(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet)
     {

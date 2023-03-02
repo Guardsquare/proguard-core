@@ -48,22 +48,37 @@ public class MethodSignature
     private static final           Map<Method, MethodSignature> signatureCache = new IdentityHashMap<>();
     public final                   String                       method;
     public final                   MethodDescriptor             descriptor;
+    private                        Method                       referencedMethod;
 
-    public MethodSignature(String clazz, String method, MethodDescriptor descriptor)
+    public MethodSignature(String internalClassName, String method, MethodDescriptor descriptor)
     {
-        super(clazz);
-        this.method = method;
-        this.descriptor = descriptor;
+        super(internalClassName);
+        this.method           = method;
+        this.descriptor       = descriptor;
+        this.referencedClass  = null;
+        this.referencedMethod = null;
     }
 
-    public MethodSignature(String clazz, String method, String descriptor)
+    public MethodSignature(String internalClassName, String method, String descriptor)
     {
-        this(clazz, method, new MethodDescriptor(descriptor));
+        this(internalClassName, method, new MethodDescriptor(descriptor));
     }
 
     public MethodSignature(Clazz clazz, Method method)
     {
         this(clazz.getName(), method.getName(clazz), method.getDescriptor(clazz));
+        this.referencedClass  = clazz;
+        this.referencedMethod = method;
+    }
+
+    /**
+     * Returns the {@link Method} reference that corresponds to the method
+     * represented by this {@link MethodSignature} or <code>null</code>
+     * if no reference is available (e.g. the methhod or its class were missing).
+     */
+    public Method getReferencedMethod()
+    {
+        return this.referencedMethod;
     }
 
     /**

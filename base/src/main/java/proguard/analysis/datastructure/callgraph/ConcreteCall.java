@@ -28,6 +28,7 @@ import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
 import proguard.classfile.instruction.Instruction;
+import proguard.classfile.visitor.MemberVisitor;
 import proguard.evaluation.value.Value;
 
 /**
@@ -107,6 +108,14 @@ public class ConcreteCall
     public Method getTargetMethod()
     {
         return target;
+    }
+
+    public void targetMethodAccept(MemberVisitor memberVisitor)
+    {
+        if (this.targetClass != null && this.target != null)
+        {
+            this.target.accept(this.targetClass, memberVisitor);
+        }
     }
 
     @Override

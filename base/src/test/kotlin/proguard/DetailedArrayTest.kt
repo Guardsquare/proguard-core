@@ -4,17 +4,17 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
+import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.DetailedArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
-import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory
 import proguard.evaluation.value.ValueFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
 
 class DetailedArrayTest : FreeSpec({
-    val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ReferenceValueFactory())
+    val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
     val invocationUnit = ExecutingInvocationUnit(valueFactory)
     val partialEvaluator = PartialEvaluator(
         valueFactory,

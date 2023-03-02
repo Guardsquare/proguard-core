@@ -30,7 +30,7 @@ import java.util.Objects;
 public class IdentifiedReferenceValue extends TypedReferenceValue
 {
     private final ValueFactory valuefactory;
-    public final  int          id;
+    public final  Object       id;
 
 
     /**
@@ -41,7 +41,7 @@ public class IdentifiedReferenceValue extends TypedReferenceValue
                                     boolean      mayBeExtension,
                                     boolean      mayBeNull,
                                     ValueFactory valuefactory,
-                                    int          id)
+                                    Object       id)
     {
         super(type, referencedClass, mayBeExtension, mayBeNull);
 
@@ -100,8 +100,8 @@ public class IdentifiedReferenceValue extends TypedReferenceValue
         if (this.equals(other)) return this;
 
         if (Objects.equals(this.type, other.type)         &&
+            Objects.equals(this.id, other.id)             &&
             this.referencedClass == other.referencedClass &&
-            this.id              == other.id              &&
             this.valuefactory    == other.valuefactory)
         {
             return new IdentifiedReferenceValue(
@@ -209,15 +209,13 @@ public class IdentifiedReferenceValue extends TypedReferenceValue
 
         IdentifiedReferenceValue other = (IdentifiedReferenceValue)object;
         return this.valuefactory.equals(other.valuefactory) &&
-               this.id == other.id;
+               this.id.equals(other.id);
     }
 
 
     public int hashCode()
     {
-        return super.hashCode() ^
-               valuefactory.hashCode() ^
-               id;
+        return Objects.hash(super.hashCode(), valuefactory, id);
     }
 
 

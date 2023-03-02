@@ -6,11 +6,11 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldNotBeInstanceOf
 import proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER
+import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.IdentifiedValueFactory
 import proguard.evaluation.value.ParticularValueFactory
-import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownValue
 import proguard.evaluation.value.Value
@@ -20,7 +20,7 @@ import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 class ValueAbstractStateTest : FreeSpec({
 
     "Abstract states with particular strings" - {
-        val valueFactory = ParticularValueFactory(ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
 
         val myString = valueFactory.createString("myString")
         val myOtherString = valueFactory.createString("myOtherString")
@@ -90,7 +90,7 @@ class ValueAbstractStateTest : FreeSpec({
     }
 
     "Abstract states with particular StringBuilders" - {
-        val valueFactory = ParticularValueFactory(ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
 
         val myStringBuilder = valueFactory.createStringBuilder(StringBuilder())
         val myOtherStringBuilder = valueFactory.createStringBuilder(StringBuilder())
@@ -115,7 +115,7 @@ class ValueAbstractStateTest : FreeSpec({
     }
 
     "Abstract states with particular StringBuilders with the same ID" - {
-        val valueFactory = ParticularValueFactory(ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
 
         val myStringBuilder = valueFactory.createStringBuilder(StringBuilder(), 1)
         val myOtherStringBuilder = valueFactory.createStringBuilder(StringBuilder(), 1)
@@ -153,7 +153,7 @@ class ValueAbstractStateTest : FreeSpec({
     }
 
     "Abstract states with mixed types" - {
-        val valueFactory = ParticularValueFactory(ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
 
         val myStringBuilder = valueFactory.createStringBuilder(StringBuilder())
         val myString = valueFactory.createString("MyString")
@@ -211,11 +211,11 @@ private fun ValueFactory.createStringBuilder(sb: StringBuilder): Value = createR
     sb
 )
 
-private fun ValueFactory.createStringBuilder(sb: StringBuilder, id: Int): Value = createReferenceValue(
+private fun ValueFactory.createStringBuilder(sb: StringBuilder, id: Int): Value = createReferenceValueForId(
     "Ljava/lang/StringBuilder;",
     libraryClassPool.getClass("java/lang/StringBuilder"),
     false,
     false,
     id,
-    sb
+    sb,
 )

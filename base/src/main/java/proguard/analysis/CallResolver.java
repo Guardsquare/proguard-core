@@ -54,11 +54,11 @@ import proguard.evaluation.ExcessiveComplexityException;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.InvocationUnit;
 import proguard.evaluation.PartialEvaluator;
+import proguard.evaluation.ParticularReferenceValueFactory;
 import proguard.evaluation.value.ArrayReferenceValueFactory;
 import proguard.evaluation.value.MultiTypedReferenceValue;
 import proguard.evaluation.value.MultiTypedReferenceValueFactory;
 import proguard.evaluation.value.ParticularValueFactory;
-import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
@@ -268,7 +268,7 @@ implements   AttributeVisitor,
 
         // Initialize the particular value evaluator.
         ValueFactory particularValueFactory          = new ParticularValueFactory(new ArrayReferenceValueFactory(),
-                                                                                  new ReferenceValueFactory());
+                                                                                  new ParticularReferenceValueFactory());
         InvocationUnit particularValueInvocationUnit = new ExecutingInvocationUnit(particularValueFactory);
         particularValueEvaluator                     = PartialEvaluator.Builder.create()
                                                                                .setValueFactory(particularValueFactory)

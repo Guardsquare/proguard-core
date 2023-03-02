@@ -28,6 +28,7 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionUtil;
 import proguard.classfile.util.ClassUtil;
+import proguard.classfile.visitor.MemberVisitor;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.Value;
 
@@ -259,6 +260,7 @@ public abstract class Call
         return "[" + instruction.getName() + "] " + getTarget();
     }
 
+    public void targetMethodAccept(MemberVisitor memberVisitor) { }
 
     @Override
     public boolean equals(Object o)

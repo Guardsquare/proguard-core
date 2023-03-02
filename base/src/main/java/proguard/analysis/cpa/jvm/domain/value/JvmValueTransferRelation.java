@@ -1,12 +1,5 @@
 package proguard.analysis.cpa.jvm.domain.value;
 
-import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
-import static proguard.classfile.TypeConstants.VOID;
-import static proguard.classfile.util.ClassUtil.internalMethodReturnType;
-import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
-
-import java.util.Arrays;
-import java.util.List;
 import proguard.analysis.cpa.defaults.StackAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
@@ -21,6 +14,14 @@ import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
+import static proguard.classfile.TypeConstants.VOID;
+import static proguard.classfile.util.ClassUtil.internalMethodReturnType;
+import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
 
 /**
  * A {@link JvmTransferRelation} that tracks values.
@@ -108,15 +109,33 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     }
 
     @Override
-    public ValueAbstractState getAbstractReferenceValue(String className, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull)
+    public ValueAbstractState getAbstractReferenceValue(String internalType, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull)
     {
-        return new ValueAbstractState(valueFactory.createReferenceValue(className, referencedClazz, mayBeExtension, mayBeNull));
+        return new ValueAbstractState(valueFactory.createReferenceValue(internalType, referencedClazz, mayBeExtension, mayBeNull));
     }
 
     @Override
-    public ValueAbstractState getAbstractReferenceValue(String className, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull, Object value)
+    public ValueAbstractState getAbstractReferenceValue(String  internalType,
+                                                        Clazz   referencedClazz,
+                                                        boolean mayBeExtension,
+                                                        boolean mayBeNull,
+                                                        Clazz   creationClass,
+                                                        Method  creationMethod,
+                                                        int     creationOffset,
+                                                        Object  value)
     {
-        return new ValueAbstractState(valueFactory.createReferenceValue(className, referencedClazz, mayBeExtension, mayBeNull, value));
+        return new ValueAbstractState(
+            valueFactory.createReferenceValue(
+                internalType,
+                referencedClazz,
+                mayBeExtension,
+                mayBeNull,
+                creationClass,
+                creationMethod,
+                creationOffset,
+                value
+            )
+        );
     }
 
 
@@ -125,20 +144,14 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     {
         if (call instanceof ConcreteCall)
         {
-            Clazz  targetClass  = ((ConcreteCall) call).getTargetClass();
-            Method targetMethod = ((ConcreteCall) call).getTargetMethod();
-
             if (executingInvocationUnit.isSupportedMethodCall(call.getTarget().getClassName(), call.getTarget().method))
             {
                 // we can try to execute the method with reflection
-                executeMethod(state,
-                              operands,
-                              targetClass,
-                              targetMethod);
+                executeMethod((ConcreteCall) call, state, operands);
                 return;
             }
 
-            String returnType = call.getTarget().descriptor.returnType;
+            String returnType              = call.getTarget().descriptor.returnType;
             String internalReturnClassName = ClassUtil.internalClassNameFromType(returnType);
             if (returnType != null
                 && internalReturnClassName != null
@@ -147,9 +160,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
                 // we can at most know the return type
                 pushReturnTypedValue(state,
                                      operands,
-                                     call,
-                                     targetClass,
-                                     targetMethod,
+                                     (ConcreteCall) call,
                                      returnType);
                 return;
             }
@@ -158,17 +169,18 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
         super.invokeMethod(state, call, operands);
     }
 
-    private void executeMethod(JvmAbstractState<ValueAbstractState> state,
-                               List<ValueAbstractState>             operands,
-                               Clazz                                targetClass,
-                               Method                               targetMethod)
+    private void executeMethod(ConcreteCall                         call,
+                               JvmAbstractState<ValueAbstractState> state,
+                               List<ValueAbstractState>             operands)
     {
+        Clazz   targetClass   = call.getTargetClass();
+        Method  targetMethod  = call.getTargetMethod();
         Value[] operandsArray = operands
             .stream()
             .map(ValueAbstractState::getValue)
             .toArray(Value[]::new);
 
-        Value result = executingInvocationUnit.executeMethod(targetClass, targetMethod, operandsArray);
+        Value  result     = executingInvocationUnit.executeMethod(call, operandsArray);
         String returnType = internalMethodReturnType(targetMethod.getDescriptor(targetClass));
 
         pushReturnValue(state, result, returnType);
@@ -182,13 +194,11 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
     private void pushReturnTypedValue(JvmAbstractState<ValueAbstractState> state,
                                      List<ValueAbstractState>              operands,
-                                     Call                                  call,
-                                     Clazz                                 targetClass,
-                                     Method                                targetMethod,
+                                     ConcreteCall                          call,
                                      String                                returnType)
     {
         ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
-        targetMethod.accept(targetClass, returnClassExtractor);
+        call.targetMethodAccept(returnClassExtractor);
         if (returnClassExtractor.returnClass == null)
         {
             super.invokeMethod(state, call, operands);
@@ -232,7 +242,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
             ValueAbstractState stackEntry   = operandStack.get(i);
             Value              valueOnStack = stackEntry.getValue();
             if (valueOnStack instanceof IdentifiedReferenceValue &&
-                ((IdentifiedReferenceValue) valueOnStack).id == identifiedReferenceValue.id)
+                ((IdentifiedReferenceValue) valueOnStack).id.equals(identifiedReferenceValue.id))
             {
                 stackEntry.setValue(identifiedReferenceValue);
             }

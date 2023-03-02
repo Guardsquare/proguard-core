@@ -18,6 +18,7 @@
 package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
+import proguard.classfile.Method;
 import proguard.classfile.TypeConstants;
 
 /**
@@ -150,7 +151,9 @@ implements   ValueFactory
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
-                                               int     id)
+                                               Clazz   creationClass,
+                                               Method  creationMethod,
+                                               int     creationOffset)
     {
         return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
     }
@@ -159,8 +162,29 @@ implements   ValueFactory
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
-                                               int     id,
+                                               Clazz   creationClass,
+                                               Method  creationMethod,
+                                               int     creationOffset,
                                                Object  value)
+    {
+        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
+
+    public ReferenceValue createReferenceValueForId(String  type,
+                                                    Clazz   referencedClass,
+                                                    boolean mayBeExtension,
+                                                    boolean mayBeNull,
+                                                    Object  id)
+    {
+        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
+
+    public ReferenceValue createReferenceValueForId(String  type,
+                                                    Clazz   referencedClass,
+                                                    boolean mayBeExtension,
+                                                    boolean mayBeNull,
+                                                    Object  id,
+                                                    Object  value)
     {
         return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
     }

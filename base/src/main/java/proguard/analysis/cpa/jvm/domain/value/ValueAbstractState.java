@@ -122,12 +122,12 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
                     // and their String value.
                     if (value.isParticular() && that.value.isParticular())
                     {
-                        int idA        = ((IdentifiedReferenceValue) value).id;
-                        int idB        = ((IdentifiedReferenceValue) that.value).id;
+                        Object idA     = ((IdentifiedReferenceValue)      value).id;
+                        Object idB     = ((IdentifiedReferenceValue) that.value).id;
                         String stringA = value.referenceValue().value().toString();
                         String stringB = that.value.referenceValue().value().toString();
 
-                        return idA == idB && stringA.equals(stringB);
+                        return idA.equals(idB) && stringA.equals(stringB);
                     }
                     break;
             }

@@ -18,6 +18,8 @@
 package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.evaluation.ParticularReferenceValueFactory;
 
 /**
  * This class provides methods to create and reuse Value instances that have
@@ -171,15 +173,17 @@ implements   ValueFactory
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
-                                               int     id,
-                                               Object  value)
+                                               Clazz   creationClass,
+                                               Method  creationMethod,
+                                               int     creationOffset)
     {
         return referenceValueFactory.createReferenceValue(type,
                                                           referencedClass,
                                                           mayBeExtension,
                                                           mayBeNull,
-                                                          id,
-                                                          value);
+                                                          creationClass,
+                                                          creationMethod,
+                                                          creationOffset);
     }
 
     @Override
@@ -187,13 +191,49 @@ implements   ValueFactory
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
-                                               int     id)
+                                               Clazz   creationClass,
+                                               Method  creationMethod,
+                                               int     creationOffset,
+                                               Object  value)
     {
         return referenceValueFactory.createReferenceValue(type,
                                                           referencedClass,
                                                           mayBeExtension,
                                                           mayBeNull,
-                                                          id);
+                                                          creationClass,
+                                                          creationMethod,
+                                                          creationOffset,
+                                                          value);
+    }
+
+    @Override
+    public ReferenceValue createReferenceValueForId(String  type,
+                                                    Clazz   referencedClass,
+                                                    boolean mayBeExtension,
+                                                    boolean mayBeNull,
+                                                    Object  id,
+                                                    Object  value)
+    {
+        return referenceValueFactory.createReferenceValueForId(type,
+                                                               referencedClass,
+                                                               mayBeExtension,
+                                                               mayBeNull,
+                                                               id,
+                                                               value);
+    }
+
+    @Override
+    public ReferenceValue createReferenceValueForId(String  type,
+                                                    Clazz   referencedClass,
+                                                    boolean mayBeExtension,
+                                                    boolean mayBeNull,
+                                                    Object  id)
+    {
+        return referenceValueFactory.createReferenceValueForId(type,
+                                                               referencedClass,
+                                                               mayBeExtension,
+                                                               mayBeNull,
+                                                               id);
     }
 
     public ReferenceValue createArrayReferenceValue(String       type,
@@ -220,54 +260,11 @@ implements   ValueFactory
 
     /**
      * This Reference value factory creates reference values that also represent their content.
+     * <p>
+     * Deprecated: Use {@link ParticularReferenceValueFactory} instead.
      *
      * @author Dennis Titze
      */
-    public static class ReferenceValueFactory
-        extends TypedReferenceValueFactory
-    {
-
-        protected int referenceID = 0;
-
-        // Implementations for ReferenceValue.
-        @Override
-        public ReferenceValue createReferenceValue(String  type,
-                                                   Clazz   referencedClass,
-                                                   boolean mayBeExtension,
-                                                   boolean mayBeNull)
-        {
-            return new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
-        }
-
-        @Override
-        public ReferenceValue createReferenceValue(String  type,
-                                                   Clazz   referencedClass,
-                                                   boolean mayBeExtension,
-                                                   boolean mayBeNull,
-                                                   Object  value)
-        {
-            return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, referenceID++, value);
-        }
-
-        @Override
-        public ReferenceValue createReferenceValue(String  type,
-                                                   Clazz   referencedClass,
-                                                   boolean mayBeExtension,
-                                                   boolean mayBeNull,
-                                                   int     id,
-                                                   Object  value)
-        {
-            return new ParticularReferenceValue(type, referencedClass, this, id, value);
-        }
-
-        @Override
-        public ReferenceValue createReferenceValue(String  type,
-                                                   Clazz   referencedClass,
-                                                   boolean mayBeExtension,
-                                                   boolean mayBeNull,
-                                                   int     id)
-        {
-            return new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, id);
-        }
-    }
+    @Deprecated
+    public static class ReferenceValueFactory extends ParticularReferenceValueFactory { }
 }

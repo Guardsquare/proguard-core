@@ -36,6 +36,8 @@ import java.util.Objects;
 
 import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
+import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
+import static proguard.classfile.util.ClassUtil.isNullOrFinal;
 import static proguard.evaluation.value.ParticularReferenceValue.UNINITIALIZED;
 
 /**
@@ -131,7 +133,16 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
             return new ValueAbstractState(valueFactory.createReferenceValue());
         }
 
-        IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(className, null, true, true, UNINITIALIZED);
+        IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(
+                internalTypeFromClassName(className),
+                null,
+                true,
+                true,
+                programLocation.getClazz(),
+                programLocation.getSignature().getReferencedMethod(),
+                programLocation.getOffset(),
+                UNINITIALIZED
+            );
         logger.trace("newObject(className = {}): {}", className, value);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
         setField(value.id, jvmValueAbstractState);
@@ -149,7 +160,16 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
             return new ValueAbstractState(valueFactory.createReferenceValue());
         }
 
-        IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(clazz, UNINITIALIZED);
+        IdentifiedReferenceValue value = (IdentifiedReferenceValue) valueFactory.createReferenceValue(
+                internalTypeFromClassName(clazz.getName()),
+                clazz,
+                isNullOrFinal(clazz),
+                true,
+                programLocation.getClazz(),
+                programLocation.getSignature().getReferencedMethod(),
+                programLocation.getOffset(),
+                UNINITIALIZED
+            );
         logger.trace("newObject(clazz = {}): {}", clazz.getName(), value);
         ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
         setField(value.id, jvmValueAbstractState);

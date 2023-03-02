@@ -18,9 +18,10 @@
 package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
+import proguard.classfile.Method;
 import proguard.classfile.util.ClassUtil;
 
-import static proguard.classfile.AccessConstants.FINAL;
+import static proguard.classfile.util.ClassUtil.isNullOrFinal;
 
 /**
  * This interface provides methods to create {@link Value} instances.
@@ -110,7 +111,7 @@ public interface ValueFactory
         return createReferenceValue(
             ClassUtil.internalTypeFromClassName(clazz.getName()),
             clazz,
-            (clazz.getAccessFlags() & FINAL) == 0,
+            isNullOrFinal(clazz),
             true
         );
     }
@@ -120,20 +121,8 @@ public interface ValueFactory
         return createReferenceValue(
                 ClassUtil.internalTypeFromClassName(clazz.getName()),
                 clazz,
-                (clazz.getAccessFlags() & FINAL) == 0,
+                isNullOrFinal(clazz),
                 true,
-                value
-        );
-    }
-
-    default ReferenceValue createReferenceValue(Clazz clazz, int id, Object value)
-    {
-        return createReferenceValue(
-                ClassUtil.internalTypeFromClassName(clazz.getName()),
-                clazz,
-                (clazz.getAccessFlags() & FINAL) == 0,
-                true,
-                id,
                 value
         );
     }
@@ -161,7 +150,8 @@ public interface ValueFactory
                                         Object  value);
 
     /**
-     * Creates a new ReferenceValue that represents the given type with a specified ID.
+     * Creates a new ReferenceValue that represents the given type, created at the
+     * specified code location.
      * The type must be an internal class name or an array type. If the type is
      * <code>null</code>, the ReferenceValue represents <code>null</code>.
      * The object is the actual value of the reference during execution (can be null).
@@ -170,7 +160,24 @@ public interface ValueFactory
                                         Clazz   referencedClass,
                                         boolean mayBeExtension,
                                         boolean maybeNull,
-                                        int     id,
+                                        Clazz   creationClass,
+                                        Method  creationMethod,
+                                        int     creationOffset);
+
+    /**
+     * Creates a new ReferenceValue that represents the given type, created at the
+     * specified code location.
+     * The type must be an internal class name or an array type. If the type is
+     * <code>null</code>, the ReferenceValue represents <code>null</code>.
+     * The object is the actual value of the reference during execution (can be null).
+     */
+    ReferenceValue createReferenceValue(String  type,
+                                        Clazz   referencedClass,
+                                        boolean mayBeExtension,
+                                        boolean maybeNull,
+                                        Clazz   creationClass,
+                                        Method  creationMethod,
+                                        int     creationOffset,
                                         Object  value);
 
     /**
@@ -178,11 +185,24 @@ public interface ValueFactory
      * The type must be an internal class name or an array type. If the type is
      * <code>null</code>, the ReferenceValue represents <code>null</code>.
      */
-    ReferenceValue createReferenceValue(String  type,
-                                        Clazz   referencedClass,
-                                        boolean mayBeExtension,
-                                        boolean maybeNull,
-                                        int     id);
+    ReferenceValue createReferenceValueForId(String  type,
+                                             Clazz   referencedClass,
+                                             boolean mayBeExtension,
+                                             boolean maybeNull,
+                                             Object  id);
+
+    /**
+     * Creates a new ReferenceValue that represents the given type with a specified ID.
+     * The type must be an internal class name or an array type. If the type is
+     * <code>null</code>, the ReferenceValue represents <code>null</code>.
+     * The object is the actual value of the reference during execution (can be null).
+     */
+    ReferenceValue createReferenceValueForId(String  type,
+                                             Clazz   referencedClass,
+                                             boolean mayBeExtension,
+                                             boolean maybeNull,
+                                             Object  id,
+                                             Object  value);
     /**
      * Creates a new ReferenceValue that represents a non-null array with
      * elements of the given type, with the given length.

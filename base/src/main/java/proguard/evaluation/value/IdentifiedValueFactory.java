@@ -76,23 +76,9 @@ extends      ParticularValueFactory
                                          referenceID++);
     }
 
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull,
-                                               int     id)
-    {
-        return type == null ?
-            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
-            new IdentifiedReferenceValue(type,
-                                         referencedClass,
-                                         mayBeExtension,
-                                         mayBeNull,
-                                         this,
-                                         id);
-    }
 
 
+    @Override
     public ReferenceValue createReferenceValue(String  type,
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
@@ -102,12 +88,38 @@ extends      ParticularValueFactory
         return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
     }
 
+    @Override
     public ReferenceValue createReferenceValue(String  type,
                                                Clazz   referencedClass,
                                                boolean mayBeExtension,
                                                boolean mayBeNull,
-                                               int     id,
+                                               Clazz   creationClass,
+                                               Method  creationMethod,
+                                               int     creationOffset)
+    {
+        return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
+
+    @Override
+    public ReferenceValue createReferenceValue(String  type,
+                                               Clazz   referencedClass,
+                                               boolean mayBeExtension,
+                                               boolean mayBeNull,
+                                               Clazz   creationClass,
+                                               Method  creationMethod,
+                                               int     creationOffset,
                                                Object  value)
+    {
+        return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+    }
+
+
+    @Override
+    public ReferenceValue createReferenceValueForId(String  type,
+                                                    Clazz   referencedClass,
+                                                    boolean mayBeExtension,
+                                                    boolean mayBeNull,
+                                                    Object  id)
     {
         return type == null ?
             TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
@@ -117,6 +129,24 @@ extends      ParticularValueFactory
                                          mayBeNull,
                                          this,
                                          id);
+    }
+
+    @Override
+    public ReferenceValue createReferenceValueForId(String  type,
+                                                    Clazz   referencedClass,
+                                                    boolean mayBeExtension,
+                                                    boolean mayBeNull,
+                                                    Object  id,
+                                                    Object  value)
+    {
+        return type == null ?
+            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
+                new IdentifiedReferenceValue(type,
+                        referencedClass,
+                        mayBeExtension,
+                        mayBeNull,
+                        this,
+                        id);
     }
 
     public ReferenceValue createArrayReferenceValue(String       type,

@@ -18,6 +18,7 @@ import proguard.classfile.visitor.MemberNameFilter;
 import proguard.evaluation.BasicInvocationUnit;
 import proguard.evaluation.InvocationUnit;
 import proguard.evaluation.PartialEvaluator;
+import proguard.evaluation.ParticularReferenceValueFactory;
 import proguard.evaluation.ReferenceTracingInvocationUnit;
 import proguard.evaluation.ReferenceTracingValueFactory;
 import proguard.evaluation.TracedStack;
@@ -135,7 +136,7 @@ public class EvaluateCode
         // In this example, the value factory determines the precision.
         ValueFactory valueFactory =
             precision.equals(BASIC)         ? new BasicValueFactory() :
-            precision.equals(PARTICULAR)    ? new ParticularValueFactory(new BasicValueFactory(), new ParticularValueFactory.ReferenceValueFactory()) :
+            precision.equals(PARTICULAR)    ? new ParticularValueFactory(new BasicValueFactory(), new ParticularReferenceValueFactory()) :
             precision.equals(RANGE)         ? new RangeValueFactory(new ArrayReferenceValueFactory(), new BasicValueFactory()) :
             precision.equals(IDENTITY)      ? new IdentifiedValueFactory() :
             precision.equals(TRACING)       ? new ReferenceTracingValueFactory(new BasicValueFactory()) :

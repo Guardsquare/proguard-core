@@ -18,6 +18,7 @@ import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.util.ClassUtil
+import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularReferenceValue
@@ -792,7 +793,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Given an identified and a particular value" - {
-        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
         val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
         val identified = IdentifiedReferenceValue(
             "Ljava/lang/StringBuilder;",
@@ -824,7 +825,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Given two particular values" - {
-        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
         val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
         val stringBuilder = StringBuilder()
         val particular1 = ParticularReferenceValue(
@@ -856,7 +857,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Given an identified and a typed value" - {
-        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
         val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
         val identified = IdentifiedReferenceValue(
             "Ljava/lang/StringBuilder;",
@@ -885,7 +886,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Given an identified and a unknown reference" - {
-        val valueFactory = ParticularValueFactory(ParticularValueFactory.ReferenceValueFactory())
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
         val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
         val identified = IdentifiedReferenceValue(
             "Ljava/lang/StringBuilder;",

@@ -18,16 +18,20 @@
 
 package proguard.analysis.cpa.defaults;
 
+import proguard.analysis.cpa.interfaces.CfaEdge;
+import proguard.analysis.cpa.interfaces.CfaNode;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.Signature;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import proguard.classfile.Signature;
-import proguard.analysis.cpa.interfaces.CfaEdge;
-import proguard.analysis.cpa.interfaces.CfaNode;
 
 /**
  * A {@link Cfa} is a control flow automaton with nodes {@code <CfaNodeT>} and edges {@code <CfaEdgeT>}. It can be used for different programming languages with functions identified by {@code
@@ -65,7 +69,7 @@ public abstract class Cfa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdg
         return functionNodes.keySet()
                             .stream()
                             .map(x -> functionNodes.get(x).getOrDefault(0, null))
-                            .filter(x -> x != null)
+                            .filter(Objects::nonNull)
                             .collect(Collectors.toSet());
     }
 
@@ -98,6 +102,18 @@ public abstract class Cfa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdg
     public CfaNodeT getFunctionNode(SignatureT signature, int offset)
     {
         return functionNodes.getOrDefault(signature, Collections.emptyMap()).getOrDefault(offset, null);
+    }
+
+    /**
+     * Returns the node of a function at a specific code offset, returns null if the function or the specific node are not in the graph.
+     *
+     * @param clazz  The {@link Clazz} in which the function is declared.
+     * @param method The {@link Method} in which the function is declared.
+     * @param offset The offset of the code location represented by the node.
+     */
+    public CfaNodeT getFunctionNode(Clazz clazz, Method method, int offset)
+    {
+        return functionNodes.getOrDefault((SignatureT) Signature.of(clazz, method), Collections.emptyMap()).getOrDefault(offset, null);
     }
 
     /**

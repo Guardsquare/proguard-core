@@ -53,7 +53,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue
     public ParticularReferenceValue(String       type,
                                     Clazz        referencedClass,
                                     ValueFactory valueFactory,
-                                    int          referenceID,
+                                    Object       referenceID,
                                     Object       value)
     {
         // We store the unique ID to keep track of the same value (independent of casting and generalizations) on stack and vars.

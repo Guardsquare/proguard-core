@@ -18,6 +18,7 @@ import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.domain.value.JvmCfaReferenceValueFactory;
 import proguard.analysis.cpa.jvm.domain.value.JvmValueAbstractState;
 import proguard.analysis.cpa.jvm.domain.value.JvmValueTransferRelation;
 import proguard.analysis.cpa.jvm.domain.value.ValueAbstractState;
@@ -29,6 +30,7 @@ import proguard.classfile.ClassPool;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.Signature;
+import proguard.classfile.visitor.ClassPrinter;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.DoubleValue;
 import proguard.evaluation.value.IdentifiedReferenceValue;
@@ -131,6 +133,8 @@ public class CpaValueTest {
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
         ParticularReferenceValue value = (ParticularReferenceValue) lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
         assertEquals(value.value(), "1", "The value should be correctly tracked");
+        assertInstanceOf(JvmCfaNode.class, value.id);
+        // In this case, the ID would be 5 or 11 since two strings are created at different locations.
     }
 
     @Test
@@ -138,11 +142,15 @@ public class CpaValueTest {
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleStringBuilder");
         JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
-        Value stringBuilder = printlnCall.getFieldOrDefault(0, UNKNOWN).getValue();
+        Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
         ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
         Object stackTopValue = stackTop.value();
         assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
         assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stackTop).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertEquals("JvmCfaNode{LSimpleStringBuilder;main([Ljava/lang/String;)V:28}", ((IdentifiedReferenceValue)stackTop).id.toString());
+        assertEquals("JvmCfaNode{LSimpleStringBuilder;main([Ljava/lang/String;)V:0}", ((IdentifiedReferenceValue)stringBuilder).id.toString());
     }
 
     @Test
@@ -150,11 +158,15 @@ public class CpaValueTest {
     {
         ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("SimpleStringBuffer");
         JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
-        Value stringBuilder = printlnCall.getFieldOrDefault(0, UNKNOWN).getValue();
+        Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
         ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
         Object stackTopValue = stackTop.value();
         assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
         assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stackTop).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertEquals("JvmCfaNode{LSimpleStringBuffer;main([Ljava/lang/String;)V:28}", ((IdentifiedReferenceValue)stackTop).id.toString());
+        assertEquals("JvmCfaNode{LSimpleStringBuffer;main([Ljava/lang/String;)V:0}", ((IdentifiedReferenceValue)stringBuilder).id.toString());
     }
 
 
@@ -170,6 +182,10 @@ public class CpaValueTest {
         Object stackTopValue = stackTop.value();
         assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
         assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stackTop).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertEquals("JvmCfaNode{LSimpleStringConcat;main([Ljava/lang/String;)V:39}", ((IdentifiedReferenceValue)stackTop).id.toString());
+        assertEquals("JvmCfaNode{LSimpleStringConcat;main([Ljava/lang/String;)V:0}", ((IdentifiedReferenceValue)stringBuilder).id.toString());
     }
 
     @Test
@@ -185,6 +201,10 @@ public class CpaValueTest {
         Object stackTopValue = stackTop.value();
         assertEquals( "Hello World", stackTopValue,"The value should be correctly tracked");
         assertNotEquals(((IdentifiedReferenceValue)stackTop).id, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stackTop).id);
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)stringBuilder).id);
+        assertEquals("JvmCfaNode{LStringSubString;main([Ljava/lang/String;)V:18}", ((IdentifiedReferenceValue)stackTop).id.toString());
+        assertEquals("JvmCfaNode{LStringSubString;main([Ljava/lang/String;)V:0}", ((IdentifiedReferenceValue)stringBuilder).id.toString());
     }
 
     @Test
@@ -200,8 +220,9 @@ public class CpaValueTest {
         JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
         Value value = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
         assertInstanceOf(IdentifiedReferenceValue.class, value, "The value should be a Identified reference 0");
-        assertEquals(0, ((IdentifiedReferenceValue)value).id);
         assertEquals("Ljava/lang/StringBuilder;", value.internalType(), "The type should be StringBuilder");
+        assertInstanceOf(JvmCfaNode.class, ((IdentifiedReferenceValue)value).id);
+        assertEquals("JvmCfaNode{LStringBuilderBranch;main([Ljava/lang/String;)V:0}", ((IdentifiedReferenceValue)value).id.toString());
     }
 
     @Test
@@ -297,8 +318,7 @@ public class CpaValueTest {
     private static ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> runCpa(String className)
     {
         ClassPool programClassPool = getProgramClassPool(className);
-        ValueFactory valueFactory = new ParticularValueFactory(new ParticularValueFactory.ReferenceValueFactory());
-        JvmHeapAbstractState<ValueAbstractState> heap = new JvmShallowHeapAbstractState<>(new HashMapAbstractState<>(), Integer.class, UNKNOWN);
+        JvmHeapAbstractState<ValueAbstractState> heap = new JvmShallowHeapAbstractState<>(new HashMapAbstractState<>(), JvmCfaNode.class, UNKNOWN);
 
         JvmCfa cfa = CfaUtil.createInterproceduralCfa(programClassPool, ClassPoolBuilder.Companion.getLibraryClassPool());
 
@@ -312,6 +332,7 @@ public class CpaValueTest {
         }
 
         AbstractDomain abstractDomain = new DelegateAbstractDomain<ValueAbstractState>();
+        ValueFactory valueFactory = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
         ExecutingInvocationUnit executingInvocationUnit = new ExecutingInvocationUnit(valueFactory);
         JvmValueTransferRelation transferRelation = new JvmValueTransferRelation(valueFactory, executingInvocationUnit);
         MergeOperator mergeJoinOperator = new MergeJoinOperator(abstractDomain);

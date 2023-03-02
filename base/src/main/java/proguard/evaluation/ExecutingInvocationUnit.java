@@ -18,6 +18,8 @@
 
 package proguard.evaluation;
 
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
 import proguard.classfile.LibraryClass;
@@ -72,6 +74,7 @@ import static proguard.classfile.TypeConstants.SHORT;
 import static proguard.classfile.TypeConstants.VOID;
 import static proguard.classfile.util.ClassUtil.externalClassName;
 import static proguard.classfile.util.ClassUtil.isInternalPrimitiveType;
+import static proguard.classfile.util.ClassUtil.isNullOrFinal;
 import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
 import static proguard.evaluation.value.ReflectiveMethodCallUtil.callMethod;
 
@@ -156,10 +159,11 @@ public class ExecutingInvocationUnit
 
         if (!isSupportedMethodCall(baseClassName, anyMethodrefConstant.getName(clazz)))
         {
-            return valueFactory.createValue(returnType, referencedClass, ClassUtil.isNullOrFinal(referencedClass), true);
+            return valueFactory.createValue(returnType, referencedClass, isNullOrFinal(referencedClass), true);
         }
 
-        Value reflectedReturnValue = executeMethod(anyMethodrefConstant.referencedClass, anyMethodrefConstant.referencedMethod, parameters);
+        // TODO: Passing calling context parameters.
+        Value reflectedReturnValue = executeMethod(null, null, 0, anyMethodrefConstant.referencedClass, anyMethodrefConstant.referencedMethod, parameters);
 
         updateStackAndVariables(clazz, anyMethodrefConstant, returnType, reflectedReturnValue);
 
@@ -265,7 +269,7 @@ public class ExecutingInvocationUnit
         {
             value = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING,
                                                       currentField.referencedClass,
-                                                      ClassUtil.isNullOrFinal(currentField.referencedClass),
+                                                      isNullOrFinal(currentField.referencedClass),
                                                       false,
                                                       stringConstant.getString(clazz));
         }
@@ -298,12 +302,34 @@ public class ExecutingInvocationUnit
     }
 
     /**
+     * Executes a method, by reflectively trying to call the method represented by the given {@link Call}.
+     *
+     * @param call          The method to call.
+     * @param parameters    An array containing the parameters values (for a non-static call, parameters[0] is the instance.
+     * @return The return value of the method call. Even for a void method, a created value might be returned, which might need to be replaced on stack/values (e.g. for Constructors).
+     */
+    public Value executeMethod(ConcreteCall call, Value...parameters)
+    {
+        return executeMethod(
+                call.caller.clazz,
+                (Method) call.caller.member,
+                call.caller.offset,
+                call.getTargetClass(),
+                call.getTargetMethod(),
+                parameters
+        );
+    }
+
+    /**
      * Executes a method, by reflectively trying to call it with the given parameters.
      *
-     * @param parameters an array containing the parameters values (for a non-static call, parameters[0] is the instance.
-     * @return the return value of the method call. Even for a void method, a created value might be returned, which might need to be replaced on stack/values (e.g. for Constructors).
+     * @param callingClass  The class from where the method is being executed from.
+     * @param callingMethod The method from where the method is being executed from.
+     * @param callingOffset The offset from where the method is being executed from.
+     * @param parameters    An array containing the parameters values (for a non-static call, parameters[0] is the instance.
+     * @return The return value of the method call. Even for a void method, a created value might be returned, which might need to be replaced on stack/values (e.g. for Constructors).
      */
-    public Value executeMethod(Clazz clazz, Method  method, Value...parameters)
+    public Value executeMethod(Clazz callingClass, Method callingMethod, int callingOffset, Clazz clazz, Method  method, Value...parameters)
     {
         if (clazz == null || method == null)
         {
@@ -322,11 +348,11 @@ public class ExecutingInvocationUnit
         // for the instance, if we know that the method call should return its own instance
         // according the approximation of `returnsOwnInstance`.
         String finalReturnType = returnType;
-        BiFunction<ReferenceValue, Integer, Value> errorHandler = (instance, objectId) -> {
+        BiFunction<ReferenceValue, Object, Value> errorHandler = (instance, objectId) -> {
 
-            if (objectId != -1 && returnsOwnInstance(finalReturnType, methodName, descriptor, isStatic, instance == null ? null : instance.internalType()))
+            if (objectId != null && returnsOwnInstance(finalReturnType, methodName, descriptor, isStatic, instance == null ? null : instance.internalType()))
             {
-                return valueFactory.createReferenceValue(finalReturnType, returnClazz, ClassUtil.isNullOrFinal(returnClazz), true, objectId.intValue());
+                return valueFactory.createReferenceValueForId(finalReturnType, returnClazz, isNullOrFinal(returnClazz), true, objectId);
             }
             else if (isInternalPrimitiveType(finalReturnType))
             {
@@ -334,12 +360,12 @@ public class ExecutingInvocationUnit
             }
             else
             {
-                return valueFactory.createValue(finalReturnType, returnClazz, ClassUtil.isNullOrFinal(returnClazz), true);
+                return valueFactory.createValue(finalReturnType, returnClazz, isNullOrFinal(returnClazz), true);
             }
         };
 
-        ReferenceValue instance = !isStatic && parameters[0] instanceof ReferenceValue ? parameters[0].referenceValue() : null;
-        int            objectId = instance instanceof IdentifiedReferenceValue ? ((IdentifiedReferenceValue) instance).id : -1;
+        ReferenceValue instance = !isStatic && parameters[0] instanceof ReferenceValue ? parameters[0].referenceValue()           : null;
+        Object         objectId = instance instanceof IdentifiedReferenceValue         ? ((IdentifiedReferenceValue) instance).id : null;
 
         if (!isSupportedMethodCall(baseClassName, methodName))
         {
@@ -457,18 +483,18 @@ public class ExecutingInvocationUnit
 
         // If there ID is already know, use the same ID;
         // unless the instance modifies itself or is different.
-        if (objectId != -1 && (alwaysModifiesInstance(baseClassName, methodName) || callingInstance == methodResult))
+        if (objectId != null && (alwaysModifiesInstance(baseClassName, methodName) || callingInstance == methodResult))
         {
-            return valueFactory.createReferenceValue(returnType,
-                                                      // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
-                                                      // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
-                                                      ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
-                                                         ? null
-                                                         : returnClazz,
-                                                      resultMayBeExtension,
-                                                      resultMayBeNull,
-                                                      objectId,
-                                                      methodResult);
+            return valueFactory.createReferenceValueForId(returnType,
+                                                          // check necessary for primitive arrays, in case the method returns a primitive array its last referenced class will be
+                                                          // its last parameter (null correctly just if it has no reference class parameters), since primitive types are not a referenced class
+                                                          ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType))
+                                                             ? null
+                                                             : returnClazz,
+                                                          resultMayBeExtension,
+                                                          resultMayBeNull,
+                                                          objectId,
+                                                          methodResult);
         }
         else
         {
@@ -480,6 +506,9 @@ public class ExecutingInvocationUnit
                                                          : returnClazz,
                                                       resultMayBeExtension,
                                                       resultMayBeNull,
+                                                      callingClass,
+                                                      callingMethod,
+                                                      callingOffset,
                                                       methodResult);
         }
     }
