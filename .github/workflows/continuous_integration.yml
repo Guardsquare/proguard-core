@@ -19,15 +19,15 @@ jobs:
         with:
           java-version: 11
       - name: Assemble
-        uses: eskatos/gradle-command-action@v1
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: assemble
       - name: Build
-        uses: eskatos/gradle-command-action@v1
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: build testAllJavaVersions jacocoTestReport
       - name: Sonar
-        run: gradle -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=guardsquare -Dsonar.projectKey=Guardsquare_proguard-core sonarqube --info
+        run: ./gradlew -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=guardsquare -Dsonar.projectKey=Guardsquare_proguard-core sonarqube --info
         env:
           GITHUB_TOKEN: ${{ secrets.PROGUARD_GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.PROGUARD_SONAR_TOKEN }}
