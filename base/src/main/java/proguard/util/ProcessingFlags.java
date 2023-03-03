@@ -26,23 +26,30 @@ package proguard.util;
 public class ProcessingFlags
 {
     // External configuration flags.
-    public static final int DONT_SHRINK         = 0x00100000; // Marks whether an entity should not be shrunk.
-    public static final int DONT_OPTIMIZE       = 0x00200000; // Marks whether an entity should not be optimized.
-    public static final int DONT_OBFUSCATE      = 0x00400000; // Marks whether an entity should not be obfuscated.
+    public static final int DONT_SHRINK                          = 0x00100000; // Marks whether an entity should not be shrunk.
+    public static final int DONT_OPTIMIZE                        = 0x00200000; // Marks whether an entity should not be optimized.
+    public static final int DONT_OBFUSCATE                       = 0x00400000; // Marks whether an entity should not be obfuscated.
+
+    // Combined flags
+    public static final int DONT_SHRINK_OR_OBFUSCATE             = DONT_SHRINK    | DONT_OBFUSCATE;
+    public static final int DONT_SHRINK_OR_OPTIMIZE              = DONT_SHRINK    | DONT_OPTIMIZE;
+    public static final int DONT_OPTIMIZE_OR_OBFUSCATE           = DONT_OBFUSCATE | DONT_OPTIMIZE;
+    public static final int DONT_SHRINK_OR_OPTIMIZE_OR_OBFUSCATE = DONT_SHRINK    | DONT_OPTIMIZE | DONT_OBFUSCATE;
+
 
     // Internal processing flags.
-    public static final int IS_CLASS_AVAILABLE            = 0x00000001; // Marks whether a class member can be used for generalization or specialization.
-    public static final int REMOVED_FIELDS                = 0x00000004; // Marks whether a class has (at least one) fields removed.
-    public static final int REMOVED_PUBLIC_FIELDS         = 0x00000008; // Marks whether a class has (at least one) public fields removed.
-    public static final int REMOVED_CONSTRUCTORS          = 0x00000010; // Marks whether a class has (at least one) constructors removed.
-    public static final int REMOVED_PUBLIC_CONSTRUCTORS   = 0x00000020; // Marks whether a class has (at least one) public constructors removed.
-    public static final int REMOVED_METHODS               = 0x00000040; // Marks whether a class has (at least one) methods removed.
-    public static final int REMOVED_PUBLIC_METHODS        = 0x00000080; // Marks whether a class has (at least one) public methods removed.
-    public static final int INJECTED                      = 0x00000200; // Marks whether an entity was injected by DexGuard.
-    public static final int DONT_PROCESS_KOTLIN_MODULE    = 0x00008000; // Marks whether to processing a Kotlin module file.
-    public static final int MODIFIED                      = 0x00004000; // Marks whether an entity has been modified.
+    public static final int IS_CLASS_AVAILABLE                   = 0x00000001; // Marks whether a class member can be used for generalization or specialization.
+    public static final int REMOVED_FIELDS                       = 0x00000004; // Marks whether a class has (at least one) fields removed.
+    public static final int REMOVED_PUBLIC_FIELDS                = 0x00000008; // Marks whether a class has (at least one) public fields removed.
+    public static final int REMOVED_CONSTRUCTORS                 = 0x00000010; // Marks whether a class has (at least one) constructors removed.
+    public static final int REMOVED_PUBLIC_CONSTRUCTORS          = 0x00000020; // Marks whether a class has (at least one) public constructors removed.
+    public static final int REMOVED_METHODS                      = 0x00000040; // Marks whether a class has (at least one) methods removed.
+    public static final int REMOVED_PUBLIC_METHODS               = 0x00000080; // Marks whether a class has (at least one) public methods removed.
+    public static final int INJECTED                             = 0x00000200; // Marks whether an entity was injected.
+    public static final int DONT_PROCESS_KOTLIN_MODULE           = 0x00008000; // Marks whether to processing a Kotlin module file.
+    public static final int MODIFIED                             = 0x00004000; // Marks whether an entity has been modified.
 
     // A mask for processing flags that can be copied as well when e.g. inlining a method / merging a class.
     // TODO: needs to be extended, e.g. with OBFUSCATE_CODE.
-    public static final int COPYABLE_PROCESSING_FLAGS = 0x00000800;
+    public static final int COPYABLE_PROCESSING_FLAGS            = 0x00000800;
 }
