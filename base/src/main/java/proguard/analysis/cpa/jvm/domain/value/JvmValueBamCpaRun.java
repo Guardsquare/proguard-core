@@ -1,5 +1,9 @@
 package proguard.analysis.cpa.jvm.domain.value;
 
+import static java.util.Collections.singletonList;
+import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
+
+import java.util.Collection;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
@@ -27,11 +31,6 @@ import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ValueFactory;
-
-import java.util.Collection;
-
-import static java.util.Collections.singletonList;
-import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
 
 /**
  * This run wraps the execution of BAM JVM Value Analysis CPA (see {@link JvmValueAbstractState}).
@@ -121,17 +120,21 @@ public class JvmValueBamCpaRun
     public static class Builder extends JvmBamCpaRun.Builder
     {
 
-        private final MethodSignature                              mainSignature;
-        private       ValueFactory                                 valueFactory;
-        private       MapAbstractState<String, ValueAbstractState> staticFields = new HashMapAbstractState<>();
+        private MethodSignature                              mainSignature;
+        private ValueFactory                                 valueFactory;
+        private MapAbstractState<String, ValueAbstractState> staticFields = new HashMapAbstractState<>();
 
+        public Builder()
+        {
+            super.heapModel         = HeapModel.SHALLOW;
+            super.maxCallStackDepth = 10;
+        }
 
         public Builder(JvmCfa cfa, MethodSignature mainSignature)
         {
-            super.cfa               = cfa;
-            super.heapModel         = HeapModel.SHALLOW;
-            this.mainSignature      = mainSignature;
-            super.maxCallStackDepth = 10;
+            this();
+            super.cfa          = cfa;
+            this.mainSignature = mainSignature;
         }
 
         @Override
@@ -151,6 +154,18 @@ public class JvmValueBamCpaRun
                 abortOperator,
                 reduceHeap
             );
+        }
+
+        public Builder setCfa(JvmCfa cfa)
+        {
+            super.cfa = cfa;
+            return this;
+        }
+
+        public Builder setMainSignature(MethodSignature mainSignature)
+        {
+            this.mainSignature = mainSignature;
+            return this;
         }
 
         public Builder setValueFactory(ValueFactory valueFactory)
