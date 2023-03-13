@@ -1,7 +1,7 @@
 # The following tests a very large method that is bigger than
 # allowed in the JVM specification (code must be < 64k bytes).
 # The dalvik specification does not have this restriction so
-# DexGuard should be able to accept a large method and output
+# Proguard-core should be able to accept a large method and output
 # a large method.
 
 .class public final LTestLargeMethod;
