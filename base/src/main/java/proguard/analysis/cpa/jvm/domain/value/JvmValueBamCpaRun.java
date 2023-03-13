@@ -27,6 +27,7 @@ import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
+import proguard.analysis.cpa.jvm.util.JvmBamCpaRun.Builder;
 import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.ParticularValueFactory;
@@ -178,6 +179,12 @@ public class JvmValueBamCpaRun
         {
             this.staticFields = staticFields;
             return this;
+        }
+
+        public Builder setAbortOperator(AbortOperator abortOperator)
+        {
+           this.abortOperator = abortOperator;
+           return this;
         }
 
         @Override
