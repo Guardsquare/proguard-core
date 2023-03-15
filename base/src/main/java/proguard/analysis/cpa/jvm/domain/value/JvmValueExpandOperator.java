@@ -20,7 +20,12 @@ public class JvmValueExpandOperator extends JvmDefaultExpandOperator<JvmAbstract
 
     public JvmValueExpandOperator(ValueFactory valueFactory, ExecutingInvocationUnit executingInvocationUnit, JvmCfa cfa)
     {
-        super(cfa);
+        this(valueFactory, executingInvocationUnit, cfa, true);
+    }
+
+    public JvmValueExpandOperator(ValueFactory valueFactory, ExecutingInvocationUnit executingInvocationUnit, JvmCfa cfa, boolean expandHeap)
+    {
+        super(cfa, expandHeap);
         this.valueFactory            = valueFactory;
         this.executingInvocationUnit = executingInvocationUnit;
     }

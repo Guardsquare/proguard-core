@@ -19,11 +19,9 @@
 package proguard.analysis.cpa.jvm.state.heap;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.classfile.Clazz;
 
 /**
@@ -86,7 +84,7 @@ public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT
      *
      * @param references information on the references to keep or discard, based on the implementation. Unused in the default implementation
      */
-    default void reduce(Optional<Set<Reference>> references)
+    default void reduce(Set<Object> references)
     {
     }
 

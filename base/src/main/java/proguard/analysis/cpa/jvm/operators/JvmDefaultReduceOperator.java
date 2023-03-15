@@ -18,8 +18,8 @@
 
 package proguard.analysis.cpa.jvm.operators;
 
+import java.util.Collections;
 import java.util.ListIterator;
-import java.util.Optional;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ListAbstractState;
@@ -34,7 +34,6 @@ import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
-import proguard.classfile.instruction.Instruction;
 import proguard.classfile.util.ClassUtil;
 
 /**
@@ -145,8 +144,7 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
     }
 
     /**
-     * Reduces the heap state. The default implementation passes an empty optional to {@link JvmHeapAbstractState#reduce}
-     * which should take care of handling this case properly.
+     * Reduces the heap state. The default implementation doesn't perform any reduction.
      *
      * @param heap                the heap that is modified by this method by performing reduction
      * @param reducedFrame        the frame after reduction has been performed on it
@@ -156,6 +154,5 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
                               JvmFrameAbstractState<StateT> reducedFrame,
                               MapAbstractState<String, StateT> reducedStaticFields)
     {
-        heap.reduce(Optional.empty());
     }
 }

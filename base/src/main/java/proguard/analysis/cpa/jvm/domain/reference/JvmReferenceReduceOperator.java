@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
-import java.util.Optional;
 import java.util.Set;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
@@ -66,11 +65,11 @@ public class JvmReferenceReduceOperator
                               JvmFrameAbstractState<SetAbstractState<Reference>> reducedFrame,
                               MapAbstractState<String, SetAbstractState<Reference>> reducedStaticFields)
     {
-            Set<Reference> roots = ((JvmTreeHeapPrincipalAbstractState) heap).getStaticCreationReferences();
+            Set<Object> roots = ((JvmTreeHeapPrincipalAbstractState) heap).getStaticCreationReferences();
             reducedFrame.getLocalVariables().forEach(roots::addAll);
             reducedStaticFields.values().forEach(roots::addAll);
 
-            heap.reduce(Optional.of(roots));
+            heap.reduce(roots);
     }
 
     // implementations for JvmAbstractStateFactory

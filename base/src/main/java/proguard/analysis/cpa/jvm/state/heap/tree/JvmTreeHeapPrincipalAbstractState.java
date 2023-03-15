@@ -23,7 +23,6 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.MapAbstractState;
@@ -145,7 +144,7 @@ public class JvmTreeHeapPrincipalAbstractState
     /**
      * Get all the references to nodes that have been created in a {@link JvmStaticFieldLocation}.
      */
-    public Set<Reference> getStaticCreationReferences()
+    public Set<Object> getStaticCreationReferences()
     {
         return referenceToObject.keySet()
                                 .stream()
@@ -155,25 +154,17 @@ public class JvmTreeHeapPrincipalAbstractState
 
     /**
      * Slices the principal heap tree starting from the specified roots.
-     *
-     * If {@param roots} is an empty optional does not perform any reduction.
      */
     @Override
-    public void reduce(Optional<Set<Reference>> roots)
+    public void reduce(Set<Object> roots)
     {
-        if (!roots.isPresent())
-        {
-            return;
-        }
-
-        Deque<Reference> worklist = new ArrayDeque<>(roots.get());
-        Set<Reference> discoveredReferences = new HashSet<>(roots.get());
-
+        Deque<Object> worklist = new ArrayDeque<>(roots);
+        Set<Object> discoveredReferences = new HashSet<>(roots);
 
         // collect references in the subtree of the roots
         while (!worklist.isEmpty())
         {
-            Reference reference = worklist.pop();
+            Object reference = worklist.pop();
             HeapNode<SetAbstractState<Reference>> node = referenceToObject.get(reference);
 
             if (node == null)

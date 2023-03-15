@@ -20,6 +20,7 @@ package proguard.analysis.cpa.jvm.state.heap.tree;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
@@ -57,6 +58,15 @@ public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstr
     // implementations for JvmHeapAbstractState
 
     /**
+     * Discards all the references not in {@param referencesToKeep}.
+     */
+    @Override
+    public void reduce(Set<Object> referencesToKeep)
+    {
+        referenceToObject.keySet().removeIf(reference -> !referencesToKeep.contains(reference));
+    }
+
+    /**
      * Expands the state with all the entries from another heap state with reference not already known by the state.
      */
     @Override
@@ -64,7 +74,7 @@ public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstr
     {
         if (!(otherState instanceof JvmShallowHeapAbstractState))
         {
-            throw new IllegalArgumentException("The other state should be a JvmTreeHeapAbstractState");
+            throw new IllegalArgumentException("The other state should be a JvmShallowHeapAbstractState");
         }
 
         ((JvmShallowHeapAbstractState<ReferenceT, StateT>) otherState).referenceToObject.forEach(referenceToObject::putIfAbsent);
@@ -142,6 +152,8 @@ public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstr
         return abstractState instanceof JvmShallowHeapAbstractState
                && referenceToObject.isLessOrEqual(((JvmShallowHeapAbstractState<ReferenceT, StateT>) abstractState).referenceToObject);
     }
+
+
 
     // implementations for AbstractState
 

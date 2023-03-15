@@ -79,7 +79,7 @@ public class JvmValueBamCpaRun
     @Override
     public ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createReduceOperator()
     {
-        return new JvmValueReduceOperator(valueFactory, executingInvocationUnit);
+        return new JvmValueReduceOperator(valueFactory, executingInvocationUnit, reduceHeap);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class JvmValueBamCpaRun
     @Override
     public ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createExpandOperator()
     {
-        return new JvmValueExpandOperator(valueFactory, executingInvocationUnit, cfa);
+        return new JvmValueExpandOperator(valueFactory, executingInvocationUnit, cfa, reduceHeap);
     }
 
     @Override
@@ -185,6 +185,12 @@ public class JvmValueBamCpaRun
         {
            this.abortOperator = abortOperator;
            return this;
+        }
+
+        public Builder setReduceHeap(boolean reduceHeap)
+        {
+            this.reduceHeap = reduceHeap;
+            return this;
         }
 
         @Override

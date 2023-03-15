@@ -20,7 +20,6 @@ package proguard.analysis.cpa.jvm.state.heap.tree;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
@@ -160,7 +159,7 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
      * @param references unused
      */
     @Override
-    public void reduce(Optional<Set<Reference>> references)
+    public void reduce(Set<Object> references)
     {
         Set<Reference> toKeep = ((JvmTreeHeapPrincipalAbstractState) principal.getHeap()).referenceToObject.keySet();
         if (toKeep.size() >= referenceToObject.size())
