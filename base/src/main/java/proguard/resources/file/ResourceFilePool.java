@@ -38,7 +38,7 @@ public class ResourceFilePool
 
     // We're using a sorted tree map instead of a hash map to store the
     // instances, in order to make the processing more deterministic.
-    private final Map<String, ResourceFile> resourceFileMap = new TreeMap<>();
+    protected final Map<String, ResourceFile> resourceFileMap = new TreeMap<>();
 
     /**
      * Creates a new empty ResourceFilePool.
