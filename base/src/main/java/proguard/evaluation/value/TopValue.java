@@ -17,6 +17,8 @@
  */
 package proguard.evaluation.value;
 
+import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
+
 /**
  * Representation of a partially evaluated top value. A top value is the
  * dummy value that takes up the extra space when storing a long value or a
@@ -40,7 +42,7 @@ public class TopValue extends Category1Value
 
     public final Value generalize(Value other)
     {
-        return this.getClass() == other.getClass() ? this : null;
+        return this.getClass() == other.getClass() ? this : UNKNOWN_VALUE;
     }
 
     public final int computationalType()

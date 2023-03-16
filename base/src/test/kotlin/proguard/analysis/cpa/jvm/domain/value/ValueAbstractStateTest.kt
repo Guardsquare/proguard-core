@@ -11,6 +11,7 @@ import proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.IdentifiedValueFactory
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.TopValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownValue
 import proguard.evaluation.value.Value
@@ -193,6 +194,15 @@ class ValueAbstractStateTest : FreeSpec({
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<UnknownValue>()
         }
+    }
+
+    "Joining top with unknown should result in unknown" {
+        val a = ValueAbstractState(TopValue())
+        val b = ValueAbstractState(UNKNOWN_VALUE)
+
+        a shouldNotBe b
+        a.isLessOrEqual(b) shouldBe true
+        a.join(b).value shouldBe UNKNOWN_VALUE
     }
 })
 
