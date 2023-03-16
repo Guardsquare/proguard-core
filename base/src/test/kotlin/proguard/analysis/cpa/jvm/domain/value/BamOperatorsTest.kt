@@ -4,10 +4,6 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldExist
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import java.io.File
-import java.io.IOException
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import proguard.analysis.cpa.bam.BamCache
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState
@@ -18,8 +14,12 @@ import proguard.classfile.Signature
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import java.io.File
+import java.io.IOException
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 
-class BamOperatorsTest : FreeSpec ({
+class BamOperatorsTest : FreeSpec({
 
     val debug = false
 
