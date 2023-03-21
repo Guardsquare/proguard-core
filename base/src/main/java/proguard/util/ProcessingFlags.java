@@ -23,38 +23,38 @@ package proguard.util;
  */
 public class ProcessingFlags
 {
-    protected static final int mask1  = 0b1;                                // 1
-    protected static final int mask2  = 0b10;                               // 2
-    protected static final int mask3  = 0b100;                              // 4
-    protected static final int mask4  = 0b1000;                             // 8
-    protected static final int mask5  = 0b10000;                            // 16
-    protected static final int mask6  = 0b100000;                           // 32
-    protected static final int mask7  = 0b1000000;                          // 64
-    protected static final int mask8  = 0b10000000;                         // 128
-    protected static final int mask9  = 0b100000000;                        // 256
-    protected static final int mask10 = 0b1000000000;                       // 512
-    protected static final int mask11 = 0b10000000000;                      // 1024
-    protected static final int mask12 = 0b100000000000;                     // 2048
-    protected static final int mask13 = 0b1000000000000;                    // 4096
-    protected static final int mask14 = 0b10000000000000;                   // 8192
-    protected static final int mask15 = 0b100000000000000;                  // 16384
-    protected static final int mask16 = 0b1000000000000000;                 // 32768
-    protected static final int mask17 = 0b10000000000000000;                // 65536
-    protected static final int mask18 = 0b100000000000000000;               // 131072
-    protected static final int mask19 = 0b1000000000000000000;              // 262144
-    protected static final int mask20 = 0b10000000000000000000;             // 524288
-    protected static final int mask21 = 0b100000000000000000000;            // 1048576
-    protected static final int mask22 = 0b1000000000000000000000;           // 2097152
-    protected static final int mask23 = 0b10000000000000000000000;          // 4194304
-    protected static final int mask24 = 0b100000000000000000000000;         // 8388608
-    protected static final int mask25 = 0b1000000000000000000000000;        // 16777216
-    protected static final int mask26 = 0b10000000000000000000000000;       // 33554432
-    protected static final int mask27 = 0b100000000000000000000000000;      // 67108864
-    protected static final int mask28 = 0b1000000000000000000000000000;     // 134217728
-    protected static final int mask29 = 0b10000000000000000000000000000;    // 268435456
-    protected static final int mask30 = 0b100000000000000000000000000000;   // 536870912
-    protected static final int mask31 = 0b1000000000000000000000000000000;  // 1073741824
-    protected static final int mask32 = 0b10000000000000000000000000000000; // -2147483648
+    static final int mask1  = 0b1;                                // 1
+    static final int mask2  = 0b10;                               // 2
+    static final int mask3  = 0b100;                              // 4
+    static final int mask4  = 0b1000;                             // 8
+    static final int mask5  = 0b10000;                            // 16
+    static final int mask6  = 0b100000;                           // 32
+    static final int mask7  = 0b1000000;                          // 64
+    static final int mask8  = 0b10000000;                         // 128
+    static final int mask9  = 0b100000000;                        // 256
+    static final int mask10 = 0b1000000000;                       // 512
+    static final int mask11 = 0b10000000000;                      // 1024
+    static final int mask12 = 0b100000000000;                     // 2048
+    static final int mask13 = 0b1000000000000;                    // 4096
+    static final int mask14 = 0b10000000000000;                   // 8192
+    static final int mask15 = 0b100000000000000;                  // 16384
+    static final int mask16 = 0b1000000000000000;                 // 32768
+    static final int mask17 = 0b10000000000000000;                // 65536
+    static final int mask18 = 0b100000000000000000;               // 131072
+    static final int mask19 = 0b1000000000000000000;              // 262144
+    static final int mask20 = 0b10000000000000000000;             // 524288
+    static final int mask21 = 0b100000000000000000000;            // 1048576
+    static final int mask22 = 0b1000000000000000000000;           // 2097152
+    static final int mask23 = 0b10000000000000000000000;          // 4194304
+    static final int mask24 = 0b100000000000000000000000;         // 8388608
+    static final int mask25 = 0b1000000000000000000000000;        // 16777216
+    static final int mask26 = 0b10000000000000000000000000;       // 33554432
+    static final int mask27 = 0b100000000000000000000000000;      // 67108864
+    static final int mask28 = 0b1000000000000000000000000000;     // 134217728
+    static final int mask29 = 0b10000000000000000000000000000;    // 268435456
+    static final int mask30 = 0b100000000000000000000000000000;   // 536870912
+    static final int mask31 = 0b1000000000000000000000000000000;  // 1073741824
+    static final int mask32 = 0b10000000000000000000000000000000; // -2147483648
 
 
     // External configuration flags.
