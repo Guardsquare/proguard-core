@@ -27,7 +27,6 @@ import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
-import proguard.analysis.cpa.jvm.util.JvmBamCpaRun.Builder;
 import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.ParticularValueFactory;
@@ -125,25 +124,29 @@ public class JvmValueBamCpaRun
         private ValueFactory                                 valueFactory;
         private MapAbstractState<String, ValueAbstractState> staticFields = new HashMapAbstractState<>();
 
+        @Deprecated
         public Builder()
         {
-            super.heapModel         = HeapModel.SHALLOW;
-            super.maxCallStackDepth = 10;
+            this(null, null);
+        }
+
+        public Builder(JvmCfa cfa)
+        {
+            this(cfa, null);
         }
 
         public Builder(JvmCfa cfa, MethodSignature mainSignature)
         {
-            this();
-            super.cfa          = cfa;
-            this.mainSignature = mainSignature;
+            super.heapModel         = HeapModel.SHALLOW;
+            super.maxCallStackDepth = 10;
+            super.cfa               = cfa;
+            this.valueFactory       = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
+            this.mainSignature      = mainSignature;
         }
 
         @Override
         public JvmValueBamCpaRun build()
         {
-            ValueFactory valueFactory = this.valueFactory == null ?
-                    new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa)) :
-                    this.valueFactory;
             return new JvmValueBamCpaRun(
                 cfa,
                 mainSignature,
@@ -157,10 +160,13 @@ public class JvmValueBamCpaRun
             );
         }
 
+        @Override
         public Builder setCfa(JvmCfa cfa)
         {
-            super.cfa = cfa;
-            return this;
+            // Don't allow setting the CFA here because it could
+            // result in a different CFA than the one used for the default
+            // ValueFactory.
+            throw new UnsupportedOperationException("CFA should only be set via the Builder constructor");
         }
 
         public Builder setMainSignature(MethodSignature mainSignature)
@@ -181,12 +187,14 @@ public class JvmValueBamCpaRun
             return this;
         }
 
+        @Override
         public Builder setAbortOperator(AbortOperator abortOperator)
         {
            this.abortOperator = abortOperator;
            return this;
         }
 
+        @Override
         public Builder setReduceHeap(boolean reduceHeap)
         {
             this.reduceHeap = reduceHeap;
