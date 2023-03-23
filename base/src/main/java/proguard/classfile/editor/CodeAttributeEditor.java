@@ -119,7 +119,7 @@ implements   AttributeVisitor,
     private boolean modified;
     private boolean simple;
 
-    private Map labels = new HashMap();
+    private final Map<Integer, Label> labels = new HashMap<>();
 
     /*private*/public Instruction[]    preOffsetInsertions = new Instruction[ClassEstimates.TYPICAL_CODE_LENGTH];
     /*private*/public Instruction[]    preInsertions       = new Instruction[ClassEstimates.TYPICAL_CODE_LENGTH];
@@ -196,6 +196,8 @@ implements   AttributeVisitor,
 
         modified = false;
         simple   = true;
+
+        Arrays.fill(newInstructionOffsets, -1);
     }
 
 
@@ -511,6 +513,20 @@ implements   AttributeVisitor,
     }
 
 
+    /**
+     * Get the new offset corresponding to the given old offset.
+     * Throws an exception if no new offset is found.
+     */
+    public int getNewOffset(int oldOffset)
+    {
+        if (oldOffset < 0 || oldOffset > newInstructionOffsets.length || newInstructionOffsets[oldOffset] == -1)
+        {
+            throw new IllegalArgumentException("No new offset found for old offset " + oldOffset + ".");
+        }
+
+        return newInstructionOffsets[oldOffset];
+    }
+
     // Implementations for AttributeVisitor.
 
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
@@ -618,12 +634,6 @@ implements   AttributeVisitor,
     {
         // Update all line number table entries.
         lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, this);
-
-        // Remove line numbers with empty code blocks.
-//        lineNumberTableAttribute.u2lineNumberTableLength =
-//           removeEmptyLineNumbers(lineNumberTableAttribute.lineNumberTable,
-//                                  lineNumberTableAttribute.u2lineNumberTableLength,
-//                                  codeAttribute.u4codeLength);
     }
 
 
@@ -689,6 +699,12 @@ implements   AttributeVisitor,
     {
         int codeLength = codeAttribute.u4codeLength;
 
+        if (newInstructionOffsets.length < codeLength)
+        {
+            newInstructionOffsets = new int[codeLength];
+            Arrays.fill(newInstructionOffsets, -1);
+        }
+
         // Go over all replacement instructions.
         for (int offset = 0; offset < codeLength; offset++)
         {
@@ -704,6 +720,8 @@ implements   AttributeVisitor,
                     System.out.println("  Replaced "+replacementInstruction.toString(offset));
                 }
             }
+
+            newInstructionOffsets[offset] = offset;
         }
     }
 
@@ -727,6 +745,9 @@ implements   AttributeVisitor,
         {
             newInstructionOffsets = new int[oldLength + 1];
         }
+
+        // Set the (uninitialized) offsets to -1, to avoid confusion with the valid offset 0.
+        Arrays.fill(newInstructionOffsets, -1);
 
         // Fill out the instruction offset map.
         int newLength = mapInstructions(oldCode,
@@ -1262,7 +1283,7 @@ implements   AttributeVisitor,
         {
             // Retrieve the new offset from the label.
             int labelIdentifier = labelIdentifier(oldInstructionOffset);
-            Label label = (Label)labels.get(labelIdentifier);
+            Label label = labels.get(labelIdentifier);
             if (label == null)
             {
                 throw new IllegalArgumentException("Reference to unknown label identifier ["+labelIdentifier+"]");
@@ -1305,38 +1326,13 @@ implements   AttributeVisitor,
 
 
     /**
-     * Returns the given list of line numbers, without the ones that have empty
-     * code blocks or that exceed the code size.
-     */
-    private int removeEmptyLineNumbers(LineNumberInfo[] lineNumberInfos,
-                                       int              lineNumberInfoCount,
-                                       int              codeLength)
-    {
-        // Overwrite all empty line number entries.
-        int newIndex = 0;
-        for (int index = 0; index < lineNumberInfoCount; index++)
-        {
-            LineNumberInfo lineNumberInfo = lineNumberInfos[index];
-            int startPC = lineNumberInfo.u2startPC;
-            if (startPC < codeLength &&
-                (index == 0 || startPC > lineNumberInfos[index-1].u2startPC))
-            {
-                lineNumberInfos[newIndex++] = lineNumberInfo;
-            }
-        }
-
-        return newIndex;
-    }
-
-
-    /**
      * This pseudo-instruction is a composite of other instructions, for local
      * use inside the editor class only.
      */
     private class CompositeInstruction
     extends       Instruction
     {
-        private Instruction[] instructions;
+        private final Instruction[] instructions;
 
 
         private CompositeInstruction(Instruction[] instructions)
@@ -1363,12 +1359,9 @@ implements   AttributeVisitor,
 
         public void write(byte[] code, int offset)
         {
-            for (int index = 0; index < instructions.length; index++)
+            for (Instruction instruction : instructions)
             {
-                Instruction instruction = instructions[index];
-
                 instruction.write(code, offset);
-
                 offset += instruction.length(offset);
             }
         }
@@ -1390,9 +1383,9 @@ implements   AttributeVisitor,
         {
             int newOffset = offset;
 
-            for (int index = 0; index < instructions.length; index++)
+            for (Instruction instruction : instructions)
             {
-                newOffset += instructions[index].length(newOffset);
+                newOffset += instruction.length(newOffset);
             }
 
             return newOffset - offset;
@@ -1406,10 +1399,8 @@ implements   AttributeVisitor,
                 throw new UnsupportedOperationException("Unexpected visitor ["+instructionVisitor+"]");
             }
 
-            for (int index = 0; index < instructions.length; index++)
+            for (Instruction instruction : instructions)
             {
-                Instruction instruction = instructions[index];
-
                 instruction.accept(clazz, method, codeAttribute, offset, CodeAttributeEditor.this);
             }
         }
@@ -1420,14 +1411,14 @@ implements   AttributeVisitor,
         @Override
         public String toString()
         {
-            StringBuffer stringBuffer = new StringBuffer();
+            StringBuilder stringBuilder = new StringBuilder();
 
-            for (int index = 0; index < instructions.length; index++)
+            for (Instruction instruction : instructions)
             {
-                stringBuffer.append(instructions[index].toString()).append("; ");
+                stringBuilder.append(instruction.toString()).append("; ");
             }
 
-            return stringBuffer.toString();
+            return stringBuilder.toString();
         }
 
 
@@ -1481,7 +1472,7 @@ implements   AttributeVisitor,
         Label label = new Label(identifier);
 
         // Remember the label, so we can retrieve its offset later on.
-        labels.put(new Integer(identifier), label);
+        labels.put(identifier, label);
 
         return label;
     }
@@ -1516,7 +1507,7 @@ implements   AttributeVisitor,
         Label catch_ = new Catch(identifier, startOffset, endOffset, catchType);
 
         // Remember the label, so we can retrieve its offset later on.
-        labels.put(new Integer(identifier), catch_);
+        labels.put(identifier, catch_);
 
         return catch_;
     }
