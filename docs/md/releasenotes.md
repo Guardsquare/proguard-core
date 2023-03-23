@@ -1,3 +1,9 @@
+## Version 9.0.9
+
+### Bug fixes
+
+- Use program location as hash code for `JvmAbstractState` to allow correct use with hash sets.
+
 ## Version 9.0.8
 
 ### Improved

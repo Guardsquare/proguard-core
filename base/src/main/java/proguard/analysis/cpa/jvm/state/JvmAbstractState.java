@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2022 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@
 
 package proguard.analysis.cpa.jvm.state;
 
-import java.util.List;
-import java.util.Objects;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
@@ -28,6 +26,8 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
+
+import java.util.List;
 
 /**
  * The {@link JvmAbstractState} consists of the method frame {@link JvmFrameAbstractState} and the heap {@link JvmHeapAbstractState}.
@@ -127,7 +127,9 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     @Override
     public int hashCode()
     {
-        return Objects.hash(frame, heap, staticFields, programLocation);
+        // Since the states are used in hashsets, we must ensure that the hash code is fixed.
+        // Frame, heap, staticFields can change over time and result in different hash codes.
+        return programLocation.hashCode();
     }
 
     /**

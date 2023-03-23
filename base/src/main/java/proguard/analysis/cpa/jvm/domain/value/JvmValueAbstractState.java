@@ -229,11 +229,6 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState>
 
 
     @Override
-    public int hashCode() {
-        return Objects.hash(valueFactory, programLocation, frame, heap, staticFields);
-    }
-
-    @Override
     public String toString()
     {
         return "JvmValueAbstractState(" + getProgramLocation() + ")";
