@@ -18,13 +18,16 @@
 
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * A shallow heap models objects as atomic abstract states thus having only one level of depth. Object fields are not modeled. References of wrong types are ignored.
@@ -34,6 +37,7 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstractState<StateT>>
     implements JvmHeapAbstractState<StateT>
 {
+    private static final Logger logger = LogManager.getLogger(JvmShallowHeapAbstractState.class);
 
     public    final MapAbstractState<ReferenceT, StateT> referenceToObject;
     protected final Class<ReferenceT>                    referenceClass;
@@ -63,7 +67,9 @@ public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstr
     @Override
     public void reduce(Set<Object> referencesToKeep)
     {
-        referenceToObject.keySet().removeIf(reference -> !referencesToKeep.contains(reference));
+        int     originalSize = referenceToObject.size();
+        boolean anyRemoved   = referenceToObject.keySet().retainAll(referencesToKeep);
+        logger.trace("Reduced heap: retain {}, original heap size {}; new heap size {}; anyRemoved = {}.", referencesToKeep.size(), originalSize, referenceToObject.size(), anyRemoved);
     }
 
     /**
