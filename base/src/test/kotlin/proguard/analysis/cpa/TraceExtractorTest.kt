@@ -55,7 +55,7 @@ class TraceExtractorTest : StringSpec({
         false,
         false,
         setOf(),
-        setOf("A.s")
+        setOf("A.s:Ljava/lang/String;")
     )
 
     val taintSinkArgument = JvmInvokeTaintSink(
@@ -80,7 +80,7 @@ class TraceExtractorTest : StringSpec({
         MethodSignature("A", "sink", "()V"),
         false,
         setOf(),
-        setOf("A.s")
+        setOf("A.s:Ljava/lang/String;")
     )
     val taintSinkReturn = JvmReturnTaintSink(MethodSignature("A", "sink", "(Ljava/lang/String;)Ljava/lang/String;"))
 
@@ -320,8 +320,8 @@ class TraceExtractorTest : StringSpec({
 
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
-                    "JvmStaticFieldLocation(A.s)@LA;main()V:3",
-                    "JvmStaticFieldLocation(A.s)@LA;callee()V:3"
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:3"
                 )
             )
         }
@@ -374,8 +374,8 @@ class TraceExtractorTest : StringSpec({
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStackLocation(0)@LA;main()V:6",
-                    "JvmStaticFieldLocation(A.s)@LA;main()V:3",
-                    "JvmStaticFieldLocation(A.s)@LA;callee()V:6",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
                     "JvmStackLocation(0)@LA;callee()V:3"
                 )
             )
@@ -968,14 +968,14 @@ class TraceExtractorTest : StringSpec({
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStackLocation(0)@LA;main(Z)V:19",
-                    "JvmStaticFieldLocation(A.s)@LA;main(Z)V:16",
-                    "JvmStaticFieldLocation(A.s)@LA;main(Z)V:10",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:16",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:10",
                     "JvmStackLocation(0)@LA;main(Z)V:7"
                 ),
                 listOf(
                     "JvmStackLocation(0)@LA;main(Z)V:19",
-                    "JvmStaticFieldLocation(A.s)@LA;main(Z)V:16",
-                    "JvmStaticFieldLocation(A.s)@LA;callee()V:6",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:16",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
                     "JvmStackLocation(0)@LA;callee()V:3"
                 )
             )
@@ -1127,10 +1127,10 @@ class TraceExtractorTest : StringSpec({
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStackLocation(0)@LA;main()V:11",
-                    "JvmStaticFieldLocation(A.s)@LA;main()V:8",
-                    "JvmStaticFieldLocation(A.s)@LA;main()V:5",
-                    "JvmStaticFieldLocation(A.s)@LA;main()V:3",
-                    "JvmStaticFieldLocation(A.s)@LA;callee()V:6",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:8",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:5",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
                     "JvmStackLocation(0)@LA;callee()V:3"
                 )
             )

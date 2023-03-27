@@ -160,7 +160,7 @@ public class BamCpaAlgorithmTest
         AbstractState returnState8 = returnStates8.get(0);
 
         HashMapAbstractState<String, ExpressionAbstractState> staticFields = new HashMapAbstractState();
-        staticFields.put("A.a", new ExpressionAbstractState(Collections.singleton(new ValueExpression(new ParticularIntegerValue(4)))));
+        staticFields.put("A.a:I", new ExpressionAbstractState(Collections.singleton(new ValueExpression(new ParticularIntegerValue(4)))));
 
         JvmAbstractState<ExpressionAbstractState> expected8 = new JvmAbstractState<>(
             cfa.getFunctionNode(mainSignature, 8),

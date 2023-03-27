@@ -416,7 +416,7 @@ class JvmTaintCpaTest : FreeSpec({
             interproceduralCfa.clear()
 
             abstractStates.size shouldBe 1
-            (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).getStaticOrDefault("A.s", SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(taintSourceReturn1)
+            (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).getStaticOrDefault("A.s:Ljava/lang/String;", SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(taintSourceReturn1)
         }
 
         "Recursive function analysis converges$testNameSuffix" {

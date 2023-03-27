@@ -53,7 +53,9 @@ public class ConstantLookupVisitor implements ConstantVisitor
         resultSize = ClassUtil.internalTypeSize(fieldrefConstant.getType(clazz));
         result = fieldrefConstant.getClassName(clazz)
                  + (isStatic ? "." : "#")
-                 + fieldrefConstant.getName(clazz);
+                 + fieldrefConstant.getName(clazz)
+                 + ":"
+                 + fieldrefConstant.getType(clazz);
     }
 
     @Override

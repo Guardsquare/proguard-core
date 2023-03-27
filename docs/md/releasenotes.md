@@ -4,6 +4,11 @@
 
 - Use program location as hash code for `JvmAbstractState` to allow correct use with hash sets.
 
+### API changes
+
+- The key used for fields in `JvmAbstractState` has been updated to include the field type to disambiguate between
+   overloaded fields.
+
 ## Version 9.0.8
 
 ### Improved

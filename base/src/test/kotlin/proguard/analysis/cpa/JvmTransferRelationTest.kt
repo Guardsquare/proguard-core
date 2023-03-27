@@ -817,7 +817,7 @@ class JvmTransferRelationTest : FreeSpec({
             "Category 1" {
                 var state = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                state.setStatic("A.i", value)
+                state.setStatic("A.i:I", value)
                 var result = state.copy()
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 getAbstractSuccessorForInstruction.call(
@@ -833,7 +833,7 @@ class JvmTransferRelationTest : FreeSpec({
 
                 state = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                state.setStatic("B.i", value)
+                state.setStatic("B.i:I", value)
                 result = state.copy()
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 getAbstractSuccessorForInstruction.call(
@@ -858,7 +858,7 @@ class JvmTransferRelationTest : FreeSpec({
             "Category 2" {
                 var state = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                state.setStatic("A.d", value)
+                state.setStatic("A.d:D", value)
                 var result = state.copy()
                 result.push(transferRelation.abstractDefault)
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
@@ -875,7 +875,7 @@ class JvmTransferRelationTest : FreeSpec({
 
                 state = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                state.setStatic("B.d", value)
+                state.setStatic("B.d:D", value)
                 result = state.copy()
                 result.push(transferRelation.abstractDefault)
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
@@ -909,7 +909,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 var result = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                result.setStatic("A.i", value)
+                result.setStatic("A.i:I", value)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
@@ -925,7 +925,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 result = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                result.setStatic("B.i", value)
+                result.setStatic("B.i:I", value)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
@@ -951,7 +951,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
                 var result = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                result.setStatic("A.d", value)
+                result.setStatic("A.d:D", value)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
@@ -968,7 +968,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
                 result = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                result.setStatic("B.d", value)
+                result.setStatic("B.d:D", value)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
