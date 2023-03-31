@@ -16,18 +16,40 @@
 
 package proguard.dexfile.reader;
 
-import proguard.dexfile.reader.visitors.*;
 import proguard.dexfile.reader.util.Mutf8;
 import proguard.dexfile.reader.node.DexAnnotationNode;
 import proguard.dexfile.reader.node.analysis.DvmFrame;
+import proguard.dexfile.reader.visitors.DexAnnotationAble;
+import proguard.dexfile.reader.visitors.DexClassVisitor;
+import proguard.dexfile.reader.visitors.DexCodeVisitor;
+import proguard.dexfile.reader.visitors.DexDebugVisitor;
+import proguard.dexfile.reader.visitors.DexFieldVisitor;
+import proguard.dexfile.reader.visitors.DexFileVisitor;
+import proguard.dexfile.reader.visitors.DexMethodVisitor;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UTFDataFormatException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Consumer;
 
 
 /**
@@ -675,6 +697,15 @@ public class DexFileReader
             } else {
                 throw dexException;
             }
+        }
+    }
+
+    /**
+     * Provides the given consumer with all strings in the dex file.
+     */
+    public void accept(Consumer<String> stringConsumer) {
+        for (int cid = 0; cid < string_ids_size; cid++) {
+            stringConsumer.accept(this.getString(cid));
         }
     }
 
