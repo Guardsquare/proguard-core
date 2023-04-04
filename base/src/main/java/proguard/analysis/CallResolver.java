@@ -56,6 +56,7 @@ import proguard.evaluation.InvocationUnit;
 import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.ParticularReferenceValueFactory;
 import proguard.evaluation.value.ArrayReferenceValueFactory;
+import proguard.evaluation.value.DetailedArrayValueFactory;
 import proguard.evaluation.value.MultiTypedReferenceValue;
 import proguard.evaluation.value.MultiTypedReferenceValueFactory;
 import proguard.evaluation.value.ParticularValueFactory;
@@ -242,6 +243,7 @@ implements   AttributeVisitor,
                         int maxPartialEvaluations,
                         Supplier<Boolean> shouldAnalyzeNextCodeAttribute,
                         boolean skipIncompleteCalls,
+                        ValueFactory arrayValueFactory,
                         CallVisitor... visitors)
     {
         this.programClassPool               = programClassPool;
@@ -267,7 +269,7 @@ implements   AttributeVisitor,
                                                                               .build();
 
         // Initialize the particular value evaluator.
-        ValueFactory particularValueFactory          = new ParticularValueFactory(new ArrayReferenceValueFactory(),
+        ValueFactory particularValueFactory          = new ParticularValueFactory(arrayValueFactory,
                                                                                   new ParticularReferenceValueFactory());
         InvocationUnit particularValueInvocationUnit = new ExecutingInvocationUnit(particularValueFactory);
         particularValueEvaluator                     = PartialEvaluator.Builder.create()
@@ -970,6 +972,7 @@ implements   AttributeVisitor,
         private       int               maxPartialEvaluations          = 50;
         private       Supplier<Boolean> shouldAnalyzeNextCodeAttribute = () -> true;
         private       boolean           skipIncompleteCalls            = true;
+        private       ValueFactory      arrayValueFactory              = new ArrayReferenceValueFactory();
 
         public Builder(ClassPool programClassPool, ClassPool libraryClassPool, CallGraph callGraph, CallVisitor... visitors)
         {
@@ -1061,6 +1064,17 @@ implements   AttributeVisitor,
             return this;
         }
 
+        /**
+         *
+         * @param arrayValueFactory should be set either with {@link DetailedArrayValueFactory} or {@link ArrayReferenceValueFactory}
+         * @return {@link Builder} object
+         */
+        public Builder setArrayValueFactory(ValueFactory arrayValueFactory)
+        {
+            this.arrayValueFactory = arrayValueFactory;
+            return this;
+        }
+
         public CallResolver build()
         {
             return new CallResolver(programClassPool,
@@ -1073,6 +1087,7 @@ implements   AttributeVisitor,
                                     maxPartialEvaluations,
                                     shouldAnalyzeNextCodeAttribute,
                                     skipIncompleteCalls,
+                                    arrayValueFactory,
                                     visitors);
 
         }

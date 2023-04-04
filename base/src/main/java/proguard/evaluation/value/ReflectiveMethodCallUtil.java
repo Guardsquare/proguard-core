@@ -18,12 +18,13 @@
 
 package proguard.evaluation.value;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.util.InternalTypeEnumeration;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * This {@link ReflectiveMethodCallUtil} can execute a method call on a given class reflectively.
@@ -40,6 +41,7 @@ public class ReflectiveMethodCallUtil
      *
      * @throws ClassNotFoundException if one of the referenced classes (as string) is not part of the current class pool.
      */
+
     public static Class<?>[] stringtypesToClasses(String descriptor) throws ClassNotFoundException
     {
         InternalTypeEnumeration typeEnum = new InternalTypeEnumeration(descriptor);
@@ -62,8 +64,7 @@ public class ReflectiveMethodCallUtil
             // or an array (not supported yet).
             else
             {
-                // System.err.println("Array types not supported as parameters yet");
-                return null;
+                c = getClassForArray(internalType);
             }
             parameterClasses[i++] = c;
         }
@@ -113,11 +114,52 @@ public class ReflectiveMethodCallUtil
                 ret = value.doubleValue().value();
                 break;
             case Value.TYPE_REFERENCE:
-                ret = value.referenceValue().value();
+                if (value instanceof DetailedArrayReferenceValue && ((DetailedArrayReferenceValue)value).getType().equals("[B"))
+                {
+                    Value[] values = (Value[]) value.referenceValue().value();
+                    byte[] bytes = new byte[values.length];
+                    for (int i = 0, valuesLength = values.length; i < valuesLength; i++)
+                    {
+                        bytes[i] = (byte) values[i].integerValue().value();
+                    }
+                    ret = bytes;
+                }
+                else
+                {
+                    ret = value.referenceValue().value();
+                }
                 break;
         }
 
         return ret;
+    }
+
+    public static Class<?> getClassForArray(String internalArrayType)
+    {
+        switch (internalArrayType)
+        {
+            case "[B":
+                return byte[].class;
+            case "[C":
+                return char[].class;
+            case "[D":
+                return double[].class;
+            case "[F":
+                return float[].class;
+            case "[I":
+                return int[].class;
+            case "[J":
+                return long[].class;
+            case "[S":
+                return short[].class;
+            case "[Z":
+                return boolean[].class;
+            case "[Ljava/lang/String":
+                return String[].class;
+            default:
+                // System.err.println("Array types not supported as parameters yet");
+                return null;
+        }
     }
 
     /**

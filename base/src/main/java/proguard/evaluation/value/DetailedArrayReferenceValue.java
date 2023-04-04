@@ -29,7 +29,7 @@ import proguard.util.ArrayUtil;
  */
 public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
 {
-    private static final int MAXIMUM_STORED_ARRAY_LENGTH = 32;
+    private static final int MAXIMUM_STORED_ARRAY_LENGTH = 64;
 
 
     private Value[] values;
@@ -74,6 +74,11 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
         }
     }
 
+    @Override
+    public Object value()
+    {
+        return values;
+    }
 
     // Implementations for ReferenceValue.
 
