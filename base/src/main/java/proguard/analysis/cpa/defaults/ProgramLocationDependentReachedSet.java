@@ -94,7 +94,8 @@ public final class ProgramLocationDependentReachedSet<CfaNodeT extends CfaNode<C
     @Override
     public Collection<AbstractStateT> asCollection()
     {
-        return locationToStates.values().stream().reduce(new HashSet<>(), (x, y) ->
+        int initialSize = locationToStates.values().size();
+        return locationToStates.values().stream().reduce(new HashSet<>(initialSize), (x, y) ->
         {
             x.addAll(y);
             return x;
