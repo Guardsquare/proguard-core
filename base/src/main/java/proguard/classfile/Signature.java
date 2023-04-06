@@ -42,6 +42,10 @@ public abstract class Signature
     protected final String packageName;
     protected final String className;
 
+    // Cached hashCode, as Signatures are often used in sets/maps
+    // and therefore hashCode() is called often.
+    private final int hashCode;
+
     /**
      * The {@link Clazz} that the {@link Signature#className}
      * references. May be <code>null</code> if there is no
@@ -53,7 +57,13 @@ public abstract class Signature
     {
         this.className   = internalClassName;
         this.packageName = internalClassName == null ? "?" : externalPackageName(externalClassName(internalClassName));
+        this.hashCode    = calculateHashCode();
     }
+
+    /**
+     * Calculates the hash code when the object is constructed.
+     */
+    protected abstract int calculateHashCode();
 
     /**
      * Check if this signature is missing information.
@@ -208,7 +218,7 @@ public abstract class Signature
     @Override
     public int hashCode()
     {
-        return Objects.hash(packageName, className);
+        return this.hashCode;
     }
 
     @Override

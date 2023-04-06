@@ -22,6 +22,7 @@ import static proguard.classfile.util.ClassUtil.externalClassName;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents the signature of a class without any member information.
@@ -81,5 +82,11 @@ public class ClassSignature
     public static ClassSignature computeIfAbsent(Clazz clazz)
     {
         return signatureCache.computeIfAbsent(clazz, c -> new ClassSignature(c.getName()));
+    }
+
+    @Override
+    protected int calculateHashCode()
+    {
+        return Objects.hash(className);
     }
 }

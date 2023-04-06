@@ -113,8 +113,8 @@ public class FieldSignature
     }
 
     @Override
-    public int hashCode()
+    protected int calculateHashCode()
     {
-        return Objects.hash(super.hashCode(), memberName, descriptor);
+        return Objects.hash(className, memberName, descriptor);
     }
 }

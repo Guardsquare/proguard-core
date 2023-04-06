@@ -45,28 +45,39 @@ public class MethodDescriptor
     public final String       returnType;
     public final List<String> argumentTypes;
 
+    // Cached hashCode, since computing the hashCode for the list of arguments everytime
+    // can be expensive.
+    private final int hash;
+
     public MethodDescriptor(String descriptor)
     {
+        int hashCode;
         if (descriptor == null)
         {
-            returnType = null;
+            returnType    = null;
             argumentTypes = null;
+            hashCode      = 0;
         }
         else
         {
-            returnType = ClassUtil.internalMethodReturnType(descriptor);
+            returnType    = ClassUtil.internalMethodReturnType(descriptor);
             argumentTypes = new ArrayList<>();
+            hashCode      = returnType.hashCode();
             for (int i = 0; i < ClassUtil.internalMethodParameterCount(descriptor); i++)
             {
-                argumentTypes.add(ClassUtil.internalMethodParameterType(descriptor, i));
+                String e = ClassUtil.internalMethodParameterType(descriptor, i);
+                argumentTypes.add(e);
+                hashCode = 31 * hashCode + (e == null ? 0 : e.hashCode());
             }
         }
+        this.hash = hashCode;
     }
 
     public MethodDescriptor(String returnType, List<String> argumentTypes)
     {
-        this.returnType = returnType;
+        this.returnType    = returnType;
         this.argumentTypes = argumentTypes;
+        this.hash          = Objects.hash(returnType, argumentTypes);
     }
 
     /**
@@ -199,6 +210,6 @@ public class MethodDescriptor
     @Override
     public int hashCode()
     {
-        return Objects.hash(returnType, argumentTypes);
+        return hash;
     }
 }

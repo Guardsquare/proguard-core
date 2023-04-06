@@ -219,8 +219,8 @@ public class MethodSignature
     }
 
     @Override
-    public int hashCode()
+    protected int calculateHashCode()
     {
-        return Objects.hash(super.hashCode(), method, descriptor);
+        return Objects.hash(className, method, descriptor);
     }
 }
