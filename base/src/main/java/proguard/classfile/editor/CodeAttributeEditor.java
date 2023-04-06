@@ -19,20 +19,60 @@ package proguard.classfile.editor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.annotation.*;
-import proguard.classfile.attribute.annotation.target.*;
-import proguard.classfile.attribute.annotation.target.visitor.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramMember;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.ExceptionInfo;
+import proguard.classfile.attribute.ExtendedLineNumberInfo;
+import proguard.classfile.attribute.LineNumberInfo;
+import proguard.classfile.attribute.LineNumberTableAttribute;
+import proguard.classfile.attribute.LocalVariableInfo;
+import proguard.classfile.attribute.LocalVariableTableAttribute;
+import proguard.classfile.attribute.LocalVariableTypeInfo;
+import proguard.classfile.attribute.LocalVariableTypeTableAttribute;
+import proguard.classfile.attribute.annotation.TypeAnnotation;
+import proguard.classfile.attribute.annotation.TypeAnnotationsAttribute;
+import proguard.classfile.attribute.annotation.target.LocalVariableTargetElement;
+import proguard.classfile.attribute.annotation.target.LocalVariableTargetInfo;
+import proguard.classfile.attribute.annotation.target.OffsetTargetInfo;
+import proguard.classfile.attribute.annotation.target.TargetInfo;
+import proguard.classfile.attribute.annotation.target.visitor.LocalVariableTargetElementVisitor;
+import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
 import proguard.classfile.attribute.annotation.visitor.TypeAnnotationVisitor;
-import proguard.classfile.attribute.preverification.*;
-import proguard.classfile.attribute.preverification.visitor.*;
-import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.instruction.*;
+import proguard.classfile.attribute.preverification.FullFrame;
+import proguard.classfile.attribute.preverification.MoreZeroFrame;
+import proguard.classfile.attribute.preverification.SameOneFrame;
+import proguard.classfile.attribute.preverification.StackMapAttribute;
+import proguard.classfile.attribute.preverification.StackMapFrame;
+import proguard.classfile.attribute.preverification.StackMapTableAttribute;
+import proguard.classfile.attribute.preverification.UninitializedType;
+import proguard.classfile.attribute.preverification.VerificationType;
+import proguard.classfile.attribute.preverification.visitor.StackMapFrameVisitor;
+import proguard.classfile.attribute.preverification.visitor.VerificationTypeVisitor;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.attribute.visitor.ExceptionInfoVisitor;
+import proguard.classfile.attribute.visitor.LineNumberInfoVisitor;
+import proguard.classfile.attribute.visitor.LocalVariableInfoVisitor;
+import proguard.classfile.attribute.visitor.LocalVariableTypeInfoVisitor;
+import proguard.classfile.instruction.BranchInstruction;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.InstructionFactory;
+import proguard.classfile.instruction.LookUpSwitchInstruction;
+import proguard.classfile.instruction.SimpleInstruction;
+import proguard.classfile.instruction.TableSwitchInstruction;
+import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.util.ArrayUtil;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * This {@link AttributeVisitor} accumulates specified changes to code, and then applies
@@ -108,7 +148,7 @@ implements   AttributeVisitor,
     public  static       boolean DEBUG = System.getProperty("cae") != null;
     //*/
 
-    private static final int LABEL_FLAG = 0x20000000;
+    private static final int PSEUDO_FLAG = 0x20000000;
 
     private static final Logger logger = LogManager.getLogger(CodeAttributeEditor.class);
 
@@ -119,7 +159,7 @@ implements   AttributeVisitor,
     private boolean modified;
     private boolean simple;
 
-    private final Map<Integer, Label> labels = new HashMap<>();
+    private final Map<Integer, PseudoInstruction> pseudoInstructions = new HashMap<>();
 
     /*private*/public Instruction[]    preOffsetInsertions = new Instruction[ClassEstimates.TYPICAL_CODE_LENGTH];
     /*private*/public Instruction[]    preInsertions       = new Instruction[ClassEstimates.TYPICAL_CODE_LENGTH];
@@ -172,7 +212,7 @@ implements   AttributeVisitor,
      */
     public void reset(int codeLength)
     {
-        labels.clear();
+        pseudoInstructions.clear();
 
         // Try to reuse the previous arrays.
         if (preInsertions.length < codeLength)
@@ -634,6 +674,15 @@ implements   AttributeVisitor,
     {
         // Update all line number table entries.
         lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, this);
+        // Sort the line number table by offset, since we add new line numbers to the end. We only know the actual offset
+        // for the added line numbers at this point, so this is the earliest we can sort the line number table.
+        // We use the version of the sort method that takes in a range because the length of the line number table array
+        // is not guaranteed to be equal to the line number table length stored in the attribute, the array can be larger,
+        // but we don't want to take the extra elements into account when sorting.
+        Arrays.sort(lineNumberTableAttribute.lineNumberTable,
+                    0,
+                    lineNumberTableAttribute.u2lineNumberTableLength,
+                    Comparator.comparingInt(lhs -> lhs.u2startPC));
     }
 
 
@@ -1264,7 +1313,7 @@ implements   AttributeVisitor,
     {
         // Compute the old branch target.
         // Pass a label offset unchanged.
-        int oldBranchTargetOffset = isLabel(oldBranchOffset) ? oldBranchOffset :
+        int oldBranchTargetOffset = isPseudoInstruction(oldBranchOffset) ? oldBranchOffset :
             oldInstructionOffset + oldBranchOffset;
 
         return newInstructionOffset(oldBranchTargetOffset) -
@@ -1279,17 +1328,17 @@ implements   AttributeVisitor,
     private int newInstructionOffset(int oldInstructionOffset)
     {
         // Special case: is it actually a label?
-        if (isLabel(oldInstructionOffset))
+        if (isPseudoInstruction(oldInstructionOffset))
         {
             // Retrieve the new offset from the label.
-            int labelIdentifier = labelIdentifier(oldInstructionOffset);
-            Label label = labels.get(labelIdentifier);
-            if (label == null)
+            int pseudoIdentifier = pseudoIdentifier(oldInstructionOffset);
+            PseudoInstruction pseudoInstruction = pseudoInstructions.get(pseudoIdentifier);
+            if (pseudoInstruction == null)
             {
-                throw new IllegalArgumentException("Reference to unknown label identifier ["+labelIdentifier+"]");
+                throw new IllegalArgumentException("Reference to unknown pseudo instruction identifier ["+pseudoIdentifier+"]");
             }
 
-            return label.newOffset;
+            return pseudoInstruction.newOffset;
         }
 
         // Otherwise retrieve the new instruction offset.
@@ -1458,7 +1507,7 @@ implements   AttributeVisitor,
      */
     public Label label()
     {
-        return label(labels.size());
+        return label(pseudoInstructions.size());
     }
 
 
@@ -1472,7 +1521,7 @@ implements   AttributeVisitor,
         Label label = new Label(identifier);
 
         // Remember the label, so we can retrieve its offset later on.
-        labels.put(identifier, label);
+        pseudoInstructions.put(identifier, label);
 
         return label;
     }
@@ -1483,11 +1532,11 @@ implements   AttributeVisitor,
      * to mark the start of an exception handler. Its offset can be used as
      * a branch target in replacement instructions ({@link Label#offset()}).
      */
-    public Label catch_(int startOffset,
+    public Catch catch_(int startOffset,
                         int endOffset,
                         int catchType)
     {
-        return catch_(labels.size(),
+        return catch_(pseudoInstructions.size(),
                       startOffset,
                       endOffset,
                       catchType);
@@ -1499,46 +1548,83 @@ implements   AttributeVisitor,
      * to mark the start of an exception handler. Its offset can be used as
      * a branch target in replacement instructions ({@link Label#offset()}).
      */
-    public Label catch_(int identifier,
+    public Catch catch_(int identifier,
                         int startOffset,
                         int endOffset,
                         int catchType)
     {
-        Label catch_ = new Catch(identifier, startOffset, endOffset, catchType);
+        Catch catch_ = new Catch(identifier, startOffset, endOffset, catchType);
 
         // Remember the label, so we can retrieve its offset later on.
-        labels.put(identifier, catch_);
+        pseudoInstructions.put(identifier, catch_);
 
         return catch_;
     }
 
 
     /**
-     * Returns whether the given instruction offset actually represents a
-     * label (which contains the actual offset).
+     * Creates a new line number instance that will insert the given line number at the current offset.
      */
-    private static boolean isLabel(int instructionOffset)
+    public LineNumber line(int lineNumber)
     {
-        return (instructionOffset & 0xff000000) == LABEL_FLAG;
+        return line(lineNumber, null);
     }
 
 
     /**
-     * Returns the label identifier that corrresponds to the given
+     * Creates a new line number instance that will insert the given line number at the current offset. It will insert
+     * an extended line number info with the given source if it's not null.
+     */
+    public LineNumber line(int    lineNumber,
+                           String source)
+    {
+        return line(pseudoInstructions.size(), lineNumber, source);
+    }
+
+
+    /**
+     * Creates a new line number instance that will insert the given line number at the current offset. It will insert
+     * an extended line number info with the given source if it's not null.
+     */
+    public LineNumber line(int    identifier,
+                           int    lineNumber,
+                           String source)
+    {
+        LineNumber lineNumberLabel = new LineNumber(identifier, lineNumber, source);
+
+        // Remember the label, so we can retrieve its offset later on.
+        pseudoInstructions.put(identifier, lineNumberLabel);
+
+        return lineNumberLabel;
+    }
+
+
+    /**
+     * Returns whether the given instruction offset actually represents a
+     * pseudo instruction (which contains the actual offset).
+     */
+    private static boolean isPseudoInstruction(int instructionOffset)
+    {
+        return (instructionOffset & 0xff000000) == PSEUDO_FLAG;
+    }
+
+
+    /**
+     * Returns the pseudo identifier that corresponds to the given
      * instruction offset.
      */
-    private static int labelIdentifier(int instructionOffset)
+    private static int pseudoIdentifier(int instructionOffset)
     {
-        return instructionOffset & ~LABEL_FLAG;
+        return instructionOffset & ~PSEUDO_FLAG;
     }
 
 
     /**
-     * This pseudo-instruction represents a label that marks an instruction
-     * offset, for use in the context of the code attribute editor only.
+     * This is an abstract base class for pseudo instructions that won't be emitted into the final class, but can hold
+     * metadata for code generation later on.
      */
-    public static class Label
-    extends             Instruction
+    public abstract static class PseudoInstruction
+    extends                      Instruction
     {
         protected final int identifier;
 
@@ -1549,7 +1635,7 @@ implements   AttributeVisitor,
          * Creates a new Label.
          * @param identifier an identifier that can be chosen freely.
          */
-        public Label(int identifier)
+        public PseudoInstruction(int identifier)
         {
             this.identifier = identifier;
         }
@@ -1561,35 +1647,36 @@ implements   AttributeVisitor,
          */
         public int offset()
         {
-            return LABEL_FLAG | identifier;
+            return PSEUDO_FLAG | identifier;
         }
 
 
         // Implementations for Instruction.
 
+        @Override
         public Instruction shrink()
         {
             return this;
         }
 
-
+        @Override
         public void write(byte[] code, int offset)
         {
         }
 
-
+        @Override
         protected void readInfo(byte[] code, int offset)
         {
-            throw new UnsupportedOperationException("Can't read label instruction");
+            throw new UnsupportedOperationException("Can't read pseudo instruction");
         }
 
-
+        @Override
         protected void writeInfo(byte[] code, int offset)
         {
-            throw new UnsupportedOperationException("Can't write label instruction");
+            throw new UnsupportedOperationException("Can't write pseudo instruction");
         }
 
-
+        @Override
         public int length(int offset)
         {
             // Remember the offset, so we can retrieve it later on.
@@ -1598,8 +1685,12 @@ implements   AttributeVisitor,
             return 0;
         }
 
-
-        public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, InstructionVisitor instructionVisitor)
+        @Override
+        public void accept(Clazz              clazz,
+                           Method             method,
+                           CodeAttribute      codeAttribute,
+                           int                offset,
+                           InstructionVisitor instructionVisitor)
         {
             if (instructionVisitor.getClass() != CodeAttributeEditor.class)
             {
@@ -1611,21 +1702,14 @@ implements   AttributeVisitor,
         // Implementations for Object.
 
         @Override
-        public String toString()
-        {
-            return "label_"+offset();
-        }
-
-
-        @Override
         public boolean equals(Object o)
         {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            Label label = (Label)o;
-            return opcode == label.opcode &&
-                   identifier == label.identifier &&
-                   newOffset == label.newOffset;
+            PseudoInstruction pseudoInstruction = (PseudoInstruction)o;
+            return opcode == pseudoInstruction.opcode &&
+                   identifier == pseudoInstruction.identifier &&
+                   newOffset == pseudoInstruction.newOffset;
         }
 
 
@@ -1638,11 +1722,47 @@ implements   AttributeVisitor,
 
 
     /**
+     * This pseudo-instruction represents a label that marks an instruction
+     * offset, for use in the context of the code attribute editor only.
+     */
+    public static class Label
+    extends             PseudoInstruction
+    {
+        public Label(int identifier)
+        {
+            super(identifier);
+        }
+
+        // Implementations for Instruction.
+
+        @Override
+        protected void readInfo(byte[] code, int offset)
+        {
+            throw new UnsupportedOperationException("Can't read label instruction");
+        }
+
+        @Override
+        protected void writeInfo(byte[] code, int offset)
+        {
+            throw new UnsupportedOperationException("Can't write label instruction");
+        }
+
+        // Implementations for Object.
+
+        @Override
+        public String toString()
+        {
+            return "label_" + offset();
+        }
+    }
+
+
+    /**
      * This pseudo-instruction represents an exception handler,
      * for use in the context of the code attribute editor only.
      */
-    private static class Catch
-    extends              Label
+    public static class Catch
+    extends             PseudoInstruction
     {
         private final int startOffset;
         private final int endOffset;
@@ -1664,43 +1784,30 @@ implements   AttributeVisitor,
             super(identifier);
 
             this.startOffset = startOffset;
-            this.endOffset    = endOffset;
-            this.catchType    = catchType;
+            this.endOffset   = endOffset;
+            this.catchType   = catchType;
         }
-
 
        // Implementations for Instruction.
 
-        public Instruction shrink()
-        {
-            return this;
-        }
-
-
-        public void write(byte[] code, int offset)
-        {
-        }
-
-
+        @Override
         protected void readInfo(byte[] code, int offset)
         {
             throw new UnsupportedOperationException("Can't read catch instruction");
         }
 
-
+        @Override
         protected void writeInfo(byte[] code, int offset)
         {
             throw new UnsupportedOperationException("Can't write catch instruction");
         }
 
-
-        public int length(int offset)
-        {
-            return super.length(offset);
-        }
-
-
-        public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, InstructionVisitor instructionVisitor)
+        @Override
+        public void accept(Clazz              clazz,
+                           Method             method,
+                           CodeAttribute      codeAttribute,
+                           int                offset,
+                           InstructionVisitor instructionVisitor)
         {
             if (instructionVisitor.getClass() != CodeAttributeEditor.class)
             {
@@ -1723,11 +1830,10 @@ implements   AttributeVisitor,
         public String toString()
         {
             return "catch " +
-                   (isLabel(startOffset) ? "label_" : "") + startOffset + ", " +
-                   (isLabel(endOffset)   ? "label_" : "") + endOffset    + ", #" +
+                   (isPseudoInstruction(startOffset) ? "label_" : "") + startOffset + ", " +
+                   (isPseudoInstruction(endOffset)   ? "label_" : "") + endOffset + ", #" +
                    catchType;
         }
-
 
         @Override
         public boolean equals(Object o)
@@ -1740,11 +1846,110 @@ implements   AttributeVisitor,
                    catchType == aCatch.catchType;
         }
 
-
         @Override
         public int hashCode()
         {
             return Objects.hash(super.hashCode(), startOffset, endOffset, catchType);
+        }
+    }
+
+
+    /**
+     * This pseudo-instruction represents a line number,
+     * for use in the context of the code attribute editor only.
+     */
+    private static class LineNumber
+    extends              PseudoInstruction
+    {
+        private final int    lineNumber;
+        private final String source;
+
+        /**
+         * Creates a new LineNumber instance.
+         * @param identifier an identifier that can be chosen freely.
+         * @param lineNumber the line number to inject at the current offset.
+         * @param source     the extended line number info source to optionally add.
+         */
+        public LineNumber(int    identifier,
+                          int    lineNumber,
+                          String source)
+        {
+            super(identifier);
+            this.lineNumber = lineNumber;
+            this.source     = source;
+        }
+
+        // Implementations for Instruction.
+
+        @Override
+        public void readInfo(byte[] code, int offset)
+        {
+            throw new UnsupportedOperationException("Can't read lineNumber instruction");
+        }
+
+        @Override
+        public void writeInfo(byte[] code, int offset)
+        {
+            throw new UnsupportedOperationException("Can't write lineNumber instruction");
+        }
+
+        @Override
+        public void accept(Clazz              clazz,
+                           Method             method,
+                           CodeAttribute      codeAttribute,
+                           int                offset,
+                           InstructionVisitor instructionVisitor)
+        {
+            if (instructionVisitor.getClass() != CodeAttributeEditor.class)
+            {
+                throw new UnsupportedOperationException("Unexpected visitor ["+instructionVisitor+"]");
+            }
+
+            // We first try to retrieve the line number table, and create a new one if none exists.
+            Attribute lineNumberTableAttribute = codeAttribute.getAttribute(clazz, Attribute.LINE_NUMBER_TABLE);
+            if (lineNumberTableAttribute == null)
+            {
+                ConstantPoolEditor constantPoolEditor = new ConstantPoolEditor((ProgramClass)clazz);
+                lineNumberTableAttribute              = new LineNumberTableAttribute(
+                    constantPoolEditor.addUtf8Constant(Attribute.LINE_NUMBER_TABLE),
+                    1,
+                    new LineNumberInfo[1]);
+                AttributesEditor attributesEditor     = new AttributesEditor((ProgramClass)clazz,
+                                                                             (ProgramMember)method,
+                                                                             codeAttribute,
+                                                                             false);
+                attributesEditor.addAttribute(lineNumberTableAttribute);
+            }
+
+            LineNumberTableAttributeEditor lineNumberTableAttributeEditor =
+                new LineNumberTableAttributeEditor((LineNumberTableAttribute)lineNumberTableAttribute);
+            lineNumberTableAttributeEditor.addLineNumberInfo(
+                source == null ?
+                    new LineNumberInfo(offset(), lineNumber) :
+                    new ExtendedLineNumberInfo(offset(), lineNumber, source));
+        }
+
+        // Implementations for Object.
+
+        @Override
+        public String toString()
+        {
+            return "lineNumber " + lineNumber;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (!super.equals(o)) return false;
+            LineNumber lineNumberObject = (LineNumber)o;
+            return lineNumber == lineNumberObject.lineNumber;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(super.hashCode(), lineNumber);
         }
     }
 
@@ -1758,6 +1963,6 @@ implements   AttributeVisitor,
     private boolean canShrink(Instruction instruction)
     {
         return shrinkInstructions &&
-               !(instruction instanceof BranchInstruction && isLabel(((BranchInstruction)instruction).branchOffset));
+               !(instruction instanceof BranchInstruction && isPseudoInstruction(((BranchInstruction)instruction).branchOffset));
     }
 }

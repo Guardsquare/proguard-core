@@ -17,16 +17,65 @@
  */
 package proguard.classfile.editor;
 
-import proguard.classfile.*;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
+import proguard.classfile.Field;
+import proguard.classfile.Member;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.VersionConstants;
 import proguard.classfile.constant.Constant;
-import proguard.classfile.instruction.*;
+import proguard.classfile.instruction.BranchInstruction;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.InstructionUtil;
+import proguard.classfile.instruction.LookUpSwitchInstruction;
+import proguard.classfile.instruction.SimpleInstruction;
+import proguard.classfile.instruction.TableSwitchInstruction;
+import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.util.ClassUtil;
 import proguard.resources.file.ResourceFile;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static proguard.classfile.ClassConstants.*;
+import static proguard.classfile.ClassConstants.METHOD_NAME_BOOLEAN_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_BYTE_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_CHAR_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_DOUBLE_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_FLOAT_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_INT_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_LONG_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_SHORT_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_NAME_VALUEOF;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_BOOLEAN_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_BYTE_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_CHAR_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_DOUBLE_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_FLOAT_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_INT_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_LONG_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_SHORT_VALUE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_BOOLEAN;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_BYTE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_CHAR;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_DOUBLE;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_FLOAT;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_INT;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_LONG;
+import static proguard.classfile.ClassConstants.METHOD_TYPE_VALUE_OF_SHORT;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_BOOLEAN;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_BYTE;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_CHARACTER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_DOUBLE;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_FLOAT;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_INTEGER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_LONG;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_NUMBER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_SHORT;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_OBJECT;
 
 /**
  * This utility class allows to construct sequences of instructions and
@@ -137,6 +186,15 @@ public class InstructionSequenceBuilder
      * @see InstructionSequenceReplacer#catch_(int,int,int)
      */
     public InstructionSequenceBuilder catch_(Instruction instruction)
+    {
+        return add(instruction);
+    }
+
+
+    /**
+     * Short for {@link #appendInstruction(Instruction)}.
+     */
+    public InstructionSequenceBuilder line(Instruction instruction)
     {
         return add(instruction);
     }
