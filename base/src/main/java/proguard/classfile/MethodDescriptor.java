@@ -51,26 +51,23 @@ public class MethodDescriptor
 
     public MethodDescriptor(String descriptor)
     {
-        int hashCode;
         if (descriptor == null)
         {
             returnType    = null;
             argumentTypes = null;
-            hashCode      = 0;
+            hash          = 0;
         }
         else
         {
             returnType    = ClassUtil.internalMethodReturnType(descriptor);
             argumentTypes = new ArrayList<>();
-            hashCode      = returnType.hashCode();
             for (int i = 0; i < ClassUtil.internalMethodParameterCount(descriptor); i++)
             {
                 String e = ClassUtil.internalMethodParameterType(descriptor, i);
                 argumentTypes.add(e);
-                hashCode = 31 * hashCode + (e == null ? 0 : e.hashCode());
             }
+            hash = Objects.hash(returnType, argumentTypes);
         }
-        this.hash = hashCode;
     }
 
     public MethodDescriptor(String returnType, List<String> argumentTypes)

@@ -37,7 +37,7 @@ public class ClassSignature
 
     public ClassSignature(String className)
     {
-        super(className);
+        super(className, className.hashCode());
     }
 
     public ClassSignature(Clazz clazz)
@@ -82,11 +82,5 @@ public class ClassSignature
     public static ClassSignature computeIfAbsent(Clazz clazz)
     {
         return signatureCache.computeIfAbsent(clazz, c -> new ClassSignature(c.getName()));
-    }
-
-    @Override
-    protected int calculateHashCode()
-    {
-        return Objects.hash(className);
     }
 }

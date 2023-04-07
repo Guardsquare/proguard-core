@@ -52,7 +52,7 @@ public class MethodSignature
 
     public MethodSignature(String internalClassName, String method, MethodDescriptor descriptor)
     {
-        super(internalClassName);
+        super(internalClassName, Objects.hash(internalClassName, method, descriptor));
         this.method           = method;
         this.descriptor       = descriptor;
         this.referencedClass  = null;
@@ -216,11 +216,5 @@ public class MethodSignature
         }
         MethodSignature that = (MethodSignature) o;
         return Objects.equals(method, that.method) && Objects.equals(descriptor, that.descriptor);
-    }
-
-    @Override
-    protected int calculateHashCode()
-    {
-        return Objects.hash(className, method, descriptor);
     }
 }

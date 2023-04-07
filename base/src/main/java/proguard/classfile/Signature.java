@@ -44,7 +44,7 @@ public abstract class Signature
 
     // Cached hashCode, as Signatures are often used in sets/maps
     // and therefore hashCode() is called often.
-    private final int hashCode;
+    protected final int hashCode;
 
     /**
      * The {@link Clazz} that the {@link Signature#className}
@@ -53,17 +53,13 @@ public abstract class Signature
      */
     protected Clazz referencedClass;
 
-    protected Signature(String internalClassName)
+    protected Signature(String internalClassName, int hashCode)
     {
         this.className   = internalClassName;
         this.packageName = internalClassName == null ? "?" : externalPackageName(externalClassName(internalClassName));
-        this.hashCode    = calculateHashCode();
+        this.hashCode    = hashCode;
     }
 
-    /**
-     * Calculates the hash code when the object is constructed.
-     */
-    protected abstract int calculateHashCode();
 
     /**
      * Check if this signature is missing information.

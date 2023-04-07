@@ -2,6 +2,7 @@ package proguard.classfile
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 class MethodSignatureTest : FreeSpec({
 
@@ -27,6 +28,30 @@ class MethodSignatureTest : FreeSpec({
 
         m1.getPrettyFqn() shouldBe m2.getPrettyFqn()
         m2.getPrettyFqn() shouldBe "void String.foo(int,Object)"
+    }
+
+    "Different signatures" - {
+        val m1 = MethodSignature(
+            "java/lang/String",
+            "foo",
+            "(ILjava/lang/Object;)V"
+        )
+        val m2 = MethodSignature(
+            "java/lang/Integer",
+            "bar",
+            MethodDescriptor(
+                "Ljava/lang/String;",
+                listOf("D", "Ljava/lang/String;")
+            )
+        )
+        m1 shouldNotBe m2
+        m2 shouldNotBe m1
+        m1.hashCode() shouldNotBe m2.hashCode()
+        MethodSignature.matchesIgnoreNull(m2, m1) shouldNotBe true
+        MethodSignature.matchesIgnoreNull(m1, m2) shouldNotBe true
+
+        m1.getPrettyFqn() shouldNotBe m2.getPrettyFqn()
+        m2.getPrettyFqn() shouldNotBe "void String.foo(int,Object)"
     }
 
     "NULL clazz comparison" - {

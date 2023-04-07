@@ -41,7 +41,7 @@ public class FieldSignature
 
     public FieldSignature(String clazzName, String memberName, String descriptor)
     {
-        super(clazzName);
+        super(clazzName, Objects.hash(clazzName, memberName, descriptor));
         this.memberName = memberName;
         this.descriptor = descriptor;
     }
@@ -110,11 +110,5 @@ public class FieldSignature
         }
         FieldSignature that = (FieldSignature) o;
         return Objects.equals(memberName, that.memberName) && Objects.equals(descriptor, that.descriptor);
-    }
-
-    @Override
-    protected int calculateHashCode()
-    {
-        return Objects.hash(className, memberName, descriptor);
     }
 }
