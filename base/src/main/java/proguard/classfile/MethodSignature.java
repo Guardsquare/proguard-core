@@ -155,15 +155,12 @@ public class MethodSignature
      */
     public static boolean matchesIgnoreNull(MethodSignature signature, MethodSignature wildcard)
     {
-        return wildcard == null
-               || Optional.ofNullable(signature)
-                          .map(s -> (wildcard.className == null
-                                     || Objects.equals(s.className, wildcard.className))
-                                    && (wildcard.method == null
-                                        || Objects.equals(s.method, wildcard.method))
-                                    && (wildcard.descriptor == null
-                                        || MethodDescriptor.matchesIgnoreNull(s.descriptor, wildcard.descriptor)))
-                          .orElse(false);
+        if (wildcard  == null) return true;
+        if (signature == null) return false;
+
+        return (wildcard.className  == null || Objects.equals(signature.className, wildcard.className)) &&
+               (wildcard.method     == null || Objects.equals(signature.method, wildcard.method)) &&
+               MethodDescriptor.matchesIgnoreNull(signature.descriptor, wildcard.descriptor);
     }
 
     /**
@@ -182,21 +179,28 @@ public class MethodSignature
      */
     public static boolean matchesIgnoreNullAndDollar(MethodSignature signature, MethodSignature wildcard)
     {
-        return wildcard == null
-               || Optional.ofNullable(signature)
-                          .map(s -> (wildcard.className == null
-                                     || Objects.equals(Optional.ofNullable(s.className)
-                                                               .map(c -> c.replace('$', '/'))
-                                                               .orElse(null),
-                                                       wildcard.className.replace('$', '/')))
-                                    && (wildcard.method == null
-                                        || Objects.equals(Optional.ofNullable(s.method)
-                                                                  .map(m -> m.replace('$', '/'))
-                                                                  .orElse(null),
-                                                          wildcard.method.replace('$', '/')))
-                                    && (wildcard.descriptor == null
-                                        || MethodDescriptor.matchesIgnoreNullAndDollar(s.descriptor, wildcard.descriptor)))
-                          .orElse(false);
+        if (wildcard  == null) return true;
+        if (signature == null) return false;
+
+        return checkClassNameIgnoreNullAndDollar(wildcard.className, signature.className) &&
+               checkMethodNameIgnoreNull(wildcard.method, signature.method) &&
+               MethodDescriptor.matchesIgnoreNullAndDollar(signature.descriptor, wildcard.descriptor);
+    }
+
+    private static boolean checkClassNameIgnoreNullAndDollar(String className, String wildcardClassName)
+    {
+        if (wildcardClassName == null) return true;
+        if (className         == null) return false;
+
+        return Objects.equals(className.replace('$', '/'), wildcardClassName.replace('$', '/'));
+    }
+
+    private static boolean checkMethodNameIgnoreNull(String method, String wildcardMethod)
+    {
+        if (wildcardMethod == null) return true;
+        if (method         == null) return false;
+
+        return Objects.equals(method, wildcardMethod);
     }
 
     @Override

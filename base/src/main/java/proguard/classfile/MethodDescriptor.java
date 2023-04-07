@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@
 
 package proguard.classfile;
 
-import static proguard.classfile.util.ClassUtil.externalShortClassName;
-import static proguard.classfile.util.ClassUtil.externalType;
+import proguard.classfile.util.ClassUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import proguard.classfile.util.ClassUtil;
+
+import static proguard.classfile.util.ClassUtil.externalShortClassName;
+import static proguard.classfile.util.ClassUtil.externalType;
 
 /**
  * Represents the descriptor that is part of a {@link MethodSignature}.
@@ -94,12 +94,11 @@ public class MethodDescriptor
      */
     public static boolean matchesIgnoreNull(MethodDescriptor descriptor, MethodDescriptor wildcard)
     {
-        return wildcard == null
-               || Optional.ofNullable(descriptor).map(d -> (wildcard.returnType == null
-                                                            || Objects.equals(d.returnType, wildcard.returnType))
-                                                           && (wildcard.argumentTypes == null
-                                                               || Objects.equals(d.argumentTypes, wildcard.argumentTypes)))
-                          .orElse(false);
+        if (wildcard   == null) return true;
+        if (descriptor == null) return false;
+
+        return (wildcard.returnType == null    || Objects.equals(descriptor.returnType, wildcard.returnType)) &&
+               (wildcard.argumentTypes == null || Objects.equals(descriptor.argumentTypes, wildcard.argumentTypes));
     }
 
     /**
@@ -111,22 +110,37 @@ public class MethodDescriptor
      */
     public static boolean matchesIgnoreNullAndDollar(MethodDescriptor descriptor, MethodDescriptor wildcard)
     {
-        return wildcard == null
-               || Optional.ofNullable(descriptor).map(d -> (wildcard.returnType == null
-                                                            || Objects.equals(Optional.ofNullable(d.returnType)
-                                                                                      .map(s -> s.replace('$', '/'))
-                                                                                      .orElse(null),
-                                                                              wildcard.returnType.replace('$', '/')))
-                                                           && (wildcard.argumentTypes == null
-                                                               || Objects.equals(Optional.ofNullable(d.argumentTypes)
-                                                                                         .map(l -> l.stream()
-                                                                                                    .map(t -> t.replace('$', '/'))
-                                                                                                    .collect(Collectors.toList()))
-                                                                                         .orElse(null),
-                                                                                 wildcard.argumentTypes.stream()
-                                                                                                       .map(t -> t.replace('$', '/'))
-                                                                                                       .collect(Collectors.toList()))))
-                          .orElse(false);
+        if (wildcard   == null) return true;
+        if (descriptor == null) return false;
+
+        return checkReturnType(descriptor.returnType, wildcard.returnType) &&
+               checkArguments(wildcard.argumentTypes, descriptor.argumentTypes);
+    }
+
+    private static boolean checkReturnType(String returnType, String wildcardReturnType)
+    {
+        if (wildcardReturnType == null) return true;
+        if (returnType         == null) return false;
+
+        return Objects.equals(replaceDollar(returnType), replaceDollar(wildcardReturnType));
+    }
+
+    private static boolean checkArguments(List<String> wildcardArgumentTypes, List<String> argumentTypes)
+    {
+        if (wildcardArgumentTypes == null) return true;
+        if (argumentTypes         == null) return false;
+
+        if (wildcardArgumentTypes.size() != argumentTypes.size()) return false;
+
+        return Objects.equals(
+            argumentTypes.stream().map(MethodDescriptor::replaceDollar).collect(Collectors.toList()),
+            wildcardArgumentTypes.stream().map(MethodDescriptor::replaceDollar).collect(Collectors.toList())
+        );
+    }
+
+    private static String replaceDollar(String s)
+    {
+        return ClassUtil.isInternalClassType(s) ? s.replace('$', '/') : s;
     }
 
     /**
