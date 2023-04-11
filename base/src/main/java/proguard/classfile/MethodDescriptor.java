@@ -18,15 +18,19 @@
 
 package proguard.classfile;
 
-import proguard.classfile.util.ClassUtil;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import static proguard.classfile.util.ClassUtil.externalShortClassName;
 import static proguard.classfile.util.ClassUtil.externalType;
+
+import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.WeakHashMap;
+import java.util.stream.Collectors;
+import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.InternalTypeEnumeration;
 
 /**
  * Represents the descriptor that is part of a {@link MethodSignature}.
@@ -41,8 +45,11 @@ import static proguard.classfile.util.ClassUtil.externalType;
  */
 public class MethodDescriptor
 {
+    private static final Map<String, WeakReference<String>> typeCache = new WeakHashMap<>();
 
+    @Deprecated
     public final String       returnType;
+    @Deprecated
     public final List<String> argumentTypes;
 
     // Cached hashCode, since computing the hashCode for the list of arguments everytime
@@ -59,13 +66,23 @@ public class MethodDescriptor
         }
         else
         {
-            returnType    = ClassUtil.internalMethodReturnType(descriptor);
-            argumentTypes = new ArrayList<>();
-            for (int i = 0; i < ClassUtil.internalMethodParameterCount(descriptor); i++)
+            returnType = intern(ClassUtil.internalMethodReturnType(descriptor));
+            int count  = ClassUtil.internalMethodParameterCount(descriptor);
+            if (count == 0)
             {
-                String e = ClassUtil.internalMethodParameterType(descriptor, i);
-                argumentTypes.add(e);
+                this.argumentTypes = Collections.emptyList();
             }
+            else
+            {
+                String[] argumentTypes = new String[count];
+                InternalTypeEnumeration typeEnum = new InternalTypeEnumeration(descriptor);
+                for (int i = 0; i < count; i++)
+                {
+                    argumentTypes[i] = intern(typeEnum.nextType());
+                }
+                this.argumentTypes = Arrays.asList(argumentTypes);
+            }
+
             hash = Objects.hash(returnType, argumentTypes);
         }
     }
@@ -83,6 +100,16 @@ public class MethodDescriptor
     public boolean isIncomplete()
     {
         return returnType == null || argumentTypes == null;
+    }
+
+    public String getReturnType()
+    {
+        return returnType;
+    }
+
+    public List<String> getArgumentTypes()
+    {
+        return argumentTypes;
     }
 
     /**
@@ -222,5 +249,20 @@ public class MethodDescriptor
     public int hashCode()
     {
         return hash;
+    }
+
+    private synchronized static String intern(String item)
+    {
+        WeakReference<String> ref = typeCache.get(item);
+        if (ref != null)
+        {
+            String oldItem = ref.get();
+            if (oldItem != null)
+            {
+                return oldItem;
+            }
+        }
+        typeCache.put(item, new WeakReference<>(item));
+        return item;
     }
 }

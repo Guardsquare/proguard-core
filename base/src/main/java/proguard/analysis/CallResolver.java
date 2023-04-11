@@ -35,6 +35,7 @@ import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
+import proguard.classfile.TypeConstants;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
@@ -509,7 +510,7 @@ implements   AttributeVisitor,
 
         call.setArguments(arguments);
 
-        if (!target.descriptor.getPrettyReturnType().equals("void") && particularValueEvaluationSuccessful)
+        if (target.descriptor.returnType.charAt(0) != TypeConstants.VOID && particularValueEvaluationSuccessful)
         {
             call.setReturnValue(PartialEvaluatorUtils.getStackValue(particularValueEvaluator.getStackAfter(call.caller.offset), 0));
         }

@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@
 
 package proguard.classfile;
 
+import java.util.Objects;
+
 import static proguard.classfile.util.ClassUtil.externalClassName;
 import static proguard.classfile.util.ClassUtil.externalPackageName;
-
-import java.util.Objects;
 
 /**
  * A signature currently can be a Method- or a FieldSignature.
@@ -39,7 +39,6 @@ public abstract class Signature
     // The fqn fields are filled lazily
     protected       String fqn;
     protected       String prettyFqn;
-    protected final String packageName;
     protected final String className;
 
     // Cached hashCode, as Signatures are often used in sets/maps
@@ -55,9 +54,8 @@ public abstract class Signature
 
     protected Signature(String internalClassName, int hashCode)
     {
-        this.className   = internalClassName;
-        this.packageName = internalClassName == null ? "?" : externalPackageName(externalClassName(internalClassName));
-        this.hashCode    = hashCode;
+        this.className = internalClassName;
+        this.hashCode  = hashCode;
     }
 
 
@@ -172,9 +170,10 @@ public abstract class Signature
         return prettyFqn;
     }
 
+    @Deprecated
     public String getPackageName()
     {
-        return packageName;
+        return getClassName() == null ? "?" : externalPackageName(externalClassName(getClassName()));
     }
 
     public String getClassName()
@@ -208,7 +207,7 @@ public abstract class Signature
             return false;
         }
         Signature signature = (Signature) o;
-        return Objects.equals(packageName, signature.packageName) && Objects.equals(className, signature.className);
+        return Objects.equals(className, signature.className);
     }
 
     @Override
