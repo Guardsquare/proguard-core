@@ -1,5 +1,9 @@
 ## Version 9.0.9
 
+### Improved
+
+- Added support for adding line numbers in the `CodeAttributeEditor`.
+
 ### Bug fixes
 
 - Use program location as hash code for `JvmAbstractState` to allow correct use with hash sets.

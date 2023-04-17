@@ -148,7 +148,7 @@ implements   AttributeVisitor,
     public  static       boolean DEBUG = System.getProperty("cae") != null;
     //*/
 
-    private static final int PSEUDO_FLAG = 0x20000000;
+    private static final int LABEL_FLAG = 0x20000000;
 
     private static final Logger logger = LogManager.getLogger(CodeAttributeEditor.class);
 
@@ -159,7 +159,7 @@ implements   AttributeVisitor,
     private boolean modified;
     private boolean simple;
 
-    private final Map<Integer, PseudoInstruction> pseudoInstructions = new HashMap<>();
+    private final Map<Integer, Label> labels = new HashMap<>();
 
     /*private*/public Instruction[]    preOffsetInsertions = new Instruction[ClassEstimates.TYPICAL_CODE_LENGTH];
     /*private*/public Instruction[]    preInsertions       = new Instruction[ClassEstimates.TYPICAL_CODE_LENGTH];
@@ -212,7 +212,7 @@ implements   AttributeVisitor,
      */
     public void reset(int codeLength)
     {
-        pseudoInstructions.clear();
+        labels.clear();
 
         // Try to reuse the previous arrays.
         if (preInsertions.length < codeLength)
@@ -1313,7 +1313,7 @@ implements   AttributeVisitor,
     {
         // Compute the old branch target.
         // Pass a label offset unchanged.
-        int oldBranchTargetOffset = isPseudoInstruction(oldBranchOffset) ? oldBranchOffset :
+        int oldBranchTargetOffset = isLabel(oldBranchOffset) ? oldBranchOffset :
             oldInstructionOffset + oldBranchOffset;
 
         return newInstructionOffset(oldBranchTargetOffset) -
@@ -1328,17 +1328,17 @@ implements   AttributeVisitor,
     private int newInstructionOffset(int oldInstructionOffset)
     {
         // Special case: is it actually a label?
-        if (isPseudoInstruction(oldInstructionOffset))
+        if (isLabel(oldInstructionOffset))
         {
             // Retrieve the new offset from the label.
-            int pseudoIdentifier = pseudoIdentifier(oldInstructionOffset);
-            PseudoInstruction pseudoInstruction = pseudoInstructions.get(pseudoIdentifier);
-            if (pseudoInstruction == null)
+            int   labelIdentifier = labelIdentifier(oldInstructionOffset);
+            Label label           = labels.get(labelIdentifier);
+            if (label == null)
             {
-                throw new IllegalArgumentException("Reference to unknown pseudo instruction identifier ["+pseudoIdentifier+"]");
+                throw new IllegalArgumentException("Reference to unknown label identifier ["+labelIdentifier+"]");
             }
 
-            return pseudoInstruction.newOffset;
+            return label.newOffset;
         }
 
         // Otherwise retrieve the new instruction offset.
@@ -1507,7 +1507,7 @@ implements   AttributeVisitor,
      */
     public Label label()
     {
-        return label(pseudoInstructions.size());
+        return label(labels.size());
     }
 
 
@@ -1521,7 +1521,7 @@ implements   AttributeVisitor,
         Label label = new Label(identifier);
 
         // Remember the label, so we can retrieve its offset later on.
-        pseudoInstructions.put(identifier, label);
+        labels.put(identifier, label);
 
         return label;
     }
@@ -1532,11 +1532,11 @@ implements   AttributeVisitor,
      * to mark the start of an exception handler. Its offset can be used as
      * a branch target in replacement instructions ({@link Label#offset()}).
      */
-    public Catch catch_(int startOffset,
+    public Label catch_(int startOffset,
                         int endOffset,
                         int catchType)
     {
-        return catch_(pseudoInstructions.size(),
+        return catch_(labels.size(),
                       startOffset,
                       endOffset,
                       catchType);
@@ -1548,7 +1548,7 @@ implements   AttributeVisitor,
      * to mark the start of an exception handler. Its offset can be used as
      * a branch target in replacement instructions ({@link Label#offset()}).
      */
-    public Catch catch_(int identifier,
+    public Label catch_(int identifier,
                         int startOffset,
                         int endOffset,
                         int catchType)
@@ -1556,7 +1556,7 @@ implements   AttributeVisitor,
         Catch catch_ = new Catch(identifier, startOffset, endOffset, catchType);
 
         // Remember the label, so we can retrieve its offset later on.
-        pseudoInstructions.put(identifier, catch_);
+        labels.put(identifier, catch_);
 
         return catch_;
     }
@@ -1565,7 +1565,7 @@ implements   AttributeVisitor,
     /**
      * Creates a new line number instance that will insert the given line number at the current offset.
      */
-    public LineNumber line(int lineNumber)
+    public Label line(int lineNumber)
     {
         return line(lineNumber, null);
     }
@@ -1575,10 +1575,10 @@ implements   AttributeVisitor,
      * Creates a new line number instance that will insert the given line number at the current offset. It will insert
      * an extended line number info with the given source if it's not null.
      */
-    public LineNumber line(int    lineNumber,
-                           String source)
+    public Label line(int    lineNumber,
+                      String source)
     {
-        return line(pseudoInstructions.size(), lineNumber, source);
+        return line(labels.size(), lineNumber, source);
     }
 
 
@@ -1586,14 +1586,14 @@ implements   AttributeVisitor,
      * Creates a new line number instance that will insert the given line number at the current offset. It will insert
      * an extended line number info with the given source if it's not null.
      */
-    public LineNumber line(int    identifier,
-                           int    lineNumber,
-                           String source)
+    public Label line(int    identifier,
+                      int    lineNumber,
+                      String source)
     {
         LineNumber lineNumberLabel = new LineNumber(identifier, lineNumber, source);
 
         // Remember the label, so we can retrieve its offset later on.
-        pseudoInstructions.put(identifier, lineNumberLabel);
+        labels.put(identifier, lineNumberLabel);
 
         return lineNumberLabel;
     }
@@ -1601,30 +1601,30 @@ implements   AttributeVisitor,
 
     /**
      * Returns whether the given instruction offset actually represents a
-     * pseudo instruction (which contains the actual offset).
+     * label (which contains the actual offset).
      */
-    private static boolean isPseudoInstruction(int instructionOffset)
+    private static boolean isLabel(int instructionOffset)
     {
-        return (instructionOffset & 0xff000000) == PSEUDO_FLAG;
+        return (instructionOffset & 0xff000000) == LABEL_FLAG;
     }
 
 
     /**
-     * Returns the pseudo identifier that corresponds to the given
+     * Returns the label identifier that corresponds to the given
      * instruction offset.
      */
-    private static int pseudoIdentifier(int instructionOffset)
+    private static int labelIdentifier(int instructionOffset)
     {
-        return instructionOffset & ~PSEUDO_FLAG;
+        return instructionOffset & ~LABEL_FLAG;
     }
 
 
     /**
-     * This is an abstract base class for pseudo instructions that won't be emitted into the final class, but can hold
-     * metadata for code generation later on.
+     * This pseudo-instruction represents a label that marks an instruction
+     * offset, for use in the context of the code attribute editor only.
      */
-    public abstract static class PseudoInstruction
-    extends                      Instruction
+    public static class Label
+    extends             Instruction
     {
         protected final int identifier;
 
@@ -1635,7 +1635,7 @@ implements   AttributeVisitor,
          * Creates a new Label.
          * @param identifier an identifier that can be chosen freely.
          */
-        public PseudoInstruction(int identifier)
+        public Label(int identifier)
         {
             this.identifier = identifier;
         }
@@ -1647,7 +1647,7 @@ implements   AttributeVisitor,
          */
         public int offset()
         {
-            return PSEUDO_FLAG | identifier;
+            return LABEL_FLAG | identifier;
         }
 
 
@@ -1667,13 +1667,13 @@ implements   AttributeVisitor,
         @Override
         protected void readInfo(byte[] code, int offset)
         {
-            throw new UnsupportedOperationException("Can't read pseudo instruction");
+            throw new UnsupportedOperationException("Can't read label instruction");
         }
 
         @Override
         protected void writeInfo(byte[] code, int offset)
         {
-            throw new UnsupportedOperationException("Can't write pseudo instruction");
+            throw new UnsupportedOperationException("Can't write label instruction");
         }
 
         @Override
@@ -1706,10 +1706,10 @@ implements   AttributeVisitor,
         {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            PseudoInstruction pseudoInstruction = (PseudoInstruction)o;
-            return opcode == pseudoInstruction.opcode &&
-                   identifier == pseudoInstruction.identifier &&
-                   newOffset == pseudoInstruction.newOffset;
+            Label label = (Label)o;
+            return opcode     == label.opcode     &&
+                   identifier == label.identifier &&
+                   newOffset  == label.newOffset;
         }
 
 
@@ -1718,36 +1718,6 @@ implements   AttributeVisitor,
         {
             return Objects.hash(opcode, identifier, newOffset);
         }
-    }
-
-
-    /**
-     * This pseudo-instruction represents a label that marks an instruction
-     * offset, for use in the context of the code attribute editor only.
-     */
-    public static class Label
-    extends             PseudoInstruction
-    {
-        public Label(int identifier)
-        {
-            super(identifier);
-        }
-
-        // Implementations for Instruction.
-
-        @Override
-        protected void readInfo(byte[] code, int offset)
-        {
-            throw new UnsupportedOperationException("Can't read label instruction");
-        }
-
-        @Override
-        protected void writeInfo(byte[] code, int offset)
-        {
-            throw new UnsupportedOperationException("Can't write label instruction");
-        }
-
-        // Implementations for Object.
 
         @Override
         public String toString()
@@ -1758,11 +1728,11 @@ implements   AttributeVisitor,
 
 
     /**
-     * This pseudo-instruction represents an exception handler,
+     * This special label represents an exception handler,
      * for use in the context of the code attribute editor only.
      */
-    public static class Catch
-    extends             PseudoInstruction
+    private static class Catch
+    extends              Label
     {
         private final int startOffset;
         private final int endOffset;
@@ -1830,8 +1800,8 @@ implements   AttributeVisitor,
         public String toString()
         {
             return "catch " +
-                   (isPseudoInstruction(startOffset) ? "label_" : "") + startOffset + ", " +
-                   (isPseudoInstruction(endOffset)   ? "label_" : "") + endOffset + ", #" +
+                   (isLabel(startOffset) ? "label_" : "") + startOffset + ", " +
+                   (isLabel(endOffset)   ? "label_" : "") + endOffset + ", #" +
                    catchType;
         }
 
@@ -1855,11 +1825,11 @@ implements   AttributeVisitor,
 
 
     /**
-     * This pseudo-instruction represents a line number,
+     * This special label represents a line number,
      * for use in the context of the code attribute editor only.
      */
     private static class LineNumber
-    extends              PseudoInstruction
+    extends              Label
     {
         private final int    lineNumber;
         private final String source;
@@ -1963,6 +1933,6 @@ implements   AttributeVisitor,
     private boolean canShrink(Instruction instruction)
     {
         return shrinkInstructions &&
-               !(instruction instanceof BranchInstruction && isPseudoInstruction(((BranchInstruction)instruction).branchOffset));
+               !(instruction instanceof BranchInstruction && isLabel(((BranchInstruction)instruction).branchOffset));
     }
 }
