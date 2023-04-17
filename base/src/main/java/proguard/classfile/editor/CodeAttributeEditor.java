@@ -1912,7 +1912,7 @@ implements   AttributeVisitor,
                 ConstantPoolEditor constantPoolEditor = new ConstantPoolEditor((ProgramClass)clazz);
                 lineNumberTableAttribute              = new LineNumberTableAttribute(
                     constantPoolEditor.addUtf8Constant(Attribute.LINE_NUMBER_TABLE),
-                    1,
+                    0,
                     new LineNumberInfo[1]);
                 AttributesEditor attributesEditor     = new AttributesEditor((ProgramClass)clazz,
                                                                              (ProgramMember)method,
