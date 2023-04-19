@@ -38,6 +38,6 @@ class CfaUtilTest : FreeSpec({
             ).programClassPool
         ) { false }
 
-        cfa.allNodes.isEmpty() shouldBe true
+        cfa.isEmpty() shouldBe true
     }
 })

@@ -18,14 +18,6 @@
 
 package proguard.analysis.cpa.jvm.cfa;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.analysis.datastructure.callgraph.ConcreteCall;
-import proguard.classfile.Clazz;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.Cfa;
 import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
@@ -33,6 +25,17 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCatchCfaNode;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.analysis.datastructure.callgraph.ConcreteCall;
+import proguard.classfile.Clazz;
+import proguard.classfile.MethodSignature;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A JVM specific implementation of {@link Cfa}.
@@ -53,6 +56,15 @@ public class JvmCfa
 {
 
     private final Map<MethodSignature, Map<Integer, JvmCatchCfaNode>> functionCatchNodes = new HashMap<>();
+
+    @Override
+    public Collection<JvmCfaNode> getAllNodes()
+    {
+        return Stream.of(functionNodes.values(), functionCatchNodes.values())
+                .flatMap(Collection::stream)
+                .flatMap(it -> it.values().stream())
+                .collect(Collectors.toSet());
+    }
 
     /**
      * Returns all the catch nodes of a specific method, returns an empty collection if the function is not in the graph or if it has no catch nodes.
@@ -81,7 +93,6 @@ public class JvmCfa
     public void addFunctionCatchNode(MethodSignature signature, JvmCatchCfaNode node, int offset)
     {
         functionCatchNodes.computeIfAbsent(signature, x -> new HashMap<>()).put(offset, node);
-        allNodes.add(node);
     }
 
     /**
@@ -181,9 +192,9 @@ public class JvmCfa
      */
     public void clear()
     {
+        Collection<JvmCfaNode> allNodes = getAllNodes();
         JvmUnknownCfaNode.INSTANCE.getEnteringEdges().removeIf(e -> allNodes.contains(e.getSource()));
         functionCatchNodes.clear();
         functionNodes.clear();
-        allNodes.clear();
     }
 }

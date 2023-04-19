@@ -119,7 +119,7 @@ class InterproceduralCfaCreatorTest : FreeSpec({
         CfaUtil.addInterproceduralEdgesToCfa(cfa, callGraph)
 
         "No nodes added" {
-            cfa.allNodes.size shouldBe 0
+            cfa.isEmpty shouldBe true
         }
 
         cfa.clear()

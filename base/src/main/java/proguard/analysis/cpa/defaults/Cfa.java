@@ -27,10 +27,8 @@ import proguard.classfile.Signature;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,8 +40,7 @@ import java.util.stream.Collectors;
 public abstract class Cfa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT extends CfaEdge<CfaNodeT>, SignatureT extends Signature>
 {
 
-    protected final           Map<SignatureT, Map<Integer, CfaNodeT>> functionNodes = new HashMap<>();
-    protected final transient Set<CfaNodeT>                           allNodes      = new HashSet<>();
+    protected final Map<SignatureT, Map<Integer, CfaNodeT>> functionNodes = new HashMap<>();
 
     /**
      * Returns true if there are no nodes in the CFA, false otherwise.
@@ -58,7 +55,11 @@ public abstract class Cfa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdg
      */
     public Collection<CfaNodeT> getAllNodes()
     {
-        return allNodes;
+        return functionNodes
+                .values()
+                .stream()
+                .flatMap(it -> it.values().stream())
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -135,7 +136,6 @@ public abstract class Cfa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdg
      */
     public void addFunctionNode(SignatureT signature, CfaNodeT node, int offset)
     {
-        functionNodes.computeIfAbsent(signature, x -> new HashMap<Integer, CfaNodeT>()).put(offset, node);
-        allNodes.add(node);
+        functionNodes.computeIfAbsent(signature, x -> new HashMap<>()).put(offset, node);
     }
 }

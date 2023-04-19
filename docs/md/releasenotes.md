@@ -12,6 +12,7 @@
 
 - The key used for fields in `JvmAbstractState` has been updated to include the field type to disambiguate between
    overloaded fields.
+- Replace `allNodes` field in `proguard.analysis.cpa.defaults.Cfa` with `getAllNodes` method to save memory.
 
 ## Version 9.0.8
 
