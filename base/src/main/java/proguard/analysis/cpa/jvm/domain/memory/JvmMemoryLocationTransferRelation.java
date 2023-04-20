@@ -437,8 +437,10 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                                             .findMethod(currentState.getProgramLocation().getSignature().method, currentDescriptor)
                                             .getAccessFlags() & AccessConstants.STATIC) != 0;
             int parameterNumber = ClassUtil.internalMethodParameterNumber(currentDescriptor, isStatic, argumentLocation.index);
+            int parameterIndex = isStatic || parameterNumber == 0 ? parameterNumber : parameterNumber - 1;
             int parameterSize = ClassUtil.internalMethodParameterSize(currentDescriptor, isStatic);
-            boolean isCategory2 = ClassUtil.isInternalCategory2Type(ClassUtil.internalMethodParameterType(currentDescriptor, parameterNumber));
+            String internalType = ClassUtil.internalMethodParameterType(currentDescriptor, parameterIndex);
+            boolean isCategory2 = ClassUtil.isInternalCategory2Type(internalType);
 
             return Optional.of(new JvmStackLocation(parameterSize
                                                     - argumentLocation.index
