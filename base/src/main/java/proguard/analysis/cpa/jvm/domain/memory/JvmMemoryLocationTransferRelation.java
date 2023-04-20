@@ -279,6 +279,8 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                                                                                                              intraproceduralParentState.get(),
                                                                                                              ((JvmInstructionCfaEdge) edge).getInstruction(),
                                                                                                              state.getProgramLocation().getClazz(),
+                                                                                                             state.getProgramLocation().getSignature().getReferencedMethod(),
+                                                                                                             state.getProgramLocation().getOffset(),
                                                                                                              precision));
                 }
                 else if (edge instanceof JvmAssumeExceptionCfaEdge)// the catch edge preserves the memory location
@@ -370,10 +372,12 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
                                                                               AbstractState parentState,
                                                                               Instruction instruction,
                                                                               Clazz clazz,
+                                                                              Method method,
+                                                                              int offset,
                                                                               Precision precision)
     {
         List<JvmMemoryLocation> answer = new ArrayList<>();
-        instruction.accept(clazz, null, null, 0, new InstructionAbstractInterpreter(answer,
+        instruction.accept(clazz, method, null, offset, new InstructionAbstractInterpreter(answer,
                                                                                     abstractState.getLocationDependentMemoryLocation().getMemoryLocation(),
                                                                                     parentState));
         return answer;
