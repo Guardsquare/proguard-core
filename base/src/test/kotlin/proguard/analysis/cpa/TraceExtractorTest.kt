@@ -57,7 +57,13 @@ class TraceExtractorTest : StringSpec({
         setOf(),
         setOf("A.s:Ljava/lang/String;")
     )
-
+    val taintSourceReturnDouble = JvmTaintSource(
+        MethodSignature("A", "source", "()D"),
+        false,
+        true,
+        setOf(),
+        setOf()
+    )
     val taintSinkArgument = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(Ljava/lang/String;)V"),
         false,
@@ -66,6 +72,12 @@ class TraceExtractorTest : StringSpec({
     )
     val taintSinkArgumentLong = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(J)V"),
+        false,
+        setOf(1),
+        setOf()
+    )
+    val taintSinkArgumentDouble = JvmInvokeTaintSink(
+        MethodSignature("A", "sink", "(D)V"),
         false,
         setOf(1),
         setOf()
@@ -1199,6 +1211,71 @@ class TraceExtractorTest : StringSpec({
                     "JvmLocalVariableLocation(0)@LA;sink(Ljava/lang/String;)Ljava/lang/String;:0",
                     "JvmStackLocation(0)@LA;main()V:3",
                     "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3"
+                )
+            )
+        }
+
+        "Simple interprocedural flows with doubles and return sink are reconstructed$testNameSuffix" {
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                        class A {
+                        
+                            public void main() {
+                                foo(source());
+                            }
+                        
+                            public static double source()
+                            {
+                                return 0.0;
+                            }
+                            
+                            public static void foo(double d)
+                            {
+                                sink(d);
+                            }
+                        
+                            public static void sink(double d)
+                            {
+                                return;
+                            }
+                        }
+                    """.trimIndent()
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            )
+            val interproceduralCfa = CfaUtil.createInterproceduralCfa(programClassPool)
+            /*
+            Bytecode of main:
+                 [0] invokestatic #7 = Methodref(A.source()D)
+                 [3] invokestatic #13 = Methodref(A.foo(D)V)
+                 [6] return
+            Bytecode of source:
+                 [0] dconst_0
+                 [1] dreturn
+            Bytecode of foo:
+                [0] dload_0 v0
+                [1] invokestatic #17 = Methodref(A.sink(D)V)
+                [4] return
+            Bytecode of sink:
+                [0] return
+             */
+            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
+                .setCfa(interproceduralCfa)
+                .setMainSignature(mainSignature)
+                .setTaintSources(setOf(taintSourceReturnDouble))
+                .setTaintSinks(setOf(taintSinkArgumentDouble))
+                .build()
+            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            interproceduralCfa.clear()
+
+            traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
+                listOf(
+                    "JvmStackLocation(0)@LA;foo(D)V:1",
+                    "JvmLocalVariableLocation(0)@LA;foo(D)V:0",
+                    "JvmStackLocation(0)@LA;main()V:3"
                 )
             )
         }

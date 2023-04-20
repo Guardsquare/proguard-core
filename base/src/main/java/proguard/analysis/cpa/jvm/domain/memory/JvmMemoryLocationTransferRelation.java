@@ -438,13 +438,7 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
 
             return Optional.of(new JvmStackLocation(parameterSize
                                                     - argumentLocation.index
-                                                    - (isCategory2
-                                                       ? parameterNumber == ClassUtil.internalMethodParameterNumber(currentDescriptor,
-                                                                                                                    isStatic,
-                                                                                                                    argumentLocation.index + 1)
-                                                         ? 2
-                                                         : 0
-                                                       : 1)));
+                                                    - (isCategory2 ? 2 : 1)));
         }
         else if (memoryLocation instanceof JvmStaticFieldLocation || memoryLocation instanceof JvmHeapLocation)
         {
