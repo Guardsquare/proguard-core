@@ -60,14 +60,9 @@ public class JvmReferenceTransferRelation
     }
 
     @Override
-    protected List<SetAbstractState<Reference>> applyArithmeticInstruction(Instruction instruction, List<SetAbstractState<Reference>> operands, int resultCount)
+    protected SetAbstractState<Reference> calculateArithmeticInstruction(Instruction instruction, List<SetAbstractState<Reference>> operands)
     {
-        List<SetAbstractState<Reference>> answer = new ArrayList<>(resultCount);
-        for (int i = 0; i < resultCount; i++)
-        {
-            answer.add(getAbstractDefault());
-        }
-        return answer;
+        return getAbstractDefault();
     }
 
     @Override

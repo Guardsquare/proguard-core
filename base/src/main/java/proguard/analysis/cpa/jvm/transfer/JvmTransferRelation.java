@@ -127,17 +127,11 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     }
 
     /**
-     * Returns the result of the instruction application. The default implementation computes join over its arguments.
+     * Calculates the result of the instruction application. The default implementation computes join over its arguments.
      */
-    protected List<StateT> applyArithmeticInstruction(Instruction instruction, List<StateT> operands, int resultCount)
+    protected StateT calculateArithmeticInstruction(Instruction instruction, List<StateT> operands)
     {
-        List<StateT> answer        = new ArrayList<>(resultCount);
-        StateT       answerContent = operands.stream().reduce(getAbstractDefault(), StateT::join);
-        for (int i = 0; i < resultCount; i++)
-        {
-            answer.add(answerContent);
-        }
-        return answer;
+        return operands.stream().reduce(getAbstractDefault(), StateT::join);
     }
 
     /**
@@ -506,8 +500,21 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                             }
                         }
                     }
-                    Collections.reverse(operands);
-                    abstractState.pushAll(applyArithmeticInstruction(simpleInstruction, operands, simpleInstruction.stackPushCount(clazz)));
+
+                    int resultCount = simpleInstruction.stackPushCount(clazz);
+                    if (resultCount > 2)
+                    {
+                        throw new IllegalStateException("No instruction with more than 2 push count should be handled here. Instruction: " + simpleInstruction);
+                    }
+                    if (resultCount == 2)
+                    {
+                        abstractState.push(getAbstractDefault());
+                    }
+                    if (resultCount > 0)
+                    {
+                        Collections.reverse(operands);
+                        abstractState.push(calculateArithmeticInstruction(simpleInstruction, operands));
+                    }
                 }
             }
         }

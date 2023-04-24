@@ -7,6 +7,7 @@
 ### Bug fixes
 
 - Use program location as hash code for `JvmAbstractState` to allow correct use with hash sets.
+- Fix a bug in `JvmTransferRelation` handling arithmetic instructions returning category 2 values incorrectly.
 
 ### API changes
 

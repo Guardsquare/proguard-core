@@ -33,15 +33,11 @@ import proguard.evaluation.value.ParticularReferenceValue
 
 class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>() {
 
-    override fun applyArithmeticInstruction(
+    override fun calculateArithmeticInstruction(
         instruction: Instruction,
-        operands: MutableList<ExpressionAbstractState>,
-        resultCount: Int
-    ): MutableList<ExpressionAbstractState> {
-        return if (resultCount == 2)
-            mutableListOf(
-                abstractDefault,
-                ExpressionAbstractState(
+        operands: MutableList<ExpressionAbstractState>
+    ): ExpressionAbstractState {
+        return ExpressionAbstractState(
                     setOf(
                         InstructionExpression(
                             instruction,
@@ -49,18 +45,6 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
                         )
                     )
                 )
-            )
-        else
-            mutableListOf(
-                ExpressionAbstractState(
-                    setOf(
-                        InstructionExpression(
-                            instruction,
-                            operands
-                        )
-                    )
-                )
-            )
     }
 
     override fun computeIncrement(state: ExpressionAbstractState, value: Int): ExpressionAbstractState {
