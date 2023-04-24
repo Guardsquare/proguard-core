@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A {@link Cfa} is a control flow automaton with nodes {@code <CfaNodeT>} and edges {@code <CfaEdgeT>}. It can be used for different programming languages with functions identified by {@code
@@ -51,15 +52,17 @@ public abstract class Cfa<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdg
     }
 
     /**
-     * Returns a collection of all the nodes present in the graph.
+     * Returns a stream of all the nodes present in the graph.
+     *
+     * Note: a {@link Stream} is provided to avoid creating new collections
+     *       unnecessarily.
      */
-    public Collection<CfaNodeT> getAllNodes()
+    public Stream<CfaNodeT> getAllNodes()
     {
         return functionNodes
                 .values()
                 .stream()
-                .flatMap(it -> it.values().stream())
-                .collect(Collectors.toSet());
+                .flatMap(it -> it.values().stream());
     }
 
     /**

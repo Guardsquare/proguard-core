@@ -33,8 +33,8 @@ import proguard.classfile.MethodSignature;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -58,12 +58,11 @@ public class JvmCfa
     private final Map<MethodSignature, Map<Integer, JvmCatchCfaNode>> functionCatchNodes = new HashMap<>();
 
     @Override
-    public Collection<JvmCfaNode> getAllNodes()
+    public Stream<JvmCfaNode> getAllNodes()
     {
         return Stream.of(functionNodes.values(), functionCatchNodes.values())
                 .flatMap(Collection::stream)
-                .flatMap(it -> it.values().stream())
-                .collect(Collectors.toSet());
+                .flatMap(it -> it.values().stream());
     }
 
     /**
@@ -192,8 +191,14 @@ public class JvmCfa
      */
     public void clear()
     {
-        Collection<JvmCfaNode> allNodes = getAllNodes();
-        JvmUnknownCfaNode.INSTANCE.getEnteringEdges().removeIf(e -> allNodes.contains(e.getSource()));
+        List<JvmCfaEdge> unknownEnteringEdges = JvmUnknownCfaNode.INSTANCE.getEnteringEdges();
+        if (!unknownEnteringEdges.isEmpty())
+        {
+            getAllNodes()
+                .flatMap(it -> it.getLeavingEdges().stream())
+                .filter(e -> e.getTarget() == JvmUnknownCfaNode.INSTANCE)
+                .forEach(unknownEnteringEdges::remove);
+        }
         functionCatchNodes.clear();
         functionNodes.clear();
     }
