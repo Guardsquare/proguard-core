@@ -19,16 +19,21 @@
 package proguard.evaluation;
 
 
+import proguard.exception.ProguardCoreException;
+
+import java.util.Collections;
+
 /**
  * Represents an exception during partial evaluation when an incomplete class
  * hierarchy was encountered.
  *
  * @author James Hamilton
  */
-public class IncompleteClassHierarchyException extends RuntimeException
+public class IncompleteClassHierarchyException extends ProguardCoreException
 {
     public IncompleteClassHierarchyException(String message)
     {
-        super(message);
+        //ToDo: update component error id
+        super(message, 1, Collections.emptyList());
     }
 }
