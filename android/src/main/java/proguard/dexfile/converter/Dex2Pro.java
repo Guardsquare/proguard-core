@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  * Copyright (c) 2009-2013 Panxiaobo
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,25 +16,88 @@
  */
 package proguard.dexfile.converter;
 
-import proguard.dexfile.ir.IrMethod;
-import proguard.dexfile.ir.ts.*;
-import proguard.dexfile.ir.ts.array.FillArrayTransformer;
-import proguard.dexfile.reader.*;
-import proguard.dexfile.reader.Field;
-import proguard.dexfile.reader.node.*;
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.annotation.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.Clazz;
+import proguard.classfile.Member;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramField;
+import proguard.classfile.ProgramMethod;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.VersionConstants;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.BootstrapMethodInfo;
+import proguard.classfile.attribute.BootstrapMethodsAttribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.ConstantValueAttribute;
+import proguard.classfile.attribute.EnclosingMethodAttribute;
+import proguard.classfile.attribute.ExceptionsAttribute;
+import proguard.classfile.attribute.InnerClassesAttribute;
+import proguard.classfile.attribute.InnerClassesInfo;
+import proguard.classfile.attribute.SignatureAttribute;
+import proguard.classfile.attribute.SourceFileAttribute;
+import proguard.classfile.attribute.annotation.Annotation;
+import proguard.classfile.attribute.annotation.AnnotationDefaultAttribute;
+import proguard.classfile.attribute.annotation.AnnotationElementValue;
+import proguard.classfile.attribute.annotation.AnnotationsAttribute;
+import proguard.classfile.attribute.annotation.ArrayElementValue;
+import proguard.classfile.attribute.annotation.ClassElementValue;
+import proguard.classfile.attribute.annotation.ConstantElementValue;
+import proguard.classfile.attribute.annotation.ElementValue;
+import proguard.classfile.attribute.annotation.EnumConstantElementValue;
+import proguard.classfile.attribute.annotation.ParameterAnnotationsAttribute;
+import proguard.classfile.attribute.annotation.RuntimeInvisibleAnnotationsAttribute;
+import proguard.classfile.attribute.annotation.RuntimeInvisibleParameterAnnotationsAttribute;
+import proguard.classfile.attribute.annotation.RuntimeVisibleAnnotationsAttribute;
+import proguard.classfile.attribute.annotation.RuntimeVisibleParameterAnnotationsAttribute;
 import proguard.classfile.constant.MethodHandleConstant;
-import proguard.classfile.editor.*;
+import proguard.classfile.editor.AttributesEditor;
+import proguard.classfile.editor.BootstrapMethodsAttributeEditor;
+import proguard.classfile.editor.ClassBuilder;
+import proguard.classfile.editor.CompactCodeAttributeComposer;
+import proguard.classfile.editor.ConstantPoolEditor;
+import proguard.classfile.editor.ExceptionsAttributeEditor;
+import proguard.classfile.editor.InnerClassesAttributeEditor;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
+import proguard.dexfile.ir.IrMethod;
+import proguard.dexfile.ir.ts.AggTransformer;
+import proguard.dexfile.ir.ts.CleanLabel;
+import proguard.dexfile.ir.ts.ExceptionHandlerTrim;
+import proguard.dexfile.ir.ts.Ir2JRegAssignTransformer;
+import proguard.dexfile.ir.ts.MultiArrayTransformer;
+import proguard.dexfile.ir.ts.NewTransformer;
+import proguard.dexfile.ir.ts.RemoveConstantFromSSA;
+import proguard.dexfile.ir.ts.RemoveLocalFromSSA;
+import proguard.dexfile.ir.ts.TypeTransformer;
+import proguard.dexfile.ir.ts.UnSSATransformer;
+import proguard.dexfile.ir.ts.VoidInvokeTransformer;
+import proguard.dexfile.ir.ts.ZeroTransformer;
+import proguard.dexfile.reader.DexConstants;
+import proguard.dexfile.reader.DexType;
+import proguard.dexfile.reader.Field;
+import proguard.dexfile.reader.MethodHandle;
+import proguard.dexfile.reader.Proto;
+import proguard.dexfile.reader.Visibility;
+import proguard.dexfile.reader.node.DexAnnotationNode;
+import proguard.dexfile.reader.node.DexClassNode;
+import proguard.dexfile.reader.node.DexFieldNode;
+import proguard.dexfile.reader.node.DexFileNode;
+import proguard.dexfile.reader.node.DexMethodNode;
 import proguard.io.ClassReader;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 // Derived from dex-translator/src/main/java/com/googlecode/d2j/dex/Dex2Asm.java
@@ -123,21 +186,16 @@ public class Dex2Pro {
      *  We leave them here so it is easy to get an overview of which optimizations initially Dex2Pro used.
      */
     private static final CleanLabel T_cleanLabel = new CleanLabel();
-    private static final EndRemover T_endRemove = new EndRemover();
     private static final Ir2JRegAssignTransformer T_ir2jRegAssign = new Ir2JRegAssignTransformer();
     private static final NewTransformer T_new = new NewTransformer();
     private static final RemoveConstantFromSSA T_removeConst = new RemoveConstantFromSSA();
     private static final RemoveLocalFromSSA T_removeLocal = new RemoveLocalFromSSA();
     private static final ExceptionHandlerTrim T_trimEx = new ExceptionHandlerTrim();
     private static final TypeTransformer T_type = new TypeTransformer();
-    // protected static final TopologicalSort T_topologicalSort = new TopologicalSort();
-    private static final DeadCodeTransformer T_deadCode = new DeadCodeTransformer();
-    private static final FillArrayTransformer T_fillArray = new FillArrayTransformer();
     private static final AggTransformer T_agg = new AggTransformer();
     private static final UnSSATransformer T_unssa = new UnSSATransformer();
     private static final ZeroTransformer T_zero = new ZeroTransformer();
     private static final VoidInvokeTransformer T_voidInvoke = new VoidInvokeTransformer();
-    private static final NpeTransformer T_npe = new NpeTransformer();
     private static final MultiArrayTransformer T_multiArray = new MultiArrayTransformer();
 
 
@@ -1041,13 +1099,6 @@ public class Dex2Pro {
         T_agg.transform(irMethod);
         T_multiArray.transform(irMethod);
         T_voidInvoke.transform(irMethod);
-        {
-            // https://github.com/pxb1988/dex2jar/issues/477
-            // dead code found in unssa, clean up
-            T_deadCode.transform(irMethod);
-            T_removeLocal.transform(irMethod);
-            T_removeConst.transform(irMethod);
-        }
         T_type.transform(irMethod);
         T_unssa.transform(irMethod);
         T_ir2jRegAssign.transform(irMethod);

@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2022 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,20 @@ package proguard.io;
 
 import proguard.classfile.constant.PrimitiveArrayConstant;
 import proguard.classfile.util.PrimitiveArrayConstantReplacer;
+import proguard.classfile.visitor.ClassPrinter;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.dexfile.converter.Dex2Pro;
 import proguard.dexfile.reader.DexException;
 import proguard.dexfile.reader.DexFileReader;
 import proguard.dexfile.reader.node.DexFileNode;
-import proguard.dexfile.converter.Dex2Pro;
-import proguard.classfile.visitor.ClassPrinter;
-import proguard.classfile.visitor.ClassVisitor;
-import proguard.io.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static proguard.dexfile.reader.DexFileReader.KEEP_CLINIT;
+import static proguard.dexfile.reader.DexFileReader.SKIP_CODE;
+import static proguard.dexfile.reader.DexFileReader.SKIP_DEBUG;
 
 /**
  * This data entry reader reads dex files, converts their classes, and passes them to
@@ -54,7 +57,8 @@ public class DexClassReader implements DataEntryReader {
      *                     passed.
      */
     public DexClassReader(boolean readCode,
-                          ClassVisitor classVisitor) {
+                          ClassVisitor classVisitor)
+    {
         this(readCode, false, classVisitor);
     }
 
@@ -73,7 +77,8 @@ public class DexClassReader implements DataEntryReader {
      */
     public DexClassReader(boolean      readCode,
                           boolean      usePrimitiveArrayConstants,
-                          ClassVisitor classVisitor) {
+                          ClassVisitor classVisitor)
+    {
         this.readCode                   = readCode;
         this.usePrimitiveArrayConstants = usePrimitiveArrayConstants;
         this.classVisitor               = classVisitor;
@@ -85,14 +90,11 @@ public class DexClassReader implements DataEntryReader {
     @Override
     public void read(DataEntry dataEntry) throws IOException {
         // Get the input.
-        InputStream inputStream = dataEntry.getInputStream();
-        try
+        try (InputStream inputStream = dataEntry.getInputStream())
         {
             // Fill out a Dex2jar file node.
             DexFileNode fileNode = new DexFileNode();
-            int readerConfig = readCode ? 0 : (DexFileReader.SKIP_CODE |
-                    DexFileReader.KEEP_CLINIT |
-                    DexFileReader.SKIP_DEBUG);
+            int readerConfig = readCode ? 0 : (SKIP_CODE | KEEP_CLINIT | SKIP_DEBUG);
             new DexFileReader(inputStream).accept(fileNode, readerConfig);
 
             // Convert it to classes, with the help of Dex2Pro.
@@ -103,10 +105,6 @@ public class DexClassReader implements DataEntryReader {
         catch (DexException e)
         {
             throw new IOException("Dex file conversion failed: " + e.getMessage(), e);
-        }
-        finally
-        {
-            inputStream.close();
         }
     }
 
