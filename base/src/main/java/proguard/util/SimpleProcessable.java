@@ -17,6 +17,8 @@
  */
 package proguard.util;
 
+import java.util.Arrays;
+
 /**
  * This class provides a straightforward implementation of the Processable
  * interface.
@@ -71,8 +73,22 @@ implements   Processable
 
 
     @Override
-    public void setProcessingInfo(Object processingInfo)
-    {
+    public void setProcessingInfo(Object processingInfo) {
+        if (System.getProperty("proguard.processinginfo.check_overriding") != null)
+        {
+            if (this.processingInfo != null && processingInfo != null && !this.processingInfo.getClass().getName().equals(processingInfo.getClass().getName()))
+            {
+                // get the second (top down) element of the stack trace (the second is setProcessingInfo call)
+                StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                StackTraceElement stackTraceElement = stackTrace.length > 2 ? stackTrace[2] : null;
+
+                System.out.printf("Overriding processingInfo. Old:%s, New:%s. Stacktrace entry before last is:\n\t%s%n",
+                        this.processingInfo.getClass().getName(),
+                        processingInfo.getClass().getName(),
+                        stackTraceElement
+                );
+            }
+        }
         this.processingInfo = processingInfo;
     }
 }
