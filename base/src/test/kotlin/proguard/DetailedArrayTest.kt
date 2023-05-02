@@ -16,7 +16,7 @@ import proguard.testutils.PartialEvaluatorUtil
 
 class DetailedArrayTest : FreeSpec({
     val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
-    val invocationUnit = ExecutingInvocationUnit(valueFactory)
+    val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
     val partialEvaluator = PartialEvaluator(
         valueFactory,
         invocationUnit,

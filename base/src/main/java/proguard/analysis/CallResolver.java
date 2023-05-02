@@ -246,6 +246,7 @@ implements   AttributeVisitor,
                         boolean skipIncompleteCalls,
                         ValueFactory arrayValueFactory,
                         boolean ignoreExceptions,
+                        ExecutingInvocationUnit.Builder executingInvocationUnitBuilder,
                         CallVisitor... visitors)
     {
         this.programClassPool               = programClassPool;
@@ -273,7 +274,7 @@ implements   AttributeVisitor,
         // Initialize the particular value evaluator.
         ValueFactory particularValueFactory          = new ParticularValueFactory(arrayValueFactory,
                                                                                   new ParticularReferenceValueFactory());
-        InvocationUnit particularValueInvocationUnit = new ExecutingInvocationUnit(particularValueFactory);
+        InvocationUnit particularValueInvocationUnit = executingInvocationUnitBuilder.build(particularValueFactory);
         particularValueEvaluator                     = PartialEvaluator.Builder.create()
                                                                                .setValueFactory(particularValueFactory)
                                                                                .setInvocationUnit(particularValueInvocationUnit)
@@ -345,7 +346,7 @@ implements   AttributeVisitor,
             }
             else
             {
-                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
+               log.error("Unexpected exception during particular value analysis", e);
             }
         }
 
@@ -963,19 +964,20 @@ implements   AttributeVisitor,
     public static class Builder
     {
 
-        private final ClassPool         programClassPool;
-        private final ClassPool         libraryClassPool;
-        private final CallGraph         callGraph;
-        private final CallVisitor[]     visitors;
-        private       boolean           clearCallValuesAfterVisit      = true;
-        private       boolean           useDominatorAnalysis           = false;
-        private       boolean           evaluateAllCode                = false;
-        private       boolean           includeSubClasses              = false;
-        private       int               maxPartialEvaluations          = 50;
-        private       Supplier<Boolean> shouldAnalyzeNextCodeAttribute = () -> true;
-        private       boolean           skipIncompleteCalls            = true;
-        private       ValueFactory      arrayValueFactory              = new ArrayReferenceValueFactory();
-        private       boolean           ignoreExceptions               = true;
+        private final ClassPool                       programClassPool;
+        private final ClassPool                       libraryClassPool;
+        private final CallGraph                       callGraph;
+        private final CallVisitor[]                   visitors;
+        private       boolean                         clearCallValuesAfterVisit      = true;
+        private       boolean                         useDominatorAnalysis           = false;
+        private       boolean                         evaluateAllCode                = false;
+        private       boolean                         includeSubClasses              = false;
+        private       int                             maxPartialEvaluations          = 50;
+        private       Supplier<Boolean>               shouldAnalyzeNextCodeAttribute = () -> true;
+        private       boolean                         skipIncompleteCalls            = true;
+        private       ValueFactory                    arrayValueFactory              = new ArrayReferenceValueFactory();
+        private       boolean                         ignoreExceptions               = true;
+        private       ExecutingInvocationUnit.Builder executingInvocationUnitBuilder = new ExecutingInvocationUnit.Builder();
 
         public Builder(ClassPool programClassPool, ClassPool libraryClassPool, CallGraph callGraph, CallVisitor... visitors)
         {
@@ -1087,6 +1089,17 @@ implements   AttributeVisitor,
             return this;
         }
 
+        /**
+         *
+         * @param executingInvocationUnitBuilder a builder for the invocation unit used for particular value analysis.
+         * @return {@link Builder} object
+         */
+        public Builder setexecutingInvocationUnitBuilder(ExecutingInvocationUnit.Builder executingInvocationUnitBuilder)
+        {
+            this.executingInvocationUnitBuilder = executingInvocationUnitBuilder;
+            return this;
+        }
+
         public CallResolver build()
         {
             return new CallResolver(programClassPool,
@@ -1101,6 +1114,7 @@ implements   AttributeVisitor,
                                     skipIncompleteCalls,
                                     arrayValueFactory,
                                     ignoreExceptions,
+                                    executingInvocationUnitBuilder,
                                     visitors);
 
         }

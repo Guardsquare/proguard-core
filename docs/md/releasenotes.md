@@ -5,6 +5,8 @@
 - Added support for adding line numbers in the `CodeAttributeEditor`.
 - Improve performance of `ClassReferenceInitializer` when initializing Kotlin type aliases.
 - Improve performance of `ClassPool.removeClass`.
+- Allow more configuration of `ExecutingInvocationUnit` by using `ExecutingInvocationUnit.Builder`.
+- Add a mode to `ExecutingInvocationUnit` to approximate reference of types not supported for the execution via reflection.
 
 ### Bug fixes
 
@@ -16,6 +18,7 @@
 - The key used for fields in `JvmAbstractState` has been updated to include the field type to disambiguate between
    overloaded fields.
 - Replace `allNodes` field in `proguard.analysis.cpa.defaults.Cfa` with `getAllNodes` method to save memory.
+- Constructor for `ExecutingInvocationUnit` is deprecated, use `ExecutingInvocationUnit.Builder` instead.
 
 ## Version 9.0.8
 

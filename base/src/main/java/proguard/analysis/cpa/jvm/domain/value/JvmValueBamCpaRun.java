@@ -151,7 +151,7 @@ public class JvmValueBamCpaRun
                 cfa,
                 mainSignature,
                 valueFactory,
-                new ExecutingInvocationUnit(valueFactory),
+                new ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory),
                 maxCallStackDepth,
                 heapModel,
                 staticFields,

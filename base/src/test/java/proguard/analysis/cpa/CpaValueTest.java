@@ -333,7 +333,7 @@ public class CpaValueTest {
 
         AbstractDomain abstractDomain = new DelegateAbstractDomain<ValueAbstractState>();
         ValueFactory valueFactory = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
-        ExecutingInvocationUnit executingInvocationUnit = new ExecutingInvocationUnit(valueFactory);
+        ExecutingInvocationUnit executingInvocationUnit = new ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory);
         JvmValueTransferRelation transferRelation = new JvmValueTransferRelation(valueFactory, executingInvocationUnit);
         MergeOperator mergeJoinOperator = new MergeJoinOperator(abstractDomain);
         StopOperator stopOperator = new StopJoinOperator(abstractDomain);

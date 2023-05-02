@@ -26,7 +26,7 @@ class PartialEvaluatorHelper {
             val clazz = programClassPool.getClass(className) as ProgramClass
 
             val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
-            val invocationUnit = ExecutingInvocationUnit(valueFactory)
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, true)
 
             val codeAttribute = visitMethod(clazz, partialEvaluator, methodName, methodDescriptor)

@@ -32,7 +32,7 @@ import proguard.testutils.findMethod
 private val javaLangString = libraryClassPool.getClass("java/lang/String")
 private val javaLangStringBuilder = libraryClassPool.getClass("java/lang/StringBuilder")
 private val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
-private val invocationUnit = ExecutingInvocationUnit(valueFactory)
+private val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
 private fun Int.toValue(): Value =
     valueFactory.createIntegerValue(this.toInt())
 

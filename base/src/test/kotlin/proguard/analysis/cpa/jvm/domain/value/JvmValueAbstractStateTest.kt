@@ -17,7 +17,7 @@ class JvmValueAbstractStateTest : FreeSpec({
         val valueFactory = BasicValueFactory()
         val a = JvmValueAbstractState(
             valueFactory,
-            ExecutingInvocationUnit(valueFactory),
+            ExecutingInvocationUnit.Builder().build(valueFactory),
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),
@@ -25,7 +25,7 @@ class JvmValueAbstractStateTest : FreeSpec({
         )
         val b = JvmValueAbstractState(
             valueFactory,
-            ExecutingInvocationUnit(valueFactory),
+            ExecutingInvocationUnit.Builder().build(valueFactory),
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),
