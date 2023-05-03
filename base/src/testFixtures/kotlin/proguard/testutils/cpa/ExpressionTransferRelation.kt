@@ -38,13 +38,13 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
         operands: MutableList<ExpressionAbstractState>
     ): ExpressionAbstractState {
         return ExpressionAbstractState(
-                    setOf(
-                        InstructionExpression(
-                            instruction,
-                            operands
-                        )
-                    )
+            setOf(
+                InstructionExpression(
+                    instruction,
+                    operands
                 )
+            )
+        )
     }
 
     override fun computeIncrement(state: ExpressionAbstractState, value: Int): ExpressionAbstractState {
