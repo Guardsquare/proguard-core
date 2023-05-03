@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -194,10 +196,11 @@ public class JvmCfa
         List<JvmCfaEdge> unknownEnteringEdges = JvmUnknownCfaNode.INSTANCE.getEnteringEdges();
         if (!unknownEnteringEdges.isEmpty())
         {
-            getAllNodes()
+            Set<JvmCfaEdge> edges = getAllNodes()
                 .flatMap(it -> it.getLeavingEdges().stream())
                 .filter(e -> e.getTarget() == JvmUnknownCfaNode.INSTANCE)
-                .forEach(unknownEnteringEdges::remove);
+                .collect(Collectors.toSet());
+            unknownEnteringEdges.removeAll(edges);
         }
         functionCatchNodes.clear();
         functionNodes.clear();
