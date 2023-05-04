@@ -494,10 +494,11 @@ class DominatorCalculatorTest : FreeSpec({
             // try start
             Instruction.OP_BIPUSH, 44, // 4  bipush 44
             // try end
-            Instruction.OP_GOTO, 0, 5, // 6  goto 11 (+5)
+            Instruction.OP_BIPUSH, 45, // 6  bipush 45
+            Instruction.OP_RETURN,     // 8  return
             // catch
             Instruction.OP_BIPUSH, 45, // 9  bipush 45
-            Instruction.OP_RETURN,     // 11  return
+            Instruction.OP_GOTO, -1, -3, // 11  goto 8 (-3)
         )
         val exceptions = arrayOf(
             ExceptionInfo(0, 2, 9, 1),
@@ -526,8 +527,10 @@ class DominatorCalculatorTest : FreeSpec({
             | / 6
             |/  |
             9   |
+            |   |
+            11  |
              \ /
-              11
+              8
               |
              EXIT
          */
@@ -538,8 +541,9 @@ class DominatorCalculatorTest : FreeSpec({
         calculator.getDominators(4) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2, 4)
         calculator.getDominators(6) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2, 4, 6)
         calculator.getDominators(9) shouldBe setOf(ENTRY_NODE_OFFSET, 9)
-        calculator.getDominators(11) shouldBe setOf(ENTRY_NODE_OFFSET, 11)
-        calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 11, EXIT_NODE_OFFSET)
+        calculator.getDominators(11) shouldBe setOf(ENTRY_NODE_OFFSET, 9, 11)
+        calculator.getDominators(8) shouldBe setOf(ENTRY_NODE_OFFSET, 8)
+        calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 8, EXIT_NODE_OFFSET)
     }
 
     "Unknown offsets should not have dominators" {
