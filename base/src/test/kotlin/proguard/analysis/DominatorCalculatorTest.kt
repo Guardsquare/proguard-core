@@ -488,16 +488,16 @@ class DominatorCalculatorTest : FreeSpec({
         // In Java, nested try blocks can compile to multiple exception handlers with a goto between them.
         val code = byteArrayOf(
             // try start
-            Instruction.OP_BIPUSH, 42,   // 0  bipush 42
+            Instruction.OP_BIPUSH, 42, //   0  bipush 42
             // try end
-            Instruction.OP_BIPUSH, 43,   // 2  bipush 43
+            Instruction.OP_BIPUSH, 43, //   2  bipush 43
             // try start
-            Instruction.OP_BIPUSH, 44,   // 4  bipush 44
+            Instruction.OP_BIPUSH, 44, //   4  bipush 44
             // try end
-            Instruction.OP_BIPUSH, 45,   // 6  bipush 45
-            Instruction.OP_RETURN,       // 8  return
+            Instruction.OP_BIPUSH, 45, //   6  bipush 45
+            Instruction.OP_RETURN, //       8  return
             // catch
-            Instruction.OP_BIPUSH, 45,   // 9  bipush 45
+            Instruction.OP_BIPUSH, 45, //   9  bipush 45
             Instruction.OP_GOTO, -1, -3, // 11  goto 8 (-3)
         )
         val exceptions = arrayOf(
