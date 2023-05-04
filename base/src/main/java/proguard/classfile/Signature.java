@@ -170,8 +170,19 @@ public abstract class Signature
         return prettyFqn;
     }
 
+    // Method will be removed as the name does not indicate clearly 
+    // that the external name will be returned.
     @Deprecated
     public String getPackageName()
+    {
+        return getExternalPackageName();
+    }
+
+
+    /**
+     * @return the external package name (e.g., `java.lang` for `java.lang.Object`) 
+     */
+    public String getExternalPackageName()
     {
         return getClassName() == null ? "?" : externalPackageName(externalClassName(getClassName()));
     }
