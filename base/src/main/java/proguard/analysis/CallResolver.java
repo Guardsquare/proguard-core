@@ -245,6 +245,7 @@ implements   AttributeVisitor,
                         Supplier<Boolean> shouldAnalyzeNextCodeAttribute,
                         boolean skipIncompleteCalls,
                         ValueFactory arrayValueFactory,
+                        boolean ignoreExceptions,
                         CallVisitor... visitors)
     {
         this.programClassPool               = programClassPool;
@@ -255,7 +256,7 @@ implements   AttributeVisitor,
         this.shouldAnalyzeNextCodeAttribute = shouldAnalyzeNextCodeAttribute;
         this.skipIncompleteCalls            = skipIncompleteCalls;
         this.visitors                       = Arrays.asList(visitors);
-        dominatorCalculator                 = new DominatorCalculator();
+        dominatorCalculator                 = new DominatorCalculator(ignoreExceptions);
 
         // Initialize the multitype evaluator.
         ValueFactory multiTypeValueFactory = includeSubClasses ?
@@ -974,6 +975,7 @@ implements   AttributeVisitor,
         private       Supplier<Boolean> shouldAnalyzeNextCodeAttribute = () -> true;
         private       boolean           skipIncompleteCalls            = true;
         private       ValueFactory      arrayValueFactory              = new ArrayReferenceValueFactory();
+        private       boolean           ignoreExceptions               = true;
 
         public Builder(ClassPool programClassPool, ClassPool libraryClassPool, CallGraph callGraph, CallVisitor... visitors)
         {
@@ -1076,6 +1078,15 @@ implements   AttributeVisitor,
             return this;
         }
 
+        /**
+         * If false, exceptions will be taken into account during control flow analysis.
+         */
+        public Builder setIgnoreExceptions(boolean ignoreExceptions)
+        {
+            this.ignoreExceptions = ignoreExceptions;
+            return this;
+        }
+
         public CallResolver build()
         {
             return new CallResolver(programClassPool,
@@ -1089,6 +1100,7 @@ implements   AttributeVisitor,
                                     shouldAnalyzeNextCodeAttribute,
                                     skipIncompleteCalls,
                                     arrayValueFactory,
+                                    ignoreExceptions,
                                     visitors);
 
         }

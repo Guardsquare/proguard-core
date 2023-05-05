@@ -28,6 +28,7 @@ import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramMethod
 import proguard.classfile.attribute.CodeAttribute
+import proguard.classfile.attribute.ExceptionInfo
 import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.instruction.Instruction
 import proguard.classfile.visitor.ClassVisitor
@@ -379,6 +380,170 @@ class DominatorCalculatorTest : FreeSpec({
             43,
             EXIT_NODE_OFFSET
         )
+    }
+
+    "Try block at start of code" {
+        val code = byteArrayOf(
+            // try start
+            Instruction.OP_BIPUSH, 42, // 0  bipush 42
+            Instruction.OP_BIPUSH, 43, // 2  bipush 43
+            // try end
+            Instruction.OP_GOTO, 0, 7, // 4  goto 11 (+7)
+            // catch
+            Instruction.OP_BIPUSH, 44, // 7  bipush 44
+            Instruction.OP_BIPUSH, 45, // 9  bipush 45
+            Instruction.OP_BIPUSH, 46, // 11 bipush 46
+            Instruction.OP_RETURN //      13 return
+        )
+        val exceptions = arrayOf(ExceptionInfo(0, 4, 7, 1))
+        val clazz = NamedClass("Test")
+        val method = NamedMember("", "()V")
+        val codeAttribute = CodeAttribute(
+            0, 1, 0, code.size, code,
+            exceptions.size, exceptions, 0, arrayOf()
+        )
+
+        val calculator = DominatorCalculator(false)
+        codeAttribute.accept(clazz, method, calculator)
+
+        /*
+            ENTRY
+             / \
+            0   7
+            |   |
+            2   9
+            |   |
+            4   |
+             \ /
+              11
+              |
+              13
+              |
+             EXIT
+         */
+
+        calculator.getDominators(ENTRY_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET)
+        calculator.getDominators(0) shouldBe setOf(ENTRY_NODE_OFFSET, 0)
+        calculator.getDominators(2) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2)
+        calculator.getDominators(4) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2, 4)
+        calculator.getDominators(7) shouldBe setOf(ENTRY_NODE_OFFSET, 7)
+        calculator.getDominators(9) shouldBe setOf(ENTRY_NODE_OFFSET, 7, 9)
+        calculator.getDominators(11) shouldBe setOf(ENTRY_NODE_OFFSET, 11)
+        calculator.getDominators(13) shouldBe setOf(ENTRY_NODE_OFFSET, 11, 13)
+        calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 11, 13, EXIT_NODE_OFFSET)
+    }
+
+    "Try block partway through code" {
+        val code = byteArrayOf(
+            Instruction.OP_BIPUSH, 42, // 0  bipush 42
+            // try start
+            Instruction.OP_BIPUSH, 43, // 2  bipush 43
+            // try end
+            Instruction.OP_GOTO, 0, 7, // 4  goto 11 (+7)
+            // catch
+            Instruction.OP_BIPUSH, 44, // 7  bipush 44
+            Instruction.OP_BIPUSH, 45, // 9  bipush 45
+            Instruction.OP_BIPUSH, 46, // 11 bipush 46
+            Instruction.OP_RETURN //      13 return
+        )
+        val exceptions = arrayOf(ExceptionInfo(2, 4, 7, 1))
+        val clazz = NamedClass("Test")
+        val method = NamedMember("", "()V")
+        val codeAttribute = CodeAttribute(
+            0, 1, 0, code.size, code,
+            exceptions.size, exceptions, 0, arrayOf()
+        )
+
+        val calculator = DominatorCalculator(false)
+        codeAttribute.accept(clazz, method, calculator)
+
+        /*
+            ENTRY
+              |
+              0
+             / \
+            2   7
+            |   |
+            4   9
+             \ /
+              11
+              |
+              13
+              |
+             EXIT
+         */
+
+        calculator.getDominators(ENTRY_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET)
+        calculator.getDominators(0) shouldBe setOf(ENTRY_NODE_OFFSET, 0)
+        calculator.getDominators(2) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2)
+        calculator.getDominators(4) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2, 4)
+        calculator.getDominators(7) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 7)
+        calculator.getDominators(9) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 7, 9)
+        calculator.getDominators(11) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 11)
+        calculator.getDominators(13) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 11, 13)
+        calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 11, 13, EXIT_NODE_OFFSET)
+    }
+
+    "Different try blocks pointing to the same handler" {
+        // In Java, nested try blocks can compile to multiple exception handlers with a goto between them.
+        val code = byteArrayOf(
+            // try start
+            Instruction.OP_BIPUSH, 42, //   0  bipush 42
+            // try end
+            Instruction.OP_BIPUSH, 43, //   2  bipush 43
+            // try start
+            Instruction.OP_BIPUSH, 44, //   4  bipush 44
+            // try end
+            Instruction.OP_BIPUSH, 45, //   6  bipush 45
+            Instruction.OP_RETURN, //       8  return
+            // catch
+            Instruction.OP_BIPUSH, 45, //   9  bipush 45
+            Instruction.OP_GOTO, -1, -3, // 11  goto 8 (-3)
+        )
+        val exceptions = arrayOf(
+            ExceptionInfo(0, 2, 9, 1),
+            ExceptionInfo(4, 6, 9, 1),
+        )
+
+        val clazz = NamedClass("Test")
+        val method = NamedMember("", "()V")
+        val codeAttribute = CodeAttribute(
+            0, 1, 0, code.size, code,
+            exceptions.size, exceptions, 0, arrayOf()
+        )
+
+        val calculator = DominatorCalculator(false)
+        codeAttribute.accept(clazz, method, calculator)
+
+        /*
+            ENTRY
+             / \
+            |   0
+            |  /|
+            | / 2
+            |/  |
+            |   4
+            |  /|
+            | / 6
+            |/  |
+            9   |
+            |   |
+            11  |
+             \ /
+              8
+              |
+             EXIT
+         */
+
+        calculator.getDominators(ENTRY_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET)
+        calculator.getDominators(0) shouldBe setOf(ENTRY_NODE_OFFSET, 0)
+        calculator.getDominators(2) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2)
+        calculator.getDominators(4) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2, 4)
+        calculator.getDominators(6) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 2, 4, 6)
+        calculator.getDominators(9) shouldBe setOf(ENTRY_NODE_OFFSET, 9)
+        calculator.getDominators(11) shouldBe setOf(ENTRY_NODE_OFFSET, 9, 11)
+        calculator.getDominators(8) shouldBe setOf(ENTRY_NODE_OFFSET, 8)
+        calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 8, EXIT_NODE_OFFSET)
     }
 
     "Unknown offsets should not have dominators" {

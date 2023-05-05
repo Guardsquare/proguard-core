@@ -28,8 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
-import proguard.classfile.attribute.Attribute;
-import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.instruction.BranchInstruction;
 import proguard.classfile.instruction.Instruction;
@@ -113,6 +112,25 @@ implements   AttributeVisitor
     private final Map<Integer, BitSet> dominatorMap = new HashMap<>();
     private       int                  bitSetSize   = 0;
 
+    private final boolean ignoreExceptions;
+
+    /**
+     * Creates a new DominatorCalculator. The default behavior is to ignore exceptions.
+     */
+    public DominatorCalculator()
+    {
+        this(true);
+    }
+
+    /**
+     * Creates a new DominatorCalculator.
+     * @param ignoreExceptions If false, exceptions will be taken into account in the analysis.
+     */
+    public DominatorCalculator(boolean ignoreExceptions)
+    {
+        this.ignoreExceptions = ignoreExceptions;
+    }
+
     /**
      * Check if one instruction dominates another one.
      * If this is the case, the dominating instruction
@@ -177,6 +195,10 @@ implements   AttributeVisitor
         dominatorMap.put(EXIT_NODE_OFFSET, initBitSet());
 
         propagateToSuccessor(ENTRY_NODE_OFFSET, 0);
+        for (int handler : findExceptionHandlers(codeAttribute, 0))
+        {
+            propagateToSuccessor(ENTRY_NODE_OFFSET, handler);
+        }
         run(codeAttribute);
     }
 
@@ -195,6 +217,7 @@ implements   AttributeVisitor
         }
         LinkedHashSet<Integer> workList = new LinkedHashSet<>();
         workList.add(0);
+        workList.addAll(findExceptionHandlers(codeAttribute, 0));
 
         while (!workList.isEmpty())
         {
@@ -237,6 +260,13 @@ implements   AttributeVisitor
                 successors.add(nextOffset);
             }
 
+            Set<Integer> exceptionSuccessors = new HashSet<>();
+            for (int successor : successors)
+            {
+                exceptionSuccessors.addAll(findExceptionHandlers(codeAttribute, successor));
+            }
+            successors.addAll(exceptionSuccessors);
+
             for (int successor : successors)
             {
                 if (propagateToSuccessor(offset, successor))
@@ -275,5 +305,29 @@ implements   AttributeVisitor
         successorDominators.set(offsetToIndex(successor));
 
         return !beforePropagation.equals(successorDominators);
+    }
+
+    /**
+     * Find the start of all exception handlers in a code attribute that are
+     * associated with a try block covering the given offset.
+     * @param codeAttribute
+     * @param offset
+     * @return
+     */
+    private Set<Integer> findExceptionHandlers(CodeAttribute codeAttribute, int offset)
+    {
+        Set<Integer> handlers = new HashSet<>();
+        if (ignoreExceptions)
+        {
+            return handlers;
+        }
+        for (ExceptionInfo exceptionInfo : codeAttribute.exceptionTable)
+        {
+            if (exceptionInfo.isApplicable(offset))
+            {
+                handlers.add(exceptionInfo.u2handlerPC);
+            }
+        }
+        return handlers;
     }
 }
