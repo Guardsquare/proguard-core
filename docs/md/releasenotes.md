@@ -4,6 +4,7 @@
 
 - Added support for adding line numbers in the `CodeAttributeEditor`.
 - Improve performance of `ClassReferenceInitializer` when initializing Kotlin type aliases.
+- Improve performance of `ClassPool.removeClass`.
 
 ### Bug fixes
 

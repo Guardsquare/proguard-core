@@ -126,8 +126,9 @@ public class ClassPool
      */
     public Clazz removeClass(String className)
     {
-        clazzSet.removeIf(clazz -> clazz.getName().equals(className));
-        return classes.remove(className);
+        Clazz removed = classes.remove(className);
+        clazzSet.remove(removed);
+        return removed;
     }
 
 
