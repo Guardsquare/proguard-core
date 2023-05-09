@@ -819,6 +819,19 @@ implements   ClassVisitor,
         private final KotlinInterClassSyntheticFunctionInitializer interClassSyntheticFunctionInitializer = new KotlinInterClassSyntheticFunctionInitializer();
         private final KotlinCallableReferenceInitializer           callableReferenceInitializer           = new KotlinCallableReferenceInitializer(programClassPool, libraryClassPool);
 
+        // Initialize lazily, since the copy will only be required if there are type aliases.
+        private ClassPool programClassPoolCopy;
+
+        private ClassPool getProgramClassPoolCopy()
+        {
+            if (programClassPoolCopy == null)
+            {
+                programClassPoolCopy = programClassPool.refreshedCopy();
+            }
+
+            return programClassPoolCopy;
+        }
+
         // Implementations for KotlinMetadataVisitor.
 
         @Override
@@ -1153,12 +1166,21 @@ implements   ClassVisitor,
                 }
 
                 ClassVisitor typeAliasInitializer =
-                    new ClassNameFilter(classNameFilter,
                     new ReferencedKotlinMetadataVisitor(
-                    new KotlinTypeAliasReferenceInitializer(kotlinTypeMetadata, simpleName)));
+                    new KotlinTypeAliasReferenceInitializer(kotlinTypeMetadata, simpleName));
 
-                programClassPool.classesAccept(typeAliasInitializer);
-                libraryClassPool.classesAccept(typeAliasInitializer);
+                // Use a refreshed copy of the class pool, in case any classes have been renamed.
+                ClassPool programClassPool = getProgramClassPoolCopy();
+                if (innerClassMarkerIndex != -1)
+                {
+                    programClassPool.classAccept(classNameFilter, typeAliasInitializer);
+                    libraryClassPool.classAccept(classNameFilter, typeAliasInitializer);
+                }
+                else
+                {
+                    programClassPool.classesAccept(classNameFilter, typeAliasInitializer);
+                    libraryClassPool.classesAccept(classNameFilter, typeAliasInitializer);
+                }
             }
 
             kotlinTypeMetadata.annotationsAccept(  clazz, this);

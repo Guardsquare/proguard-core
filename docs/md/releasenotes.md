@@ -3,6 +3,7 @@
 ### Improved
 
 - Added support for adding line numbers in the `CodeAttributeEditor`.
+- Improve performance of `ClassReferenceInitializer` when initializing Kotlin type aliases.
 
 ### Bug fixes
 
