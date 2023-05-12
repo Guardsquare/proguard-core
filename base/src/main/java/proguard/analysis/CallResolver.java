@@ -1094,7 +1094,7 @@ implements   AttributeVisitor,
          * @param executingInvocationUnitBuilder a builder for the invocation unit used for particular value analysis.
          * @return {@link Builder} object
          */
-        public Builder setexecutingInvocationUnitBuilder(ExecutingInvocationUnit.Builder executingInvocationUnitBuilder)
+        public Builder setExecutingInvocationUnitBuilder(ExecutingInvocationUnit.Builder executingInvocationUnitBuilder)
         {
             this.executingInvocationUnitBuilder = executingInvocationUnitBuilder;
             return this;
@@ -1116,8 +1116,6 @@ implements   AttributeVisitor,
                                     ignoreExceptions,
                                     executingInvocationUnitBuilder,
                                     visitors);
-
         }
     }
-
 }
