@@ -118,7 +118,9 @@ implements   KotlinTypeVisitor,
                                  Value                    value)
     {
         util.reportIfNullReference("annotation method", argument.referencedAnnotationMethod);
+        util.reportIfMethodDangling("annotation method", argument.referencedAnnotationMethodClass, argument.referencedAnnotationMethod);
         util.reportIfNullReference("annotation class", argument.referencedAnnotationMethodClass);
+        util.reportIfClassDangling("annotation class", argument.referencedAnnotationMethodClass);
     }
 
     @Override
@@ -130,6 +132,7 @@ implements   KotlinTypeVisitor,
     {
         visitAnyArgument(clazz, annotatable, annotation, argument, value);
         util.reportIfNullReference("annotation argument class referenced", value.referencedClass);
+        util.reportIfClassDangling("annotation argument class referenced", value.referencedClass);
     }
 
     @Override
@@ -141,5 +144,6 @@ implements   KotlinTypeVisitor,
     {
         visitAnyArgument(clazz, annotatable, annotation, argument, value);
         util.reportIfNullReference("annotation argument enum referenced", value.referencedClass);
+        util.reportIfClassDangling("annotation argument enum referenced", value.referencedClass);
     }
 }
