@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
  */
 package proguard.io;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 
 /**
  * This interface provides methods for writing data entries, such as ZIP entries
@@ -26,14 +28,14 @@ import java.io.*;
  *
  * @author Eric Lafortune
  */
-public interface DataEntryWriter
+public interface DataEntryWriter extends AutoCloseable
 {
     /**
      * Creates a directory.
      * @param dataEntry the data entry for which the directory is to be created.
      * @return whether the directory has been created.
      */
-    public boolean createDirectory(DataEntry dataEntry) throws IOException;
+    boolean createDirectory(DataEntry dataEntry) throws IOException;
 
 
     /**
@@ -42,8 +44,8 @@ public interface DataEntryWriter
      * @param dataEntry1 the first data entry.
      * @param dataEntry2 the second data entry.
      */
-    public boolean sameOutputStream(DataEntry dataEntry1,
-                                    DataEntry dataEntry2) throws IOException;
+    boolean sameOutputStream(DataEntry dataEntry1,
+                             DataEntry dataEntry2) throws IOException;
 
 
     /**
@@ -54,7 +56,7 @@ public interface DataEntryWriter
      * @return the output stream. The stream may be <code>null</code> to
      *         indicate that the data entry should not be written.
      */
-    public OutputStream createOutputStream(DataEntry dataEntry) throws IOException;
+    OutputStream createOutputStream(DataEntry dataEntry) throws IOException;
 
 
     /**
@@ -73,7 +75,8 @@ public interface DataEntryWriter
      * possible that delegates call {@link #createOutputStream(DataEntry)}
      * while {@link #close()} is in progress.
      */
-    public void close() throws IOException;
+    @Override
+    void close() throws IOException;
 
 
     /**
@@ -81,5 +84,5 @@ public interface DataEntryWriter
      * @param pw     the print stream to which the structure should be printed.
      * @param prefix a prefix for every printed line.
      */
-    public void println(PrintWriter pw, String prefix);
+    void println(PrintWriter pw, String prefix);
 }

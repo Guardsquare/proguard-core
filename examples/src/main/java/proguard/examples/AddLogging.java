@@ -21,20 +21,17 @@ import java.io.*;
  */
 public class AddLogging
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
         String inputJarFileName  = args[0];
         String outputJarFileName = args[1];
 
-        try
+        // We'll write the output to a jar file.
+        try (JarWriter jarWriter = new JarWriter(
+                                   new ZipWriter(
+                                   new FixedFileWriter(
+                                   new File(outputJarFileName)))))
         {
-            // We'll write the output to a jar file.
-            JarWriter jarWriter =
-                new JarWriter(
-                new ZipWriter(
-                new FixedFileWriter(
-                new File(outputJarFileName))));
-
             // Parse and push all classes from the input jar.
             DataEntrySource source =
                 new FileSource(new File(inputJarFileName));
@@ -56,12 +53,6 @@ public class AddLogging
                     // Write the class file.
                     new DataEntryClassWriter(jarWriter)
                 )))));
-
-            jarWriter.close();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
         }
     }
 
