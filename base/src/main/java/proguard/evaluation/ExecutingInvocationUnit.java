@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
@@ -113,6 +114,7 @@ public class ExecutingInvocationUnit
 
     // Used to store the parameters for one method call.
     private static final Logger                   log = LogManager.getLogger(ExecutingInvocationUnit.class);
+    @Nullable
     private              Value[]                  parameters;
     private final        Map<String, Set<String>> alwaysReturnsNewInstance;
     private final        Map<String, Set<String>> alwaysModifiesInstance;
@@ -258,6 +260,7 @@ public class ExecutingInvocationUnit
             if (enableSameInstanceIdApproximation
                 && anyMethodrefConstant.referencedMethod != null
                 && !isInternalPrimitiveType(returnType)
+                && parameters != null
                 && parameters.length > 0
                 && parameters[0] instanceof IdentifiedReferenceValue
                 && returnsOwnInstance(baseClassName,
