@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@
  */
 package proguard.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -33,14 +36,14 @@ public class ListUtil
      * instances. The instances may be null. If both instances are null, the
      * result is null too.
      */
-    public static List concatenate(List list1, List list2)
+    public static <T> List<T> concatenate(List<T> list1, List<T> list2)
     {
         if (list1 != null)
         {
             if (list2 != null)
             {
                 // Combine the lists into a new list.
-                List list = new ArrayList(list1);
+                List<T> list = new ArrayList<>(list1);
                 list.addAll(list2);
 
                 return list;
@@ -66,7 +69,7 @@ public class ListUtil
     public static List<String> filter(Collection<String> list,
                                       StringMatcher      filter)
     {
-        List<String> filteredList = new ArrayList<String>();
+        List<String> filteredList = new ArrayList<>();
         for (String string : list)
         {
             if (filter.matches(string))
@@ -81,14 +84,14 @@ public class ListUtil
     /**
      * Creates a comma-separated String from the given List of String objects.
      */
-    public static String commaSeparatedString(List list, boolean quoteStrings)
+    public static String commaSeparatedString(List<String> list, boolean quoteStrings)
     {
         if (list == null)
         {
             return null;
         }
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         for (int index = 0; index < list.size(); index++)
         {
@@ -97,7 +100,7 @@ public class ListUtil
                 buffer.append(',');
             }
 
-            String string = (String)list.get(index);
+            String string = list.get(index);
 
             if (quoteStrings)
             {
@@ -114,14 +117,14 @@ public class ListUtil
     /**
      * Creates a List of String objects from the given comma-separated String.
      */
-    public static List commaSeparatedList(String string)
+    public static List<String> commaSeparatedList(String string)
     {
         if (string == null)
         {
             return null;
         }
 
-        List list = new ArrayList();
+        List<String> list = new ArrayList<>();
         int index = 0;
         while ((index = skipWhitespace(string, index)) < string.length())
         {
@@ -218,22 +221,22 @@ public class ListUtil
         {
             System.out.println("Input string: ["+args[0]+"]");
 
-            List list = commaSeparatedList(args[0]);
+            List<String> list = commaSeparatedList(args[0]);
 
             System.out.println("Resulting list:");
-            for (int index = 0; index < list.size(); index++)
+            for (String s : list)
             {
-                System.out.println("["+list.get(index)+"]");
+                System.out.println("[" + s + "]");
             }
         }
         else
         {
-            List list = Arrays.asList(args);
+            List<String> list = Arrays.asList(args);
 
             System.out.println("Input list:");
-            for (int index = 0; index < list.size(); index++)
+            for (String s : list)
             {
-                System.out.println("["+list.get(index)+"]");
+                System.out.println("[" + s + "]");
             }
 
             String string = commaSeparatedString(list, true);
