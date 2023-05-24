@@ -15,7 +15,7 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
 
-class ExecutingInvocationUnitTest : FreeSpec ({
+class ExecutingInvocationUnitTest : FreeSpec({
 
     val code = JavaSource(
         "Test.java",
