@@ -38,13 +38,13 @@ public class MultiValueMap<K, V>
 
     protected Set<V> createValueSet()
     {
-        return new HashSet<V>();
+        return new LinkedHashSet<V>();
     }
 
 
     protected Map<K, Set<V>> createKeyMap()
     {
-        return new HashMap<K, Set<V>>();
+        return new LinkedHashMap<K, Set<V>>();
     }
 
 
