@@ -1,5 +1,10 @@
 ## Version 9.0.9
 
+### Kotlin support
+
+- Add support for processing Kotlin 1.9 metadata.
+- Update `kotlinx` metadata dependency to version 0.6.0.
+
 ### Improved
 
 - Added support for adding line numbers in the `CodeAttributeEditor`.

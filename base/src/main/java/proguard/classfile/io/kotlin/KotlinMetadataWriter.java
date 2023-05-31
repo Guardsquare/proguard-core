@@ -17,10 +17,39 @@
  */
 package proguard.classfile.io.kotlin;
 
-import kotlinx.metadata.*;
+import kotlin.Metadata;
+import kotlinx.metadata.Flag;
+import kotlinx.metadata.KmClassVisitor;
+import kotlinx.metadata.KmConstructorVisitor;
+import kotlinx.metadata.KmContractVisitor;
+import kotlinx.metadata.KmDeclarationContainerVisitor;
+import kotlinx.metadata.KmEffectExpressionVisitor;
+import kotlinx.metadata.KmEffectInvocationKind;
+import kotlinx.metadata.KmEffectType;
+import kotlinx.metadata.KmEffectVisitor;
+import kotlinx.metadata.KmFunctionVisitor;
+import kotlinx.metadata.KmPropertyVisitor;
+import kotlinx.metadata.KmTypeAliasVisitor;
+import kotlinx.metadata.KmTypeParameterVisitor;
+import kotlinx.metadata.KmTypeVisitor;
+import kotlinx.metadata.KmValueParameterVisitor;
+import kotlinx.metadata.KmVariance;
+import kotlinx.metadata.KmVersionRequirementLevel;
+import kotlinx.metadata.KmVersionRequirementVersionKind;
+import kotlinx.metadata.KmVersionRequirementVisitor;
+import kotlinx.metadata.jvm.JvmClassExtensionVisitor;
+import kotlinx.metadata.jvm.JvmConstructorExtensionVisitor;
+import kotlinx.metadata.jvm.JvmDeclarationContainerExtensionVisitor;
 import kotlinx.metadata.jvm.JvmFieldSignature;
+import kotlinx.metadata.jvm.JvmFlag;
+import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor;
 import kotlinx.metadata.jvm.JvmMethodSignature;
-import kotlinx.metadata.jvm.*;
+import kotlinx.metadata.jvm.JvmPackageExtensionVisitor;
+import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor;
+import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
+import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor;
+import kotlinx.metadata.jvm.KotlinClassHeader;
+import kotlinx.metadata.jvm.KotlinClassMetadata;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
 import proguard.classfile.MethodSignature;
@@ -39,21 +68,75 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.attribute.visitor.AttributeNameFilter;
 import proguard.classfile.editor.ConstantPoolEditor;
 import proguard.classfile.editor.ConstantPoolShrinker;
-import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.flags.*;
-import proguard.classfile.kotlin.visitor.*;
+import proguard.classfile.kotlin.KotlinClassKindMetadata;
+import proguard.classfile.kotlin.KotlinConstants;
+import proguard.classfile.kotlin.KotlinConstructorMetadata;
+import proguard.classfile.kotlin.KotlinContractMetadata;
+import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
+import proguard.classfile.kotlin.KotlinEffectExpressionMetadata;
+import proguard.classfile.kotlin.KotlinEffectInvocationKind;
+import proguard.classfile.kotlin.KotlinEffectMetadata;
+import proguard.classfile.kotlin.KotlinEffectType;
+import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata;
+import proguard.classfile.kotlin.KotlinFunctionMetadata;
+import proguard.classfile.kotlin.KotlinMetadata;
+import proguard.classfile.kotlin.KotlinMetadataVersion;
+import proguard.classfile.kotlin.KotlinMultiFileFacadeKindMetadata;
+import proguard.classfile.kotlin.KotlinMultiFilePartKindMetadata;
+import proguard.classfile.kotlin.KotlinPropertyMetadata;
+import proguard.classfile.kotlin.KotlinSyntheticClassKindMetadata;
+import proguard.classfile.kotlin.KotlinTypeAliasMetadata;
+import proguard.classfile.kotlin.KotlinTypeMetadata;
+import proguard.classfile.kotlin.KotlinTypeParameterMetadata;
+import proguard.classfile.kotlin.KotlinTypeVariance;
+import proguard.classfile.kotlin.KotlinValueParameterMetadata;
+import proguard.classfile.kotlin.KotlinVersionRequirementLevel;
+import proguard.classfile.kotlin.KotlinVersionRequirementMetadata;
+import proguard.classfile.kotlin.KotlinVersionRequirementVersionKind;
+import proguard.classfile.kotlin.flags.KotlinClassFlags;
+import proguard.classfile.kotlin.flags.KotlinCommonFlags;
+import proguard.classfile.kotlin.flags.KotlinConstructorFlags;
+import proguard.classfile.kotlin.flags.KotlinEffectExpressionFlags;
+import proguard.classfile.kotlin.flags.KotlinFunctionFlags;
+import proguard.classfile.kotlin.flags.KotlinModalityFlags;
+import proguard.classfile.kotlin.flags.KotlinPropertyAccessorFlags;
+import proguard.classfile.kotlin.flags.KotlinPropertyFlags;
+import proguard.classfile.kotlin.flags.KotlinTypeAliasFlags;
+import proguard.classfile.kotlin.flags.KotlinTypeFlags;
+import proguard.classfile.kotlin.flags.KotlinTypeParameterFlags;
+import proguard.classfile.kotlin.flags.KotlinValueParameterFlags;
+import proguard.classfile.kotlin.flags.KotlinVisibilityFlags;
+import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor;
+import proguard.classfile.kotlin.visitor.KotlinContractVisitor;
+import proguard.classfile.kotlin.visitor.KotlinEffectExprVisitor;
+import proguard.classfile.kotlin.visitor.KotlinEffectVisitor;
+import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
+import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeAliasVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor;
+import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
+import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor;
+import proguard.classfile.kotlin.visitor.KotlinVersionRequirementVisitor;
 import proguard.classfile.util.WarningPrinter;
 import proguard.classfile.util.kotlin.AnnotationConstructor;
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
 import proguard.classfile.visitor.ClassVisitor;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import static java.util.stream.Collectors.joining;
 import static kotlinx.metadata.FlagsKt.flagsOf;
-import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION;
-import static proguard.classfile.kotlin.KotlinConstants.*;
+import static kotlinx.metadata.jvm.KotlinClassMetadata.COMPATIBLE_METADATA_VERSION;
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_CLASS;
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_FILE_FACADE;
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE_CLASS_FACADE;
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE_CLASS_PART;
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_SYNTHETIC_CLASS;
+import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_METADATA;
 
 /**
  * This class visitor writes the information stored in a Clazz's kotlinMetadata field
@@ -62,8 +145,6 @@ import static proguard.classfile.kotlin.KotlinConstants.*;
 public class KotlinMetadataWriter
 implements ClassVisitor,
            KotlinMetadataVisitor,
-
-           // Implementation interfaces.
            ElementValueVisitor
 {
     private final ClassVisitor extraClassVisitor;
@@ -76,9 +157,8 @@ implements ClassVisitor,
     private String   xs;
     private String   pn;
 
-    private ConstantPoolEditor constantPoolEditor;
-
-    private static ConstantPoolShrinker constantPoolShrinker = new ConstantPoolShrinker();
+    private ConstantPoolEditor   constantPoolEditor;
+    private ConstantPoolShrinker constantPoolShrinker = new ConstantPoolShrinker();
 
     private MetadataType currentType;
 
@@ -110,6 +190,9 @@ implements ClassVisitor,
         this.extraClassVisitor = extraClassVisitor;
     }
 
+
+    // Implementations for ClassVisitor.
+
     @Override
     public void visitAnyClass(Clazz clazz)
     {
@@ -117,21 +200,15 @@ implements ClassVisitor,
     }
 
 
-
     // Implementations for KotlinMetadataVisitor.
+
     @Override
     public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
     {
         // Set the metadata version we want to write.
         KotlinMetadataVersion originalVersion = new KotlinMetadataVersion(kotlinMetadata.mv);
-        if (originalVersion.canBeWritten())
-        {
-            version = originalVersion;
-        }
-        else
-        {
-            version = COMPATIBLE_VERSION;
-        }
+
+        version = originalVersion.canBeWritten() ? originalVersion : COMPATIBLE_VERSION;
 
         switch (kotlinMetadata.k)
         {
@@ -188,7 +265,9 @@ implements ClassVisitor,
         }
     }
 
+
     // Implementations for ElementValueVisitor.
+
     @Override
     public void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
     {
@@ -248,6 +327,9 @@ implements ClassVisitor,
                 break;
         }
     }
+
+
+    // Helper classes.
 
     private class ContractConstructor
     implements KotlinContractVisitor
@@ -581,8 +663,6 @@ implements ClassVisitor,
     private class KotlinClassConstructor
     extends KotlinDeclarationContainerConstructor
     implements KotlinMetadataVisitor,
-
-               // Implementation interfaces.
                KotlinConstructorVisitor
     {
         KotlinClassMetadata.Class.Writer classKmdWriter;
@@ -657,16 +737,16 @@ implements ClassVisitor,
             classKmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = classKmdWriter.write(version.toArray(),
-                                                            kotlinClassKindMetadata.xi).getHeader();
+            Metadata header = classKmdWriter.write(version.toArray(),
+                                                   kotlinClassKindMetadata.xi).getAnnotationData();
 
-            k  = header.getKind();
-            mv = header.getMetadataVersion();
-            d1 = header.getData1();
-            d2 = header.getData2();
-            xi = header.getExtraInt();
-            xs = header.getExtraString();
-            pn = header.getPackageName();
+            k  = header.k();
+            mv = header.mv();
+            d1 = header.d1();
+            d2 = header.d2();
+            xi = header.xi();
+            xs = header.xs();
+            pn = header.pn();
         }
 
 
@@ -1303,16 +1383,16 @@ implements ClassVisitor,
             facadeKmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = facadeKmdWriter.write(version.toArray(),
-                                                             kotlinFileFacadeKindMetadata.xi).getHeader();
+            Metadata header = facadeKmdWriter.write(version.toArray(),
+                                                             kotlinFileFacadeKindMetadata.xi).getAnnotationData();
 
-            k  = header.getKind();
-            mv = header.getMetadataVersion();
-            d1 = header.getData1();
-            d2 = header.getData2();
-            xi = header.getExtraInt();
-            xs = header.getExtraString();
-            pn = header.getPackageName();
+            k  = header.k();
+            mv = header.mv();
+            d1 = header.d1();
+            d2 = header.d2();
+            xi = header.xi();
+            xs = header.xs();
+            pn = header.pn();
         }
     }
 
@@ -1322,8 +1402,6 @@ implements ClassVisitor,
      */
     private class KotlinSyntheticClassConstructor
     implements KotlinMetadataVisitor,
-
-               // Implementation interfaces.
                KotlinFunctionVisitor
     {
         private       KotlinSyntheticClassKindMetadata          md;
@@ -1350,16 +1428,16 @@ implements ClassVisitor,
             kmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = kmdWriter.write(version.toArray(),
-                                                       kotlinSyntheticClassKindMetadata.xi).getHeader();
+            Metadata header = kmdWriter.write(version.toArray(),
+                                                       kotlinSyntheticClassKindMetadata.xi).getAnnotationData();
 
-            k  = header.getKind();
-            mv = header.getMetadataVersion();
-            d1 = header.getData1();
-            d2 = header.getData2();
-            xi = header.getExtraInt();
-            xs = header.getExtraString();
-            pn = header.getPackageName();
+            k  = header.k();
+            mv = header.mv();
+            d1 = header.d1();
+            d2 = header.d2();
+            xi = header.xi();
+            xs = header.xs();
+            pn = header.pn();
         }
 
 
@@ -1429,19 +1507,19 @@ implements ClassVisitor,
         @Override
         public void visitKotlinMultiFileFacadeMetadata(Clazz clazz, KotlinMultiFileFacadeKindMetadata kotlinMultiFileFacadeKindMetadata)
         {
-            KotlinClassHeader header =
+            Metadata header =
                 new KotlinClassMetadata.MultiFileClassFacade.Writer()
                     .write(kotlinMultiFileFacadeKindMetadata.partClassNames,
                            version.toArray(),
-                           kotlinMultiFileFacadeKindMetadata.xi).getHeader();
+                           kotlinMultiFileFacadeKindMetadata.xi).getAnnotationData();
 
-            k  = header.getKind();
-            mv = header.getMetadataVersion();
-            d1 = header.getData1();
-            d2 = header.getData2();
-            xi = header.getExtraInt();
-            xs = header.getExtraString();
-            pn = header.getPackageName();
+            k  = header.k();
+            mv = header.mv();
+            d1 = header.d1();
+            d2 = header.d2();
+            xi = header.xi();
+            xs = header.xs();
+            pn = header.pn();
         }
     }
 
@@ -1486,17 +1564,17 @@ implements ClassVisitor,
             multiPartKmdWriter.visitEnd();
 
             // Finally store the protobuf contents in the fields of the enclosing class.
-            KotlinClassHeader header = multiPartKmdWriter.write(kotlinMultiFilePartKindMetadata.facadeName,
+            Metadata header = multiPartKmdWriter.write(kotlinMultiFilePartKindMetadata.facadeName,
                                                                 version.toArray(),
-                                                                kotlinMultiFilePartKindMetadata.xi).getHeader();
+                                                                kotlinMultiFilePartKindMetadata.xi).getAnnotationData();
 
-            k  = header.getKind();
-            mv = header.getMetadataVersion();
-            d1 = header.getData1();
-            d2 = header.getData2();
-            xi = header.getExtraInt();
-            xs = header.getExtraString();
-            pn = header.getPackageName();
+            k  = header.k();
+            mv = header.mv();
+            d1 = header.d1();
+            d2 = header.d2();
+            xi = header.xi();
+            xs = header.xs();
+            pn = header.pn();
         }
     }
 
@@ -1595,7 +1673,7 @@ implements ClassVisitor,
     }
 
 
-    // Small helper methods.
+    // Conversion helper methods.
 
     private static JvmMethodSignature toKotlinJvmMethodSignature(MethodSignature jvmMethodSignature)
     {
@@ -1681,7 +1759,9 @@ implements ClassVisitor,
     }
 
 
-    private Set<Flag> convertCommonFlags(KotlinCommonFlags flags)
+    // Flag conversion helper methods.
+
+    private static Set<Flag> convertCommonFlags(KotlinCommonFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1691,7 +1771,7 @@ implements ClassVisitor,
     }
 
 
-    private Set<Flag> convertVisibilityFlags(KotlinVisibilityFlags flags)
+    private static Set<Flag> convertVisibilityFlags(KotlinVisibilityFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1706,7 +1786,7 @@ implements ClassVisitor,
     }
 
 
-    private Set<Flag> convertModalityFlags(KotlinModalityFlags flags)
+    private static Set<Flag> convertModalityFlags(KotlinModalityFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1719,7 +1799,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertFunctionFlags(KotlinFunctionFlags flags)
+    private static int convertFunctionFlags(KotlinFunctionFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1742,7 +1822,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertTypeFlags(KotlinTypeFlags flags)
+    private static int convertTypeFlags(KotlinTypeFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1756,7 +1836,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertTypeParameterFlags(KotlinTypeParameterFlags flags)
+    private static int convertTypeParameterFlags(KotlinTypeParameterFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1768,7 +1848,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertTypeAliasFlags(KotlinTypeAliasFlags flags)
+    private static int convertTypeAliasFlags(KotlinTypeAliasFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1779,7 +1859,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertPropertyFlags(KotlinPropertyFlags flags)
+    private static int convertPropertyFlags(KotlinPropertyFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1805,14 +1885,14 @@ implements ClassVisitor,
     }
 
 
-    private int convertPropertyJvmFlags(KotlinPropertyFlags flags)
+    private static int convertPropertyJvmFlags(KotlinPropertyFlags flags)
     {
         return flags.isMovedFromInterfaceCompanion ?
             flagsOf(JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION) :
             0;
     }
 
-    private int convertClassJvmFlags(KotlinClassFlags flags)
+    private static int convertClassJvmFlags(KotlinClassFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1824,7 +1904,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertPropertyAccessorFlags(KotlinPropertyAccessorFlags flags)
+    private static int convertPropertyAccessorFlags(KotlinPropertyAccessorFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1840,7 +1920,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertValueParameterFlags(KotlinValueParameterFlags flags)
+    private static int convertValueParameterFlags(KotlinValueParameterFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
@@ -1854,7 +1934,7 @@ implements ClassVisitor,
     }
 
 
-    private int convertEffectExpressionFlags(KotlinEffectExpressionFlags flags)
+    private static int convertEffectExpressionFlags(KotlinEffectExpressionFlags flags)
     {
         Set<Flag> flagSet = new HashSet<>();
 
