@@ -3,7 +3,9 @@
 ### Improved
 
 - `TaintSink` can now be configured with a predicate to filter on which `TaintSource`s trigger it.
-
+- Improve performance of `DynamicClassReferenceInitializer`.
+- Improve performance of `DynamicClassMemberReferenceInitializer`.
+- 
 ### API changes
 
 - The constructors in `JvmInvokeTaintSink` are now deprecated, `JvmInvokeTaintSink#Builder` should be used instead.
@@ -27,8 +29,7 @@
 - Improve performance of `ClassPool.removeClass`.
 - Allow more configuration of `ExecutingInvocationUnit` by using `ExecutingInvocationUnit.Builder`.
 - Add a mode to `ExecutingInvocationUnit` to approximate reference of types not supported for the execution via reflection.
-- Implement `Autocloseable` in `DataEntryWriter` interface. 
-- `JvmTransferRelation` does not store anymore static variables with default value, reducing the dataflow analysis state space.
+- Implement `Autocloseable` in `DataEntryWriter` interface.
 
 ### Bug fixes
 

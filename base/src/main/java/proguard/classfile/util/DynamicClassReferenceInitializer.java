@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,37 @@
  */
 package proguard.classfile.util;
 
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.visitor.*;
-import proguard.classfile.constant.*;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeNameFilter;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
+import proguard.classfile.constant.ClassConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.MethodrefConstant;
+import proguard.classfile.constant.NameAndTypeConstant;
+import proguard.classfile.constant.StringConstant;
+import proguard.classfile.constant.Utf8Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.instruction.*;
+import proguard.classfile.instruction.BranchInstruction;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.SimpleInstruction;
+import proguard.classfile.instruction.VariableInstruction;
+import proguard.classfile.instruction.visitor.AllInstructionVisitor;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
+import proguard.classfile.visitor.AllMethodVisitor;
+import proguard.classfile.visitor.ClassConstantClassFilter;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.util.FixedStringMatcher;
 import proguard.util.StringMatcher;
+
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_CLASS;
 
 /**
  * This {@link InstructionVisitor} initializes any constant <code>Class.forName</code> or
@@ -36,13 +59,16 @@ import proguard.util.StringMatcher;
  * <code>(SomeClass)Class.forName(variable).newInstance()</code>.
  * <p/>
  * The class hierarchy must be initialized before using this visitor.
+ * <p/>
+ * It's more efficient to use as a {@link ClassVisitor} than an {@link InstructionVisitor}.
  *
  * @see ClassSuperHierarchyInitializer
  *
  * @author Eric Lafortune
  */
 public class DynamicClassReferenceInitializer
-implements   InstructionVisitor,
+implements   ClassVisitor,
+             InstructionVisitor,
              ConstantVisitor,
              AttributeVisitor
 {
@@ -176,6 +202,7 @@ implements   InstructionVisitor,
     private final WarningPrinter dependencyWarningPrinter;
     private final WarningPrinter notePrinter;
     private final StringMatcher  noteExceptionMatcher;
+    private final ClassVisitor   extraClassVisitor;
 
 
     private final InstructionSequenceMatcher constantClassForNameMatcher =
@@ -207,6 +234,14 @@ implements   InstructionVisitor,
                                        DOT_CLASS_JIKES_IMPLEMENTATION_INSTRUCTIONS2);
 
 
+    // Used to prefilter classes to avoid visiting all instructions in all classes.
+    private final ClassConstantClassFilter classConstantClassFilter =
+            new ClassConstantClassFilter(new FixedStringMatcher(NAME_JAVA_LANG_CLASS),
+            new AllMethodVisitor(
+            new AllAttributeVisitor(
+            new AttributeNameFilter(Attribute.CODE,
+            new AllInstructionVisitor(this)))));
+
     // A field acting as a return variable for the visitors.
     private boolean isClassForNameInvocation;
 
@@ -223,17 +258,44 @@ implements   InstructionVisitor,
                                             WarningPrinter notePrinter,
                                             StringMatcher  noteExceptionMatcher)
     {
+        this(programClassPool, libraryClassPool, missingNotePrinter, dependencyWarningPrinter, notePrinter, noteExceptionMatcher, null);
+    }
+
+    /**
+     * Creates a new DynamicClassReferenceInitializer that optionally prints
+     * warnings and notes, with optional class specifications for which never
+     * to print notes.
+     */
+    public DynamicClassReferenceInitializer(ClassPool      programClassPool,
+                                            ClassPool      libraryClassPool,
+                                            WarningPrinter missingNotePrinter,
+                                            WarningPrinter dependencyWarningPrinter,
+                                            WarningPrinter notePrinter,
+                                            StringMatcher  noteExceptionMatcher,
+                                            ClassVisitor   extraClassVisitor)
+    {
         this.programClassPool         = programClassPool;
         this.libraryClassPool         = libraryClassPool;
         this.missingNotePrinter       = missingNotePrinter;
         this.dependencyWarningPrinter = dependencyWarningPrinter;
         this.notePrinter              = notePrinter;
         this.noteExceptionMatcher     = noteExceptionMatcher;
+        this.extraClassVisitor        = extraClassVisitor;
     }
 
+    @Override
+    public void visitAnyClass(Clazz clazz) {}
+
+    @Override
+    public void visitProgramClass(ProgramClass programClass)
+    {
+        programClass.accept(classConstantClassFilter);
+    }
 
     // Implementations for InstructionVisitor.
 
+
+    @Override
     public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
     {
         // Try to match the (SomeClass)Class.forName(someName).newInstance()
@@ -242,10 +304,9 @@ implements   InstructionVisitor,
         instruction.accept(clazz, method, codeAttribute, offset,
                            classForNameCastMatcher);
 
-        // Did we find a match?
         if (classForNameCastMatcher.isMatching())
         {
-            // Print out a note about the construct.
+            // Match found. Print out a note about the construct.
             clazz.constantPoolEntryAccept(classForNameCastMatcher.matchedConstantIndex(X), this);
         }
 
@@ -253,37 +314,40 @@ implements   InstructionVisitor,
         instruction.accept(clazz, method, codeAttribute, offset,
                            constantClassForNameMatcher);
 
-        // Did we find a match?
         if (constantClassForNameMatcher.isMatching())
         {
-            // Fill out the matched string constant.
+            // Match found. Initialize the matched string constant.
             clazz.constantPoolEntryAccept(constantClassForNameMatcher.matchedConstantIndex(X), this);
 
             // Don't look for the dynamic construct.
             classForNameCastMatcher.reset();
+
+             // There can be no other reflection patters at this offset.
+            return;
         }
 
         // Try to match the javac .class construct.
         instruction.accept(clazz, method, codeAttribute, offset,
                            dotClassJavacMatcher);
 
-        // Did we find a match?
         if (dotClassJavacMatcher.isMatching() &&
             isDotClassMethodref(clazz, dotClassJavacMatcher.matchedConstantIndex(0)))
         {
-            // Fill out the matched string constant.
+            // Match found. Initialize the matched string constant.
             clazz.constantPoolEntryAccept(dotClassJavacMatcher.matchedConstantIndex(X), this);
+
+            // There can be no other reflection patters at this offset.
+            return;
         }
 
         // Try to match the jikes .class construct.
         instruction.accept(clazz, method, codeAttribute, offset,
                            dotClassJikesMatcher);
 
-        // Did we find a match?
         if (dotClassJikesMatcher.isMatching() &&
             isDotClassMethodref(clazz, dotClassJikesMatcher.matchedConstantIndex(0)))
         {
-            // Fill out the matched string constant.
+            // Match found. Initialize the matched string constant.
             clazz.constantPoolEntryAccept(dotClassJikesMatcher.matchedConstantIndex(X), this);
         }
     }
@@ -302,6 +366,11 @@ implements   InstructionVisitor,
                                    ClassUtil.externalBaseType(externalClassName));
 
         stringConstant.referencedClass = findClass(clazz.getName(), internalClassName);
+
+        if (stringConstant.referencedClass != null && extraClassVisitor != null)
+        {
+            stringConstant.referencedClass.accept(extraClassVisitor);
+        }
     }
 
 
@@ -311,8 +380,8 @@ implements   InstructionVisitor,
     public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
     {
         // Print out a note about the class cast.
-        if (noteExceptionMatcher == null ||
-            !noteExceptionMatcher.matches(classConstant.getName(clazz)))
+        if (notePrinter != null &&
+            (noteExceptionMatcher == null || !noteExceptionMatcher.matches(classConstant.getName(clazz))))
         {
             notePrinter.print(clazz.getName(),
                               classConstant.getName(clazz),

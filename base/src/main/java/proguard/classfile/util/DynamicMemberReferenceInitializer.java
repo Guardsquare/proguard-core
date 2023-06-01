@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,52 @@
  */
 package proguard.classfile.util;
 
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
+import proguard.classfile.JavaTypeConstants;
+import proguard.classfile.LibraryClass;
+import proguard.classfile.LibraryField;
+import proguard.classfile.LibraryMethod;
+import proguard.classfile.Member;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramField;
+import proguard.classfile.ProgramMethod;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeNameFilter;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.constant.*;
+import proguard.classfile.constant.ClassConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.FieldrefConstant;
+import proguard.classfile.constant.MethodrefConstant;
+import proguard.classfile.constant.StringConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.editor.*;
-import proguard.classfile.instruction.*;
+import proguard.classfile.editor.CodeAttributeEditor;
+import proguard.classfile.editor.ConstantPoolEditor;
+import proguard.classfile.editor.InstructionSequenceBuilder;
+import proguard.classfile.instruction.ConstantInstruction;
+import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.SimpleInstruction;
+import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.classfile.visitor.*;
+import proguard.classfile.visitor.AllFieldVisitor;
+import proguard.classfile.visitor.AllMethodVisitor;
+import proguard.classfile.visitor.ClassConstantClassFilter;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberDescriptorFilter;
+import proguard.classfile.visitor.MemberNameFilter;
+import proguard.classfile.visitor.MemberVisitor;
+import proguard.util.CollectionMatcher;
 import proguard.util.StringMatcher;
+
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_CLASS;
+import static proguard.classfile.ClassConstants.NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_INTEGER_FIELD_UPDATER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_LONG_FIELD_UPDATER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_REFERENCE_FIELD_UPDATER;
 
 /**
  * This {@link AttributeVisitor} initializes any constant class member references of all
@@ -40,6 +76,8 @@ import proguard.util.StringMatcher;
  * <p/>
  * The class hierarchy and references must be initialized before using this
  * visitor.
+ * <p/>
+ * It's more efficient to use as a {@link ClassVisitor} than an {@link InstructionVisitor}.
  *
  * @see ClassSuperHierarchyInitializer
  * @see ClassReferenceInitializer
@@ -47,7 +85,8 @@ import proguard.util.StringMatcher;
  * @author Eric Lafortune
  */
 public class DynamicMemberReferenceInitializer
-implements   AttributeVisitor,
+implements   ClassVisitor,
+             AttributeVisitor,
              InstructionVisitor,
              ConstantVisitor,
              MemberVisitor
@@ -85,6 +124,18 @@ implements   AttributeVisitor,
     private final MemberFinder        memberFinder         = new MemberFinder(true);
     private final MemberFinder        declaredMemberFinder = new MemberFinder(false);
     private final CodeAttributeEditor codeAttributeEditor  = new CodeAttributeEditor();
+    private final MemberVisitor       extraMemberVisitor;
+
+    // Used to prefilter classes to avoid visiting all instructions in all classes.
+    private final ClassConstantClassFilter classConstantClassFilter =
+        new ClassConstantClassFilter(new CollectionMatcher(
+            NAME_JAVA_LANG_CLASS,
+            NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_INTEGER_FIELD_UPDATER,
+            NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_LONG_FIELD_UPDATER,
+            NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_REFERENCE_FIELD_UPDATER),
+        new AllMethodVisitor(
+        new AllAttributeVisitor(
+        new AttributeNameFilter(Attribute.CODE, this))));
 
 
     // Fields acting as parameters for the visitors.
@@ -100,11 +151,25 @@ implements   AttributeVisitor,
                                              StringMatcher  noteFieldExceptionMatcher,
                                              StringMatcher  noteMethodExceptionMatcher)
     {
+        this(programClassPool, libraryClassPool, notePrinter, noteFieldExceptionMatcher, noteMethodExceptionMatcher, null);
+    }
+
+    /**
+     * Creates a new DynamicMemberReferenceInitializer.
+     */
+    public DynamicMemberReferenceInitializer(ClassPool      programClassPool,
+                                             ClassPool      libraryClassPool,
+                                             WarningPrinter notePrinter,
+                                             StringMatcher  noteFieldExceptionMatcher,
+                                             StringMatcher  noteMethodExceptionMatcher,
+                                             MemberVisitor  extraMemberVisitor)
+    {
         this.programClassPool           = programClassPool;
         this.libraryClassPool           = libraryClassPool;
         this.notePrinter                = notePrinter;
         this.noteFieldExceptionMatcher  = noteFieldExceptionMatcher;
         this.noteMethodExceptionMatcher = noteMethodExceptionMatcher;
+        this.extraMemberVisitor         = extraMemberVisitor;
 
         // Create the instruction sequences and matchers.
         InstructionSequenceBuilder builder =
@@ -172,12 +237,26 @@ implements   AttributeVisitor,
         unknownReferenceUpdaterMatcher = new InstructionSequenceMatcher(constants, unknownReferenceUpdaterInstructions);
     }
 
+    @Override
+    public void visitAnyClass(Clazz clazz)
+    {
+        // Only ProgramClasses contain code.
+    }
+
+    @Override
+    public void visitProgramClass(ProgramClass programClass)
+    {
+        programClass.accept(classConstantClassFilter);
+    }
+
 
     // Implementations for AttributeVisitor.
 
+    @Override
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
 
+    @Override
     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         if (DEBUG)
@@ -198,24 +277,45 @@ implements   AttributeVisitor,
 
     // Implementations for InstructionVisitor.
 
+    @Override
     public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
     {
         // Try to match get[Declared]{Field,Constructor,Method} constructs.
         instruction.accept(clazz, method, codeAttribute, offset, dynamicMemberFinder);
+    }
+
+    @Override
+    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction instruction)
+    {
+        // Try to match get[Declared]{Field,Constructor,Method} constructs.
+        instruction.accept(clazz, method, codeAttribute, offset, dynamicMemberFinder);
+
+        if (dynamicMemberFinder.matched)
+        {
+            return;
+        }
+
+        // These next patterns can only match constant instructions.
 
         // Try to match the AtomicIntegerFieldUpdater.newUpdater(
         // SomeClass.class, "someField") construct.
-        matchGetMember(clazz, method, codeAttribute, offset, instruction,
-                       knownIntegerUpdaterMatcher,
-                       unknownIntegerUpdaterMatcher, true, false, false,
-                       "" + TypeConstants.INT);
+        if (matchGetMember(clazz, method, codeAttribute, offset, instruction,
+                           knownIntegerUpdaterMatcher,
+                           unknownIntegerUpdaterMatcher, true, false, false,
+                           "" + TypeConstants.INT))
+        {
+            return;
+        }
 
         // Try to match the AtomicLongFieldUpdater.newUpdater(
         // SomeClass.class, "someField") construct.
-        matchGetMember(clazz, method, codeAttribute, offset, instruction,
-                       knownLongUpdaterMatcher,
-                       unknownLongUpdaterMatcher, true, false, false,
-                       "" + TypeConstants.LONG);
+        if (matchGetMember(clazz, method, codeAttribute, offset, instruction,
+                           knownLongUpdaterMatcher,
+                           unknownLongUpdaterMatcher, true, false, false,
+                           "" + TypeConstants.LONG))
+        {
+            return;
+        }
 
         // Try to match the AtomicReferenceFieldUpdater.newUpdater(
         // SomeClass.class, SomeClass.class, "someField") construct.
@@ -230,17 +330,17 @@ implements   AttributeVisitor,
      * Tries to match the next instruction and fills out the string constant
      * or prints out a note accordingly.
      */
-    private void matchGetMember(Clazz                      clazz,
-                                Method                     method,
-                                CodeAttribute              codeAttribute,
-                                int                        offset,
-                                Instruction                instruction,
-                                InstructionSequenceMatcher constantSequenceMatcher,
-                                InstructionSequenceMatcher variableSequenceMatcher,
-                                boolean                    isField,
-                                boolean                    isConstructor,
-                                boolean                    isDeclared,
-                                String                     memberDescriptor)
+    private boolean matchGetMember(Clazz                      clazz,
+                                   Method                     method,
+                                   CodeAttribute              codeAttribute,
+                                   int                        offset,
+                                   Instruction                instruction,
+                                   InstructionSequenceMatcher constantSequenceMatcher,
+                                   InstructionSequenceMatcher variableSequenceMatcher,
+                                   boolean                    isField,
+                                   boolean                    isConstructor,
+                                   boolean                    isDeclared,
+                                   String                     memberDescriptor)
     {
         if (constantSequenceMatcher != null)
         {
@@ -284,6 +384,8 @@ implements   AttributeVisitor,
                                                      isField,
                                                      isConstructor,
                                                      isDeclared);
+
+                    return true;
                 }
 
                 // Don't look for the dynamic construct.
@@ -308,7 +410,10 @@ implements   AttributeVisitor,
                                          isField,
                                          isConstructor,
                                          isDeclared);
+            return true;
         }
+
+        return false;
     }
 
 
@@ -376,6 +481,11 @@ implements   AttributeVisitor,
             codeAttributeEditor.replaceInstruction(memberNameInstructionOffset,
                                                    new ConstantInstruction(Instruction.OP_LDC,
                                                                            stringConstantIndex));
+
+            if (extraMemberVisitor != null)
+            {
+                referencedMember.accept(referencedClass, extraMemberVisitor);
+            }
         }
     }
 
@@ -580,7 +690,10 @@ implements   AttributeVisitor,
         private String       memberName;
         private int          parameterCount;
         private int          parameterIndex;
-        private StringBuffer parameterTypes = new StringBuffer();
+
+        private final StringBuffer parameterTypes = new StringBuffer();
+
+        public boolean matched = false;
 
 
         public void reset()
@@ -589,6 +702,7 @@ implements   AttributeVisitor,
             referencedClass = null;
             memberName      = null;
             parameterTypes.setLength(0);
+            matched         = false;
         }
 
 
@@ -963,6 +1077,8 @@ implements   AttributeVisitor,
 
             if (referencedClass != null)
             {
+                matched = true;
+
                 if (isConstructor)
                 {
                     // We currently can't fill out some reference to a

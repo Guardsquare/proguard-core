@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
  */
 package proguard.util;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -32,6 +34,11 @@ public class CollectionMatcher extends StringMatcher
     public CollectionMatcher(Set<String> set)
     {
         this.set = set;
+    }
+
+    public CollectionMatcher(String...strings)
+    {
+        this(new HashSet<>(Arrays.asList(strings)));
     }
 
 
