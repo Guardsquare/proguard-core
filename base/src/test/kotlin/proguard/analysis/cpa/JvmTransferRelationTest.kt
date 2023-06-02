@@ -817,7 +817,7 @@ class JvmTransferRelationTest : FreeSpec({
             "Category 1" {
                 var state = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                state.setStatic("A.i:I", value)
+                state.setStatic("A.i:I", value, transferRelation.abstractDefault)
                 var result = state.copy()
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 getAbstractSuccessorForInstruction.call(
@@ -833,7 +833,7 @@ class JvmTransferRelationTest : FreeSpec({
 
                 state = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                state.setStatic("B.i:I", value)
+                state.setStatic("B.i:I", value, transferRelation.abstractDefault)
                 result = state.copy()
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 getAbstractSuccessorForInstruction.call(
@@ -858,7 +858,7 @@ class JvmTransferRelationTest : FreeSpec({
             "Category 2" {
                 var state = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                state.setStatic("A.d:D", value)
+                state.setStatic("A.d:D", value, transferRelation.abstractDefault)
                 var result = state.copy()
                 result.push(transferRelation.abstractDefault)
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
@@ -875,7 +875,7 @@ class JvmTransferRelationTest : FreeSpec({
 
                 state = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                state.setStatic("B.d:D", value)
+                state.setStatic("B.d:D", value, transferRelation.abstractDefault)
                 result = state.copy()
                 result.push(transferRelation.abstractDefault)
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
@@ -909,7 +909,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 var result = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                result.setStatic("A.i:I", value)
+                result.setStatic("A.i:I", value, transferRelation.abstractDefault)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
@@ -925,7 +925,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))))
                 result = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5))))
-                result.setStatic("B.i:I", value)
+                result.setStatic("B.i:I", value, transferRelation.abstractDefault)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
@@ -951,7 +951,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
                 var result = emptyState.copy()
                 var value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                result.setStatic("A.d:D", value)
+                result.setStatic("A.d:D", value, transferRelation.abstractDefault)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
@@ -968,7 +968,7 @@ class JvmTransferRelationTest : FreeSpec({
                 state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))))
                 result = emptyState.copy()
                 value = ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0))))
-                result.setStatic("B.d:D", value)
+                result.setStatic("B.d:D", value, transferRelation.abstractDefault)
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
@@ -979,6 +979,25 @@ class JvmTransferRelationTest : FreeSpec({
                     clazzA,
                     null
                 ) shouldBe result
+            }
+
+            /**
+             * The default value shouldn't be set in order to
+             * reduce the state space.
+             */
+            "No static field when setting default value" {
+                var state = emptyState.copy()
+                state.push(transferRelation.abstractDefault)
+                getAbstractSuccessorForInstruction.call(
+                    transferRelation,
+                    state,
+                    ConstantInstruction(
+                        Instruction.OP_PUTSTATIC,
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "i", "I")
+                    ),
+                    clazzA,
+                    null
+                ) shouldBe emptyState
             }
         }
     }
@@ -1012,7 +1031,9 @@ class JvmTransferRelationTest : FreeSpec({
         state.push(transferRelation.abstractDefault)
         state.push(transferRelation.abstractDefault)
         state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(10)))))
-        getAbstractSuccessorForInstruction.call(
+
+
+        val succ = getAbstractSuccessorForInstruction.call(
             transferRelation,
             state,
             ConstantInstruction(
@@ -1021,7 +1042,8 @@ class JvmTransferRelationTest : FreeSpec({
             ),
             clazzA,
             null
-        ) shouldBe emptyState
+        )
+        succ shouldBe emptyState
     }
 
     /**

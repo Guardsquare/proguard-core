@@ -109,7 +109,7 @@ public class JvmTaintTransferRelation
                                     SetAbstractState<JvmTaintSource> newValue = new SetAbstractState<>(s);
                                     s.taintsGlobals.forEach(fqn -> fqnToValue.merge(fqn, newValue, SetAbstractState::join));
                                 });
-        fqnToValue.forEach(state::setStatic);
+        fqnToValue.forEach((fqn, value) -> state.setStatic(fqn, value, getAbstractDefault()));
 
         // taint heap
         if (!(state.getHeap() instanceof JvmTaintTreeHeapFollowerAbstractState))

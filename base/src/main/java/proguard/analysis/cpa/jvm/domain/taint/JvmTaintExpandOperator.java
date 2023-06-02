@@ -100,7 +100,7 @@ public class JvmTaintExpandOperator
                                     SetAbstractState<JvmTaintSource> newValue = new SetAbstractState<>(s);
                                     s.taintsGlobals.forEach(fqn -> fqnToValue.merge(fqn, newValue, SetAbstractState::join));
                                 });
-        fqnToValue.forEach(result::setStatic);
+        fqnToValue.forEach((fqn, value) -> result.setStatic(fqn, value, SetAbstractState.bottom));
         if (!(result.getHeap() instanceof JvmTaintTreeHeapFollowerAbstractState))
         {
             return result;

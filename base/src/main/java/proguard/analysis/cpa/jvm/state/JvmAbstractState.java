@@ -232,10 +232,14 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     }
 
     /**
-     * Sets the static field {@code fqn} to {@code value}.
+     * Sets the static field {@code fqn} to {@code value}, unless the value is {@code defaultState}.
      */
-    public void setStatic(String fqn, StateT value)
+    public void setStatic(String fqn, StateT value, StateT defaultState)
     {
+        if (value.equals(defaultState))
+        {
+            return;
+        }
         staticFields.put(fqn, value);
     }
 

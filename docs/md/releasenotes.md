@@ -12,7 +12,8 @@
 - Improve performance of `ClassPool.removeClass`.
 - Allow more configuration of `ExecutingInvocationUnit` by using `ExecutingInvocationUnit.Builder`.
 - Add a mode to `ExecutingInvocationUnit` to approximate reference of types not supported for the execution via reflection.
-- Implement `Autocloseable` in `DataEntryWriter` interface.
+- Implement `Autocloseable` in `DataEntryWriter` interface. 
+- `JvmTransferRelation` does not store anymore static variables with default value, reducing the dataflow analysis state space.
 
 ### Bug fixes
 

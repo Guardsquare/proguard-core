@@ -575,7 +575,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                     {
                         abstractState.pop();
                     }
-                    abstractState.setStatic(constantLookupVisitor.result, value);
+                    abstractState.setStatic(constantLookupVisitor.result, value, getAbstractDefault());
                     break;
                 }
                 case Instruction.OP_GETFIELD:
