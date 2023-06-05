@@ -133,13 +133,13 @@ implements   ValueFactory
 
     public ReferenceValue createReferenceValue()
     {
-        return super.createReferenceValue();
+        return referenceValueFactory.createReferenceValue();
     }
 
 
     public ReferenceValue createReferenceValueNull()
     {
-        return super.createReferenceValueNull();
+        return referenceValueFactory.createReferenceValueNull();
     }
 
 

@@ -14,6 +14,8 @@ import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
+import proguard.evaluation.value.TypedReferenceValueFactory
+import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
@@ -354,5 +356,49 @@ class PartialEvaluatorTest : FreeSpec({
             stackTopAfterGeneralize.shouldBeInstanceOf<IdentifiedReferenceValue>()
             stackTopAfterGeneralize.id shouldBe stackTopAfterStringBuilderInit.id
         }
+    }
+
+    "ParticularValueFactory should delegate to enclosed reference value factory" {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            AssemblerSource(
+                "Test.jbc",
+                """
+            version 1.8;
+            public class Test extends java.lang.Object {
+                public static void a()
+                {
+                    aconst_null
+                    astore_0
+                    return
+                }
+            }
+                """.trimIndent()
+            )
+        )
+
+        val typedReferenceValueFactory = TypedReferenceValueFactory()
+        val particularValueFactory = ParticularValueFactory(
+            ArrayReferenceValueFactory(),
+            typedReferenceValueFactory
+        )
+        val particularValueInvocationUnit = BasicInvocationUnit(particularValueFactory)
+        val particularValueEvaluator = PartialEvaluator.Builder.create()
+            .setValueFactory(particularValueFactory)
+            .setInvocationUnit(particularValueInvocationUnit)
+            .build()
+
+        programClassPool.classesAccept(
+            "Test",
+            NamedMethodVisitor(
+                "a", "()V",
+                AllAttributeVisitor(
+                    AttributeNameFilter(CODE, particularValueEvaluator)
+                )
+            )
+        )
+
+        val variablesAfterAconstNull = particularValueEvaluator.getVariablesAfter(1)
+        val value = variablesAfterAconstNull.getValue(0)
+        value shouldBe typedReferenceValueFactory.createReferenceValueNull()
     }
 })
