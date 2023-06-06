@@ -5,6 +5,10 @@
 - Add support for processing Kotlin 1.9 metadata.
 - Update `kotlinx` metadata dependency to version 0.6.0.
 
+### Java support
+
+- Update maximum supported Java class version to 64.65535 (Java 20).
+
 ### Improved
 
 - Added support for adding line numbers in the `CodeAttributeEditor`.
