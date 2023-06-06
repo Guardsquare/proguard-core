@@ -1032,7 +1032,6 @@ class JvmTransferRelationTest : FreeSpec({
         state.push(transferRelation.abstractDefault)
         state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(10)))))
 
-
         val succ = getAbstractSuccessorForInstruction.call(
             transferRelation,
             state,
