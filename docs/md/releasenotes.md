@@ -7,7 +7,7 @@
 
 ### Java support
 
-- Update maximum supported Java class version to 64.65535 (Java 20).
+- Update maximum supported Java class version to 65.65535 (Java 21).
 
 ### Improved
 
