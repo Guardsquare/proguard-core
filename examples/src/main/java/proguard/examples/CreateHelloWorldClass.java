@@ -1,16 +1,19 @@
 package proguard.examples;
 
-import proguard.classfile.*;
-import proguard.classfile.attribute.CodeAttribute;
-import proguard.classfile.constant.Constant;
-import proguard.classfile.editor.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.VersionConstants;
+import proguard.classfile.editor.ClassBuilder;
 import proguard.classfile.io.ProgramClassWriter;
-import proguard.preverify.CodePreverifier;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
- * This sample application illustrates how to create a class with the ProGuard API.
+ * This sample application illustrates how to create a class with the ProGuardCORE API.
  *
  * Usage:
  *     java proguard.examples.CreateHelloWorldClass
@@ -21,33 +24,17 @@ public class CreateHelloWorldClass
     private static final String MESSAGE    = "Hello, world!";
 
 
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
-        try
+        // Create the class.
+        ProgramClass programClass = createMessagePrintingClass(CLASS_NAME, MESSAGE);
+
+        // Write out the class.
+        String classFileName = CLASS_NAME + ClassConstants.CLASS_FILE_EXTENSION;
+
+        try (DataOutputStream dataOutputStream = new DataOutputStream(Files.newOutputStream(Paths.get(classFileName))))
         {
-            // Create the class.
-            ProgramClass programClass = createClass();
-
-            // Write out the class.
-            String classFileName = CLASS_NAME + ClassConstants.CLASS_FILE_EXTENSION;
-
-            DataOutputStream dataOutputStream =
-                new DataOutputStream(
-                new FileOutputStream(classFileName));
-
-            try
-            {
-                programClass.accept(
-                    new ProgramClassWriter(dataOutputStream));
-            }
-            finally
-            {
-                dataOutputStream.close();
-            }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
+            programClass.accept(new ProgramClassWriter(dataOutputStream));
         }
     }
 
@@ -55,14 +42,14 @@ public class CreateHelloWorldClass
     /**
      * Creates a HelloWorld class.
      */
-    private static ProgramClass createClass()
+    public static ProgramClass createMessagePrintingClass(String name, String message)
     {
         return
             // Start building the class.
             new ClassBuilder(
                 VersionConstants.CLASS_VERSION_1_8,
                 AccessConstants.PUBLIC,
-                CLASS_NAME,
+                name,
                 ClassConstants.NAME_JAVA_LANG_OBJECT)
 
                 // Add the main method.
@@ -77,7 +64,7 @@ public class CreateHelloWorldClass
                     //     System.out.println("Hello, world!");
                     code -> code
                         .getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
-                        .ldc(MESSAGE)
+                        .ldc(message)
                         .invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
                         .return_())
 

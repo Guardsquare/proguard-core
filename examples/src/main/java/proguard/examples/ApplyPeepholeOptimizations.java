@@ -13,7 +13,7 @@ import proguard.preverify.CodePreverifier;
 import java.io.*;
 
 /**
- * This sample application illustrates how to modify bytecode with the ProGuard API.
+ * This sample application illustrates how to modify bytecode with the ProGuardCORE API.
  * It applies peephole optimizations to all code that it processes.
  *
  * Usage:

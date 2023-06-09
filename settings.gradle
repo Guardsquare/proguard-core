@@ -17,5 +17,5 @@ include('tools')
 // Rename base as proguard-core for backwards compatibility
 project(':base').name = "proguard-core"
 project(':android').name = 'proguard-core-android'
+project(':examples').name = 'proguard-core-examples'
 project(':tools').name = 'proguard-core-tools'
-

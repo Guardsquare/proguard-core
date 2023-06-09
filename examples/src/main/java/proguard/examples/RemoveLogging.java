@@ -14,7 +14,7 @@ import proguard.preverify.CodePreverifier;
 import java.io.*;
 
 /**
- * This sample application illustrates how to modify bytecode with the ProGuard API.
+ * This sample application illustrates how to modify bytecode with the ProGuardCORE API.
  * It removes Android logging invocations from all methods of all classes that it
  * processes. It does not attempt to remove the related strings and other arguments
  * from the code.
