@@ -19,8 +19,9 @@
 package proguard.analysis.cpa.jvm.domain.taint;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
+import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
@@ -30,8 +31,6 @@ import proguard.classfile.Signature;
 /**
  * A {@link JvmTaintSink} triggered if the return value of
  * the specified method is tainted.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmReturnTaintSink
     extends JvmTaintSink
@@ -40,6 +39,11 @@ public class JvmReturnTaintSink
     public JvmReturnTaintSink(Signature signature)
     {
         super(signature);
+    }
+
+    public JvmReturnTaintSink(Signature signature, Predicate<TaintSource> isValidForSource)
+    {
+        super(signature, isValidForSource);
     }
 
     // Implementations for JvmTaintSink
@@ -69,27 +73,24 @@ public class JvmReturnTaintSink
     @Override
     public boolean equals(Object o)
     {
-        if (this == o)
-        {
-            return true;
-        }
-        if (!(o instanceof JvmReturnTaintSink))
-        {
-            return false;
-        }
-        JvmReturnTaintSink taintSink = (JvmReturnTaintSink) o;
-        return Objects.equals(signature, taintSink.signature);
+        return super.equals(o);
     }
 
     @Override
     public int hashCode()
     {
-        return signature.hashCode();
+        return super.hashCode();
     }
 
     @Override
     public String toString()
     {
-        return "[JvmReturnTaintSink] " + signature;
+        StringBuilder result = new StringBuilder("[JvmReturnTaintSink] ").append(signature);
+        if (!IS_VALID_FOR_SOURCE_DEFAULT.equals(isValidForSource))
+        {
+            result.append(", filtered by source: ").append(isValidForSource);
+        }
+
+        return result.toString();
     }
 }

@@ -1,3 +1,13 @@
+## Version 9.0.10
+
+### Improved
+
+- `TaintSink` can now be configured with a predicate to filter on which `TaintSource`s trigger it.
+
+### API changes
+
+- The constructors in `JvmInvokeTaintSink` are now deprecated, `JvmInvokeTaintSink#Builder` should be used instead.
+
 ## Version 9.0.9
 
 ### Kotlin support

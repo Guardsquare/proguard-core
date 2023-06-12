@@ -56,8 +56,6 @@ import proguard.classfile.Signature;
 
 /**
  * This run wraps the execution of BAM {@link JvmMemoryLocationCpa}.
- *
- * @author Dmitry Ivanov
  */
 public class JvmTaintMemoryLocationBamCpaRun
     extends JvmMemoryLocationBamCpaRun<SimpleCpa, SetAbstractState<JvmTaintSource>>
@@ -219,7 +217,7 @@ public class JvmTaintMemoryLocationBamCpaRun
                                 .forEach(
                                     e -> e.getValue()
                                           .stream()
-                                          .filter(l -> isStateTaintedForMemoryLocation((JvmAbstractState<SetAbstractState<JvmTaintSource>>) state.getStateByName(StateNames.Jvm), l))
+                                          .filter(l -> isStateTaintedForMemoryLocation((JvmAbstractState<SetAbstractState<JvmTaintSource>>) state.getStateByName(StateNames.Jvm), l, e.getKey()))
                                           .forEach(l -> createAndAddEndpoint(reachedSet, state, l, e.getKey(), memoryLocations, endPointToSinks)));
     }
 
@@ -247,10 +245,12 @@ public class JvmTaintMemoryLocationBamCpaRun
         endPointToSinks.computeIfAbsent(memoryLocation, x -> new ArrayList<>()).add(sink);
     }
 
-    private boolean isStateTaintedForMemoryLocation(JvmAbstractState<SetAbstractState<JvmTaintSource>> state, JvmMemoryLocation memoryLocation)
+    private boolean isStateTaintedForMemoryLocation(JvmAbstractState<SetAbstractState<JvmTaintSource>> state, JvmMemoryLocation memoryLocation, JvmTaintSink sink)
     {
-        return !memoryLocation.extractValueOrDefault(state, SetAbstractState.bottom).isEmpty()
-               || !state.getHeap().getFieldOrDefault(memoryLocation, "", SetAbstractState.bottom).isEmpty();
+        SetAbstractState<JvmTaintSource> extractedState = memoryLocation.extractValueOrDefault(state, SetAbstractState.bottom);
+        extractedState.addAll(state.getHeap().getFieldOrDefault(memoryLocation, "", SetAbstractState.bottom));
+
+        return extractedState.stream().anyMatch(sink.isValidForSource);
     }
 
     /**
