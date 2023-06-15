@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.evaluation.value.IdentifiedReferenceValue;
+import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 
 import java.util.Objects;
@@ -117,10 +118,17 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
                     break;
                 case TYPE_JAVA_LANG_STRING_BUILDER:
                 case TYPE_JAVA_LANG_STRING_BUFFER:
+                    // if both objects are null they are equal
+                    if (value instanceof TypedReferenceValue && that.value instanceof TypedReferenceValue
+                        && ((TypedReferenceValue) value).isNull() == Value.ALWAYS && ((TypedReferenceValue) that.value).isNull() == Value.ALWAYS)
+                    {
+                        return true;
+                    }
                     // String String(Builder|Buffer) don't implement equals; we
                     // need to check if they're the same by checking their ID
                     // and their String value.
-                    if (value.isParticular() && that.value.isParticular())
+                    if (value.isParticular() && that.value.isParticular()
+                        && value instanceof IdentifiedReferenceValue && that.value instanceof IdentifiedReferenceValue)
                     {
                         Object idA     = ((IdentifiedReferenceValue)      value).id;
                         Object idB     = ((IdentifiedReferenceValue) that.value).id;
