@@ -110,10 +110,10 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
                     // regardless if it's a different particular reference.
                     if (value.isParticular() && that.value.isParticular())
                     {
-                        String stringA = value.referenceValue().value().toString();
-                        String stringB = that.value.referenceValue().value().toString();
+                        Object stringA = value.referenceValue().value();
+                        Object objectB = that.value.referenceValue().value();
 
-                        return stringA.equals(stringB);
+                        return stringA.equals(objectB);
                     }
                     break;
                 case TYPE_JAVA_LANG_STRING_BUILDER:
