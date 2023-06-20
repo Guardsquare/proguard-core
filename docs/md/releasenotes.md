@@ -7,6 +7,7 @@
 ### API changes
 
 - The constructors in `JvmInvokeTaintSink` are now deprecated, `JvmInvokeTaintSink#Builder` should be used instead.
+- `MultiTypedReferenceValue.generalize()` now removes the `null` type from the set of potential types, and sets `maybeNull` on the other types instead.
 
 ## Version 9.0.9
 

@@ -211,7 +211,7 @@ class MultiTypeTest : FreeSpec({
                 .getValue(variableTable["s"]!!) as MultiTypedReferenceValue
             s.generalizedType.type shouldBe "LSuper;"
             s.isNull shouldBe Value.MAYBE
-            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;", "LB;", "LSuper;", null)
+            s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;", "LB;", "LSuper;")
         }
         "Array handling" {
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -292,19 +292,23 @@ class MultiTypeTest : FreeSpec({
                 generalized.mayBeUnknown shouldBe false
             }
             "(X, null) -> X" {
+                val aMaybeNull = TypedReferenceValue(a.type, a.referencedClass, a.mayBeExtension(), true)
+                val bMaybeNull = TypedReferenceValue(b.type, b.referencedClass, b.mayBeExtension(), true)
+                val superMaybeNull = TypedReferenceValue(superClass.type, superClass.referencedClass, superClass.mayBeExtension(), true)
+
                 var generalized = multiA.generalize(multiNull) as MultiTypedReferenceValue
-                generalized.generalizedType shouldBe a
-                generalized.potentialTypes shouldBe setOf(a, nul)
+                generalized.generalizedType shouldBe aMaybeNull
+                generalized.potentialTypes shouldBe setOf(aMaybeNull)
                 generalized.mayBeUnknown shouldBe false
 
                 generalized = multiB.generalize(multiNull) as MultiTypedReferenceValue
-                generalized.generalizedType shouldBe b
-                generalized.potentialTypes shouldBe setOf(b, nul)
+                generalized.generalizedType shouldBe bMaybeNull
+                generalized.potentialTypes shouldBe setOf(bMaybeNull)
                 generalized.mayBeUnknown shouldBe false
 
                 generalized = multiSuper.generalize(multiNull) as MultiTypedReferenceValue
-                generalized.generalizedType shouldBe superClass
-                generalized.potentialTypes shouldBe setOf(superClass, nul)
+                generalized.generalizedType shouldBe superMaybeNull
+                generalized.potentialTypes shouldBe setOf(superMaybeNull)
                 generalized.mayBeUnknown shouldBe false
             }
             "Identity" {

@@ -221,6 +221,16 @@ public class MultiTypedReferenceValue extends ReferenceValue
 
         Set<TypedReferenceValue> newPotentialTypes = new HashSet<>(this.potentialTypes);
         newPotentialTypes.addAll(other.potentialTypes);
+
+        // If the null type is in the potential types, we remove it and set maybeNull to true for all other contained potential types
+        if (newPotentialTypes.size() > 1 && newPotentialTypes.contains(TypedReferenceValueFactory.REFERENCE_VALUE_NULL))
+        {
+            newPotentialTypes.remove(TypedReferenceValueFactory.REFERENCE_VALUE_NULL);
+            return new MultiTypedReferenceValue(newPotentialTypes.stream()
+                                                                 .map(value -> new TypedReferenceValue(value.getType(), value.getReferencedClass(), value.mayBeExtension(), true))
+                                                                 .collect(Collectors.toSet()), mayBeUnknown || other.mayBeUnknown);
+        }
+
         return new MultiTypedReferenceValue(newPotentialTypes, mayBeUnknown || other.mayBeUnknown);
     }
 

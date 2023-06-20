@@ -200,7 +200,6 @@ class CallResolverTest : FreeSpec({
         )
         caller shouldCall A_TEST andThrow MAYBE controlFlowDependent false typeDependent true
         caller shouldCall B_TEST andThrow MAYBE controlFlowDependent false typeDependent true
-        caller shouldCall SUPER_TEST andThrow ALWAYS controlFlowDependent false typeDependent true
 
         caller shouldCall SUPER_STATIC_TEST andThrow NEVER controlFlowDependent false typeDependent false
         caller shouldNotCall A_STATIC_TEST
