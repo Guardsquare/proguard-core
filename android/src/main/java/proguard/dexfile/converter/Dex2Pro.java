@@ -16,6 +16,8 @@
  */
 package proguard.dexfile.converter;
 
+import proguard.analysis.Metrics;
+import proguard.analysis.Metrics.MetricType;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.Member;
@@ -684,8 +686,7 @@ public class Dex2Pro {
                 Collections.sort(innerClassNodes, INNER_CLASS_NODE_COMPARATOR);
                 for (InnerClassNode icn : innerClassNodes) {
                     if (icn.innerName != null && !isJavaIdentifier(icn.innerName)) {
-                        System.err.println("WARN: Ignored invalid inner-class name, " +
-                                "treat as anonymous class. (" + icn.innerName + ")");
+                        Metrics.increaseCount(MetricType.DEX2PRO_INVALID_INNER_CLASS);
                         icn.innerName = null;
                         icn.outerName = null;
                     }
