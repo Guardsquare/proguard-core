@@ -58,11 +58,9 @@ import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 import kotlinx.metadata.jvm.JvmConstructorExtensionVisitor;
 import kotlinx.metadata.jvm.JvmExtensionsKt;
 import kotlinx.metadata.jvm.JvmFieldSignature;
-import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmFlag;
 import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor;
 import kotlinx.metadata.jvm.JvmMetadataUtil;
-import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor;
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor;
@@ -591,21 +589,7 @@ implements ClassVisitor,
                                                                 .stream().map(it -> it.replace(".","$"))
                                                                 .collect(Collectors.toList());
 
-        List<KotlinVersionRequirementMetadata> versionRequirementMetadata = kmClass
-                .getVersionRequirements()
-                .stream()
-                .map(KotlinMetadataInitializer::toKotlinVersionRequirementMetadata)
-                .collect(Collectors.toList());
-        if (versionRequirementMetadata.size() > 1)
-        {
-            // TODO: There can be multiple version requirements; previously we didn't handle it
-            //       and we would have used the last visited, since each visit would overwrite the previous.
-            kotlinClassKindMetadata.versionRequirement = versionRequirementMetadata.get(versionRequirementMetadata.size() - 1);
-        }
-        else if (versionRequirementMetadata.size() == 1)
-        {
-            kotlinClassKindMetadata.versionRequirement = versionRequirementMetadata.get(0);
-        }
+        kotlinClassKindMetadata.versionRequirement = toKotlinVersionRequirementMetadataFromList(kmClass.getVersionRequirements());
 
         kotlinClassKindMetadata.typeParameters = kmClass
                 .getTypeParameters()
@@ -683,9 +667,23 @@ implements ClassVisitor,
             convertTypeAliasFlags(kmTypeAlias.getFlags()),
             kmTypeAlias.getName()
         );
-        TypeAliasReader typeAliasReader = new TypeAliasReader(typeAlias);
-        // TODO: remove visitor.
-        kmTypeAlias.accept(typeAliasReader);
+
+        typeAlias.underlyingType     = toKotlinTypeMetadata(kmTypeAlias.getUnderlyingType());
+        typeAlias.expandedType       = toKotlinTypeMetadata(kmTypeAlias.getExpandedType());
+        typeAlias.versionRequirement = toKotlinVersionRequirementMetadataFromList(kmTypeAlias.getVersionRequirements());
+
+        typeAlias.annotations = kmTypeAlias
+                .getAnnotations()
+                .stream()
+                .map(KotlinAnnotationUtilKt::convertAnnotation)
+                .collect(Collectors.toList());
+
+        typeAlias.typeParameters = kmTypeAlias
+                .getTypeParameters()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinTypeParameterMetadata)
+                .collect(Collectors.toList());
+
         return typeAlias;
     }
 
@@ -741,6 +739,27 @@ implements ClassVisitor,
         // TODO: remove visitor.
         kmConstructor.accept(constructorReader);
         return constructor;
+    }
+
+    private static KotlinVersionRequirementMetadata toKotlinVersionRequirementMetadataFromList(List<KmVersionRequirement> kmVersionRequirement)
+    {
+        List<KotlinVersionRequirementMetadata> versionRequirementMetadata = kmVersionRequirement
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinVersionRequirementMetadata)
+                .collect(Collectors.toList());
+
+        if (versionRequirementMetadata.size() > 1)
+        {
+            // TODO: There can be multiple version requirements; previously we didn't handle it
+            //       and we would have used the last visited, since each visit would overwrite the previous.
+            return versionRequirementMetadata.get(versionRequirementMetadata.size() - 1);
+        }
+        else if (versionRequirementMetadata.size() == 1)
+        {
+            return versionRequirementMetadata.get(0);
+        }
+
+        return null;
     }
 
     private static KotlinVersionRequirementMetadata toKotlinVersionRequirementMetadata(KmVersionRequirement kmVersionRequirement)
