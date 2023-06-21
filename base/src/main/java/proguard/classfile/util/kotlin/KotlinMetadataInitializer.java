@@ -23,8 +23,6 @@ import kotlinx.metadata.InconsistentKotlinMetadataException;
 import kotlinx.metadata.KmAnnotation;
 import kotlinx.metadata.KmClass;
 import kotlinx.metadata.KmConstructor;
-import kotlinx.metadata.KmConstructorExtensionVisitor;
-import kotlinx.metadata.KmConstructorVisitor;
 import kotlinx.metadata.KmContractVisitor;
 import kotlinx.metadata.KmEffectExpressionVisitor;
 import kotlinx.metadata.KmEffectInvocationKind;
@@ -48,6 +46,7 @@ import kotlinx.metadata.KmTypeParameter;
 import kotlinx.metadata.KmTypeParameterExtensionVisitor;
 import kotlinx.metadata.KmTypeParameterVisitor;
 import kotlinx.metadata.KmTypeVisitor;
+import kotlinx.metadata.KmValueParameter;
 import kotlinx.metadata.KmValueParameterVisitor;
 import kotlinx.metadata.KmVariance;
 import kotlinx.metadata.KmVersionRequirement;
@@ -55,7 +54,6 @@ import kotlinx.metadata.KmVersionRequirementLevel;
 import kotlinx.metadata.KmVersionRequirementVersionKind;
 import kotlinx.metadata.KmVersionRequirementVisitor;
 import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion;
-import kotlinx.metadata.jvm.JvmConstructorExtensionVisitor;
 import kotlinx.metadata.jvm.JvmExtensionsKt;
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmFlag;
@@ -735,11 +733,41 @@ implements ClassVisitor,
             convertConstructorFlags(mv, kmConstructor.getFlags())
         );
 
-        ConstructorReader constructorReader = new ConstructorReader(!isAnnotationClass, constructor);
-        // TODO: remove visitor.
-        kmConstructor.accept(constructorReader);
+        List<KmValueParameter> valueParameters = kmConstructor.getValueParameters();
+        constructor.valueParameters = new ArrayList<>(valueParameters.size());
+        for (int i = 0; i < valueParameters.size(); i++)
+        {
+            constructor.valueParameters.add(toKotlinValueParameterMetadata(i, valueParameters.get(i)));
+        }
+
+        constructor.versionRequirement = toKotlinVersionRequirementMetadataFromList(kmConstructor.getVersionRequirements());
+
+        if (!isAnnotationClass)
+        {
+            // For annotation classes, the metadata will have a JVM signature for a constructor,
+            // while this is impossible to correspond to a real constructor. We set the jvmSignature
+            // to null in this case.
+            constructor.jvmSignature = fromKotlinJvmMethodSignature(JvmExtensionsKt.getSignature(kmConstructor));
+        }
+
         return constructor;
     }
+
+    private static KotlinValueParameterMetadata toKotlinValueParameterMetadata(int index, KmValueParameter kmValueParameter)
+    {
+        KotlinValueParameterMetadata valueParameterMetadata = new KotlinValueParameterMetadata(
+                convertValueParameterFlags(kmValueParameter.getFlags()),
+                index,
+                kmValueParameter.getName()
+        );
+
+        // TODO: remove visitor.
+        ValueParameterReader valueParameterReader = new ValueParameterReader(valueParameterMetadata);
+        kmValueParameter.accept(valueParameterReader);
+
+        return valueParameterMetadata;
+    }
+
 
     private static KotlinVersionRequirementMetadata toKotlinVersionRequirementMetadataFromList(List<KmVersionRequirement> kmVersionRequirement)
     {
@@ -802,77 +830,6 @@ implements ClassVisitor,
         public void visitEnd()
         {
             kotlinSyntheticClassKindMetadata.functions = trimmed(this.functions);
-        }
-    }
-
-
-    private static class ConstructorReader
-    extends KmConstructorVisitor
-    {
-        private final boolean                   hasValidJvmSignature;
-        private final KotlinConstructorMetadata kotlinConstructorMetadata;
-
-        private final ArrayList<KotlinValueParameterMetadata> valueParameters;
-
-        ConstructorReader(boolean                   hasValidJvmSignature,
-                          KotlinConstructorMetadata kotlinConstructorMetadata)
-        {
-            this.hasValidJvmSignature          = hasValidJvmSignature;
-            this.kotlinConstructorMetadata     = kotlinConstructorMetadata;
-
-            this.valueParameters = new ArrayList<>(4);
-        }
-
-        @Override
-        public KmValueParameterVisitor visitValueParameter(int flags, String name)
-        {
-            KotlinValueParameterMetadata valueParameter =
-                    new KotlinValueParameterMetadata(convertValueParameterFlags(flags), valueParameters.size(), name);
-            valueParameters.add(valueParameter);
-
-            return new ValueParameterReader(valueParameter);
-        }
-
-        @Override
-        public KmVersionRequirementVisitor visitVersionRequirement()
-        {
-            KotlinVersionRequirementMetadata versionReq = new KotlinVersionRequirementMetadata();
-            kotlinConstructorMetadata.versionRequirement = versionReq;
-
-            return new VersionRequirementReader(versionReq);
-        }
-
-        @Override
-        public KmConstructorExtensionVisitor visitExtensions(KmExtensionType extensionType)
-        {
-            return new ConstructorExtensionReader();
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinConstructorMetadata.valueParameters = trimmed(this.valueParameters);
-        }
-
-
-        private class ConstructorExtensionReader
-        extends JvmConstructorExtensionVisitor
-        {
-            /**
-             * For annotation classes, the metadata will have a JVM signature for a constructor,
-             * while this is impossible to correspond to a real constructor. We set the jvmSignature
-             * to null in this case.
-             *
-             * @param jvmSignature may be null
-             */
-            @Override
-            public void visit(JvmMethodSignature jvmSignature)
-            {
-                if (hasValidJvmSignature)
-                {
-                    kotlinConstructorMetadata.jvmSignature = fromKotlinJvmMethodSignature(jvmSignature);
-                }
-            }
         }
     }
 
