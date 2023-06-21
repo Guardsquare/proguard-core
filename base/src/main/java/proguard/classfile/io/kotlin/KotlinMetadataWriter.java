@@ -1507,19 +1507,18 @@ implements ClassVisitor,
         @Override
         public void visitKotlinMultiFileFacadeMetadata(Clazz clazz, KotlinMultiFileFacadeKindMetadata kotlinMultiFileFacadeKindMetadata)
         {
-            Metadata header =
-                new KotlinClassMetadata.MultiFileClassFacade.Writer()
-                    .write(kotlinMultiFileFacadeKindMetadata.partClassNames,
-                           version.toArray(),
-                           kotlinMultiFileFacadeKindMetadata.xi).getAnnotationData();
+            Metadata metadata = KotlinClassMetadata.Companion
+                    .writeMultiFileClassFacade(kotlinMultiFileFacadeKindMetadata.partClassNames,
+                                               version.toArray(),
+                                               kotlinMultiFileFacadeKindMetadata.xi).getAnnotationData();
 
-            k  = header.k();
-            mv = header.mv();
-            d1 = header.d1();
-            d2 = header.d2();
-            xi = header.xi();
-            xs = header.xs();
-            pn = header.pn();
+            k  = metadata.k();
+            mv = metadata.mv();
+            d1 = metadata.d1();
+            d2 = metadata.d2();
+            xi = metadata.xi();
+            xs = metadata.xs();
+            pn = metadata.pn();
         }
     }
 
