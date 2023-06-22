@@ -282,40 +282,20 @@ implements   ClassVisitor,
     {
         // Try to match get[Declared]{Field,Constructor,Method} constructs.
         instruction.accept(clazz, method, codeAttribute, offset, dynamicMemberFinder);
-    }
-
-    @Override
-    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction instruction)
-    {
-        // Try to match get[Declared]{Field,Constructor,Method} constructs.
-        instruction.accept(clazz, method, codeAttribute, offset, dynamicMemberFinder);
-
-        if (dynamicMemberFinder.matched)
-        {
-            return;
-        }
-
-        // These next patterns can only match constant instructions.
 
         // Try to match the AtomicIntegerFieldUpdater.newUpdater(
         // SomeClass.class, "someField") construct.
-        if (matchGetMember(clazz, method, codeAttribute, offset, instruction,
-                           knownIntegerUpdaterMatcher,
-                           unknownIntegerUpdaterMatcher, true, false, false,
-                           "" + TypeConstants.INT))
-        {
-            return;
-        }
+        matchGetMember(clazz, method, codeAttribute, offset, instruction,
+                       knownIntegerUpdaterMatcher,
+                       unknownIntegerUpdaterMatcher, true, false, false,
+                       "" + TypeConstants.INT);
 
         // Try to match the AtomicLongFieldUpdater.newUpdater(
         // SomeClass.class, "someField") construct.
-        if (matchGetMember(clazz, method, codeAttribute, offset, instruction,
-                           knownLongUpdaterMatcher,
-                           unknownLongUpdaterMatcher, true, false, false,
-                           "" + TypeConstants.LONG))
-        {
-            return;
-        }
+        matchGetMember(clazz, method, codeAttribute, offset, instruction,
+                       knownLongUpdaterMatcher,
+                       unknownLongUpdaterMatcher, true, false, false,
+                       "" + TypeConstants.LONG);
 
         // Try to match the AtomicReferenceFieldUpdater.newUpdater(
         // SomeClass.class, SomeClass.class, "someField") construct.
@@ -330,17 +310,17 @@ implements   ClassVisitor,
      * Tries to match the next instruction and fills out the string constant
      * or prints out a note accordingly.
      */
-    private boolean matchGetMember(Clazz                      clazz,
-                                   Method                     method,
-                                   CodeAttribute              codeAttribute,
-                                   int                        offset,
-                                   Instruction                instruction,
-                                   InstructionSequenceMatcher constantSequenceMatcher,
-                                   InstructionSequenceMatcher variableSequenceMatcher,
-                                   boolean                    isField,
-                                   boolean                    isConstructor,
-                                   boolean                    isDeclared,
-                                   String                     memberDescriptor)
+    private void matchGetMember(Clazz                      clazz,
+                                Method                     method,
+                                CodeAttribute              codeAttribute,
+                                int                        offset,
+                                Instruction                instruction,
+                                InstructionSequenceMatcher constantSequenceMatcher,
+                                InstructionSequenceMatcher variableSequenceMatcher,
+                                boolean                    isField,
+                                boolean                    isConstructor,
+                                boolean                    isDeclared,
+                                String                     memberDescriptor)
     {
         if (constantSequenceMatcher != null)
         {
@@ -384,8 +364,6 @@ implements   ClassVisitor,
                                                      isField,
                                                      isConstructor,
                                                      isDeclared);
-
-                    return true;
                 }
 
                 // Don't look for the dynamic construct.
@@ -410,10 +388,7 @@ implements   ClassVisitor,
                                          isField,
                                          isConstructor,
                                          isDeclared);
-            return true;
         }
-
-        return false;
     }
 
 
@@ -693,8 +668,6 @@ implements   ClassVisitor,
 
         private final StringBuffer parameterTypes = new StringBuffer();
 
-        public boolean matched = false;
-
 
         public void reset()
         {
@@ -702,7 +675,6 @@ implements   ClassVisitor,
             referencedClass = null;
             memberName      = null;
             parameterTypes.setLength(0);
-            matched         = false;
         }
 
 
@@ -1077,8 +1049,6 @@ implements   ClassVisitor,
 
             if (referencedClass != null)
             {
-                matched = true;
-
                 if (isConstructor)
                 {
                     // We currently can't fill out some reference to a
