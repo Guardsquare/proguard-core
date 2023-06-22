@@ -65,6 +65,8 @@ import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor;
 import kotlinx.metadata.jvm.KotlinClassMetadata;
+import kotlinx.metadata.jvm.internal.JvmMetadataExtensions;
+import kotlinx.metadata.jvm.internal.JvmPropertyExtension;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
 import proguard.classfile.LibraryClass;
@@ -129,6 +131,7 @@ import proguard.classfile.visitor.ClassVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -694,9 +697,39 @@ implements ClassVisitor,
             convertPropertyAccessorFlags(kmProperty.getSetterFlags())
         );
 
-        PropertyReader propertyReader = new PropertyReader(property);
-        // TODO: remove visitor.
-        kmProperty.accept(propertyReader);
+        property.receiverType = toKotlinTypeMetadata(kmProperty.getReceiverParameterType());
+
+        property.contextReceivers = kmProperty
+                .getContextReceiverTypes()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+                .collect(Collectors.toList());
+
+        property.type = toKotlinTypeMetadata(kmProperty.returnType);
+        property.versionRequirement = toKotlinVersionRequirementMetadataFromList(kmProperty.getVersionRequirements());
+
+        KmValueParameter setterParameter = kmProperty.getSetterParameter();
+        // TODO: There can only be one Setter parameter but previously our API used a list.
+        // The name of the value parameter is like `"<set-?>"` for properties emitted by the Kotlin compiler.
+        property.setterParameters = setterParameter != null ?
+                new ArrayList<>(Collections.singletonList(toKotlinValueParameterMetadata(0, setterParameter))) :
+                new ArrayList<>();
+
+        property.typeParameters = kmProperty
+                .getTypeParameters()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinTypeParameterMetadata)
+                .collect(Collectors.toList());
+
+        property.backingFieldSignature = fromKotlinJvmFieldSignature(JvmExtensionsKt.getFieldSignature(kmProperty));
+        property.getterSignature = fromKotlinJvmMethodSignature(JvmExtensionsKt.getGetterSignature(kmProperty));
+        property.setterSignature = fromKotlinJvmMethodSignature(JvmExtensionsKt.getSetterSignature(kmProperty));
+
+        setPropertyJvmFlags(property.flags, JvmExtensionsKt.getJvmFlags(kmProperty));
+
+        property.syntheticMethodForAnnotations = fromKotlinJvmMethodSignature(JvmExtensionsKt.getSyntheticMethodForAnnotations(kmProperty));
+        property.syntheticMethodForDelegate = fromKotlinJvmMethodSignature(JvmExtensionsKt.getSyntheticMethodForDelegate(kmProperty));
+
         return property;
     }
 
