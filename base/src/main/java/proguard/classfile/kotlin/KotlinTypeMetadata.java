@@ -243,5 +243,11 @@ implements   Processable,
         {
             return true;
         }
+
+        @Override
+        public String toString()
+        {
+            return super.toString() + " star projection";
+        }
     }
 }

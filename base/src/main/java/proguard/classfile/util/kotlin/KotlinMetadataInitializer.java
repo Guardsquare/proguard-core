@@ -22,6 +22,7 @@ import kotlinx.metadata.Flag;
 import kotlinx.metadata.InconsistentKotlinMetadataException;
 import kotlinx.metadata.KmAnnotation;
 import kotlinx.metadata.KmClass;
+import kotlinx.metadata.KmClassifier;
 import kotlinx.metadata.KmConstructor;
 import kotlinx.metadata.KmContractVisitor;
 import kotlinx.metadata.KmEffectExpressionVisitor;
@@ -29,6 +30,7 @@ import kotlinx.metadata.KmEffectInvocationKind;
 import kotlinx.metadata.KmEffectType;
 import kotlinx.metadata.KmEffectVisitor;
 import kotlinx.metadata.KmExtensionType;
+import kotlinx.metadata.KmFlexibleTypeUpperBound;
 import kotlinx.metadata.KmFunction;
 import kotlinx.metadata.KmFunctionExtensionVisitor;
 import kotlinx.metadata.KmFunctionVisitor;
@@ -45,6 +47,7 @@ import kotlinx.metadata.KmTypeExtensionVisitor;
 import kotlinx.metadata.KmTypeParameter;
 import kotlinx.metadata.KmTypeParameterExtensionVisitor;
 import kotlinx.metadata.KmTypeParameterVisitor;
+import kotlinx.metadata.KmTypeProjection;
 import kotlinx.metadata.KmTypeVisitor;
 import kotlinx.metadata.KmValueParameter;
 import kotlinx.metadata.KmValueParameterVisitor;
@@ -65,8 +68,6 @@ import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor;
 import kotlinx.metadata.jvm.KotlinClassMetadata;
-import kotlinx.metadata.jvm.internal.JvmMetadataExtensions;
-import kotlinx.metadata.jvm.internal.JvmPropertyExtension;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
 import proguard.classfile.LibraryClass;
@@ -133,6 +134,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -735,13 +737,115 @@ implements ClassVisitor,
 
     private static KotlinTypeMetadata toKotlinTypeMetadata(KmType kmType)
     {
+        return toKotlinTypeMetadata(kmType, null);
+    }
+
+    private static KotlinTypeMetadata toKotlinTypeMetadata(KmType kmType, KmVariance kmVariance)
+    {
         if (kmType == null) return null;
 
-        KotlinTypeMetadata type = new KotlinTypeMetadata(convertTypeFlags(kmType.getFlags()));
-        TypeReader typeReader = new TypeReader(type);
-        // TODO: remove visitor.
-        kmType.accept(typeReader);
+        KotlinTypeMetadata type = new KotlinTypeMetadata(convertTypeFlags(kmType.getFlags()), fromKmVariance(kmVariance));
+
+        type.abbreviation = toKotlinTypeMetadata(kmType.getAbbreviatedType(), null);
+        
+        if (kmType.getClassifier() instanceof KmClassifier.Class)
+        {
+            KmClassifier.Class classifier = (KmClassifier.Class)kmType.getClassifier();
+            String className = classifier.getName();
+              // Fix this simple case of corrupted metadata.
+            if (ClassUtil.isInternalClassType(className))
+            {
+                className = ClassUtil.internalClassNameFromClassType(className);
+            }
+
+            // Transform the class name to a valid Java name.
+            // Must be changed back in KotlinMetadataWriter.
+            if (className.startsWith("."))
+            {
+                className = className.substring(1);
+            }
+
+            className =
+                className.replace(KotlinConstants.INNER_CLASS_SEPARATOR,
+                                  TypeConstants. INNER_CLASS_SEPARATOR);
+
+            type.className = className;          
+        }
+        else if (kmType.getClassifier() instanceof KmClassifier.TypeParameter)
+        {
+            KmClassifier.TypeParameter classifier = (KmClassifier.TypeParameter)kmType.getClassifier();
+            type.typeParamID = classifier.getId();
+        }
+        else if (kmType.getClassifier() instanceof KmClassifier.TypeAlias)
+        {
+            // Note that all types are expanded for metadata produced
+            // by the Kotlin compiler, so the the type with a type alias
+            // classifier may only appear in a call to [visitAbbreviatedType].
+            KmClassifier.TypeAlias classifer = (KmClassifier.TypeAlias)kmType.getClassifier();
+            type.aliasName = classifer.getName();
+        }
+
+        // Outer class type example:
+        //
+        //      class A<T> { inner class B<U> }
+        //
+        //      fun foo(a: A<*>.B<Byte?>) {}
+        //
+        //  The type of the `foo`'s parameter in the metadata is `B<Byte>` (a type whose classifier is class `B`, and it has one type argument,
+        //  type `Byte?`), and its outer type is `A<*>` (a type whose classifier is class `A`, and it has one type argument, star projection).
+        type.outerClassType = toKotlinTypeMetadata(kmType.getOuterType());
+
+        // For example, in `MutableMap<in String?, *>`, `in String?` is the type projection which is the first type argument of the type.
+        type.typeArguments = kmType
+                .getArguments()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(KotlinMetadataInitializer::toKotlinTypeMetadataFromKotlinTypeProjection)
+                .collect(Collectors.toList());
+
+        //  Flexible types in Kotlin include platform types in Kotlin/JVM and `dynamic` type in Kotlin/JS.
+        
+        KmFlexibleTypeUpperBound flexibleTypeUpperBound = kmType.getFlexibleTypeUpperBound();
+        if (flexibleTypeUpperBound != null)
+        {
+            // typeFlexibilityId id of the kind of flexibility this type has. For example, "kotlin.jvm.PlatformType" for JVM platform types,
+            // or "kotlin.DynamicType" for JS dynamic type, may be null.
+            type.flexibilityID = flexibleTypeUpperBound.getTypeFlexibilityId();
+            type.upperBounds = new ArrayList<>(Collections.singletonList(toKotlinTypeMetadata(flexibleTypeUpperBound.getType())));
+        }
+        else
+        {
+            type.upperBounds = new ArrayList<>();
+        }
+
+        type.isRaw = JvmExtensionsKt.isRaw(kmType);
+
+        type.annotations = JvmExtensionsKt
+                .getAnnotations(kmType)
+                .stream()
+                .map(KotlinAnnotationUtilKt::convertAnnotation)
+                .collect(Collectors.toList());
+
+
+        //PROBBUG if a value parameter or a type parameter has an annotation then
+        //        the annotation will be stored there but the flag will be
+        //        incorrectly set on this type. Sometimes the flag is not set
+        //        when there are annotations, sometimes the flag is set but there are no annotations.
+        type.flags.common.hasAnnotations = !type.annotations.isEmpty();
+
         return type;
+    }
+
+    private static KotlinTypeMetadata toKotlinTypeMetadataFromKotlinTypeProjection(KmTypeProjection kmTypeProjection)
+    {
+        if (kmTypeProjection == KmTypeProjection.STAR)
+        {
+            return KotlinTypeMetadata.starProjection();
+        }
+        else
+        {
+            return toKotlinTypeMetadata(kmTypeProjection.getType(), kmTypeProjection.getVariance());
+        }
     }
     
     private static KotlinTypeParameterMetadata toKotlinTypeParameterMetadata(KmTypeParameter kmTypeParameter)
@@ -1831,6 +1935,8 @@ implements ClassVisitor,
 
     private static KotlinTypeVariance fromKmVariance(KmVariance variance)
     {
+        if (variance == null) return null;
+
         switch(variance)
         {
             case IN:        return KotlinTypeVariance.IN;
