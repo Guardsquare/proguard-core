@@ -24,6 +24,7 @@ import kotlinx.metadata.KmAnnotation;
 import kotlinx.metadata.KmClass;
 import kotlinx.metadata.KmClassifier;
 import kotlinx.metadata.KmConstructor;
+import kotlinx.metadata.KmContract;
 import kotlinx.metadata.KmContractVisitor;
 import kotlinx.metadata.KmEffectExpressionVisitor;
 import kotlinx.metadata.KmEffectInvocationKind;
@@ -658,10 +659,48 @@ implements ClassVisitor,
             convertFunctionFlags(kmFunction.getFlags()),
             kmFunction.getName()
         );
-        FunctionReader functionReader = new FunctionReader(kotlinFunctionMetadata);
-        // TODO: remove visitor.
-        kmFunction.accept(functionReader);
+
+        // TODO: We previously used a list, but there should be a single contract.
+        kotlinFunctionMetadata.contracts = kmFunction.getContract() != null ?
+                new ArrayList<>(Collections.singleton(toKotlinContractMetadata(kmFunction.getContract()))) :
+                new ArrayList<>();
+
+        kotlinFunctionMetadata.receiverType = toKotlinTypeMetadata(kmFunction.getReceiverParameterType());
+        kotlinFunctionMetadata.contextReceivers = kmFunction
+                .getContextReceiverTypes()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+                .collect(Collectors.toList());
+
+        kotlinFunctionMetadata.returnType = toKotlinTypeMetadata(kmFunction.returnType);
+        kotlinFunctionMetadata.typeParameters = kmFunction
+                .getTypeParameters()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinTypeParameterMetadata)
+                .collect(Collectors.toList());
+
+        List<KmValueParameter> valueParameters = kmFunction.getValueParameters();
+        kotlinFunctionMetadata.valueParameters = new ArrayList<>(valueParameters.size());
+        for (int i = 0; i < valueParameters.size(); i++)
+        {
+            kotlinFunctionMetadata.valueParameters.add(toKotlinValueParameterMetadata(i, valueParameters.get(i)));
+        }
+
+        kotlinFunctionMetadata.versionRequirement    = toKotlinVersionRequirementMetadata(kmFunction.getVersionRequirements());
+        kotlinFunctionMetadata.jvmSignature          = fromKotlinJvmMethodSignature(JvmExtensionsKt.getSignature(kmFunction));
+        kotlinFunctionMetadata.lambdaClassOriginName = JvmExtensionsKt.getLambdaClassOriginName(kmFunction);
+
         return kotlinFunctionMetadata;
+    }
+
+    private static KotlinContractMetadata toKotlinContractMetadata(KmContract kmContract)
+    {
+        KotlinContractMetadata kotlinContractMetadata = new KotlinContractMetadata();
+
+        ContractReader contractReader = new ContractReader(kotlinContractMetadata);
+        kmContract.accept(contractReader);
+
+        return kotlinContractMetadata;
     }
 
     private static KotlinTypeAliasMetadata toKotlinTypeAliasMetadata(KmTypeAlias kmTypeAlias)
@@ -799,7 +838,6 @@ implements ClassVisitor,
         type.typeArguments = kmType
                 .getArguments()
                 .stream()
-                .filter(Objects::nonNull)
                 .map(KotlinMetadataInitializer::toKotlinTypeMetadataFromKotlinTypeProjection)
                 .collect(Collectors.toList());
 
