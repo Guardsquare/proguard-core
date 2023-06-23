@@ -686,7 +686,7 @@ implements ClassVisitor,
             kotlinFunctionMetadata.valueParameters.add(toKotlinValueParameterMetadata(i, valueParameters.get(i)));
         }
 
-        kotlinFunctionMetadata.versionRequirement    = toKotlinVersionRequirementMetadata(kmFunction.getVersionRequirements());
+        kotlinFunctionMetadata.versionRequirement    = toKotlinVersionRequirementMetadataFromList(kmFunction.getVersionRequirements());
         kotlinFunctionMetadata.jvmSignature          = fromKotlinJvmMethodSignature(JvmExtensionsKt.getSignature(kmFunction));
         kotlinFunctionMetadata.lambdaClassOriginName = JvmExtensionsKt.getLambdaClassOriginName(kmFunction);
 
@@ -895,9 +895,23 @@ implements ClassVisitor,
             fromKmVariance(kmTypeParameter.getVariance())
         );
 
-        TypeParameterReader typeParameterReader = new TypeParameterReader(kotlinTypeParameterMetadata);
-        // TODO: remove visitor.
-        kmTypeParameter.accept(typeParameterReader);
+        kotlinTypeParameterMetadata.upperBounds = kmTypeParameter
+                .getUpperBounds()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+                .collect(Collectors.toList());
+
+        kotlinTypeParameterMetadata.annotations = JvmExtensionsKt
+                .getAnnotations(kmTypeParameter)
+                .stream()
+                .map(KotlinAnnotationUtilKt::convertAnnotation)
+                .collect(Collectors.toList());
+
+        //PROBBUG if a value parameter or a type parameter has an annotation then
+        //        the annotation will be stored there but the flag will be
+        //        incorrectly set on this type. Sometimes the flag is not set
+        //        when there are annotations, sometimes the flag is set but there are no annotations.
+        kotlinTypeParameterMetadata.flags.common.hasAnnotations = !kotlinTypeParameterMetadata.annotations.isEmpty();
 
         return kotlinTypeParameterMetadata;
     }
