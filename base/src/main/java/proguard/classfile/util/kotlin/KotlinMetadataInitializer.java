@@ -20,27 +20,22 @@ package proguard.classfile.util.kotlin;
 import kotlin.Metadata;
 import kotlinx.metadata.Flag;
 import kotlinx.metadata.InconsistentKotlinMetadataException;
-import kotlinx.metadata.KmAnnotation;
 import kotlinx.metadata.KmClass;
 import kotlinx.metadata.KmClassifier;
 import kotlinx.metadata.KmConstructor;
 import kotlinx.metadata.KmContract;
-import kotlinx.metadata.KmContractVisitor;
-import kotlinx.metadata.KmEffectExpressionVisitor;
+import kotlinx.metadata.KmEffect;
+import kotlinx.metadata.KmEffectExpression;
 import kotlinx.metadata.KmEffectInvocationKind;
 import kotlinx.metadata.KmEffectType;
-import kotlinx.metadata.KmEffectVisitor;
-import kotlinx.metadata.KmExtensionType;
 import kotlinx.metadata.KmFlexibleTypeUpperBound;
 import kotlinx.metadata.KmFunction;
 import kotlinx.metadata.KmPackage;
 import kotlinx.metadata.KmProperty;
 import kotlinx.metadata.KmType;
 import kotlinx.metadata.KmTypeAlias;
-import kotlinx.metadata.KmTypeExtensionVisitor;
 import kotlinx.metadata.KmTypeParameter;
 import kotlinx.metadata.KmTypeProjection;
-import kotlinx.metadata.KmTypeVisitor;
 import kotlinx.metadata.KmValueParameter;
 import kotlinx.metadata.KmVariance;
 import kotlinx.metadata.KmVersionRequirement;
@@ -52,7 +47,6 @@ import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmFlag;
 import kotlinx.metadata.jvm.JvmMetadataUtil;
 import kotlinx.metadata.jvm.JvmMethodSignature;
-import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
 import kotlinx.metadata.jvm.KotlinClassMetadata;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
@@ -72,7 +66,6 @@ import proguard.classfile.attribute.visitor.AttributeNameFilter;
 import proguard.classfile.constant.IntegerConstant;
 import proguard.classfile.constant.Utf8Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.kotlin.KotlinAnnotation;
 import proguard.classfile.kotlin.KotlinClassKindMetadata;
 import proguard.classfile.kotlin.KotlinConstants;
 import proguard.classfile.kotlin.KotlinConstructorMetadata;
@@ -142,7 +135,6 @@ import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE
 import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_SYNTHETIC_CLASS;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_METADATA;
 import static proguard.classfile.kotlin.KotlinConstants.WHEN_MAPPINGS_SUFFIX;
-import static proguard.classfile.util.kotlin.KotlinAnnotationUtilKt.convertAnnotation;
 
 /**
  * Initializes the kotlin metadata for a Kotlin class.
@@ -739,10 +731,72 @@ implements ClassVisitor,
     {
         KotlinContractMetadata kotlinContractMetadata = new KotlinContractMetadata();
 
-        ContractReader contractReader = new ContractReader(kotlinContractMetadata);
-        kmContract.accept(contractReader);
+        kotlinContractMetadata.effects = kmContract
+                .getEffects()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinEffectMetadata)
+                .collect(Collectors.toList());
 
         return kotlinContractMetadata;
+    }
+
+    private static KotlinEffectMetadata toKotlinEffectMetadata(KmEffect kmEffect)
+    {
+        KotlinEffectMetadata effect = new KotlinEffectMetadata(
+            fromKmEffectType(kmEffect.getType()),
+            fromKmEffectInvocationKind(kmEffect.getInvocationKind())
+        );
+
+        effect.conclusionOfConditionalEffect = toKotlinEffectExpressionMetadata(kmEffect.getConclusion());
+        effect.constructorArguments = kmEffect
+                .getConstructorArguments()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinEffectExpressionMetadata)
+                .collect(Collectors.toList());
+
+        return effect;
+    }
+
+    private static KotlinEffectExpressionMetadata toKotlinEffectExpressionMetadata(KmEffectExpression kmEffectExpression)
+    {
+        if (kmEffectExpression == null) return null;
+
+        KotlinEffectExpressionMetadata expressionMetadata = new KotlinEffectExpressionMetadata();
+
+        expressionMetadata.flags = convertEffectExpressionFlags(kmEffectExpression.getFlags());
+
+        if (kmEffectExpression.getParameterIndex() != null)
+        {
+            // Optional 1-based index of the value parameter of the function, for effects which assert something about
+            // the function parameters. The index 0 means the extension receiver parameter. May be null
+            expressionMetadata.parameterIndex = kmEffectExpression.getParameterIndex();
+        }
+        
+        if (kmEffectExpression.getConstantValue() != null)
+        {
+            // The constant value used in the effect expression. May be `true`, `false` or `null`.
+            expressionMetadata.hasConstantValue = true;
+            expressionMetadata.constantValue = kmEffectExpression.getConstantValue().getValue();
+        }
+
+        if (kmEffectExpression.isInstanceType() != null)
+        {
+            expressionMetadata.typeOfIs = toKotlinTypeMetadata(kmEffectExpression.isInstanceType());
+        }
+
+        expressionMetadata.andRightHandSides = kmEffectExpression
+                .getAndArguments()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinEffectExpressionMetadata)
+                .collect(Collectors.toList());
+
+        expressionMetadata.orRightHandSides = kmEffectExpression
+                .getOrArguments()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinEffectExpressionMetadata)
+                .collect(Collectors.toList());
+
+        return expressionMetadata;
     }
 
     private static KotlinTypeAliasMetadata toKotlinTypeAliasMetadata(KmTypeAlias kmTypeAlias)
@@ -1037,368 +1091,7 @@ implements ClassVisitor,
     }
 
 
-    private static class ContractReader
-    extends KmContractVisitor
-    {
-        private final KotlinContractMetadata kotlinContractMetadata;
-
-        private final ArrayList<KotlinEffectMetadata> effects;
-
-        ContractReader(KotlinContractMetadata kotlinContractMetadata)
-        {
-            this.kotlinContractMetadata = kotlinContractMetadata;
-
-            this.effects = new ArrayList<>(2);
-        }
-
-        /**
-         * @param invocationKind number of invocations of the lambda parameter of this function, may be null
-         */
-        @Override
-        public KmEffectVisitor visitEffect(KmEffectType effectType, KmEffectInvocationKind invocationKind)
-        {
-            KotlinEffectMetadata effect = new KotlinEffectMetadata(
-                fromKmEffectType(effectType),
-                fromKmEffectInvocationKind(invocationKind));
-            effects.add(effect);
-
-            return new EffectReader(effect);
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinContractMetadata.effects = trimmed(this.effects);
-        }
-    }
-
-
-    private static class EffectReader
-    extends KmEffectVisitor
-    {
-        private final KotlinEffectMetadata kotlinEffectMetadata;
-        private final ArrayList<KotlinEffectExpressionMetadata> constructorArguments = new ArrayList<>();
-
-        EffectReader(KotlinEffectMetadata kotlinEffectMetadata)
-        {
-            this.kotlinEffectMetadata = kotlinEffectMetadata;
-        }
-
-        /**
-         * Visits the optional conclusion of the effect. If this method is called, the effect represents an implication with the
-         * right-hand side handled by the returned visitor.
-         */
-        @Override
-        public KmEffectExpressionVisitor visitConclusionOfConditionalEffect()
-        {
-            KotlinEffectExpressionMetadata conclusion = new KotlinEffectExpressionMetadata();
-            kotlinEffectMetadata.conclusionOfConditionalEffect = conclusion;
-
-            return new EffectExpressionReader(conclusion);
-        }
-
-        /**
-         * Visits the optional argument of the effect constructor, i.e. the constant value for the [KmEffectType.RETURNS_CONSTANT] effect,
-         * or the parameter reference for the [KmEffectType.CALLS] effect.
-         */
-        @Override
-        public KmEffectExpressionVisitor visitConstructorArgument()
-        {
-            KotlinEffectExpressionMetadata constructorArg = new KotlinEffectExpressionMetadata();
-            constructorArguments.add(constructorArg);
-
-            return new EffectExpressionReader(constructorArg);
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinEffectMetadata.constructorArguments = trimmed(this.constructorArguments);
-        }
-    }
-
-
-    private static class EffectExpressionReader
-    extends KmEffectExpressionVisitor
-    {
-        private final KotlinEffectExpressionMetadata       kotlinEffectExpressionMetadata;
-        private final List<KotlinEffectExpressionMetadata> andRightHandSides = new ArrayList<>();
-        private final List<KotlinEffectExpressionMetadata> orRightHandSides  = new ArrayList<>();
-
-        EffectExpressionReader(KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
-        {
-            this.kotlinEffectExpressionMetadata = kotlinEffectExpressionMetadata;
-        }
-
-        /**
-         * @param parameterIndex optional 1-based index of the value parameter of the function, for effects which assert something about
-         *                       the function parameters. The index 0 means the extension receiver parameter. May be null
-         */
-        @Override
-        public void visit(int flags, Integer parameterIndex)
-        {
-            kotlinEffectExpressionMetadata.flags = convertEffectExpressionFlags(flags);
-
-            if (parameterIndex != null)
-            {
-                kotlinEffectExpressionMetadata.parameterIndex = parameterIndex;
-            }
-        }
-
-        /**
-         * Visits the constant value used in the effect expression. May be `true`, `false` or `null`.
-         * @param o may be null
-         */
-        @Override
-        public void visitConstantValue(Object o)
-        {
-            kotlinEffectExpressionMetadata.hasConstantValue = true;
-            kotlinEffectExpressionMetadata.constantValue    = o;
-        }
-
-        /**
-         * Visits the type used as the target of an `is`-expression in the effect expression.
-         */
-        @Override
-        public KmTypeVisitor visitIsInstanceType(int flags)
-        {
-            KotlinTypeMetadata typeOfIs = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinEffectExpressionMetadata.typeOfIs = typeOfIs;
-
-            return new TypeReader(typeOfIs);
-        }
-
-        /**
-         * Visits the argument of an `&&`-expression. If this method is called, the expression represents the left-hand side and
-         * the returned visitor handles the right-hand side.
-         */
-        @Override
-        public KmEffectExpressionVisitor visitAndArgument()
-        {
-            KotlinEffectExpressionMetadata andRHS = new KotlinEffectExpressionMetadata();
-            this.andRightHandSides.add(andRHS);
-            return new EffectExpressionReader(andRHS);
-        }
-
-
-        /**
-         * Visits the argument of an `||`-expression. If this method is called, the expression represents the left-hand side and
-         * the returned visitor handles the right-hand side.
-         */
-        @Override
-        public KmEffectExpressionVisitor visitOrArgument()
-        {
-            KotlinEffectExpressionMetadata orRHS = new KotlinEffectExpressionMetadata();
-            this.orRightHandSides.add(orRHS);
-            return new EffectExpressionReader(orRHS);
-        }
-
-        @Override
-        public void visitEnd() {
-            kotlinEffectExpressionMetadata.andRightHandSides = andRightHandSides;
-            kotlinEffectExpressionMetadata.orRightHandSides = orRightHandSides;
-        }
-    }
-
-
-    /**
-     * A visitor to visit a type. The type must have a classifier which is one of: a class [visitClass], type parameter [visitTypeParameter]
-     * or type alias [visitTypeAlias]. If the type's classifier is a class or a type alias, it can have type arguments ([visitArgument] and
-     * [visitStarProjection]). If the type's classifier is an inner class, it can have the outer type ([visitOuterType]), which captures
-     * the generic type arguments of the outer class. Also, each type can have an abbreviation ([visitAbbreviatedType]) in case a type alias
-     * was used originally at this site in the declaration (all types are expanded by default for metadata produced by the Kotlin compiler).
-     * If [visitFlexibleTypeUpperBound] is called, this type is regarded as a flexible type, and its contents represent the lower bound,
-     * and the result of the call represents the upper bound.
-     *
-     * When using this class, [visitEnd] must be called exactly once and after calls to all other visit* methods.
-     */
-    private static class TypeReader
-    extends KmTypeVisitor
-    {
-        private KotlinTypeMetadata kotlinTypeMetadata;
-
-        private final ArrayList<KotlinTypeMetadata> typeArguments;
-        private final ArrayList<KotlinTypeMetadata> upperBounds;
-        private final ArrayList<KotlinAnnotation>   annotations;
-
-        TypeReader(KotlinTypeMetadata kotlinTypeMetadata)
-        {
-            this.kotlinTypeMetadata = kotlinTypeMetadata;
-
-            this.typeArguments = new ArrayList<>(2);
-            this.annotations   = new ArrayList<>(1);
-            this.upperBounds   = new ArrayList<>();
-        }
-
-        /**
-         * Visits the abbreviation of this type. Note that all types are expanded for metadata produced by the Kotlin compiler. For example:
-         *
-         *     typealias A<T> = MutableList<T>
-         *
-         *     fun foo(a: A<Any>) {}
-         *
-         * The type of the `foo`'s parameter in the metadata is actually `MutableList<Any>`, and its abbreviation is `A<Any>`.
-         */
-        @Override
-        public KmTypeVisitor visitAbbreviatedType(int flags)
-        {
-            KotlinTypeMetadata abbreviatedType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinTypeMetadata.abbreviation = abbreviatedType;
-
-            return new TypeReader(abbreviatedType);
-        }
-
-        /**
-         * Visits the name of the class, if this type's classifier is a class.
-         */
-        @Override
-        public void visitClass(String className)
-        {
-            // Fix this simple case of corrupted metadata.
-            if (ClassUtil.isInternalClassType(className))
-            {
-                className = ClassUtil.internalClassNameFromClassType(className);
-            }
-
-            // Transform the class name to a valid Java name.
-            // Must be changed back in KotlinMetadataWriter.
-            if (className.startsWith("."))
-            {
-                className = className.substring(1);
-            }
-
-            className =
-                className.replace(KotlinConstants.INNER_CLASS_SEPARATOR,
-                                  TypeConstants. INNER_CLASS_SEPARATOR);
-
-            kotlinTypeMetadata.className = className;
-        }
-
-        @Override
-        public void visitTypeParameter(int id)
-        {
-            kotlinTypeMetadata.typeParamID = id;
-        }
-
-        /**
-         * Visits the name of the type alias, if this type's classifier is a type alias. Note that all types are expanded for metadata produced
-         * by the Kotlin compiler, so the the type with a type alias classifier may only appear in a call to [visitAbbreviatedType].
-         */
-        @Override
-        public void visitTypeAlias(String aliasName)
-        {
-            kotlinTypeMetadata.aliasName = aliasName;
-        }
-
-        /**
-         * Visits the outer type, if this type's classifier is an inner class. For example:
-         *
-         *     class A<T> { inner class B<U> }
-         *
-         *     fun foo(a: A<*>.B<Byte?>) {}
-         *
-         * The type of the `foo`'s parameter in the metadata is `B<Byte>` (a type whose classifier is class `B`, and it has one type argument,
-         * type `Byte?`), and its outer type is `A<*>` (a type whose classifier is class `A`, and it has one type argument, star projection).
-         */
-        @Override
-        public KmTypeVisitor visitOuterType(int flags)
-        {
-            KotlinTypeMetadata outerType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinTypeMetadata.outerClassType = outerType;
-
-            return new TypeReader(outerType);
-        }
-
-        /**
-         * Visits the type projection used in a type argument of the type based on a class or on a type alias.
-         * For example, in `MutableMap<in String?, *>`, `in String?` is the type projection which is the first type argument of the type.
-         */
-        @Override
-        public KmTypeVisitor visitArgument(int flags, KmVariance variance)
-        {
-            KotlinTypeMetadata typeArgument = new KotlinTypeMetadata(convertTypeFlags(flags), fromKmVariance(variance));
-            typeArguments.add(typeArgument);
-
-            return new TypeReader(typeArgument);
-        }
-
-        @Override
-        public void visitStarProjection()
-        {
-            typeArguments.add(KotlinTypeMetadata.starProjection());
-        }
-
-        /**
-         * Visits the upper bound of the type, marking it as flexible and its contents as the lower bound. Flexible types in Kotlin include
-         * platform types in Kotlin/JVM and `dynamic` type in Kotlin/JS.
-         *
-         * @param typeFlexibilityId id of the kind of flexibility this type has. For example, "kotlin.jvm.PlatformType" for JVM platform types,
-         *                          or "kotlin.DynamicType" for JS dynamic type, may be null
-         */
-        @Override
-        public KmTypeVisitor visitFlexibleTypeUpperBound(int flags, String typeFlexibilityId)
-        {
-            kotlinTypeMetadata.flexibilityID = typeFlexibilityId;
-
-            KotlinTypeMetadata upperBound = new KotlinTypeMetadata(convertTypeFlags(flags));
-            this.upperBounds.add(upperBound);
-
-            return new TypeReader(upperBound);
-        }
-
-        @Override
-        public KmTypeExtensionVisitor visitExtensions(KmExtensionType extensionType)
-        {
-            return new TypeExtensionReader();
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinTypeMetadata.typeArguments = trimmed(this.typeArguments);
-            kotlinTypeMetadata.annotations   = trimmed(this.annotations);
-            kotlinTypeMetadata.upperBounds   = trimmed(this.upperBounds);
-
-            //PROBBUG if a value parameter or a type parameter has an annotation then
-            //        the annotation will be stored there but the flag will be
-            //        incorrectly set on this type. Sometimes the flag is not set
-            //        when there are annotations, sometimes the flag is set but there are no annotations.
-            kotlinTypeMetadata.flags.common.hasAnnotations = !annotations.isEmpty();
-        }
-
-
-        private class TypeExtensionReader
-        extends JvmTypeExtensionVisitor
-        {
-            /**
-             * @param isRaw whether the type is seen as a raw type in Java
-             */
-            @Override
-            public void visit(boolean isRaw)
-            {
-                kotlinTypeMetadata.isRaw = isRaw;
-            }
-
-            @Override
-            public void visitAnnotation(KmAnnotation annotation)
-            {
-                // e.g. @ParameterName("prefix") [map, throw away if shrunk], @UnsafeVariance [throw away?]
-                annotations.add(convertAnnotation(annotation));
-            }
-
-            @Override
-            public void visitEnd() {}
-        }
-    }
-
-
     // Small helper methods.
-
-    private static <K> List<K> trimmed(ArrayList<K> list)
-    {
-        list.trimToSize();
-        return list;
-    }
 
 
     private static MethodSignature fromKotlinJvmMethodSignature(JvmMethodSignature jvmMethodSignature)
