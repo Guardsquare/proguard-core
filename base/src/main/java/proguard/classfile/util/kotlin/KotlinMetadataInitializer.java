@@ -981,9 +981,16 @@ implements ClassVisitor,
     private static KotlinVersionRequirementMetadata toKotlinVersionRequirementMetadata(KmVersionRequirement kmVersionRequirement)
     {
         KotlinVersionRequirementMetadata versionReq = new KotlinVersionRequirementMetadata();
-        VersionRequirementReader versionRequirementReader = new VersionRequirementReader(versionReq);
-        // TODO: remove visitor.
-        kmVersionRequirement.accept(versionRequirementReader);
+
+        versionReq.kind      = fromKmVersionRequirementVersionKind(kmVersionRequirement.kind);
+        versionReq.level     = fromKmVersionRequirementLevel(kmVersionRequirement.level);
+        versionReq.errorCode = kmVersionRequirement.getErrorCode();
+        versionReq.message   = kmVersionRequirement.getMessage();
+
+        versionReq.major = kmVersionRequirement.version.getMajor();
+        versionReq.minor = kmVersionRequirement.version.getMinor();
+        versionReq.patch = kmVersionRequirement.version.getPatch();
+
         return versionReq;
     }
 
