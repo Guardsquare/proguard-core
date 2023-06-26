@@ -19,36 +19,43 @@ package proguard.classfile.io.kotlin;
 
 import kotlin.Metadata;
 import kotlinx.metadata.Flag;
-import kotlinx.metadata.KmClassVisitor;
-import kotlinx.metadata.KmConstructorVisitor;
-import kotlinx.metadata.KmContractVisitor;
-import kotlinx.metadata.KmDeclarationContainerVisitor;
-import kotlinx.metadata.KmEffectExpressionVisitor;
+import kotlinx.metadata.KmClass;
+import kotlinx.metadata.KmClassifier;
+import kotlinx.metadata.KmConstantValue;
+import kotlinx.metadata.KmConstructor;
+import kotlinx.metadata.KmContract;
+import kotlinx.metadata.KmDeclarationContainer;
+import kotlinx.metadata.KmEffect;
+import kotlinx.metadata.KmEffectExpression;
 import kotlinx.metadata.KmEffectInvocationKind;
 import kotlinx.metadata.KmEffectType;
-import kotlinx.metadata.KmEffectVisitor;
-import kotlinx.metadata.KmFunctionVisitor;
-import kotlinx.metadata.KmPropertyVisitor;
-import kotlinx.metadata.KmTypeAliasVisitor;
-import kotlinx.metadata.KmTypeParameterVisitor;
-import kotlinx.metadata.KmTypeVisitor;
-import kotlinx.metadata.KmValueParameterVisitor;
+import kotlinx.metadata.KmFlexibleTypeUpperBound;
+import kotlinx.metadata.KmFunction;
+import kotlinx.metadata.KmLambda;
+import kotlinx.metadata.KmPackage;
+import kotlinx.metadata.KmProperty;
+import kotlinx.metadata.KmType;
+import kotlinx.metadata.KmTypeAlias;
+import kotlinx.metadata.KmTypeParameter;
+import kotlinx.metadata.KmTypeProjection;
+import kotlinx.metadata.KmValueParameter;
 import kotlinx.metadata.KmVariance;
+import kotlinx.metadata.KmVersion;
+import kotlinx.metadata.KmVersionRequirement;
 import kotlinx.metadata.KmVersionRequirementLevel;
 import kotlinx.metadata.KmVersionRequirementVersionKind;
-import kotlinx.metadata.KmVersionRequirementVisitor;
 import kotlinx.metadata.jvm.JvmClassExtensionVisitor;
 import kotlinx.metadata.jvm.JvmConstructorExtensionVisitor;
 import kotlinx.metadata.jvm.JvmDeclarationContainerExtensionVisitor;
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmFlag;
 import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor;
+import kotlinx.metadata.jvm.JvmMetadataUtil;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor;
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor;
-import kotlinx.metadata.jvm.KotlinClassHeader;
 import kotlinx.metadata.jvm.KotlinClassMetadata;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
@@ -225,7 +232,8 @@ implements ClassVisitor,
         }
 
         // Pass the new data to the .read() method as a sanity check.
-        KotlinClassMetadata md = KotlinClassMetadata.read(new KotlinClassHeader(k, mv, d1, d2, xs, pn, xi));
+        Metadata metadata = JvmMetadataUtil.Metadata(k, mv, d1, d2, xs, pn, xi);
+        KotlinClassMetadata md = KotlinClassMetadata.read(metadata);
         if (md == null)
         {
             String version = mv == null ? "unknown" : Arrays.stream(mv).mapToObj(Integer::toString).collect(joining("."));
@@ -334,12 +342,11 @@ implements ClassVisitor,
     private class ContractConstructor
     implements KotlinContractVisitor
     {
-        private KmFunctionVisitor kmdFunctionVisitor;
+        private KmFunction kmFunction;
 
-
-        ContractConstructor(KmFunctionVisitor kmdFunctionVisitor)
+        ContractConstructor(KmFunction kmFunction)
         {
-            this.kmdFunctionVisitor = kmdFunctionVisitor;
+            this.kmFunction = kmFunction;
         }
 
         // Implementations for KotlinContractVisitor.
@@ -349,22 +356,21 @@ implements ClassVisitor,
                                   KotlinFunctionMetadata kotlinFunctionMetadata,
                                   KotlinContractMetadata kotlinContractMetadata)
         {
-            KmContractVisitor kmContractVisitor = kmdFunctionVisitor.visitContract();
+            KmContract kmContract = new KmContract();
 
             kotlinContractMetadata.effectsAccept(clazz,
                                                  kotlinMetadata,
                                                  kotlinFunctionMetadata,
-                                                 new EffectConstructor(kmContractVisitor));
-
-            kmContractVisitor.visitEnd();
+                                                 new EffectConstructor(kmContract));
+            kmFunction.setContract(kmContract);
         }
     }
 
     private class EffectConstructor
     implements KotlinEffectVisitor
     {
-        private final KmContractVisitor kmContractVisitor;
-        private EffectConstructor(KmContractVisitor kmContractVisitor) { this.kmContractVisitor = kmContractVisitor; }
+        private KmContract kmContract;
+        private EffectConstructor(KmContract kmContract) { this.kmContract = kmContract; }
 
 
         // Implementations for KotlinEffectVisitor.
@@ -375,29 +381,28 @@ implements ClassVisitor,
                                 KotlinContractMetadata kotlinContractMetadata,
                                 KotlinEffectMetadata   kotlinEffectMetadata)
         {
-            KmEffectVisitor kmEffectVisitor = kmContractVisitor.visitEffect(toKmEffectType(kotlinEffectMetadata.effectType),
-                                                                            toKmEffectInvocationKind(kotlinEffectMetadata.invocationKind));
+            KmEffect kmEffect = new KmEffect(toKmEffectType(kotlinEffectMetadata.effectType),
+                                             toKmEffectInvocationKind(kotlinEffectMetadata.invocationKind));
 
             kotlinEffectMetadata.conclusionOfConditionalEffectAccept(clazz,
-                                                                     new EffectExprConstructor(kmEffectVisitor));
+                                                                     new EffectExprConstructor(kmEffect));
 
             kotlinEffectMetadata.constructorArgumentAccept(clazz,
-                                                           new EffectExprConstructor(kmEffectVisitor));
+                                                           new EffectExprConstructor(kmEffect));
 
-            kmEffectVisitor.visitEnd();
+            kmContract.getEffects().add(kmEffect);
         }
     }
 
     private class EffectExprConstructor
     implements KotlinEffectExprVisitor
     {
-        private KmEffectExpressionVisitor effectExprVis;
+        private KmEffectExpression kmEffectExpression;
+        private KmEffect           kmEffect;
+        private EffectExprConstructor(KmEffect kmEffect) { this.kmEffect = kmEffect; }
 
-        private KmEffectVisitor effectVis;
-        private EffectExprConstructor(KmEffectVisitor effectVis) { this.effectVis = effectVis; }
-
-        private KmEffectExpressionVisitor nestedExprVis;
-        private EffectExprConstructor(KmEffectExpressionVisitor nestedExprVis) { this.nestedExprVis = nestedExprVis; }
+        private KmEffectExpression nestedKmEffectExpression;
+        private EffectExprConstructor(KmEffectExpression nestedKmEffectExpression) { this.nestedKmEffectExpression = nestedKmEffectExpression; }
 
 
         // Implementations for KotlinEffectExprVisitor.
@@ -406,25 +411,24 @@ implements ClassVisitor,
                                              KotlinEffectMetadata           kotlinEffectMetadata,
                                              KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
         {
-            effectExprVis.visit(convertEffectExpressionFlags(kotlinEffectExpressionMetadata.flags),
-                                kotlinEffectExpressionMetadata.parameterIndex);
+            kmEffectExpression.setFlags(convertEffectExpressionFlags(kotlinEffectExpressionMetadata.flags));
+            kmEffectExpression.setParameterIndex(kotlinEffectExpressionMetadata.parameterIndex);
 
             if (kotlinEffectExpressionMetadata.hasConstantValue)
             {
-                effectExprVis.visitConstantValue(kotlinEffectExpressionMetadata.constantValue);
+                kmEffectExpression.setConstantValue(new KmConstantValue(kotlinEffectExpressionMetadata.constantValue));
             }
 
             kotlinEffectExpressionMetadata.andRightHandSideAccept(clazz,
                                                                   kotlinEffectMetadata,
-                                                                  new EffectExprConstructor(effectExprVis));
+                                                                  new EffectExprConstructor(kmEffectExpression));
             kotlinEffectExpressionMetadata.orRightHandSideAccept(clazz,
                                                                  kotlinEffectMetadata,
-                                                                 new EffectExprConstructor(effectExprVis));
+                                                                 new EffectExprConstructor(kmEffectExpression));
 
             kotlinEffectExpressionMetadata.typeOfIsAccept(clazz,
-                                                          new TypeConstructor(effectExprVis));
+                                                          new TypeConstructor(kmEffectExpression));
 
-            effectExprVis.visitEnd();
         }
 
         @Override
@@ -433,9 +437,9 @@ implements ClassVisitor,
                                           KotlinEffectExpressionMetadata lhs,
                                           KotlinEffectExpressionMetadata rhs)
         {
-            effectExprVis = nestedExprVis.visitAndArgument();
-
+            kmEffectExpression = new KmEffectExpression();
             visitAnyEffectExpression(clazz, kotlinEffectMetadata, rhs);
+            nestedKmEffectExpression.getAndArguments().addAll(kmEffectExpression.getAndArguments());
         }
 
         @Override
@@ -444,9 +448,9 @@ implements ClassVisitor,
                                          KotlinEffectExpressionMetadata lhs,
                                          KotlinEffectExpressionMetadata rhs)
         {
-            effectExprVis = nestedExprVis.visitOrArgument();
-
+            kmEffectExpression = new KmEffectExpression();
             visitAnyEffectExpression(clazz, kotlinEffectMetadata, rhs);
+            nestedKmEffectExpression.getOrArguments().addAll(kmEffectExpression.getOrArguments());
         }
 
         @Override
@@ -454,9 +458,9 @@ implements ClassVisitor,
                                                   KotlinEffectMetadata           kotlinEffectMetadata,
                                                   KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
         {
-            effectExprVis = effectVis.visitConstructorArgument();
-
+            kmEffectExpression = new KmEffectExpression();
             visitAnyEffectExpression(clazz, kotlinEffectMetadata, kotlinEffectExpressionMetadata);
+            kmEffect.getConstructorArguments().add(kmEffectExpression);
         }
 
         @Override
@@ -464,9 +468,9 @@ implements ClassVisitor,
                                               KotlinEffectMetadata           kotlinEffectMetadata,
                                               KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
         {
-            effectExprVis = effectVis.visitConclusionOfConditionalEffect();
-
+            kmEffectExpression = new KmEffectExpression();
             visitAnyEffectExpression(clazz, kotlinEffectMetadata, kotlinEffectExpressionMetadata);
+            kmEffect.setConclusion(kmEffectExpression);
         }
     }
 
@@ -475,14 +479,14 @@ implements ClassVisitor,
                KotlinFunctionVisitor,
                KotlinTypeAliasVisitor
     {
-        KmDeclarationContainerVisitor kmdWriter;
+        KmDeclarationContainer kmDeclarationContainer;
+        KmProperty             kmProperty;
 
-        KmPropertyVisitor                       kmdPropertyVisitor;
         JvmDeclarationContainerExtensionVisitor extensionVisitor;
 
-        KotlinDeclarationContainerConstructor(KmDeclarationContainerVisitor classKmdWriter)
+        KotlinDeclarationContainerConstructor(KmDeclarationContainer kmDeclarationContainer)
         {
-            kmdWriter = classKmdWriter;
+            this.kmDeclarationContainer = kmDeclarationContainer;
         }
 
 
@@ -494,25 +498,26 @@ implements ClassVisitor,
         {
             kotlinPropertyMetadata.typeAccept(clazz,
                                               kotlinDeclarationContainerMetadata,
-                                              new TypeConstructor(kmdPropertyVisitor));
+                                              new TypeConstructor(kmProperty));
             kotlinPropertyMetadata.receiverTypeAccept(clazz,
                                                       kotlinDeclarationContainerMetadata,
-                                                      new TypeConstructor(kmdPropertyVisitor));
+                                                      new TypeConstructor(kmProperty));
             kotlinPropertyMetadata.contextReceiverTypesAccept(clazz,
                                                               kotlinDeclarationContainerMetadata,
-                                                              new TypeConstructor(kmdPropertyVisitor));
+                                                              new TypeConstructor(kmProperty));
             kotlinPropertyMetadata.setterParametersAccept(clazz,
                                                           kotlinDeclarationContainerMetadata,
-                                                          new ValueParameterConstructor(kmdPropertyVisitor));
+                                                          new ValueParameterConstructor(kmProperty));
             kotlinPropertyMetadata.typeParametersAccept(clazz,
                                                         kotlinDeclarationContainerMetadata,
-                                                        new TypeParameterConstructor(kmdPropertyVisitor));
+                                                        new TypeParameterConstructor(kmProperty));
             kotlinPropertyMetadata.versionRequirementAccept(clazz,
                                                             kotlinDeclarationContainerMetadata,
-                                                            new VersionRequirementConstructor(kmdPropertyVisitor));
+                                                            new VersionRequirementConstructor(kmProperty));
 
+            // TODO: Remove extension visitor.
             JvmPropertyExtensionVisitor ext =
-                (JvmPropertyExtensionVisitor) kmdPropertyVisitor.visitExtensions(JvmPropertyExtensionVisitor.TYPE);
+                (JvmPropertyExtensionVisitor) kmProperty.visitExtensions(JvmPropertyExtensionVisitor.TYPE);
 
             JvmMethodSignature getterSignature = toKotlinJvmMethodSignature(kotlinPropertyMetadata.getterSignature);
             JvmMethodSignature setterSignature = toKotlinJvmMethodSignature(kotlinPropertyMetadata.setterSignature);
@@ -538,8 +543,6 @@ implements ClassVisitor,
             }
 
             ext.visitEnd();
-
-            kmdPropertyVisitor.visitEnd();
         }
 
         @Override
@@ -547,13 +550,13 @@ implements ClassVisitor,
                                   KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                   KotlinPropertyMetadata             kotlinPropertyMetadata)
         {
-            kmdPropertyVisitor =
-                kmdWriter.visitProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
-                                        kotlinPropertyMetadata.name,
-                                        convertPropertyAccessorFlags(kotlinPropertyMetadata.getterFlags),
-                                        convertPropertyAccessorFlags(kotlinPropertyMetadata.setterFlags));
+            kmProperty = new KmProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
+                    kotlinPropertyMetadata.name,
+                    convertPropertyAccessorFlags(kotlinPropertyMetadata.getterFlags),
+                    convertPropertyAccessorFlags(kotlinPropertyMetadata.setterFlags));
 
             visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
+            kmDeclarationContainer.getProperties().add(kmProperty);
         }
 
         @Override
@@ -561,13 +564,13 @@ implements ClassVisitor,
                                            KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                            KotlinPropertyMetadata             kotlinPropertyMetadata)
         {
-            kmdPropertyVisitor =
-                extensionVisitor.visitLocalDelegatedProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
-                                                             kotlinPropertyMetadata.name,
-                                                             convertPropertyAccessorFlags(kotlinPropertyMetadata.getterFlags),
-                                                             convertPropertyAccessorFlags(kotlinPropertyMetadata.setterFlags));
+            kmProperty = new KmProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
+                                        kotlinPropertyMetadata.name,
+                                        convertPropertyAccessorFlags(kotlinPropertyMetadata.getterFlags),
+                                        convertPropertyAccessorFlags(kotlinPropertyMetadata.setterFlags));
 
             visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
+            kmDeclarationContainer.getProperties().add(kmProperty);
         }
 
 
@@ -580,34 +583,34 @@ implements ClassVisitor,
                                   KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                   KotlinFunctionMetadata             kotlinFunctionMetadata)
         {
-            KmFunctionVisitor kmdFunctionVisitor =
-                kmdWriter.visitFunction(convertFunctionFlags(kotlinFunctionMetadata.flags),
+            KmFunction kmFunction = new KmFunction(convertFunctionFlags(kotlinFunctionMetadata.flags),
                                         kotlinFunctionMetadata.name);
 
             kotlinFunctionMetadata.valueParametersAccept(clazz,
                                                          kotlinDeclarationContainerMetadata,
-                                                         new ValueParameterConstructor(kmdFunctionVisitor));
+                                                         new ValueParameterConstructor(kmFunction));
             kotlinFunctionMetadata.returnTypeAccept(clazz,
                                                     kotlinDeclarationContainerMetadata,
-                                                    new TypeConstructor(kmdFunctionVisitor));
+                                                    new TypeConstructor(kmFunction));
             kotlinFunctionMetadata.receiverTypeAccept(clazz,
                                                       kotlinDeclarationContainerMetadata,
-                                                      new TypeConstructor(kmdFunctionVisitor));
+                                                      new TypeConstructor(kmFunction));
             kotlinFunctionMetadata.contextReceiverTypesAccept(clazz,
                                                               kotlinDeclarationContainerMetadata,
-                                                              new TypeConstructor(kmdFunctionVisitor));
+                                                              new TypeConstructor(kmFunction));
             kotlinFunctionMetadata.typeParametersAccept(clazz,
                                                         kotlinDeclarationContainerMetadata,
-                                                        new TypeParameterConstructor(kmdFunctionVisitor));
+                                                        new TypeParameterConstructor(kmFunction));
             kotlinFunctionMetadata.versionRequirementAccept(clazz,
                                                             kotlinDeclarationContainerMetadata,
-                                                            new VersionRequirementConstructor(kmdFunctionVisitor));
+                                                            new VersionRequirementConstructor(kmFunction));
             kotlinFunctionMetadata.contractsAccept(clazz,
                                                    kotlinDeclarationContainerMetadata,
-                                                   new ContractConstructor(kmdFunctionVisitor));
+                                                   new ContractConstructor(kmFunction));
 
+            // TODO: Remove extension visitor.
             JvmFunctionExtensionVisitor ext =
-                (JvmFunctionExtensionVisitor) kmdFunctionVisitor.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
+                (JvmFunctionExtensionVisitor) kmFunction.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
 
             JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
 
@@ -619,7 +622,7 @@ implements ClassVisitor,
             }
             ext.visitEnd();
 
-            kmdFunctionVisitor.visitEnd();
+            kmDeclarationContainer.getFunctions().add(kmFunction);
         }
 
 
@@ -629,26 +632,25 @@ implements ClassVisitor,
                                    KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
                                    KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
         {
-            KmTypeAliasVisitor kmdAliasVisitor =
-                kmdWriter.visitTypeAlias(convertTypeAliasFlags(kotlinTypeAliasMetadata.flags),
-                                         kotlinTypeAliasMetadata.name);
+            KmTypeAlias kmTypeAlias = new KmTypeAlias(convertTypeAliasFlags(kotlinTypeAliasMetadata.flags),
+                                          kotlinTypeAliasMetadata.name);
 
             kotlinTypeAliasMetadata.typeParametersAccept(clazz,
                                                          kotlinDeclarationContainerMetadata,
-                                                         new TypeParameterConstructor(kmdAliasVisitor));
+                                                         new TypeParameterConstructor(kmTypeAlias));
             kotlinTypeAliasMetadata.underlyingTypeAccept(clazz,
                                                          kotlinDeclarationContainerMetadata,
-                                                         new TypeConstructor(kmdAliasVisitor));
+                                                         new TypeConstructor(kmTypeAlias));
             kotlinTypeAliasMetadata.expandedTypeAccept(clazz,
                                                        kotlinDeclarationContainerMetadata,
-                                                       new TypeConstructor(kmdAliasVisitor));
+                                                       new TypeConstructor(kmTypeAlias));
             kotlinTypeAliasMetadata.versionRequirementAccept(clazz,
                                                              kotlinDeclarationContainerMetadata,
-                                                             new VersionRequirementConstructor(kmdAliasVisitor));
+                                                             new VersionRequirementConstructor(kmTypeAlias));
             kotlinTypeAliasMetadata.annotationsAccept(clazz,
-                                                      new AnnotationConstructor(kmdAliasVisitor::visitAnnotation));
+                                                      new AnnotationConstructor(annotion -> kmTypeAlias.getAnnotations().add(annotion)));
 
-            kmdAliasVisitor.visitEnd();
+            kmDeclarationContainer.getTypeAliases().add(kmTypeAlias);
         }
 
 
@@ -665,17 +667,17 @@ implements ClassVisitor,
     implements KotlinMetadataVisitor,
                KotlinConstructorVisitor
     {
-        KotlinClassMetadata.Class.Writer classKmdWriter;
+        KmClass kmClass;
 
         KotlinClassConstructor()
         {
-            this(new KotlinClassMetadata.Class.Writer());
+            this(new KmClass());
         }
 
-        private KotlinClassConstructor(KotlinClassMetadata.Class.Writer classKmdWriter)
+        private KotlinClassConstructor(KmClass kmClass)
         {
-            super(classKmdWriter);
-            this.classKmdWriter = classKmdWriter;
+            super(kmClass);
+            this.kmClass = kmClass;
         }
 
 
@@ -683,12 +685,12 @@ implements ClassVisitor,
         @Override
         public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
         {
-            classKmdWriter.visit(convertClassFlags(kotlinClassKindMetadata.flags),
-                                 kotlinClassKindMetadata.className.replace('$','.'));
+            kmClass.setFlags(convertClassFlags(kotlinClassKindMetadata.flags));
+            kmClass.setName(kotlinClassKindMetadata.className.replace('$','.'));
 
             if (kotlinClassKindMetadata.companionObjectName != null)
             {
-                classKmdWriter.visitCompanionObject(kotlinClassKindMetadata.companionObjectName);
+                kmClass.setCompanionObject(kotlinClassKindMetadata.companionObjectName);
             }
 
             kotlinClassKindMetadata.propertiesAccept(clazz,  this);
@@ -697,29 +699,30 @@ implements ClassVisitor,
 
             for (String enumEntry : kotlinClassKindMetadata.enumEntryNames)
             {
-                classKmdWriter.visitEnumEntry(enumEntry);
+                kmClass.getEnumEntries().add(enumEntry);
             }
 
             for (String nestedClass : kotlinClassKindMetadata.nestedClassNames)
             {
-                classKmdWriter.visitNestedClass(nestedClass);
+                kmClass.getNestedClasses().add(nestedClass);
             }
 
             for (String sealedSubClass : kotlinClassKindMetadata.sealedSubclassNames)
             {
-                classKmdWriter.visitSealedSubclass(sealedSubClass.replace('$', '.'));
+                kmClass.getSealedSubclasses().add(sealedSubClass.replace('$', '.'));
             }
 
             kotlinClassKindMetadata.constructorsAccept(                     clazz, this);
-            kotlinClassKindMetadata.superTypesAccept(                       clazz, new TypeConstructor(classKmdWriter));
-            kotlinClassKindMetadata.typeParametersAccept(                   clazz, new TypeParameterConstructor(classKmdWriter));
-            kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, new TypeConstructor(classKmdWriter));
-            kotlinClassKindMetadata.versionRequirementAccept(               clazz, new VersionRequirementConstructor(classKmdWriter));
-            kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, new TypeConstructor(classKmdWriter));
+            kotlinClassKindMetadata.superTypesAccept(                       clazz, new TypeConstructor(kmClass));
+            kotlinClassKindMetadata.typeParametersAccept(                   clazz, new TypeParameterConstructor(kmClass));
+            kotlinClassKindMetadata.contextReceiverTypesAccept(             clazz, new TypeConstructor(kmClass));
+            kotlinClassKindMetadata.versionRequirementAccept(               clazz, new VersionRequirementConstructor(kmClass));
+            kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, new TypeConstructor(kmClass));
 
+            // TODO: Remove extension visitor.
             // Extensions.
             JvmClassExtensionVisitor ext =
-                (JvmClassExtensionVisitor) classKmdWriter.visitExtensions(JvmClassExtensionVisitor.TYPE);
+                (JvmClassExtensionVisitor) kmClass.visitExtensions(JvmClassExtensionVisitor.TYPE);
 
             extensionVisitor = ext;
             kotlinClassKindMetadata.delegatedPropertiesAccept(clazz, this);
@@ -733,20 +736,18 @@ implements ClassVisitor,
 
             ext.visitEnd();
 
-            // Finish.
-            classKmdWriter.visitEnd();
-
             // Finally store the protobuf contents in the fields of the enclosing class.
-            Metadata header = classKmdWriter.write(version.toArray(),
-                                                   kotlinClassKindMetadata.xi).getAnnotationData();
+            Metadata metadata = KotlinClassMetadata.Companion.writeClass(kmClass,
+                                                                         version.toArray(),
+                                                                         kotlinClassKindMetadata.xi).getAnnotationData();
 
-            k  = header.k();
-            mv = header.mv();
-            d1 = header.d1();
-            d2 = header.d2();
-            xi = header.xi();
-            xs = header.xs();
-            pn = header.pn();
+            k  = metadata.k();
+            mv = metadata.mv();
+            d1 = metadata.d1();
+            d2 = metadata.d2();
+            xi = metadata.xi();
+            xs = metadata.xs();
+            pn = metadata.pn();
         }
 
 
@@ -756,30 +757,29 @@ implements ClassVisitor,
                                      KotlinClassKindMetadata   kotlinClassKindMetadata,
                                      KotlinConstructorMetadata kotlinConstructorMetadata)
         {
-            KmConstructorVisitor constructorVis =
-                classKmdWriter.visitConstructor(convertConstructorFlags(kotlinConstructorMetadata.flags));
+            KmConstructor kmConstructor = new KmConstructor(convertConstructorFlags(kotlinConstructorMetadata.flags));
 
             kotlinConstructorMetadata.valueParametersAccept(clazz,
                                                             kotlinClassKindMetadata,
-                                                            new ValueParameterConstructor(constructorVis));
+                                                            new ValueParameterConstructor(kmConstructor));
 
             kotlinConstructorMetadata.versionRequirementAccept(clazz,
                                                                kotlinClassKindMetadata,
-                                                               new VersionRequirementConstructor(constructorVis));
+                                                               new VersionRequirementConstructor(kmConstructor));
 
             // Extensions.
             if (kotlinConstructorMetadata.jvmSignature != null)
             {
+                // TODO: Remove extension visitor.
                 JvmConstructorExtensionVisitor constExtVis =
-                    (JvmConstructorExtensionVisitor)constructorVis.visitExtensions(JvmConstructorExtensionVisitor.TYPE);
+                    (JvmConstructorExtensionVisitor)kmConstructor.visitExtensions(JvmConstructorExtensionVisitor.TYPE);
 
                 JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinConstructorMetadata.jvmSignature);
 
                 constExtVis.visit(jvmMethodSignature);
             }
 
-            // Finish.
-            constructorVis.visitEnd();
+            kmClass.getConstructors().add(kmConstructor);
         }
 
 
@@ -829,16 +829,16 @@ implements ClassVisitor,
     private class ValueParameterConstructor
     implements KotlinValueParameterVisitor
     {
-        private KmValueParameterVisitor valParamVis;
+        private KmValueParameter kmValueParameter;
 
-        private KmConstructorVisitor constructorVis;
-        ValueParameterConstructor(KmConstructorVisitor constructorVis) { this.constructorVis = constructorVis; }
+        private KmConstructor    kmConstructor;
+        ValueParameterConstructor(KmConstructor kmConstructor) { this.kmConstructor = kmConstructor; }
 
-        private KmPropertyVisitor propertyVis;
-        ValueParameterConstructor(KmPropertyVisitor propertyVis) { this.propertyVis = propertyVis; }
+        private KmProperty kmProperty;
+        ValueParameterConstructor(KmProperty kmProperty) { this.kmProperty = kmProperty; }
 
-        private KmFunctionVisitor functionVis;
-        ValueParameterConstructor(KmFunctionVisitor functionVis) { this.functionVis = functionVis; }
+        private KmFunction kmFunction;
+        ValueParameterConstructor(KmFunction kmFunction) { this.kmFunction = kmFunction; }
 
 
         // Implementations for KotlinValueParameterVisitor.
@@ -852,16 +852,14 @@ implements ClassVisitor,
                                                  KotlinConstructorMetadata    kotlinConstructorMetadata,
                                                  KotlinValueParameterMetadata kotlinValueParameterMetadata)
         {
-            valParamVis =
-                constructorVis.visitValueParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
-                                                   kotlinValueParameterMetadata.parameterName);
+            kmValueParameter = new KmValueParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
+                                                    kotlinValueParameterMetadata.parameterName);
 
             kotlinValueParameterMetadata.typeAccept(clazz,
                                                     kotlinClassKindMetadata,
                                                     kotlinConstructorMetadata,
-                                                    new TypeConstructor(valParamVis));
-
-            valParamVis.visitEnd();
+                                                    new TypeConstructor(kmValueParameter));
+            kmConstructor.getValueParameters().add(kmValueParameter);
         }
 
         @Override
@@ -870,16 +868,14 @@ implements ClassVisitor,
                                               KotlinPropertyMetadata             kotlinPropertyMetadata,
                                               KotlinValueParameterMetadata       kotlinValueParameterMetadata)
         {
-            valParamVis =
-                propertyVis.visitSetterParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
-                                                 kotlinValueParameterMetadata.parameterName);
+            kmValueParameter = new KmValueParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
+                                                    kotlinValueParameterMetadata.parameterName);
 
             kotlinValueParameterMetadata.typeAccept(clazz,
                                                     kotlinDeclarationContainerMetadata,
                                                     kotlinPropertyMetadata,
-                                                    new TypeConstructor(valParamVis));
-
-            valParamVis.visitEnd();
+                                                    new TypeConstructor(kmValueParameter));
+            kmProperty.setSetterParameter(kmValueParameter);
         }
 
         @Override
@@ -888,16 +884,14 @@ implements ClassVisitor,
                                               KotlinFunctionMetadata       kotlinFunctionMetadata,
                                               KotlinValueParameterMetadata kotlinValueParameterMetadata)
         {
-            valParamVis =
-                functionVis.visitValueParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
-                                                kotlinValueParameterMetadata.parameterName);
+            kmValueParameter = new KmValueParameter(convertValueParameterFlags(kotlinValueParameterMetadata.flags),
+                                                    kotlinValueParameterMetadata.parameterName);
 
             kotlinValueParameterMetadata.typeAccept(clazz,
                                                     kotlinMetadata,
                                                     kotlinFunctionMetadata,
-                                                    new TypeConstructor(valParamVis));
-
-            valParamVis.visitEnd();
+                                                    new TypeConstructor(kmValueParameter));
+            kmFunction.getValueParameters().add(kmValueParameter);
         }
     }
 
@@ -905,31 +899,31 @@ implements ClassVisitor,
     private class TypeConstructor
     implements KotlinTypeVisitor
     {
-        private KmTypeVisitor typeVis;
+        private KmType kmType;
 
-        private KmTypeVisitor nestedTypeVis;
-        TypeConstructor(KmTypeVisitor nestedTypeVis) { this.nestedTypeVis = nestedTypeVis; }
+        private KmType nestedKmType;
+        TypeConstructor(KmType nestedKmType) { this.nestedKmType = nestedKmType; }
 
-        private KmValueParameterVisitor valParamVis;
-        TypeConstructor(KmValueParameterVisitor valParamVis) { this.valParamVis = valParamVis; }
+        private KmValueParameter kmValueParameter;
+        TypeConstructor(KmValueParameter kmValueParameter) { this.kmValueParameter = kmValueParameter; }
 
-        private KmClassVisitor classVis;
-        TypeConstructor(KmClassVisitor classVis) { this.classVis = classVis; }
+        private KmClass kmClass;
+        TypeConstructor(KmClass kmClass) { this.kmClass = kmClass; }
 
-        private KmPropertyVisitor propertyVis;
-        TypeConstructor(KmPropertyVisitor propertyVis) { this.propertyVis = propertyVis; }
+        private KmProperty kmProperty;
+        TypeConstructor(KmProperty kmProperty) {this.kmProperty = kmProperty; }
 
-        private KmFunctionVisitor functionVis;
-        TypeConstructor(KmFunctionVisitor functionVis) { this.functionVis = functionVis; }
+        private KmFunction kmFunction;
+        TypeConstructor(KmFunction kmFunction) { this.kmFunction = kmFunction; }
 
-        private KmTypeAliasVisitor aliasVis;
-        TypeConstructor(KmTypeAliasVisitor aliasVis) { this.aliasVis = aliasVis; }
+        private KmTypeAlias kmTypeAlias;
+        TypeConstructor(KmTypeAlias kmTypeAlias) { this.kmTypeAlias = kmTypeAlias; }
 
-        private KmTypeParameterVisitor typeParamVis;
-        TypeConstructor(KmTypeParameterVisitor typeParamVis) { this.typeParamVis = typeParamVis; }
+        private KmTypeParameter kmTypeParameter;
+        TypeConstructor(KmTypeParameter kmTypeParameter) { this.kmTypeParameter = kmTypeParameter; }
 
-        private KmEffectExpressionVisitor effectExpressionVis;
-        TypeConstructor(KmEffectExpressionVisitor effectExpressionVis) { this.effectExpressionVis = effectExpressionVis; }
+        private KmEffectExpression kmEffectExpression;
+        TypeConstructor(KmEffectExpression kmEffectExpression) { this.kmEffectExpression = kmEffectExpression; }
 
 
         // Implementations for KotlinTypeVisitor.
@@ -939,9 +933,11 @@ implements ClassVisitor,
                                         KotlinTypeMetadata boundedType,
                                         KotlinTypeMetadata upperBound)
         {
-            typeVis = nestedTypeVis.visitFlexibleTypeUpperBound(convertTypeFlags(boundedType.flags), upperBound.flexibilityID);
-
+            kmType = new KmType(convertTypeFlags(boundedType.flags));
             visitAnyType(clazz, upperBound);
+
+            KmFlexibleTypeUpperBound kmFlexibleTypeUpperBound = new KmFlexibleTypeUpperBound(kmType, upperBound.flexibilityID);
+            nestedKmType.setFlexibleTypeUpperBound(kmFlexibleTypeUpperBound);
         }
 
         @Override
@@ -949,9 +945,10 @@ implements ClassVisitor,
                                       KotlinTypeMetadata abbreviatedType,
                                       KotlinTypeMetadata abbreviation)
         {
-            typeVis = nestedTypeVis.visitAbbreviatedType(convertTypeFlags(abbreviatedType.flags));
-
+            kmType = new KmType(convertTypeFlags(abbreviatedType.flags));
             visitAnyType(clazz, abbreviation);
+
+            nestedKmType.setAbbreviatedType(kmType);
         }
 
         @Override
@@ -959,9 +956,10 @@ implements ClassVisitor,
                                              KotlinTypeParameterMetadata boundedTypeParameter,
                                              KotlinTypeMetadata          upperBound)
         {
-            typeVis = typeParamVis.visitUpperBound(convertTypeFlags(upperBound.flags));
-
+            kmType = new KmType(convertTypeFlags(upperBound.flags));
             visitAnyType(clazz, upperBound);
+
+            kmTypeParameter.getUpperBounds().add(kmType);
         }
 
         @Override
@@ -969,9 +967,10 @@ implements ClassVisitor,
                                             KotlinEffectExpressionMetadata kotlinEffectExprMetadata,
                                             KotlinTypeMetadata             typeOfIs)
         {
-            typeVis = effectExpressionVis.visitIsInstanceType(convertTypeFlags(typeOfIs.flags));
-
+            kmType = new KmType(convertTypeFlags(typeOfIs.flags));
             visitAnyType(clazz, typeOfIs);
+
+            kmEffectExpression.setInstanceType(kmType);
         }
 
         @Override
@@ -979,16 +978,18 @@ implements ClassVisitor,
                                       KotlinTypeMetadata kotlinTypeMetadata,
                                       KotlinTypeMetadata typeArgument)
         {
-            typeVis = nestedTypeVis.visitArgument(convertTypeFlags(typeArgument.flags), toKmVariance(typeArgument.variance));
-
+            kmType = new KmType(convertTypeFlags(typeArgument.flags));
             visitAnyType(clazz, typeArgument);
+
+            KmTypeProjection kmTypeProjection = new KmTypeProjection(toKmVariance(typeArgument.variance), kmType);
+            nestedKmType.getArguments().add(kmTypeProjection);
         }
 
         @Override
         public void visitStarProjection(Clazz              clazz,
                                         KotlinTypeMetadata typeWithStarArg)
         {
-            nestedTypeVis.visitStarProjection();
+            nestedKmType.getArguments().add(KmTypeProjection.STAR);
         }
 
         @Override
@@ -996,9 +997,10 @@ implements ClassVisitor,
                                     KotlinTypeMetadata innerClass,
                                     KotlinTypeMetadata outerClass)
         {
-            typeVis = nestedTypeVis.visitOuterType(convertTypeFlags(outerClass.flags));
-
+            kmType = new KmType(convertTypeFlags(outerClass.flags));
             visitAnyType(clazz, outerClass);
+
+            nestedKmType.setOuterType(kmType);
         }
 
 
@@ -1009,9 +1011,10 @@ implements ClassVisitor,
                                                  KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                                  KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmValueParameter.type = kmType;
         }
 
 
@@ -1022,9 +1025,10 @@ implements ClassVisitor,
                                                        KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                                        KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmValueParameter.type = kmType;
         }
 
 
@@ -1035,11 +1039,12 @@ implements ClassVisitor,
         {
             if (kotlinMetadata.underlyingPropertyName != null)
             {
-                classVis.visitInlineClassUnderlyingPropertyName(kotlinMetadata.underlyingPropertyName);
+                kmClass.setInlineClassUnderlyingPropertyName(kotlinMetadata.underlyingPropertyName);
             }
             if (kotlinMetadata.underlyingPropertyType != null)
             {
-                typeVis = classVis.visitInlineClassUnderlyingType(convertTypeFlags(kotlinMetadata.underlyingPropertyType.flags));
+                kmType = new KmType(convertTypeFlags(kotlinMetadata.underlyingPropertyType.flags));
+                kmClass.setInlineClassUnderlyingType(kmType);
             }
             visitAnyType(clazz, kotlinTypeMetadata);
         }
@@ -1050,9 +1055,10 @@ implements ClassVisitor,
                                    KotlinClassKindMetadata kotlinMetadata,
                                    KotlinTypeMetadata      kotlinTypeMetadata)
         {
-            typeVis = classVis.visitSupertype(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmClass.getSupertypes().add(kmType);
         }
 
         @Override
@@ -1061,9 +1067,10 @@ implements ClassVisitor,
                                       KotlinPropertyMetadata             kotlinPropertyMetadata,
                                       KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = propertyVis.visitReturnType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmProperty.returnType = kmType;
         }
 
         @Override
@@ -1072,9 +1079,10 @@ implements ClassVisitor,
                                               KotlinPropertyMetadata             kotlinPropertyMetadata,
                                               KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = propertyVis.visitReceiverParameterType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmProperty.setReceiverParameterType(kmType);
         }
 
         @Override
@@ -1084,9 +1092,10 @@ implements ClassVisitor,
                                               KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                               KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmValueParameter.type = kmType;
         }
 
         @Override
@@ -1096,9 +1105,10 @@ implements ClassVisitor,
                                                     KotlinValueParameterMetadata       kotlinValueParameterMetadata,
                                                     KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitVarargElementType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmValueParameter.setVarargElementType(kmType);
         }
 
         @Override
@@ -1107,9 +1117,10 @@ implements ClassVisitor,
                                             KotlinFunctionMetadata kotlinFunctionMetadata,
                                             KotlinTypeMetadata     kotlinTypeMetadata)
         {
-            typeVis = functionVis.visitReturnType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmFunction.setReturnType(kmType);
         }
 
         @Override
@@ -1118,9 +1129,10 @@ implements ClassVisitor,
                                               KotlinFunctionMetadata kotlinFunctionMetadata,
                                               KotlinTypeMetadata     kotlinTypeMetadata)
         {
-            typeVis = functionVis.visitReceiverParameterType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmFunction.setReceiverParameterType(kmType);
         }
 
         @Override
@@ -1129,9 +1141,10 @@ implements ClassVisitor,
                                                      KotlinFunctionMetadata kotlinFunctionMetadata,
                                                      KotlinTypeMetadata     kotlinTypeMetadata)
         {
-            typeVis = functionVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmFunction.getContextReceiverTypes().add(kmType);
         }
 
         @Override
@@ -1139,9 +1152,10 @@ implements ClassVisitor,
                                                   KotlinMetadata     kotlinMetadata,
                                                   KotlinTypeMetadata kotlinTypeMetadata)
         {
-            typeVis = classVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmClass.getContextReceiverTypes().add(kmType);
         }
 
         @Override
@@ -1150,9 +1164,10 @@ implements ClassVisitor,
                                                      KotlinPropertyMetadata kotlinPropertyMetadata,
                                                      KotlinTypeMetadata kotlinTypeMetadata)
         {
-            typeVis = propertyVis.visitContextReceiverType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmProperty.getContextReceiverTypes().add(kmType);
         }
 
         @Override
@@ -1162,9 +1177,10 @@ implements ClassVisitor,
                                               KotlinValueParameterMetadata kotlinValueParameterMetadata,
                                               KotlinTypeMetadata           kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmValueParameter.type = kmType;
         }
 
         @Override
@@ -1174,9 +1190,10 @@ implements ClassVisitor,
                                                     KotlinValueParameterMetadata kotlinValueParameterMetadata,
                                                     KotlinTypeMetadata           kotlinTypeMetadata)
         {
-            typeVis = valParamVis.visitVarargElementType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmValueParameter.setVarargElementType(kmType);
         }
 
         @Override
@@ -1185,9 +1202,10 @@ implements ClassVisitor,
                                              KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
                                              KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = aliasVis.visitUnderlyingType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmTypeAlias.underlyingType = kmType;
         }
 
         @Override
@@ -1196,9 +1214,10 @@ implements ClassVisitor,
                                            KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
                                            KotlinTypeMetadata                 kotlinTypeMetadata)
         {
-            typeVis = aliasVis.visitExpandedType(convertTypeFlags(kotlinTypeMetadata.flags));
-
+            kmType = new KmType(convertTypeFlags(kotlinTypeMetadata.flags));
             visitAnyType(clazz, kotlinTypeMetadata);
+
+            kmTypeAlias.setExpandedType(kmType);
         }
 
 
@@ -1212,27 +1231,31 @@ implements ClassVisitor,
                 String className = kotlinTypeMetadata.className.replace(TypeConstants.  INNER_CLASS_SEPARATOR,
                                                                         KotlinConstants.INNER_CLASS_SEPARATOR);
 
-                typeVis.visitClass(className);
+                KmClassifier.Class classifier = new KmClassifier.Class(className);
+                kmType.classifier = classifier;
             }
 
             if (kotlinTypeMetadata.typeParamID >= 0)
             {
-                typeVis.visitTypeParameter(kotlinTypeMetadata.typeParamID);
+                KmClassifier.TypeParameter classifier = new KmClassifier.TypeParameter(kotlinTypeMetadata.typeParamID);
+                kmType.classifier = classifier;
             }
 
             if (kotlinTypeMetadata.aliasName != null)
             {
-                typeVis.visitTypeAlias(kotlinTypeMetadata.aliasName);
+                KmClassifier.TypeAlias classifier = new KmClassifier.TypeAlias(kotlinTypeMetadata.aliasName);
+                kmType.classifier = classifier;
             }
 
-            kotlinTypeMetadata.abbreviationAccept( clazz, new TypeConstructor(typeVis));
-            kotlinTypeMetadata.outerClassAccept(   clazz, new TypeConstructor(typeVis));
-            kotlinTypeMetadata.typeArgumentsAccept(clazz, new TypeConstructor(typeVis));
-            kotlinTypeMetadata.upperBoundsAccept(  clazz, new TypeConstructor(typeVis));
+            kotlinTypeMetadata.abbreviationAccept( clazz, new TypeConstructor(kmType));
+            kotlinTypeMetadata.outerClassAccept(   clazz, new TypeConstructor(kmType));
+            kotlinTypeMetadata.typeArgumentsAccept(clazz, new TypeConstructor(kmType));
+            kotlinTypeMetadata.upperBoundsAccept(  clazz, new TypeConstructor(kmType));
 
+            // TODO: Remove extension visitor.
             // Extensions.
             JvmTypeExtensionVisitor typeExtVis =
-                (JvmTypeExtensionVisitor)typeVis.visitExtensions(JvmTypeExtensionVisitor.TYPE);
+                (JvmTypeExtensionVisitor)kmType.visitExtensions(JvmTypeExtensionVisitor.TYPE);
 
             typeExtVis.visit(kotlinTypeMetadata.isRaw);
 
@@ -1240,8 +1263,6 @@ implements ClassVisitor,
                                                  new AnnotationConstructor(typeExtVis::visitAnnotation));
 
             typeExtVis.visitEnd();
-
-            typeVis.visitEnd();
         }
     }
 
@@ -1249,19 +1270,19 @@ implements ClassVisitor,
     private class TypeParameterConstructor
     implements KotlinTypeParameterVisitor
     {
-        private KmTypeParameterVisitor typeParamVis;
+        private KmTypeParameter kmTypeParameter;
 
-        private KmClassVisitor classVis;
-        TypeParameterConstructor(KmClassVisitor classVis) { this.classVis = classVis; }
+        private KmClass kmClass;
+        TypeParameterConstructor(KmClass kmClass) { this.kmClass = kmClass; }
 
-        private KmPropertyVisitor propertyVis;
-        TypeParameterConstructor(KmPropertyVisitor propertyVis) { this.propertyVis = propertyVis; }
+        private KmProperty kmProperty;
+        TypeParameterConstructor(KmProperty kmProperty) { this.kmProperty = kmProperty; }
 
-        private KmFunctionVisitor functionVis;
-        TypeParameterConstructor(KmFunctionVisitor functionVis) { this.functionVis = functionVis; }
+        private KmFunction kmFunction;
+        TypeParameterConstructor(KmFunction kmFunction) { this.kmFunction = kmFunction; }
 
-        private KmTypeAliasVisitor aliasVis;
-        TypeParameterConstructor(KmTypeAliasVisitor aliasVis) { this.aliasVis = aliasVis; }
+        private KmTypeAlias kmTypeAlias;
+        TypeParameterConstructor(KmTypeAlias kmTypeAlias) { this.kmTypeAlias = kmTypeAlias; }
 
 
         // Implementations for KotlinTypeParameterVisitor.
@@ -1271,12 +1292,13 @@ implements ClassVisitor,
                                             KotlinClassKindMetadata     kotlinMetadata,
                                             KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
-            typeParamVis = classVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
-                                                       kotlinTypeParameterMetadata.name,
-                                                       kotlinTypeParameterMetadata.id,
-                                                       toKmVariance(kotlinTypeParameterMetadata.variance));
-
+            kmTypeParameter = new KmTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
+                                                  kotlinTypeParameterMetadata.name,
+                                                  kotlinTypeParameterMetadata.id,
+                                                  toKmVariance(kotlinTypeParameterMetadata.variance));
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
+
+            kmClass.getTypeParameters().add(kmTypeParameter);
         }
 
         @Override
@@ -1285,12 +1307,13 @@ implements ClassVisitor,
                                                KotlinPropertyMetadata             kotlinPropertyMetadata,
                                                KotlinTypeParameterMetadata        kotlinTypeParameterMetadata)
         {
-            typeParamVis = propertyVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
-                                                          kotlinTypeParameterMetadata.name,
-                                                          kotlinTypeParameterMetadata.id,
-                                                          toKmVariance(kotlinTypeParameterMetadata.variance));
-
+            kmTypeParameter = new KmTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
+                                                  kotlinTypeParameterMetadata.name,
+                                                  kotlinTypeParameterMetadata.id,
+                                                  toKmVariance(kotlinTypeParameterMetadata.variance));
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
+
+            kmProperty.getTypeParameters().add(kmTypeParameter);
         }
 
         @Override
@@ -1299,12 +1322,13 @@ implements ClassVisitor,
                                                KotlinFunctionMetadata      kotlinFunctionMetadata,
                                                KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
-            typeParamVis = functionVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
-                                                          kotlinTypeParameterMetadata.name,
-                                                          kotlinTypeParameterMetadata.id,
-                                                          toKmVariance(kotlinTypeParameterMetadata.variance));
-
+            kmTypeParameter = new KmTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
+                                                  kotlinTypeParameterMetadata.name,
+                                                  kotlinTypeParameterMetadata.id,
+                                                  toKmVariance(kotlinTypeParameterMetadata.variance));
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
+
+            kmFunction.getTypeParameters().add(kmTypeParameter);
         }
 
         @Override
@@ -1313,12 +1337,13 @@ implements ClassVisitor,
                                             KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
                                             KotlinTypeParameterMetadata        kotlinTypeParameterMetadata)
         {
-            typeParamVis = aliasVis.visitTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
-                                                       kotlinTypeParameterMetadata.name,
-                                                       kotlinTypeParameterMetadata.id,
-                                                       toKmVariance(kotlinTypeParameterMetadata.variance));
-
+            kmTypeParameter = new KmTypeParameter(convertTypeParameterFlags(kotlinTypeParameterMetadata.flags),
+                                                  kotlinTypeParameterMetadata.name,
+                                                  kotlinTypeParameterMetadata.id,
+                                                  toKmVariance(kotlinTypeParameterMetadata.variance));
             visitAnyTypeParameter(clazz, kotlinTypeParameterMetadata);
+
+            kmTypeAlias.getTypeParameters().add(kmTypeParameter);
         }
 
 
@@ -1327,18 +1352,17 @@ implements ClassVisitor,
         public void visitAnyTypeParameter(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
         {
             kotlinTypeParameterMetadata.upperBoundsAccept(clazz,
-                                                          new TypeConstructor(typeParamVis));
+                                                          new TypeConstructor(kmTypeParameter));
 
+            // TODO: Remove extension visitor.
             // Extensions.
             JvmTypeParameterExtensionVisitor typeParamExtVis =
-                (JvmTypeParameterExtensionVisitor)typeParamVis.visitExtensions(JvmTypeParameterExtensionVisitor.TYPE);
+                (JvmTypeParameterExtensionVisitor)kmTypeParameter.visitExtensions(JvmTypeParameterExtensionVisitor.TYPE);
 
             kotlinTypeParameterMetadata.annotationsAccept(clazz,
                                                          new AnnotationConstructor(typeParamExtVis::visitAnnotation));
 
             typeParamExtVis.visitEnd();
-
-            typeParamVis.visitEnd();
         }
     }
 
@@ -1350,17 +1374,17 @@ implements ClassVisitor,
     extends    KotlinDeclarationContainerConstructor
     implements KotlinMetadataVisitor
     {
-        private final KotlinClassMetadata.FileFacade.Writer facadeKmdWriter;
+        private KmPackage kmPackage;
 
         KotlinFileFacadeConstructor()
         {
-            this(new KotlinClassMetadata.FileFacade.Writer());
+            this(new KmPackage());
         }
 
-        private KotlinFileFacadeConstructor(KotlinClassMetadata.FileFacade.Writer facadeKmdWriter)
+        private KotlinFileFacadeConstructor(KmPackage kmPackage)
         {
-            super(facadeKmdWriter);
-            this.facadeKmdWriter = facadeKmdWriter;
+            super(kmPackage);
+            this.kmPackage = kmPackage;
         }
 
 
@@ -1372,27 +1396,27 @@ implements ClassVisitor,
             kotlinFileFacadeKindMetadata.functionsAccept(clazz, this);
             kotlinFileFacadeKindMetadata.typeAliasesAccept(clazz, this);
 
+            // TODO: Remove extension visitor.
             JvmPackageExtensionVisitor ext =
-                (JvmPackageExtensionVisitor) kmdWriter.visitExtensions(JvmPackageExtensionVisitor.TYPE);
+                (JvmPackageExtensionVisitor) kmPackage.visitExtensions(JvmPackageExtensionVisitor.TYPE);
 
             extensionVisitor = ext;
             kotlinFileFacadeKindMetadata.delegatedPropertiesAccept(clazz, this);
 
             ext.visitEnd();
 
-            facadeKmdWriter.visitEnd();
-
             // Finally store the protobuf contents in the fields of the enclosing class.
-            Metadata header = facadeKmdWriter.write(version.toArray(),
-                                                             kotlinFileFacadeKindMetadata.xi).getAnnotationData();
+            Metadata metadata = KotlinClassMetadata.Companion.writeFileFacade(kmPackage,
+                                                                              version.toArray(),
+                                                                              kotlinFileFacadeKindMetadata.xi).getAnnotationData();
 
-            k  = header.k();
-            mv = header.mv();
-            d1 = header.d1();
-            d2 = header.d2();
-            xi = header.xi();
-            xs = header.xs();
-            pn = header.pn();
+            k  = metadata.k();
+            mv = metadata.mv();
+            d1 = metadata.d1();
+            d2 = metadata.d2();
+            xi = metadata.xi();
+            xs = metadata.xs();
+            pn = metadata.pn();
         }
     }
 
@@ -1404,13 +1428,11 @@ implements ClassVisitor,
     implements KotlinMetadataVisitor,
                KotlinFunctionVisitor
     {
-        private       KotlinSyntheticClassKindMetadata          md;
-        private final KotlinClassMetadata.SyntheticClass.Writer kmdWriter;
-
+        private KmLambda kmLambda;
 
         KotlinSyntheticClassConstructor()
         {
-            this.kmdWriter = new KotlinClassMetadata.SyntheticClass.Writer();
+            this.kmLambda = new KmLambda();
         }
 
 
@@ -1421,23 +1443,27 @@ implements ClassVisitor,
         @Override
         public void visitKotlinSyntheticClassMetadata(Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
         {
-            this.md = kotlinSyntheticClassKindMetadata;
+            Metadata metadata;
+            if (kotlinSyntheticClassKindMetadata.flavor == KotlinSyntheticClassKindMetadata.Flavor.LAMBDA)
+            {
+                kotlinSyntheticClassKindMetadata.functionsAccept(clazz, this);
+                metadata = KotlinClassMetadata.Companion.writeLambda(kmLambda,
+                                                                     version.toArray(),
+                                                                     kotlinSyntheticClassKindMetadata.xi).getAnnotationData();
+            }
+            else
+            {
+                metadata = KotlinClassMetadata.Companion.writeSyntheticClass(version.toArray(),
+                                                                             kotlinSyntheticClassKindMetadata.xi).getAnnotationData();
+            }
 
-            md.functionsAccept(clazz, this);
-
-            kmdWriter.visitEnd();
-
-            // Finally store the protobuf contents in the fields of the enclosing class.
-            Metadata header = kmdWriter.write(version.toArray(),
-                                                       kotlinSyntheticClassKindMetadata.xi).getAnnotationData();
-
-            k  = header.k();
-            mv = header.mv();
-            d1 = header.d1();
-            d2 = header.d2();
-            xi = header.xi();
-            xs = header.xs();
-            pn = header.pn();
+            k  = metadata.k();
+            mv = metadata.mv();
+            d1 = metadata.d1();
+            d2 = metadata.d2();
+            xi = metadata.xi();
+            xs = metadata.xs();
+            pn = metadata.pn();
         }
 
 
@@ -1452,31 +1478,31 @@ implements ClassVisitor,
                                            KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata,
                                            KotlinFunctionMetadata           kotlinFunctionMetadata)
         {
-            KmFunctionVisitor kmdFunctionVisitor =
-                kmdWriter.visitFunction(convertFunctionFlags(kotlinFunctionMetadata.flags),
-                                        kotlinFunctionMetadata.name);
+            KmFunction kmFunction = new KmFunction(convertFunctionFlags(kotlinFunctionMetadata.flags),
+                                                   kotlinFunctionMetadata.name);
 
             kotlinFunctionMetadata.valueParametersAccept(clazz,
                                                          kotlinSyntheticClassKindMetadata,
-                                                         new ValueParameterConstructor(kmdFunctionVisitor));
+                                                         new ValueParameterConstructor(kmFunction));
             kotlinFunctionMetadata.returnTypeAccept(clazz,
                                                     kotlinSyntheticClassKindMetadata,
-                                                    new TypeConstructor(kmdFunctionVisitor));
+                                                    new TypeConstructor(kmFunction));
             kotlinFunctionMetadata.receiverTypeAccept(clazz,
                                                       kotlinSyntheticClassKindMetadata,
-                                                      new TypeConstructor(kmdFunctionVisitor));
+                                                      new TypeConstructor(kmFunction));
             kotlinFunctionMetadata.typeParametersAccept(clazz,
                                                         kotlinSyntheticClassKindMetadata,
-                                                        new TypeParameterConstructor(kmdFunctionVisitor));
+                                                        new TypeParameterConstructor(kmFunction));
             kotlinFunctionMetadata.versionRequirementAccept(clazz,
                                                             kotlinSyntheticClassKindMetadata,
-                                                            new VersionRequirementConstructor(kmdFunctionVisitor));
+                                                            new VersionRequirementConstructor(kmFunction));
             kotlinFunctionMetadata.contractsAccept(clazz,
                                                    kotlinSyntheticClassKindMetadata,
-                                                   new ContractConstructor(kmdFunctionVisitor));
+                                                   new ContractConstructor(kmFunction));
 
+            // TODO: Remove extension visitor.
             JvmFunctionExtensionVisitor ext =
-                (JvmFunctionExtensionVisitor) kmdFunctionVisitor.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
+                (JvmFunctionExtensionVisitor) kmFunction.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
 
             JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
 
@@ -1489,7 +1515,7 @@ implements ClassVisitor,
 
             ext.visitEnd();
 
-            kmdFunctionVisitor.visitEnd();
+            kmLambda.setFunction(kmFunction);
         }
     }
 
@@ -1530,17 +1556,17 @@ implements ClassVisitor,
     extends    KotlinDeclarationContainerConstructor
     implements KotlinMetadataVisitor
     {
-        private final KotlinClassMetadata.MultiFileClassPart.Writer multiPartKmdWriter;
+        private KmPackage kmPackage;
 
         KotlinMultiFilePartConstructor()
         {
-            this(new KotlinClassMetadata.MultiFileClassPart.Writer());
+            this(new KmPackage());
         }
 
-        private KotlinMultiFilePartConstructor(KotlinClassMetadata.MultiFileClassPart.Writer multiPartKmdWriter)
+        private KotlinMultiFilePartConstructor(KmPackage kmPackage)
         {
-            super(multiPartKmdWriter);
-            this.multiPartKmdWriter = multiPartKmdWriter;
+            super(kmPackage);
+            this.kmPackage = kmPackage;
         }
 
 
@@ -1548,32 +1574,32 @@ implements ClassVisitor,
         @Override
         public void visitKotlinMultiFilePartMetadata(Clazz clazz, KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata)
         {
-            kotlinMultiFilePartKindMetadata.propertiesAccept( clazz, this);
-            kotlinMultiFilePartKindMetadata.functionsAccept(  clazz, this);
+            kotlinMultiFilePartKindMetadata.propertiesAccept(clazz, this);
+            kotlinMultiFilePartKindMetadata.functionsAccept(clazz, this);
             kotlinMultiFilePartKindMetadata.typeAliasesAccept(clazz, this);
 
+            // TODO: Remove extension visitor.
             JvmPackageExtensionVisitor ext =
-                (JvmPackageExtensionVisitor) multiPartKmdWriter.visitExtensions(JvmPackageExtensionVisitor.TYPE);
+                (JvmPackageExtensionVisitor) kmPackage.visitExtensions(JvmPackageExtensionVisitor.TYPE);
 
             extensionVisitor = ext;
             kotlinMultiFilePartKindMetadata.delegatedPropertiesAccept(clazz, this);
 
             ext.visitEnd();
 
-            multiPartKmdWriter.visitEnd();
-
             // Finally store the protobuf contents in the fields of the enclosing class.
-            Metadata header = multiPartKmdWriter.write(kotlinMultiFilePartKindMetadata.facadeName,
-                                                                version.toArray(),
-                                                                kotlinMultiFilePartKindMetadata.xi).getAnnotationData();
+            Metadata metadata = KotlinClassMetadata.Companion.writeMultiFileClassPart(kmPackage,
+                                                                                      kotlinMultiFilePartKindMetadata.facadeName,
+                                                                                      version.toArray(),
+                                                                                      kotlinMultiFilePartKindMetadata.xi).getAnnotationData();
 
-            k  = header.k();
-            mv = header.mv();
-            d1 = header.d1();
-            d2 = header.d2();
-            xi = header.xi();
-            xs = header.xs();
-            pn = header.pn();
+            k  = metadata.k();
+            mv = metadata.mv();
+            d1 = metadata.d1();
+            d2 = metadata.d2();
+            xi = metadata.xi();
+            xs = metadata.xs();
+            pn = metadata.pn();
         }
     }
 
@@ -1581,22 +1607,21 @@ implements ClassVisitor,
     private class VersionRequirementConstructor
     implements KotlinVersionRequirementVisitor
     {
-        private KmVersionRequirementVisitor versionReqVis;
+        private KmVersionRequirement kmVersionRequirement;
 
-        private KmConstructorVisitor constructorVis;
-        VersionRequirementConstructor(KmConstructorVisitor constructorVis) { this.constructorVis = constructorVis; }
+        private KmConstructor kmConstructor;
+        VersionRequirementConstructor(KmConstructor kmConstructor) { this.kmConstructor = kmConstructor; }
+        private KmClass kmClass;
+        VersionRequirementConstructor(KmClass kmClass) { this.kmClass = kmClass; }
 
-        private KmClassVisitor classVis;
-        VersionRequirementConstructor(KmClassVisitor classVis) { this.classVis = classVis; }
+        private KmProperty kmProperty;
+        VersionRequirementConstructor(KmProperty kmProperty) { this.kmProperty = kmProperty; }
 
-        private KmPropertyVisitor propertyVis;
-        VersionRequirementConstructor(KmPropertyVisitor propertyVis) { this.propertyVis = propertyVis; }
+        private KmFunction kmFunction;
+        VersionRequirementConstructor(KmFunction kmFunction) { this.kmFunction = kmFunction; }
 
-        private KmFunctionVisitor functionVis;
-        VersionRequirementConstructor(KmFunctionVisitor functionVis) { this.functionVis = functionVis; }
-
-        private KmTypeAliasVisitor aliasVis;
-        VersionRequirementConstructor(KmTypeAliasVisitor aliasVis) { this.aliasVis = aliasVis; }
+        private KmTypeAlias kmTypeAlias;
+        VersionRequirementConstructor(KmTypeAlias kmTypeAlias) { this.kmTypeAlias = kmTypeAlias; }
 
 
         // Implementations for KotlinVersionRequirementVisitor.
@@ -1606,7 +1631,10 @@ implements ClassVisitor,
                                                  KotlinMetadata                   kotlinMetadata,
                                                  KotlinVersionRequirementMetadata kotlinVersionRequirementMetadata)
         {
-            versionReqVis = classVis.visitVersionRequirement();
+            kmVersionRequirement = new KmVersionRequirement();
+            visitAnyVersionRequirement(clazz, kotlinVersionRequirementMetadata);
+
+            kmClass.getVersionRequirements().add(kmVersionRequirement);
         }
 
         @Override
@@ -1615,9 +1643,10 @@ implements ClassVisitor,
                                                        KotlinConstructorMetadata        kotlinConstructorMetadata,
                                                        KotlinVersionRequirementMetadata kotlinVersionRequirementMetadata)
         {
-            versionReqVis = constructorVis.visitVersionRequirement();
-
+            kmVersionRequirement = new KmVersionRequirement();
             visitAnyVersionRequirement(clazz, kotlinVersionRequirementMetadata);
+
+            kmConstructor.getVersionRequirements().add(kmVersionRequirement);
         }
 
         @Override
@@ -1626,9 +1655,10 @@ implements ClassVisitor,
                                                     KotlinPropertyMetadata             kotlinPropertyMetadata,
                                                     KotlinVersionRequirementMetadata   kotlinVersionRequirementMetadata)
         {
-            versionReqVis = propertyVis.visitVersionRequirement();
-
+            kmVersionRequirement = new KmVersionRequirement();
             visitAnyVersionRequirement(clazz, kotlinVersionRequirementMetadata);
+
+            kmProperty.getVersionRequirements().add(kmVersionRequirement);
         }
 
         @Override
@@ -1637,9 +1667,10 @@ implements ClassVisitor,
                                                     KotlinFunctionMetadata           kotlinFunctionMetadata,
                                                     KotlinVersionRequirementMetadata kotlinVersionRequirementMetadata)
         {
-            versionReqVis = functionVis.visitVersionRequirement();
-
+            kmVersionRequirement = new KmVersionRequirement();
             visitAnyVersionRequirement(clazz, kotlinVersionRequirementMetadata);
+
+            kmFunction.getVersionRequirements().add(kmVersionRequirement);
         }
 
         public void visitTypeAliasVersionRequirement(Clazz clazz,
@@ -1647,9 +1678,10 @@ implements ClassVisitor,
                                                      KotlinTypeAliasMetadata          kotlinTypeAliasMetadata,
                                                      KotlinVersionRequirementMetadata kotlinVersionRequirementMetadata)
         {
-            versionReqVis = aliasVis.visitVersionRequirement();
-
+            kmVersionRequirement = new KmVersionRequirement();
             visitAnyVersionRequirement(clazz, kotlinVersionRequirementMetadata);
+
+            kmTypeAlias.getVersionRequirements().add(kmVersionRequirement);
         }
 
 
@@ -1658,16 +1690,15 @@ implements ClassVisitor,
         public void visitAnyVersionRequirement(Clazz                            clazz,
                                                KotlinVersionRequirementMetadata kotlinVersionRequirementMetadata)
         {
-            versionReqVis.visit(toKmVersionRequirementVersionKind(kotlinVersionRequirementMetadata.kind),
-                                toKmVersionRequirementLevel(kotlinVersionRequirementMetadata.level),
-                                kotlinVersionRequirementMetadata.errorCode,
-                                kotlinVersionRequirementMetadata.message);
+            kmVersionRequirement.kind = toKmVersionRequirementVersionKind(kotlinVersionRequirementMetadata.kind);
+            kmVersionRequirement.level = toKmVersionRequirementLevel(kotlinVersionRequirementMetadata.level);
+            kmVersionRequirement.setErrorCode(kotlinVersionRequirementMetadata.errorCode);
+            kmVersionRequirement.setMessage(kotlinVersionRequirementMetadata.message);
 
-            versionReqVis.visitVersion(kotlinVersionRequirementMetadata.major,
-                                       kotlinVersionRequirementMetadata.minor,
-                                       kotlinVersionRequirementMetadata.patch);
-
-            versionReqVis.visitEnd();
+            KmVersion kmVersion = new KmVersion(kotlinVersionRequirementMetadata.major,
+                                                kotlinVersionRequirementMetadata.minor,
+                                                kotlinVersionRequirementMetadata.patch);
+            kmVersionRequirement.setVersion(kmVersion);
         }
     }
 
@@ -1755,6 +1786,24 @@ implements ClassVisitor,
             case OUT:       return KmVariance.OUT;
             default:        throw new UnsupportedOperationException("Encountered unknown enum value for KmVariance.");
         }
+    }
+
+    private static KmProperty toKmProperty(KotlinPropertyMetadata kotlinPropertyMetadata)
+    {
+        return new KmProperty(convertPropertyFlags(kotlinPropertyMetadata.flags),
+                kotlinPropertyMetadata.name,
+                convertPropertyAccessorFlags(kotlinPropertyMetadata.getterFlags),
+                convertPropertyAccessorFlags(kotlinPropertyMetadata.setterFlags));
+    }
+
+    private static KmFunction toKmFunction(KotlinFunctionMetadata kotlinFunctionMetadata)
+    {
+        return new KmFunction(convertFunctionFlags(kotlinFunctionMetadata.flags), kotlinFunctionMetadata.name);
+    }
+
+    private static KmTypeAlias toKmTypeAlias(KotlinTypeAliasMetadata kotlinTypeAliasMetadata)
+    {
+        return new KmTypeAlias(convertTypeAliasFlags(kotlinTypeAliasMetadata.flags), kotlinTypeAliasMetadata.name);
     }
 
 
