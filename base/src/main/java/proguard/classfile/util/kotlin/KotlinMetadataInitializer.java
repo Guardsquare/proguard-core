@@ -39,17 +39,13 @@ import kotlinx.metadata.KmType;
 import kotlinx.metadata.KmTypeAlias;
 import kotlinx.metadata.KmTypeExtensionVisitor;
 import kotlinx.metadata.KmTypeParameter;
-import kotlinx.metadata.KmTypeParameterExtensionVisitor;
-import kotlinx.metadata.KmTypeParameterVisitor;
 import kotlinx.metadata.KmTypeProjection;
 import kotlinx.metadata.KmTypeVisitor;
 import kotlinx.metadata.KmValueParameter;
-import kotlinx.metadata.KmValueParameterVisitor;
 import kotlinx.metadata.KmVariance;
 import kotlinx.metadata.KmVersionRequirement;
 import kotlinx.metadata.KmVersionRequirementLevel;
 import kotlinx.metadata.KmVersionRequirementVersionKind;
-import kotlinx.metadata.KmVersionRequirementVisitor;
 import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion;
 import kotlinx.metadata.jvm.JvmExtensionsKt;
 import kotlinx.metadata.jvm.JvmFieldSignature;
@@ -57,7 +53,6 @@ import kotlinx.metadata.jvm.JvmFlag;
 import kotlinx.metadata.jvm.JvmMetadataUtil;
 import kotlinx.metadata.jvm.JvmMethodSignature;
 import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
-import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor;
 import kotlinx.metadata.jvm.KotlinClassMetadata;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
@@ -1207,42 +1202,6 @@ implements ClassVisitor,
 
 
     /**
-     * Note: visitType will always be called, and visitVararg on top of that if the val parameter is a valarg
-     */
-    private static class ValueParameterReader
-    extends KmValueParameterVisitor
-    {
-        private final KotlinValueParameterMetadata kotlinValueParameterMetadata;
-
-        ValueParameterReader(KotlinValueParameterMetadata kotlinValueParameterMetadata)
-        {
-            this.kotlinValueParameterMetadata = kotlinValueParameterMetadata;
-        }
-
-        @Override
-        public KmTypeVisitor visitType(int flags)
-        {
-            KotlinTypeMetadata type = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinValueParameterMetadata.type = type;
-
-            return new TypeReader(type);
-        }
-
-        @Override
-        public KmTypeVisitor visitVarargElementType(int flags)
-        {
-            KotlinTypeMetadata varArgType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinValueParameterMetadata.varArgElementType = varArgType;
-
-            return new TypeReader(varArgType);
-        }
-
-        @Override
-        public void visitEnd() {}
-    }
-
-
-    /**
      * A visitor to visit a type. The type must have a classifier which is one of: a class [visitClass], type parameter [visitTypeParameter]
      * or type alias [visitTypeAlias]. If the type's classifier is a class or a type alias, it can have type arguments ([visitArgument] and
      * [visitStarProjection]). If the type's classifier is an inner class, it can have the outer type ([visitOuterType]), which captures
@@ -1430,101 +1389,6 @@ implements ClassVisitor,
             @Override
             public void visitEnd() {}
         }
-    }
-
-
-    private static class TypeParameterReader
-    extends KmTypeParameterVisitor
-    {
-        private final KotlinTypeParameterMetadata    kotlinTypeParameterMetadata;
-        private final ArrayList<KotlinTypeMetadata>  upperBounds;
-
-        TypeParameterReader(KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
-        {
-            this.kotlinTypeParameterMetadata = kotlinTypeParameterMetadata;
-            this.upperBounds = new ArrayList<>();
-        }
-
-        @Override
-        public KmTypeParameterExtensionVisitor visitExtensions(KmExtensionType type)
-        {
-            return new TypeParameterExtensionReader();
-        }
-
-        @Override
-        public KmTypeVisitor visitUpperBound(int flags)
-        {
-            KotlinTypeMetadata upperBound = new KotlinTypeMetadata(convertTypeFlags(flags));
-            this.upperBounds.add(upperBound);
-
-            return new TypeReader(upperBound);
-        }
-
-        @Override
-        public void visitEnd() {
-            kotlinTypeParameterMetadata.upperBounds = this.upperBounds;
-        }
-
-
-        private class TypeParameterExtensionReader
-        extends JvmTypeParameterExtensionVisitor
-        {
-            private final ArrayList<KotlinAnnotation> annotations = new ArrayList<>(1);
-
-            @Override
-            public void visitAnnotation(KmAnnotation annotation)
-            {
-                annotations.add(convertAnnotation(annotation));
-            }
-
-            @Override
-            public void visitEnd()
-            {
-                kotlinTypeParameterMetadata.annotations = trimmed(this.annotations);
-
-                //PROBBUG if a value parameter or a type parameter has an annotation then
-                //        the annotation will be stored there but the flag will be
-                //        incorrectly set on this type. Sometimes the flag is not set
-                //        when there are annotations, sometimes the flag is set but there are no annotations.
-                kotlinTypeParameterMetadata.flags.common.hasAnnotations = !annotations.isEmpty();
-            }
-        }
-    }
-
-
-    private static class VersionRequirementReader
-    extends KmVersionRequirementVisitor
-    {
-        private final KotlinVersionRequirementMetadata kotlinVersionRequirementMetadata;
-
-        VersionRequirementReader(KotlinVersionRequirementMetadata kotlinVersionRequirementMetadata)
-        {
-            this.kotlinVersionRequirementMetadata = kotlinVersionRequirementMetadata;
-        }
-
-        /**
-         * @param errorCode may be null
-         * @param message   may be null
-         */
-        @Override
-        public void visit(KmVersionRequirementVersionKind kind, KmVersionRequirementLevel level, Integer errorCode, String message)
-        {
-            kotlinVersionRequirementMetadata.kind      = fromKmVersionRequirementVersionKind(kind);
-            kotlinVersionRequirementMetadata.level     = fromKmVersionRequirementLevel(level);
-            kotlinVersionRequirementMetadata.errorCode = errorCode;
-            kotlinVersionRequirementMetadata.message   = message;
-        }
-
-        @Override
-        public void visitVersion(int major, int minor, int patch)
-        {
-            kotlinVersionRequirementMetadata.major = major;
-            kotlinVersionRequirementMetadata.minor = minor;
-            kotlinVersionRequirementMetadata.patch = patch;
-        }
-
-        @Override
-        public void visitEnd() {}
     }
 
 
