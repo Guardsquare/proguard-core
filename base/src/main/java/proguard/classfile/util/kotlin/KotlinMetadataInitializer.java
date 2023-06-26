@@ -33,16 +33,10 @@ import kotlinx.metadata.KmEffectVisitor;
 import kotlinx.metadata.KmExtensionType;
 import kotlinx.metadata.KmFlexibleTypeUpperBound;
 import kotlinx.metadata.KmFunction;
-import kotlinx.metadata.KmFunctionExtensionVisitor;
-import kotlinx.metadata.KmFunctionVisitor;
-import kotlinx.metadata.KmPackageExtensionVisitor;
-import kotlinx.metadata.KmPackageVisitor;
+import kotlinx.metadata.KmPackage;
 import kotlinx.metadata.KmProperty;
-import kotlinx.metadata.KmPropertyExtensionVisitor;
-import kotlinx.metadata.KmPropertyVisitor;
 import kotlinx.metadata.KmType;
 import kotlinx.metadata.KmTypeAlias;
-import kotlinx.metadata.KmTypeAliasVisitor;
 import kotlinx.metadata.KmTypeExtensionVisitor;
 import kotlinx.metadata.KmTypeParameter;
 import kotlinx.metadata.KmTypeParameterExtensionVisitor;
@@ -60,11 +54,8 @@ import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 import kotlinx.metadata.jvm.JvmExtensionsKt;
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmFlag;
-import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor;
 import kotlinx.metadata.jvm.JvmMetadataUtil;
 import kotlinx.metadata.jvm.JvmMethodSignature;
-import kotlinx.metadata.jvm.JvmPackageExtensionVisitor;
-import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
 import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor;
 import kotlinx.metadata.jvm.KotlinClassMetadata;
@@ -304,12 +295,7 @@ implements ClassVisitor,
                     break;
 
                 case METADATA_KIND_FILE_FACADE: // For package level functions/properties
-                    KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata = new KotlinFileFacadeKindMetadata(mv,
-                                                                                                                 xi,
-                                                                                                                 xs,
-                                                                                                                 pn);
-
-                    ((KotlinClassMetadata.FileFacade)md).accept(new PackageReader(kotlinFileFacadeKindMetadata));
+                    KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata = toKotlinFileFacadeKindMetadata(md);
 
                     kotlinFileFacadeKindMetadata.ownerClassName = clazz.getName();
                     clazz.accept(new SimpleKotlinMetadataSetter(kotlinFileFacadeKindMetadata));
@@ -365,10 +351,7 @@ implements ClassVisitor,
 
                 case METADATA_KIND_MULTI_FILE_CLASS_PART:
                     KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata =
-                        new KotlinMultiFilePartKindMetadata(mv, xi, xs, pn);
-
-                    ((KotlinClassMetadata.MultiFileClassPart)md).accept(new PackageReader(
-                        kotlinMultiFilePartKindMetadata));
+                        toKotlinMultiFilePartKindMetadata(md);
 
                     kotlinMultiFilePartKindMetadata.ownerClassName = clazz.getName();
                     clazz.accept(new SimpleKotlinMetadataSetter(kotlinMultiFilePartKindMetadata));
@@ -654,6 +637,67 @@ implements ClassVisitor,
                 .collect(Collectors.toList());
 
         return kotlinClassKindMetadata;
+    }
+
+    private static KotlinFileFacadeKindMetadata toKotlinFileFacadeKindMetadata(KotlinClassMetadata md)
+    {
+        KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata = new KotlinFileFacadeKindMetadata(
+            md.getAnnotationData().mv(),
+            md.getAnnotationData().xi(),
+            md.getAnnotationData().xs(),
+            md.getAnnotationData().pn()
+        );
+
+        KotlinClassMetadata.FileFacade fileFacade = (KotlinClassMetadata.FileFacade) md;
+        KmPackage kmPackage = fileFacade.toKmPackage();
+
+        populateFromKmPackage(kotlinFileFacadeKindMetadata, kmPackage);
+
+        return kotlinFileFacadeKindMetadata;
+    }
+
+    private static KotlinMultiFilePartKindMetadata toKotlinMultiFilePartKindMetadata(KotlinClassMetadata md)
+    {
+        KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata = new KotlinMultiFilePartKindMetadata(
+            md.getAnnotationData().mv(),
+            md.getAnnotationData().xi(),
+            md.getAnnotationData().xs(),
+            md.getAnnotationData().pn()
+        );
+
+        KotlinClassMetadata.MultiFileClassPart fileFacade = (KotlinClassMetadata.MultiFileClassPart) md;
+        KmPackage kmPackage = fileFacade.toKmPackage();
+
+        populateFromKmPackage(kotlinMultiFilePartKindMetadata, kmPackage);
+
+        return kotlinMultiFilePartKindMetadata;
+    }
+
+    private static void populateFromKmPackage(KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata, KmPackage kmPackage)
+    {
+        kotlinDeclarationContainerMetadata.functions = kmPackage
+                .getFunctions()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinFunctionMetadata)
+                .collect(Collectors.toList());
+
+        kotlinDeclarationContainerMetadata.typeAliases = kmPackage
+                .getTypeAliases()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinTypeAliasMetadata)
+                .collect(Collectors.toList());
+
+        kotlinDeclarationContainerMetadata.properties = kmPackage
+                .getProperties()
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinPropertyMetadata)
+                .collect(Collectors.toList());
+
+        kotlinDeclarationContainerMetadata.localDelegatedProperties = JvmExtensionsKt
+                .getLocalDelegatedProperties(kmPackage)
+                .stream()
+                .map(KotlinMetadataInitializer::toKotlinPropertyMetadata)
+                .collect(Collectors.toList());
     }
 
     private static KotlinFunctionMetadata toKotlinFunctionMetadata(KmFunction kmFunction)
@@ -995,444 +1039,6 @@ implements ClassVisitor,
         versionReq.patch = kmVersionRequirement.version.getPatch();
 
         return versionReq;
-    }
-
-
-    private static class PropertyReader
-    extends KmPropertyVisitor
-    {
-        private final KotlinPropertyMetadata kotlinPropertyMetadata;
-
-        private final ArrayList<KotlinValueParameterMetadata> setterParameters;
-        private final ArrayList<KotlinTypeParameterMetadata>  typeParameters;
-        private final ArrayList<KotlinTypeMetadata>           contextReceivers;
-
-
-        PropertyReader(KotlinPropertyMetadata kotlinPropertyMetadata)
-        {
-            this.kotlinPropertyMetadata = kotlinPropertyMetadata;
-
-            this.setterParameters = new ArrayList<>(4);
-            this.typeParameters   = new ArrayList<>(1);
-            this.contextReceivers = new ArrayList<>();
-        }
-
-        /**
-         * This method is called for extension properties.
-         */
-        @Override
-        public KmTypeVisitor visitReceiverParameterType(int flags)
-        {
-            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinPropertyMetadata.receiverType = receiverType;
-
-            return new TypeReader(receiverType);
-        }
-
-        @Override
-        public KmTypeVisitor visitContextReceiverType(int flags)
-        {
-            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            contextReceivers.add(receiverType);
-            return new TypeReader(receiverType);
-        }
-
-        /**
-         * Visits the type of the property.
-         */
-        @Override
-        public KmTypeVisitor visitReturnType(int flags)
-        {
-            KotlinTypeMetadata returnType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinPropertyMetadata.type = returnType;
-
-            return new TypeReader(returnType);
-        }
-
-        /**
-         * Visits a value parameter of the setter of this property, if this is a `var` property.
-         *
-         * @param name the name of the value parameter (`"<set-?>"` for properties emitted by the Kotlin compiler)
-         */
-        @Override
-        public KmValueParameterVisitor visitSetterParameter(int flags, String name)
-        {
-            KotlinValueParameterMetadata valueParameter =
-                    new KotlinValueParameterMetadata(convertValueParameterFlags(flags), setterParameters.size(), name);
-            setterParameters.add(valueParameter);
-
-            return new ValueParameterReader(valueParameter);
-        }
-
-        @Override
-        public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
-        {
-            KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, fromKmVariance(variance));
-            typeParameters.add(kotlinTypeParameterMetadata);
-
-            return new TypeParameterReader(kotlinTypeParameterMetadata);
-        }
-
-        @Override
-        public KmVersionRequirementVisitor visitVersionRequirement()
-        {
-            KotlinVersionRequirementMetadata versionReq = new KotlinVersionRequirementMetadata();
-            kotlinPropertyMetadata.versionRequirement = versionReq;
-
-            return new VersionRequirementReader(versionReq);
-        }
-
-        @Override
-        public KmPropertyExtensionVisitor visitExtensions(KmExtensionType type)
-        {
-            return new PropertyExtensionReader();
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinPropertyMetadata.setterParameters = trimmed(this.setterParameters);
-            kotlinPropertyMetadata.typeParameters   = trimmed(this.typeParameters);
-            kotlinPropertyMetadata.contextReceivers = trimmed(this.contextReceivers);
-        }
-
-
-        private class PropertyExtensionReader
-        extends JvmPropertyExtensionVisitor
-        {
-            /**
-             * @param jvmFlags        JVM specific flags, in addition to standard property flags
-             * @param fieldSignature  may be null.
-             * @param getterSignature may be null. May have a parameter if it is an extension property.
-             * @param setterSignature may be null.
-             */
-            @Override
-            public void visit(int jvmFlags, JvmFieldSignature fieldSignature, JvmMethodSignature getterSignature, JvmMethodSignature setterSignature)
-            {
-                kotlinPropertyMetadata.backingFieldSignature = fromKotlinJvmFieldSignature(fieldSignature);
-
-                kotlinPropertyMetadata.getterSignature = fromKotlinJvmMethodSignature(getterSignature);
-                kotlinPropertyMetadata.setterSignature = fromKotlinJvmMethodSignature(setterSignature);
-
-                setPropertyJvmFlags(kotlinPropertyMetadata.flags, jvmFlags);
-            }
-
-            /**
-             * @param jvmMethodSignature may be null
-             */
-            @Override
-            public void visitSyntheticMethodForAnnotations(JvmMethodSignature jvmMethodSignature)
-            {
-                kotlinPropertyMetadata.syntheticMethodForAnnotations = fromKotlinJvmMethodSignature(jvmMethodSignature);
-            }
-
-            @Override
-            public void visitSyntheticMethodForDelegate(JvmMethodSignature jvmMethodSignature) {
-                kotlinPropertyMetadata.syntheticMethodForDelegate = fromKotlinJvmMethodSignature(jvmMethodSignature);
-            }
-
-            @Override
-            public void visitEnd() {}
-        }
-    }
-
-
-    private static class TypeAliasReader
-    extends KmTypeAliasVisitor
-    {
-        private final KotlinTypeAliasMetadata kotlinTypeAliasMetadata;
-
-        private final ArrayList<KotlinAnnotation>            annotations;
-        private final ArrayList<KotlinTypeParameterMetadata> typeParameters;
-
-        TypeAliasReader(KotlinTypeAliasMetadata kotlinTypeAliasMetadata)
-        {
-            this.kotlinTypeAliasMetadata = kotlinTypeAliasMetadata;
-
-            this.annotations    = new ArrayList<>(1);
-            this.typeParameters = new ArrayList<>(1);
-        }
-
-        @Override
-        public void visitAnnotation(KmAnnotation annotation)
-        {
-            annotations.add(convertAnnotation(annotation));
-        }
-
-        /**
-         * @param id the id of the type parameter, useful to be able to uniquely identify the type parameter in different contexts where
-         *           the name isn't enough (e.g. `class A<T> { fun <T> foo(t: T) }`)
-         * @param variance the declaration-site variance of the type parameter
-         */
-        @Override
-        public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
-        {
-            KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, fromKmVariance(variance));
-            typeParameters.add(kotlinTypeParameterMetadata);
-
-            return new TypeParameterReader(kotlinTypeParameterMetadata);
-        }
-
-        /**
-         * Visit the right-hand side of the type alias declaration.
-         */
-        @Override
-        public KmTypeVisitor visitUnderlyingType(int flags)
-        {
-            KotlinTypeMetadata underlyingType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinTypeAliasMetadata.underlyingType = underlyingType;
-
-            return new TypeReader(underlyingType);
-        }
-
-        /**
-         * Visit the full expansion of the underlying type.
-         */
-        @Override
-        public KmTypeVisitor visitExpandedType(int flags)
-        {
-            KotlinTypeMetadata expandedType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinTypeAliasMetadata.expandedType = expandedType;
-
-            return new TypeReader(expandedType);
-        }
-
-        @Override
-        public KmVersionRequirementVisitor visitVersionRequirement()
-        {
-            KotlinVersionRequirementMetadata versionReq = new KotlinVersionRequirementMetadata();
-            kotlinTypeAliasMetadata.versionRequirement = versionReq;
-
-            return new VersionRequirementReader(versionReq);
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinTypeAliasMetadata.annotations    = trimmed(this.annotations);
-            kotlinTypeAliasMetadata.typeParameters = trimmed(this.typeParameters);
-        }
-    }
-
-
-    private class PackageReader
-    extends KmPackageVisitor
-    {
-        private final KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata;
-
-        private final ArrayList<KotlinPropertyMetadata>  properties;
-        private final ArrayList<KotlinFunctionMetadata>  functions;
-        private final ArrayList<KotlinTypeAliasMetadata> typeAliases;
-        private final ArrayList<KotlinPropertyMetadata>  localDelegatedProperties;
-
-        PackageReader(KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-        {
-            this.kotlinDeclarationContainerMetadata = kotlinDeclarationContainerMetadata;
-
-            this.properties               = new ArrayList<>(8);
-            this.functions                = new ArrayList<>(8);
-            this.typeAliases              = new ArrayList<>(2);
-            this.localDelegatedProperties = new ArrayList<>(2);
-        }
-
-
-        // Implementations for KmDeclarationContainerVisitor
-        @Override
-        public KmFunctionVisitor visitFunction(int flags, String name)
-        {
-            KotlinFunctionMetadata function = new KotlinFunctionMetadata(convertFunctionFlags(flags), name);
-            functions.add(function);
-
-            return new FunctionReader(function);
-        }
-
-        @Override
-        public KmPropertyVisitor visitProperty(int flags, String name, int getterFlags, int setterFlags)
-        {
-            KotlinPropertyMetadata property = new KotlinPropertyMetadata(convertPropertyFlags(flags),
-                                                                         name,
-                                                                         convertPropertyAccessorFlags(getterFlags),
-                                                                         convertPropertyAccessorFlags(setterFlags));
-            properties.add(property);
-
-            return new PropertyReader(property);
-        }
-
-        @Override
-        public KmTypeAliasVisitor visitTypeAlias(int flags, String name)
-        {
-            KotlinTypeAliasMetadata typeAlias = new KotlinTypeAliasMetadata(convertTypeAliasFlags(flags), name);
-            typeAliases.add(typeAlias);
-
-            return new TypeAliasReader(typeAlias);
-        }
-
-        @Override
-        public KmPackageExtensionVisitor visitExtensions(KmExtensionType type)
-        {
-            return new PackageExtensionReader();
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinDeclarationContainerMetadata.properties               = trimmed(this.properties);
-            kotlinDeclarationContainerMetadata.functions                = trimmed(this.functions);
-            kotlinDeclarationContainerMetadata.typeAliases              = trimmed(this.typeAliases);
-            kotlinDeclarationContainerMetadata.localDelegatedProperties = trimmed(this.localDelegatedProperties);
-        }
-
-
-        private class PackageExtensionReader
-        extends JvmPackageExtensionVisitor
-        {
-            @Override
-            public KmPropertyVisitor visitLocalDelegatedProperty(int flags, String name, int getterFlags, int setterFlags)
-            {
-                KotlinPropertyMetadata delegatedProperty =
-                    new KotlinPropertyMetadata(convertPropertyFlags(flags),
-                                               name,
-                                               convertPropertyAccessorFlags(getterFlags),
-                                               convertPropertyAccessorFlags(setterFlags));
-                localDelegatedProperties.add(delegatedProperty);
-
-                return new PropertyReader(delegatedProperty);
-            }
-
-            @Override
-            public void visitEnd() {}
-        }
-    }
-
-
-    private static class FunctionReader
-    extends KmFunctionVisitor
-    {
-        private final KotlinFunctionMetadata  kotlinFunctionMetadata;
-
-        private final ArrayList<KotlinContractMetadata>       contracts;
-        private final ArrayList<KotlinValueParameterMetadata> valueParameters;
-        private final ArrayList<KotlinTypeParameterMetadata>  typeParameters;
-        private final ArrayList<KotlinTypeMetadata> contextReceivers;
-
-        FunctionReader(KotlinFunctionMetadata kotlinFunctionMetadata)
-        {
-            this.kotlinFunctionMetadata = kotlinFunctionMetadata;
-
-            this.contracts        = new ArrayList<>(1);
-            this.valueParameters  = new ArrayList<>(4);
-            this.typeParameters   = new ArrayList<>(1);
-            this.contextReceivers = new ArrayList<>();
-        }
-
-        @Override
-        public KmContractVisitor visitContract()
-        {
-            KotlinContractMetadata contract = new KotlinContractMetadata();
-            contracts.add(contract);
-
-            return new ContractReader(contract);
-        }
-
-        @Override
-        public KmTypeVisitor visitReceiverParameterType(int flags)
-        {
-            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinFunctionMetadata.receiverType = receiverType;
-
-            return new TypeReader(receiverType);
-        }
-
-        @Override
-        public KmTypeVisitor visitContextReceiverType(int flags)
-        {
-            KotlinTypeMetadata receiverType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            contextReceivers.add(receiverType);
-            return new TypeReader(receiverType);
-        }
-
-        @Override
-        public KmTypeVisitor visitReturnType(int flags)
-        {
-            KotlinTypeMetadata returnType = new KotlinTypeMetadata(convertTypeFlags(flags));
-            kotlinFunctionMetadata.returnType = returnType;
-
-            return new TypeReader(returnType);
-        }
-
-        @Override
-        public KmTypeParameterVisitor visitTypeParameter(int flags, String name, int id, KmVariance variance)
-        {
-            KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
-                new KotlinTypeParameterMetadata(convertTypeParameterFlags(flags), name, id, fromKmVariance(variance));
-            typeParameters.add(kotlinTypeParameterMetadata);
-
-            return new TypeParameterReader(kotlinTypeParameterMetadata);
-        }
-
-        @Override
-        public KmValueParameterVisitor visitValueParameter(int flags, String name)
-        {
-            KotlinValueParameterMetadata valueParameter =
-                    new KotlinValueParameterMetadata(convertValueParameterFlags(flags), valueParameters.size(), name);
-            valueParameters.add(valueParameter);
-
-            return new ValueParameterReader(valueParameter);
-        }
-
-        @Override
-        public KmVersionRequirementVisitor visitVersionRequirement()
-        {
-            KotlinVersionRequirementMetadata versionReq = new KotlinVersionRequirementMetadata();
-            kotlinFunctionMetadata.versionRequirement = versionReq;
-
-            return new VersionRequirementReader(versionReq);
-        }
-
-        @Override
-        public KmFunctionExtensionVisitor visitExtensions(KmExtensionType extensionType)
-        {
-            return new FunctionExtensionReader();
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinFunctionMetadata.contracts        = trimmed(this.contracts);
-            kotlinFunctionMetadata.valueParameters  = trimmed(this.valueParameters);
-            kotlinFunctionMetadata.typeParameters   = trimmed(this.typeParameters);
-            kotlinFunctionMetadata.contextReceivers = trimmed(this.contextReceivers);
-        }
-
-
-        private class FunctionExtensionReader
-        extends JvmFunctionExtensionVisitor
-        {
-            /**
-             * @param signature may be null
-             */
-            @Override
-            public void visit(JvmMethodSignature signature)
-            {
-                kotlinFunctionMetadata.jvmSignature = fromKotlinJvmMethodSignature(signature);
-            }
-
-
-            /**
-             * Visit the JVM internal name of the original class the lambda class for this function is copied from.
-             * This information is present for lambdas copied from bodies of inline functions to the use site by the Kotlin compiler.
-             */
-            @Override
-            public void visitLambdaClassOriginName(String internalName)
-            {
-                kotlinFunctionMetadata.lambdaClassOriginName = internalName;
-            }
-
-            @Override
-            public void visitEnd() {}
-        }
     }
 
 
