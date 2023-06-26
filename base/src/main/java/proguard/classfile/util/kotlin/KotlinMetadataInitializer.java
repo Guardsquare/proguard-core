@@ -950,9 +950,8 @@ implements ClassVisitor,
                 kmValueParameter.getName()
         );
 
-        // TODO: remove visitor.
-        ValueParameterReader valueParameterReader = new ValueParameterReader(valueParameterMetadata);
-        kmValueParameter.accept(valueParameterReader);
+        valueParameterMetadata.type              = toKotlinTypeMetadata(kmValueParameter.getType());
+        valueParameterMetadata.varArgElementType = toKotlinTypeMetadata(kmValueParameter.getVarargElementType());
 
         return valueParameterMetadata;
     }
