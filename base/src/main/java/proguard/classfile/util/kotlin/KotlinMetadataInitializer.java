@@ -35,7 +35,6 @@ import kotlinx.metadata.KmFlexibleTypeUpperBound;
 import kotlinx.metadata.KmFunction;
 import kotlinx.metadata.KmFunctionExtensionVisitor;
 import kotlinx.metadata.KmFunctionVisitor;
-import kotlinx.metadata.KmLambdaVisitor;
 import kotlinx.metadata.KmPackageExtensionVisitor;
 import kotlinx.metadata.KmPackageVisitor;
 import kotlinx.metadata.KmProperty;
@@ -343,11 +342,15 @@ implements ClassVisitor,
 
                     if (smd.isLambda())
                     {
-                        smd.accept(new LambdaReader(kotlinSyntheticClassKindMetadata));
+                        // Only lambdas contain exactly 1 function.
+                        kotlinSyntheticClassKindMetadata.functions = Collections.singletonList(
+                            toKotlinFunctionMetadata(Objects.requireNonNull(smd.toKmLambda()).getFunction())
+                        );
                     }
                     else
                     {
-                        kotlinSyntheticClassKindMetadata.functions = trimmed(new ArrayList<>(0));
+                        // Other synthetic classes never contain any functions.
+                        kotlinSyntheticClassKindMetadata.functions = Collections.emptyList();
                     }
 
                     clazz.accept(new SimpleKotlinMetadataSetter(kotlinSyntheticClassKindMetadata));
@@ -992,40 +995,6 @@ implements ClassVisitor,
         versionReq.patch = kmVersionRequirement.version.getPatch();
 
         return versionReq;
-    }
-
-
-    private class LambdaReader
-    extends KmLambdaVisitor
-    {
-        private final KotlinSyntheticClassKindMetadata  kotlinSyntheticClassKindMetadata;
-        private final ArrayList<KotlinFunctionMetadata> functions;
-
-        LambdaReader(KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-        {
-            this.kotlinSyntheticClassKindMetadata = kotlinSyntheticClassKindMetadata;
-
-            this.functions = new ArrayList<>(1);
-        }
-
-
-        /**
-         * @param name the name of the function (usually `"<anonymous>"` or `"<no name provided>"` for lambdas emitted by the Kotlin compiler)
-         */
-        @Override
-        public KmFunctionVisitor visitFunction(int flags, String name)
-        {
-            KotlinFunctionMetadata function = new KotlinFunctionMetadata(convertFunctionFlags(flags), name);
-            functions.add(function);
-
-            return new FunctionReader(function);
-        }
-
-        @Override
-        public void visitEnd()
-        {
-            kotlinSyntheticClassKindMetadata.functions = trimmed(this.functions);
-        }
     }
 
 
