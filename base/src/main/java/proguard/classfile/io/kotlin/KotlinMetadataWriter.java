@@ -44,18 +44,11 @@ import kotlinx.metadata.KmVersion;
 import kotlinx.metadata.KmVersionRequirement;
 import kotlinx.metadata.KmVersionRequirementLevel;
 import kotlinx.metadata.KmVersionRequirementVersionKind;
-import kotlinx.metadata.jvm.JvmClassExtensionVisitor;
-import kotlinx.metadata.jvm.JvmConstructorExtensionVisitor;
-import kotlinx.metadata.jvm.JvmDeclarationContainerExtensionVisitor;
+import kotlinx.metadata.jvm.JvmExtensionsKt;
 import kotlinx.metadata.jvm.JvmFieldSignature;
 import kotlinx.metadata.jvm.JvmFlag;
-import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor;
 import kotlinx.metadata.jvm.JvmMetadataUtil;
 import kotlinx.metadata.jvm.JvmMethodSignature;
-import kotlinx.metadata.jvm.JvmPackageExtensionVisitor;
-import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor;
-import kotlinx.metadata.jvm.JvmTypeExtensionVisitor;
-import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor;
 import kotlinx.metadata.jvm.KotlinClassMetadata;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
@@ -482,8 +475,6 @@ implements ClassVisitor,
         KmDeclarationContainer kmDeclarationContainer;
         KmProperty             kmProperty;
 
-        JvmDeclarationContainerExtensionVisitor extensionVisitor;
-
         KotlinDeclarationContainerConstructor(KmDeclarationContainer kmDeclarationContainer)
         {
             this.kmDeclarationContainer = kmDeclarationContainer;
@@ -515,34 +506,22 @@ implements ClassVisitor,
                                                             kotlinDeclarationContainerMetadata,
                                                             new VersionRequirementConstructor(kmProperty));
 
-            // TODO: Remove extension visitor.
-            JvmPropertyExtensionVisitor ext =
-                (JvmPropertyExtensionVisitor) kmProperty.visitExtensions(JvmPropertyExtensionVisitor.TYPE);
-
-            JvmMethodSignature getterSignature = toKotlinJvmMethodSignature(kotlinPropertyMetadata.getterSignature);
-            JvmMethodSignature setterSignature = toKotlinJvmMethodSignature(kotlinPropertyMetadata.setterSignature);
-            JvmFieldSignature backingFieldSignature = toKotlinJvmFieldSignature(kotlinPropertyMetadata.backingFieldSignature);
-
-            ext.visit(convertPropertyJvmFlags(kotlinPropertyMetadata.flags),
-                      backingFieldSignature,
-                      getterSignature,
-                      setterSignature);
+            JvmExtensionsKt.setJvmFlags(kmProperty, convertPropertyJvmFlags(kotlinPropertyMetadata.flags));
+            JvmExtensionsKt.setGetterSignature(kmProperty, toKotlinJvmMethodSignature(kotlinPropertyMetadata.getterSignature));
+            JvmExtensionsKt.setSetterSignature(kmProperty, toKotlinJvmMethodSignature(kotlinPropertyMetadata.setterSignature));
+            JvmExtensionsKt.setFieldSignature(kmProperty, toKotlinJvmFieldSignature(kotlinPropertyMetadata.backingFieldSignature));
 
             if (kotlinPropertyMetadata.syntheticMethodForAnnotations != null)
             {
-                ext.visitSyntheticMethodForAnnotations(
-                        toKotlinJvmMethodSignature(kotlinPropertyMetadata.syntheticMethodForAnnotations)
-                );
+                JvmExtensionsKt.setSyntheticMethodForAnnotations(kmProperty,
+                        toKotlinJvmMethodSignature(kotlinPropertyMetadata.syntheticMethodForAnnotations));
             }
 
             if (kotlinPropertyMetadata.syntheticMethodForDelegate != null)
             {
-                ext.visitSyntheticMethodForDelegate(
-                    toKotlinJvmMethodSignature(kotlinPropertyMetadata.syntheticMethodForDelegate)
-                );
+                JvmExtensionsKt.setSyntheticMethodForDelegate(kmProperty,
+                        toKotlinJvmMethodSignature(kotlinPropertyMetadata.syntheticMethodForDelegate));
             }
-
-            ext.visitEnd();
         }
 
         @Override
@@ -608,19 +587,13 @@ implements ClassVisitor,
                                                    kotlinDeclarationContainerMetadata,
                                                    new ContractConstructor(kmFunction));
 
-            // TODO: Remove extension visitor.
-            JvmFunctionExtensionVisitor ext =
-                (JvmFunctionExtensionVisitor) kmFunction.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
-
-            JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
-
-            ext.visit(jvmMethodSignature);
+            JvmExtensionsKt.setSignature(kmFunction,
+                    toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature));
 
             if (kotlinFunctionMetadata.lambdaClassOriginName != null)
             {
-                ext.visitLambdaClassOriginName(kotlinFunctionMetadata.lambdaClassOriginName);
+                JvmExtensionsKt.setLambdaClassOriginName(kmFunction, kotlinFunctionMetadata.lambdaClassOriginName);
             }
-            ext.visitEnd();
 
             kmDeclarationContainer.getFunctions().add(kmFunction);
         }
@@ -719,22 +692,17 @@ implements ClassVisitor,
             kotlinClassKindMetadata.versionRequirementAccept(               clazz, new VersionRequirementConstructor(kmClass));
             kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, new TypeConstructor(kmClass));
 
-            // TODO: Remove extension visitor.
-            // Extensions.
-            JvmClassExtensionVisitor ext =
-                (JvmClassExtensionVisitor) kmClass.visitExtensions(JvmClassExtensionVisitor.TYPE);
-
-            extensionVisitor = ext;
-            kotlinClassKindMetadata.delegatedPropertiesAccept(clazz, this);
+            for (KotlinPropertyMetadata propertyMetadata : kotlinClassKindMetadata.localDelegatedProperties)
+            {
+                JvmExtensionsKt.getLocalDelegatedProperties(kmClass).add(toKmProperty(propertyMetadata));
+            }
 
             if (kotlinClassKindMetadata.anonymousObjectOriginName != null)
             {
-                ext.visitAnonymousObjectOriginName(kotlinClassKindMetadata.anonymousObjectOriginName);
+                JvmExtensionsKt.setAnonymousObjectOriginName(kmClass, kotlinClassKindMetadata.anonymousObjectOriginName);
             }
 
-            ext.visitJvmFlags(convertClassJvmFlags(kotlinClassKindMetadata.flags));
-
-            ext.visitEnd();
+            JvmExtensionsKt.setJvmFlags(kmClass, convertClassJvmFlags(kotlinClassKindMetadata.flags));
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             Metadata metadata = KotlinClassMetadata.Companion.writeClass(kmClass,
@@ -770,13 +738,7 @@ implements ClassVisitor,
             // Extensions.
             if (kotlinConstructorMetadata.jvmSignature != null)
             {
-                // TODO: Remove extension visitor.
-                JvmConstructorExtensionVisitor constExtVis =
-                    (JvmConstructorExtensionVisitor)kmConstructor.visitExtensions(JvmConstructorExtensionVisitor.TYPE);
-
-                JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinConstructorMetadata.jvmSignature);
-
-                constExtVis.visit(jvmMethodSignature);
+                JvmExtensionsKt.setSignature(kmConstructor, toKotlinJvmMethodSignature(kotlinConstructorMetadata.jvmSignature));
             }
 
             kmClass.getConstructors().add(kmConstructor);
@@ -1252,17 +1214,11 @@ implements ClassVisitor,
             kotlinTypeMetadata.typeArgumentsAccept(clazz, new TypeConstructor(kmType));
             kotlinTypeMetadata.upperBoundsAccept(  clazz, new TypeConstructor(kmType));
 
-            // TODO: Remove extension visitor.
             // Extensions.
-            JvmTypeExtensionVisitor typeExtVis =
-                (JvmTypeExtensionVisitor)kmType.visitExtensions(JvmTypeExtensionVisitor.TYPE);
-
-            typeExtVis.visit(kotlinTypeMetadata.isRaw);
+            JvmExtensionsKt.setRaw(kmType, kotlinTypeMetadata.isRaw);
 
             kotlinTypeMetadata.annotationsAccept(clazz,
-                                                 new AnnotationConstructor(typeExtVis::visitAnnotation));
-
-            typeExtVis.visitEnd();
+                                                 new AnnotationConstructor(kmAnnotation -> JvmExtensionsKt.getAnnotations(kmType).add(kmAnnotation)));
         }
     }
 
@@ -1354,15 +1310,9 @@ implements ClassVisitor,
             kotlinTypeParameterMetadata.upperBoundsAccept(clazz,
                                                           new TypeConstructor(kmTypeParameter));
 
-            // TODO: Remove extension visitor.
             // Extensions.
-            JvmTypeParameterExtensionVisitor typeParamExtVis =
-                (JvmTypeParameterExtensionVisitor)kmTypeParameter.visitExtensions(JvmTypeParameterExtensionVisitor.TYPE);
-
             kotlinTypeParameterMetadata.annotationsAccept(clazz,
-                                                         new AnnotationConstructor(typeParamExtVis::visitAnnotation));
-
-            typeParamExtVis.visitEnd();
+                                                          new AnnotationConstructor(kmAnnotation -> JvmExtensionsKt.getAnnotations(kmTypeParameter).add(kmAnnotation)));
         }
     }
 
@@ -1396,14 +1346,10 @@ implements ClassVisitor,
             kotlinFileFacadeKindMetadata.functionsAccept(clazz, this);
             kotlinFileFacadeKindMetadata.typeAliasesAccept(clazz, this);
 
-            // TODO: Remove extension visitor.
-            JvmPackageExtensionVisitor ext =
-                (JvmPackageExtensionVisitor) kmPackage.visitExtensions(JvmPackageExtensionVisitor.TYPE);
-
-            extensionVisitor = ext;
-            kotlinFileFacadeKindMetadata.delegatedPropertiesAccept(clazz, this);
-
-            ext.visitEnd();
+            for (KotlinPropertyMetadata propertyMetadata : kotlinFileFacadeKindMetadata.localDelegatedProperties)
+            {
+                JvmExtensionsKt.getLocalDelegatedProperties(kmPackage).add(toKmProperty(propertyMetadata));
+            }
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             Metadata metadata = KotlinClassMetadata.Companion.writeFileFacade(kmPackage,
@@ -1500,20 +1446,12 @@ implements ClassVisitor,
                                                    kotlinSyntheticClassKindMetadata,
                                                    new ContractConstructor(kmFunction));
 
-            // TODO: Remove extension visitor.
-            JvmFunctionExtensionVisitor ext =
-                (JvmFunctionExtensionVisitor) kmFunction.visitExtensions(JvmFunctionExtensionVisitor.TYPE);
-
-            JvmMethodSignature jvmMethodSignature = toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature);
-
-            ext.visit(jvmMethodSignature);
+            JvmExtensionsKt.setSignature(kmFunction, toKotlinJvmMethodSignature(kotlinFunctionMetadata.jvmSignature));
 
             if (kotlinFunctionMetadata.lambdaClassOriginName != null)
             {
-                ext.visitLambdaClassOriginName(kotlinFunctionMetadata.lambdaClassOriginName);
+                JvmExtensionsKt.setLambdaClassOriginName(kmFunction, kotlinFunctionMetadata.lambdaClassOriginName);
             }
-
-            ext.visitEnd();
 
             kmLambda.setFunction(kmFunction);
         }
@@ -1578,14 +1516,10 @@ implements ClassVisitor,
             kotlinMultiFilePartKindMetadata.functionsAccept(clazz, this);
             kotlinMultiFilePartKindMetadata.typeAliasesAccept(clazz, this);
 
-            // TODO: Remove extension visitor.
-            JvmPackageExtensionVisitor ext =
-                (JvmPackageExtensionVisitor) kmPackage.visitExtensions(JvmPackageExtensionVisitor.TYPE);
-
-            extensionVisitor = ext;
-            kotlinMultiFilePartKindMetadata.delegatedPropertiesAccept(clazz, this);
-
-            ext.visitEnd();
+            for (KotlinPropertyMetadata propertyMetadata : kotlinMultiFilePartKindMetadata.localDelegatedProperties)
+            {
+                JvmExtensionsKt.getLocalDelegatedProperties(kmPackage).add(toKmProperty(propertyMetadata));
+            }
 
             // Finally store the protobuf contents in the fields of the enclosing class.
             Metadata metadata = KotlinClassMetadata.Companion.writeMultiFileClassPart(kmPackage,
