@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,19 @@
 
 package proguard.resources.kotlinmodule.io;
 
-import kotlinx.metadata.jvm.*;
+import kotlinx.metadata.jvm.KmModule;
+import kotlinx.metadata.jvm.KmPackageParts;
+import kotlinx.metadata.jvm.KotlinModuleMetadata;
+import proguard.resources.file.visitor.ResourceFileVisitor;
 import proguard.resources.kotlinmodule.KotlinModule;
 import proguard.classfile.util.ClassUtil;
-import proguard.resources.file.visitor.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.function.BiConsumer;
 
-import static kotlinx.metadata.jvm.KotlinClassHeader.COMPATIBLE_METADATA_VERSION;
+import static kotlinx.metadata.jvm.KotlinClassMetadata.COMPATIBLE_METADATA_VERSION;
+
 
 /**
  * @author James Hamilton
@@ -53,23 +57,20 @@ implements   ResourceFileVisitor
     {
         try
         {
-            KotlinModuleMetadata.Writer writer   = new KotlinModuleMetadata.Writer();
-            KmModule                    kmModule = new KmModule();
+            KmModule kmModule = new KmModule();
 
             kotlinModule.modulePackagesAccept(
                 (module, modulePackage) ->
-                    kmModule.visitPackageParts(
+                    kmModule.getPackageParts().put(
                         ClassUtil.externalClassName(modulePackage.fqName),
-                        modulePackage.fileFacadeNames,
-                        modulePackage.multiFileClassParts
+                        new KmPackageParts(modulePackage.fileFacadeNames, modulePackage.multiFileClassParts)
                     )
             );
 
-            kmModule.visitEnd();
+            // TODO: Support module optional annotations in our model.
+            // kmModule.getOptionalAnnotationClasses();
 
-            kmModule.accept(writer);
-
-            byte[] transformedBytes = writer.write(
+            byte[] transformedBytes = KotlinModuleMetadata.Companion.write(kmModule,
                 kotlinModule.version.canBeWritten() ? kotlinModule.version.toArray() : COMPATIBLE_METADATA_VERSION).getBytes();
             outputStream.write(transformedBytes);
         }

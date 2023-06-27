@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,22 @@
 
 package proguard.resources.kotlinmodule.io;
 
-import kotlinx.metadata.jvm.*;
-import proguard.classfile.*;
+import kotlinx.metadata.jvm.KmModule;
+import kotlinx.metadata.jvm.KotlinModuleMetadata;
+import proguard.classfile.JavaTypeConstants;
+import proguard.classfile.TypeConstants;
 import proguard.classfile.kotlin.KotlinMetadataVersion;
-import proguard.resources.file.visitor.*;
-import proguard.resources.kotlinmodule.*;
+import proguard.resources.file.visitor.ResourceFileVisitor;
+import proguard.resources.kotlinmodule.KotlinModule;
+import proguard.resources.kotlinmodule.KotlinModulePackage;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static proguard.classfile.kotlin.KotlinMetadataVersion.UNKNOWN_VERSION;
@@ -78,18 +85,21 @@ implements   ResourceFileVisitor
 
             // Now we have the KmModule object we can
             // use a visitor to initialize our own KotlinModule object.
-            kmModule.accept(new KmModuleVisitor()
-            {
-                @SuppressWarnings("NullableProblems")
-                public void visitPackageParts(String fqName, List<String> fileFacades, Map<String, String> multiFileClassParts)
-                {
-                    kotlinModule.modulePackages.add(
-                        new KotlinModulePackage(
-                            fqName.replace(JavaTypeConstants.PACKAGE_SEPARATOR, TypeConstants.PACKAGE_SEPARATOR),
-                            fileFacades,
-                            multiFileClassParts));
-                }
-            });
+            kotlinModule.modulePackages.addAll(
+                kmModule
+                    .getPackageParts()
+                    .entrySet()
+                    .stream()
+                    .map(entry -> new KotlinModulePackage(
+                            entry.getKey().replace(JavaTypeConstants.PACKAGE_SEPARATOR, TypeConstants.PACKAGE_SEPARATOR),
+                            entry.getValue().getFileFacades(),
+                            entry.getValue().getMultiFileClassParts()
+                    ))
+                   .collect(Collectors.toList())
+            );
+
+            // TODO: Support module optional annotations in our model.
+            // kmModule.getOptionalAnnotationClasses();
         }
         catch (NullPointerException | IOException e)
         {
