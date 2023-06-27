@@ -140,13 +140,14 @@ implements   ClassVisitor,
             int                      lowestLineNumber                     = sourceMethodLineNumberTableAttribute.getLowestLineNumber();
             int                      highestLineNumber                    = sourceMethodLineNumberTableAttribute.getHighestLineNumber();
 
+            String newSource = initializeLineNumberInfoSource(sourceClass,
+                                                              sourceMethod,
+                                                              lowestLineNumber,
+                                                              highestLineNumber);
+
             for (int i = 0; i < copiedMethodLineNumberTableAttribute.u2lineNumberTableLength; i++)
             {
                 LineNumberInfo         currentLineNumberInfo = copiedMethodLineNumberTableAttribute.lineNumberTable[i];
-                String                 newSource             = initializeLineNumberInfoSource(sourceClass,
-                                                                                              sourceMethod,
-                                                                                              lowestLineNumber,
-                                                                                              highestLineNumber);
                 ExtendedLineNumberInfo newLineNumberInfo     = new ExtendedLineNumberInfo(currentLineNumberInfo.u2startPC,
                                                                                           currentLineNumberInfo.u2lineNumber,
                                                                                           newSource);
