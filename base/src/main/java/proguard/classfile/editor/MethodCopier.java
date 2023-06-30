@@ -137,8 +137,12 @@ implements   ClassVisitor,
 
         public void visitCodeAttribute(Clazz sourceClass, Method sourceMethod, CodeAttribute sourceMethodCodeAttribute) {
             LineNumberTableAttribute sourceMethodLineNumberTableAttribute = (LineNumberTableAttribute) sourceMethodCodeAttribute.getAttribute(sourceClass, Attribute.LINE_NUMBER_TABLE);
-            int                      lowestLineNumber                     = sourceMethodLineNumberTableAttribute.getLowestLineNumber();
-            int                      highestLineNumber                    = sourceMethodLineNumberTableAttribute.getHighestLineNumber();
+            int                      lowestLineNumber                     = sourceMethodLineNumberTableAttribute == null
+                                                                                ? 0
+                                                                                : sourceMethodLineNumberTableAttribute.getLowestLineNumber();
+            int                      highestLineNumber                    = sourceMethodLineNumberTableAttribute == null
+                                                                                ? 0
+                                                                                : sourceMethodLineNumberTableAttribute.getHighestLineNumber();
 
             String newSource = initializeLineNumberInfoSource(sourceClass,
                                                               sourceMethod,
