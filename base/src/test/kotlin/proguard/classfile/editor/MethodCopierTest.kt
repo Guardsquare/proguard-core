@@ -83,6 +83,7 @@ class MethodCopierTest : FreeSpec({
             MethodCopier(
                 sourceClass,
                 sourceMethod,
+                null,
                 copiedMethodAssigner
             )
         )
@@ -175,24 +176,42 @@ class MethodCopierTest : FreeSpec({
 
         val existingMethod = bazClass.findMethod("bar", "()V")
 
-        bazClass.accept(
-            MethodCopier(
-                sourceClass,
-                sourceMethod,
-                copiedMethodAssigner
+        "When not applying a name transformer function" - {
+            bazClass.accept(
+                MethodCopier(
+                    sourceClass,
+                    sourceMethod,
+                    null,
+                    copiedMethodAssigner
+                )
             )
-        )
 
-        "Then copiedMethodAssigner must not have been called" {
-            copiedMethodAssigner.called shouldBe false
+            "Then copiedMethodAssigner must not have been called" {
+                copiedMethodAssigner.called shouldBe false
+            }
+
+            "Then copiedMethod must be null" {
+                copiedMethod.shouldBeNull()
+            }
+
+            "Then calling findMethod on the target class should return the method that already existed" {
+                bazClass.findMethod("bar", "()V").shouldNotBeNull() shouldBe existingMethod.shouldNotBeNull()
+            }
         }
 
-        "Then copiedMethod must be null" {
-            copiedMethod.shouldBeNull()
-        }
+        "When applying a name transformer function" - {
+            bazClass.accept(
+                MethodCopier(
+                    sourceClass,
+                    sourceMethod,
+                    { it + "Copy"  },
+                    copiedMethodAssigner
+                )
+            )
 
-        "Then calling findMethod on the target class should return the method that already existed" {
-            bazClass.findMethod("bar", "()V").shouldNotBeNull() shouldBe existingMethod.shouldNotBeNull()
+            "Then calling findMethod on the target class should return the copied method" {
+                bazClass.findMethod("barCopy", "()V").shouldNotBeNull() shouldBe copiedMethod.shouldNotBeNull()
+            }
         }
     }
 })
