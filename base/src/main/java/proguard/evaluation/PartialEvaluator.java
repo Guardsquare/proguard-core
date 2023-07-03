@@ -431,7 +431,11 @@ implements   AttributeVisitor,
             System.out.println("  Max locals = "+codeAttribute.u2maxLocals);
             System.out.println("  Max stack  = "+codeAttribute.u2maxStack);
         }
-
+        // Empty code attribute, do not analyze
+        if (codeAttribute.code.length == 0)
+        {
+            throw new EmptyCodeAttributeException("Empty code attribute found during partial evaluation");
+        }
         // Reuse the existing variables and stack objects, ensuring the right size.
         TracedVariables variables = new TracedVariables(codeAttribute.u2maxLocals);
         TracedStack     stack     = new TracedStack(codeAttribute.u2maxStack);
