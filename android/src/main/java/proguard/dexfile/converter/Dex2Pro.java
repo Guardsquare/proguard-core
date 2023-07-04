@@ -19,8 +19,6 @@ package proguard.dexfile.converter;
 import proguard.analysis.Metrics;
 import proguard.analysis.Metrics.MetricType;
 import proguard.classfile.AccessConstants;
-import proguard.classfile.Clazz;
-import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
@@ -60,9 +58,7 @@ import proguard.classfile.editor.ConstantPoolEditor;
 import proguard.classfile.editor.ExceptionsAttributeEditor;
 import proguard.classfile.editor.InnerClassesAttributeEditor;
 import proguard.classfile.util.ClassUtil;
-import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.classfile.visitor.ClassVisitor;
-import proguard.classfile.visitor.MemberVisitor;
 import proguard.dexfile.ir.IrMethod;
 import proguard.dexfile.ir.ts.AggTransformer;
 import proguard.dexfile.ir.ts.CleanLabel;
@@ -87,11 +83,8 @@ import proguard.dexfile.reader.node.DexClassNode;
 import proguard.dexfile.reader.node.DexFieldNode;
 import proguard.dexfile.reader.node.DexFileNode;
 import proguard.dexfile.reader.node.DexMethodNode;
-import proguard.io.ClassReader;
 
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -737,41 +730,6 @@ public class Dex2Pro {
 
         // Let the class visitor visit the created class.
         classVisitor.visitProgramClass(programClass);
-    }
-
-    private static final String HEX_CLASS_LOCATION = "res/Hex";
-    private static final Set<String> HEX_DECODE_METHODS =
-            new LinkedHashSet<>(Arrays.asList("decode_J", "decode_I", "decode_S", "decode_B"));
-
-    protected InputStream getHexClassAsStream() {
-        return Dex2Pro.class.getResourceAsStream("/" + HEX_CLASS_LOCATION + ".class");
-    }
-
-    private void addHexDecodeMethod(ClassVisitor outCV, String className, String hexDecodeMethodNameBase) {
-        System.err.println(className);
-        InputStream hexClassStream = getHexClassAsStream();
-        if (hexClassStream == null)
-            return;
-
-        try (InputStream is = getHexClassAsStream()) {
-            ClassReader cr = new ClassReader(
-                    false,
-                    false,
-                    false,
-                    false,
-                    null,
-                    new AllMethodVisitor(
-                            new MemberVisitor() {
-                                @Override
-                                public void visitAnyMember(Clazz clazz, Member member) {
-                                    if (HEX_DECODE_METHODS.contains(clazz.getName()))
-                                        outCV.visitAnyClass(clazz);
-                                }
-                            }
-                    ));
-        } catch (Throwable t) {
-            throw new RuntimeException("Failed to add " + HEX_CLASS_LOCATION + ".decode_*", t);
-        }
     }
 
     private void convertCode(DexMethodNode methodNode, CompactCodeAttributeComposer composer) {
