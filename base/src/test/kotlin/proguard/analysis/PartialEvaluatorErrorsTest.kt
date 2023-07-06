@@ -96,5 +96,13 @@ class PartialEvaluatorErrorsTest: FreeSpec({
         "Always taken" {
             // TODO: Maybe this is not an error but we could track this :)
         }
+
+        "Duplicate top value of an empty stack" {
+            val (programClassPool, _) = fastBuild("""
+                dup
+            """.trimIndent())
+
+            fastEval(programClassPool, PartialEvaluator())
+        }
     }
 })
