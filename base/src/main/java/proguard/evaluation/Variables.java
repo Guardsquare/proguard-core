@@ -210,6 +210,10 @@ public class Variables
             throw new IndexOutOfBoundsException("Variable index ["+index+"] out of bounds ["+size+"]");
         }
 
+        if (values[index] == null) {
+            throw new InstructionEvaluationException("No value in variable slot "+index+".",
+                    "You might have forgotten to load the value first, or maybe you loaded it to another variable.");
+        }
         return values[index];
     }
 

@@ -44,8 +44,10 @@ import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+import proguard.util.CircularBuffer;
 
 import java.util.Arrays;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * This {@link AttributeVisitor} performs partial evaluation on the code attributes
@@ -877,6 +879,8 @@ implements   AttributeVisitor,
                                                 int              startOffset)
     {
         byte[] code = codeAttribute.code;
+        CircularBuffer<Instruction> instructionBuffer = new CircularBuffer<>(5);
+        CircularBuffer<Integer> offsetBuffer = new CircularBuffer<>(5);
 
         if (DEBUG)
         {
@@ -988,6 +992,8 @@ implements   AttributeVisitor,
 
             // Decode the instruction.
             Instruction instruction = InstructionFactory.create(code, instructionOffset);
+            instructionBuffer.push(instruction);
+            offsetBuffer.push(instructionOffset);
 
             // Reset the branch unit.
             branchUnit.reset();
@@ -1020,6 +1026,15 @@ implements   AttributeVisitor,
             }
             catch (RuntimeException ex)
             {
+                // We can also calculate what the next instruction will be. We should clearly communicate that this is the next in code; not the next executed.
+                // Since we show the offset, the user gets a clear indication of past branches
+                // (We don't know whether the branch, if there is one is taken)
+
+                Instruction nextInstruction = null;
+                int nextOffset = instructionOffset + instruction.length(instructionOffset);
+                if (nextOffset < code.length) {
+                    nextInstruction = InstructionFactory.create(code, nextOffset);
+                }
                 // TODO: can go? It is also done one step higher?
                 logger.error("Unexpected error while evaluating instruction:");
                 logger.error("  Class       = [{}]", clazz.getName());
