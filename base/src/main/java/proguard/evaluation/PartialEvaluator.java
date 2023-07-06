@@ -1020,9 +1020,15 @@ implements   AttributeVisitor,
             }
             catch (RuntimeException ex)
             {
+                // TODO: can go? It is also done one step higher?
                 logger.error("Unexpected error while evaluating instruction:");
                 logger.error("  Class       = [{}]", clazz.getName());
                 logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+                // TODO: get the correct instruction Offsets of previous + you want to print the offset between brackets
+                //   From methods you can get the opcode = code, in instruction.java(?) you can find the deltaOffset for an opcode
+
+                // TODO: get a better description of different errors, this will be the "hard" part (read, much work, not hard)
+                //  Might be able to use a note? - how to fix?
                 logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
                 logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
