@@ -111,7 +111,7 @@ class ClassPoolBuilder private constructor() {
                     false,
                     false,
                     true,
-                    WarningPrinter(PrintWriter(System.err)),
+                    WarningPrinter(PrintWriter(System.out)),
                     ClassPoolFiller(programClassPool)
                 )
             )
