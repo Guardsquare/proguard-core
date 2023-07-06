@@ -6,10 +6,17 @@ import proguard.classfile.attribute.Attribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
+import proguard.evaluation.BasicInvocationUnit
+import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
+import proguard.evaluation.value.BasicValueFactory
 import proguard.evaluation.value.DetailedArrayValueFactory
+import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory
+import proguard.evaluation.value.ValueFactory
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
+
 
 class PartialEvaluatorErrorsTest: FreeSpec({
     "Throw a correct and descriptive error message for the following code snippets" - {
@@ -19,6 +26,7 @@ class PartialEvaluatorErrorsTest: FreeSpec({
                 AssemblerSource("EmptySlot.jbc",
                 """
                     public class EmptySlot extends java.lang.Object {
+                        public final int intField = 42;
                         public void test()
                         {
                                $impl
@@ -147,9 +155,9 @@ class PartialEvaluatorErrorsTest: FreeSpec({
         }
 
         "Illegal static" {
-            // TODO: this should fail? Printream does not exist - no clue who should detect
+            // TODO: this should fail? bingbong does not exist - no clue who should detect
             val (programClassPool, _) = fastBuild("""
-                    getstatic java.lang.System#Printream out
+                    getstatic java.lang.System#bingbong out
                     ldc "Hello World!"
                     invokevirtual java.io.PrintStream#void println(java.lang.String)
                     return
@@ -175,5 +183,12 @@ class PartialEvaluatorErrorsTest: FreeSpec({
 
             fastEval(programClassPool, PartialEvaluator())
         }
+
+        "goto far" {
+            val (programClassPool, _) = fastBuild("""
+                goto jafar
+            """.trimIndent())
+        }
+
     }
 })
