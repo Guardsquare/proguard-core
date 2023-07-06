@@ -62,6 +62,7 @@ class PartialEvaluatorErrorsTest: FreeSpec({
 
         "Variable types do not match instruction - not enough" {
             // TODO: I feel like a better error can be given than negative stack size (see next test)
+            //   Probably not fixable because stack size is checked by assembler
             val (programClassPool, _) = fastBuild("""
                     iconst_3
                     iconst_1
@@ -72,23 +73,22 @@ class PartialEvaluatorErrorsTest: FreeSpec({
         }
 
         "Variable types do not match instruction" {
-            // TODO: I feel like a better error can be given than negative stack size (see next test)
+            val (programClassPool, _) = fastBuild("""
+                    iconst_3
+                    iconst_3
+                    iconst_1
+                    iconst_1
+                    lsub
+                    lreturn
+                """.trimIndent())
+            fastEval(programClassPool, PartialEvaluator())
+        }
+
+        "Variable types do not match instruction - long interpreted as int" {
             val (programClassPool, _) = fastBuild("""
                     lconst_1
                     isub
-                    lreturn
-                """.trimIndent())
-            fastEval(programClassPool, PartialEvaluator())
-        }
-
-        "Variable types do not match instruction" {
-            val (programClassPool, _) = fastBuild("""
-                    iconst_3
-                    iconst_3
-                    iconst_1
-                    iconst_1
-                    lsub
-                    lreturn
+                    ireturn
                 """.trimIndent())
             fastEval(programClassPool, PartialEvaluator())
         }
