@@ -1,6 +1,7 @@
 package proguard.analysis
 
 import io.kotest.core.spec.style.FreeSpec
+import proguard.classfile.ClassPool
 import proguard.classfile.attribute.Attribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
@@ -10,30 +11,25 @@ import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 
 class PartialEvaluatorErrorsTest: FreeSpec({
-
     "Throw a correct and descriptive error message for the following code snippets" - {
-        "Empty variable slot read" {
-            val (programClassPool, _) = ClassPoolBuilder.fromSource(
-                AssemblerSource(
-                    "EmptySlot.jbc",
-                    """
+
+        val fastBuild = { impl: String ->
+            ClassPoolBuilder.fromSource(
+                AssemblerSource("EmptySlot.jbc",
+                """
                     public class EmptySlot extends java.lang.Object {
                         public static void test()
                         {
-                               ldc "test"
-                               astore_0
-                               aload_1
-                               areturn
-
+                               $impl
                         }
                     }
                 """.trimIndent()
                 )
             )
+        }
 
-            val partialEvaluator = PartialEvaluator()
-
-            programClassPool.classesAccept(
+        val fastEval = { pool: ClassPool, partialEvaluator: PartialEvaluator ->
+            pool.classesAccept(
                 "EmptySlot", NamedMethodVisitor(
                     "test", "()V",
                     AllAttributeVisitor(
@@ -41,6 +37,27 @@ class PartialEvaluatorErrorsTest: FreeSpec({
                     )
                 )
             )
+        }
+
+        "Empty variable slot read" {
+            val (programClassPool, _) = fastBuild("""
+                    ldc "test"
+                    astore_0
+                    aload_1
+                    areturn
+                """.trimIndent())
+
+            fastEval(programClassPool, PartialEvaluator())
+        }
+
+        "Variable types do not match" - {
+            val (programClassPool, _) = fastBuild("""
+                    ldc "test"
+                    astore_0
+                    iload_0
+                    areturn
+                """.trimIndent())
+            fastEval(programClassPool, PartialEvaluator())
         }
     }
 })
