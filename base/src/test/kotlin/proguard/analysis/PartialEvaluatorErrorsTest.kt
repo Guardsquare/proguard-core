@@ -6,14 +6,8 @@ import proguard.classfile.attribute.Attribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
-import proguard.evaluation.BasicInvocationUnit
-import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
-import proguard.evaluation.value.BasicValueFactory
 import proguard.evaluation.value.DetailedArrayValueFactory
-import proguard.evaluation.value.ParticularValueFactory
-import proguard.evaluation.value.ParticularValueFactory.ReferenceValueFactory
-import proguard.evaluation.value.ValueFactory
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 
