@@ -732,11 +732,7 @@ public class Dex2Pro {
         classVisitor.visitProgramClass(programClass);
     }
 
-    private void convertCode(DexMethodNode methodNode, CompactCodeAttributeComposer composer) {
-        IrMethod irMethod = dex2ir(methodNode);
-        if (shouldSkipMethod(irMethod)) {
-            return;
-        }
+    private void convertCode(IrMethod irMethod, CompactCodeAttributeComposer composer) {
         optimize(irMethod);
         ir2j(irMethod, composer);
     }
@@ -914,17 +910,29 @@ public class Dex2Pro {
 
         ProgramClass programClass = classBuilder.getProgramClass();
         ProgramMethod programMethod;
+
         try {
-            programMethod = methodNode.codeNode == null ?
-                    classBuilder.addAndReturnMethod(flags, name, desc) :
-                    classBuilder.addAndReturnMethod(flags, name, desc,
-                            MAX_CODE_LENGTH,
-                            code -> convertCode(methodNode, code));
+            if (methodNode.codeNode == null) {
+                programMethod = classBuilder.addAndReturnMethod(flags, name, desc);
+            } else {
+                IrMethod irMethod = dex2ir(methodNode);
+                if (shouldSkipMethod(irMethod)) {
+                    programMethod = classBuilder.addAndReturnMethod(flags, name, desc);
+                } else {
+                    programMethod = classBuilder.addAndReturnMethod(flags, name, desc,
+                                    MAX_CODE_LENGTH,
+                                    code -> convertCode(irMethod, code));
+                }
+            }
         } catch (Exception e) {
             if (SKIP_UNPARSEABLE_METHODS) {
-                // this can e.g., happen for invalid bytecode. In that case, we still want to continue to load the remaining methods.
-//                logger.error("Cannot parse method", e);
-                programMethod = classBuilder.addAndReturnMethod(flags, name, desc); // create an empty method to continue.
+                // This can e.g., happen for invalid bytecode. In that case,
+                // we still want to continue to load the remaining methods.
+
+                // Create an empty method to continue.
+                programMethod = classBuilder.addAndReturnMethod(flags, name, desc);
+
+                Metrics.increaseCount(MetricType.DEX2PRO_UNPARSEABLE_METHOD_SKIPPED);
             } else {
                 throw e;
             }
@@ -1134,5 +1142,4 @@ public class Dex2Pro {
     }
 
     private static final Comparator<InnerClassNode> INNER_CLASS_NODE_COMPARATOR = Comparator.comparing(o -> o.name);
-
 }
