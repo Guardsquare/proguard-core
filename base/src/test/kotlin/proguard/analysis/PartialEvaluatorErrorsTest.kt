@@ -107,18 +107,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny { fastEval(programClassPool, PartialEvaluator()) }
         }
 
-        "bipush with invalid operand label" {
-            // `bipush` excpects a byte value but 300 exceedes the maximum byte value (>255)
-            shouldThrowAny {
-                fastBuild(
-                    """
-                    bipush 300
-                    aload_0
-                    areturn
-                    """.trimIndent()
-                )
-            }
-        }
+
 
         "Variable types do not match instruction - long interpreted as int" {
             val (programClassPool, _) = fastBuild(
@@ -332,6 +321,19 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 )
             }
         }
+
+        "bipush with invalid operand label" {
+            // `bipush` excpects a byte value but 300 exceedes the maximum byte value (>255)
+            shouldThrowAny {
+                fastBuild(
+                    """
+                    bipush 300
+                    aload_0
+                    areturn
+                    """.trimIndent()
+                )
+            }
+        }
     }
 
     /**
@@ -428,6 +430,21 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
             fastEval(programClassPool, PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false))
+        }
+
+        "bipush with invalid operand label" {
+            // `bipush` excpects a byte value but 300 exceedes the maximum byte value (>255)
+            ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
+            )
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it
+                        .bipush(300)
+                        .return_()
+                }
         }
     }
 
