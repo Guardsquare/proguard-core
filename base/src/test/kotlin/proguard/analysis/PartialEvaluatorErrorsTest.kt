@@ -37,26 +37,24 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "PartialEvaluatorDummy.jbc",
                 """
                 public class PartialEvaluatorDummy extends java.lang.Object {
-                    public java.lang.Object test()
-                    {
-                           $impl
-                    }
+                    $impl
                 }
                 """.trimIndent()
             )
         )
     }
 
-    val fastEval = { pool: ClassPool, partialEvaluator: PartialEvaluator ->
-        pool.classesAccept(
-            "PartialEvaluatorDummy", NamedMethodVisitor(
-                "test", "()Ljava/lang/Object;",
-                AllAttributeVisitor(
-                    AttributeNameFilter(Attribute.CODE, partialEvaluator)
+    val fastEval =
+        { pool: ClassPool, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
+            pool.classesAccept(
+                "PartialEvaluatorDummy", NamedMethodVisitor(
+                    methodName, methodDescriptor,
+                    AllAttributeVisitor(
+                        AttributeNameFilter(Attribute.CODE, partialEvaluator)
+                    )
                 )
             )
-        )
-    }
+        }
 
 
     /**
@@ -67,81 +65,120 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "Empty variable slot read" {
             val (programClassPool, _) = fastBuild(
                 """
-                ldc "test"
-                astore_0
-                aload_1
-                areturn
+                    public java.lang.Object test() {
+                        ldc "test"
+                        astore_0
+                        aload_1
+                        areturn
+                    }
                 """.trimIndent()
             )
 
-            shouldThrowAny { fastEval(programClassPool, PartialEvaluator()) }
+            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Variable types do not match" {
             // Store an `a`, load an `i`, this cannot work.
             val (programClassPool, _) = fastBuild(
                 """
-                ldc "test"
-                astore_0
-                iload_0
-                areturn
+                    public java.lang.Object test() {
+                        ldc "test"
+                        astore_0
+                        iload_0
+                        areturn
+                    }
                 """.trimIndent()
             )
 
-            shouldThrow<IllegalArgumentException> { fastEval(programClassPool, PartialEvaluator()) }
+            shouldThrow<IllegalArgumentException> {
+                fastEval(
+                    programClassPool,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;"
+                )
+            }
         }
 
         "Variable types do not match instruction" {
             val (programClassPool, _) = fastBuild(
                 """
-                iconst_3
-                iconst_3
-                iconst_1
-                iconst_1
-                lsub
-                aload_0
-                areturn
+                    public java.lang.Object test() {
+                        iconst_3
+                        iconst_3
+                        iconst_1
+                        iconst_1
+                        lsub
+                        aload_0
+                        areturn
+                    }
                 """.trimIndent()
             )
 
-            shouldThrowAny { fastEval(programClassPool, PartialEvaluator()) }
+            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
-
 
 
         "Variable types do not match instruction - long interpreted as int" {
             val (programClassPool, _) = fastBuild(
                 """
-                lconst_1
-                isub
-                aload_0
-                areturn
+                    public java.lang.Object test() {
+                        lconst_1
+                        isub
+                        aload_0
+                        areturn
+                    }
                 """.trimIndent()
             )
-            shouldThrow<IllegalArgumentException> { fastEval(programClassPool, PartialEvaluator()) }
+            shouldThrow<IllegalArgumentException> {
+                fastEval(
+                    programClassPool,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;"
+                )
+            }
         }
 
         "anewarray" {
             val (programClassPool, _) = fastBuild(
                 """
-                lconst_1
-                anewarray long
-                areturn
+                    public java.lang.Object test() {
+                        lconst_1
+                        anewarray long
+                        areturn
+                    }
                 """.trimIndent()
             )
-            shouldThrow<IllegalArgumentException> { fastEval(programClassPool, PartialEvaluator()) }
+            shouldThrow<IllegalArgumentException> {
+                fastEval(
+                    programClassPool,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;"
+                )
+            }
         }
 
         "getfield but field has wrong type" {
             val (programClassPool) = fastBuild(
                 """
-                aload_0
-                getfield EmptySlot#float INT_FIELD
-                areturn
+                    public java.lang.Object test() {
+                        aload_0
+                        getfield EmptySlot#float INT_FIELD
+                        areturn
+                    }
                 """.trimIndent()
             )
 
-            shouldThrow<IllegalArgumentException> { fastEval(programClassPool, PartialEvaluator()) }
+            shouldThrow<IllegalArgumentException> {
+                fastEval(
+                    programClassPool,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;"
+                )
+            }
         }
 
         "Should complain about variable types instead of negative stack size" {
@@ -220,10 +257,12 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // There is no 50th variable. The amount of local variables has been limited to 2
             val (programClassPool, _) = fastBuild(
                 """
-                ldc "test"
-                astore 50
-                aload_0
-                areturn
+                    public java.lang.Object test() {
+                        ldc "test"
+                        astore 50
+                        aload_0
+                        areturn
+                    }
                 """.trimIndent()
             )
 
@@ -243,7 +282,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     )
                 )
             )
-            shouldThrowAny { fastEval(programClassPool, PartialEvaluator()) }
+            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
     }
 
@@ -352,18 +391,27 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // Stack: [3:1:[I?=![1]#0{LPartialEvaluatorDummy;!#0}]
             val (programClassPool, _) = fastBuild(
                 """
-                iconst_1
-                newarray int
-                dup
-                iconst_0
-                aload_0
-                aastore
-                areturn
+                    public java.lang.Object test() {
+                        iconst_1
+                        newarray int
+                        dup
+                        iconst_0
+                        aload_0
+                        aastore
+                        areturn
+                    }
                 """.trimIndent()
             )
             fastEval(
                 programClassPool,
-                PartialEvaluator(ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory()))
+                PartialEvaluator(
+                    ParticularValueFactory(
+                        DetailedArrayValueFactory(),
+                        ParticularReferenceValueFactory()
+                    )
+                ),
+                "test",
+                "()Ljava/lang/Object;"
             )
         }
 
@@ -383,18 +431,27 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             //  Stack:
             val (programClassPool, _) = fastBuild(
                 """
-                iconst_1
-                newarray int
-                aload_0
-                iconst_0
-                iconst_5
-                iastore
-                areturn
+                    public java.lang.Object test() {
+                        iconst_1
+                        newarray int
+                        aload_0
+                        iconst_0
+                        iconst_5
+                        iastore
+                        areturn
+                    }
                 """.trimIndent()
             )
             fastEval(
                 programClassPool,
-                PartialEvaluator(ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory()))
+                PartialEvaluator(
+                    ParticularValueFactory(
+                        DetailedArrayValueFactory(),
+                        ParticularReferenceValueFactory()
+                    )
+                ),
+                "test",
+                "()Ljava/lang/Object;"
             )
         }
 
@@ -404,13 +461,15 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // It could throw an error as we are trying to exit a monitor that was never created / entered.
             val (programClassPool, _) = fastBuild(
                 """
-                iconst_5
-                aload_0
-                monitorexit
-                ireturn
+                    public int test() {
+                        iconst_5
+                        aload_0
+                        monitorexit
+                        ireturn
+                    }
                 """.trimIndent()
             )
-            fastEval(programClassPool, PartialEvaluator())
+            fastEval(programClassPool, PartialEvaluator(), "test", "()int;")
         }
 
         "index out of bound" {
@@ -418,18 +477,23 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             //  A distintion needs to be made, what do you know about the index? Do you know about the type? Value? Range?
             val (programClassPool, _) = fastBuild(
                 """
-                iconst_1
-                anewarray int
-                dup
-                iconst_5
-                iconst_5
-                iastore 
-                areturn
+                    public java.lang.Object test() {
+                        iconst_1
+                        anewarray int
+                        dup
+                        iconst_5
+                        iconst_5
+                        iastore 
+                        areturn
+                    }
                 """.trimIndent()
             )
 
             val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            fastEval(programClassPool, PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false))
+            fastEval(
+                programClassPool, PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
+                "test", "()Ljava/lang/Object;"
+            )
         }
 
         "bipush with invalid operand label" {
@@ -455,11 +519,13 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // It will print out a warning message about the non-existent link.
             val (programClassPool, _) = fastBuild(
                 """
-                getstatic java.lang.System#bingbong out
-                ldc "Hello World!"
-                invokevirtual java.io.PrintStream#void println(java.lang.String)
-                aload_0
-                areturn
+                    public java.lang.Object test() {
+                        getstatic java.lang.System#bingbong out
+                        ldc "Hello World!"
+                        invokevirtual java.io.PrintStream#void println(java.lang.String)
+                        aload_0
+                        areturn
+                    }
                 """.trimIndent()
             )
 
@@ -471,7 +537,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 //            printer.print("apple", "small tester", )
 //            writer.flush()
 
-            fastEval(programClassPool, PartialEvaluator())
+            fastEval(programClassPool, PartialEvaluator(), "test", "()Ljava/lang/Object;")
         }
 
         "getfield but the referenced field field no exist" {
@@ -480,11 +546,13 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // It will print out a warning message about the non-existent link.
             val (programClassPool, _) = fastBuild(
                 """
-                aload_0
-                getfield EmptySlot#int INT_NO_EXIST
-                istore_1
-                aload_0
-                areturn
+                    public java.lang.Object test() {
+                        aload_0
+                        getfield EmptySlot#int INT_NO_EXIST
+                        istore_1
+                        aload_0
+                        areturn
+                    }
                 """.trimIndent()
             )
 
@@ -496,7 +564,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 //            printer.print("apple", "small tester", )
 //            writer.flush()
 
-            fastEval(programClassPool, PartialEvaluator())
+            fastEval(programClassPool, PartialEvaluator(), "test", "()Ljava/lang/Object;")
         }
     }
 })
