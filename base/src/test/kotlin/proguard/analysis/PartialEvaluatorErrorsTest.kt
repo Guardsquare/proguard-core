@@ -155,7 +155,10 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<IllegalArgumentException> { fastEval(programClassPool, PartialEvaluator()) }
         }
 
-        "Variable types do not match - assembler would throw because of negative stack size" {
+        "Should complain about variable types instead of negative stack size" {
+            // The stack size will be negative in this snippet
+            // But this is cause because we used the wrong type operation
+            // Saying that lsub is not compatible with ints is more handy
             shouldThrowAny {
                 ClassBuilder(
                     VersionConstants.CLASS_VERSION_1_8,
