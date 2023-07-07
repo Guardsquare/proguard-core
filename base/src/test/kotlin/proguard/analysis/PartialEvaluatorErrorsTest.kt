@@ -158,7 +158,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "Should complain about variable types instead of negative stack size" {
             // The stack size will be negative in this snippet
             // But this is cause because we used the wrong type operation
-            // Saying that lsub is not compatible with ints is more handy
             shouldThrowAny {
                 ClassBuilder(
                     VersionConstants.CLASS_VERSION_1_8,
