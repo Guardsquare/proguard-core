@@ -367,6 +367,7 @@ implements   AttributeVisitor,
         }
         catch (RuntimeException ex)
         {
+            // TODO: similar logging is done in a deeper function, only keep one
             logger.error("Unexpected error while performing partial evaluation:");
             logger.error("  Class       = [{}]", clazz.getName());
             logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
@@ -1035,17 +1036,43 @@ implements   AttributeVisitor,
                 if (nextOffset < code.length) {
                     nextInstruction = InstructionFactory.create(code, nextOffset);
                 }
-                // TODO: can go? It is also done one step higher?
-                logger.error("Unexpected error while evaluating instruction:");
-                logger.error("  Class       = [{}]", clazz.getName());
-                logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
-                // TODO: get the correct instruction Offsets of previous + you want to print the offset between brackets
-                //   From methods you can get the opcode = code, in instruction.java(?) you can find the deltaOffset for an opcode
 
-                // TODO: get a better description of different errors, this will be the "hard" part (read, much work, not hard)
-                //  Might be able to use a note? - how to fix?
-                logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
-                logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+                if (ex instanceof InstructionEvaluationException) {
+                    final String ANSI_RESET = "\u001B[0m";
+                    final String ANSI_RED = "\u001B[31m";
+                    final String ANSI_CYAN = "\u001B[34m";
+                    InstructionEvaluationException evaluationException = (InstructionEvaluationException) ex;
+                    logger.error(ANSI_RED + "error: " + ANSI_RESET + evaluationException.getMessage());
+                    logger.error(ANSI_CYAN + "  --> " + ANSI_RESET + clazz.getName() + " : "+method.getName(clazz) + method.getDescriptor(clazz) + " at " + instruction.toString(clazz, instructionOffset));
+                    // print the previous instructions
+                    for (int i = 0; i < instructionBuffer.size() - 1; i++) {
+                        Instruction prevInstruction = instructionBuffer.elementAt(i);
+                        int offset = offsetBuffer.elementAt(i);
+                        logger.error(ANSI_CYAN + offset + " |     " + ANSI_RESET + prevInstruction.toString());
+                    }
+                    // print the erronous instruction
+                    int offset = offsetBuffer.lastElement();
+                    String instructionString = instruction.toString();
+                    logger.error(ANSI_CYAN + offset + " |"+ANSI_RESET+"     " + instructionString);
+                    String indicators = new String(new char[instructionString.length()]).replace('\0', '^');
+                    logger.error("  "+ANSI_CYAN+"|"+ANSI_RESET+"     " + ANSI_RED + indicators + ANSI_RESET);
+                    if (nextInstruction != null) {
+                        logger.error(ANSI_CYAN + nextOffset + " |     " + ANSI_RESET + nextInstruction);
+                    }
+                    logger.error(evaluationException.getNote());
+                } else {
+                    // TODO: can go? It is also done one step higher?
+                    logger.error("Unexpected error while evaluating instruction:");
+                    logger.error("  Class       = [{}]", clazz.getName());
+                    logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+                    // TODO: get the correct instruction Offsets of previous + you want to print the offset between brackets
+                    //   From methods you can get the opcode = code, in instruction.java(?) you can find the deltaOffset for an opcode
+
+                    // TODO: get a better description of different errors, this will be the "hard" part (read, much work, not hard)
+                    //  Might be able to use a note? - how to fix?
+                    logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
+                    logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+                }
 
                 throw ex;
             }

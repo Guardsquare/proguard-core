@@ -7,6 +7,7 @@ import proguard.classfile.attribute.Attribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
+import proguard.evaluation.InstructionEvaluationException
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.testutils.AssemblerSource
@@ -16,9 +17,9 @@ import java.io.IOException
 
 /**
  * The purpose of these tests is to find ProGuard Assembly snippets that will result in errors thrown by the
- * `PartialEvaluator.
+ * `PartialEvaluator`.
  *
- * The logger should be able to figure out what the context is and prived the context to the user that is debugging
+ * The logger should be able to figure out what the context is and provide context to the user that is debugging
  * @see PartialEvaluator
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
@@ -62,7 +63,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 """.trimIndent()
                 )
 
-                shouldThrow<NullPointerException> { fastEval(programClassPool, PartialEvaluator()) }
+                shouldThrow<InstructionEvaluationException> { fastEval(programClassPool, PartialEvaluator()) }
             }
         }
 
