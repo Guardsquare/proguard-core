@@ -1042,8 +1042,8 @@ implements   AttributeVisitor,
                     final String ANSI_RED = "\u001B[31m";
                     final String ANSI_CYAN = "\u001B[34m";
                     InstructionEvaluationException evaluationException = (InstructionEvaluationException) ex;
-                    logger.error(ANSI_RED + "error: " + ANSI_RESET + evaluationException.getMessage());
-                    logger.error(ANSI_CYAN + "  --> " + ANSI_RESET + clazz.getName() + " : "+method.getName(clazz) + method.getDescriptor(clazz) + " at " + instruction.toString(clazz, instructionOffset));
+                    logger.error(ANSI_RED + "error: " + ANSI_RESET + evaluationException.getClass().getName());
+                    logger.error(ANSI_CYAN + "  --> " + ANSI_RESET + clazz.getName() + " : " + method.getName(clazz) + method.getDescriptor(clazz) + " at " + instruction.toString(clazz, instructionOffset));
                     // print the previous instructions
                     for (int i = 0; i < instructionBuffer.size() - 1; i++) {
                         Instruction prevInstruction = instructionBuffer.elementAt(i);
@@ -1053,9 +1053,9 @@ implements   AttributeVisitor,
                     // print the erronous instruction
                     int offset = offsetBuffer.lastElement();
                     String instructionString = instruction.toString();
-                    logger.error(ANSI_CYAN + offset + " |"+ANSI_RESET+"     " + instructionString);
+                    logger.error(ANSI_CYAN + offset + " |" + ANSI_RESET + "     " + instructionString);
                     String indicators = new String(new char[instructionString.length()]).replace('\0', '^');
-                    logger.error("  "+ANSI_CYAN+"|"+ANSI_RESET+"     " + ANSI_RED + indicators + ANSI_RESET);
+                    logger.error("  " + ANSI_CYAN + "|" + ANSI_RESET + "     " + ANSI_RED + indicators + " " + evaluationException.getMessage() + ANSI_RESET);
                     if (nextInstruction != null) {
                         logger.error(ANSI_CYAN + nextOffset + " |     " + ANSI_RESET + nextInstruction);
                     }
