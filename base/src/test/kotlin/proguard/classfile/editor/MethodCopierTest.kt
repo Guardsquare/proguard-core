@@ -204,7 +204,7 @@ class MethodCopierTest : FreeSpec({
                 MethodCopier(
                     sourceClass,
                     sourceMethod,
-                    { it + "Copy"  },
+                    { it + "Copy" },
                     copiedMethodAssigner
                 )
             )
