@@ -137,7 +137,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             }
         }
 
-        "anewarray" {
+        "anewarray gets float" {
             val (programClassPool, _) = fastBuild(
                 """
                     public java.lang.Object test() {
@@ -181,8 +181,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Stack size becomes negative" {
-            // The stack size will be negative in this snippet
-            // But this is cause because we used the wrong type operation
+            // The stack size will be negative in this snippet, because we used the wrong type operation
             shouldThrowAny {
                 ClassBuilder(
                     VersionConstants.CLASS_VERSION_1_8,
@@ -391,7 +390,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
      * but they don't
      */
     "Should throw but works" - {
-
         // we say get this `float` but the field is actuall an
         "getfield but the types don't match" {
             val (programClassPool) = fastBuild(
@@ -509,8 +507,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "index out of bound" {
-            // The following should be able to thow an error when accessing an area with an index that is out of range
-            //  A distintion needs to be made, what do you know about the index? Do you know about the type? Value? Range?
+            // The following should be able to throw an error when accessing an area with an index that is out of range
+            //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
             val (programClassPool, _) = fastBuild(
                 """
                     public java.lang.Object test() {
