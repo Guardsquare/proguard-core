@@ -27,31 +27,14 @@ import proguard.evaluation.value.ParticularValueFactory
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
 
-    val evaluateProgramClass =
-        { programClass: ProgramClass, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
-            programClass.accept(
-                NamedMethodVisitor(
-                    methodName, methodDescriptor,
-                    AllAttributeVisitor(
-                        AttributeNameFilter(Attribute.CODE, partialEvaluator)
-                    )
-                )
-            )
-        }
-
 
     /**
      * This is a list of code snippets on which the `PartialEvaluator` throws on error
      * but are in need of proper error messages with a concise and correct explanation of the error.
      */
-    "Throws from partial evaluator but should be formatted" - {
+    "Throws from partial evaluator" - {
         "Empty variable slot read" {
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
                     code
                         .ldc("test")
@@ -65,12 +48,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Variable types do not match" {
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
                     code
                         .ldc("test")
@@ -84,12 +62,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Variable types do not match instruction" {
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) { code ->
                     code
                         .iconst_3()
@@ -106,12 +79,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
 
         "Variable types do not match instruction - long interpreted as int" {
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) { code ->
                     code
                         .lconst_1()
@@ -125,12 +93,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "dup of long" {
             // Should not work (same for swap) since long is a category one value
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) { code ->
                     code
                         .lconst_1()
@@ -143,12 +106,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "getfield but return the wrong type" {
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addField(AccessConstants.PRIVATE, "INT_FIELD", "I")
                 .addMethod(AccessConstants.PUBLIC, "test", "()F", 50) { code ->
                     code
@@ -163,12 +121,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "Variable index out of bound" {
             // There is no 50th variable. The amount of local variables has been limited to 2
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) { code ->
                     code
                         .ldc("test")
@@ -202,12 +155,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "Stack size becomes negative" {
             // The stack size will be negative in this snippet, because we used the wrong type operation
             shouldThrowAny {
-                ClassBuilder(
-                    VersionConstants.CLASS_VERSION_1_8,
-                    AccessConstants.PUBLIC,
-                    "PartialEvaluatorDummy",
-                    ClassConstants.NAME_JAVA_LANG_OBJECT
-                )
+                buildClass()
                     .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) { code ->
                         code
                             .iconst_3()
@@ -221,12 +169,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "Swap operation on a too small stack" {
             shouldThrowAny {
-                ClassBuilder(
-                    VersionConstants.CLASS_VERSION_1_8,
-                    AccessConstants.PUBLIC,
-                    "PartialEvaluatorDummy",
-                    ClassConstants.NAME_JAVA_LANG_OBJECT
-                )
+                buildClass()
                     .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) { code ->
                         code
                             .iconst_5()
@@ -239,12 +182,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "Dup operation on an empty stack" {
             shouldThrowAny {
-                ClassBuilder(
-                    VersionConstants.CLASS_VERSION_1_8,
-                    AccessConstants.PUBLIC,
-                    "PartialEvaluatorDummy",
-                    ClassConstants.NAME_JAVA_LANG_OBJECT
-                )
+                buildClass()
                     .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) { code ->
                         code
                             .dup()
@@ -256,12 +194,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "`goto` unknown label" {
             shouldThrowAny {
-                ClassBuilder(
-                    VersionConstants.CLASS_VERSION_1_8,
-                    AccessConstants.PUBLIC,
-                    "PartialEvaluatorDummy",
-                    ClassConstants.NAME_JAVA_LANG_OBJECT
-                )
+                buildClass()
                     .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
                         it
                             .goto_(it.createLabel())
@@ -286,12 +219,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // [6] aastore
             //         Vars:  [P0:LPartialEvaluatorDummy;!#0]
             // Stack: [3:1:[I?=![1]#0{LPartialEvaluatorDummy;!#0}]
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
                     code
                         .iconst_1()
@@ -328,12 +256,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             //      is branching to :
             //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
             //  Stack:
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
                     code
                         .iconst_1()
@@ -360,12 +283,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // This is a low priority issue
             // Right now nor the PGA nor the `PartialEvaluator` tracks the entering and existing of monitors
             // It could throw an error as we are trying to exit a monitor that was never created / entered.
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) { code ->
                     code
                         .iconst_5()
@@ -381,12 +299,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "Index out of bound" {
             // The following should be able to throw an error when accessing an area with an index that is out of range
             //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it.iconst_1()
                         .anewarray(Instruction.ARRAY_T_INT.toInt())
@@ -409,12 +322,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "bipush with invalid operand label" {
             // `bipush` excpects a byte value but 300 exceedes the maximum byte value (>255)
-            ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
                     it
                         .bipush(300)
@@ -425,12 +333,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
     "Prints a warning when requested by the user" - {
         "Illegal static" {
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
                     it.getstatic("java.lang.System", "out", "bingbong")
                         .ldc("Hello World!")
@@ -446,12 +349,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // `INT_NO_EXIST` is not an existing field but this is not an issue!
             // This is handled by the ClassReferenceInitializer (see commented lines).
             // It will print out a warning message about the non-existent link.
-            val programClass = ClassBuilder(
-                VersionConstants.CLASS_VERSION_1_8,
-                AccessConstants.PUBLIC,
-                "PartialEvaluatorDummy",
-                ClassConstants.NAME_JAVA_LANG_OBJECT
-            )
+            val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
                     it.aload_0()
                         .getfield("PartialEvaluatorDummy", "INT_NO_EXIST", "I")
@@ -464,3 +362,26 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
     }
 })
+
+// Helper function to not have to put this code in each test
+fun buildClass(): ClassBuilder {
+    return ClassBuilder(
+        VersionConstants.CLASS_VERSION_1_8,
+        AccessConstants.PUBLIC,
+        "PartialEvaluatorDummy",
+        ClassConstants.NAME_JAVA_LANG_OBJECT
+    )
+}
+
+// A little helper to avoid having to write this for each test
+val evaluateProgramClass =
+    { programClass: ProgramClass, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
+        programClass.accept(
+            NamedMethodVisitor(
+                methodName, methodDescriptor,
+                AllAttributeVisitor(
+                    AttributeNameFilter(Attribute.CODE, partialEvaluator)
+                )
+            )
+        )
+    }
