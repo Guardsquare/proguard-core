@@ -372,7 +372,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "bipush with invalid operand label" {
-            // `bipush` excpects a byte value but 300 exceedes the maximum byte value (>255)
+            // `bipush` expects a byte value but 300 exceeds the maximum byte value (>255)
             shouldThrowAny {
                 fastBuild(
                     """
