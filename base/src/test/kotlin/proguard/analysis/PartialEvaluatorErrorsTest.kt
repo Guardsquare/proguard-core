@@ -9,14 +9,13 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.editor.ClassBuilder
+import proguard.classfile.instruction.Instruction
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
-import proguard.testutils.AssemblerSource
-import proguard.testutils.ClassPoolBuilder
 
 
 /**
@@ -27,30 +26,6 @@ import proguard.testutils.ClassPoolBuilder
  * @see PartialEvaluator
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
-    val fastBuild = { impl: String ->
-        ClassPoolBuilder.fromSource(
-            AssemblerSource(
-                "PartialEvaluatorDummy.jbc",
-                """
-                public class PartialEvaluatorDummy extends java.lang.Object {
-                    $impl
-                }
-                """.trimIndent()
-            )
-        )
-    }
-
-    val fastEval =
-        { pool: ClassPool, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
-            pool.classesAccept(
-                "PartialEvaluatorDummy", NamedMethodVisitor(
-                    methodName, methodDescriptor,
-                    AllAttributeVisitor(
-                        AttributeNameFilter(Attribute.CODE, partialEvaluator)
-                    )
-                )
-            )
-        }
 
     val evaluateProgramClass =
         { programClass: ProgramClass, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
@@ -150,23 +125,21 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "dup of long" {
             // Should not work (same for swap) since long is a category one value
-            val (programClassPool, _) = fastBuild(
-                """
-                    public long test() {
-                        lconst_1
-                        dup
-                        lreturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
-            shouldThrowAny {
-                fastEval(
-                    programClassPool,
-                    PartialEvaluator(),
-                    "test",
-                    "()J"
-                )
-            }
+                .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) { code ->
+                    code
+                        .lconst_1()
+                        .dup()
+                        .lreturn()
+                }
+                .programClass
+
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
         "getfield but return the wrong type" {
@@ -180,7 +153,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .addMethod(AccessConstants.PUBLIC, "test", "()F", 50) { code ->
                     code
                         .aload_0()
-                        .getfield("PartialEvaluatorDummy", "INT_FIELD", "int")
+                        .getfield("PartialEvaluatorDummy", "INT_FIELD", "I")
                         .freturn()
                 }
                 .programClass
@@ -204,7 +177,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            programClass.accept(NamedMethodVisitor(
+            programClass.accept(
+                NamedMethodVisitor(
                     "test", "()V",
                     AllAttributeVisitor(
                         AttributeNameFilter(Attribute.CODE, object : AttributeVisitor {
@@ -298,7 +272,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
     }
 
     /**
-     * Some code snippets have been identified where we want the partial evaluator / assembler to throw an exception,
+     * Some code snippets have been identified where we want the partial evaluator to throw an exception,
      * but they don't
      */
     "Should throw but works" - {
@@ -312,30 +286,31 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // [6] aastore
             //         Vars:  [P0:LPartialEvaluatorDummy;!#0]
             // Stack: [3:1:[I?=![1]#0{LPartialEvaluatorDummy;!#0}]
-            val (programClassPool, _) = fastBuild(
-                """
-                    public java.lang.Object test() {
-                        iconst_1
-                        newarray int
-                        dup
-                        iconst_0
-                        aload_0
-                        aastore
-                        areturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
+                    code
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .dup()
+                        .iconst_0()
+                        .aload_0()
+                        .aastore()
+                        .areturn()
+                }
+                .programClass
 
-            fastEval(
-                programClassPool,
-                PartialEvaluator(
+            evaluateProgramClass(
+                programClass, PartialEvaluator(
                     ParticularValueFactory(
                         DetailedArrayValueFactory(),
                         ParticularReferenceValueFactory()
                     )
-                ),
-                "test",
-                "()Ljava/lang/Object;"
+                ), "test", "()Ljava/lang/Object;"
             )
         }
 
@@ -353,30 +328,31 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             //      is branching to :
             //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
             //  Stack:
-            val (programClassPool, _) = fastBuild(
-                """
-                    public java.lang.Object test() {
-                        iconst_1
-                        newarray int
-                        aload_0
-                        iconst_0
-                        iconst_5
-                        iastore
-                        areturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
+                    code
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .aload_0()
+                        .iconst_0()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
 
-            fastEval(
-                programClassPool,
-                PartialEvaluator(
+            evaluateProgramClass(
+                programClass, PartialEvaluator(
                     ParticularValueFactory(
                         DetailedArrayValueFactory(),
                         ParticularReferenceValueFactory()
                     )
-                ),
-                "test",
-                "()Ljava/lang/Object;"
+                ), "test", "()Ljava/lang/Object;"
             )
         }
 
@@ -384,40 +360,50 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // This is a low priority issue
             // Right now nor the PGA nor the `PartialEvaluator` tracks the entering and existing of monitors
             // It could throw an error as we are trying to exit a monitor that was never created / entered.
-            val (programClassPool, _) = fastBuild(
-                """
-                    public int test() {
-                        iconst_5
-                        aload_0
-                        monitorexit
-                        ireturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
-            fastEval(programClassPool, PartialEvaluator(), "test", "()int;")
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) { code ->
+                    code
+                        .iconst_5()
+                        .aload_0()
+                        .monitorexit()
+                        .ireturn()
+                }
+                .programClass
+
+            evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I")
         }
 
         "Index out of bound" {
             // The following should be able to throw an error when accessing an area with an index that is out of range
             //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
-            val (programClassPool, _) = fastBuild(
-                """
-                    public java.lang.Object test() {
-                        iconst_1
-                        anewarray int
-                        dup
-                        iconst_5
-                        iconst_5
-                        iastore 
-                        areturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it.iconst_1()
+                        .anewarray(Instruction.ARRAY_T_INT.toInt())
+                        .dup()
+                        .iconst_5()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
 
             val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            fastEval(
-                programClassPool, PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
-                "test", "()Ljava/lang/Object;"
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
+                "test",
+                "()Ljava/lang/Object;"
             )
         }
 
@@ -439,39 +425,42 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
     "Prints a warning when requested by the user" - {
         "Illegal static" {
-            // `bingbong` is not an existing static but this is not an issue!
-            // This is handled by the ClassReferenceInitializer.
-            // It will print out a warning message about the non-existent link, when given a WarningPrinter.
-            val (programClassPool, _) = fastBuild(
-                """
-                    public void test() {
-                        getstatic java.lang.System#bingbong out
-                        ldc "Hello World!"
-                        invokevirtual java.io.PrintStream#void println(java.lang.String)
-                        return
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it.getstatic("java.lang.System", "out", "bingbong")
+                        .ldc("Hello World!")
+                        .invokevirtual("java.io.PrintStream", "println", "(Ljava/lang/String;)void")
+                        .return_()
+                }
+                .programClass
 
-            fastEval(programClassPool, PartialEvaluator(), "test", "()V")
+            evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V")
         }
 
         "getfield but the referenced field does not exist" {
             // `INT_NO_EXIST` is not an existing field but this is not an issue!
             // This is handled by the ClassReferenceInitializer (see commented lines).
             // It will print out a warning message about the non-existent link.
-            val (programClassPool, _) = fastBuild(
-                """
-                    public void test() {
-                        aload_0
-                        getfield EmptySlot#int INT_NO_EXIST
-                        istore_1
-                        return
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it.aload_0()
+                        .getfield("PartialEvaluatorDummy", "INT_NO_EXIST", "I")
+                        .istore_1()
+                        .return_()
+                }
+                .programClass
 
-            fastEval(programClassPool, PartialEvaluator(), "test", "()V")
+            evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V")
         }
     }
 })
