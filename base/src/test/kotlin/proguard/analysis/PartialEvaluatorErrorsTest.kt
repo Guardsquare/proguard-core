@@ -180,6 +180,39 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             }
         }
 
+        "Variable index out of bound" {
+            // There is no 50th variable. The amount of local variables has been limited to 2
+            val (programClassPool, _) = fastBuild(
+                """
+                    public void test() {
+                        ldc "test"
+                        astore 50
+                        return
+                    }
+                """.trimIndent()
+            )
+
+            programClassPool.classesAccept(
+                "PartialEvaluatorDummy", NamedMethodVisitor(
+                    "test", "()V",
+                    AllAttributeVisitor(
+                        AttributeNameFilter(Attribute.CODE, object : AttributeVisitor {
+                            override fun visitCodeAttribute(
+                                clazz: Clazz,
+                                method: Method,
+                                codeAttribute: CodeAttribute
+                            ) {
+                                codeAttribute.u2maxLocals = 2
+                            }
+                        })
+                    )
+                )
+            )
+            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()V") }
+        }
+    }
+
+    "Thrown from anywhere but still interesting" - {
         "Stack size becomes negative" {
             // The stack size will be negative in this snippet, because we used the wrong type operation
             shouldThrowAny {
@@ -249,37 +282,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                             .return_()
                     }
             }
-        }
-
-        "Variable index out of bound" {
-            // There is no 50th variable. The amount of local variables has been limited to 2
-            val (programClassPool, _) = fastBuild(
-                """
-                    public void test() {
-                        ldc "test"
-                        astore 50
-                        return
-                    }
-                """.trimIndent()
-            )
-
-            programClassPool.classesAccept(
-                "PartialEvaluatorDummy", NamedMethodVisitor(
-                    "test", "()V",
-                    AllAttributeVisitor(
-                        AttributeNameFilter(Attribute.CODE, object : AttributeVisitor {
-                            override fun visitCodeAttribute(
-                                clazz: Clazz,
-                                method: Method,
-                                codeAttribute: CodeAttribute
-                            ) {
-                                codeAttribute.u2maxLocals = 2
-                            }
-                        })
-                    )
-                )
-            )
-            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()V") }
         }
     }
 
@@ -506,7 +508,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             fastEval(programClassPool, PartialEvaluator(), "test", "()int;")
         }
 
-        "index out of bound" {
+        "Index out of bound" {
             // The following should be able to throw an error when accessing an area with an index that is out of range
             //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
             val (programClassPool, _) = fastBuild(
