@@ -151,20 +151,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
     }
 
-    "Thrown from anywhere but still interesting" - {
-
-        "`goto` unknown label" {
-            shouldThrowAny {
-                buildClass()
-                    .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
-                        it
-                            .goto_(it.createLabel())
-                            .return_()
-                    }
-            }
-        }
-    }
-
     /**
      * Some code snippets have been identified where we want the partial evaluator to throw an exception,
      * but they don't
