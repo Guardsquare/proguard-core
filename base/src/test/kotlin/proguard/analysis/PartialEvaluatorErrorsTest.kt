@@ -20,11 +20,8 @@ import proguard.testutils.ClassPoolBuilder
 
 
 /**
- * The purpose of these tests is to find ProGuard Assembly snippets that will result in errors thrown by the
+ * The purpose of these tests is to find test snippets that will result in errors thrown by the
  * `PartialEvaluator`.
- *
- * Some other issues have been discovered not directly related to the PartialEvaluator. Mainly issues when the code is
- * first read.
  *
  * The logger should be able to figure out what the context is and provide context to the user that is debugging
  * @see PartialEvaluator
@@ -440,11 +437,11 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
     }
 
-    "Prints a waning when requested by the user" - {
+    "Prints a warning when requested by the user" - {
         "Illegal static" {
             // `bingbong` is not an existing static but this is not an issue!
-            // This is handled by the ClassReferenceInitializer (see commented lines).
-            // It will print out a warning message about the non-existent link.
+            // This is handled by the ClassReferenceInitializer.
+            // It will print out a warning message about the non-existent link, when given a WarningPrinter.
             val (programClassPool, _) = fastBuild(
                 """
                     public void test() {
