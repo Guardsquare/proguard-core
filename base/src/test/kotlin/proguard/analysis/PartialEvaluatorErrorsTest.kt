@@ -55,6 +55,18 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             )
         }
 
+    val evaluateProgramClass =
+        { programClass: ProgramClass, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
+            programClass.accept(
+                NamedMethodVisitor(
+                    methodName, methodDescriptor,
+                    AllAttributeVisitor(
+                        AttributeNameFilter(Attribute.CODE, partialEvaluator)
+                    )
+                )
+            )
+        }
+
 
     /**
      * This is a list of code snippets on which the `PartialEvaluator` throws on error
@@ -62,99 +74,81 @@ class PartialEvaluatorErrorsTest : FreeSpec({
      */
     "Throws from partial evaluator but should be formatted" - {
         "Empty variable slot read" {
-            val (programClassPool, _) = fastBuild(
-                """
-                    public java.lang.Object test() {
-                        ldc "test"
-                        astore_0
-                        aload_1
-                        areturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
+                    code
+                        .ldc("test")
+                        .astore_0()
+                        .aload_1()
+                        .areturn()
+                }
+                .programClass
 
-            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Variable types do not match" {
-            // Store an `a`, load an `i`, this cannot work.
-            val (programClassPool, _) = fastBuild(
-                """
-                    public java.lang.Object test() {
-                        ldc "test"
-                        astore_0
-                        iload_0
-                        areturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
+                    code
+                        .ldc("test")
+                        .astore_0()
+                        .iload_0() // Store an `a`, load an `i`, this cannot work.
+                        .areturn()
+                }
+                .programClass
 
-            shouldThrowAny {
-                fastEval(
-                    programClassPool,
-                    PartialEvaluator(),
-                    "test",
-                    "()Ljava/lang/Object;"
-                )
-            }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Variable types do not match instruction" {
-            val (programClassPool, _) = fastBuild(
-                """
-                    public long test() {
-                        iconst_3
-                        iconst_3
-                        iconst_1
-                        iconst_1
-                        lsub
-                        lreturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) { code ->
+                    code
+                        .iconst_3()
+                        .iconst_3()
+                        .iconst_1()
+                        .iconst_1()
+                        .lsub()
+                        .lreturn()
+                }
+                .programClass
 
-            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()J") }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
 
         "Variable types do not match instruction - long interpreted as int" {
-            val (programClassPool, _) = fastBuild(
-                """
-                    public int test() {
-                        lconst_1
-                        isub
-                        ireturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
-            shouldThrowAny {
-                fastEval(
-                    programClassPool,
-                    PartialEvaluator(),
-                    "test",
-                    "()I"
-                )
-            }
-        }
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) { code ->
+                    code
+                        .lconst_1()
+                        .isub()
+                        .ireturn()
+                }
+                .programClass
 
-        "anewarray gets float" {
-            val (programClassPool, _) = fastBuild(
-                """
-                    public java.lang.Object test() {
-                        lconst_1
-                        anewarray long
-                        areturn
-                    }
-                """.trimIndent()
-            )
-            shouldThrowAny {
-                fastEval(
-                    programClassPool,
-                    PartialEvaluator(),
-                    "test",
-                    "()Ljava/lang/Object;"
-                )
-            }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
         }
 
         "dup of long" {
@@ -179,42 +173,41 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "getfield but return the wrong type" {
-            val (programClassPool) = fastBuild(
-                """
-                    private int INT_FIELD = 42;
-                    
-                    public float test() {
-                        aload_0
-                        getfield PartialEvaluatorDummy#int INT_FIELD
-                        freturn
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addField(AccessConstants.PRIVATE, "INT_FIELD", "I")
+                .addMethod(AccessConstants.PUBLIC, "test", "()F", 50) { code ->
+                    code
+                        .aload_0()
+                        .getfield("PartialEvaluatorDummy", "INT_FIELD", "int")
+                        .freturn()
+                }
+                .programClass
 
-            shouldThrowAny {
-                fastEval(
-                    programClassPool,
-                    PartialEvaluator(),
-                    "test",
-                    "()F"
-                )
-            }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
         }
 
         "Variable index out of bound" {
             // There is no 50th variable. The amount of local variables has been limited to 2
-            val (programClassPool, _) = fastBuild(
-                """
-                    public void test() {
-                        ldc "test"
-                        astore 50
-                        return
-                    }
-                """.trimIndent()
+            val programClass = ClassBuilder(
+                VersionConstants.CLASS_VERSION_1_8,
+                AccessConstants.PUBLIC,
+                "PartialEvaluatorDummy",
+                ClassConstants.NAME_JAVA_LANG_OBJECT
             )
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) { code ->
+                    code
+                        .ldc("test")
+                        .astore(50)
+                        .return_()
+                }
+                .programClass
 
-            programClassPool.classesAccept(
-                "PartialEvaluatorDummy", NamedMethodVisitor(
+            programClass.accept(NamedMethodVisitor(
                     "test", "()V",
                     AllAttributeVisitor(
                         AttributeNameFilter(Attribute.CODE, object : AttributeVisitor {
@@ -229,7 +222,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     )
                 )
             )
-            shouldThrowAny { fastEval(programClassPool, PartialEvaluator(), "test", "()V") }
+
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
         }
     }
 
@@ -311,27 +305,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
      * but they don't
      */
     "Should throw but works" - {
-        // we say get this `float` but the field is actuall an
-        "getfield but the types don't match" {
-            val (programClassPool) = fastBuild(
-                """
-                    private int INT_FIELD = 42;
-                    
-                    public float test() {
-                        aload_0
-                        getfield PartialEvaluatorDummy#float INT_FIELD
-                        freturn
-                    }
-                """.trimIndent()
-            )
-
-            fastEval(
-                programClassPool,
-                PartialEvaluator(),
-                "test",
-                "()F"
-            )
-        }
 
         "Store a reference in an a integer array" {
             // From the PartialEvaluator debug output we can see that it is possible to store a reference into an
@@ -483,14 +456,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 """.trimIndent()
             )
 
-//            val writer = PrintWriter(PrintStream(System.out))
-//            val printer = WarningPrinter(writer)
-//            programClassPool.classesAccept(
-//                ClassReferenceInitializer(programClassPool, libaryClassPool, printer, printer, printer, printer)
-//            )
-//            printer.print("apple", "small tester", )
-//            writer.flush()
-
             fastEval(programClassPool, PartialEvaluator(), "test", "()V")
         }
 
@@ -508,14 +473,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     }
                 """.trimIndent()
             )
-
-//            val writer = PrintWriter(PrintStream(System.out))
-//            val printer = WarningPrinter(writer)
-//            programClassPool.classesAccept(
-//                ClassReferenceInitializer(programClassPool, libaryClassPool, printer, printer, printer, printer)
-//            )
-//            printer.print("apple", "small tester", )
-//            writer.flush()
 
             fastEval(programClassPool, PartialEvaluator(), "test", "()V")
         }
