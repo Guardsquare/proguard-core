@@ -17,6 +17,9 @@
  */
 package proguard.evaluation.value;
 
+import proguard.evaluation.exception.InstructionEvaluationException;
+import proguard.evaluation.exception.StackInstructionEvaluationException;
+
 /**
  * This abstract class represents a partially evaluated value.
  *
@@ -60,7 +63,8 @@ public abstract class Value
      */
     public IntegerValue integerValue()
     {
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not an integer value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects an int value but found: \"" + this.toString() + "\".",
+                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
     }
 
     /**
@@ -68,7 +72,8 @@ public abstract class Value
      */
     public LongValue longValue()
     {
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a long value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects a long value but found: \"" + this.toString() + "\".",
+                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
     }
 
     /**
@@ -76,7 +81,8 @@ public abstract class Value
      */
     public FloatValue floatValue()
     {
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a float value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects a float value but found: \"" + this.toString() + "\".",
+                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
     }
 
     /**
@@ -84,7 +90,8 @@ public abstract class Value
      */
     public DoubleValue doubleValue()
     {
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a double value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects a double value but found: \"" + this.toString() + "\".",
+                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
     }
 
     /**
@@ -92,7 +99,8 @@ public abstract class Value
      */
     public ReferenceValue referenceValue()
     {
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a reference value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects a reference value but found: \"" + this.toString() + "\".",
+                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
     }
 
     /**
@@ -100,7 +108,8 @@ public abstract class Value
      */
     public InstructionOffsetValue instructionOffsetValue()
     {
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not an instruction offset value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects an offset value value but found: \"" + this.toString() + "\".",
+                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
     }
 
 

@@ -25,7 +25,10 @@ import proguard.classfile.editor.ClassEstimates;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.ClassPrinter;
+import proguard.evaluation.exception.InstructionEvaluationException;
+import proguard.evaluation.exception.StackInstructionEvaluationException;
 import proguard.util.ArrayUtil;
+import proguard.util.CircularBuffer;
 
 /**
  * This {@link AttributeVisitor} computes the stack sizes at all instruction offsets
@@ -125,10 +128,13 @@ implements   AttributeVisitor,
         }
         catch (RuntimeException ex)
         {
-            logger.error("Unexpected error while computing stack sizes:");
-            logger.error("  Class       = [{}]", clazz.getName());
-            logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
-            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+            if (!(ex instanceof InstructionEvaluationException)) {
+                // The InstructionEvaluationException have formatted error logging and is handled before.
+                logger.error("Unexpected error while computing stack sizes:");
+                logger.error("  Class       = [{}]", clazz.getName());
+                logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+                logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+            }
 
             if (DEBUG)
             {
@@ -314,12 +320,15 @@ implements   AttributeVisitor,
             maxStackSize = stackSize;
         }
 
+        CircularBuffer<Integer> offsetBuffer = new CircularBuffer<>(5);
+
         // Evaluate any instructions that haven't been evaluated before.
         while (!evaluated[instructionOffset])
         {
             // Mark the instruction as evaluated.
             evaluated[instructionOffset]        = true;
             stackSizesBefore[instructionOffset] = stackSize;
+            offsetBuffer.push(instructionOffset);
 
             Instruction instruction = InstructionFactory.create(codeAttribute.code,
                                                                 instructionOffset);
@@ -341,11 +350,12 @@ implements   AttributeVisitor,
 
             if (stackSize < 0)
             {
-                throw new IllegalArgumentException("Stack size becomes negative after instruction "+
-                                                   instruction.toString(clazz, instructionOffset)+" in ["+
-                                                   clazz.getName()+"."+
-                                                   method.getName(clazz)+
-                                                   method.getDescriptor(clazz)+"]");
+                StackInstructionEvaluationException ex = new StackInstructionEvaluationException(
+                        "Stack size becomes negative after instruction.",
+                        "Maybe you forgot an instruction before this one.");
+
+                logger.error(ex.getFormattedMessage(clazz, method, offsetBuffer, codeAttribute.code));
+                throw ex;
             }
 
             stackSize += instruction.stackPushCount(clazz);

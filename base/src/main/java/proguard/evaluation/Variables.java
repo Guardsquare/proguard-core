@@ -17,6 +17,8 @@
  */
 package proguard.evaluation;
 
+import proguard.evaluation.exception.InstructionEvaluationException;
+import proguard.evaluation.exception.VariableInstructionEvaluationException;
 import proguard.evaluation.value.*;
 
 import java.util.Arrays;
@@ -90,6 +92,7 @@ public class Variables
     {
         if (this.size < other.size)
         {
+            // TODO(MJ): more errors get thrown in this file, I think they could all be of our special type?
             throw new IllegalArgumentException("Variable frame is too small ["+this.size+"] compared to other frame ["+other.size+"]");
         }
 
@@ -185,7 +188,8 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new IndexOutOfBoundsException("Variable index ["+index+"] out of bounds ["+size+"]");
+            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.",
+                    "You may be able to change the amount of variables you have through a field in codeAttribute, or use a smaller variable index");
         }
 
         // Store the value.
@@ -207,9 +211,14 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new IndexOutOfBoundsException("Variable index ["+index+"] out of bounds ["+size+"]");
+            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.",
+                    "You may be able to change the amount of variables you have through a field in codeAttribute, or use a smaller variable index");
         }
 
+        if (values[index] == null) {
+            throw new VariableInstructionEvaluationException("No value in variable slot "+index+".",
+                    "You might have forgotten to load the value first, or maybe you loaded it to another variable.");
+        }
         return values[index];
     }
 
@@ -221,7 +230,12 @@ public class Variables
      */
     public IntegerValue iload(int index)
     {
-        return load(index).integerValue();
+        try {
+            return load(index).integerValue();
+        } catch (InstructionEvaluationException e) {
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an integer",
+                  "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+        }
     }
 
 
@@ -230,7 +244,12 @@ public class Variables
      */
     public LongValue lload(int index)
     {
-        return load(index).longValue();
+        try {
+            return load(index).longValue();
+        } catch (InstructionEvaluationException e) {
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a long",
+                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+        }
     }
 
 
@@ -239,7 +258,12 @@ public class Variables
      */
     public FloatValue fload(int index)
     {
-        return load(index).floatValue();
+        try {
+            return load(index).floatValue();
+        } catch (InstructionEvaluationException e) {
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a float",
+                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+        }
     }
 
 
@@ -248,7 +272,12 @@ public class Variables
      */
     public DoubleValue dload(int index)
     {
-        return load(index).doubleValue();
+        try {
+            return load(index).doubleValue();
+        } catch (InstructionEvaluationException e) {
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a double",
+                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+        }
     }
 
 
@@ -257,7 +286,12 @@ public class Variables
      */
     public ReferenceValue aload(int index)
     {
-        return load(index).referenceValue();
+        try {
+            return load(index).referenceValue();
+        } catch (InstructionEvaluationException e) {
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a reference",
+                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+        }
     }
 
 
@@ -266,7 +300,12 @@ public class Variables
      */
     public InstructionOffsetValue oload(int index)
     {
-        return load(index).instructionOffsetValue();
+        try {
+            return load(index).instructionOffsetValue();
+        } catch (InstructionEvaluationException e) {
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an instructionOffset",
+                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+        }
     }
 
     /**

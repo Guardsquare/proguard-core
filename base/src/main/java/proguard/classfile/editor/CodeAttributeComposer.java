@@ -17,6 +17,8 @@
  */
 package proguard.classfile.editor;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
@@ -30,7 +32,10 @@ import proguard.classfile.constant.Constant;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.ClassPrinter;
+import proguard.evaluation.PartialEvaluator;
+import proguard.evaluation.exception.InstructionEvaluationException;
 import proguard.util.ArrayUtil;
+import proguard.util.CircularBuffer;
 
 import java.util.Arrays;
 
@@ -166,6 +171,8 @@ implements   AttributeVisitor,
     // This field acts as a parameter for the visitor methods that construct
     // the code, so a given constant pool editor can be reused, for efficiency.
     private ConstantPoolEditor constantPoolEditor;
+
+    private final static Logger logger = LogManager.getLogger(CodeAttributeComposer.class);
 
 
     /**
@@ -563,21 +570,29 @@ implements   AttributeVisitor,
     {
         if (level < 0)
         {
+            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Code fragment not begun ["+level+"]");
         }
 
         // Remap the instructions of the code fragment.
         int instructionOffset = codeFragmentOffsets[level];
+        CircularBuffer<Integer> offsetBuffer = new CircularBuffer<>(5);
         while (instructionOffset < codeLength)
         {
             // Get the next instruction.
             Instruction instruction = InstructionFactory.create(code, instructionOffset);
+            offsetBuffer.push(instructionOffset);
 
             // Does this instruction still have to be remapped?
             if (oldInstructionOffsets[instructionOffset] >= 0)
             {
                 // Adapt the instruction for its new offset.
-                instruction.accept(null, null, null, instructionOffset, this);
+                try {
+                    instruction.accept(null, null, null, instructionOffset, this);
+                } catch (InstructionEvaluationException ex) {
+                    logger.error(ex.getFormattedMessage(null, null, offsetBuffer, code));
+                    throw ex;
+                }
 
                 // Write the instruction back. The instruction writer may still
                 // widen it later on, if necessary.
@@ -850,7 +865,7 @@ implements   AttributeVisitor,
             // Don't remap this instruction again.
             oldInstructionOffsets[offset] = -1;
         }
-        catch (IllegalArgumentException e)
+        catch (IllegalArgumentException | InstructionEvaluationException e)
         {
             if (level == 0 || !allowExternalBranchTargets)
             {
@@ -1126,6 +1141,7 @@ implements   AttributeVisitor,
         if (newInstructionOffset < 0 ||
             newInstructionOffset > codeLength)
         {
+            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Invalid instruction offset ["+newInstructionOffset +"] in code with length ["+codeLength+"]");
         }
 
@@ -1150,13 +1166,15 @@ implements   AttributeVisitor,
         if (oldInstructionOffset < 0 ||
             oldInstructionOffset > codeFragmentLengths[level])
         {
+            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Instruction offset ["+oldInstructionOffset +"] out of range in code fragment with length ["+codeFragmentLengths[level]+"] at level "+level);
         }
 
         int newInstructionOffset = instructionOffsetMap[level][oldInstructionOffset];
         if (newInstructionOffset == INVALID)
         {
-            throw new IllegalArgumentException("Invalid instruction offset ["+oldInstructionOffset +"] in code fragment at level "+level);
+            throw new InstructionEvaluationException("Invalid instruction offset ["+oldInstructionOffset +"] in code fragment at level "+level,
+                    "You might have made a typo or forgotten to add the label.");
         }
 
         return newInstructionOffset;

@@ -40,10 +40,14 @@ import proguard.classfile.util.BranchTargetFinder;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassPrinter;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
+import proguard.evaluation.exception.InstructionEvaluationException;
+import proguard.evaluation.exception.StackInstructionEvaluationException;
+import proguard.evaluation.exception.VariableInstructionEvaluationException;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+import proguard.util.CircularBuffer;
 
 import java.util.Arrays;
 
@@ -365,10 +369,13 @@ implements   AttributeVisitor,
         }
         catch (RuntimeException ex)
         {
-            logger.error("Unexpected error while performing partial evaluation:");
-            logger.error("  Class       = [{}]", clazz.getName());
-            logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
-            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+            if (!(ex instanceof InstructionEvaluationException)) {
+                // This type has a more detailed formatting and is handled within the deeper functions
+                logger.error("Unexpected error while performing partial evaluation:");
+                logger.error("  Class       = [{}]", clazz.getName());
+                logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+                logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+            }
 
             if (DEBUG)
             {
@@ -881,6 +888,7 @@ implements   AttributeVisitor,
                                                 int              startOffset)
     {
         byte[] code = codeAttribute.code;
+        CircularBuffer<Integer> offsetBuffer = new CircularBuffer<>(5);
 
         if (DEBUG)
         {
@@ -992,6 +1000,7 @@ implements   AttributeVisitor,
 
             // Decode the instruction.
             Instruction instruction = InstructionFactory.create(code, instructionOffset);
+            offsetBuffer.push(instructionOffset);
 
             // Reset the branch unit.
             branchUnit.reset();
@@ -1022,6 +1031,18 @@ implements   AttributeVisitor,
                                    instructionOffset,
                                    processor);
             }
+            catch (StackInstructionEvaluationException ex) {
+                logger.error(ex.getFormattedMessage(clazz, method, offsetBuffer, code, stacksBefore[offsetBuffer.peek()]));
+                throw ex;
+            }
+            catch (VariableInstructionEvaluationException ex) {
+                logger.error(ex.getFormattedMessage(clazz, method, offsetBuffer, code, variables));
+                throw ex;
+            }
+            catch (InstructionEvaluationException ex) {
+                logger.error(ex.getFormattedMessage(clazz, method, offsetBuffer, code));
+                throw ex;
+            }
             catch (RuntimeException ex)
             {
                 logger.error("Unexpected error while evaluating instruction:");
@@ -1029,7 +1050,6 @@ implements   AttributeVisitor,
                 logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
                 logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
                 logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
-
                 throw ex;
             }
 
