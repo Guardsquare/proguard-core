@@ -35,8 +35,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
     "Throws from partial evaluator" - {
         "Empty variable slot read" {
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
                         .ldc("test")
                         .astore_0()
                         .aload_1()
@@ -49,8 +49,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "Variable types do not match" {
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
                         .ldc("test")
                         .astore_0()
                         .iload_0() // Store an `a`, load an `i`, this cannot work.
@@ -63,8 +63,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "Variable types do not match instruction" {
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) {
+                    it
                         .iconst_3()
                         .iconst_3()
                         .iconst_1()
@@ -80,8 +80,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "Variable types do not match instruction - long interpreted as int" {
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    it
                         .lconst_1()
                         .isub()
                         .ireturn()
@@ -94,8 +94,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "dup of long" {
             // Should not work (same for swap) since long is a category one value
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) {
+                    it
                         .lconst_1()
                         .dup()
                         .lreturn()
@@ -108,8 +108,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "getfield but return the wrong type" {
             val programClass = buildClass()
                 .addField(AccessConstants.PRIVATE, "INT_FIELD", "I")
-                .addMethod(AccessConstants.PUBLIC, "test", "()F", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()F", 50) {
+                    it
                         .aload_0()
                         .getfield("PartialEvaluatorDummy", "INT_FIELD", "I")
                         .freturn()
@@ -122,8 +122,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "Variable index out of bound" {
             // There is no 50th variable. The amount of local variables has been limited to 2
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it
                         .ldc("test")
                         .astore(50)
                         .return_()
@@ -167,8 +167,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             //         Vars:  [P0:LPartialEvaluatorDummy;!#0]
             // Stack: [3:1:[I?=![1]#0{LPartialEvaluatorDummy;!#0}]
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
                         .iconst_1()
                         .newarray(Instruction.ARRAY_T_INT.toInt())
                         .dup()
@@ -204,8 +204,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
             //  Stack:
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
                         .iconst_1()
                         .newarray(Instruction.ARRAY_T_INT.toInt())
                         .aload_0()
@@ -231,8 +231,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // Right now nor the PGA nor the `PartialEvaluator` tracks the entering and existing of monitors
             // It could throw an error as we are trying to exit a monitor that was never created / entered.
             val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) { code ->
-                    code
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    it
                         .iconst_5()
                         .aload_0()
                         .monitorexit()
@@ -248,7 +248,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
-                    it.iconst_1()
+                    it
+                        .iconst_1()
                         .anewarray(Instruction.ARRAY_T_INT.toInt())
                         .dup()
                         .iconst_5()
@@ -282,7 +283,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         "Illegal static" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
-                    it.getstatic("java.lang.System", "out", "bingbong")
+                    it
+                        .getstatic("java.lang.System", "out", "bingbong")
                         .ldc("Hello World!")
                         .invokevirtual("java.io.PrintStream", "println", "(Ljava/lang/String;)void")
                         .return_()
@@ -298,7 +300,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             // It will print out a warning message about the non-existent link.
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
-                    it.aload_0()
+                    it
+                        .aload_0()
                         .getfield("PartialEvaluatorDummy", "INT_NO_EXIST", "I")
                         .istore_1()
                         .return_()
