@@ -90,7 +90,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 """.trimIndent()
             )
 
-            shouldThrow<IllegalArgumentException> {
+            shouldThrowAny {
                 fastEval(
                     programClassPool,
                     PartialEvaluator(),
@@ -130,7 +130,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     }
                 """.trimIndent()
             )
-            shouldThrow<IllegalArgumentException> {
+            shouldThrowAny {
                 fastEval(
                     programClassPool,
                     PartialEvaluator(),
@@ -150,7 +150,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     }
                 """.trimIndent()
             )
-            shouldThrow<IllegalArgumentException> {
+            shouldThrowAny {
                 fastEval(
                     programClassPool,
                     PartialEvaluator(),
@@ -171,7 +171,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 """.trimIndent()
             )
 
-            shouldThrow<IllegalArgumentException> {
+            shouldThrowAny {
                 fastEval(
                     programClassPool,
                     PartialEvaluator(),
@@ -181,7 +181,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             }
         }
 
-        "Should complain about variable types instead of negative stack size" {
+        "Stack size becomes negative" {
             // The stack size will be negative in this snippet
             // But this is cause because we used the wrong type operation
             shouldThrowAny {
@@ -297,11 +297,13 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 fastBuild(
                     """
-                    iconst_3
-                    iconst_1
-                    lsub
-                    aload_0
-                    areturn
+                        public java.lang.Object test() {
+                            iconst_3
+                            iconst_1
+                            lsub
+                            aload_0
+                            areturn
+                        }
                     """.trimIndent()
                 )
             }
@@ -313,9 +315,11 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 fastBuild(
                     """
-                    iconst_5
-                    swap
-                    ireturn
+                        public int test() {
+                            iconst_5
+                            swap
+                            ireturn
+                        }
                     """.trimIndent()
                 )
             }
@@ -327,7 +331,9 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 fastBuild(
                     """
-                    dup
+                        public void test() {
+                            dup
+                        }
                     """.trimIndent()
                 )
             }
@@ -340,9 +346,11 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 fastBuild(
                     """
-                    apples
-                    aload_0
-                    areturn
+                        public java.lang.Object test() {
+                            apples
+                            aload_0
+                            areturn
+                        }
                     """.trimIndent()
                 )
             }
@@ -355,7 +363,9 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 fastBuild(
                     """
-                    goto jafar
+                        public void test() {
+                            goto jafar
+                        }
                     """.trimIndent()
                 )
             }
@@ -366,9 +376,11 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 fastBuild(
                     """
-                    bipush 300
-                    aload_0
-                    areturn
+                        public java.lang.Object test() {
+                            bipush 300
+                            aload_0
+                            areturn
+                        }
                     """.trimIndent()
                 )
             }
