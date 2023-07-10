@@ -45,8 +45,8 @@ public abstract class Value
      */
     public Category1Value category1Value()
     {
-        // TODO(MJ): what is this? How do we trigger?
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a Category 1 value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects a category one value but found: \"" + this.toString() + "\".",
+                "Either you have a wrong value on the top of the stack, or this instruction will not work for this type.");
     }
 
     /**
@@ -54,8 +54,8 @@ public abstract class Value
      */
     public Category2Value category2Value()
     {
-        // TODO(MJ): what is this? How do we trigger?
-        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a Category 2 value [" + this.getClass().getName() + "]");
+        throw new StackInstructionEvaluationException("Instruction expects a category two value but found: \"" + this.toString() + "\".",
+                "Either you have a wrong value on the top of the stack, or this instruction will not work for this type.");
     }
 
 

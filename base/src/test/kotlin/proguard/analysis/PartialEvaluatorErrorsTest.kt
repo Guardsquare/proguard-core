@@ -168,6 +168,27 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             }
         }
 
+        "dup of long" {
+            // Should not work (same for swap) since long is a category one value
+            val (programClassPool, _) = fastBuild(
+                """
+                    public long test() {
+                        lconst_1
+                        dup
+                        lreturn
+                    }
+                """.trimIndent()
+            )
+            shouldThrow<InstructionEvaluationException> {
+                fastEval(
+                    programClassPool,
+                    PartialEvaluator(),
+                    "test",
+                    "()J"
+                )
+            }
+        }
+
         "getfield but return the wrong type" {
             val (programClassPool) = fastBuild(
                 """
