@@ -114,6 +114,7 @@ public class Variables
     {
         if (this.size != other.size)
         {
+            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Variable frames have different sizes ["+this.size+"] and ["+other.size+"]");
         }
 
@@ -173,7 +174,8 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new IndexOutOfBoundsException("Variable index ["+index+"] out of bounds ["+size+"]");
+            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.",
+                    "You may be able to change the amount of variables you have through a field in codeAttribute, or use a smaller variable index");
         }
 
         return values[index];

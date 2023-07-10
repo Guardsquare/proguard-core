@@ -17,7 +17,6 @@
  */
 package proguard.evaluation.value;
 
-import proguard.evaluation.exception.InstructionEvaluationException;
 import proguard.evaluation.exception.StackInstructionEvaluationException;
 
 /**
@@ -46,6 +45,7 @@ public abstract class Value
      */
     public Category1Value category1Value()
     {
+        // TODO(MJ): what is this? How do we trigger?
         throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a Category 1 value [" + this.getClass().getName() + "]");
     }
 
@@ -54,6 +54,7 @@ public abstract class Value
      */
     public Category2Value category2Value()
     {
+        // TODO(MJ): what is this? How do we trigger?
         throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a Category 2 value [" + this.getClass().getName() + "]");
     }
 

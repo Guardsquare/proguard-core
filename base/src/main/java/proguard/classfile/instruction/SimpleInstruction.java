@@ -20,7 +20,6 @@ package proguard.classfile.instruction;
 import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-import proguard.evaluation.exception.InstructionEvaluationException;
 
 import java.util.Objects;
 

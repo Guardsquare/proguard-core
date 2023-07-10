@@ -5,14 +5,10 @@ import proguard.classfile.Method;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
 import proguard.evaluation.PartialEvaluator;
-import proguard.evaluation.Stack;
-import proguard.evaluation.Variables;
 import proguard.exception.ProguardCoreException;
 import proguard.util.CircularBuffer;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.function.Function;
 
 /**
  * Represents an exception when the `PartialEvaluator` encounters a semantically incorect java bytecode instruction.
