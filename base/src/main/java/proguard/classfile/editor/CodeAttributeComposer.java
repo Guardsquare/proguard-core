@@ -32,10 +32,9 @@ import proguard.classfile.constant.Constant;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.ClassPrinter;
-import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.exception.InstructionEvaluationException;
 import proguard.util.ArrayUtil;
-import proguard.util.CircularBuffer;
+import proguard.util.CircularIntBuffer;
 
 import java.util.Arrays;
 
@@ -575,7 +574,7 @@ implements   AttributeVisitor,
 
         // Remap the instructions of the code fragment.
         int instructionOffset = codeFragmentOffsets[level];
-        CircularBuffer<Integer> offsetBuffer = new CircularBuffer<>(5);
+        CircularIntBuffer offsetBuffer = new CircularIntBuffer(5);
         while (instructionOffset < codeLength)
         {
             // Get the next instruction.

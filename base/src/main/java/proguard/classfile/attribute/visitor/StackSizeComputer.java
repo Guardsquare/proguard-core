@@ -28,7 +28,7 @@ import proguard.classfile.visitor.ClassPrinter;
 import proguard.evaluation.exception.InstructionEvaluationException;
 import proguard.evaluation.exception.StackInstructionEvaluationException;
 import proguard.util.ArrayUtil;
-import proguard.util.CircularBuffer;
+import proguard.util.CircularIntBuffer;
 
 /**
  * This {@link AttributeVisitor} computes the stack sizes at all instruction offsets
@@ -325,7 +325,7 @@ implements   AttributeVisitor,
             maxStackSize = stackSize;
         }
 
-        CircularBuffer<Integer> offsetBuffer = new CircularBuffer<>(5);
+        CircularIntBuffer offsetBuffer = new CircularIntBuffer(5);
 
         // Evaluate any instructions that haven't been evaluated before.
         while (!evaluated[instructionOffset])

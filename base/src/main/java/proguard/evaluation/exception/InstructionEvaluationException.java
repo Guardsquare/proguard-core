@@ -6,7 +6,7 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
 import proguard.evaluation.PartialEvaluator;
 import proguard.exception.ProguardCoreException;
-import proguard.util.CircularBuffer;
+import proguard.util.CircularIntBuffer;
 
 import java.util.Collections;
 
@@ -26,7 +26,7 @@ public class InstructionEvaluationException extends ProguardCoreException
         this.note = genericNote;
     }
 
-    protected String getFormattedMessage(Clazz clazz, Method method, CircularBuffer<Integer> offsetBuffer, byte[] code, String locationDescription)
+    protected String getFormattedMessage(Clazz clazz, Method method, CircularIntBuffer offsetBuffer, byte[] code, String locationDescription)
     {
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_RED = "\u001B[31m";
@@ -35,7 +35,7 @@ public class InstructionEvaluationException extends ProguardCoreException
         Instruction erroreousInstruction = InstructionFactory.create(code, offsetBuffer.peek());
         String errorInstructionString = erroreousInstruction.toString();
 
-
+        // The class of the error.
         StringBuilder messageBuilder = new StringBuilder();
         messageBuilder
                 .append(ANSI_RED)
@@ -43,6 +43,8 @@ public class InstructionEvaluationException extends ProguardCoreException
                 .append(ANSI_RESET)
                 .append(getClass().getName())
                 .append("\n");
+
+        // Clazz and Method of the erroneous instruction
         if (clazz != null && method != null) {
             messageBuilder
                     .append(ANSI_CYAN)
@@ -58,9 +60,9 @@ public class InstructionEvaluationException extends ProguardCoreException
         }
 
         // print the previous instructions
-        for (int i = 0; i < offsetBuffer.size() - 1; i++) {
-            Instruction prevInstruction = InstructionFactory.create(code, offsetBuffer.elementAt(i));
-            int offset = offsetBuffer.elementAt(i);
+        for (int i = offsetBuffer.size() - 1; i > 0; i--) {
+            Instruction prevInstruction = InstructionFactory.create(code, offsetBuffer.peek(i));
+            int offset = offsetBuffer.peek(i);
             messageBuilder
                     .append(ANSI_CYAN)
                     .append(offset)
@@ -70,7 +72,7 @@ public class InstructionEvaluationException extends ProguardCoreException
                     .append("\n");
         }
         // print the erroneous instruction
-        int offset = offsetBuffer.lastElement();
+        int offset = offsetBuffer.peek();
         messageBuilder
                 .append(ANSI_CYAN)
                 .append(offset)
@@ -113,7 +115,7 @@ public class InstructionEvaluationException extends ProguardCoreException
         return messageBuilder.toString();
     }
 
-    public String getFormattedMessage(Clazz clazz, Method method, CircularBuffer<Integer> offsetBuffer, byte[] code)
+    public String getFormattedMessage(Clazz clazz, Method method, CircularIntBuffer offsetBuffer, byte[] code)
     {
         return getFormattedMessage(clazz, method, offsetBuffer, code, null);
     }

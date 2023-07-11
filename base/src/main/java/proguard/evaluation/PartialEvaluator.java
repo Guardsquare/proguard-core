@@ -47,7 +47,7 @@ import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
-import proguard.util.CircularBuffer;
+import proguard.util.CircularIntBuffer;
 
 import java.util.Arrays;
 
@@ -888,7 +888,7 @@ implements   AttributeVisitor,
                                                 int              startOffset)
     {
         byte[] code = codeAttribute.code;
-        CircularBuffer<Integer> offsetBuffer = new CircularBuffer<>(5);
+        CircularIntBuffer offsetBuffer = new CircularIntBuffer(5);
 
         if (DEBUG)
         {
