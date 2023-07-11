@@ -18,4 +18,15 @@ class CompactCodeAttributeComposerErrorsTest : FreeSpec({
                 }
         }
     }
+
+    // this does not throw an error for the moment
+    "bipush with invalid operand label" {
+        // `bipush` expects a byte value but 300 exceedes the maximum byte value (>255)
+        buildClass()
+            .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                it
+                    .bipush(300)
+                    .return_()
+            }
+    }
 })
