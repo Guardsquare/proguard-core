@@ -134,7 +134,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             programClass.accept(
                 NamedMethodVisitor(
-                    "test", "()V",
+                    "test",
+                    "()V",
                     AllAttributeVisitor(
                         AttributeNameFilter(
                             Attribute.CODE,
@@ -142,14 +143,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                                 override fun visitCodeAttribute(
                                     clazz: Clazz,
                                     method: Method,
-                                    codeAttribute: CodeAttribute
+                                    codeAttribute: CodeAttribute,
                                 ) {
                                     codeAttribute.u2maxLocals = 2
                                 }
-                            }
-                        )
-                    )
-                )
+                            },
+                        ),
+                    ),
+                ),
             )
 
             shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
@@ -189,10 +190,11 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 PartialEvaluator(
                     ParticularValueFactory(
                         DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory()
-                    )
+                        ParticularReferenceValueFactory(),
+                    ),
                 ),
-                "test", "()Ljava/lang/Object;"
+                "test",
+                "()Ljava/lang/Object;",
             )
         }
 
@@ -228,10 +230,11 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 PartialEvaluator(
                     ParticularValueFactory(
                         DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory()
-                    )
+                        ParticularReferenceValueFactory(),
+                    ),
                 ),
-                "test", "()Ljava/lang/Object;"
+                "test",
+                "()Ljava/lang/Object;",
             )
         }
 
@@ -253,16 +256,16 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Index out of bound" {
-            // The following should be able to throw an error when accessing an area with an index that is out of range
+            // The following should be able to throw an error when accessing an array with an index that is out of range
             //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it
                         .iconst_1()
-                        .anewarray(Instruction.ARRAY_T_INT.toInt())
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
                         .dup()
-                        .iconst_5()
-                        .iconst_5()
+                        .iconst_0()
+                        .iconst_0()
                         .iastore()
                         .areturn()
                 }
@@ -273,7 +276,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 programClass,
                 PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
                 "test",
-                "()Ljava/lang/Object;"
+                "()Ljava/lang/Object;",
             )
         }
 
@@ -328,7 +331,7 @@ fun buildClass(): ClassBuilder {
         VersionConstants.CLASS_VERSION_1_8,
         AccessConstants.PUBLIC,
         "PartialEvaluatorDummy",
-        ClassConstants.NAME_JAVA_LANG_OBJECT
+        ClassConstants.NAME_JAVA_LANG_OBJECT,
     )
 }
 
@@ -337,10 +340,11 @@ val evaluateProgramClass =
     { programClass: ProgramClass, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
         programClass.accept(
             NamedMethodVisitor(
-                methodName, methodDescriptor,
+                methodName,
+                methodDescriptor,
                 AllAttributeVisitor(
-                    AttributeNameFilter(Attribute.CODE, partialEvaluator)
-                )
-            )
+                    AttributeNameFilter(Attribute.CODE, partialEvaluator),
+                ),
+            ),
         )
     }
