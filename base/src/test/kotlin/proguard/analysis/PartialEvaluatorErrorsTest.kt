@@ -63,7 +63,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
-        "Variable types do not match instruction" {
+        "Stack types do not match instruction" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) {
                     it
@@ -79,7 +79,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
-        "Variable types do not match instruction - long interpreted as int" {
+        "Stack types do not match instruction - long interpreted as int" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
                     it
