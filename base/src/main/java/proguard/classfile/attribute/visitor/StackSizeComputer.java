@@ -355,9 +355,7 @@ implements   AttributeVisitor,
 
             if (stackSize < 0)
             {
-                StackInstructionEvaluationException ex = new StackInstructionEvaluationException(
-                        "Stack size becomes negative after instruction.",
-                        "Maybe you forgot an instruction before this one.");
+                StackInstructionEvaluationException ex = new StackInstructionEvaluationException("Stack size becomes negative after instruction.");
 
                 logger.error(ex.getFormattedMessage(clazz, method, offsetBuffer, codeAttribute.code));
                 throw ex;

@@ -11,19 +11,15 @@ import proguard.util.CircularIntBuffer;
 import java.util.Collections;
 
 /**
- * Represents an exception when the `PartialEvaluator` encounters a semantically incorect java bytecode instruction.
- * A note can be passed to provide some extra information or possible hints to solve the issue.
+ * Represents an exception when the `PartialEvaluator` encounters a semantically incorrect java bytecode instruction.
  *
  * @see PartialEvaluator
  */
 public class InstructionEvaluationException extends ProguardCoreException
 {
-    private final String note;
-
-    public InstructionEvaluationException(String genericMessage, String genericNote)
+    public InstructionEvaluationException(String genericMessage)
     {
         super(genericMessage, 4, Collections.emptyList());
-        this.note = genericNote;
     }
 
     protected String getFormattedMessage(Clazz clazz, Method method, CircularIntBuffer offsetBuffer, byte[] code, String locationDescription)
@@ -110,7 +106,6 @@ public class InstructionEvaluationException extends ProguardCoreException
         if (locationDescription != null) {
             messageBuilder.append(locationDescription).append("\n");
         }
-        messageBuilder.append(note).append("\n");
 
         return messageBuilder.toString();
     }
@@ -118,10 +113,5 @@ public class InstructionEvaluationException extends ProguardCoreException
     public String getFormattedMessage(Clazz clazz, Method method, CircularIntBuffer offsetBuffer, byte[] code)
     {
         return getFormattedMessage(clazz, method, offsetBuffer, code, null);
-    }
-
-    public String getNote()
-    {
-        return note;
     }
 }

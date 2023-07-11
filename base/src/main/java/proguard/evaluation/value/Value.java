@@ -45,8 +45,7 @@ public abstract class Value
      */
     public Category1Value category1Value()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a category one value but found: \"" + this.toString() + "\".",
-                "Either you have a wrong value on the top of the stack, or this instruction will not work for this type.");
+        throw new StackInstructionEvaluationException("Instruction expects a category one value but found: \"" + this.toString() + "\".");
     }
 
     /**
@@ -54,8 +53,7 @@ public abstract class Value
      */
     public Category2Value category2Value()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a category two value but found: \"" + this.toString() + "\".",
-                "Either you have a wrong value on the top of the stack, or this instruction will not work for this type.");
+        throw new StackInstructionEvaluationException("Instruction expects a category two value but found: \"" + this.toString() + "\".");
     }
 
 
@@ -64,8 +62,7 @@ public abstract class Value
      */
     public IntegerValue integerValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects an int value but found: \"" + this.toString() + "\".",
-                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
+        throw new StackInstructionEvaluationException("Instruction expects an int value but found: \"" + this.toString() + "\".");
     }
 
     /**
@@ -73,8 +70,7 @@ public abstract class Value
      */
     public LongValue longValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a long value but found: \"" + this.toString() + "\".",
-                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
+        throw new StackInstructionEvaluationException("Instruction expects a long value but found: \"" + this.toString() + "\".");
     }
 
     /**
@@ -82,8 +78,7 @@ public abstract class Value
      */
     public FloatValue floatValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a float value but found: \"" + this.toString() + "\".",
-                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
+        throw new StackInstructionEvaluationException("Instruction expects a float value but found: \"" + this.toString() + "\".");
     }
 
     /**
@@ -91,8 +86,7 @@ public abstract class Value
      */
     public DoubleValue doubleValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a double value but found: \"" + this.toString() + "\".",
-                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
+        throw new StackInstructionEvaluationException("Instruction expects a double value but found: \"" + this.toString() + "\".");
     }
 
     /**
@@ -100,8 +94,7 @@ public abstract class Value
      */
     public ReferenceValue referenceValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a reference value but found: \"" + this.toString() + "\".",
-                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
+        throw new StackInstructionEvaluationException("Instruction expects a reference value but found: \"" + this.toString() + "\".");
     }
 
     /**
@@ -109,8 +102,7 @@ public abstract class Value
      */
     public InstructionOffsetValue instructionOffsetValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects an offset value value but found: \"" + this.toString() + "\".",
-                "You might want to check how this value got onto the stack or look whether the current instruction is correct. Type should match \""+this.getClass().getName()+"\".");
+        throw new StackInstructionEvaluationException("Instruction expects an offset value value but found: \"" + this.toString() + "\".");
     }
 
 

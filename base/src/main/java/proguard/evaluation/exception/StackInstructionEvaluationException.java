@@ -7,9 +7,9 @@ import proguard.util.CircularIntBuffer;
 
 public class StackInstructionEvaluationException extends InstructionEvaluationException
 {
-    public StackInstructionEvaluationException(String message, String note)
+    public StackInstructionEvaluationException(String message)
     {
-        super(message, note);
+        super(message);
     }
 
     public String getFormattedMessage(Clazz clazz, Method method, CircularIntBuffer offsetBuffer, byte[] code, Stack stack)

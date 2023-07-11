@@ -1171,8 +1171,7 @@ implements   AttributeVisitor,
         int newInstructionOffset = instructionOffsetMap[level][oldInstructionOffset];
         if (newInstructionOffset == INVALID)
         {
-            throw new InstructionEvaluationException("Invalid instruction offset ["+oldInstructionOffset +"] in code fragment at level "+level,
-                    "You might have made a typo or forgotten to add the label.");
+            throw new InstructionEvaluationException("Invalid instruction offset ["+oldInstructionOffset +"] in code fragment at level "+level);
         }
 
         return newInstructionOffset;

@@ -7,9 +7,9 @@ import proguard.util.CircularIntBuffer;
 
 public class VariableInstructionEvaluationException extends InstructionEvaluationException
 {
-    public VariableInstructionEvaluationException(String message, String note)
+    public VariableInstructionEvaluationException(String message)
     {
-        super(message, note);
+        super(message);
     }
 
     public String getFormattedMessage(Clazz clazz, Method method, CircularIntBuffer offsetBuffer, byte[] code, Variables variables)

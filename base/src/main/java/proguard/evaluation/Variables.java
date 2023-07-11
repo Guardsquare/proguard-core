@@ -173,8 +173,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.",
-                    "You may be able to change the amount of variables you have through a field in codeAttribute, or use a smaller variable index");
+            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.");
         }
 
         return values[index];
@@ -189,8 +188,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.",
-                    "You may be able to change the amount of variables you have through a field in codeAttribute, or use a smaller variable index");
+            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.");
         }
 
         // Store the value.
@@ -212,13 +210,11 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.",
-                    "You may be able to change the amount of variables you have through a field in codeAttribute, or use a smaller variable index");
+            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.");
         }
 
         if (values[index] == null) {
-            throw new VariableInstructionEvaluationException("No value in variable slot "+index+".",
-                    "You might have forgotten to load the value first, or maybe you loaded it to another variable.");
+            throw new VariableInstructionEvaluationException("No value in variable slot "+index+".");
         }
         return values[index];
     }
@@ -237,8 +233,7 @@ public class Variables
             // Catch potential StackInstructionEvaluationException thrown by the integerValue function.
             // It is actually a Variable exception and should be replaced completely.
             // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an integer",
-                  "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an integer");
         }
     }
 
@@ -254,8 +249,7 @@ public class Variables
             // Catch potential StackInstructionEvaluationException thrown by the longValue function.
             // It is actually a Variable exception and should be replaced completely.
             // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a long",
-                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a long");
         }
     }
 
@@ -271,8 +265,7 @@ public class Variables
             // Catch potential StackInstructionEvaluationException thrown by the floatValue function.
             // It is actually a Variable exception and should be replaced completely.
             // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a float",
-                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a float");
         }
     }
 
@@ -288,8 +281,7 @@ public class Variables
             // Catch potential StackInstructionEvaluationException thrown by the doubleValue function.
             // It is actually a Variable exception and should be replaced completely.
             // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a double",
-                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a double");
         }
     }
 
@@ -305,8 +297,7 @@ public class Variables
             // Catch potential StackInstructionEvaluationException thrown by the referenceValue function.
             // It is actually a Variable exception and should be replaced completely.
             // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a reference",
-                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a reference");
         }
     }
 
@@ -322,8 +313,7 @@ public class Variables
             // Catch potential StackInstructionEvaluationException thrown by the instructionOffsetValue function.
             // It is actually a Variable exception and should be replaced completely.
             // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an instructionOffset",
-                    "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
+            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an instructionOffset");
         }
     }
 
