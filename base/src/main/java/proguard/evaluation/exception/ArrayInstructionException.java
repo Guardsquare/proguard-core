@@ -18,6 +18,9 @@
 
 package proguard.evaluation.exception;
 
+/**
+ * Partial Evaluator exception regarding Arrays.
+ */
 public class ArrayInstructionException extends PartialEvaluatorException
 {
     public ArrayInstructionException(String genericMessage, Throwable cause)
