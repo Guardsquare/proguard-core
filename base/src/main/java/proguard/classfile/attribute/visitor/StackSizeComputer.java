@@ -126,15 +126,20 @@ implements   AttributeVisitor,
             // Process the code.
             visitCodeAttribute0(clazz, method, codeAttribute);
         }
+        catch (InstructionEvaluationException ex) {
+            if (DEBUG)
+            {
+                method.accept(clazz, new ClassPrinter());
+            }
+
+            throw ex;
+        }
         catch (RuntimeException ex)
         {
-            if (!(ex instanceof InstructionEvaluationException)) {
-                // The InstructionEvaluationException have formatted error logging and is handled before.
-                logger.error("Unexpected error while computing stack sizes:");
-                logger.error("  Class       = [{}]", clazz.getName());
-                logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
-                logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
-            }
+            logger.error("Unexpected error while computing stack sizes:");
+            logger.error("  Class       = [{}]", clazz.getName());
+            logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
             if (DEBUG)
             {

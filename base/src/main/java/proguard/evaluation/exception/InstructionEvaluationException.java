@@ -16,15 +16,18 @@ import java.util.Collections;
  *
  * @see PartialEvaluator
  */
-public class InstructionEvaluationException extends ProguardCoreException {
+public class InstructionEvaluationException extends ProguardCoreException
+{
     private final String note;
 
-    public InstructionEvaluationException(String genericMessage, String genericNote) {
+    public InstructionEvaluationException(String genericMessage, String genericNote)
+    {
         super(genericMessage, 4, Collections.emptyList());
         this.note = genericNote;
     }
 
-    protected String getFormattedMessage(Clazz clazz, Method method, CircularBuffer<Integer> offsetBuffer, byte[] code, String locationDescription) {
+    protected String getFormattedMessage(Clazz clazz, Method method, CircularBuffer<Integer> offsetBuffer, byte[] code, String locationDescription)
+    {
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_RED = "\u001B[31m";
         final String ANSI_CYAN = "\u001B[34m";
@@ -110,11 +113,13 @@ public class InstructionEvaluationException extends ProguardCoreException {
         return messageBuilder.toString();
     }
 
-    public String getFormattedMessage(Clazz clazz, Method method, CircularBuffer<Integer> offsetBuffer, byte[] code) {
+    public String getFormattedMessage(Clazz clazz, Method method, CircularBuffer<Integer> offsetBuffer, byte[] code)
+    {
         return getFormattedMessage(clazz, method, offsetBuffer, code, null);
     }
 
-    public String getNote() {
+    public String getNote()
+    {
         return note;
     }
 }

@@ -18,6 +18,7 @@
 package proguard.evaluation;
 
 import proguard.evaluation.exception.InstructionEvaluationException;
+import proguard.evaluation.exception.StackInstructionEvaluationException;
 import proguard.evaluation.exception.VariableInstructionEvaluationException;
 import proguard.evaluation.value.*;
 
@@ -232,7 +233,10 @@ public class Variables
     {
         try {
             return load(index).integerValue();
-        } catch (InstructionEvaluationException e) {
+        } catch (StackInstructionEvaluationException e) {
+            // Catch potential StackInstructionEvaluationException thrown by the integerValue function.
+            // It is actually a Variable exception and should be replaced completely.
+            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
             throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an integer",
                   "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
         }
@@ -246,7 +250,10 @@ public class Variables
     {
         try {
             return load(index).longValue();
-        } catch (InstructionEvaluationException e) {
+        } catch (StackInstructionEvaluationException e) {
+            // Catch potential StackInstructionEvaluationException thrown by the longValue function.
+            // It is actually a Variable exception and should be replaced completely.
+            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
             throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a long",
                     "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
         }
@@ -260,7 +267,10 @@ public class Variables
     {
         try {
             return load(index).floatValue();
-        } catch (InstructionEvaluationException e) {
+        } catch (StackInstructionEvaluationException e) {
+            // Catch potential StackInstructionEvaluationException thrown by the floatValue function.
+            // It is actually a Variable exception and should be replaced completely.
+            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
             throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a float",
                     "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
         }
@@ -274,7 +284,10 @@ public class Variables
     {
         try {
             return load(index).doubleValue();
-        } catch (InstructionEvaluationException e) {
+        } catch (StackInstructionEvaluationException e) {
+            // Catch potential StackInstructionEvaluationException thrown by the doubleValue function.
+            // It is actually a Variable exception and should be replaced completely.
+            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
             throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a double",
                     "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
         }
@@ -288,7 +301,10 @@ public class Variables
     {
         try {
             return load(index).referenceValue();
-        } catch (InstructionEvaluationException e) {
+        } catch (StackInstructionEvaluationException e) {
+            // Catch potential StackInstructionEvaluationException thrown by the referenceValue function.
+            // It is actually a Variable exception and should be replaced completely.
+            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
             throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a reference",
                     "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
         }
@@ -302,7 +318,10 @@ public class Variables
     {
         try {
             return load(index).instructionOffsetValue();
-        } catch (InstructionEvaluationException e) {
+        } catch (StackInstructionEvaluationException e) {
+            // Catch potential StackInstructionEvaluationException thrown by the instructionOffsetValue function.
+            // It is actually a Variable exception and should be replaced completely.
+            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
             throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an instructionOffset",
                     "You might have forgotten to load the value first, or maybe you loaded it to another variable, or you stored a wrong type here.");
         }
