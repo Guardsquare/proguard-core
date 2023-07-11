@@ -263,7 +263,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .iconst_1()
                         .newarray(Instruction.ARRAY_T_INT.toInt())
                         .dup()
-                        .iconst_0()
+                        .iconst_5()
                         .iconst_0()
                         .iastore()
                         .areturn()
