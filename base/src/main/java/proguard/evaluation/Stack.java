@@ -294,7 +294,8 @@ public class Stack
         try
         {
             return val.integerValue();
-        } catch (IllegalArgumentException ex)
+        }
+        catch (IllegalArgumentException ex)
         {
             throw new StackInstructionTypeException(val, "integer", ex);
         }
@@ -310,7 +311,8 @@ public class Stack
         try
         {
             return val.longValue();
-        } catch (IllegalArgumentException ex)
+        }
+        catch (IllegalArgumentException ex)
         {
             throw new StackInstructionTypeException(val, "long", ex);
         }
@@ -326,7 +328,8 @@ public class Stack
         try
         {
             return val.floatValue();
-        } catch (IllegalArgumentException ex)
+        }
+        catch (IllegalArgumentException ex)
         {
             throw new StackInstructionTypeException(val, "float", ex);
         }
@@ -342,7 +345,8 @@ public class Stack
         try
         {
             return val.doubleValue();
-        } catch (IllegalArgumentException ex)
+        }
+        catch (IllegalArgumentException ex)
         {
             throw new StackInstructionTypeException(val, "double", ex);
         }
