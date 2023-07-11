@@ -23,11 +23,6 @@ public class VariableInstructionEvaluationException extends PartialEvaluatorExce
     // The index of the variable this exception is about.
     protected final int index;
 
-    public VariableInstructionEvaluationException(String message, int index)
-    {
-        this(message, index, null);
-    }
-
     public VariableInstructionEvaluationException(String message, int index, Throwable cause)
     {
         super(message, cause);

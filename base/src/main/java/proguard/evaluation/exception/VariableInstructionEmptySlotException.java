@@ -21,6 +21,6 @@ package proguard.evaluation.exception;
 public class VariableInstructionEmptySlotException extends VariableInstructionEvaluationException
 {
     public VariableInstructionEmptySlotException(int index) {
-        super("Value in slot "+index+" is not a float", index);
+        super("Value in slot "+index+" is not a float", index, null);
     }
 }

@@ -27,7 +27,7 @@ public class VariableInstructionIndexOutOfBoundException extends VariableInstruc
     protected final int bound;
 
     public VariableInstructionIndexOutOfBoundException(int index, int bound) {
-        super("Variable index ["+index+"] out of bounds. There are "+bound+" variables in this code attribute.", index);
+        super("Variable index ["+index+"] out of bounds. There are "+bound+" variables in this code attribute.", index, null);
         this.bound = bound;
     }
 }

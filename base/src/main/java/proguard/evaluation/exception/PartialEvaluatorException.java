@@ -30,11 +30,6 @@ import java.util.Collections;
  */
 public class PartialEvaluatorException extends ProguardCoreException
 {
-    public PartialEvaluatorException(String genericMessage)
-    {
-        super(genericMessage, 4, Collections.emptyList());
-    }
-
     public PartialEvaluatorException(String genericMessage, Throwable cause)
     {
         super(genericMessage, 4, Collections.emptyList(), cause);
