@@ -20,9 +20,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.VariableInstructionEmptySlotException
-import proguard.evaluation.exception.VariableInstructionIndexOutOfBoundException
-import proguard.evaluation.exception.VariableInstructionTypeException
+import proguard.evaluation.exception.StackInstructionEvaluationException
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 
@@ -50,7 +48,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<VariableInstructionEmptySlotException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Variable types do not match" {
@@ -64,7 +62,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<VariableInstructionTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Stack types do not match instruction" {
@@ -80,7 +78,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackInstructionEvaluationException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
         "Stack types do not match instruction - long interpreted as int" {
@@ -93,7 +91,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
+            shouldThrow<StackInstructionEvaluationException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
         }
 
         "dup of long" {
@@ -107,7 +105,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackInstructionEvaluationException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
         "getfield but return the wrong type" {
@@ -121,7 +119,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
+            shouldThrow<StackInstructionEvaluationException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
         }
 
         "Variable index out of bound" {
@@ -156,7 +154,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 ),
             )
 
-            shouldThrow<VariableInstructionIndexOutOfBoundException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
+            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
         }
     }
 
@@ -267,7 +265,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .iconst_1()
                         .newarray(Instruction.ARRAY_T_INT.toInt())
                         .dup()
-                        .iconst_5()
+                        .iconst_0()
                         .iconst_0()
                         .iastore()
                         .areturn()
@@ -281,6 +279,16 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()Ljava/lang/Object;",
             )
+        }
+
+        "bipush with invalid operand label" {
+            // `bipush` excpects a byte value but 300 exceedes the maximum byte value (>255)
+            buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it
+                        .bipush(300)
+                        .return_()
+                }
         }
     }
 

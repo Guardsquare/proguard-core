@@ -17,7 +17,6 @@
  */
 package proguard.evaluation;
 
-import proguard.evaluation.exception.*;
 import proguard.evaluation.value.*;
 
 import java.util.Arrays;
@@ -171,7 +170,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionIndexOutOfBoundException(index, size);
+            throw new IndexOutOfBoundsException("Variable index ["+index+"] out of bounds ["+size+"]");
         }
 
         return values[index];
@@ -186,7 +185,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionIndexOutOfBoundException(index, size);
+            throw new IndexOutOfBoundsException("Variable index ["+index+"] out of bounds ["+size+"]");
         }
 
         // Store the value.
@@ -208,12 +207,9 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionIndexOutOfBoundException(index, size);
+            throw new IndexOutOfBoundsException("Variable index ["+index+"] out of bounds ["+size+"]");
         }
 
-        if (values[index] == null) {
-            throw new VariableInstructionEmptySlotException(index);
-        }
         return values[index];
     }
 
@@ -225,11 +221,7 @@ public class Variables
      */
     public IntegerValue iload(int index)
     {
-        try {
-            return load(index).integerValue();
-        } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "int", e);
-        }
+        return load(index).integerValue();
     }
 
 
@@ -238,11 +230,7 @@ public class Variables
      */
     public LongValue lload(int index)
     {
-        try {
-            return load(index).longValue();
-        } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "long", e);
-        }
+        return load(index).longValue();
     }
 
 
@@ -251,11 +239,7 @@ public class Variables
      */
     public FloatValue fload(int index)
     {
-        try {
-            return load(index).floatValue();
-        } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "float", e);
-        }
+        return load(index).floatValue();
     }
 
 
@@ -264,11 +248,7 @@ public class Variables
      */
     public DoubleValue dload(int index)
     {
-        try {
-            return load(index).doubleValue();
-        } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "double", e);
-        }
+        return load(index).doubleValue();
     }
 
 
@@ -277,11 +257,7 @@ public class Variables
      */
     public ReferenceValue aload(int index)
     {
-        try {
-            return load(index).referenceValue();
-        } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "reference", e);
-        }
+        return load(index).referenceValue();
     }
 
 
@@ -290,11 +266,7 @@ public class Variables
      */
     public InstructionOffsetValue oload(int index)
     {
-        try {
-            return load(index).instructionOffsetValue();
-        } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "instructionOffset", e);
-        }
+        return load(index).instructionOffsetValue();
     }
 
     /**
