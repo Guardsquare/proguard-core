@@ -394,20 +394,23 @@ public class Stack
         values[--currentSize] = null;
     }
 
+    private Category1Value getSafeCategory1Value(Value value) {
+        try {
+            return value.category1Value();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(value, "Category 1", ex);
+        }
+    }
+
 
     /**
      * Duplicates the top Category 1 value.
      */
     public void dup()
     {
-        Value val = values[currentSize - 1];
-        try {
-            values[currentSize] = values[currentSize - 1].category1Value();
-        }
-        catch (IllegalArgumentException ex)
-        {
-            throw new StackInstructionTypeException(val, "Category 1", ex);
-        }
+        values[currentSize] = getSafeCategory1Value(values[currentSize - 1]);
 
         currentSize++;
 
@@ -425,20 +428,8 @@ public class Stack
      */
     public void dup_x1()
     {
-        Value val1 = values[currentSize - 1];
-        Value val2 = values[currentSize - 2];
-        try {
-            values[currentSize] = val1.category1Value();
-        } catch (IllegalArgumentException ex)
-        {
-            throw new StackInstructionTypeException(val1, "Category 1", ex);
-        }
-        try {
-            values[currentSize - 1] = val2.category1Value();
-        } catch (IllegalArgumentException ex)
-        {
-            throw new StackInstructionTypeException(val2, "Category 1", ex);
-        }
+        values[currentSize]     = getSafeCategory1Value(values[currentSize - 1]);
+        values[currentSize - 1] = getSafeCategory1Value(values[currentSize - 2]);
         values[currentSize - 2] = values[currentSize    ];
 
         currentSize++;
@@ -457,12 +448,7 @@ public class Stack
      */
     public void dup_x2()
     {
-        Value val = values[currentSize - 1];
-        try {
-            values[currentSize] = val.category1Value();
-        } catch (IllegalArgumentException ex) {
-            throw new StackInstructionTypeException(val, "Category 1", ex);
-        }
+        values[currentSize]     = getSafeCategory1Value(values[currentSize - 1]);
         values[currentSize - 1] = values[currentSize - 2];
         values[currentSize - 2] = values[currentSize - 3];
         values[currentSize - 3] = values[currentSize    ];
@@ -545,21 +531,9 @@ public class Stack
      */
     public void swap()
     {
-        Value value1 = values[currentSize - 1];
-        try {
-            value1 = value1.category1Value();
-        }
-        catch (IllegalArgumentException ex) {
-            throw new StackInstructionTypeException(value1, "Category 1", ex);
-        }
-        Value value2 = values[currentSize - 2];
-        try {
-            value2 = value2.category1Value();
-        }
-        catch (IllegalArgumentException ex)
-        {
-            throw new StackInstructionTypeException(value2, "Category 1", ex);
-        }
+        Value value1 = getSafeCategory1Value(values[currentSize - 1]);
+        Value value2 = getSafeCategory1Value(values[currentSize - 2]);
+
         values[currentSize - 1] = value2;
         values[currentSize - 2] = value1;
     }
