@@ -17,6 +17,8 @@
  */
 package proguard.evaluation;
 
+import proguard.evaluation.exception.StackInstructionEvaluationException;
+import proguard.evaluation.exception.StackInstructionTypeException;
 import proguard.evaluation.value.*;
 
 import java.util.Arrays;
@@ -288,7 +290,13 @@ public class Stack
      */
     public IntegerValue ipop()
     {
-        return pop().integerValue();
+        Value val = pop();
+        try {
+            return val.integerValue();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val, "integer", ex);
+        }
     }
 
 
@@ -297,7 +305,13 @@ public class Stack
      */
     public LongValue lpop()
     {
-        return pop().longValue();
+        Value val = pop();
+        try {
+            return val.longValue();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val, "long", ex);
+        }
     }
 
 
@@ -306,7 +320,13 @@ public class Stack
      */
     public FloatValue fpop()
     {
-        return pop().floatValue();
+        Value val = pop();
+        try {
+            return val.floatValue();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val, "float", ex);
+        }
     }
 
 
@@ -315,7 +335,13 @@ public class Stack
      */
     public DoubleValue dpop()
     {
-        return pop().doubleValue();
+        Value val = pop();
+        try {
+            return val.doubleValue();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val, "double", ex);
+        }
     }
 
 
@@ -324,7 +350,13 @@ public class Stack
      */
     public ReferenceValue apop()
     {
-        return pop().referenceValue();
+        Value val = pop();
+        try {
+            return val.referenceValue();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val, "reference", ex);
+        }
     }
 
 
@@ -333,7 +365,13 @@ public class Stack
      */
     public InstructionOffsetValue opop()
     {
-        return pop().instructionOffsetValue();
+        Value val = pop();
+        try {
+            return val.instructionOffsetValue();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val, "instructionOffset", ex);
+        }
     }
 
 
@@ -362,7 +400,14 @@ public class Stack
      */
     public void dup()
     {
-        values[currentSize] = values[currentSize - 1].category1Value();
+        Value val = values[currentSize - 1];
+        try {
+            values[currentSize] = values[currentSize - 1].category1Value();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val, "Category 1", ex);
+        }
 
         currentSize++;
 
@@ -380,8 +425,20 @@ public class Stack
      */
     public void dup_x1()
     {
-        values[currentSize]     = values[currentSize - 1].category1Value();
-        values[currentSize - 1] = values[currentSize - 2].category1Value();
+        Value val1 = values[currentSize - 1];
+        Value val2 = values[currentSize - 2];
+        try {
+            values[currentSize] = val1.category1Value();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val1, "Category 1", ex);
+        }
+        try {
+            values[currentSize - 1] = val2.category1Value();
+        } catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(val2, "Category 1", ex);
+        }
         values[currentSize - 2] = values[currentSize    ];
 
         currentSize++;
@@ -400,7 +457,12 @@ public class Stack
      */
     public void dup_x2()
     {
-        values[currentSize]     = values[currentSize - 1].category1Value();
+        Value val = values[currentSize - 1];
+        try {
+            values[currentSize] = val.category1Value();
+        } catch (IllegalArgumentException ex) {
+            throw new StackInstructionTypeException(val, "Category 1", ex);
+        }
         values[currentSize - 1] = values[currentSize - 2];
         values[currentSize - 2] = values[currentSize - 3];
         values[currentSize - 3] = values[currentSize    ];
@@ -483,9 +545,21 @@ public class Stack
      */
     public void swap()
     {
-        Value value1 = values[currentSize - 1].category1Value();
-        Value value2 = values[currentSize - 2].category1Value();
-
+        Value value1 = values[currentSize - 1];
+        try {
+            value1 = value1.category1Value();
+        }
+        catch (IllegalArgumentException ex) {
+            throw new StackInstructionTypeException(value1, "Category 1", ex);
+        }
+        Value value2 = values[currentSize - 2];
+        try {
+            value2 = value2.category1Value();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackInstructionTypeException(value2, "Category 1", ex);
+        }
         values[currentSize - 1] = value2;
         values[currentSize - 2] = value1;
     }

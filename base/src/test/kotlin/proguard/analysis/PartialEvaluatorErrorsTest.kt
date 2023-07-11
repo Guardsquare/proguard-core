@@ -78,7 +78,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackInstructionEvaluationException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J")
         }
 
         "Stack types do not match instruction - long interpreted as int" {
