@@ -158,8 +158,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Index out of bound when storing in an array" {
-            // The following should be able to throw an error when accessing an array with an index that is out of range
-            //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it
@@ -185,8 +183,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Index out of bound when loading from an array" {
-            // The following should be able to throw an error when accessing an array with an index that is out of range
-            //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
                     it
