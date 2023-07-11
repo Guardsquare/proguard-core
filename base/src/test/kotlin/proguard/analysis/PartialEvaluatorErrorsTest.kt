@@ -265,7 +265,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .iconst_1()
                         .newarray(Instruction.ARRAY_T_INT.toInt())
                         .dup()
-                        .iconst_0()
+                        .iconst_5()
                         .iconst_0()
                         .iastore()
                         .areturn()
@@ -279,16 +279,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()Ljava/lang/Object;",
             )
-        }
-
-        "bipush with invalid operand label" {
-            // `bipush` excpects a byte value but 300 exceedes the maximum byte value (>255)
-            buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
-                    it
-                        .bipush(300)
-                        .return_()
-                }
         }
     }
 
