@@ -18,6 +18,9 @@
 
 package proguard.evaluation.exception;
 
+/**
+ * Partial Evaluator exception regarding the stack.
+ */
 public class StackInstructionEvaluationException extends PartialEvaluatorException
 {
     public StackInstructionEvaluationException(String message, Throwable cause)

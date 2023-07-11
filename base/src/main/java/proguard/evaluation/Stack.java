@@ -17,8 +17,7 @@
  */
 package proguard.evaluation;
 
-import proguard.evaluation.exception.StackInstructionEvaluationException;
-import proguard.evaluation.exception.StackInstructionTypeException;
+import proguard.evaluation.exception.StackTypeException;
 import proguard.evaluation.value.*;
 
 import java.util.Arrays;
@@ -297,7 +296,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackInstructionTypeException(val, "integer", ex);
+            throw new StackTypeException(val, "integer", ex);
         }
     }
 
@@ -314,7 +313,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackInstructionTypeException(val, "long", ex);
+            throw new StackTypeException(val, "long", ex);
         }
     }
 
@@ -331,7 +330,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackInstructionTypeException(val, "float", ex);
+            throw new StackTypeException(val, "float", ex);
         }
     }
 
@@ -348,7 +347,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackInstructionTypeException(val, "double", ex);
+            throw new StackTypeException(val, "double", ex);
         }
     }
 
@@ -365,7 +364,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackInstructionTypeException(val, "reference", ex);
+            throw new StackTypeException(val, "reference", ex);
         }
     }
 
@@ -382,7 +381,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackInstructionTypeException(val, "instructionOffset", ex);
+            throw new StackTypeException(val, "instructionOffset", ex);
         }
     }
 
@@ -413,7 +412,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackInstructionTypeException(value, "Category 1", ex);
+            throw new StackTypeException(value, "Category 1", ex);
         }
     }
 

@@ -20,7 +20,10 @@ package proguard.evaluation.exception;
 
 import proguard.evaluation.value.Value;
 
-public class StackInstructionTypeException extends StackInstructionEvaluationException
+/**
+ * Exception thrown when a type on the stack does not match the expected type.
+ */
+public class StackTypeException extends StackInstructionEvaluationException
 {
     /**
      * The type that was expected but not given and caused this exception.
@@ -32,7 +35,7 @@ public class StackInstructionTypeException extends StackInstructionEvaluationExc
      */
     protected final Value foundValue;
 
-    public StackInstructionTypeException(Value foundValue, String expectedType, Throwable cause)
+    public StackTypeException(Value foundValue, String expectedType, Throwable cause)
     {
         super("Stack value of type \""+expectedType+"\" expected, but found: "+foundValue.toString()+".",  cause);
         this.expectedType = expectedType;
