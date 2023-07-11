@@ -17,8 +17,7 @@
  */
 package proguard.evaluation;
 
-import proguard.evaluation.exception.StackInstructionEvaluationException;
-import proguard.evaluation.exception.VariableInstructionEvaluationException;
+import proguard.evaluation.exception.*;
 import proguard.evaluation.value.*;
 
 import java.util.Arrays;
@@ -172,7 +171,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.");
+            throw new VariableInstructionIndexOutOfBoundException(index, size);
         }
 
         return values[index];
@@ -187,7 +186,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.");
+            throw new VariableInstructionIndexOutOfBoundException(index, size);
         }
 
         // Store the value.
@@ -209,11 +208,11 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionEvaluationException("Variable index ["+index+"] out of bounds. There are "+size+" variables in this code attribute.");
+            throw new VariableInstructionIndexOutOfBoundException(index, size);
         }
 
         if (values[index] == null) {
-            throw new VariableInstructionEvaluationException("No value in variable slot "+index+".");
+            throw new VariableInstructionEmptySlotException(index);
         }
         return values[index];
     }
@@ -228,11 +227,8 @@ public class Variables
     {
         try {
             return load(index).integerValue();
-        } catch (StackInstructionEvaluationException e) {
-            // Catch potential StackInstructionEvaluationException thrown by the integerValue function.
-            // It is actually a Variable exception and should be replaced completely.
-            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an integer");
+        } catch (IllegalArgumentException e) {
+            throw new VariableInstructionTypeException(index, "int");
         }
     }
 
@@ -244,11 +240,8 @@ public class Variables
     {
         try {
             return load(index).longValue();
-        } catch (StackInstructionEvaluationException e) {
-            // Catch potential StackInstructionEvaluationException thrown by the longValue function.
-            // It is actually a Variable exception and should be replaced completely.
-            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a long");
+        } catch (IllegalArgumentException e) {
+            throw new VariableInstructionTypeException(index, "long");
         }
     }
 
@@ -260,11 +253,8 @@ public class Variables
     {
         try {
             return load(index).floatValue();
-        } catch (StackInstructionEvaluationException e) {
-            // Catch potential StackInstructionEvaluationException thrown by the floatValue function.
-            // It is actually a Variable exception and should be replaced completely.
-            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a float");
+        } catch (IllegalArgumentException e) {
+            throw new VariableInstructionTypeException(index, "float");
         }
     }
 
@@ -276,11 +266,8 @@ public class Variables
     {
         try {
             return load(index).doubleValue();
-        } catch (StackInstructionEvaluationException e) {
-            // Catch potential StackInstructionEvaluationException thrown by the doubleValue function.
-            // It is actually a Variable exception and should be replaced completely.
-            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a double");
+        } catch (IllegalArgumentException e) {
+            throw new VariableInstructionTypeException(index, "double");
         }
     }
 
@@ -292,11 +279,8 @@ public class Variables
     {
         try {
             return load(index).referenceValue();
-        } catch (StackInstructionEvaluationException e) {
-            // Catch potential StackInstructionEvaluationException thrown by the referenceValue function.
-            // It is actually a Variable exception and should be replaced completely.
-            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not a reference");
+        } catch (IllegalArgumentException e) {
+            throw new VariableInstructionTypeException(index, "reference");
         }
     }
 
@@ -308,11 +292,8 @@ public class Variables
     {
         try {
             return load(index).instructionOffsetValue();
-        } catch (StackInstructionEvaluationException e) {
-            // Catch potential StackInstructionEvaluationException thrown by the instructionOffsetValue function.
-            // It is actually a Variable exception and should be replaced completely.
-            // (There are only a select few instruction that throw VariableInstructionEvaluationException so working this way makes for cleaner code)
-            throw new VariableInstructionEvaluationException("Value in slot "+index+" is not an instructionOffset");
+        } catch (IllegalArgumentException e) {
+            throw new VariableInstructionTypeException(index, "instructionOffset");
         }
     }
 

@@ -17,8 +17,6 @@
  */
 package proguard.evaluation.value;
 
-import proguard.evaluation.exception.StackInstructionEvaluationException;
-
 /**
  * This abstract class represents a partially evaluated value.
  *
@@ -45,7 +43,7 @@ public abstract class Value
      */
     public Category1Value category1Value()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a category one value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a Category 1 value [" + this.getClass().getName() + "]");
     }
 
     /**
@@ -53,7 +51,7 @@ public abstract class Value
      */
     public Category2Value category2Value()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a category two value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a Category 2 value [" + this.getClass().getName() + "]");
     }
 
 
@@ -62,7 +60,7 @@ public abstract class Value
      */
     public IntegerValue integerValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects an int value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not an integer value [" + this.getClass().getName() + "]");
     }
 
     /**
@@ -70,7 +68,7 @@ public abstract class Value
      */
     public LongValue longValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a long value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a long value [" + this.getClass().getName() + "]");
     }
 
     /**
@@ -78,7 +76,7 @@ public abstract class Value
      */
     public FloatValue floatValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a float value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a float value [" + this.getClass().getName() + "]");
     }
 
     /**
@@ -86,7 +84,7 @@ public abstract class Value
      */
     public DoubleValue doubleValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a double value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a double value [" + this.getClass().getName() + "]");
     }
 
     /**
@@ -94,7 +92,7 @@ public abstract class Value
      */
     public ReferenceValue referenceValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects a reference value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not a reference value [" + this.getClass().getName() + "]");
     }
 
     /**
@@ -102,7 +100,7 @@ public abstract class Value
      */
     public InstructionOffsetValue instructionOffsetValue()
     {
-        throw new StackInstructionEvaluationException("Instruction expects an offset value value but found: \"" + this.toString() + "\".");
+        throw new IllegalArgumentException("Value \"" + this.toString() + "\" is not an instruction offset value [" + this.getClass().getName() + "]");
     }
 
 

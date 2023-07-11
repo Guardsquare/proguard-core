@@ -18,14 +18,20 @@
 
 package proguard.evaluation.exception;
 
-public class VariableInstructionEvaluationException extends PartialEvaluatorException
-{
-    // The index of the variable this exception is about.
-    protected final int index;
+import proguard.evaluation.PartialEvaluator;
+import proguard.exception.ProguardCoreException;
 
-    public VariableInstructionEvaluationException(String message, int index)
+import java.util.Collections;
+
+/**
+ * Represents an exception when the `PartialEvaluator` encounters a semantically incorrect java bytecode instruction.
+ *
+ * @see PartialEvaluator
+ */
+public class PartialEvaluatorException extends ProguardCoreException
+{
+    public PartialEvaluatorException(String genericMessage)
     {
-        super(message);
-        this.index = index;
+        super(genericMessage, 4, Collections.emptyList());
     }
 }

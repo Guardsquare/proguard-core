@@ -18,14 +18,16 @@
 
 package proguard.evaluation.exception;
 
-public class VariableInstructionEvaluationException extends PartialEvaluatorException
+/**
+ *
+ */
+public class VariableInstructionIndexOutOfBoundException extends VariableInstructionEvaluationException
 {
-    // The index of the variable this exception is about.
-    protected final int index;
+    // The bound that has been invalidated
+    protected final int bound;
 
-    public VariableInstructionEvaluationException(String message, int index)
-    {
-        super(message);
-        this.index = index;
+    public VariableInstructionIndexOutOfBoundException(int index, int bound) {
+        super("Variable index ["+index+"] out of bounds. There are "+bound+" variables in this code attribute.", index);
+        this.bound = bound;
     }
 }

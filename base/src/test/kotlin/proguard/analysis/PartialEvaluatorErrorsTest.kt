@@ -1,5 +1,6 @@
 package proguard.analysis
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
@@ -19,6 +20,9 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.exception.VariableInstructionEmptySlotException
+import proguard.evaluation.exception.VariableInstructionIndexOutOfBoundException
+import proguard.evaluation.exception.VariableInstructionTypeException
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 
@@ -46,7 +50,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<VariableInstructionEmptySlotException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Variable types do not match" {
@@ -60,10 +64,10 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<VariableInstructionTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
-        "Variable types do not match instruction" {
+        "Stack types do not match instruction" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) {
                     it
@@ -79,7 +83,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
-        "Variable types do not match instruction - long interpreted as int" {
+        "Stack types do not match instruction - long interpreted as int" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
                     it
@@ -152,7 +156,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 ),
             )
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
+            shouldThrow<VariableInstructionIndexOutOfBoundException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
         }
     }
 

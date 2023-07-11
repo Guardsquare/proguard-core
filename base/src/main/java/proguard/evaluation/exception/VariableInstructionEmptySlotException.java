@@ -18,14 +18,9 @@
 
 package proguard.evaluation.exception;
 
-public class VariableInstructionEvaluationException extends PartialEvaluatorException
+public class VariableInstructionEmptySlotException extends VariableInstructionEvaluationException
 {
-    // The index of the variable this exception is about.
-    protected final int index;
-
-    public VariableInstructionEvaluationException(String message, int index)
-    {
-        super(message);
-        this.index = index;
+    public VariableInstructionEmptySlotException(int index) {
+        super("Value in slot "+index+" is not a float", index);
     }
 }
