@@ -5,10 +5,7 @@ import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
 
 /**
- * The purpose of these tests is to find test snippets that will result in errors thrown by the
- * @see proguard.classfile.attribute.visitor.StackSizeComputer
- *
- * The logger should be able to figure out what the context is and provide context to the user that is debugging.
+ * These test check that various invalid code snippets correctly throw exceptions from the StackSizeComputer
  */
 class StackSizeComputerErrorsTest : FreeSpec({
     "Stack size becomes negative" {

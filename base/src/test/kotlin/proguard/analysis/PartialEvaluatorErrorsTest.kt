@@ -23,10 +23,9 @@ import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 
 /**
- * The purpose of these tests is to find test snippets that will result in errors thrown by the
+ * These test check that various invalid code snippets correctly throw exceptions from the
  * `PartialEvaluator`.
  *
- * The logger should be able to figure out what the context is and provide context to the user that is debugging
  * @see PartialEvaluator
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
