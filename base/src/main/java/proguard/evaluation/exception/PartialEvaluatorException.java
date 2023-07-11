@@ -34,4 +34,9 @@ public class PartialEvaluatorException extends ProguardCoreException
     {
         super(genericMessage, 4, Collections.emptyList());
     }
+
+    public PartialEvaluatorException(String genericMessage, Throwable cause)
+    {
+        super(genericMessage, 4, Collections.emptyList(), cause);
+    }
 }

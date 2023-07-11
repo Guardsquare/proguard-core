@@ -228,7 +228,7 @@ public class Variables
         try {
             return load(index).integerValue();
         } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "int");
+            throw new VariableInstructionTypeException(index, "int", e);
         }
     }
 
@@ -241,7 +241,7 @@ public class Variables
         try {
             return load(index).longValue();
         } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "long");
+            throw new VariableInstructionTypeException(index, "long", e);
         }
     }
 
@@ -254,7 +254,7 @@ public class Variables
         try {
             return load(index).floatValue();
         } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "float");
+            throw new VariableInstructionTypeException(index, "float", e);
         }
     }
 
@@ -267,7 +267,7 @@ public class Variables
         try {
             return load(index).doubleValue();
         } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "double");
+            throw new VariableInstructionTypeException(index, "double", e);
         }
     }
 
@@ -280,7 +280,7 @@ public class Variables
         try {
             return load(index).referenceValue();
         } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "reference");
+            throw new VariableInstructionTypeException(index, "reference", e);
         }
     }
 
@@ -293,7 +293,7 @@ public class Variables
         try {
             return load(index).instructionOffsetValue();
         } catch (IllegalArgumentException e) {
-            throw new VariableInstructionTypeException(index, "instructionOffset");
+            throw new VariableInstructionTypeException(index, "instructionOffset", e);
         }
     }
 

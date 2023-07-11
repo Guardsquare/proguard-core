@@ -25,7 +25,12 @@ public class VariableInstructionEvaluationException extends PartialEvaluatorExce
 
     public VariableInstructionEvaluationException(String message, int index)
     {
-        super(message);
+        this(message, index, null);
+    }
+
+    public VariableInstructionEvaluationException(String message, int index, Throwable cause)
+    {
+        super(message, cause);
         this.index = index;
     }
 }

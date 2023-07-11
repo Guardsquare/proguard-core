@@ -25,8 +25,8 @@ public class VariableInstructionTypeException extends VariableInstructionEvaluat
      */
     protected final String expectedType;
 
-    public VariableInstructionTypeException(int index, String expectedType) {
-        super("Value in slot "+index+" is not of type \""+expectedType+"\".", index);
+    public VariableInstructionTypeException(int index, String expectedType, Throwable cause) {
+        super("Value in slot "+index+" is not of type \""+expectedType+"\".", index, cause);
         this.expectedType = expectedType;
     }
 }
