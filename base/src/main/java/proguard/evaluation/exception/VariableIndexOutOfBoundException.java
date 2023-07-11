@@ -19,11 +19,13 @@
 package proguard.evaluation.exception;
 
 /**
- *
+ * Exception thrown when the variable index is out of bound of the current Variable count.
  */
 public class VariableIndexOutOfBoundException extends VariableInstructionEvaluationException
 {
-    // The bound that has been invalidated
+    /**
+     * The bound that has been invalidated.
+     */
     protected final int bound;
 
     public VariableIndexOutOfBoundException(int index, int bound)

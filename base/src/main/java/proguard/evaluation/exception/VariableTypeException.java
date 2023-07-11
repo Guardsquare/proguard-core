@@ -20,6 +20,9 @@ package proguard.evaluation.exception;
 
 import proguard.evaluation.value.Value;
 
+/**
+ * Exception thrown when the type in a variable does not match the expected type.
+ */
 public class VariableTypeException extends VariableInstructionEvaluationException
 {
     /**

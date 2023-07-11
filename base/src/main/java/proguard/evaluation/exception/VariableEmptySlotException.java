@@ -18,6 +18,9 @@
 
 package proguard.evaluation.exception;
 
+/**
+ * Exception thrown when a variable slot contains an empty value, but should not.
+ */
 public class VariableEmptySlotException extends VariableInstructionEvaluationException
 {
     public VariableEmptySlotException(int index)

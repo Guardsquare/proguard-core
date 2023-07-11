@@ -18,9 +18,14 @@
 
 package proguard.evaluation.exception;
 
+/**
+ * Partial evaluator exception regarding Variables.
+ */
 public class VariableInstructionEvaluationException extends PartialEvaluatorException
 {
-    // The index of the variable this exception is about.
+    /**
+     * The index of the variable this exception is about.
+     */
     protected final int index;
 
     public VariableInstructionEvaluationException(String message, int index, Throwable cause)
