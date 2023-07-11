@@ -140,7 +140,7 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
             int index = indexValue.value();
             if (index < 0 || index >= values.length)
             {
-                throw new ArrayInstructionIndexOutOfBoundsException("Index [" + index + "] out of bounds for array of length " + values.length, null);
+                throw new ArrayInstructionIndexOutOfBoundsException(index, values.length);
             }
 
             return values[index];
@@ -159,7 +159,7 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
                 int index = indexValue.value();
                 if (index < 0 || index >= values.length)
                 {
-                    throw new ArrayInstructionIndexOutOfBoundsException("Index [" + index + "] out of bounds for array of length " + values.length, null);
+                    throw new ArrayInstructionIndexOutOfBoundsException(index, values.length);
                 }
 
                 values[index] = value;

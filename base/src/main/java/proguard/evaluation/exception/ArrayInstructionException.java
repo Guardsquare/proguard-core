@@ -18,25 +18,13 @@
 
 package proguard.evaluation.exception;
 
-import proguard.evaluation.PartialEvaluator;
-import proguard.exception.ProguardCoreException;
-
-import java.util.Collections;
-
 /**
- * Exception thrown when the index to access an array is known to be out of bound for the array.
- *
- * @see PartialEvaluator
+ * Partial Evaluator exception regarding Arrays.
  */
-public class ArrayInstructionIndexOutOfBoundsException extends ArrayInstructionException
+public class ArrayInstructionException extends PartialEvaluatorException
 {
-    protected final int index;
-
-    protected final int bound;
-    public ArrayInstructionIndexOutOfBoundsException(int index, int bound)
+    public ArrayInstructionException(String genericMessage, Throwable cause)
     {
-        super("Index [" + index + "] out of bounds for array of length " + bound, null);
-        this.index = index;
-        this.bound = bound;
+        super(genericMessage, cause);
     }
 }
