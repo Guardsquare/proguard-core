@@ -291,7 +291,8 @@ public class Stack
     public IntegerValue ipop()
     {
         Value val = pop();
-        try {
+        try
+        {
             return val.integerValue();
         } catch (IllegalArgumentException ex)
         {
@@ -306,7 +307,8 @@ public class Stack
     public LongValue lpop()
     {
         Value val = pop();
-        try {
+        try
+        {
             return val.longValue();
         } catch (IllegalArgumentException ex)
         {
@@ -321,7 +323,8 @@ public class Stack
     public FloatValue fpop()
     {
         Value val = pop();
-        try {
+        try
+        {
             return val.floatValue();
         } catch (IllegalArgumentException ex)
         {
@@ -336,7 +339,8 @@ public class Stack
     public DoubleValue dpop()
     {
         Value val = pop();
-        try {
+        try
+        {
             return val.doubleValue();
         } catch (IllegalArgumentException ex)
         {
@@ -351,9 +355,11 @@ public class Stack
     public ReferenceValue apop()
     {
         Value val = pop();
-        try {
+        try
+        {
             return val.referenceValue();
-        } catch (IllegalArgumentException ex)
+        }
+        catch (IllegalArgumentException ex)
         {
             throw new StackInstructionTypeException(val, "reference", ex);
         }
@@ -366,9 +372,11 @@ public class Stack
     public InstructionOffsetValue opop()
     {
         Value val = pop();
-        try {
+        try
+        {
             return val.instructionOffsetValue();
-        } catch (IllegalArgumentException ex)
+        }
+        catch (IllegalArgumentException ex)
         {
             throw new StackInstructionTypeException(val, "instructionOffset", ex);
         }
@@ -395,7 +403,8 @@ public class Stack
     }
 
     private Category1Value getSafeCategory1Value(Value value) {
-        try {
+        try
+        {
             return value.category1Value();
         }
         catch (IllegalArgumentException ex)

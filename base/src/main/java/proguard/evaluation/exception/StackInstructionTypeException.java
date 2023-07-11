@@ -32,7 +32,8 @@ public class StackInstructionTypeException extends StackInstructionEvaluationExc
      */
     protected final Value foundValue;
 
-    public StackInstructionTypeException(Value foundValue, String expectedType, Throwable cause) {
+    public StackInstructionTypeException(Value foundValue, String expectedType, Throwable cause)
+    {
         super("Stack value of type \""+expectedType+"\" expected, but found: "+foundValue.toString()+".",  cause);
         this.expectedType = expectedType;
         this.foundValue = foundValue;
