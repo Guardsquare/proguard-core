@@ -275,7 +275,6 @@ implements   AttributeVisitor,
 
         if (level >= MAXIMUM_LEVELS)
         {
-            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Maximum number of code fragment levels exceeded ["+level+"]");
         }
 
@@ -571,7 +570,6 @@ implements   AttributeVisitor,
     {
         if (level < 0)
         {
-            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Code fragment not begun ["+level+"]");
         }
 
@@ -685,7 +683,6 @@ implements   AttributeVisitor,
 
         if (level != -1)
         {
-            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Code fragment not ended ["+level+"]");
         }
 

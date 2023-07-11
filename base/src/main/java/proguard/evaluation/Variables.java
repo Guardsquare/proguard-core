@@ -92,7 +92,6 @@ public class Variables
     {
         if (this.size < other.size)
         {
-            // TODO(MJ): more errors get thrown in this file, I think they could all be of our special type?
             throw new IllegalArgumentException("Variable frame is too small ["+this.size+"] compared to other frame ["+other.size+"]");
         }
 
@@ -114,7 +113,6 @@ public class Variables
     {
         if (this.size != other.size)
         {
-            // TODO(MJ): what is this? How do we trigger?
             throw new IllegalArgumentException("Variable frames have different sizes ["+this.size+"] and ["+other.size+"]");
         }
 
