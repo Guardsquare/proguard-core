@@ -7,7 +7,7 @@ import proguard.classfile.AccessConstants
 /**
  * These test show errors that can occur with a `goto` instruction.
  */
-class GotoErrorTest: FreeSpec({
+class GotoErrorTest : FreeSpec({
     "`goto` unknown label" {
         shouldThrowAny {
             buildClass()

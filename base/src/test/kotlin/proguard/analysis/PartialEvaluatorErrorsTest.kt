@@ -2,7 +2,12 @@ package proguard.analysis
 
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
-import proguard.classfile.*
+import proguard.classfile.AccessConstants
+import proguard.classfile.ClassConstants
+import proguard.classfile.Clazz
+import proguard.classfile.Method
+import proguard.classfile.ProgramClass
+import proguard.classfile.VersionConstants
 import proguard.classfile.attribute.Attribute
 import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
@@ -17,7 +22,6 @@ import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 
-
 /**
  * The purpose of these tests is to find test snippets that will result in errors thrown by the
  * `PartialEvaluator`.
@@ -26,7 +30,6 @@ import proguard.evaluation.value.ParticularValueFactory
  * @see PartialEvaluator
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
-
 
     /**
      * This is a list of code snippets on which the `PartialEvaluator` throws on error
@@ -76,7 +79,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
-
 
         "Variable types do not match instruction - long interpreted as int" {
             val programClass = buildClass()
@@ -134,15 +136,18 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 NamedMethodVisitor(
                     "test", "()V",
                     AllAttributeVisitor(
-                        AttributeNameFilter(Attribute.CODE, object : AttributeVisitor {
-                            override fun visitCodeAttribute(
-                                clazz: Clazz,
-                                method: Method,
-                                codeAttribute: CodeAttribute
-                            ) {
-                                codeAttribute.u2maxLocals = 2
+                        AttributeNameFilter(
+                            Attribute.CODE,
+                            object : AttributeVisitor {
+                                override fun visitCodeAttribute(
+                                    clazz: Clazz,
+                                    method: Method,
+                                    codeAttribute: CodeAttribute
+                                ) {
+                                    codeAttribute.u2maxLocals = 2
+                                }
                             }
-                        })
+                        )
                     )
                 )
             )
@@ -180,12 +185,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             evaluateProgramClass(
-                programClass, PartialEvaluator(
+                programClass,
+                PartialEvaluator(
                     ParticularValueFactory(
                         DetailedArrayValueFactory(),
                         ParticularReferenceValueFactory()
                     )
-                ), "test", "()Ljava/lang/Object;"
+                ),
+                "test", "()Ljava/lang/Object;"
             )
         }
 
@@ -217,12 +224,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             evaluateProgramClass(
-                programClass, PartialEvaluator(
+                programClass,
+                PartialEvaluator(
                     ParticularValueFactory(
                         DetailedArrayValueFactory(),
                         ParticularReferenceValueFactory()
                     )
-                ), "test", "()Ljava/lang/Object;"
+                ),
+                "test", "()Ljava/lang/Object;"
             )
         }
 
