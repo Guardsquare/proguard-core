@@ -21,12 +21,12 @@ package proguard.evaluation.exception;
 /**
  *
  */
-public class VariableInstructionIndexOutOfBoundException extends VariableInstructionEvaluationException
+public class VariableIndexOutOfBoundException extends VariableInstructionEvaluationException
 {
     // The bound that has been invalidated
     protected final int bound;
 
-    public VariableInstructionIndexOutOfBoundException(int index, int bound)
+    public VariableIndexOutOfBoundException(int index, int bound)
     {
         super("Variable index [" + index + "] out of bounds. There are " + bound + " variables in this code attribute.", index, null);
         this.bound = bound;

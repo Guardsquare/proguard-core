@@ -17,8 +17,18 @@
  */
 package proguard.evaluation;
 
-import proguard.evaluation.exception.*;
-import proguard.evaluation.value.*;
+
+import proguard.evaluation.exception.VariableTypeException;
+import proguard.evaluation.value.DoubleValue;
+import proguard.evaluation.value.FloatValue;
+import proguard.evaluation.value.InstructionOffsetValue;
+import proguard.evaluation.value.IntegerValue;
+import proguard.evaluation.value.LongValue;
+import proguard.evaluation.value.ReferenceValue;
+import proguard.evaluation.value.TopValue;
+import proguard.evaluation.value.Value;
+import proguard.evaluation.exception.VariableIndexOutOfBoundException;
+import proguard.evaluation.exception.VariableEmptySlotException;
 
 import java.util.Arrays;
 
@@ -171,7 +181,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionIndexOutOfBoundException(index, size);
+            throw new VariableIndexOutOfBoundException(index, size);
         }
 
         return values[index];
@@ -186,7 +196,7 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionIndexOutOfBoundException(index, size);
+            throw new VariableIndexOutOfBoundException(index, size);
         }
 
         // Store the value.
@@ -208,12 +218,12 @@ public class Variables
         if (index < 0 ||
             index >= size)
         {
-            throw new VariableInstructionIndexOutOfBoundException(index, size);
+            throw new VariableIndexOutOfBoundException(index, size);
         }
 
         if (values[index] == null)
         {
-            throw new VariableInstructionEmptySlotException(index);
+            throw new VariableEmptySlotException(index);
         }
         return values[index];
     }
@@ -233,7 +243,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, value, "int", e);
+            throw new VariableTypeException(index, value, "int", e);
         }
     }
 
@@ -250,7 +260,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, value, "long", e);
+            throw new VariableTypeException(index, value, "long", e);
         }
     }
 
@@ -267,7 +277,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, value, "float", e);
+            throw new VariableTypeException(index, value, "float", e);
         }
     }
 
@@ -284,7 +294,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, value, "double", e);
+            throw new VariableTypeException(index, value, "double", e);
         }
     }
 
@@ -301,7 +311,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, value, "reference", e);
+            throw new VariableTypeException(index, value, "reference", e);
         }
     }
 
@@ -318,7 +328,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, value, "instructionOffset", e);
+            throw new VariableTypeException(index, value, "instructionOffset", e);
         }
     }
 

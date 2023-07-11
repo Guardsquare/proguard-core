@@ -20,7 +20,7 @@ package proguard.evaluation.exception;
 
 import proguard.evaluation.value.Value;
 
-public class VariableInstructionTypeException extends VariableInstructionEvaluationException
+public class VariableTypeException extends VariableInstructionEvaluationException
 {
     /**
      * The type that was expected but not given and caused this exception.
@@ -32,7 +32,7 @@ public class VariableInstructionTypeException extends VariableInstructionEvaluat
      */
     protected final Value foundValue;
 
-    public VariableInstructionTypeException(int index, Value foundValue, String expectedType, Throwable cause)
+    public VariableTypeException(int index, Value foundValue, String expectedType, Throwable cause)
     {
         super("Value in slot " + index + " of type \"" + expectedType + "\" expected, but found: " + foundValue.toString() + ".", index, cause);
         this.expectedType = expectedType;
