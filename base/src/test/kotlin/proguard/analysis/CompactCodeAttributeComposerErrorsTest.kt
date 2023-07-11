@@ -5,9 +5,9 @@ import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
 
 /**
- * These test show errors that can occur with a `goto` instruction.
+ * These test check that various invalid code snippets correctly throw exceptions from the CompactCodeAttributeComposer
  */
-class GotoErrorTest : FreeSpec({
+class CompactCodeAttributeComposerErrorsTest : FreeSpec({
     "`goto` unknown label" {
         shouldThrowAny {
             buildClass()
