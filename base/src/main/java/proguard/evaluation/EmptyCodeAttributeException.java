@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,16 @@
 package proguard.evaluation;
 
 import java.util.Collections;
+import java.util.List;
 import proguard.exception.ProguardCoreException;
 
-/**
- * Represents an exception during partial evaluation when a single instruction would be visited more than {@link PartialEvaluator#stopAnalysisAfterNEvaluations(int)} times.
- * In this case, the analysis will forcibly stop by throwing this exception.
- *
- * @author Dennis Titze
- */
-public class ExcessiveComplexityException
+public class EmptyCodeAttributeException
     extends ProguardCoreException
 {
-    public ExcessiveComplexityException(String message)
+
+    public EmptyCodeAttributeException(String message)
     {
         //ToDo: update component error id
-        super(message, 2, Collections.emptyList());
+        super(message, 3, Collections.emptyList());
     }
 }
-

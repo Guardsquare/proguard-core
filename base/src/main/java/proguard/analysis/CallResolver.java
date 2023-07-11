@@ -51,6 +51,7 @@ import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.LineNumberFinder;
 import proguard.evaluation.BasicInvocationUnit;
+import proguard.evaluation.EmptyCodeAttributeException;
 import proguard.evaluation.ExcessiveComplexityException;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.InvocationUnit;
@@ -319,16 +320,17 @@ implements   AttributeVisitor,
             multiTypeValueEvaluator.visitCodeAttribute0(clazz, method, codeAttribute);
             multiTypeEvaluationSuccessful = true;
         }
+        catch (ExcessiveComplexityException e)
+        {
+            Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCESSIVE_COMPLEXITY);
+        }
+        catch (EmptyCodeAttributeException e)
+        {
+            log.info(e);
+        }
         catch (Exception e)
         {
-            if (e instanceof ExcessiveComplexityException)
-            {
-                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCESSIVE_COMPLEXITY);
-            }
-            else
-            {
-                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCEPTION);
-            }
+            log.error("Unexpected exception during multi type analysis", e);
         }
 
         try
@@ -338,16 +340,17 @@ implements   AttributeVisitor,
             particularValueEvaluator.visitCodeAttribute0(clazz, method, codeAttribute);
             particularValueEvaluationSuccessful = true;
         }
+        catch (ExcessiveComplexityException e)
+        {
+            Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCESSIVE_COMPLEXITY);
+        }
+        catch (EmptyCodeAttributeException e)
+        {
+            log.info(e);
+        }
         catch (Exception e)
         {
-            if (e instanceof ExcessiveComplexityException)
-            {
-                Metrics.increaseCount(MetricType.PARTIAL_EVALUATOR_EXCESSIVE_COMPLEXITY);
-            }
-            else
-            {
-               log.error("Unexpected exception during particular value analysis", e);
-            }
+            log.error("Unexpected exception during particular value analysis", e);
         }
 
         if (useDominatorAnalysis)

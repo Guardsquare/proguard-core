@@ -19,8 +19,6 @@ package proguard.dexfile.converter;
 import proguard.analysis.Metrics;
 import proguard.analysis.Metrics.MetricType;
 import proguard.classfile.AccessConstants;
-import proguard.classfile.Clazz;
-import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
@@ -60,9 +58,7 @@ import proguard.classfile.editor.ConstantPoolEditor;
 import proguard.classfile.editor.ExceptionsAttributeEditor;
 import proguard.classfile.editor.InnerClassesAttributeEditor;
 import proguard.classfile.util.ClassUtil;
-import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.classfile.visitor.ClassVisitor;
-import proguard.classfile.visitor.MemberVisitor;
 import proguard.dexfile.ir.IrMethod;
 import proguard.dexfile.ir.ts.AggTransformer;
 import proguard.dexfile.ir.ts.CleanLabel;
@@ -87,11 +83,8 @@ import proguard.dexfile.reader.node.DexClassNode;
 import proguard.dexfile.reader.node.DexFieldNode;
 import proguard.dexfile.reader.node.DexFileNode;
 import proguard.dexfile.reader.node.DexMethodNode;
-import proguard.io.ClassReader;
 
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -739,46 +732,7 @@ public class Dex2Pro {
         classVisitor.visitProgramClass(programClass);
     }
 
-    private static final String HEX_CLASS_LOCATION = "res/Hex";
-    private static final Set<String> HEX_DECODE_METHODS =
-            new LinkedHashSet<>(Arrays.asList("decode_J", "decode_I", "decode_S", "decode_B"));
-
-    protected InputStream getHexClassAsStream() {
-        return Dex2Pro.class.getResourceAsStream("/" + HEX_CLASS_LOCATION + ".class");
-    }
-
-    private void addHexDecodeMethod(ClassVisitor outCV, String className, String hexDecodeMethodNameBase) {
-        System.err.println(className);
-        InputStream hexClassStream = getHexClassAsStream();
-        if (hexClassStream == null)
-            return;
-
-        try (InputStream is = getHexClassAsStream()) {
-            ClassReader cr = new ClassReader(
-                    false,
-                    false,
-                    false,
-                    false,
-                    null,
-                    new AllMethodVisitor(
-                            new MemberVisitor() {
-                                @Override
-                                public void visitAnyMember(Clazz clazz, Member member) {
-                                    if (HEX_DECODE_METHODS.contains(clazz.getName()))
-                                        outCV.visitAnyClass(clazz);
-                                }
-                            }
-                    ));
-        } catch (Throwable t) {
-            throw new RuntimeException("Failed to add " + HEX_CLASS_LOCATION + ".decode_*", t);
-        }
-    }
-
-    private void convertCode(DexMethodNode methodNode, CompactCodeAttributeComposer composer) {
-        IrMethod irMethod = dex2ir(methodNode);
-        if (shouldSkipMethod(irMethod)) {
-            return;
-        }
+    private void convertCode(IrMethod irMethod, CompactCodeAttributeComposer composer) {
         optimize(irMethod);
         ir2j(irMethod, composer);
     }
@@ -956,17 +910,29 @@ public class Dex2Pro {
 
         ProgramClass programClass = classBuilder.getProgramClass();
         ProgramMethod programMethod;
+
         try {
-            programMethod = methodNode.codeNode == null ?
-                    classBuilder.addAndReturnMethod(flags, name, desc) :
-                    classBuilder.addAndReturnMethod(flags, name, desc,
-                            MAX_CODE_LENGTH,
-                            code -> convertCode(methodNode, code));
+            if (methodNode.codeNode == null) {
+                programMethod = classBuilder.addAndReturnMethod(flags, name, desc);
+            } else {
+                IrMethod irMethod = dex2ir(methodNode);
+                if (shouldSkipMethod(irMethod)) {
+                    programMethod = classBuilder.addAndReturnMethod(flags, name, desc);
+                } else {
+                    programMethod = classBuilder.addAndReturnMethod(flags, name, desc,
+                                    MAX_CODE_LENGTH,
+                                    code -> convertCode(irMethod, code));
+                }
+            }
         } catch (Exception e) {
             if (SKIP_UNPARSEABLE_METHODS) {
-                // this can e.g., happen for invalid bytecode. In that case, we still want to continue to load the remaining methods.
-//                logger.error("Cannot parse method", e);
-                programMethod = classBuilder.addAndReturnMethod(flags, name, desc); // create an empty method to continue.
+                // This can e.g., happen for invalid bytecode. In that case,
+                // we still want to continue to load the remaining methods.
+
+                // Create an empty method to continue.
+                programMethod = classBuilder.addAndReturnMethod(flags, name, desc);
+
+                Metrics.increaseCount(MetricType.DEX2PRO_UNPARSEABLE_METHOD_SKIPPED);
             } else {
                 throw e;
             }
@@ -1176,5 +1142,4 @@ public class Dex2Pro {
     }
 
     private static final Comparator<InnerClassNode> INNER_CLASS_NODE_COMPARATOR = Comparator.comparing(o -> o.name);
-
 }

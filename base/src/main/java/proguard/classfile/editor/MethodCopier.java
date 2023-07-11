@@ -33,11 +33,14 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 import proguard.classfile.visitor.MultiMemberVisitor;
+import proguard.util.StringFunction;
 
 /**
  * This {@link ClassVisitor} copies a method into a target class. It first checks if a method with the same name
  * and descriptor as the method to be copied already exists in the target class. If that is indeed the case,
  * this visitor is a no-op.
+ * This visitor optionally uses a name transformer function to apply to the original method's name before copying.
+ * If no name transformer function is provided, the original method's name is used, instead.
  * If the method to be copied is indeed copied into the target class, this visitor passes the resulting method
  * to an extra member visitor, if provided.
  */
@@ -46,19 +49,29 @@ implements   ClassVisitor,
              MemberVisitor,
              AttributeVisitor
 {
-    private final ProgramClass  sourceClass;
-    private final ProgramMethod sourceMethod;
-    private final MemberVisitor extraMemberVisitor;
+    private final ProgramClass   sourceClass;
+    private final ProgramMethod  sourceMethod;
+    private final StringFunction nameTransformer;
+    private final MemberVisitor  extraMemberVisitor;
 
-    public MethodCopier(ProgramClass sourceClass, ProgramMethod programMethod)
+    public MethodCopier(ProgramClass sourceClass, ProgramMethod sourceMethod)
     {
-        this(sourceClass, programMethod, null);
+        this(sourceClass, sourceMethod, null);
     }
 
-    public MethodCopier(ProgramClass sourceClass, ProgramMethod sourceMethod, MemberVisitor extraMemberVisitor)
+    public MethodCopier(ProgramClass sourceClass, ProgramMethod sourceMethod, StringFunction nameTransformer)
     {
-        this.sourceClass = sourceClass;
-        this.sourceMethod = sourceMethod;
+        this(sourceClass, sourceMethod, nameTransformer, null);
+    }
+
+    public MethodCopier(ProgramClass sourceClass,
+                        ProgramMethod sourceMethod,
+                        StringFunction nameTransformer,
+                        MemberVisitor extraMemberVisitor)
+    {
+        this.sourceClass        = sourceClass;
+        this.sourceMethod       = sourceMethod;
+        this.nameTransformer    = nameTransformer;
         this.extraMemberVisitor = extraMemberVisitor;
     }
 
@@ -80,15 +93,19 @@ implements   ClassVisitor,
                                                                                                 extraMemberVisitor);
 
         new MemberAdder(programClass,
+                        nameTransformer,
                         copiedMethodVisitor).visitProgramMethod(sourceClass, sourceMethod);
     }
 
     private boolean methodAlreadyExistsInClass(ProgramClass programClass)
     {
-        String name        = sourceMethod.getName(sourceClass);
-        String descriptor  = sourceMethod.getDescriptor(sourceClass);
+        String sourceMethodName        = sourceMethod.getName(sourceClass);
+        String sourceMethodDescriptor  = sourceMethod.getDescriptor(sourceClass);
 
-        return programClass.findMethod(name, descriptor) != null;
+        String toCheckName             = nameTransformer == null ? sourceMethodName
+                                                                 : nameTransformer.transform(sourceMethodName);
+
+        return programClass.findMethod(toCheckName, sourceMethodDescriptor) != null;
     }
 
     // MemberVisitor

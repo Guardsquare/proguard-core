@@ -29,7 +29,8 @@ public class Metrics
         CALL_GRAPH_RECONSTRUCTION_MAX_DEPTH_REACHED,
         CALL_GRAPH_RECONSTRUCTION_MAX_WIDTH_REACHED,
         CONCRETE_CALL_NO_CODE_ATTRIBUTE,
-        DEX2PRO_INVALID_INNER_CLASS
+        DEX2PRO_INVALID_INNER_CLASS,
+        DEX2PRO_UNPARSEABLE_METHOD_SKIPPED
     }
 
     public static final Map<MetricType, Integer> counts = new TreeMap<>();
