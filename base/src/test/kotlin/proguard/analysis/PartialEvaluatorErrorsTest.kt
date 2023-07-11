@@ -1,5 +1,6 @@
 package proguard.analysis
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
@@ -19,8 +20,10 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.exception.ArrayInstructionOnWrongTypeException
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.TypedReferenceValueFactory
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
@@ -154,6 +157,81 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
         }
+
+        "Load an int into an int array but mistakenly give object ref" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+
+            // It is possible to perform the iastore instruction when the `arrayref` isn't actually an array reference.
+            // In this example the reference is a reference to the class itself and this is no issue according
+            // to the PartialEvaluator:
+            // [5] iconst_5
+            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
+            //  Stack: [1:[I?=![1]#0{0}][3:LPartialEvaluatorDummy;!#0][4:0][5:5]
+            // [6] iastore
+            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
+            //  Stack: [1:[I?=![1]#0{0}]
+            // [7] areturn
+            //      is branching to :
+            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
+            //  Stack:
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .aload_0()
+                        .iconst_0()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
+
+            shouldThrow<ArrayInstructionOnWrongTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(TypedReferenceValueFactory()),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
+        }
+
+        "Load an int from an int array but mistakenly give object ref" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+
+            // It is possible to perform the iastore instruction when the `arrayref` isn't actually an array reference.
+            // In this example the reference is a reference to the class itself and this is no issue according
+            // to the PartialEvaluator:
+            // [5] iconst_5
+            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
+            //  Stack: [1:[I?=![1]#0{0}][3:LPartialEvaluatorDummy;!#0][4:0][5:5]
+            // [6] iastore
+            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
+            //  Stack: [1:[I?=![1]#0{0}]
+            // [7] areturn
+            //      is branching to :
+            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
+            //  Stack:
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it
+                        .aload_0()
+                        .iconst_0()
+                        .iaload()
+                        .return_()
+                }
+                .programClass
+
+            shouldThrow<ArrayInstructionOnWrongTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(TypedReferenceValueFactory()),
+                    "test",
+                    "()V",
+                )
+            }
+        }
     }
 
     /**
@@ -180,46 +258,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .iconst_0()
                         .aload_0()
                         .aastore()
-                        .areturn()
-                }
-                .programClass
-
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(
-                    ParticularValueFactory(
-                        DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory(),
-                    ),
-                ),
-                "test",
-                "()Ljava/lang/Object;",
-            )
-        }
-
-        "Load a reference into reference array but mistakenly give object ref" {
-            // It is possible to perform the iastore instruction when the `arrayref` isn't actually an array reference.
-            // In this example the reference is a reference to the class itself and this is no issue according
-            // to the PartialEvaluator:
-            // [5] iconst_5
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}][3:LPartialEvaluatorDummy;!#0][4:0][5:5]
-            // [6] iastore
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}]
-            // [7] areturn
-            //      is branching to :
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack:
-            val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
-                    it
-                        .iconst_1()
-                        .newarray(Instruction.ARRAY_T_INT.toInt())
-                        .aload_0()
-                        .iconst_0()
-                        .iconst_5()
-                        .iastore()
                         .areturn()
                 }
                 .programClass

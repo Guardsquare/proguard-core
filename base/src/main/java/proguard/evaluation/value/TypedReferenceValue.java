@@ -18,9 +18,11 @@
 package proguard.evaluation.value;
 
 import proguard.classfile.*;
+import proguard.classfile.constant.Constant;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
 import proguard.evaluation.IncompleteClassHierarchyException;
+import proguard.evaluation.exception.ArrayInstructionOnWrongTypeException;
 
 import java.util.*;
 
@@ -571,6 +573,54 @@ public class TypedReferenceValue extends ReferenceValue
         return count;
     }
 
+    @Override
+    public void arrayStore(IntegerValue indexValue, Value value)
+    {
+        if (type.charAt(0) != '[')
+        {
+            throw new ArrayInstructionOnWrongTypeException(this);
+        }
+    }
+
+    @Override
+    public DoubleValue doubleArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (type.charAt(0) != '[')
+        {
+            throw new ArrayInstructionOnWrongTypeException(this);
+        }
+        return super.doubleArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public IntegerValue integerArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (type.charAt(0) != '[')
+        {
+            throw new ArrayInstructionOnWrongTypeException(this);
+        }
+        return super.integerArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public LongValue longArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (type.charAt(0) != '[')
+        {
+            throw new ArrayInstructionOnWrongTypeException(this);
+        }
+        return super.longArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public FloatValue floatArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (type.charAt(0) != '[')
+        {
+            throw new ArrayInstructionOnWrongTypeException(this);
+        }
+        return super.floatArrayLoad(indexValue, valueFactory);
+    }
 
     public int equal(TypedReferenceValue other)
     {
