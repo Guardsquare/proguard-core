@@ -19,6 +19,7 @@ package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
+import proguard.evaluation.exception.ArrayInstructionIndexOutOfBoundsException;
 import proguard.util.ArrayUtil;
 
 /**
@@ -137,11 +138,12 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
             indexValue.isParticular())
         {
             int index = indexValue.value();
-            if (index >=0 &&
-                index < values.length)
+            if (index < 0 || index >= values.length)
             {
-                return values[index];
+                throw new ArrayInstructionIndexOutOfBoundsException("Index [" + index + "] out of bounds for array of length " + values.length, null);
             }
+
+            return values[index];
         }
 
         return null;
@@ -155,11 +157,12 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
             if (indexValue.isParticular())
             {
                 int index = indexValue.value();
-                if (index >=0 &&
-                    index < values.length)
+                if (index < 0 || index >= values.length)
                 {
-                    values[index] = value;
+                    throw new ArrayInstructionIndexOutOfBoundsException("Index [" + index + "] out of bounds for array of length " + values.length, null);
                 }
+
+                values[index] = value;
             }
             else
             {

@@ -1,5 +1,6 @@
 package proguard.analysis
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
@@ -19,6 +20,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.exception.ArrayInstructionIndexOutOfBoundsException
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 
@@ -154,6 +156,58 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
         }
+
+        "Index out of bound when storing in an array" {
+            // The following should be able to throw an error when accessing an array with an index that is out of range
+            //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .dup()
+                        .iconst_5()
+                        .iconst_0()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
+
+            val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
+            shouldThrow<ArrayInstructionIndexOutOfBoundsException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
+        }
+
+        "Index out of bound when loading from an array" {
+            // The following should be able to throw an error when accessing an array with an index that is out of range
+            //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .iconst_5()
+                        .iaload()
+                        .ireturn()
+                }
+                .programClass
+
+            val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
+            shouldThrow<ArrayInstructionIndexOutOfBoundsException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
+                    "test",
+                    "()I",
+                )
+            }
+        }
     }
 
     /**
@@ -252,31 +306,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I")
-        }
-
-        "Index out of bound" {
-            // The following should be able to throw an error when accessing an array with an index that is out of range
-            //  A distinction needs to be made, what do you know about the index? Do you know about the type? Value? Range?
-            val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
-                    it
-                        .iconst_1()
-                        .newarray(Instruction.ARRAY_T_INT.toInt())
-                        .dup()
-                        .iconst_5()
-                        .iconst_0()
-                        .iastore()
-                        .areturn()
-                }
-                .programClass
-
-            val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
-                "test",
-                "()Ljava/lang/Object;",
-            )
         }
     }
 
