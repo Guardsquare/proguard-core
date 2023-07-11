@@ -226,13 +226,14 @@ public class Variables
      */
     public IntegerValue iload(int index)
     {
+        Value value = load(index);
         try
         {
-            return load(index).integerValue();
+            return value.integerValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, "int", e);
+            throw new VariableInstructionTypeException(index, value, "int", e);
         }
     }
 
@@ -242,13 +243,14 @@ public class Variables
      */
     public LongValue lload(int index)
     {
+        Value value = load(index);
         try
         {
-            return load(index).longValue();
+            return value.longValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, "long", e);
+            throw new VariableInstructionTypeException(index, value, "long", e);
         }
     }
 
@@ -258,13 +260,14 @@ public class Variables
      */
     public FloatValue fload(int index)
     {
+        Value value = load(index);
         try
         {
-            return load(index).floatValue();
+            return value.floatValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, "float", e);
+            throw new VariableInstructionTypeException(index, value, "float", e);
         }
     }
 
@@ -274,13 +277,14 @@ public class Variables
      */
     public DoubleValue dload(int index)
     {
+        Value value = load(index);
         try
         {
-            return load(index).doubleValue();
+            return value.doubleValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, "double", e);
+            throw new VariableInstructionTypeException(index, value, "double", e);
         }
     }
 
@@ -290,13 +294,14 @@ public class Variables
      */
     public ReferenceValue aload(int index)
     {
+        Value value = load(index);
         try
         {
-            return load(index).referenceValue();
+            return value.referenceValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, "reference", e);
+            throw new VariableInstructionTypeException(index, value, "reference", e);
         }
     }
 
@@ -306,13 +311,14 @@ public class Variables
      */
     public InstructionOffsetValue oload(int index)
     {
+        Value value = load(index);
         try
         {
-            return load(index).instructionOffsetValue();
+            return value.instructionOffsetValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableInstructionTypeException(index, "instructionOffset", e);
+            throw new VariableInstructionTypeException(index, value, "instructionOffset", e);
         }
     }
 

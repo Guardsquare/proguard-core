@@ -18,6 +18,8 @@
 
 package proguard.evaluation.exception;
 
+import proguard.evaluation.value.Value;
+
 public class VariableInstructionTypeException extends VariableInstructionEvaluationException
 {
     /**
@@ -25,9 +27,15 @@ public class VariableInstructionTypeException extends VariableInstructionEvaluat
      */
     protected final String expectedType;
 
-    public VariableInstructionTypeException(int index, String expectedType, Throwable cause)
+    /**
+     * The type that was found to be of incorrect type.
+     */
+    protected final Value foundValue;
+
+    public VariableInstructionTypeException(int index, Value foundValue, String expectedType, Throwable cause)
     {
-        super("Value in slot " + index + " is not of type \"" + expectedType + "\".", index, cause);
+        super("Value in slot " + index + " of type \"" + expectedType + "\" expected, but found: " + foundValue.toString() + ".", index, cause);
         this.expectedType = expectedType;
+        this.foundValue = foundValue;
     }
 }
