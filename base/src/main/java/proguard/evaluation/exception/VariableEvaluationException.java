@@ -32,7 +32,7 @@ public abstract class VariableEvaluationException extends ProguardCoreException
 
     public VariableEvaluationException(String message, int componentErrorId, String[] errorParameters, int index, Throwable cause)
     {
-        super(message, componentErrorId, errorParameters, cause);
+        super( componentErrorId, cause, message, errorParameters);
         this.index = index;
     }
 

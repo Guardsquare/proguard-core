@@ -26,6 +26,6 @@ public class EmptyCodeAttributeException
     public EmptyCodeAttributeException(String message)
     {
         //ToDo: update component error id
-        super(message, 3, new String[] {});
+        super(3, message);
     }
 }

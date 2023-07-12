@@ -15,21 +15,21 @@ public class ProguardCoreException extends RuntimeException
 
 
     /**
-     * Overload of {@link ProguardCoreException#ProguardCoreException(String, int, String[], Throwable)}} without throwable.
+     * Overload of {@link ProguardCoreException#ProguardCoreException(int, Throwable, String, String...)}} without throwable.
      */
-    public ProguardCoreException(String message, int componentErrorId,  String[] errorParameters)
+    public ProguardCoreException(int componentErrorId, String message,  String... errorParameters)
     {
-        this(message, componentErrorId, errorParameters, null);
+        this(componentErrorId, null, message, errorParameters);
     }
 
     /**
      * <b>Main constructor, all other constructors need to call this one in order to do common things (formating string for instance).</b>
-     * Same as {@link ProguardCoreException#ProguardCoreException(String, int,  String[])}
+     * Same as {@link ProguardCoreException#ProguardCoreException(int, String,  String...)}
      * but takes a Throwable argument to initialize the cause.
      */
-    public ProguardCoreException(String message, int componentErrorId, String[] errorParameters, Throwable cause)
+    public ProguardCoreException(int componentErrorId, Throwable cause, String message, String... errorParameters)
     {
-        super(String.format(message, errorParameters), cause);
+        super(String.format(message, (Object[]) errorParameters), cause);
 
         this.componentErrorId = componentErrorId;
         this.errorParameters  = errorParameters;

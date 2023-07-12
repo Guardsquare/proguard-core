@@ -32,6 +32,6 @@ public class IncompleteClassHierarchyException extends ProguardCoreException
     public IncompleteClassHierarchyException(String message)
     {
         //ToDo: update component error id
-        super(message, 1, new String[] {});
+        super(1, message);
     }
 }

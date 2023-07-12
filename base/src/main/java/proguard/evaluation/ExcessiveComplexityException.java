@@ -31,7 +31,7 @@ public class ExcessiveComplexityException
     public ExcessiveComplexityException(String message)
     {
         //ToDo: update component error id
-        super(message, 2, new String[] {});
+        super(2, message);
     }
 }
 
