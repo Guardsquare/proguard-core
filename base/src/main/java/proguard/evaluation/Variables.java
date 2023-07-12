@@ -18,6 +18,9 @@
 package proguard.evaluation;
 
 
+import proguard.classfile.TypeConstants;
+import proguard.evaluation.exception.VariableEmptySlotException;
+import proguard.evaluation.exception.VariableIndexOutOfBoundException;
 import proguard.evaluation.exception.VariableTypeException;
 import proguard.evaluation.value.DoubleValue;
 import proguard.evaluation.value.FloatValue;
@@ -27,8 +30,6 @@ import proguard.evaluation.value.LongValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.Value;
-import proguard.evaluation.exception.VariableIndexOutOfBoundException;
-import proguard.evaluation.exception.VariableEmptySlotException;
 
 import java.util.Arrays;
 
@@ -243,7 +244,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, "int", e);
+            throw new VariableTypeException(index, value, TypeConstants.INT, e);
         }
     }
 
@@ -260,7 +261,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, "long", e);
+            throw new VariableTypeException(index, value, TypeConstants.LONG, e);
         }
     }
 
@@ -277,7 +278,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, "float", e);
+            throw new VariableTypeException(index, value, TypeConstants.FLOAT, e);
         }
     }
 
@@ -294,7 +295,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, "double", e);
+            throw new VariableTypeException(index, value, TypeConstants.DOUBLE, e);
         }
     }
 
@@ -311,7 +312,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, "reference", e);
+            throw new VariableTypeException(index, value, TypeConstants.CLASS_START, e);
         }
     }
 
@@ -321,15 +322,7 @@ public class Variables
      */
     public InstructionOffsetValue oload(int index)
     {
-        Value value = load(index);
-        try
-        {
-            return value.instructionOffsetValue();
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new VariableTypeException(index, value, "instructionOffset", e);
-        }
+        return load(index).instructionOffsetValue();
     }
 
     /**

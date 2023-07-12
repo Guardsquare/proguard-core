@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,21 @@ package proguard.evaluation.exception;
 /**
  * Partial evaluator exception regarding Variables.
  */
-public class VariableInstructionEvaluationException extends PartialEvaluatorException
+public class VariableEvaluationException extends PartialEvaluatorException
 {
     /**
      * The index of the variable this exception is about.
      */
-    protected final int index;
+    private final int index;
 
-    public VariableInstructionEvaluationException(String message, int index, Throwable cause)
+    public VariableEvaluationException(String message, String[] errorParameters, int index, Throwable cause)
     {
-        super(message, cause);
+        super(message, errorParameters, cause);
         this.index = index;
+    }
+
+    public int getIndex()
+    {
+        return index;
     }
 }

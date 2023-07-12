@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,22 @@ package proguard.evaluation.exception;
 /**
  * Exception thrown when the variable index is out of bound of the current Variable count.
  */
-public class VariableIndexOutOfBoundException extends VariableInstructionEvaluationException
+public class VariableIndexOutOfBoundException extends VariableEvaluationException
 {
     /**
      * The bound that has been invalidated.
      */
-    protected final int bound;
+    private final int bound;
 
     public VariableIndexOutOfBoundException(int index, int bound)
     {
-        super("Variable index [" + index + "] out of bounds. There are " + bound + " variables in this code attribute.", index, null);
+        super("Variable index [%s] out of bounds. There are %s variables in this code attribute.",
+                new String[] {Integer.toString(index), Integer.toString(bound)}, index, null);
         this.bound = bound;
+    }
+
+    public int getBound()
+    {
+        return bound;
     }
 }

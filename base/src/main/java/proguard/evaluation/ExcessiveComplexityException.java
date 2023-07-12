@@ -17,7 +17,6 @@
  */
 package proguard.evaluation;
 
-import java.util.Collections;
 import proguard.exception.ProguardCoreException;
 
 /**
@@ -32,7 +31,7 @@ public class ExcessiveComplexityException
     public ExcessiveComplexityException(String message)
     {
         //ToDo: update component error id
-        super(message, 2, Collections.emptyList());
+        super(message, 2, new String[] {});
     }
 }
 

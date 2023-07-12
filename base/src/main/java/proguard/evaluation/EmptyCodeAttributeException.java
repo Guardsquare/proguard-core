@@ -17,8 +17,6 @@
  */
 package proguard.evaluation;
 
-import java.util.Collections;
-import java.util.List;
 import proguard.exception.ProguardCoreException;
 
 public class EmptyCodeAttributeException
@@ -28,6 +26,6 @@ public class EmptyCodeAttributeException
     public EmptyCodeAttributeException(String message)
     {
         //ToDo: update component error id
-        super(message, 3, Collections.emptyList());
+        super(message, 3, new String[] {});
     }
 }

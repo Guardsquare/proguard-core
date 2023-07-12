@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,38 @@ package proguard.evaluation.exception;
 
 import proguard.evaluation.value.Value;
 
+import static proguard.classfile.util.ClassUtil.externalType;
+
 /**
  * Exception thrown when the type in a variable does not match the expected type.
  */
-public class VariableTypeException extends VariableInstructionEvaluationException
+public class VariableTypeException extends VariableEvaluationException
 {
     /**
      * The type that was expected but not given and caused this exception.
      */
-    protected final String expectedType;
+    private final char expectedType;
 
     /**
      * The type that was found to be of incorrect type.
      */
-    protected final Value foundValue;
+    private final Value foundValue;
 
-    public VariableTypeException(int index, Value foundValue, String expectedType, Throwable cause)
+    public VariableTypeException(int index, Value foundValue, char expectedType, Throwable cause)
     {
-        super("Value in slot " + index + " of type \"" + expectedType + "\" expected, but found: " + foundValue.toString() + ".", index, cause);
+        super("Value in slot %s of type %s expected, but found: %s ",
+                new String[] {Integer.toString(index), externalType(Character.toString(expectedType)), foundValue.toString()}, index, cause);
         this.expectedType = expectedType;
         this.foundValue = foundValue;
+    }
+
+    public char getExpectedType()
+    {
+        return expectedType;
+    }
+
+    public Value getFoundValue()
+    {
+        return foundValue;
     }
 }
