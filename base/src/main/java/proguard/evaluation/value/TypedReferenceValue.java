@@ -22,6 +22,7 @@ import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.evaluation.exception.IncompleteClassHierarchyException;
+import proguard.evaluation.exception.ArrayStoreTypeException;
 
 import java.util.*;
 
@@ -609,6 +610,17 @@ public class TypedReferenceValue extends ReferenceValue
         return count;
     }
 
+
+    @Override
+    public void arrayStore(IntegerValue indexValue, Value value)
+    {
+        // When the array is over a primitive type, there is no class hierarchy,
+        // hence, the type of the array and the value you want to store in it should be the same
+        if (ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(this.type)) &&
+                !Objects.equals(value.internalType(), ClassUtil.internalTypeFromArrayType(this.type))) {
+            throw new ArrayStoreTypeException(this, value);
+        }
+    }
 
     public int equal(TypedReferenceValue other)
     {

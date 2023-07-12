@@ -1,6 +1,7 @@
 package proguard.analysis
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
 import proguard.classfile.ClassConstants
@@ -19,6 +20,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.exception.ArrayStoreTypeException
 import proguard.evaluation.exception.ArrayIndexOutOfBounds
 import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackTypeException
@@ -28,6 +30,7 @@ import proguard.evaluation.exception.VariableTypeException
 import proguard.evaluation.util.DebugPrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.TypedReferenceValueFactory
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
@@ -295,17 +298,30 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(
-                    ParticularValueFactory(
-                        DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory(),
+            shouldThrow<ArrayStoreTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(
+                        ParticularValueFactory(
+                            DetailedArrayValueFactory(),
+                            ParticularReferenceValueFactory(),
+                        ),
                     ),
-                ),
-                "test",
-                "()Ljava/lang/Object;",
-            )
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
+
+            shouldThrow<ArrayStoreTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(
+                        TypedReferenceValueFactory(),
+                    ),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Load a reference into reference array but mistakenly give object ref" {
