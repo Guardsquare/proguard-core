@@ -576,7 +576,7 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public void arrayStore(IntegerValue indexValue, Value value)
     {
-        if (type.charAt(0) != '[')
+        if (isInternalArrayType(type))
         {
             throw new ArrayInstructionOnWrongTypeException(this);
         }
@@ -585,7 +585,7 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public DoubleValue doubleArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (type.charAt(0) != '[')
+        if (isInternalArrayType(type))
         {
             throw new ArrayInstructionOnWrongTypeException(this);
         }
@@ -595,7 +595,7 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public IntegerValue integerArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (type.charAt(0) != '[')
+        if (isInternalArrayType(type))
         {
             throw new ArrayInstructionOnWrongTypeException(this);
         }
@@ -605,7 +605,7 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public LongValue longArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (type.charAt(0) != '[')
+        if (isInternalArrayType(type))
         {
             throw new ArrayInstructionOnWrongTypeException(this);
         }
@@ -615,7 +615,7 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public FloatValue floatArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (type.charAt(0) != '[')
+        if (isInternalArrayType(type))
         {
             throw new ArrayInstructionOnWrongTypeException(this);
         }
