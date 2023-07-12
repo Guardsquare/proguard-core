@@ -268,23 +268,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 )
             }
         }
-    }
-
-    /**
-     * Some code snippets have been identified where we want the partial evaluator to throw an exception,
-     * but they don't
-     */
-    "Should throw but works" - {
 
         "Store a reference in an a integer array" {
-            // From the PartialEvaluator debug output we can see that it is possible to store a reference into an
-            // integer array. This should not pass!
-            // [5] aload_0 v0
-            // Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            // Stack: [3:1:[I?=![1]#0{0}][3:1:[I?=![1]#0{0}][4:0][5:LPartialEvaluatorDummy;!#0]
-            // [6] aastore
-            //         Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            // Stack: [3:1:[I?=![1]#0{LPartialEvaluatorDummy;!#0}]
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it
@@ -323,7 +308,13 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 )
             }
         }
+    }
 
+    /**
+     * Some code snippets have been identified where we want the partial evaluator to throw an exception,
+     * but they don't
+     */
+    "Should throw but works" - {
         "Load a reference into reference array but mistakenly give object ref" {
             // It is possible to perform the iastore instruction when the `arrayref` isn't actually an array reference.
             // In this example the reference is a reference to the class itself and this is no issue according

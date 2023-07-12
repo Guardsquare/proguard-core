@@ -63,7 +63,7 @@ implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
     //*
-    private static final boolean DEBUG         = true;
+    private static final boolean DEBUG         = false;
     private static final boolean DEBUG_RESULTS = false;
     /*/
     public static boolean DEBUG         = System.getProperty("pe") != null;
