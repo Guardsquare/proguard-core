@@ -18,6 +18,8 @@
 
 package proguard.evaluation.exception;
 
+import proguard.exception.ErrorId;
+
 /**
  * Exception thrown when a variable slot contains an empty value, but should not.
  */
@@ -25,6 +27,6 @@ public class VariableEmptySlotException extends VariableEvaluationException
 {
     public VariableEmptySlotException(int index)
     {
-        super("Value in slot %s is empty", new String[] {Integer.toString(index)}, index, null);
+        super("Value in slot %s is empty", ErrorId.VARIABLE_EMPTY_SLOT, new String[] {Integer.toString(index)}, index, null);
     }
 }

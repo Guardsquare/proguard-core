@@ -19,6 +19,7 @@
 package proguard.evaluation.exception;
 
 import proguard.evaluation.value.Value;
+import proguard.exception.ErrorId;
 
 import static proguard.classfile.util.ClassUtil.externalType;
 
@@ -39,7 +40,7 @@ public class VariableTypeException extends VariableEvaluationException
 
     public VariableTypeException(int index, Value foundValue, char expectedType, Throwable cause)
     {
-        super("Value in slot %s of type %s expected, but found: %s ",
+        super("Value in slot %s of type %s expected, but found: %s ", ErrorId.VARIABLE_TYPE,
                 new String[] {Integer.toString(index), externalType(Character.toString(expectedType)), foundValue.toString()}, index, cause);
         this.expectedType = expectedType;
         this.foundValue = foundValue;
