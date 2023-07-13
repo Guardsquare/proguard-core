@@ -29,9 +29,10 @@ import proguard.exception.ProguardCoreException;
  */
 public class ArrayInstructionIndexOutOfBoundsException extends ProguardCoreException
 {
-    protected final int index;
+    private final int index;
 
-    protected final int bound;
+    private final int bound;
+
     public ArrayInstructionIndexOutOfBoundsException(int index, int bound)
     {
         super(
@@ -40,5 +41,15 @@ public class ArrayInstructionIndexOutOfBoundsException extends ProguardCoreExcep
                 Integer.toString(index), Integer.toString(bound));
         this.index = index;
         this.bound = bound;
+    }
+
+    public int getIndex()
+    {
+        return index;
+    }
+
+    public int getBound()
+    {
+        return bound;
     }
 }
