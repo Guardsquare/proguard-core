@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,17 @@
  * limitations under the License.
  */
 
-package proguard.evaluation;
+package proguard.evaluation.exception;
 
-
+import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-import java.util.Collections;
-
-/**
- * Represents an exception during partial evaluation when an incomplete class
- * hierarchy was encountered.
- *
- * @author James Hamilton
- */
-public class IncompleteClassHierarchyException extends ProguardCoreException
+public class EmptyCodeAttributeException
+    extends ProguardCoreException
 {
-    public IncompleteClassHierarchyException(String message)
+
+    public EmptyCodeAttributeException(String message)
     {
-        //ToDo: update component error id
-        super(message, 1, Collections.emptyList());
+        super(ErrorId.EMPTY_CODE_ATTRIBUTE, message);
     }
 }

@@ -20,7 +20,7 @@ package proguard.evaluation.value;
 import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
-import proguard.evaluation.IncompleteClassHierarchyException;
+import proguard.evaluation.exception.IncompleteClassHierarchyException;
 
 import java.util.*;
 

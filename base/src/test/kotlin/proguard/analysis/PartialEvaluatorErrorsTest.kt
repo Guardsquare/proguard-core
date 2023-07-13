@@ -21,6 +21,9 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.ArrayInstructionIndexOutOfBoundsException
+import proguard.evaluation.exception.VariableEmptySlotException
+import proguard.evaluation.exception.VariableIndexOutOfBoundException
+import proguard.evaluation.exception.VariableTypeException
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 
@@ -48,7 +51,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<VariableEmptySlotException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Variable types do not match" {
@@ -62,7 +65,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<VariableTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Stack types do not match instruction" {
@@ -154,7 +157,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 ),
             )
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
+            shouldThrow<VariableIndexOutOfBoundException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
         }
 
         "Index out of bound when storing in an array" {

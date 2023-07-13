@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,28 @@
 
 package proguard.evaluation.exception;
 
-import proguard.evaluation.PartialEvaluator;
 import proguard.exception.ErrorId;
-import proguard.exception.ProguardCoreException;
 
 /**
- * Exception thrown when the index to access an array is known to be out of bound for the array.
- *
- * @see PartialEvaluator
+ * Exception thrown when the variable index is out of bound of the current Variable count.
  */
-public class ArrayInstructionIndexOutOfBoundsException extends ProguardCoreException
+public class VariableIndexOutOfBoundException extends VariableEvaluationException
 {
-    protected final int index;
+    /**
+     * The bound that has been invalidated.
+     */
+    private final int bound;
 
-    protected final int bound;
-    public ArrayInstructionIndexOutOfBoundsException(int index, int bound)
+    public VariableIndexOutOfBoundException(int index, int bound)
     {
-        super(
-                ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
-                "Index [%s] out of bounds for array of length %s",
-                Integer.toString(index), Integer.toString(bound));
-        this.index = index;
+        super("Variable index [%s] out of bounds. There are %s variables in this code attribute.",
+                ErrorId.VARIABLE_INDEX_OUT_OF_BOUND,
+                new String[] {Integer.toString(index), Integer.toString(bound)}, index, null);
         this.bound = bound;
+    }
+
+    public int getBound()
+    {
+        return bound;
     }
 }
