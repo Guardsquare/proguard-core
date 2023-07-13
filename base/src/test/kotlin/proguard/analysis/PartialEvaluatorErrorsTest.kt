@@ -20,7 +20,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.ArrayInstructionIndexOutOfBoundsException
+import proguard.evaluation.exception.ArrayIndexOutOfBoundsException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
@@ -175,7 +175,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            shouldThrow<ArrayInstructionIndexOutOfBoundsException> {
+            shouldThrow<ArrayIndexOutOfBoundsException> {
                 evaluateProgramClass(
                     programClass,
                     PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
@@ -198,7 +198,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            shouldThrow<ArrayInstructionIndexOutOfBoundsException> {
+            shouldThrow<ArrayIndexOutOfBoundsException> {
                 evaluateProgramClass(
                     programClass,
                     PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
