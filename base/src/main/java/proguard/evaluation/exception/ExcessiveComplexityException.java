@@ -32,7 +32,7 @@ public class ExcessiveComplexityException
 {
     public ExcessiveComplexityException(String message)
     {
-        super(ErrorId.EXTENSIVE_COMPLEXITY, message);
+        super(ErrorId.EXCESSIVE_COMPLEXITY, message);
     }
 }
 

@@ -30,7 +30,7 @@ public final class ErrorId
     public static int VARIABLE_EMPTY_SLOT               = 1_000;
     public static int VARIABLE_INDEX_OUT_OF_BOUND       = 1_001;
     public static int VARIABLE_TYPE                     = 1_002;
-    public static int EXTENSIVE_COMPLEXITY              = 1_003;
+    public static int EXCESSIVE_COMPLEXITY              = 1_003;
     public static int INCOMPLETE_CLASS_HIERARCHY        = 1_004;
     public static int EMPTY_CODE_ATTRIBUTE              = 1_005;
 
