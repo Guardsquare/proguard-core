@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,17 @@
  * limitations under the License.
  */
 
-package proguard.evaluation;
+package proguard.evaluation.exception;
 
-
-import proguard.exception.ProguardCoreException;
-
-import java.util.Collections;
+import proguard.exception.ErrorId;
 
 /**
- * Represents an exception during partial evaluation when an incomplete class
- * hierarchy was encountered.
- *
- * @author James Hamilton
+ * Exception thrown when a variable slot contains an empty value, but should not.
  */
-public class IncompleteClassHierarchyException extends ProguardCoreException
+public class VariableEmptySlotException extends VariableEvaluationException
 {
-    public IncompleteClassHierarchyException(String message)
+    public VariableEmptySlotException(int index)
     {
-        //ToDo: update component error id
-        super(message, 1, Collections.emptyList());
+        super("Value in slot %s is empty", ErrorId.VARIABLE_EMPTY_SLOT, new String[] {Integer.toString(index)}, index, null);
     }
 }

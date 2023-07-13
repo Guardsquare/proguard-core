@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2021 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package proguard.evaluation;
 
-import java.util.Collections;
+package proguard.evaluation.exception;
+
+import proguard.evaluation.value.Value;
+import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-/**
- * Represents an exception during partial evaluation when a single instruction would be visited more than {@link PartialEvaluator#stopAnalysisAfterNEvaluations(int)} times.
- * In this case, the analysis will forcibly stop by throwing this exception.
- *
- * @author Dennis Titze
- */
-public class ExcessiveComplexityException
-    extends ProguardCoreException
+public class ExpectedArrayException extends ProguardCoreException
 {
-    public ExcessiveComplexityException(String message)
+    private final Value wrongValue;
+
+    public ExpectedArrayException(Value wrongValue)
     {
-        //ToDo: update component error id
-        super(message, 2, Collections.emptyList());
+        super(ErrorId.EXPECTED_ARRAY,
+                "Invalid reference provided to arrayInstruction. Expected arrayReference but found: %s.",
+                wrongValue.toString());
+        this.wrongValue = wrongValue;
+    }
+
+    public Value getWrongValue()
+    {
+        return wrongValue;
     }
 }
-

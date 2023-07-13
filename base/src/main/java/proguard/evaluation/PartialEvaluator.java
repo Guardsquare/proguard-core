@@ -40,6 +40,8 @@ import proguard.classfile.util.BranchTargetFinder;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassPrinter;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
+import proguard.evaluation.exception.EmptyCodeAttributeException;
+import proguard.evaluation.exception.ExcessiveComplexityException;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;

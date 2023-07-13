@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2020 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,20 @@
 
 package proguard.evaluation.exception;
 
+
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
+
 /**
- * Partial Evaluator exception regarding Arrays.
+ * Represents an exception during partial evaluation when an incomplete class
+ * hierarchy was encountered.
+ *
+ * @author James Hamilton
  */
-public class ArrayInstructionException extends PartialEvaluatorException
+public class IncompleteClassHierarchyException extends ProguardCoreException
 {
-    public ArrayInstructionException(String genericMessage, Throwable cause)
+    public IncompleteClassHierarchyException(String message)
     {
-        super(genericMessage, cause);
+        super(ErrorId.INCOMPLETE_CLASS_HIERARCHY, message);
     }
 }

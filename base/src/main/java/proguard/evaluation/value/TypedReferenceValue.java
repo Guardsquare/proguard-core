@@ -17,17 +17,22 @@
  */
 package proguard.evaluation.value;
 
-import proguard.classfile.*;
-import proguard.classfile.constant.Constant;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
-import proguard.evaluation.IncompleteClassHierarchyException;
-import proguard.evaluation.exception.ArrayInstructionOnWrongTypeException;
+import proguard.evaluation.exception.ExpectedArrayException;
+import proguard.evaluation.exception.IncompleteClassHierarchyException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-import static java.util.stream.Collectors.*;
-import static proguard.classfile.util.ClassUtil.*;
+import static java.util.stream.Collectors.joining;
+import static proguard.classfile.util.ClassUtil.externalClassName;
+import static proguard.classfile.util.ClassUtil.isInternalArrayType;
 
 /**
  * This {@link ReferenceValue} represents a partially evaluated reference value.
@@ -578,7 +583,7 @@ public class TypedReferenceValue extends ReferenceValue
     {
         if (!isInternalArrayType(type))
         {
-            throw new ArrayInstructionOnWrongTypeException(this);
+            throw new ExpectedArrayException(this);
         }
     }
 
@@ -587,7 +592,7 @@ public class TypedReferenceValue extends ReferenceValue
     {
         if (!isInternalArrayType(type))
         {
-            throw new ArrayInstructionOnWrongTypeException(this);
+            throw new ExpectedArrayException(this);
         }
         return super.doubleArrayLoad(indexValue, valueFactory);
     }
@@ -597,7 +602,7 @@ public class TypedReferenceValue extends ReferenceValue
     {
         if (!isInternalArrayType(type))
         {
-            throw new ArrayInstructionOnWrongTypeException(this);
+            throw new ExpectedArrayException(this);
         }
         return super.integerArrayLoad(indexValue, valueFactory);
     }
@@ -607,7 +612,7 @@ public class TypedReferenceValue extends ReferenceValue
     {
         if (!isInternalArrayType(type))
         {
-            throw new ArrayInstructionOnWrongTypeException(this);
+            throw new ExpectedArrayException(this);
         }
         return super.longArrayLoad(indexValue, valueFactory);
     }
@@ -617,7 +622,7 @@ public class TypedReferenceValue extends ReferenceValue
     {
         if (!isInternalArrayType(type))
         {
-            throw new ArrayInstructionOnWrongTypeException(this);
+            throw new ExpectedArrayException(this);
         }
         return super.floatArrayLoad(indexValue, valueFactory);
     }

@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package proguard.evaluation;
 
-import java.util.Collections;
-import java.util.List;
+package proguard.evaluation.exception;
+
+import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
 public class EmptyCodeAttributeException
@@ -27,7 +27,6 @@ public class EmptyCodeAttributeException
 
     public EmptyCodeAttributeException(String message)
     {
-        //ToDo: update component error id
-        super(message, 3, Collections.emptyList());
+        super(ErrorId.EMPTY_CODE_ATTRIBUTE, message);
     }
 }

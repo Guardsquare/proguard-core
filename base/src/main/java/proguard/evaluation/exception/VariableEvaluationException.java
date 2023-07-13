@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,26 @@
 
 package proguard.evaluation.exception;
 
-import proguard.evaluation.PartialEvaluator;
 import proguard.exception.ProguardCoreException;
 
-import java.util.Collections;
-
 /**
- * Represents an exception when the `PartialEvaluator` encounters a semantically incorrect java bytecode instruction.
- *
- * @see PartialEvaluator
+ * Partial evaluator exception regarding Variables.
  */
-public class PartialEvaluatorException extends ProguardCoreException
+public abstract class VariableEvaluationException extends ProguardCoreException
 {
-    public PartialEvaluatorException(String genericMessage, Throwable cause)
+    /**
+     * The index of the variable this exception is about.
+     */
+    private final int index;
+
+    public VariableEvaluationException(String message, int componentErrorId, String[] errorParameters, int index, Throwable cause)
     {
-        super(genericMessage, 4, Collections.emptyList(), cause);
+        super( componentErrorId, cause, message, errorParameters);
+        this.index = index;
+    }
+
+    public int getIndex()
+    {
+        return index;
     }
 }
