@@ -17,6 +17,8 @@
  */
 package proguard.evaluation;
 
+import proguard.classfile.TypeConstants;
+import proguard.evaluation.exception.StackCategoryOneException;
 import proguard.evaluation.exception.StackTypeException;
 import proguard.evaluation.value.*;
 
@@ -296,7 +298,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, "integer", ex);
+            throw new StackTypeException(val, TypeConstants.INT, ex);
         }
     }
 
@@ -313,7 +315,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, "long", ex);
+            throw new StackTypeException(val, TypeConstants.LONG, ex);
         }
     }
 
@@ -330,7 +332,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, "float", ex);
+            throw new StackTypeException(val, TypeConstants.FLOAT, ex);
         }
     }
 
@@ -347,7 +349,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, "double", ex);
+            throw new StackTypeException(val, TypeConstants.DOUBLE, ex);
         }
     }
 
@@ -364,7 +366,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, "reference", ex);
+            throw new StackTypeException(val, TypeConstants.CLASS_START, ex);
         }
     }
 
@@ -374,15 +376,7 @@ public class Stack
      */
     public InstructionOffsetValue opop()
     {
-        Value val = pop();
-        try
-        {
-            return val.instructionOffsetValue();
-        }
-        catch (IllegalArgumentException ex)
-        {
-            throw new StackTypeException(val, "instructionOffset", ex);
-        }
+        return pop().instructionOffsetValue();
     }
 
 
@@ -412,7 +406,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(value, "Category 1", ex);
+            throw new StackCategoryOneException(value, ex);
         }
     }
 

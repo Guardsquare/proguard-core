@@ -25,31 +25,20 @@ import proguard.exception.ProguardCoreException;
 import static proguard.classfile.util.ClassUtil.externalType;
 
 /**
- * Exception thrown when a type on the stack does not match the expected type.
+ * Exception thrown when a type on the stack does not match the category one expected type.
  */
-public class StackTypeException extends ProguardCoreException
+public class StackCategoryOneException extends ProguardCoreException
 {
-    /**
-     * The type that was expected but not given and caused this exception.
-     */
-    protected final char expectedType;
-
     /**
      * The value that was found to be of incorrect type.
      */
     protected final Value foundValue;
 
-    public StackTypeException(Value foundValue, char expectedType, Throwable cause)
+    public StackCategoryOneException(Value foundValue, Throwable cause)
     {
-        super(ErrorId.STACK_TYPE, cause, "Stack value of type %s expected, but found: %s.",
-                externalType(Character.toString(expectedType)), foundValue.toString());
-        this.expectedType = expectedType;
+        super(ErrorId.STACK_CATEGORY_ONE, cause, "Stack value of type Category One expected, but found: %s.",
+            foundValue.toString());
         this.foundValue = foundValue;
-    }
-
-    public char getExpectedType()
-    {
-        return expectedType;
     }
 
     public Value getFoundValue()

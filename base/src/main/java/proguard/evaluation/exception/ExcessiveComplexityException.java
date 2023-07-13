@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2020 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package proguard.evaluation.exception;
 
+import proguard.evaluation.PartialEvaluator;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
+
 /**
- * Partial Evaluator exception regarding the stack.
+ * Represents an exception during partial evaluation when a single instruction would be visited more than {@link PartialEvaluator#stopAnalysisAfterNEvaluations(int)} times.
+ * In this case, the analysis will forcibly stop by throwing this exception.
+ *
+ * @author Dennis Titze
  */
-public class StackInstructionEvaluationException extends PartialEvaluatorException
+public class ExcessiveComplexityException
+    extends ProguardCoreException
 {
-    public StackInstructionEvaluationException(String message, Throwable cause)
+    public ExcessiveComplexityException(String message)
     {
-        super(message, cause);
+        super(ErrorId.EXCESSIVE_COMPLEXITY, message);
     }
 }
+

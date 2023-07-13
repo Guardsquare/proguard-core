@@ -15,19 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package proguard.evaluation;
 
-import java.util.Collections;
-import java.util.List;
+package proguard.evaluation.exception;
+
 import proguard.exception.ProguardCoreException;
 
-public class EmptyCodeAttributeException
-    extends ProguardCoreException
+/**
+ * Partial evaluator exception regarding Variables.
+ */
+public abstract class VariableEvaluationException extends ProguardCoreException
 {
+    /**
+     * The index of the variable this exception is about.
+     */
+    private final int index;
 
-    public EmptyCodeAttributeException(String message)
+    public VariableEvaluationException(String message, int componentErrorId, String[] errorParameters, int index, Throwable cause)
     {
-        //ToDo: update component error id
-        super(message, 3, Collections.emptyList());
+        super( componentErrorId, cause, message, errorParameters);
+        this.index = index;
+    }
+
+    public int getIndex()
+    {
+        return index;
     }
 }
