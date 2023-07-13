@@ -16,13 +16,14 @@ import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.instruction.Instruction
+import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
-import proguard.evaluation.formatter.MachinePrinter
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
+import proguard.evaluation.formatter.MachinePrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 
@@ -50,11 +51,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
+            val printer = MachinePrinter()
+            val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
+                printer,
+            ).build()
+            printer.setEvaluator(pe)
             evaluateProgramClass(
                 programClass,
-                PartialEvaluator.Builder.create().setExtraInstructionVisitor(
-                    MachinePrinter(),
-                ).build(),
+                pe,
                 "test",
                 "()Ljava/lang/Object;",
             )
@@ -339,9 +343,7 @@ fun buildClass(): ClassBuilder {
 val evaluateProgramClass =
     { programClass: ProgramClass, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
         programClass.accept(
-            NamedMethodVisitor(
-                methodName,
-                methodDescriptor,
+            AllMethodVisitor(
                 AllAttributeVisitor(
                     AttributeNameFilter(Attribute.CODE, partialEvaluator),
                 ),
