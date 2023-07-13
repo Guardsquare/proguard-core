@@ -32,22 +32,22 @@ public class StackTypeException extends ProguardCoreException
     /**
      * The type that was expected but not given and caused this exception.
      */
-    protected final char expectedType;
+    private final String expectedType;
 
     /**
      * The value that was found to be of incorrect type.
      */
-    protected final Value foundValue;
+    private final Value foundValue;
 
-    public StackTypeException(Value foundValue, char expectedType, Throwable cause)
+    public StackTypeException(Value foundValue, String expectedType, Throwable cause)
     {
         super(ErrorId.STACK_TYPE, cause, "Stack value of type %s expected, but found: %s.",
-                externalType(Character.toString(expectedType)), foundValue.toString());
+                externalType(expectedType), foundValue.toString());
         this.expectedType = expectedType;
         this.foundValue = foundValue;
     }
 
-    public char getExpectedType()
+    public String getExpectedType()
     {
         return expectedType;
     }

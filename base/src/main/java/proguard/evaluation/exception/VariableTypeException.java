@@ -31,22 +31,22 @@ public class VariableTypeException extends VariableEvaluationException
     /**
      * The type that was expected but not given and caused this exception.
      */
-    private final char expectedType;
+    private final String expectedType;
 
     /**
      * The type that was found to be of incorrect type.
      */
     private final Value foundValue;
 
-    public VariableTypeException(int index, Value foundValue, char expectedType, Throwable cause)
+    public VariableTypeException(int index, Value foundValue, String expectedType, Throwable cause)
     {
         super("Value in slot %s of type %s expected, but found: %s ", ErrorId.VARIABLE_TYPE,
-                new String[] {Integer.toString(index), externalType(Character.toString(expectedType)), foundValue.toString()}, index, cause);
+                new String[] {Integer.toString(index), externalType(expectedType), foundValue.toString()}, index, cause);
         this.expectedType = expectedType;
         this.foundValue = foundValue;
     }
 
-    public char getExpectedType()
+    public String getExpectedType()
     {
         return expectedType;
     }

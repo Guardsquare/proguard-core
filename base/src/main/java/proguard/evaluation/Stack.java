@@ -298,7 +298,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, TypeConstants.INT, ex);
+            throw new StackTypeException(val, Character.toString(TypeConstants.INT), ex);
         }
     }
 
@@ -315,7 +315,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, TypeConstants.LONG, ex);
+            throw new StackTypeException(val, Character.toString(TypeConstants.LONG), ex);
         }
     }
 
@@ -332,7 +332,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, TypeConstants.FLOAT, ex);
+            throw new StackTypeException(val, Character.toString(TypeConstants.FLOAT), ex);
         }
     }
 
@@ -349,7 +349,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, TypeConstants.DOUBLE, ex);
+            throw new StackTypeException(val, Character.toString(TypeConstants.DOUBLE), ex);
         }
     }
 
@@ -366,7 +366,7 @@ public class Stack
         }
         catch (IllegalArgumentException ex)
         {
-            throw new StackTypeException(val, TypeConstants.CLASS_START, ex);
+            throw new StackTypeException(val, String.format("%cSOME_REFERENCE%c", TypeConstants.CLASS_START, TypeConstants.CLASS_END), ex);
         }
     }
 

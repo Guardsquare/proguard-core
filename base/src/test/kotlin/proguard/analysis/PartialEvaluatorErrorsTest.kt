@@ -68,6 +68,18 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
+        "Variable types do not match, expect reference" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_0()
+                        .areturn()
+                }
+                .programClass
+
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+        }
+
         "Stack types do not match instruction" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) {

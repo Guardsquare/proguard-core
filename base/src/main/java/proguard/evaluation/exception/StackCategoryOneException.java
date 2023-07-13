@@ -32,7 +32,7 @@ public class StackCategoryOneException extends ProguardCoreException
     /**
      * The value that was found to be of incorrect type.
      */
-    protected final Value foundValue;
+    private final Value foundValue;
 
     public StackCategoryOneException(Value foundValue, Throwable cause)
     {
