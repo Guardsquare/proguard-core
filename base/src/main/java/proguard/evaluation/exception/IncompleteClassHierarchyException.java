@@ -15,23 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package proguard.evaluation;
 
+package proguard.evaluation.exception;
+
+
+import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
 /**
- * Represents an exception during partial evaluation when a single instruction would be visited more than {@link PartialEvaluator#stopAnalysisAfterNEvaluations(int)} times.
- * In this case, the analysis will forcibly stop by throwing this exception.
+ * Represents an exception during partial evaluation when an incomplete class
+ * hierarchy was encountered.
  *
- * @author Dennis Titze
+ * @author James Hamilton
  */
-public class ExcessiveComplexityException
-    extends ProguardCoreException
+public class IncompleteClassHierarchyException extends ProguardCoreException
 {
-    public ExcessiveComplexityException(String message)
+    public IncompleteClassHierarchyException(String message)
     {
-        //ToDo: update component error id
-        super(2, message);
+        super(ErrorId.INCOMPLETE_CLASS_HIERARCHY, message);
     }
 }
-
