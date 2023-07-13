@@ -18,9 +18,9 @@ import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.instruction.Instruction
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
+import proguard.evaluation.formatter.MachinePrinter
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
 import proguard.evaluation.value.DetailedArrayValueFactory
@@ -50,7 +50,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<VariableEmptySlotException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator.Builder.create().setExtraInstructionVisitor(
+                    MachinePrinter(),
+                ).build(),
+                "test",
+                "()Ljava/lang/Object;",
+            )
         }
 
         "Variable types do not match" {
