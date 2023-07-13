@@ -37,16 +37,18 @@ public class InstructionExceptionFormatter
     public void printException(ProguardCoreException exception)
     {
         final String ANSI_RESET = "\u001B[0m";
+        final String ANSI_BOLD = "\u001B[1m";
         final String ANSI_RED = "\u001B[31m";
         final String ANSI_CYAN = "\u001B[34m";
 
         Instruction erroreousInstruction = InstructionFactory.create(code, offsetBuffer.peek());
         String errorInstructionString = erroreousInstruction.toString();
 
-        // The class of the error.
+        // The error code and class of the exception
         StringBuilder messageBuilder = new StringBuilder();
         messageBuilder
                 .append(ANSI_RED)
+                .append(ANSI_BOLD)
                 .append("error[")
                 .append(exception.getComponentErrorId())
                 .append("]: ")
