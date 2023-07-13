@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2023 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package proguard.evaluation;
 
-import java.util.Collections;
+package proguard.evaluation.exception;
+
 import proguard.exception.ProguardCoreException;
 
 /**
- * Represents an exception during partial evaluation when a single instruction would be visited more than {@link PartialEvaluator#stopAnalysisAfterNEvaluations(int)} times.
- * In this case, the analysis will forcibly stop by throwing this exception.
- *
- * @author Dennis Titze
+ * Partial evaluator exception regarding Variables.
  */
-public class ExcessiveComplexityException
-    extends ProguardCoreException
+public abstract class VariableEvaluationException extends ProguardCoreException
 {
-    public ExcessiveComplexityException(String message)
+    /**
+     * The index of the variable this exception is about.
+     */
+    private final int index;
+
+    public VariableEvaluationException(String message, int componentErrorId, String[] errorParameters, int index, Throwable cause)
     {
-        //ToDo: update component error id
-        super(message, 2, Collections.emptyList());
+        super( componentErrorId, cause, message, errorParameters);
+        this.index = index;
+    }
+
+    public int getIndex()
+    {
+        return index;
     }
 }
-

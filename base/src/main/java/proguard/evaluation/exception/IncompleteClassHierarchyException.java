@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-package proguard.evaluation;
+package proguard.evaluation.exception;
 
 
+import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
-
-import java.util.Collections;
 
 /**
  * Represents an exception during partial evaluation when an incomplete class
@@ -33,7 +32,6 @@ public class IncompleteClassHierarchyException extends ProguardCoreException
 {
     public IncompleteClassHierarchyException(String message)
     {
-        //ToDo: update component error id
-        super(message, 1, Collections.emptyList());
+        super(ErrorId.INCOMPLETE_CLASS_HIERARCHY, message);
     }
 }
