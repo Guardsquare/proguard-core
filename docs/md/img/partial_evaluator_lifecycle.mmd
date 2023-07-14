@@ -1,0 +1,65 @@
+stateDiagram-v2
+    L0: Try
+    state L0 {
+        L1: Evaluate instruction block and branches
+        startCodeAttribute --> L1
+        state L1 {
+            L2: Evaluate single instruction block
+            state L2 {
+                L3: For each instructionBlock
+                startInstructionBlock --> L3
+                state L3 {
+                    BR1: Instruction has been seen in this context?
+                    BR1 --> instructionBlockDone : Yes
+                    BR2: Already evaluated a lot of times?
+                    BR1 --> BR2: No
+                    BR2 --> startInstructionEvaluation: No
+                    BR2 --> instructionBlockDone: Yes
+                    startInstructionEvaluation --> afterInstructionEvaluation
+                    BR3: Branch unit has been called?
+                    afterInstructionEvaluation --> BR3
+                    L4: Branch Unit is called
+                    BR3 --> L4 : Yes
+                    state L4 {
+                        BR5: #Branch targets > 1?
+                        BR5 --> definitiveBranch: No
+                        BR5 --> registerAlternativeBranch: Yes
+                        registerAlternativeBranch --> registerAlternativeBranch
+                        registerAlternativeBranch --> instructionBlockDone
+                        definitiveBranch --> BR6
+                    }
+                    BR6: Instruction was JSR or JSR_W?
+                    BR3 --> BR6 : No
+                    L5: Instruction was subroutine invocation
+                    BR6 --> L5: Yes
+                    state L5 {
+                        recursion1: Evaluate all subroutines
+                        startSubroutine --> recursion1
+                        recursion1 --> startInstructionBlock: Recursion
+                        recursion1 --> generalizeSubroutine
+                        generalizeSubroutine --> endSubroutine
+                    }
+
+                }
+                L3 --> instructionBlockDone
+            }
+            L6: For each generated instructionBlock on generated stack
+            L2 --> L6
+            state L6 {
+                evaluateAllBlocksResultingFromBranch --> pop
+                pop --> evaluateAllBlocksResultingFromBranch
+            }
+        }
+        L1 --> startExceptionHandling
+        BR7: Catch evaluation is needed?
+        startExceptionHandling --> BR7
+        BR7 --> registerExceptionHandler: Yes
+        BR7 --> registerUnusedExceptionHandler: No
+        registerExceptionHandler --> evaluationResults
+        registerUnusedExceptionHandler --> evaluationResults
+    }
+    catch: Did catch?
+    L0 --> catch
+    catch --> end: No
+    catch --> registerMethodLevelError: Yes
+    registerMethodLevelError --> end

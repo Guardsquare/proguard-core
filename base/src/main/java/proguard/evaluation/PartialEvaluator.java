@@ -370,10 +370,7 @@ implements   AttributeVisitor,
             logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
             logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
-            if (printer != null)
-            {
-                printer.printMethodError(clazz, method, codeAttribute, this);
-            }
+            if (printer != null) printer.registerException(clazz, method, codeAttribute, this);
 
             throw ex;
         }
@@ -383,10 +380,7 @@ implements   AttributeVisitor,
     public void visitCodeAttribute0(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         // Evaluate the instructions, starting at the entry point.
-        if (printer != null)
-        {
-            printer.printStartCodeAttribute(clazz, method, codeAttribute);
-        }
+
         // Empty code attribute, do not analyze
         if (codeAttribute.code.length == 0)
         {
@@ -399,6 +393,8 @@ implements   AttributeVisitor,
         // Initialize the reusable arrays and variables.
         initializeArrays(codeAttribute);
         initializeParameters(clazz, method, codeAttribute, variables);
+
+        if (printer != null) printer.startCodeAttribute(clazz, method, codeAttribute, variables);
 
         // Reset stacks.
         instructionBlockStack.clear();
@@ -416,10 +412,7 @@ implements   AttributeVisitor,
                                                      0,
                                                      codeAttribute.u4codeLength);
 
-        if (printer != null)
-        {
-            printer.printCodeAttributeResults(clazz, method, codeAttribute, this);
-        }
+        if (printer != null) printer.evaluationResults(clazz, method, codeAttribute, this);
     }
 
 
@@ -801,7 +794,7 @@ implements   AttributeVisitor,
 
         if (printer != null)
         {
-             printer.printSTartOfInstructionBlock(clazz, method, codeAttribute, variables, stack, startOffset);
+             printer.startInstructionBlock(clazz, method, codeAttribute, variables, stack, startOffset);
         }
 
         Processor processor = new Processor(variables,
@@ -860,7 +853,7 @@ implements   AttributeVisitor,
                     !stackChanged     &&
                     generalizedContexts[instructionOffset])
                 {
-                    if (printer != null) printer.codeAttributeSameAsLastTime();
+                    if (printer != null) printer.skipInstructionBlock();
 
                     break;
                 }
@@ -869,7 +862,7 @@ implements   AttributeVisitor,
                 // of times.
                 if (evaluationCount >= GENERALIZE_AFTER_N_EVALUATIONS)
                 {
-                    if (printer != null) printer.printCodeWillGenerelize(evaluationCount);
+                    if (printer != null) printer.generalizeInstructionBlock(evaluationCount);
 
                     if (stopAnalysisAfterNEvaluations != -1 && evaluationCount >= stopAnalysisAfterNEvaluations)
                     {
@@ -907,10 +900,7 @@ implements   AttributeVisitor,
             // Reset the branch unit.
             branchUnit.reset();
 
-            if (printer != null)
-            {
-                printer.printEvaluateInstruction(instruction, clazz, instructionOffset);
-            }
+            if (printer != null) printer.startInstructionEvaluation(instruction, clazz, instructionOffset);
 
             if (extraInstructionVisitor != null)
             {
@@ -948,10 +938,7 @@ implements   AttributeVisitor,
             InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
             int branchTargetCount = branchTargets.instructionOffsetCount();
 
-            if (printer != null)
-            {
-                printer.printInstructionBranchingBehaviour(branchUnit, instructionOffset, variables, stack, branchTargets(instructionOffset));
-            }
+            if (printer != null) printer.afterInstructionEvaluation(branchUnit, instructionOffset, variables, stack, branchTargets(instructionOffset));
 
             // Maintain a generalized local variable frame and stack at this
             // instruction offset, after execution.
@@ -1009,7 +996,7 @@ implements   AttributeVisitor,
                     // Push them on the execution stack and exit from this block.
                     for (int index = 0; index < branchTargetCount; index++)
                     {
-                        if (printer != null)  printer.printAlternativeBranchFound(index, branchTargetCount, instructionOffset, branchTargets(index));
+                        if (printer != null)  printer.registerAlternativeBranch(index, branchTargetCount, instructionOffset, branchTargets(index));
 
                         pushInstructionBlock(new TracedVariables(variables),
                                              new TracedStack(stack),
@@ -1019,7 +1006,7 @@ implements   AttributeVisitor,
                     break;
                 }
 
-                if (printer != null) printer.printDefinitiveBranch(instructionOffset, branchTargets);
+                if (printer != null) printer.definitiveBranch(instructionOffset, branchTargets);
 
                 // Continue at the definite branch target.
                 instructionOffset = branchTargets.instructionOffset(0);
@@ -1055,7 +1042,7 @@ implements   AttributeVisitor,
             }
         }
 
-        if (printer != null) printer.printDoneProcessing(startOffset);
+        if (printer != null) printer.instructionBlockDone(startOffset);
     }
 
 
@@ -1072,7 +1059,7 @@ implements   AttributeVisitor,
     {
         int subroutineEnd = branchTargetFinder.subroutineEnd(subroutineStart);
 
-        if (printer != null) printer.printStartSubroutine(subroutineStart, subroutineEnd);
+        if (printer != null) printer.startSubroutine(subroutineStart, subroutineEnd);
 
         // Create a temporary partial evaluator, so there are no conflicts
         // with variables that are alive across subroutine invocations, between
@@ -1095,7 +1082,7 @@ implements   AttributeVisitor,
         // the lowest common denominator of stacks and variables.
         generalize(subroutinePartialEvaluator, 0, codeAttribute.u4codeLength);
 
-        if (printer != null) printer.printEndSubroutine(subroutineStart, subroutineEnd);
+        if (printer != null) printer.endSubroutine(subroutineStart, subroutineEnd);
     }
 
 
@@ -1107,7 +1094,7 @@ implements   AttributeVisitor,
                             int              codeStart,
                             int              codeEnd)
     {
-        if (printer != null) printer.printGeneralize(codeStart, codeEnd);
+        if (printer != null) printer.generalizeSubroutine(codeStart, codeEnd);
 
         for (int offset = codeStart; offset < codeEnd; offset++)
         {
@@ -1160,7 +1147,7 @@ implements   AttributeVisitor,
                                            int           startOffset,
                                            int           endOffset)
     {
-        if (printer != null) printer.printStartEvaluatingExceptionHandler(startOffset, endOffset);
+        if (printer != null) printer.startExceptionHandling(startOffset, endOffset);
 
         ExceptionHandlerFilter exceptionEvaluator =
             new ExceptionHandlerFilter(startOffset,
@@ -1198,7 +1185,7 @@ implements   AttributeVisitor,
             int handlerPC = exceptionInfo.u2handlerPC;
             int catchType = exceptionInfo.u2catchType;
 
-            if (printer != null) printer.printEvaluateExceptionHandler(startPC, endPC, handlerPC);
+            if (printer != null) printer.registerExceptionHandler(startPC, endPC, handlerPC);
 
             // Reuse the existing variables and stack objects, ensuring the
             // right size.
@@ -1253,7 +1240,7 @@ implements   AttributeVisitor,
 //        }
         else
         {
-            if (printer != null) printer.printNoExceptionHandlingFound(startPC, endPC, exceptionInfo);
+            if (printer != null) printer.registerUnusedExceptionHandler(startPC, endPC, exceptionInfo);
         }
     }
 
@@ -1359,11 +1346,6 @@ implements   AttributeVisitor,
 
         // Initialize the method parameters.
         invocationUnit.enterMethod(clazz, method, parameters);
-
-        if (printer != null)
-        {
-            printer.printMethodParameters(parameters);
-        }
 
         // Initialize the variables with the parameters.
         variables.initialize(parameters);

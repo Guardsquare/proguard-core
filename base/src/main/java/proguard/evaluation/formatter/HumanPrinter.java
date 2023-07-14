@@ -17,58 +17,54 @@ import proguard.evaluation.value.InstructionOffsetValue;
 
 public class HumanPrinter
 {
-    public void printMethodParameters(Variables parameters) {
-        System.out.println("  Params: "+parameters);
-    }
-
-    public void printNoExceptionHandlingFound(int startPC, int endPC, ExceptionInfo info) {
+    public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info) {
         System.out.println("No information for partial evaluation of exception ["+startPC +" -> "+endPC +": "+info.u2handlerPC+"]");
     }
 
-    public void printEvaluateExceptionHandler(int startPC, int endPC, int handlerPC)
+    public void registerExceptionHandler(int startPC, int endPC, int handlerPC)
     {
         System.out.println("Evaluating exception ["+startPC+" -> "+endPC+": "+handlerPC+"]:");
     }
 
-    public void printStartEvaluatingExceptionHandler(int startOffset, int endOffset)
+    public void startExceptionHandling(int startOffset, int endOffset)
     {
         System.out.println("Evaluating exceptions covering ["+startOffset+" -> "+endOffset+"]:");
     }
 
-    public void printGeneralize(int subroutineStart, int subroutineEnd)
+    public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
     {
         System.out.println("Ending subroutine from "+subroutineStart+" to "+subroutineEnd);
     }
 
-    public void printEndSubroutine(int subroutineStart, int subroutineEnd)
+    public void endSubroutine(int subroutineStart, int subroutineEnd)
     {
         System.out.println("Ending subroutine from "+subroutineStart+" to "+subroutineEnd);
     }
 
-    public void printStartSubroutine(int subroutineStart, int subroutineEnd)
+    public void startSubroutine(int subroutineStart, int subroutineEnd)
     {
         System.out.println("Evaluating subroutine from "+subroutineStart+" to "+subroutineEnd);
     }
 
-    public void printDoneProcessing(int startOffset)
+    public void instructionBlockDone(int startOffset)
     {
         System.out.println("Ending processing of instruction block starting at ["+startOffset+"]");
     }
 
-    public void printDefinitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets)
+    public void definitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets)
     {
         System.out.println("Definite branch from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(0)+"]");
     }
 
-    public void printAlternativeBranchFound(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue)
+    public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue)
     {
         System.out.println("Pushing alternative branch #"+index+" out of "+branchTargetCount+
                 ", from ["+instructionOffset+"] to ["+offsetValue+"]");
     }
 
-    public void printInstructionBranchingBehaviour(BasicBranchUnit branchUnit, int instructionOffset,
-                                                   TracedVariables variables, TracedStack stack,
-                                                   InstructionOffsetValue branchTarget)
+    public void afterInstructionEvaluation(BasicBranchUnit branchUnit, int instructionOffset,
+                                           TracedVariables variables, TracedStack stack,
+                                           InstructionOffsetValue branchTarget)
     {
         InstructionOffsetValue branchTargets=branchUnit.getTraceBranchTargets();
         int branchTargetCount=branchTargets.instructionOffsetCount();
@@ -85,27 +81,27 @@ public class HumanPrinter
         System.out.println(" Stack: "+stack);
     }
 
-    public void printEvaluateInstruction(Instruction instruction, Clazz clazz, int instructionOffset)
+    public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset)
     {
         System.out.println(instruction.toString(clazz, instructionOffset));
     }
 
-    public void printCodeWillGenerelize(int evaluationCount)
+    public void generalizeInstructionBlock(int evaluationCount)
     {
         System.out.println("Generalizing current context after "+evaluationCount+" evaluations");
     }
 
-    public void codeAttributeSameAsLastTime()
+    public void skipInstructionBlock()
     {
         System.out.println("Repeated variables, stack, and branch targets");
     }
 
-    public void printSTartOfInstructionBlock(Clazz clazz,
-                                             Method method,
-                                             CodeAttribute codeAttribute,
-                                             TracedVariables variables,
-                                             TracedStack stack,
-                                             int startOffset)
+    public void startInstructionBlock(Clazz clazz,
+                                      Method method,
+                                      CodeAttribute codeAttribute,
+                                      TracedVariables variables,
+                                      TracedStack stack,
+                                      int startOffset)
     {
         System.out.println("Instruction block starting at ["+startOffset+"] in "+
                 ClassUtil.externalFullMethodDescription(clazz.getName(),
@@ -121,7 +117,7 @@ public class HumanPrinter
         System.out.println("Popping alternative branch out of "+stackSize+" blocks");
     }
 
-    public void printCodeAttributeResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
+    public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
         System.out.println("Evaluation results:");
 
@@ -165,15 +161,17 @@ public class HumanPrinter
         while (offset < codeAttribute.u4codeLength);
     }
 
-    public void printStartCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
+    public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
         System.out.println();
         System.out.println("Partial evaluation: "+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz));
         System.out.println("  Max locals = "+codeAttribute.u2maxLocals);
         System.out.println("  Max stack  = "+codeAttribute.u2maxStack);
+        System.out.println("  Params: "+parameters);
+
     }
 
-    public void printMethodError(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
+    public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
         method.accept(clazz, new ClassPrinter());
 
