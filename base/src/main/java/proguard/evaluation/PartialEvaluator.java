@@ -37,11 +37,10 @@ import proguard.classfile.instruction.TableSwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.BranchTargetFinder;
-import proguard.classfile.util.ClassUtil;
-import proguard.classfile.visitor.ClassPrinter;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
+import proguard.evaluation.formatter.HumanPrinter;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
@@ -60,8 +59,7 @@ implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
     //*
-    private static final boolean DEBUG         = true;
-    private static final boolean DEBUG_RESULTS = false;
+    private static final HumanPrinter printer = new HumanPrinter();
     /*/
     public static boolean DEBUG         = System.getProperty("pe") != null;
     public static boolean DEBUG_RESULTS = DEBUG;
@@ -372,50 +370,9 @@ implements   AttributeVisitor,
             logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
             logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
-            if (DEBUG)
+            if (printer != null)
             {
-                method.accept(clazz, new ClassPrinter());
-
-                System.out.println("Evaluation results:");
-
-                int offset = 0;
-                do
-                {
-                    if (isBranchOrExceptionTarget(offset))
-                    {
-                        System.out.println("Branch target from ["+branchOriginValues[offset]+"]:");
-                        if (isTraced(offset))
-                        {
-                            System.out.println("  Vars:  "+variablesBefore[offset]);
-                            System.out.println("  Stack: "+stacksBefore[offset]);
-                        }
-                    }
-
-                    Instruction instruction = InstructionFactory.create(codeAttribute.code,
-                                                                        offset);
-                    System.out.println(instruction.toString(clazz, offset));
-
-                    if (isTraced(offset))
-                    {
-//                        int initializationOffset = branchTargetFinder.initializationOffset(offset);
-//                        if (initializationOffset != NONE)
-//                        {
-//                            System.out.println("     is to be initialized at ["+initializationOffset+"]");
-//                        }
-
-                        InstructionOffsetValue branchTargets = branchTargets(offset);
-                        if (branchTargets != null)
-                        {
-                            System.out.println("     has overall been branching to "+branchTargets);
-                        }
-
-                        System.out.println("  Vars:  "+variablesAfter[offset]);
-                        System.out.println("  Stack: "+stacksAfter[offset]);
-                    }
-
-                    offset += instruction.length(offset);
-                }
-                while (offset < codeAttribute.u4codeLength);
+                printer.printMethodError(clazz, method, codeAttribute, this);
             }
 
             throw ex;
@@ -426,12 +383,9 @@ implements   AttributeVisitor,
     public void visitCodeAttribute0(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         // Evaluate the instructions, starting at the entry point.
-        if (DEBUG)
+        if (printer != null)
         {
-            System.out.println();
-            System.out.println("Partial evaluation: "+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz));
-            System.out.println("  Max locals = "+codeAttribute.u2maxLocals);
-            System.out.println("  Max stack  = "+codeAttribute.u2maxStack);
+            printer.printStartCodeAttribute(clazz, method, codeAttribute);
         }
         // Empty code attribute, do not analyze
         if (codeAttribute.code.length == 0)
@@ -462,48 +416,9 @@ implements   AttributeVisitor,
                                                      0,
                                                      codeAttribute.u4codeLength);
 
-        if (DEBUG_RESULTS)
+        if (printer != null)
         {
-            System.out.println("Evaluation results:");
-
-            int offset = 0;
-            do
-            {
-                if (isBranchOrExceptionTarget(offset))
-                {
-                    System.out.println("Branch target from ["+branchOriginValues[offset]+"]:");
-                    if (isTraced(offset))
-                    {
-                        System.out.println("  Vars:  "+variablesBefore[offset]);
-                        System.out.println("  Stack: "+stacksBefore[offset]);
-                    }
-                }
-
-                Instruction instruction = InstructionFactory.create(codeAttribute.code,
-                                                                    offset);
-                System.out.println(instruction.toString(clazz, offset));
-
-                if (isTraced(offset))
-                {
-//                    int initializationOffset = branchTargetFinder.initializationOffset(offset);
-//                    if (initializationOffset != NONE)
-//                    {
-//                        System.out.println("     is to be initialized at ["+initializationOffset+"]");
-//                    }
-
-                    InstructionOffsetValue branchTargets = branchTargets(offset);
-                    if (branchTargets != null)
-                    {
-                        System.out.println("     has overall been branching to "+branchTargets);
-                    }
-
-                    System.out.println("  Vars:  "+variablesAfter[offset]);
-                    System.out.println("  Stack: "+stacksAfter[offset]);
-                }
-
-                offset += instruction.length(offset);
-            }
-            while (offset < codeAttribute.u4codeLength);
+            printer.printCodeAttributeResults(clazz, method, codeAttribute, this);
         }
     }
 
@@ -855,7 +770,7 @@ implements   AttributeVisitor,
         // Execute all resulting instruction blocks on the execution stack.
         while (!instructionBlockStack.empty())
         {
-            if (DEBUG) System.out.println("Popping alternative branch out of "+instructionBlockStack.size()+" blocks");
+            if (printer != null) printer.printStartBranchCodeBlockEvaluation(instructionBlockStack.size());
 
             MyInstructionBlock instructionBlock = instructionBlockStack.pop();
 
@@ -884,15 +799,9 @@ implements   AttributeVisitor,
     {
         byte[] code = codeAttribute.code;
 
-        if (DEBUG)
+        if (printer != null)
         {
-             System.out.println("Instruction block starting at ["+startOffset+"] in "+
-                                ClassUtil.externalFullMethodDescription(clazz.getName(),
-                                                                        0,
-                                                                        method.getName(clazz),
-                                                                        method.getDescriptor(clazz)));
-             System.out.println("Init vars:  "+variables);
-             System.out.println("Init stack: "+stack);
+             printer.printSTartOfInstructionBlock(clazz, method, codeAttribute, variables, stack, startOffset);
         }
 
         Processor processor = new Processor(variables,
@@ -951,7 +860,7 @@ implements   AttributeVisitor,
                     !stackChanged     &&
                     generalizedContexts[instructionOffset])
                 {
-                    if (DEBUG) System.out.println("Repeated variables, stack, and branch targets");
+                    if (printer != null) printer.codeAttributeSameAsLastTime();
 
                     break;
                 }
@@ -960,7 +869,7 @@ implements   AttributeVisitor,
                 // of times.
                 if (evaluationCount >= GENERALIZE_AFTER_N_EVALUATIONS)
                 {
-                    if (DEBUG) System.out.println("Generalizing current context after "+evaluationCount+" evaluations");
+                    if (printer != null) printer.printCodeWillGenerelize(evaluationCount);
 
                     if (stopAnalysisAfterNEvaluations != -1 && evaluationCount >= stopAnalysisAfterNEvaluations)
                     {
@@ -998,9 +907,9 @@ implements   AttributeVisitor,
             // Reset the branch unit.
             branchUnit.reset();
 
-            if (DEBUG)
+            if (printer != null)
             {
-                System.out.println(instruction.toString(clazz, instructionOffset));
+                printer.printEvaluateInstruction(instruction, clazz, instructionOffset);
             }
 
             if (extraInstructionVisitor != null)
@@ -1039,19 +948,9 @@ implements   AttributeVisitor,
             InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
             int branchTargetCount = branchTargets.instructionOffsetCount();
 
-            if (DEBUG)
+            if (printer != null)
             {
-                if (branchUnit.wasCalled())
-                {
-                    System.out.println("     is branching to "+branchTargets);
-                }
-                if (branchTargetValues[instructionOffset] != null)
-                {
-                    System.out.println("     has up till now been branching to "+branchTargetValues[instructionOffset]);
-                }
-
-                System.out.println(" Vars:  "+variables);
-                System.out.println(" Stack: "+stack);
+                printer.printInstructionBranchingBehaviour(branchUnit, instructionOffset, variables, stack, branchTargets(instructionOffset));
             }
 
             // Maintain a generalized local variable frame and stack at this
@@ -1110,7 +1009,7 @@ implements   AttributeVisitor,
                     // Push them on the execution stack and exit from this block.
                     for (int index = 0; index < branchTargetCount; index++)
                     {
-                        if (DEBUG) System.out.println("Pushing alternative branch #"+index+" out of "+branchTargetCount+", from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(index)+"]");
+                        if (printer != null)  printer.printAlternativeBranchFound(index, branchTargetCount, instructionOffset, branchTargets(index));
 
                         pushInstructionBlock(new TracedVariables(variables),
                                              new TracedStack(stack),
@@ -1120,7 +1019,7 @@ implements   AttributeVisitor,
                     break;
                 }
 
-                if (DEBUG) System.out.println("Definite branch from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(0)+"]");
+                if (printer != null) printer.printDefinitiveBranch(instructionOffset, branchTargets);
 
                 // Continue at the definite branch target.
                 instructionOffset = branchTargets.instructionOffset(0);
@@ -1156,7 +1055,7 @@ implements   AttributeVisitor,
             }
         }
 
-        if (DEBUG) System.out.println("Ending processing of instruction block starting at ["+startOffset+"]");
+        if (printer != null) printer.printDoneProcessing(startOffset);
     }
 
 
@@ -1173,7 +1072,7 @@ implements   AttributeVisitor,
     {
         int subroutineEnd = branchTargetFinder.subroutineEnd(subroutineStart);
 
-        if (DEBUG) System.out.println("Evaluating subroutine from "+subroutineStart+" to "+subroutineEnd);
+        if (printer != null) printer.printStartSubroutine(subroutineStart, subroutineEnd);
 
         // Create a temporary partial evaluator, so there are no conflicts
         // with variables that are alive across subroutine invocations, between
@@ -1196,7 +1095,7 @@ implements   AttributeVisitor,
         // the lowest common denominator of stacks and variables.
         generalize(subroutinePartialEvaluator, 0, codeAttribute.u4codeLength);
 
-        if (DEBUG) System.out.println("Ending subroutine from "+subroutineStart+" to "+subroutineEnd);
+        if (printer != null) printer.printEndSubroutine(subroutineStart, subroutineEnd);
     }
 
 
@@ -1208,7 +1107,7 @@ implements   AttributeVisitor,
                             int              codeStart,
                             int              codeEnd)
     {
-        if (DEBUG) System.out.println("Generalizing with temporary partial evaluation");
+        if (printer != null) printer.printGeneralize(codeStart, codeEnd);
 
         for (int offset = codeStart; offset < codeEnd; offset++)
         {
@@ -1261,7 +1160,7 @@ implements   AttributeVisitor,
                                            int           startOffset,
                                            int           endOffset)
     {
-        if (DEBUG) System.out.println("Evaluating exceptions covering ["+startOffset+" -> "+endOffset+"]:");
+        if (printer != null) printer.printStartEvaluatingExceptionHandler(startOffset, endOffset);
 
         ExceptionHandlerFilter exceptionEvaluator =
             new ExceptionHandlerFilter(startOffset,
@@ -1299,7 +1198,7 @@ implements   AttributeVisitor,
             int handlerPC = exceptionInfo.u2handlerPC;
             int catchType = exceptionInfo.u2catchType;
 
-            if (DEBUG) System.out.println("Evaluating exception ["+startPC +" -> "+endPC +": "+handlerPC+"]:");
+            if (printer != null) printer.printEvaluateExceptionHandler(startPC, endPC, handlerPC);
 
             // Reuse the existing variables and stack objects, ensuring the
             // right size.
@@ -1354,7 +1253,7 @@ implements   AttributeVisitor,
 //        }
         else
         {
-            if (DEBUG) System.out.println("No information for partial evaluation of exception ["+startPC +" -> "+endPC +": "+exceptionInfo.u2handlerPC+"]");
+            if (printer != null) printer.printNoExceptionHandlingFound(startPC, endPC, exceptionInfo);
         }
     }
 
@@ -1461,9 +1360,9 @@ implements   AttributeVisitor,
         // Initialize the method parameters.
         invocationUnit.enterMethod(clazz, method, parameters);
 
-        if (DEBUG)
+        if (printer != null)
         {
-            System.out.println("  Params: "+parameters);
+            printer.printMethodParameters(parameters);
         }
 
         // Initialize the variables with the parameters.

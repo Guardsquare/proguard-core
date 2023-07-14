@@ -87,7 +87,7 @@ public class MachinePrinter implements InstructionVisitor
                 .getOrDefault(method.toString(), new ArrayList<>());
         if (instructions.isEmpty()) {
             byte[] code = codeAttribute.code;
-            int offset = codeAttribute.
+            // int offset = codeAttribute.
         }
         //
         // codeAttribute.code
@@ -95,8 +95,8 @@ public class MachinePrinter implements InstructionVisitor
         // mappy.getOrDefault(clazz.getName(), new HashMap<>())
         //         .getOrDefault(method.getName(clazz), new HashSet<>())
         //         .add(new InstructionDTO())
-        HashMap<String, String> map = new HashMap<>();
-        map.put("Instruction", instruction.toString());
+        // HashMap<String, String> map = new HashMap<>();
+        // map.put("Instruction", instruction.toString());
         // System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(map));
     }
 }
