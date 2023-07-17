@@ -936,6 +936,12 @@ implements   AttributeVisitor,
         {
             try
             {
+
+                if (formatter != null)
+                {
+                    formatter.registerInstructionOffset(instructionOffset);
+                }
+
                 if (maxOffset < instructionOffset)
                 {
                     maxOffset=instructionOffset;
@@ -1035,10 +1041,6 @@ implements   AttributeVisitor,
 
                 // Decode the instruction.
                 Instruction instruction=InstructionFactory.create(code, instructionOffset);
-                if (formatter != null)
-                {
-                    formatter.registerInstructionOffset(instructionOffset);
-                }
 
                 // Reset the branch unit.
                 branchUnit.reset();
