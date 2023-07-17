@@ -54,7 +54,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableEmptySlotException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()Ljava/lang/Object;",
                 )
@@ -82,7 +82,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<StackGeneralizationException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()I",
                 )
@@ -103,7 +103,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableTypeException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()Ljava/lang/Object;",
                 )
@@ -139,7 +139,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()I",
                 )
@@ -160,7 +160,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()J",
                 )
@@ -181,7 +181,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrowAny {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()F",
                 )
@@ -223,7 +223,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableIndexOutOfBoundException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()V",
                 )
@@ -328,7 +328,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             evaluateProgramClass(
                 programClass,
-                PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                 "test",
                 "()I",
             )
@@ -374,7 +374,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             evaluateProgramClass(
                 programClass,
-                PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                 "test",
                 "()V",
             )
@@ -396,7 +396,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             evaluateProgramClass(
                 programClass,
-                PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                 "test",
                 "()V",
             )

@@ -88,7 +88,7 @@ implements   AttributeVisitor,
     private final ValueFactory       valueFactory;
     private final InvocationUnit     invocationUnit;
     private final boolean            evaluateAllCode;
-    private final boolean            prettyPrint;
+    private final int                prettyInstructionBuffered;
     private final InstructionVisitor extraInstructionVisitor;
 
     private InstructionOffsetValue[] branchOriginValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
@@ -230,7 +230,7 @@ implements   AttributeVisitor,
         this.valueFactory                 = valueFactory;
         this.invocationUnit               = invocationUnit;
         this.evaluateAllCode              = evaluateAllCode;
-        this.prettyPrint                  = false;
+        this.prettyInstructionBuffered    = 7;
         this.extraInstructionVisitor      = extraInstructionVisitor;
         this.branchUnit                   = branchUnit;
         this.branchTargetFinder           = branchTargetFinder;
@@ -247,7 +247,7 @@ implements   AttributeVisitor,
         this.valueFactory                 = builder.valueFactory == null ? new BasicValueFactory(): builder.valueFactory;
         this.invocationUnit               = builder.invocationUnit == null ? new BasicInvocationUnit(valueFactory) : builder.invocationUnit;
         this.evaluateAllCode              = builder.evaluateAllCode;
-        this.prettyPrint                  = builder.prettyPrint;
+        this.prettyInstructionBuffered    = builder.prettyInstructionBuffered;
         this.extraInstructionVisitor      = builder.extraInstructionVisitor;
         this.branchUnit                   = builder.branchUnit == null ? ( evaluateAllCode ?
                                                                            new BasicBranchUnit() :
@@ -262,7 +262,7 @@ implements   AttributeVisitor,
         private ValueFactory                        valueFactory;
         private InvocationUnit                      invocationUnit;
         private boolean                             evaluateAllCode               = true;
-        private boolean                             prettyPrint                   = false;
+        private int                                 prettyInstructionBuffered     = 7;
         private InstructionVisitor                  extraInstructionVisitor;
         private BasicBranchUnit                     branchUnit;
         private BranchTargetFinder                  branchTargetFinder;
@@ -309,11 +309,19 @@ implements   AttributeVisitor,
         }
 
         /**
-         * Specifies whether instruction exceptions are printed prettier.
+         * Specifies how many instructions should be considered in the context of a pretty message.
+         * When <= 0, no pretty printing is applied whether instruction exceptions are printed prettier.
          */
-        public Builder setPrettyPrinting(boolean prettyPrint) {
-            this.prettyPrint = prettyPrint;
+        public Builder setPrettyPrinting(int prettyInstructionBuffered) {
+            this.prettyInstructionBuffered = prettyInstructionBuffered;
             return this;
+        }
+
+        /**
+         * Specifies 7 instructions should be considered in the context of a pretty message.
+         */
+        public Builder setPrettyPrinting() {
+            return this.setPrettyPrinting(7);
         }
 
         /**
@@ -900,10 +908,10 @@ implements   AttributeVisitor,
                                                 int              startOffset)
     {
         byte[] code = codeAttribute.code;
-        InstructionExceptionFormatter formatter = prettyPrint ?
+        InstructionExceptionFormatter formatter = prettyInstructionBuffered > 0 ?
                 new InstructionExceptionFormatter(
                         logger,
-                        new CircularIntBuffer(5),
+                        new CircularIntBuffer(prettyInstructionBuffered),
                         code,
                         clazz,
                         method)
