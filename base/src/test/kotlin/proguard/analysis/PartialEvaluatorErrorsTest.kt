@@ -66,6 +66,39 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             )
         }
 
+        "Entire PE lifecycle - simplified" {
+            val build = buildClass()
+                .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
+                    it.iconst(50).ireturn()
+                }
+            val programClass = build
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    it
+                        .invokestatic(
+                            "PartialEvaluatorDummy",
+                            "initializer",
+                            "()I",
+                            it.targetClass,
+                            it.targetClass.findMethod("initializer"),
+                        )
+                        .ireturn()
+                }
+                .programClass
+
+            val printer = MachinePrinter()
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
+                printer,
+            ).setValueFactory(valueFactory).setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory)).setEvaluateAllCode(true).build()
+            printer.setEvaluator(pe)
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+        }
+
         "Entire PE lifecycle" {
             val build = buildClass()
                 .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
