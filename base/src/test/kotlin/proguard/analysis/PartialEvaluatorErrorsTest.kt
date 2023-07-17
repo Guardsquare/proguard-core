@@ -20,6 +20,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.exception.StackGeneralizationException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
@@ -56,6 +57,34 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
                     "test",
                     "()Ljava/lang/Object;",
+                )
+            }
+        }
+
+        "Changing stack size" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    it.iconst(50)
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        .ifle(elseLabel) // To be working code, this should have been if_icmple
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .ireturn()
+                }
+                .programClass
+
+            shouldThrow<StackGeneralizationException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting(true).build(),
+                    "test",
+                    "()I",
                 )
             }
         }
