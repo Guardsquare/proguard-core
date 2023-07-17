@@ -19,6 +19,7 @@ import proguard.classfile.instruction.Instruction
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
+import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
@@ -66,12 +67,16 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
         "Entire PE lifecycle" {
             val programClass = buildClass()
+                .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
+                    it.iconst(50).ireturn()
+                }
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
                     val startLabel = it.createLabel()
                     val elseLabel = it.createLabel()
                     val loadLabel = it.createLabel()
                     val endLabel = it.createLabel()
-                    it.iconst(50)
+                    it
+                        .invokestatic("PartialEvaluatorDummy", "initializer", "()I")
                         .label(startLabel)
                         .dup()
                         .iconst_5()
@@ -94,9 +99,10 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val printer = MachinePrinter()
+            val valueFactory = ParticularValueFactory()
             val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
                 printer,
-            ).build()
+            ).setValueFactory(valueFactory).setInvocationUnit(ExecutingInvocationUnit(valueFactory)).setEvaluateAllCode(true).build()
             printer.setEvaluator(pe)
             evaluateProgramClass(
                 programClass,
