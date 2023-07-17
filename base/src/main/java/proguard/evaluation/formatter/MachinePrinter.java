@@ -10,6 +10,8 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.evaluation.PartialEvaluator;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,39 +56,79 @@ import java.util.Set;
  */
 public class MachinePrinter implements InstructionVisitor
 {
-    class StateTracker {
+    static class StateTracker {
+        static class MethodTracker {
+            class InstructionBlock {
+                public TracedVariables variables;
+                public TracedStack stack;
+                public int startOffset;
 
-    }
+                public InstructionBlock(TracedVariables variables, TracedStack stack, int startOffset)
+                {
+                    this.variables=variables;
+                    this.stack=stack;
+                    this.startOffset=startOffset;
+                }
+            }
+            static class InstructionTracker {
+                public boolean isSeenBefore;
+                public boolean isGeneralization;
+                public Instruction instruction;
+                public int instructionOffset;
+                public List<InstructionBlock> evaluationBlockStack;
+                public TracedVariables variablesBefore;
+                public TracedStack stackBefore;
 
-    static class InstructionDTO
-    {
-        private final String instruction;
-        private final int offset;
-        private final String Stack;
-        private final String variables;
+                public InstructionTracker(boolean isSeenBefore, boolean isGeneralization, Instruction instruction, int instructionOffset, List<InstructionBlock> evaluationBlockStack, TracedVariables variablesBefore, TracedStack stackBefore)
+                {
+                    this.isSeenBefore=isSeenBefore;
+                    this.isGeneralization=isGeneralization;
+                    this.instruction=instruction;
+                    this.instructionOffset=instructionOffset;
+                    this.evaluationBlockStack=evaluationBlockStack;
+                    this.variablesBefore=variablesBefore;
+                    this.stackBefore=stackBefore;
+                }
+            }
+            public Clazz clazz;
+            public Method method;
+            public TracedVariables startVariables;
+            public TracedStack startStack;
+            public int startOffset;
 
-        public InstructionDTO(String instruction, int offset, String stack, String variables)
-        {
-            this.instruction = instruction;
-            this.offset = offset;
-            Stack = stack;
-            this.variables = variables;
+            public MethodTracker(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int startOffset)
+            {
+                this.clazz=clazz;
+                this.method=method;
+                this.startVariables=startVariables;
+                this.startStack=startStack;
+                this.startOffset=startOffset;
+            }
         }
+        static class ErrorTracker
+        {
+            public Clazz clazz;
+            public MethodTracker method;
+            public int instructionOffset;
+            public String message;
+            Throwable cause;
+
+            public ErrorTracker(Clazz clazz, MethodTracker method, int instructionOffset, String message, Throwable cause)
+            {
+                this.clazz=clazz;
+                this.method=method;
+                this.instructionOffset=instructionOffset;
+                this.message=message;
+                this.cause=cause;
+            }
+        }
+        public final List<MethodTracker> methods = new ArrayList<>();
+        public ErrorTracker error;
     }
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    private PartialEvaluator evaluator;
-
-    private final Map<String, Map<String, List<InstructionDTO>>> mappy;
-
-    public MachinePrinter() {
-        mappy = new HashMap<>();
-    }
-
-    public void setEvaluator(PartialEvaluator evaluator) {
-        this.evaluator = evaluator;
-    }
+    private StateTracker stateTracker = new StateTracker();
 
     @Override
     public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)

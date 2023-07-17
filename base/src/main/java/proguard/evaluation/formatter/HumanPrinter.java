@@ -15,53 +15,63 @@ import proguard.evaluation.TracedVariables;
 import proguard.evaluation.Variables;
 import proguard.evaluation.value.InstructionOffsetValue;
 
-public class HumanPrinter
+public class HumanPrinter implements PartialEvaluatorStateTracker
 {
+    @Override
     public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info) {
         System.out.println("No information for partial evaluation of exception ["+startPC +" -> "+endPC +": "+info.u2handlerPC+"]");
     }
 
+    @Override
     public void registerExceptionHandler(int startPC, int endPC, int handlerPC)
     {
         System.out.println("Evaluating exception ["+startPC+" -> "+endPC+": "+handlerPC+"]:");
     }
 
+    @Override
     public void startExceptionHandling(int startOffset, int endOffset)
     {
         System.out.println("Evaluating exceptions covering ["+startOffset+" -> "+endOffset+"]:");
     }
 
+    @Override
     public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
     {
         System.out.println("Ending subroutine from "+subroutineStart+" to "+subroutineEnd);
     }
 
+    @Override
     public void endSubroutine(int subroutineStart, int subroutineEnd)
     {
         System.out.println("Ending subroutine from "+subroutineStart+" to "+subroutineEnd);
     }
 
+    @Override
     public void startSubroutine(int subroutineStart, int subroutineEnd)
     {
         System.out.println("Evaluating subroutine from "+subroutineStart+" to "+subroutineEnd);
     }
 
+    @Override
     public void instructionBlockDone(int startOffset)
     {
         System.out.println("Ending processing of instruction block starting at ["+startOffset+"]");
     }
 
+    @Override
     public void definitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets)
     {
         System.out.println("Definite branch from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(0)+"]");
     }
 
+    @Override
     public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue)
     {
         System.out.println("Pushing alternative branch #"+index+" out of "+branchTargetCount+
                 ", from ["+instructionOffset+"] to ["+offsetValue+"]");
     }
 
+    @Override
     public void afterInstructionEvaluation(BasicBranchUnit branchUnit, int instructionOffset,
                                            TracedVariables variables, TracedStack stack,
                                            InstructionOffsetValue branchTarget)
@@ -81,21 +91,25 @@ public class HumanPrinter
         System.out.println(" Stack: "+stack);
     }
 
+    @Override
     public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset)
     {
         System.out.println(instruction.toString(clazz, instructionOffset));
     }
 
+    @Override
     public void generalizeInstructionBlock(int evaluationCount)
     {
         System.out.println("Generalizing current context after "+evaluationCount+" evaluations");
     }
 
+    @Override
     public void skipInstructionBlock()
     {
         System.out.println("Repeated variables, stack, and branch targets");
     }
 
+    @Override
     public void startInstructionBlock(Clazz clazz,
                                       Method method,
                                       CodeAttribute codeAttribute,
@@ -112,11 +126,13 @@ public class HumanPrinter
         System.out.println("Init stack: "+stack);
     }
 
+    @Override
     public void printStartBranchCodeBlockEvaluation(int stackSize)
     {
         System.out.println("Popping alternative branch out of "+stackSize+" blocks");
     }
 
+    @Override
     public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
         System.out.println("Evaluation results:");
@@ -161,6 +177,7 @@ public class HumanPrinter
         while (offset < codeAttribute.u4codeLength);
     }
 
+    @Override
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
         System.out.println();
@@ -171,6 +188,7 @@ public class HumanPrinter
 
     }
 
+    @Override
     public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
         method.accept(clazz, new ClassPrinter());

@@ -41,6 +41,7 @@ import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
 import proguard.evaluation.formatter.HumanPrinter;
+import proguard.evaluation.formatter.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
@@ -59,7 +60,7 @@ implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
     //*
-    private static final HumanPrinter printer = new HumanPrinter();
+    private static final PartialEvaluatorStateTracker printer = new HumanPrinter();
     /*/
     public static boolean DEBUG         = System.getProperty("pe") != null;
     public static boolean DEBUG_RESULTS = DEBUG;
