@@ -83,18 +83,18 @@ public class MachinePrinter implements InstructionVisitor
     @Override
     public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
     {
-        Map<String, List<InstructionDTO>> methods = mappy.computeIfAbsent(clazz.getName(), k -> new HashMap<>());
-
-        List<InstructionDTO> instructions =
-                methods.computeIfAbsent(method.getName(clazz), k -> new ArrayList<>());
-
-        InstructionDTO instructionDTO = new InstructionDTO(
-                instruction.toString(),
-                offset,
-                evaluator.getStackBefore(offset).toString(),
-                evaluator.getVariablesBefore(offset).toString()
-        );
-        instructions.add(instructionDTO);
+        //Map<String, List<InstructionDTO>> methods = mappy.computeIfAbsent(clazz.getName(), k -> new HashMap<>());
+//
+        //List<InstructionDTO> instructions =
+        //        methods.computeIfAbsent(method.getName(clazz), k -> new ArrayList<>());
+//
+        //InstructionDTO instructionDTO = new InstructionDTO(
+        //        instruction.toString(),
+        //        offset,
+        //        evaluator.getStackBefore(offset).toString(),
+        //        evaluator.getVariablesBefore(offset).toString()
+        //);
+        //instructions.add(instructionDTO);
 
         // System.out.println(gson.toJson(mappy));
     }
