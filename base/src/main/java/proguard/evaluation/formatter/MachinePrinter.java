@@ -33,8 +33,9 @@ import java.util.Set;
  *              "evaluations": [
  *                  {
  *                      "isSeenBefore": bool,
- *                      "isGeneralization": bool,
+ *                      "isGeneralization": bool,  --- Check if this breaks????
  *                      "instruction": str,
+ *                      "instructionOffset"
  *                      "updatedEvaluationStack"?: new stack
  *                      "variablesBefore"
  *                      "stackBefore"
@@ -53,6 +54,10 @@ import java.util.Set;
  */
 public class MachinePrinter implements InstructionVisitor
 {
+    class StateTracker {
+
+    }
+
     static class InstructionDTO
     {
         private final String instruction;

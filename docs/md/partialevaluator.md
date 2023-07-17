@@ -535,8 +535,9 @@ stateDiagram-v2
                     BR1 --> [*] : Yes
                     BR2: Already evaluated a lot of times?
                     BR1 --> BR2: No
+                    BR2 --> generalizeInstructionBlock: Yes
+                    generalizeInstructionBlock --> startInstructionEvaluation
                     BR2 --> startInstructionEvaluation: No
-                    BR2 --> [*]: Yes
                     startInstructionEvaluation --> afterInstructionEvaluation
                     BR3: Branch unit has been called?
                     afterInstructionEvaluation --> BR3
