@@ -22,6 +22,7 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
 import proguard.evaluation.formatter.MachinePrinter
@@ -53,50 +54,16 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            val printer = MachinePrinter()
-            val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
-                printer,
-            ).build()
-            printer.setEvaluator(pe)
-            evaluateProgramClass(
-                programClass,
-                pe,
-                "test",
-                "()Ljava/lang/Object;",
-            )
-        }
-
-        "Entire PE lifecycle - simplified" {
-            val build = buildClass()
-                .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
-                    it.iconst(50).ireturn()
-                }
-            val programClass = build
-                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
-                    it
-                        .invokestatic(
-                            "PartialEvaluatorDummy",
-                            "initializer",
-                            "()I",
-                            it.targetClass,
-                            it.targetClass.findMethod("initializer"),
-                        )
-                        .ireturn()
-                }
-                .programClass
-
-            val printer = MachinePrinter()
-            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
-            val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
-                printer,
-            ).setValueFactory(valueFactory).setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory)).setEvaluateAllCode(true).build()
-            printer.setEvaluator(pe)
-            evaluateProgramClass(
-                programClass,
-                pe,
-                "test",
-                "()I",
-            )
+            val pe = PartialEvaluator.Builder.create().build()
+            shouldThrow<VariableEmptySlotException> {
+                evaluateProgramClass(
+                    programClass,
+                    pe,
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
+            (pe.tracker as MachinePrinter).printState()
         }
 
         "Entire PE lifecycle" {
@@ -139,18 +106,18 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            val printer = MachinePrinter()
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
-            val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
-                printer,
-            ).setValueFactory(valueFactory).setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory)).setEvaluateAllCode(true).build()
-            printer.setEvaluator(pe)
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(true).build()
             evaluateProgramClass(
                 programClass,
                 pe,
                 "test",
                 "()I",
             )
+            (pe.tracker as MachinePrinter).printState()
         }
 
         "Variable types do not match" {

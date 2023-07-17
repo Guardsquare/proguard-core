@@ -92,7 +92,7 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset)
+    public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset, TracedVariables variablesBefore, TracedStack stackBefore)
     {
         System.out.println(instruction.toString(clazz, instructionOffset));
     }
@@ -189,7 +189,7 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
+    public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause)
     {
         method.accept(clazz, new ClassPrinter());
 

@@ -2,84 +2,107 @@ package proguard.evaluation.formatter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.ExceptionInfo;
 import proguard.classfile.instruction.Instruction;
-import proguard.classfile.instruction.visitor.InstructionVisitor;
+import proguard.evaluation.BasicBranchUnit;
 import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.TracedStack;
 import proguard.evaluation.TracedVariables;
+import proguard.evaluation.Variables;
+import proguard.evaluation.value.InstructionOffsetValue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
  * Capable of printing machine-readable output (JSON) xp
- *
  * {
- *     "evaluation-steps": [
- *          { BlockEvaluation(?) - do recursive evaluations happen often? Or only when using jsr?
- *              "class",
- *              "method",
- *              "startVariables",
- *              "startStack",
- *              "startOffset"
- *              "evaluations": [
- *                  {
- *                      "isSeenBefore": bool,
- *                      "isGeneralization": bool,  --- Check if this breaks????
- *                      "instruction": str,
- *                      "instructionOffset"
- *                      "updatedEvaluationStack"?: new stack
- *                      "variablesBefore"
- *                      "stackBefore"
- *                  }
- *              ]
- *          }
- *     ]
- *     "error"?: {
- *         clazz
- *         method
- *         offset: int,
- *         message: string,
- *         stacktrace: string,
- *     }
+ * "evaluation-steps": [
+ * { BlockEvaluation(?) - do recursive evaluations happen often? Or only when using jsr?
+ * "class",
+ * "method",
+ * "startVariables",
+ * "startStack",
+ * "startOffset"
+ * "evaluations": [
+ * {
+ * "isSeenBefore": bool,
+ * "isGeneralization": bool,
+ * "instruction": str,
+ * "instructionOffset"
+ * "updatedEvaluationStack"?: new stack
+ * "variablesBefore"
+ * "stackBefore"
+ * }
+ * ]
+ * }
+ * ]
+ * "error"?: {
+ * clazz
+ * method
+ * offset: int,
+ * message: string,
+ * stacktrace: string,
+ * }
  * }
  */
-public class MachinePrinter implements InstructionVisitor
+
+public class MachinePrinter implements PartialEvaluatorStateTracker
 {
-    static class StateTracker {
-        static class MethodTracker {
-            class InstructionBlock {
-                public TracedVariables variables;
-                public TracedStack stack;
+    static class StateTracker
+    {
+        static class MethodTracker
+        {
+            static class InstructionBlock
+            {
+                public String variables;
+                public String stack;
                 public int startOffset;
 
-                public InstructionBlock(TracedVariables variables, TracedStack stack, int startOffset)
+                public InstructionBlock(String variables, String stack, int startOffset)
                 {
                     this.variables=variables;
                     this.stack=stack;
                     this.startOffset=startOffset;
                 }
             }
-            static class InstructionTracker {
-                public boolean isSeenBefore;
-                public boolean isGeneralization;
-                public Instruction instruction;
-                public int instructionOffset;
-                public List<InstructionBlock> evaluationBlockStack;
-                public TracedVariables variablesBefore;
-                public TracedStack stackBefore;
 
-                public InstructionTracker(boolean isSeenBefore, boolean isGeneralization, Instruction instruction, int instructionOffset, List<InstructionBlock> evaluationBlockStack, TracedVariables variablesBefore, TracedStack stackBefore)
+            static class InstructionLevelTracker
+            {
+                public Boolean isSeenBefore;
+                public Boolean isGeneralization;
+                public Integer timesSeen;
+                public String instruction;
+                public Integer instructionOffset;
+                public List<InstructionBlock> evaluationBlockStack;
+                public String variablesBefore;
+                public String stackBefore;
+
+                public static InstructionLevelTracker seenIndicator() {
+                    return new InstructionLevelTracker(
+                            true, null, null, null,
+                            null, null, null, null);
+                }
+
+                public static InstructionLevelTracker generalizationIndicator(int timesSeen) {
+                    return new InstructionLevelTracker(null, true, timesSeen, null,
+                            null, null, null, null);
+                }
+
+                public static InstructionLevelTracker instructionTracker(
+                        String instruction, int instructionOffset, List<InstructionBlock> evaluationBlockStack,
+                                                                         String variablesBefore, String stackBefore) {
+                    return new InstructionLevelTracker(null, null, null,
+                            instruction, instructionOffset, evaluationBlockStack, variablesBefore, stackBefore);
+                }
+
+                public InstructionLevelTracker(Boolean isSeenBefore, Boolean isGeneralization, Integer timesSeen, String instruction,
+                                               Integer instructionOffset, List<InstructionBlock> evaluationBlockStack,
+                                               String variablesBefore, String stackBefore)
                 {
                     this.isSeenBefore=isSeenBefore;
                     this.isGeneralization=isGeneralization;
@@ -90,13 +113,16 @@ public class MachinePrinter implements InstructionVisitor
                     this.stackBefore=stackBefore;
                 }
             }
-            public Clazz clazz;
-            public Method method;
-            public TracedVariables startVariables;
-            public TracedStack startStack;
-            public int startOffset;
 
-            public MethodTracker(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int startOffset)
+            public String clazz;
+            public String method;
+            public String startVariables;
+            public String startStack;
+            public int startOffset;
+            public List<InstructionLevelTracker> instructions = new ArrayList<>();
+
+            public MethodTracker(String clazz, String method, String startVariables,
+                                 String startStack, int startOffset)
             {
                 this.clazz=clazz;
                 this.method=method;
@@ -104,16 +130,24 @@ public class MachinePrinter implements InstructionVisitor
                 this.startStack=startStack;
                 this.startOffset=startOffset;
             }
+
+            public InstructionLevelTracker getLastInstruction() {
+                if (instructions.isEmpty()) {
+                    return null;
+                }
+                return instructions.get(instructions.size() - 1);
+            }
         }
+
         static class ErrorTracker
         {
-            public Clazz clazz;
-            public MethodTracker method;
+            public String clazz;
+            public String method;
             public int instructionOffset;
             public String message;
-            Throwable cause;
+            String cause;
 
-            public ErrorTracker(Clazz clazz, MethodTracker method, int instructionOffset, String message, Throwable cause)
+            public ErrorTracker(String clazz, String method, int instructionOffset, String message, String cause)
             {
                 this.clazz=clazz;
                 this.method=method;
@@ -122,30 +156,153 @@ public class MachinePrinter implements InstructionVisitor
                 this.cause=cause;
             }
         }
-        public final List<MethodTracker> methods = new ArrayList<>();
+
+        public MethodTracker getLastMethodTracker() {
+            return methods.get(methods.size() - 1);
+        }
+
+        public final List<MethodTracker> methods=new ArrayList<>();
         public ErrorTracker error;
     }
 
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 
-    private StateTracker stateTracker = new StateTracker();
+    private StateTracker stateTracker=new StateTracker();
 
     @Override
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
+    public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info)
     {
-        //Map<String, List<InstructionDTO>> methods = mappy.computeIfAbsent(clazz.getName(), k -> new HashMap<>());
-//
-        //List<InstructionDTO> instructions =
-        //        methods.computeIfAbsent(method.getName(clazz), k -> new ArrayList<>());
-//
-        //InstructionDTO instructionDTO = new InstructionDTO(
-        //        instruction.toString(),
-        //        offset,
-        //        evaluator.getStackBefore(offset).toString(),
-        //        evaluator.getVariablesBefore(offset).toString()
-        //);
-        //instructions.add(instructionDTO);
 
-        // System.out.println(gson.toJson(mappy));
+    }
+
+    @Override
+    public void registerExceptionHandler(int startPC, int endPC, int handlerPC)
+    {
+
+    }
+
+    @Override
+    public void startExceptionHandling(int startOffset, int endOffset)
+    {
+
+    }
+
+    @Override
+    public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
+    {
+
+    }
+
+    @Override
+    public void endSubroutine(int subroutineStart, int subroutineEnd)
+    {
+
+    }
+
+    @Override
+    public void startSubroutine(int subroutineStart, int subroutineEnd)
+    {
+
+    }
+
+    @Override
+    public void instructionBlockDone(int startOffset)
+    {
+
+    }
+
+    @Override
+    public void definitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets)
+    {
+
+    }
+
+    @Override
+    public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue)
+    {
+
+    }
+
+    @Override
+    public void afterInstructionEvaluation(BasicBranchUnit branchUnit, int instructionOffset, TracedVariables variables, TracedStack stack, InstructionOffsetValue branchTarget)
+    {
+
+    }
+
+    @Override
+    public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset,
+                                           TracedVariables variablesBefore, TracedStack stackBefore)
+    {
+        StateTracker.MethodTracker.InstructionLevelTracker tracker = stateTracker.getLastMethodTracker().getLastInstruction();
+        if (tracker != null && tracker.isGeneralization != null && tracker.isGeneralization) {
+            tracker.instruction = instruction.toString();
+            tracker.instructionOffset = instructionOffset;
+            tracker.variablesBefore = variablesBefore.toString();
+            tracker.stackBefore = stackBefore.toString();
+        } else
+        {
+            stateTracker.getLastMethodTracker().instructions.add(
+                    StateTracker.MethodTracker.InstructionLevelTracker.instructionTracker(
+                            instruction.toString(), instructionOffset, null,
+                            variablesBefore.toString(), stackBefore.toString()
+                    )
+            );
+        }
+    }
+
+    @Override
+    public void generalizeInstructionBlock(int evaluationCount)
+    {
+        stateTracker.getLastMethodTracker().instructions.add(
+                StateTracker.MethodTracker.InstructionLevelTracker.generalizationIndicator(evaluationCount)
+        );
+    }
+
+    @Override
+    public void skipInstructionBlock()
+    {
+        stateTracker.getLastMethodTracker().instructions.add(
+                StateTracker.MethodTracker.InstructionLevelTracker.seenIndicator());
+    }
+
+    @Override
+    public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute, TracedVariables variables, TracedStack stack, int startOffset)
+    {
+        stateTracker.methods.add(new StateTracker.MethodTracker(
+                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), variables.toString(),
+                stack.toString(), startOffset
+        ));
+    }
+
+    @Override
+    public void printStartBranchCodeBlockEvaluation(int stackSize)
+    {
+
+    }
+
+    @Override
+    public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
+    {
+
+    }
+
+    @Override
+    public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
+    {
+
+    }
+
+    @Override
+    public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause)
+    {
+        stateTracker.error = new StateTracker.ErrorTracker(
+                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz),
+                stateTracker.getLastMethodTracker().getLastInstruction().instructionOffset, cause.getMessage(), null
+        );
+    }
+
+    public void printState()
+    {
+        System.out.println(gson.toJson(stateTracker));
     }
 }

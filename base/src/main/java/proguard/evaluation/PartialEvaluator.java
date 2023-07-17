@@ -40,7 +40,7 @@ import proguard.classfile.util.BranchTargetFinder;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
-import proguard.evaluation.formatter.HumanPrinter;
+import proguard.evaluation.formatter.MachinePrinter;
 import proguard.evaluation.formatter.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
@@ -60,7 +60,12 @@ implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
     //*
-    private static final PartialEvaluatorStateTracker printer = new HumanPrinter();
+    private static final PartialEvaluatorStateTracker printer = new MachinePrinter();
+
+    public PartialEvaluatorStateTracker getTracker() {
+        return printer;
+    }
+
     /*/
     public static boolean DEBUG         = System.getProperty("pe") != null;
     public static boolean DEBUG_RESULTS = DEBUG;
@@ -371,7 +376,7 @@ implements   AttributeVisitor,
             logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
             logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
-            if (printer != null) printer.registerException(clazz, method, codeAttribute, this);
+            if (printer != null) printer.registerException(clazz, method, codeAttribute, this, ex);
 
             throw ex;
         }
@@ -901,7 +906,7 @@ implements   AttributeVisitor,
             // Reset the branch unit.
             branchUnit.reset();
 
-            if (printer != null) printer.startInstructionEvaluation(instruction, clazz, instructionOffset);
+            if (printer != null) printer.startInstructionEvaluation(instruction, clazz, instructionOffset, variables, stack);
 
             if (extraInstructionVisitor != null)
             {
