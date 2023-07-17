@@ -20,21 +20,24 @@ import java.util.Set;
 
 
 /**
- * Capable of printing machine readable output (JSON) xp
+ * Capable of printing machine-readable output (JSON) xp
  *
  * {
- *     classes: MAP[
- *          {
- *              methods: MAP[
+ *     "evaluation-steps": [
+ *          { BlockEvaluation(?) - do recursive evaluations happen often? Or only when using jsr?
+ *              "class",
+ *              "method",
+ *              "startVariables",
+ *              "startStack",
+ *              "startOffset"
+ *              "evaluations": [
  *                  {
- *                      "instructions": [
- *                          {
- *                              "representation"
- *                              "offset"
- *                              "stack"
- *                              "variables"
- *                          }
- *                      ]
+ *                      "isSeenBefore": bool,
+ *                      "isGeneralization": bool,
+ *                      "instruction": str,
+ *                      "updatedEvaluationStack"?: new stack
+ *                      "variablesBefore"
+ *                      "stackBefore"
  *                  }
  *              ]
  *          }

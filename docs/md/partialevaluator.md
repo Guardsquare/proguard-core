@@ -549,7 +549,8 @@ stateDiagram-v2
                     definitiveBranch --> BR6
                     BR6: Instruction was JSR or JSR_W?
                     BR3 --> BR6 : No
-                    BR6 --> [*]: No
+                    Repeat: Go to next instruction
+                    BR6 --> Repeat: No
                     L5: Instruction was subroutine invocation
                     BR6 --> L5: Yes
                     state L5 {
@@ -561,7 +562,7 @@ stateDiagram-v2
                         generalizeSubroutine --> endSubroutine
                         endSubroutine --> [*]
                     }
-                    L5 --> [*]
+                    L5 --> Repeat
 
                 }
                 L3 --> instructionBlockDone
