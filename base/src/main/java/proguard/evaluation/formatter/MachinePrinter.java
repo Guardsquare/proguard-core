@@ -96,6 +96,6 @@ public class MachinePrinter implements InstructionVisitor
         );
         instructions.add(instructionDTO);
 
-        System.out.println(gson.toJson(mappy));
+        // System.out.println(gson.toJson(mappy));
     }
 }
