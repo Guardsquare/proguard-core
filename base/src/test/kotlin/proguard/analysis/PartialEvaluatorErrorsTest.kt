@@ -27,6 +27,7 @@ import proguard.evaluation.exception.VariableTypeException
 import proguard.evaluation.formatter.MachinePrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.testutils.findMethod
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
@@ -66,17 +67,24 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Entire PE lifecycle" {
-            val programClass = buildClass()
+            val build = buildClass()
                 .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
                     it.iconst(50).ireturn()
                 }
+            val programClass = build
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
                     val startLabel = it.createLabel()
                     val elseLabel = it.createLabel()
                     val loadLabel = it.createLabel()
                     val endLabel = it.createLabel()
                     it
-                        .invokestatic("PartialEvaluatorDummy", "initializer", "()I")
+                        .invokestatic(
+                            "PartialEvaluatorDummy",
+                            "initializer",
+                            "()I",
+                            it.targetClass,
+                            it.targetClass.findMethod("initializer"),
+                        )
                         .label(startLabel)
                         .dup()
                         .iconst_5()
