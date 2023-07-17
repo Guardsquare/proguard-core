@@ -99,10 +99,10 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val printer = MachinePrinter()
-            val valueFactory = ParticularValueFactory()
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
                 printer,
-            ).setValueFactory(valueFactory).setInvocationUnit(ExecutingInvocationUnit(valueFactory)).setEvaluateAllCode(true).build()
+            ).setValueFactory(valueFactory).setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory)).setEvaluateAllCode(true).build()
             printer.setEvaluator(pe)
             evaluateProgramClass(
                 programClass,
