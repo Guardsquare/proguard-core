@@ -966,7 +966,8 @@ implements   AttributeVisitor,
                         // There's not even a context at this index yet.
                         variablesBefore[instructionOffset]=new TracedVariables(variables);
                         stacksBefore[instructionOffset]=new TracedStack(stack);
-                    } else
+                    }
+                    else
                     {
                         // Reuse the context objects at this index.
                         variablesBefore[instructionOffset].initialize(variables);
@@ -976,11 +977,12 @@ implements   AttributeVisitor,
                     // We'll execute in the generalized context, because it is
                     // the same as the current context.
                     generalizedContexts[instructionOffset]=true;
-                } else
+                }
+                else
                 {
                     // Merge in the current context.
-                    boolean variablesChanged = false;
-                    boolean stackChanged = false;
+                    boolean variablesChanged;
+                    boolean stackChanged;
                     try
                     {
                         variablesChanged=variablesBefore[instructionOffset].generalize(variables, true);

@@ -14,8 +14,8 @@ public class StackGeneralizationException extends ProguardCoreException
     {
         super(ErrorId.STACK_GENERALIZATION, cause, "Could not generalize stacks %s and %s because: \"%s\".",
                 first.toString(), second.toString(), cause.getMessage());
-        this.first=first;
-        this.second=second;
+        this.first = first;
+        this.second = second;
     }
 
     public TracedStack getFirst()

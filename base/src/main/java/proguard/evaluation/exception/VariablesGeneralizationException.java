@@ -13,8 +13,8 @@ public class VariablesGeneralizationException extends ProguardCoreException
     {
         super(ErrorId.VARIABLE_GENERALIZATION, cause, "Could not generalize variables %s and %s because: \"%s\".",
                 first.toString(), second.toString(), cause.getMessage());
-        this.first=first;
-        this.second=second;
+        this.first = first;
+        this.second = second;
     }
 
     public TracedVariables getFirst()
