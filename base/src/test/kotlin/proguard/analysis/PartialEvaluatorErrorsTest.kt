@@ -64,6 +64,43 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             )
         }
 
+        "Entire PE lifecycle" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    val endLabel = it.createLabel()
+                    it.iconst(50)
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        .ifle(elseLabel) // if_icmple
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .aload_0()
+                        .athrow()
+                        .label(endLabel)
+                        .catchAll(startLabel, endLabel)
+                        .iconst_5()
+                        .ireturn()
+                }
+                .programClass
+
+            val printer = MachinePrinter()
+            val pe = PartialEvaluator.Builder.create().setExtraInstructionVisitor(
+                printer,
+            ).build()
+            printer.setEvaluator(pe)
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+        }
+
         "Variable types do not match" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
