@@ -58,6 +58,69 @@ class PartialEvaluatorTest : FreeSpec({
             (pe.tracker as MachinePrinter).writeState()
         }
 
+        "simple throw and catch" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val midLabel = it.createLabel()
+                    val endLabel = it.createLabel()
+                    it
+                        .label(startLabel)
+                        .aload_0()
+                        .label(midLabel)
+                        .athrow()
+                        .label(endLabel)
+                        .catch_(startLabel, endLabel, "appel", null)
+                        // .catchAll(startLabel, endLabel)
+                        .iconst_1()
+                        .ireturn()
+                }
+                .programClass
+
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(true).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+            (pe.tracker as MachinePrinter).writeState()
+        }
+
+        "simple catch, no throw" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val endLabel = it.createLabel()
+                    it
+                        .label(startLabel)
+                        .iconst_2()
+                        .ireturn()
+                        .label(endLabel)
+                        .catchAll(startLabel, endLabel)
+                        .iconst_1()
+                        .ireturn()
+                }
+                .programClass
+
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(false).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+            (pe.tracker as MachinePrinter).writeState()
+        }
+
         "Complete" {
             val build = buildClass()
                 .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {

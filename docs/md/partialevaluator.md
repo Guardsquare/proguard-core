@@ -572,8 +572,8 @@ stateDiagram-v2
             L6: For each generated instructionBlock on generated stack
             L2 --> L6
             state L6 {
-                evaluateAllBlocksResultingFromBranch --> pop
-                pop --> evaluateAllBlocksResultingFromBranch
+              evaluateSingleInstructionBlock --> pop
+              pop --> evaluateSingleInstructionBlock
             }
             L6 --> [*]
         }
@@ -586,7 +586,8 @@ stateDiagram-v2
             BR7 --> registerExceptionHandler: Yes
             BR7 --> registerUnusedExceptionHandler: No
             nextExceptionHandler: Go to next exception handler
-            registerExceptionHandler --> nextExceptionHandler
+            registerExceptionHandler --> evaluateInstructionBlock
+            evaluateInstructionBlock --> nextExceptionHandler
             registerUnusedExceptionHandler --> nextExceptionHandler
         }
         L7 --> evaluationResults

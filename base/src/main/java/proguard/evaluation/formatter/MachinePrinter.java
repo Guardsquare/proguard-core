@@ -29,11 +29,12 @@ import java.util.List;
  *          clazz
  *          method
  *          instructions: {offset, instruction}[],
- *          variables
+ *          variables: String(Value)[]
  *          blockEvaluations: {
  *              startOffset,
  *              variables,
  *              stack,
+ *              exceptionInfo: { startOffset, endOffset, catchType (just string name) }
  *              evaluations: {
  *                  isSeenBefore,
  *                  isGeneralization,
@@ -210,18 +211,21 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info)
     {
+        System.out.println("temp");
 
     }
 
     @Override
     public void registerExceptionHandler(int startPC, int endPC, int handlerPC)
     {
+        System.out.println("temp");
 
     }
 
     @Override
     public void startExceptionHandling(int startOffset, int endOffset)
     {
+        System.out.println("temp");
 
     }
 
@@ -336,6 +340,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
+        parameters.
         stateTracker.codeAttributes.add(new StateTracker.CodeAttributeTracker(
                 clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), parameters.toString()
         ));
