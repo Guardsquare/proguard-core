@@ -241,10 +241,46 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         return res;
     }
 
+    // Code attribute level:
     @Override
-    public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info)
+    public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
+    {
+        stateTracker.codeAttributes.add(new StateTracker.CodeAttributeTracker(
+                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), formatValueList(parameters)
+        ));
+        byte[] code = codeAttribute.code;
+        int offset = 0;
+        while (offset < code.length) {
+            Instruction instruction = InstructionFactory.create(code, offset);
+            stateTracker.getLastCodeAttribute().instructions.add(
+                    new StateTracker.CodeAttributeTracker.InstructionTracker(
+                            offset, instruction.toString()
+                    ));
+
+            offset += instruction.length(offset);
+        }
+    }
+
+
+    @Override
+    public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause)
+    {
+        stateTracker.error = new StateTracker.ErrorTracker(
+                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz),
+                stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation().instructionOffset
+                , cause.getMessage(), null
+        );
+    }
+
+
+    // Exceptions
+
+
+    @Override
+    public void startExceptionHandling(int startOffset, int endOffset)
     {
         System.out.println("temp");
+
     }
 
     @Override
@@ -262,28 +298,39 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void startExceptionHandling(int startOffset, int endOffset)
+    public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info)
     {
         System.out.println("temp");
+    }
+
+
+    // Results
+    @Override
+    public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
+    {
 
     }
 
+
+
+    // Instruction block level
     @Override
-    public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
+    public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
+                                      TracedVariables variables, TracedStack stack, int startOffset)
     {
-        throw new RuntimeException("NOT SUPPORTED");
+        if (!stateTracker.getLastCodeAttribute().lastEvaluationStack.isEmpty()) {
+            stateTracker.getLastCodeAttribute().lastEvaluationStack.remove(stateTracker.getLastCodeAttribute().lastEvaluationStack.size() - 1);
+        }
+        stateTracker.getLastCodeAttribute().blockEvaluations.add(
+                new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
+                        formatValueList(variables), formatValueList(stack), startOffset
+                ));
     }
 
     @Override
-    public void endSubroutine(int subroutineStart, int subroutineEnd)
+    public void printStartBranchCodeBlockEvaluation(int stackSize)
     {
-        throw new RuntimeException("NOT SUPPORTED");
-    }
 
-    @Override
-    public void startSubroutine(int subroutineStart, int subroutineEnd)
-    {
-        throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override
@@ -292,26 +339,20 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
     }
 
-    @Override
-    public void definitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets)
-    {
 
+    // Instruction level:
+    @Override
+    public void skipInstructionBlock()
+    {
+        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+                StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.seenIndicator());
     }
 
     @Override
-    public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue, TracedVariables variables, TracedStack stack, int offset)
+    public void generalizeInstructionBlock(int evaluationCount)
     {
-        stateTracker.getLastCodeAttribute().lastEvaluationStack.add(new StateTracker.CodeAttributeTracker.InstructionBlock(
-                formatValueList(variables), formatValueList(stack), offset
-        ));
-        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation().updatedEvaluationStack =
-                new ArrayList<>(stateTracker.getLastCodeAttribute().lastEvaluationStack);
-    }
-
-    @Override
-    public void afterInstructionEvaluation(BasicBranchUnit branchUnit, int instructionOffset, TracedVariables variables, TracedStack stack, InstructionOffsetValue branchTarget)
-    {
-
+        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+                StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.generalizationIndicator(evaluationCount));
     }
 
     @Override
@@ -338,73 +379,47 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void generalizeInstructionBlock(int evaluationCount)
+    public void afterInstructionEvaluation(BasicBranchUnit branchUnit, int instructionOffset, TracedVariables variables, TracedStack stack, InstructionOffsetValue branchTarget)
     {
-        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
-                StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.generalizationIndicator(evaluationCount));
+
     }
 
     @Override
-    public void skipInstructionBlock()
+    public void definitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets)
     {
-        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
-                StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.seenIndicator());
+
     }
 
     @Override
-    public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
-                                      TracedVariables variables, TracedStack stack, int startOffset)
+    public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue, TracedVariables variables, TracedStack stack, int offset)
     {
-        if (!stateTracker.getLastCodeAttribute().lastEvaluationStack.isEmpty()) {
-            stateTracker.getLastCodeAttribute().lastEvaluationStack.remove(stateTracker.getLastCodeAttribute().lastEvaluationStack.size() - 1);
-        }
-        stateTracker.getLastCodeAttribute().blockEvaluations.add(
-            new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
-                    formatValueList(variables), formatValueList(stack), startOffset
+        stateTracker.getLastCodeAttribute().lastEvaluationStack.add(new StateTracker.CodeAttributeTracker.InstructionBlock(
+                formatValueList(variables), formatValueList(stack), offset
         ));
+        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation().updatedEvaluationStack =
+                new ArrayList<>(stateTracker.getLastCodeAttribute().lastEvaluationStack);
+    }
+
+    // Subroutine:
+    @Override
+    public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
+    {
+        throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override
-    public void printStartBranchCodeBlockEvaluation(int stackSize)
+    public void endSubroutine(int subroutineStart, int subroutineEnd)
     {
-
+        throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override
-    public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
+    public void startSubroutine(int subroutineStart, int subroutineEnd)
     {
-
+        throw new RuntimeException("NOT SUPPORTED");
     }
-
-    @Override
-    public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
-    {
-        stateTracker.codeAttributes.add(new StateTracker.CodeAttributeTracker(
-                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), formatValueList(parameters)
-        ));
-        byte[] code = codeAttribute.code;
-        int offset = 0;
-        while (offset < code.length) {
-            Instruction instruction = InstructionFactory.create(code, offset);
-            stateTracker.getLastCodeAttribute().instructions.add(
-                new StateTracker.CodeAttributeTracker.InstructionTracker(
-                    offset, instruction.toString()
-            ));
-
-            offset += instruction.length(offset);
-        }
-    }
-
-    @Override
-    public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause)
-    {
-        stateTracker.error = new StateTracker.ErrorTracker(
-                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz),
-                stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation().instructionOffset
-                , cause.getMessage(), null
-        );
-    }
-
+    
+    // Access functions
     public String getJson() {
         for (StateTracker.CodeAttributeTracker tracker: stateTracker.codeAttributes) {
             tracker.lastEvaluationStack = null;
