@@ -33,6 +33,7 @@ import java.util.List;
  *              evaluations: {
  *                  isSeenBefore,
  *                  isGeneralization,
+ *                  timesSeen,
  *                  offset,
  *                  instruction
  *                  updatedEvaluationStack,
@@ -55,7 +56,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 {
     static class StateTracker
     {
-        static class MethodTracker
+        static class codeAttributeTracker
         {
             static class InstructionBlock
             {
@@ -82,72 +83,89 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                 }
             }
 
-            static class InstructionLevelTracker
-            {
-                public Boolean isSeenBefore;
-                public Boolean isGeneralization;
-                public Integer timesSeen;
-                public String instruction;
-                public Integer instructionOffset;
-                public List<InstructionBlock> evaluationBlockStack;
-                public String variablesBefore;
-                public String stackBefore;
-
-                public static InstructionLevelTracker seenIndicator() {
-                    return new InstructionLevelTracker(
-                            true, null, null, null,
-                            null, null, null, null);
-                }
-
-                public static InstructionLevelTracker generalizationIndicator(int timesSeen) {
-                    return new InstructionLevelTracker(null, true, timesSeen, null,
-                            null, null, null, null);
-                }
-
-                public static InstructionLevelTracker instructionTracker(
-                        String instruction, int instructionOffset, List<InstructionBlock> evaluationBlockStack,
-                                                                         String variablesBefore, String stackBefore) {
-                    return new InstructionLevelTracker(null, null, null,
-                            instruction, instructionOffset, evaluationBlockStack, variablesBefore, stackBefore);
-                }
-
-                public InstructionLevelTracker(Boolean isSeenBefore, Boolean isGeneralization, Integer timesSeen, String instruction,
-                                               Integer instructionOffset, List<InstructionBlock> evaluationBlockStack,
-                                               String variablesBefore, String stackBefore)
+            static class BlockEvaluationTracker {
+                static class InstructionEvaluationTracker
                 {
-                    this.isSeenBefore=isSeenBefore;
-                    this.isGeneralization=isGeneralization;
-                    this.instruction=instruction;
-                    this.instructionOffset=instructionOffset;
-                    this.evaluationBlockStack=evaluationBlockStack;
-                    this.variablesBefore=variablesBefore;
-                    this.stackBefore=stackBefore;
+                    public Boolean isSeenBefore;
+                    public Boolean isGeneralization;
+                    public Integer timesSeen;
+                    public String instruction;
+                    public Integer instructionOffset;
+                    public List<InstructionBlock> updatedEvaluationStack;
+                    public String variablesBefore;
+                    public String stackBefore;
+
+                    public static InstructionEvaluationTracker seenIndicator() {
+                        return new InstructionEvaluationTracker(
+                                true, null, null, null,
+                                null, null, null, null);
+                    }
+
+                    public static InstructionEvaluationTracker generalizationIndicator(int timesSeen) {
+                        return new InstructionEvaluationTracker(null, true, timesSeen, null,
+                                null, null, null, null);
+                    }
+
+                    public static InstructionEvaluationTracker instructionTracker(
+                            String instruction, int instructionOffset, List<InstructionBlock> evaluationBlockStack,
+                            String variablesBefore, String stackBefore) {
+                        return new InstructionEvaluationTracker(null, null, null,
+                                instruction, instructionOffset, evaluationBlockStack, variablesBefore, stackBefore);
+                    }
+
+                    public InstructionEvaluationTracker(Boolean isSeenBefore, Boolean isGeneralization, Integer timesSeen, String instruction,
+                                                        Integer instructionOffset, List<InstructionBlock> evaluationBlockStack,
+                                                        String variablesBefore, String stackBefore)
+                    {
+                        this.isSeenBefore=isSeenBefore;
+                        this.isGeneralization=isGeneralization;
+                        this.instruction=instruction;
+                        this.instructionOffset=instructionOffset;
+                        this.updatedEvaluationStack=evaluationBlockStack;
+                        this.variablesBefore=variablesBefore;
+                        this.stackBefore=stackBefore;
+                    }
+                }
+
+                public List<InstructionEvaluationTracker> evaluations = new ArrayList<>();
+                public String startVariables;
+                public String startStack;
+                public int startOffset;
+
+                public BlockEvaluationTracker(List<InstructionEvaluationTracker> evaluations, String startVariables, String startStack, int startOffset)
+                {
+                    this.evaluations=evaluations;
+                    this.startVariables=startVariables;
+                    this.startStack=startStack;
+                    this.startOffset=startOffset;
+                }
+
+                public InstructionEvaluationTracker getLastEvaluation() {
+                    if (evaluations.isEmpty()) {
+                        return null;
+                    }
+                    return evaluations.get(evaluations.size() - 1);
                 }
             }
 
             public String clazz;
             public String method;
-            public String startVariables;
-            public String startStack;
-            public int startOffset;
-            public List<InstructionLevelTracker> evaluations= new ArrayList<>();
             public List<InstructionTracker> instructions = new ArrayList<>();
+            public String startVariables;
+            public List<BlockEvaluationTracker> blockEvaluations = new ArrayList<>();
 
-            public MethodTracker(String clazz, String method, String startVariables,
-                                 String startStack, int startOffset)
+            public codeAttributeTracker(String clazz, String method, String startVariables)
             {
                 this.clazz=clazz;
                 this.method=method;
                 this.startVariables=startVariables;
-                this.startStack=startStack;
-                this.startOffset=startOffset;
             }
 
-            public InstructionLevelTracker getLastInstruction() {
-                if (evaluations.isEmpty()) {
+            public BlockEvaluationTracker getLastBlockEvaluation() {
+                if (blockEvaluations.isEmpty()) {
                     return null;
                 }
-                return evaluations.get(evaluations.size() - 1);
+                return blockEvaluations.get(blockEvaluations.size() - 1);
             }
         }
 
@@ -169,11 +187,11 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
             }
         }
 
-        public MethodTracker getLastMethodTracker() {
+        public codeAttributeTracker getLastMethodTracker() {
             return methods.get(methods.size() - 1);
         }
 
-        public final List<MethodTracker> methods=new ArrayList<>();
+        public final List<codeAttributeTracker> methods=new ArrayList<>();
         public ErrorTracker error;
     }
 
@@ -245,7 +263,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset,
                                            TracedVariables variablesBefore, TracedStack stackBefore)
     {
-        StateTracker.MethodTracker.InstructionLevelTracker tracker = stateTracker.getLastMethodTracker().getLastInstruction();
+        StateTracker.codeAttributeTracker.InstructionLevelTracker tracker = stateTracker.getLastMethodTracker().getLastInstruction();
         if (tracker != null && tracker.isGeneralization != null && tracker.isGeneralization) {
             tracker.instruction = instruction.toString();
             tracker.instructionOffset = instructionOffset;
@@ -254,7 +272,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         } else
         {
             stateTracker.getLastMethodTracker().evaluations.add(
-                    StateTracker.MethodTracker.InstructionLevelTracker.instructionTracker(
+                    StateTracker.codeAttributeTracker.InstructionLevelTracker.instructionTracker(
                             instruction.toString(), instructionOffset, null,
                             variablesBefore.toString(), stackBefore.toString()
                     )
@@ -266,7 +284,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void generalizeInstructionBlock(int evaluationCount)
     {
         stateTracker.getLastMethodTracker().evaluations.add(
-                StateTracker.MethodTracker.InstructionLevelTracker.generalizationIndicator(evaluationCount)
+                StateTracker.codeAttributeTracker.InstructionLevelTracker.generalizationIndicator(evaluationCount)
         );
     }
 
@@ -274,13 +292,13 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void skipInstructionBlock()
     {
         stateTracker.getLastMethodTracker().evaluations.add(
-                StateTracker.MethodTracker.InstructionLevelTracker.seenIndicator());
+                StateTracker.codeAttributeTracker.InstructionLevelTracker.seenIndicator());
     }
 
     @Override
     public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute, TracedVariables variables, TracedStack stack, int startOffset)
     {
-        stateTracker.methods.add(new StateTracker.MethodTracker(
+        stateTracker.methods.add(new StateTracker.codeAttributeTracker(
                 clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), variables.toString(),
                 stack.toString(), startOffset
         ));
