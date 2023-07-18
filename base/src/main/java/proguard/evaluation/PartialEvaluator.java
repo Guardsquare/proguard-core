@@ -1193,7 +1193,7 @@ implements   AttributeVisitor,
             int handlerPC = exceptionInfo.u2handlerPC;
             int catchType = exceptionInfo.u2catchType;
 
-            if (printer != null) printer.registerExceptionHandler(startPC, endPC, handlerPC);
+            if (printer != null) printer.registerExceptionHandler(startPC, endPC, handlerPC, exceptionInfo, clazz);
 
             // Reuse the existing variables and stack objects, ensuring the
             // right size.

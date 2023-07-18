@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.ExceptionInfo;
+import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
 import proguard.evaluation.BasicBranchUnit;
@@ -78,6 +80,19 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                 }
             }
 
+            static class ExceptionHandlerInfo {
+                public int catchStartOffset;
+                public int catchEndOffset;
+                public String catchType;
+
+                public ExceptionHandlerInfo(int catchStartOffset, int catchEndOffset, String catchType)
+                {
+                    this.catchStartOffset=catchStartOffset;
+                    this.catchEndOffset=catchEndOffset;
+                    this.catchType=catchType;
+                }
+            }
+
             static class InstructionTracker {
                 public int offset;
                 public String instruction;
@@ -135,6 +150,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                 }
 
                 public List<InstructionEvaluationTracker> evaluations = new ArrayList<>();
+                public ExceptionHandlerInfo exceptionHandlerInfo;
                 public List<String> startVariables;
                 public List<String> startStack;
                 public int startOffset;
@@ -229,14 +245,20 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info)
     {
         System.out.println("temp");
-
     }
 
     @Override
-    public void registerExceptionHandler(int startPC, int endPC, int handlerPC)
+    public void registerExceptionHandler(int startPC, int endPC, int handlerPC, ExceptionInfo info, Clazz clazz)
     {
-        System.out.println("temp");
+        stateTracker.getLastCodeAttribute().blockEvaluations.add(new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
+                null, null, handlerPC
+        ));
 
+        ClassConstant constant =(ClassConstant) ((ProgramClass) clazz).getConstant(info.u2catchType);
+        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().exceptionHandlerInfo =
+                new StateTracker.CodeAttributeTracker.ExceptionHandlerInfo(
+                        startPC, endPC, constant == null ? "java/lang/Throwable" : constant.getName(clazz)
+                );
     }
 
     @Override
@@ -249,19 +271,19 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
     {
-
+        throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override
     public void endSubroutine(int subroutineStart, int subroutineEnd)
     {
-
+        throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override
     public void startSubroutine(int subroutineStart, int subroutineEnd)
     {
-
+        throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override

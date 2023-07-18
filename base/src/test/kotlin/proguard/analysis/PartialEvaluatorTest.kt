@@ -70,8 +70,8 @@ class PartialEvaluatorTest : FreeSpec({
                         .label(midLabel)
                         .athrow()
                         .label(endLabel)
-                        .catch_(startLabel, endLabel, "appel", null)
-                        // .catchAll(startLabel, endLabel)
+                        // .catch_(startLabel, endLabel, "appel", null)
+                        .catchAll(startLabel, endLabel)
                         .iconst_1()
                         .ireturn()
                 }

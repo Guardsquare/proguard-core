@@ -20,7 +20,7 @@ public interface PartialEvaluatorStateTracker
 
     // Exceptions
     void startExceptionHandling(int startOffset, int endOffset);
-    void registerExceptionHandler(int startPC, int endPC, int handlerPC);
+    void registerExceptionHandler(int startPC, int endPC, int handlerPC, ExceptionInfo info, Clazz clazz);
     void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info);
 
 

@@ -586,8 +586,8 @@ stateDiagram-v2
             BR7 --> registerExceptionHandler: Yes
             BR7 --> registerUnusedExceptionHandler: No
             nextExceptionHandler: Go to next exception handler
-            registerExceptionHandler --> evaluateInstructionBlock
-            evaluateInstructionBlock --> nextExceptionHandler
+            registerExceptionHandler --> evaluateInstructionBlockAndBranches
+            evaluateInstructionBlockAndBranches --> nextExceptionHandler
             registerUnusedExceptionHandler --> nextExceptionHandler
         }
         L7 --> evaluationResults

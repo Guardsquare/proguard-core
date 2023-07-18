@@ -23,7 +23,7 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void registerExceptionHandler(int startPC, int endPC, int handlerPC)
+    public void registerExceptionHandler(int startPC, int endPC, int handlerPC, ExceptionInfo info, Clazz clazz)
     {
         System.out.println("Evaluating exception ["+startPC+" -> "+endPC+": "+handlerPC+"]:");
     }
