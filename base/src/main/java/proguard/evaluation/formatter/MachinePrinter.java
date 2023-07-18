@@ -21,32 +21,26 @@ import java.util.List;
 /**
  * Capable of printing machine-readable output (JSON) xp
  * {
- *      "evaluation-steps": [
- *          { BlockEvaluation(?) - do recursive evaluations happen often? Or only when using jsr?
- *              "class",
- *              "method",
- *              "startVariables",
- *              "startStack",
- *              "startOffset"
- *              "instructions": [
- *                  {
- *                      "instruction": String,
- *                      "offset": int;
- *                  }
- *              ]
- *              "evaluations": [
- *                  {
- *                      "isSeenBefore": bool,
- *                      "isGeneralization": bool,
- *                      "instruction": str,
- *                      "instructionOffset"
- *                      "updatedEvaluationStack"?: new stack
- *                      "variablesBefore"
- *                      "stackBefore"
- *                  }
- *              ]
- *          }
- *      ]
+ *      "codeAttribute": {
+ *          clazz
+ *          method
+ *          instructions: {offset, instruction}[],
+ *          variables
+ *          blockEvaluations: {
+ *              startOffset,
+ *              variables,
+ *              stack,
+ *              evaluations: {
+ *                  isSeenBefore,
+ *                  isGeneralization,
+ *                  offset,
+ *                  instruction
+ *                  updatedEvaluationStack,
+ *                  variablesBefore
+ *                  stackBefore
+ *              }[]
+ *          }[]
+ *      }[]
  *      "error"?: {
  *          clazz
  *          method
@@ -308,6 +302,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
         // TODO(mj): add code here
+        System.out.println("NOOOOOOO");
     }
 
     @Override
