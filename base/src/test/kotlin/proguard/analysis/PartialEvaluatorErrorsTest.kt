@@ -63,7 +63,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     "()Ljava/lang/Object;",
                 )
             }
-            (pe.tracker as MachinePrinter).printState()
+            (pe.tracker as MachinePrinter).writeState()
         }
 
         "Entire PE 2 functions" {
@@ -96,7 +96,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()I",
             )
-            // (pe.tracker as MachinePrinter).printState()
+            (pe.tracker as MachinePrinter).printState()
         }
 
         "Entire PE lifecycle" {

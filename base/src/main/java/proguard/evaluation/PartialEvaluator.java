@@ -61,7 +61,7 @@ implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
     //*
-    private static final PartialEvaluatorStateTracker printer = new HumanPrinter();
+    private static final PartialEvaluatorStateTracker printer = new MachinePrinter();
 
     public PartialEvaluatorStateTracker getTracker() {
         return printer;

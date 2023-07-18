@@ -7,6 +7,7 @@ import proguard.classfile.Method;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.ExceptionInfo;
 import proguard.classfile.instruction.Instruction;
+import proguard.classfile.instruction.InstructionFactory;
 import proguard.evaluation.BasicBranchUnit;
 import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.TracedStack;
@@ -14,6 +15,9 @@ import proguard.evaluation.TracedVariables;
 import proguard.evaluation.Variables;
 import proguard.evaluation.value.InstructionOffsetValue;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +60,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 {
     static class StateTracker
     {
-        static class codeAttributeTracker
+        static class CodeAttributeTracker
         {
             static class InstructionBlock
             {
@@ -132,9 +136,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                 public String startStack;
                 public int startOffset;
 
-                public BlockEvaluationTracker(List<InstructionEvaluationTracker> evaluations, String startVariables, String startStack, int startOffset)
+                public BlockEvaluationTracker(String startVariables, String startStack, int startOffset)
                 {
-                    this.evaluations=evaluations;
                     this.startVariables=startVariables;
                     this.startStack=startStack;
                     this.startOffset=startOffset;
@@ -151,14 +154,14 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
             public String clazz;
             public String method;
             public List<InstructionTracker> instructions = new ArrayList<>();
-            public String startVariables;
+            public String parameters;
             public List<BlockEvaluationTracker> blockEvaluations = new ArrayList<>();
 
-            public codeAttributeTracker(String clazz, String method, String startVariables)
+            public CodeAttributeTracker(String clazz, String method, String startVariables)
             {
                 this.clazz=clazz;
                 this.method=method;
-                this.startVariables=startVariables;
+                this.parameters=startVariables;
             }
 
             public BlockEvaluationTracker getLastBlockEvaluation() {
@@ -187,12 +190,15 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
             }
         }
 
-        public codeAttributeTracker getLastMethodTracker() {
-            return methods.get(methods.size() - 1);
-        }
-
-        public final List<codeAttributeTracker> methods=new ArrayList<>();
+        public final List<CodeAttributeTracker> codeAttributes=new ArrayList<>();
         public ErrorTracker error;
+
+        public CodeAttributeTracker getLastCodeAttribute() {
+            if (codeAttributes.isEmpty()) {
+                return null;
+            }
+            return codeAttributes.get(codeAttributes.size() - 1);
+        }
     }
 
     private final Gson gson=new GsonBuilder().setPrettyPrinting().create();
@@ -263,16 +269,18 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset,
                                            TracedVariables variablesBefore, TracedStack stackBefore)
     {
-        StateTracker.codeAttributeTracker.InstructionLevelTracker tracker = stateTracker.getLastMethodTracker().getLastInstruction();
-        if (tracker != null && tracker.isGeneralization != null && tracker.isGeneralization) {
-            tracker.instruction = instruction.toString();
-            tracker.instructionOffset = instructionOffset;
-            tracker.variablesBefore = variablesBefore.toString();
-            tracker.stackBefore = stackBefore.toString();
+        StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker evaluation =
+                stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation();
+        if (evaluation != null && evaluation.isGeneralization != null && evaluation.isGeneralization) {
+            evaluation.instruction = instruction.toString();
+            evaluation.instructionOffset = instructionOffset;
+            evaluation.variablesBefore = variablesBefore.toString();
+            evaluation.stackBefore = stackBefore.toString();
+            // TODO: add updatedEvaluationStack
         } else
         {
-            stateTracker.getLastMethodTracker().evaluations.add(
-                    StateTracker.codeAttributeTracker.InstructionLevelTracker.instructionTracker(
+            stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+                    StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.instructionTracker(
                             instruction.toString(), instructionOffset, null,
                             variablesBefore.toString(), stackBefore.toString()
                     )
@@ -283,24 +291,24 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void generalizeInstructionBlock(int evaluationCount)
     {
-        stateTracker.getLastMethodTracker().evaluations.add(
-                StateTracker.codeAttributeTracker.InstructionLevelTracker.generalizationIndicator(evaluationCount)
-        );
+        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+                StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.generalizationIndicator(evaluationCount));
     }
 
     @Override
     public void skipInstructionBlock()
     {
-        stateTracker.getLastMethodTracker().evaluations.add(
-                StateTracker.codeAttributeTracker.InstructionLevelTracker.seenIndicator());
+        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+                StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.seenIndicator());
     }
 
     @Override
-    public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute, TracedVariables variables, TracedStack stack, int startOffset)
+    public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
+                                      TracedVariables variables, TracedStack stack, int startOffset)
     {
-        stateTracker.methods.add(new StateTracker.codeAttributeTracker(
-                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), variables.toString(),
-                stack.toString(), startOffset
+        stateTracker.getLastCodeAttribute().blockEvaluations.add(
+            new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
+                    variables.toString(), stack.toString(), startOffset
         ));
     }
 
@@ -319,8 +327,20 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
-        // TODO(mj): add code here
-        System.out.println("NOOOOOOO");
+        stateTracker.codeAttributes.add(new StateTracker.CodeAttributeTracker(
+                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), parameters.toString()
+        ));
+        byte[] code = codeAttribute.code;
+        int offset = 0;
+        while (offset < code.length) {
+            Instruction instruction = InstructionFactory.create(code, offset);
+            stateTracker.getLastCodeAttribute().instructions.add(
+                new StateTracker.CodeAttributeTracker.InstructionTracker(
+                    offset, instruction.toString()
+            ));
+
+            offset += instruction.length(offset);
+        }
     }
 
     @Override
@@ -328,12 +348,25 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     {
         stateTracker.error = new StateTracker.ErrorTracker(
                 clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz),
-                stateTracker.getLastMethodTracker().getLastInstruction().instructionOffset, cause.getMessage(), null
+                stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation().instructionOffset
+                , cause.getMessage(), null
         );
     }
 
     public void printState()
     {
         System.out.println(gson.toJson(stateTracker));
+    }
+
+    public void writeState() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("pe-state.json"));
+            writer.write(gson.toJson(stateTracker));
+
+            writer.close();
+        }
+        catch (IOException ex) {
+            // Do nothing
+        }
     }
 }
