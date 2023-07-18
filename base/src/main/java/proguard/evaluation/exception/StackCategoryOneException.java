@@ -36,7 +36,7 @@ public class StackCategoryOneException extends ProguardCoreException
 
     public StackCategoryOneException(Value foundValue, Throwable cause)
     {
-        super(ErrorId.STACK_CATEGORY_ONE, cause, "Stack value of type Category One expected, but found: %s.",
+        super(ErrorId.STACK_CATEGORY_ONE, cause, "Stack value of type Category 1 expected, but found: %s.",
             foundValue.toString());
         this.foundValue = foundValue;
     }
