@@ -1,7 +1,6 @@
 package proguard.analysis
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
 import proguard.classfile.ClassConstants
@@ -21,6 +20,8 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.ExpectedArrayException
+import proguard.evaluation.exception.StackCategoryOneException
+import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
@@ -30,7 +31,7 @@ import proguard.evaluation.value.TypedReferenceValueFactory
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
- * `PartialEvaluator`.
+ * `PartialEvaluator`.t
  *
  * @see PartialEvaluator
  */
@@ -69,6 +70,18 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
+        "Variable types do not match, expect reference" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_0()
+                        .areturn()
+                }
+                .programClass
+
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+        }
+
         "Stack types do not match instruction" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()J", 50) {
@@ -82,7 +95,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
         "Stack types do not match instruction - long interpreted as int" {
@@ -95,7 +108,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
         }
 
         "dup of long" {
@@ -109,7 +122,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackCategoryOneException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
         "getfield but return the wrong type" {
@@ -123,7 +136,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
         }
 
         "Variable index out of bound" {
