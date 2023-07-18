@@ -17,6 +17,7 @@ import proguard.evaluation.TracedStack;
 import proguard.evaluation.TracedVariables;
 import proguard.evaluation.Variables;
 import proguard.evaluation.value.InstructionOffsetValue;
+import proguard.evaluation.value.Value;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -228,7 +229,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     private List<String> formatValueList(Variables variables) {
         List<String> res = new ArrayList<>();
         for (int i = 0; i < variables.size(); i++) {
-            res.add(variables.getValue(i).toString());
+            Value val = variables.getValue(i);
+            res.add(val == null ? "empty" : val.toString());
         }
         return res;
     }
@@ -236,7 +238,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     private List<String> formatValueList(Stack stack) {
         List<String> res = new ArrayList<>();
         for (int i = 0; i < stack.size(); i++) {
-            res.add(stack.getBottom(i).toString());
+            Value val = stack.getBottom(i);
+            res.add(val == null ? "empty" : val.toString());
         }
         return res;
     }
@@ -274,12 +277,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
 
     // Exceptions
-
-
     @Override
     public void startExceptionHandling(int startOffset, int endOffset)
     {
-        System.out.println("temp");
 
     }
 
@@ -321,10 +321,25 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         if (!stateTracker.getLastCodeAttribute().lastEvaluationStack.isEmpty()) {
             stateTracker.getLastCodeAttribute().lastEvaluationStack.remove(stateTracker.getLastCodeAttribute().lastEvaluationStack.size() - 1);
         }
-        stateTracker.getLastCodeAttribute().blockEvaluations.add(
-                new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
-                        formatValueList(variables), formatValueList(stack), startOffset
-                ));
+        StateTracker.CodeAttributeTracker.BlockEvaluationTracker blockTracker = null;
+        StateTracker.CodeAttributeTracker.ExceptionHandlerInfo exInfo = null;
+        if (stateTracker.getLastCodeAttribute() != null && stateTracker.getLastCodeAttribute().getLastBlockEvaluation() != null)
+        {
+            blockTracker = stateTracker.getLastCodeAttribute().getLastBlockEvaluation();
+            exInfo = blockTracker.exceptionHandlerInfo;
+        }
+        if (blockTracker != null && exInfo != null && blockTracker.evaluations.isEmpty()) {
+            blockTracker.startVariables = formatValueList(variables);
+            blockTracker.startStack = formatValueList(stack);
+        }
+        else
+        {
+            stateTracker.getLastCodeAttribute().blockEvaluations.add(
+                    new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
+                            formatValueList(variables), formatValueList(stack), startOffset
+                    ));
+            stateTracker.getLastCodeAttribute().getLastBlockEvaluation().exceptionHandlerInfo = exInfo;
+        }
     }
 
     @Override
@@ -416,7 +431,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void startSubroutine(int subroutineStart, int subroutineEnd)
     {
-        throw new RuntimeException("NOT SUPPORTED");
+       throw new RuntimeException("NOT SUPPORTED");
     }
     
     // Access functions

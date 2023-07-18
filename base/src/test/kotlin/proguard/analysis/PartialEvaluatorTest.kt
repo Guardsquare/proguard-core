@@ -168,7 +168,7 @@ class PartialEvaluatorTest : FreeSpec({
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
-                .setEvaluateAllCode(true).build()
+                .setEvaluateAllCode(false).build()
             evaluateProgramClass(
                 programClass,
                 pe,
