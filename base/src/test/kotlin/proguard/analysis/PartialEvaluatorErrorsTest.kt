@@ -19,8 +19,8 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.InvalidArrayIndex
+import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
