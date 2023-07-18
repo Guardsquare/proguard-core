@@ -65,7 +65,8 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue)
+    public void registerAlternativeBranch(int index, int branchTargetCount,
+                                          int instructionOffset, InstructionOffsetValue offsetValue, TracedVariables variables, TracedStack stack, int offset)
     {
         System.out.println("Pushing alternative branch #"+index+" out of "+branchTargetCount+
                 ", from ["+instructionOffset+"] to ["+offsetValue+"]");

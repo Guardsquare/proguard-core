@@ -40,7 +40,6 @@ import proguard.classfile.util.BranchTargetFinder;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
-import proguard.evaluation.formatter.HumanPrinter;
 import proguard.evaluation.formatter.MachinePrinter;
 import proguard.evaluation.formatter.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.BasicValueFactory;
@@ -1003,7 +1002,9 @@ implements   AttributeVisitor,
                     // Push them on the execution stack and exit from this block.
                     for (int index = 0; index < branchTargetCount; index++)
                     {
-                        if (printer != null)  printer.registerAlternativeBranch(index, branchTargetCount, instructionOffset, branchTargets(index));
+                        if (printer != null)  printer.registerAlternativeBranch(index, branchTargetCount,
+                                instructionOffset, branchTargets(index), variables, stack,
+                                branchTargets.instructionOffset(index));
 
                         pushInstructionBlock(new TracedVariables(variables),
                                              new TracedStack(stack),

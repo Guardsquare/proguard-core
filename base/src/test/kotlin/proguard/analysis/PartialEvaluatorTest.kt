@@ -3,13 +3,16 @@ package proguard.analysis
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import proguard.classfile.AccessConstants
 import proguard.classfile.attribute.Attribute.CODE
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
+import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.formatter.MachinePrinter
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
@@ -18,8 +21,101 @@ import proguard.evaluation.value.TypedReferenceValueFactory
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import proguard.testutils.findMethod
 
 class PartialEvaluatorTest : FreeSpec({
+    "Test lifecycle" - {
+        "With branches" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    it
+                        .iconst(50)
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        .ificmple(elseLabel)
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .ireturn()
+                }
+                .programClass
+
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(true).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+            (pe.tracker as MachinePrinter).writeState()
+        }
+
+        "Complete" {
+            val build = buildClass()
+                .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
+                    it.iconst(50).ireturn()
+                }
+            val programClass = build
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    val loadLabel = it.createLabel()
+                    val endLabel = it.createLabel()
+                    it
+                        .invokestatic(
+                            "PartialEvaluatorDummy",
+                            "initializer",
+                            "()I",
+                            it.targetClass,
+                            it.targetClass.findMethod("initializer"),
+                        )
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        .ificmple(elseLabel)
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .jsr(loadLabel)
+                        .athrow()
+                        .label(loadLabel)
+                        .astore_1()
+                        .aload_0()
+                        .ret(1)
+                        .label(endLabel)
+                        .catchAll(startLabel, endLabel)
+                        .iconst_5()
+                        .ireturn()
+                        .catchAll(startLabel, elseLabel)
+                        .iconst_1()
+                        .ireturn()
+                }
+                .programClass
+
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(true).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+            // (pe.tracker as MachinePrinter).printState()
+        }
+    }
+
     "Test partial evaluation computing mayBeExtension correctly" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
@@ -39,7 +135,7 @@ class PartialEvaluatorTest : FreeSpec({
                         return myString;
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "NonFinalFieldClass.java",
@@ -69,7 +165,7 @@ class PartialEvaluatorTest : FreeSpec({
                 
                 class Foo { }
                 class FooException extends RuntimeException { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "FinalFieldClass.java",
@@ -100,7 +196,7 @@ class PartialEvaluatorTest : FreeSpec({
                 
                 final class FinalFoo { }
                 final class FinalFooException extends RuntimeException { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "StringBuilderBranchClass.java",
@@ -116,17 +212,17 @@ class PartialEvaluatorTest : FreeSpec({
                         return sb.toString();
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             // Target Java 8 only to ensure consistent bytecode sequences.
-            javacArguments = listOf("-source", "8", "-target", "8")
+            javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
         val evaluateAllCode = true
         val maxPartialEvaluations = 50
         val particularValueFactory = ParticularValueFactory(
             ArrayReferenceValueFactory(),
-            ParticularReferenceValueFactory()
+            ParticularReferenceValueFactory(),
         )
         val particularValueInvocationUnit = BasicInvocationUnit(particularValueFactory)
         val particularValueEvaluator = PartialEvaluator.Builder.create()
@@ -141,11 +237,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "FinalFieldStringClass",
                 NamedMethodVisitor(
-                    "foo", "()Ljava/lang/String;",
+                    "foo",
+                    "()Ljava/lang/String;",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after getfield should contain a String which is a final class
             val value = particularValueEvaluator
@@ -159,11 +256,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "NonFinalFieldClass",
                 NamedMethodVisitor(
-                    "foo", "()LFoo;",
+                    "foo",
+                    "()LFoo;",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after getfield should contain a Foo which is not a final class
             val value = particularValueEvaluator
@@ -177,11 +275,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "FinalFieldClass",
                 NamedMethodVisitor(
-                    "foo", "()LFinalFoo;",
+                    "foo",
+                    "()LFinalFoo;",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after getfield should contain a FinalFoo which is a final class
             val value = particularValueEvaluator
@@ -195,11 +294,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "FinalFieldStringClass",
                 NamedMethodVisitor(
-                    "bar", "()V",
+                    "bar",
+                    "()V",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after foo() should contain a String which is a final class
             val value = particularValueEvaluator
@@ -213,11 +313,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "NonFinalFieldClass",
                 NamedMethodVisitor(
-                    "bar", "()V",
+                    "bar",
+                    "()V",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after foo() should contain a Foo which is a non-final class
             val value = particularValueEvaluator
@@ -231,11 +332,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "FinalFieldClass",
                 NamedMethodVisitor(
-                    "bar", "()V",
+                    "bar",
+                    "()V",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after foo() should contain a FinalFoo which is a final class
             val value = particularValueEvaluator
@@ -249,11 +351,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "FinalFieldStringClass",
                 NamedMethodVisitor(
-                    "baz", "(Ljava/lang/String;)Ljava/lang/String;",
+                    "baz",
+                    "(Ljava/lang/String;)Ljava/lang/String;",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after load parameter should contain a String which is a final class
             val value = particularValueEvaluator
@@ -267,11 +370,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "NonFinalFieldClass",
                 NamedMethodVisitor(
-                    "baz", "(LFoo;)LFoo;",
+                    "baz",
+                    "(LFoo;)LFoo;",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after load parameter should contain a Foo which is a non-final class
             val value = particularValueEvaluator
@@ -285,11 +389,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "FinalFieldClass",
                 NamedMethodVisitor(
-                    "baz", "(LFinalFoo;)LFinalFoo;",
+                    "baz",
+                    "(LFinalFoo;)LFinalFoo;",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack after load parameter should contain a FinalFoo which is a final class
             val value = particularValueEvaluator
@@ -303,11 +408,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "NonFinalFieldClass",
                 NamedMethodVisitor(
-                    "exception", "()V",
+                    "exception",
+                    "()V",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack in the catch block should contain a FooException which is a non-final class
             val value = particularValueEvaluator
@@ -321,11 +427,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "FinalFieldClass",
                 NamedMethodVisitor(
-                    "exception", "()V",
+                    "exception",
+                    "()V",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             // The stack in the catch block should contain a FinalFooException which is a final class
             val value = particularValueEvaluator
@@ -339,11 +446,12 @@ class PartialEvaluatorTest : FreeSpec({
             programClassPool.classesAccept(
                 "StringBuilderBranchClass",
                 NamedMethodVisitor(
-                    "foo", "()Ljava/lang/String;",
+                    "foo",
+                    "()Ljava/lang/String;",
                     AllAttributeVisitor(
-                        AttributeNameFilter(CODE, particularValueEvaluator)
-                    )
-                )
+                        AttributeNameFilter(CODE, particularValueEvaluator),
+                    ),
+                ),
             )
             val stackTopAfterStringBuilderInit = particularValueEvaluator
                 .getStackAfter(0)
@@ -372,14 +480,14 @@ class PartialEvaluatorTest : FreeSpec({
                     return
                 }
             }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val typedReferenceValueFactory = TypedReferenceValueFactory()
         val particularValueFactory = ParticularValueFactory(
             ArrayReferenceValueFactory(),
-            typedReferenceValueFactory
+            typedReferenceValueFactory,
         )
         val particularValueInvocationUnit = BasicInvocationUnit(particularValueFactory)
         val particularValueEvaluator = PartialEvaluator.Builder.create()
@@ -390,11 +498,12 @@ class PartialEvaluatorTest : FreeSpec({
         programClassPool.classesAccept(
             "Test",
             NamedMethodVisitor(
-                "a", "()V",
+                "a",
+                "()V",
                 AllAttributeVisitor(
-                    AttributeNameFilter(CODE, particularValueEvaluator)
-                )
-            )
+                    AttributeNameFilter(CODE, particularValueEvaluator),
+                ),
+            ),
         )
 
         val variablesAfterAconstNull = particularValueEvaluator.getVariablesAfter(1)

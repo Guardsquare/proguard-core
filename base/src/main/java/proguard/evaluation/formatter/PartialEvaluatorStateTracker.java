@@ -48,7 +48,9 @@ public interface PartialEvaluatorStateTracker
                                     TracedVariables variables, TracedStack stack,
                                     InstructionOffsetValue branchTarget);
     void definitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets);
-    void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue);
+    void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset,
+                                   InstructionOffsetValue offsetValue, TracedVariables variables,
+                                   TracedStack stack, int offset);
 
 
     // Subroutine

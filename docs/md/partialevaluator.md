@@ -578,12 +578,18 @@ stateDiagram-v2
             L6 --> [*]
         }
         L1 --> startExceptionHandling
-        BR7: Exception handler evaluation is needed?
-        startExceptionHandling --> BR7
-        BR7 --> registerExceptionHandler: Yes
-        BR7 --> registerUnusedExceptionHandler: No
-        registerExceptionHandler --> evaluationResults
-        registerUnusedExceptionHandler --> evaluationResults
+        L7: For each exception handler registered on code attribute
+        startExceptionHandling --> L7
+        state L7 {
+            BR7: Exception handler evaluation is needed?
+            [*] --> BR7
+            BR7 --> registerExceptionHandler: Yes
+            BR7 --> registerUnusedExceptionHandler: No
+            nextExceptionHandler: Go to next exception handler
+            registerExceptionHandler --> nextExceptionHandler
+            registerUnusedExceptionHandler --> nextExceptionHandler
+        }
+        L7 --> evaluationResults
         evaluationResults --> [*]
     }
     catch: Did catch?
