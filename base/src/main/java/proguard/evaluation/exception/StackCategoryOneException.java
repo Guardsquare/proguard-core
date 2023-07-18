@@ -20,35 +20,25 @@ package proguard.evaluation.exception;
 
 import proguard.evaluation.value.Value;
 import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 
 import static proguard.classfile.util.ClassUtil.externalType;
 
 /**
- * Exception thrown when the type in a variable does not match the expected type.
+ * Exception thrown when a type on the stack does not match the category one expected type.
  */
-public class VariableTypeException extends VariableEvaluationException
+public class StackCategoryOneException extends ProguardCoreException
 {
     /**
-     * The type that was expected but not given and caused this exception.
-     */
-    private final String expectedType;
-
-    /**
-     * The type that was found to be of incorrect type.
+     * The value that was found to be of incorrect type.
      */
     private final Value foundValue;
 
-    public VariableTypeException(int index, Value foundValue, String expectedType, Throwable cause)
+    public StackCategoryOneException(Value foundValue, Throwable cause)
     {
-        super("Value in slot %s of type %s expected, but found: %s ", ErrorId.VARIABLE_TYPE,
-                new String[] {Integer.toString(index), externalType(expectedType), foundValue.toString()}, index, cause);
-        this.expectedType = expectedType;
+        super(ErrorId.STACK_CATEGORY_ONE, cause, "Stack value of type Category 1 expected, but found: %s.",
+            foundValue.toString());
         this.foundValue = foundValue;
-    }
-
-    public String getExpectedType()
-    {
-        return expectedType;
     }
 
     public Value getFoundValue()
