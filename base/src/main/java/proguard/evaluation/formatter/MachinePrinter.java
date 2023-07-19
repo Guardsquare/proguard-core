@@ -174,6 +174,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                      */
                     public List<String> stackBefore;
 
+                    public List<BlockEvaluationTracker> jsrBlockEvalTracker;
+
                     public static InstructionEvaluationTracker seenIndicator() {
                         return new InstructionEvaluationTracker(
                                 true, null, null, null,
@@ -357,6 +359,17 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         return subRoutineTrackers.peekLast();
     }
 
+    public StateTracker.CodeAttributeTracker.BlockEvaluationTracker getLastBlockEvaluation() {
+        if (subRoutineTrackers.isEmpty()) {
+            return null;
+        }
+        List<StateTracker.CodeAttributeTracker.BlockEvaluationTracker> list = subRoutineTrackers.peekLast();
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.get(list.size() - 1);
+    }
+
     private List<String> formatValueList(Variables variables) {
         List<String> res = new ArrayList<>();
         for (int i = 0; i < variables.size(); i++) {
@@ -409,7 +422,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         // Register an exception in the top level stateTracker
         stateTracker.error = new StateTracker.ErrorTracker(
                 clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz),
-                stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation().instructionOffset
+                getLastBlockEvaluation().getLastEvaluation().instructionOffset
                 , cause.getMessage(), null
         );
     }
@@ -433,7 +446,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         // No need to copy branch stack
 
         ClassConstant constant =(ClassConstant) ((ProgramClass) clazz).getConstant(info.u2catchType);
-        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().exceptionHandlerInfo =
+       getLastBlockEvaluation().exceptionHandlerInfo =
                 new StateTracker.CodeAttributeTracker.ExceptionHandlerInfo(
                         startPC, endPC, constant == null ? "java/lang/Throwable" : constant.getName(clazz)
                 );
@@ -465,10 +478,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         // If the last evaluation was handling an exception, this one is also
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker blockTracker = null;
         StateTracker.CodeAttributeTracker.ExceptionHandlerInfo exInfo = null;
-        if (stateTracker.getLastCodeAttribute() != null &&
-                stateTracker.getLastCodeAttribute().getLastBlockEvaluation() != null)
+        if (getLastBlockEvaluation() != null)
         {
-            blockTracker = stateTracker.getLastCodeAttribute().getLastBlockEvaluation();
+            blockTracker = getLastBlockEvaluation();
             exInfo = blockTracker.exceptionHandlerInfo;
         }
 
@@ -481,7 +493,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         {
             // Copy the last instruction block
             StateTracker.CodeAttributeTracker.BlockEvaluationTracker lastBlock =
-                    stateTracker.getLastCodeAttribute().getLastBlockEvaluation();
+                    getLastBlockEvaluation();
             List<StateTracker.CodeAttributeTracker.InstructionBlock> branchStack = new ArrayList<>();
             if (lastBlock != null) {
                 if (lastBlock.getLastEvaluation() != null && lastBlock.getLastEvaluation().updatedEvaluationStack != null) {
@@ -495,12 +507,12 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                 branchStack.remove(branchStack.size()-1);
             }
 
-            stateTracker.getLastCodeAttribute().blockEvaluations.add(
+            getLastBlockEvaluationTracker().add(
                     new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
                             formatValueList(variables), formatValueList(stack), startOffset
                     ));
-            stateTracker.getLastCodeAttribute().getLastBlockEvaluation().exceptionHandlerInfo = exInfo;
-            stateTracker.getLastCodeAttribute().getLastBlockEvaluation().blockEvaluationStack = branchStack;
+            getLastBlockEvaluation().exceptionHandlerInfo = exInfo;
+            getLastBlockEvaluation().blockEvaluationStack = branchStack;
         }
     }
 
@@ -521,14 +533,14 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void skipInstructionBlock()
     {
-        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+        getLastBlockEvaluation().evaluations.add(
                 StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.seenIndicator());
     }
 
     @Override
     public void generalizeInstructionBlock(int evaluationCount)
     {
-        stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+        getLastBlockEvaluation().evaluations.add(
                 StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.generalizationIndicator(evaluationCount));
     }
 
@@ -537,7 +549,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                                            TracedVariables variablesBefore, TracedStack stackBefore)
     {
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker prevEval =
-                stateTracker.getLastCodeAttribute().getLastBlockEvaluation().getLastEvaluation();
+               getLastBlockEvaluation().getLastEvaluation();
         if (prevEval != null && prevEval.isGeneralization != null && prevEval.isGeneralization) {
             prevEval.instruction = instruction.toString();
             prevEval.instructionOffset = instructionOffset;
@@ -545,7 +557,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
             prevEval.stackBefore = formatValueList(stackBefore);
         } else
         {
-            stateTracker.getLastCodeAttribute().getLastBlockEvaluation().evaluations.add(
+            getLastBlockEvaluation().evaluations.add(
                     StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.instructionTracker(
                             instruction.toString(), instructionOffset, null,
                             formatValueList(variablesBefore), formatValueList(stackBefore)
@@ -569,7 +581,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue, TracedVariables variables, TracedStack stack, int offset)
     {
-        StateTracker.CodeAttributeTracker.BlockEvaluationTracker blockEval = stateTracker.getLastCodeAttribute().getLastBlockEvaluation();
+        StateTracker.CodeAttributeTracker.BlockEvaluationTracker blockEval = getLastBlockEvaluation();
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker lastEval = blockEval.getLastEvaluation();
 
         if (lastEval.updatedEvaluationStack == null) {
@@ -585,19 +597,20 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void startSubroutine(int subroutineStart, int subroutineEnd)
     {
-        throw new RuntimeException("NOT SUPPORTED");
+        getLastBlockEvaluation().getLastEvaluation().jsrBlockEvalTracker = new ArrayList<>();
+        subRoutineTrackers.offer(getLastBlockEvaluation().getLastEvaluation().jsrBlockEvalTracker);
     }
 
     @Override
     public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
     {
-        throw new RuntimeException("NOT SUPPORTED");
+        // throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override
     public void endSubroutine(int subroutineStart, int subroutineEnd)
     {
-        throw new RuntimeException("NOT SUPPORTED");
+        subRoutineTrackers.pop();
     }
 
 

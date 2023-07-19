@@ -175,7 +175,7 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            // (pe.tracker as MachinePrinter).printState()
+            (pe.tracker as MachinePrinter).writeState()
         }
     }
 
