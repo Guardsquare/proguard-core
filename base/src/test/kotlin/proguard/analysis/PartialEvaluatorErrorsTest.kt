@@ -64,7 +64,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     "()Ljava/lang/Object;",
                 )
             }
-            tracker.writeState()
+            tracker.writeState("catch-empty-slot.json")
         }
 
         "Entire PE 2 functions" {

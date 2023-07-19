@@ -56,7 +56,7 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            tracker.writeState()
+            tracker.writeState("branches.json")
         }
 
         "simple throw and catch" {
@@ -78,17 +78,19 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
+            val tracker = MachinePrinter()
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
-                .setEvaluateAllCode(true).build()
+                .setEvaluateAllCode(true).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,
                 pe,
                 "test",
                 "()I",
             )
+            tracker.writeState("simple-throw-and-catch.json")
         }
 
         "simple catch, no throw" {
@@ -107,17 +109,19 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
+            val tracker = MachinePrinter()
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
-                .setEvaluateAllCode(false).build()
+                .setEvaluateAllCode(false).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,
                 pe,
                 "test",
                 "()I",
             )
+            tracker.writeState("simple-catch-no-throw.json")
         }
 
         "Complete" {
@@ -163,18 +167,19 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
+            val tracker = MachinePrinter()
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
-                .setEvaluateAllCode(false).build()
+                .setEvaluateAllCode(false).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,
                 pe,
                 "test",
                 "()I",
             )
-            // (pe.tracker as MachinePrinter).writeState()
+            tracker.writeState("complete-cycle.json")
         }
     }
 

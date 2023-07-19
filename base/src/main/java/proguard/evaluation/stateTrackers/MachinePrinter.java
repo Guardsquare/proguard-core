@@ -623,9 +623,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         System.out.println(getJson());
     }
 
-    public void writeState() {
+    public void writeState(String fileName) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("pe-state.json"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
             writer.write(getJson());
 
             writer.close();
