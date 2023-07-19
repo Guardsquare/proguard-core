@@ -532,7 +532,8 @@ stateDiagram-v2
                 state L3 {
                     BR1: Instruction has been seen in this context?
                     [*] --> BR1
-                    BR1 --> [*] : Yes
+                    BR1 --> skipInstructionBlock : Yes
+                    skipInstructionBlock --> [*]
                     BR2: Already evaluated a lot of times?
                     BR1 --> BR2: No
                     BR2 --> generalizeInstructionBlock: Yes
@@ -573,13 +574,14 @@ stateDiagram-v2
             L2 --> L6
             state L6 {
               evaluateSingleInstructionBlock --> pop
-              pop --> evaluateSingleInstructionBlock
+              pop --> startBranchCodeBlockEvaluation
+              startBranchCodeBlockEvaluation --> evaluateSingleInstructionBlock
             }
             L6 --> [*]
         }
-        L1 --> startExceptionHandling
+        L1 --> startExceptionHandlingForBlock
         L7: For each exception handler registered on code attribute
-        startExceptionHandling --> L7
+      startExceptionHandlingForBlock --> L7
         state L7 {
             BR7: Exception handler evaluation is needed?
             [*] --> BR7
@@ -596,6 +598,6 @@ stateDiagram-v2
     catch: Did catch?
     L0 --> catch
     catch -->  [*]: No
-    catch --> registerMethodLevelError: Yes
-    registerMethodLevelError --> [*]
+    catch --> registerException: Yes
+  registerException --> [*]
 ```
