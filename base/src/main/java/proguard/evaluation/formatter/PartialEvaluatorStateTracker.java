@@ -70,7 +70,7 @@ public interface PartialEvaluatorStateTracker
 
     void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction,
                                    TracedVariables variablesAfter, TracedStack stackAfter,
-                                   int branchIndex, int branchTargetCount, int offset, InstructionOffsetValue offsetValue);
+                                   int branchIndex, int branchTargetCount, int offset);
 
 
     // Subroutine

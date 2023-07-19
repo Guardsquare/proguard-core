@@ -66,11 +66,6 @@ implements   AttributeVisitor,
         return printer;
     }
 
-    /*/
-    public static boolean DEBUG         = System.getProperty("pe") != null;
-    public static boolean DEBUG_RESULTS = DEBUG;
-    //*/
-
     private final static Logger logger = LogManager.getLogger(PartialEvaluator.class);
 
     // The analysis will generalize stack/vars after visiting an instruction this many times.
@@ -1006,7 +1001,7 @@ implements   AttributeVisitor,
                     {
                         if (printer != null)  printer.registerAlternativeBranch(clazz, method,
                                 instructionOffset,  instruction, variables, stack,
-                                index, branchTargetCount,  branchTargets.instructionOffset(index), branchTargets(index));
+                                index, branchTargetCount, branchTargets.instructionOffset(index));
 
                         pushInstructionBlock(new TracedVariables(variables),
                                              new TracedStack(stack),

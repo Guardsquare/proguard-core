@@ -584,7 +584,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction, TracedVariables variablesAfter, TracedStack stackAfter, int branchIndex, int branchTargetCount, int offset, InstructionOffsetValue offsetValue)
+    public void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction, TracedVariables variablesAfter, TracedStack stackAfter, int branchIndex, int branchTargetCount, int offset)
     {
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker blockEval = getLastBlockEvaluation();
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker lastEval = blockEval.getLastEvaluation();
