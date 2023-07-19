@@ -1,4 +1,4 @@
-package proguard.evaluation.formatter;
+package proguard.evaluation.stateTrackers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -35,7 +36,13 @@ import java.util.List;
  *          clazz
  *          method
  *          instructions: {offset, instruction}[],
- *          parameters: String(Value)[]
+ *          parameters: String(Value)[],
+ *          error?: {
+ *              clazz,
+ *              method,
+ *              message,
+ *              stacktrace,
+ *          }
  *          blockEvaluations: {
  *              startOffset,
  *              startVariables,
@@ -54,13 +61,6 @@ import java.util.List;
  *              }[]
  *          }[]
  *      }[]
- *      "error"?: {
- *          clazz
- *          method
- *          offset: int,
- *          message: string,
- *          stacktrace: string,
- *      }
  * }
  */
 
@@ -76,6 +76,37 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
          */
         static class CodeAttributeTracker
         {
+            static class ErrorTracker
+            {
+                /**
+                 * Clazz this code attribute is a part of.
+                 */
+                public String clazz;
+
+                /**
+                 * Method this code attribute is from.
+                 */
+                public String method;
+
+                /**
+                 * Ths instruction offset of the instruction that caused the exception.
+                 */
+                public int instructionOffset;
+
+                /**
+                 * The message of the exception.
+                 */
+                public String message;
+
+                public ErrorTracker(String clazz, String method, int instructionOffset, String message)
+                {
+                    this.clazz=clazz;
+                    this.method=method;
+                    this.instructionOffset=instructionOffset;
+                    this.message=message;
+                }
+            }
+
             /**
              * Track a single instruction block. Used for tracking the instructionBlock stack generated
              * when using branches
@@ -274,6 +305,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
              */
             public List<String> parameters;
 
+            public ErrorTracker error;
+
             /**
              * List of block evaluations that happened on this code attribute.
              */
@@ -294,45 +327,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
             }
         }
 
-        static class ErrorTracker
-        {
-            /**
-             * Clazz this code attribute is a part of.
-             */
-            public String clazz;
-
-            /**
-             * Method this code attribute is from.
-             */
-            public String method;
-
-            /**
-             * Ths instruction offset of the instruction that caused the exception.
-             */
-            public int instructionOffset;
-
-            /**
-             * The message of the exception.
-             */
-            public String message;
-
-            /**
-             * Idk, me no use yet
-             */
-            String cause;
-
-            public ErrorTracker(String clazz, String method, int instructionOffset, String message, String cause)
-            {
-                this.clazz=clazz;
-                this.method=method;
-                this.instructionOffset=instructionOffset;
-                this.message=message;
-                this.cause=cause;
-            }
-        }
-
         public final List<CodeAttributeTracker> codeAttributes=new ArrayList<>();
-        public ErrorTracker error;
 
         public CodeAttributeTracker getLastCodeAttribute() {
             if (codeAttributes.isEmpty()) {
@@ -420,10 +415,10 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause)
     {
         // Register an exception in the top level stateTracker
-        stateTracker.error = new StateTracker.ErrorTracker(
+        stateTracker.getLastCodeAttribute().error = new StateTracker.CodeAttributeTracker.ErrorTracker(
                 clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz),
                 getLastBlockEvaluation().getLastEvaluation().instructionOffset
-                , cause.getMessage(), null
+                , cause.getMessage()
         );
     }
 

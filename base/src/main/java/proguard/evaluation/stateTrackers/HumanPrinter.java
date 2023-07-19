@@ -1,4 +1,4 @@
-package proguard.evaluation.formatter;
+package proguard.evaluation.stateTrackers;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;

@@ -25,7 +25,7 @@ import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
-import proguard.evaluation.formatter.MachinePrinter
+import proguard.evaluation.stateTrackers.MachinePrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.testutils.findMethod
@@ -54,7 +54,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            val pe = PartialEvaluator.Builder.create().build()
+            val tracker = MachinePrinter()
+            val pe = PartialEvaluator.Builder.create().setStateTracker(tracker).build()
             shouldThrow<VariableEmptySlotException> {
                 evaluateProgramClass(
                     programClass,
@@ -63,6 +64,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     "()Ljava/lang/Object;",
                 )
             }
+            tracker.writeState()
         }
 
         "Entire PE 2 functions" {
