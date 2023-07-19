@@ -121,12 +121,12 @@ class PartialEvaluatorTest : FreeSpec({
             (pe.tracker as MachinePrinter).writeState()
         }
 
-        "Complete" {
+        "Complete".config(enabled = true) {
             val build = buildClass()
                 .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
                     it.iconst(50).ireturn()
                 }
-            val programClass = build
+                val programClass = build
                 .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
                     val startLabel = it.createLabel()
                     val elseLabel = it.createLabel()

@@ -54,7 +54,7 @@ public interface PartialEvaluatorStateTracker
 
 
     // Subroutine
-    void generalizeSubroutine(int subroutineStart, int subroutineEnd);
     void startSubroutine(int subroutineStart, int subroutineEnd);
+    void generalizeSubroutine(int subroutineStart, int subroutineEnd);
     void endSubroutine(int subroutineStart, int subroutineEnd);
 }
