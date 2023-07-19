@@ -45,17 +45,18 @@ class PartialEvaluatorTest : FreeSpec({
                 .programClass
 
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val tracker = MachinePrinter()
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
-                .setEvaluateAllCode(true).build()
+                .setEvaluateAllCode(true).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,
                 pe,
                 "test",
                 "()I",
             )
-            (pe.tracker as MachinePrinter).writeState()
+            tracker.writeState()
         }
 
         "simple throw and catch" {
@@ -88,7 +89,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            (pe.tracker as MachinePrinter).writeState()
         }
 
         "simple catch, no throw" {
@@ -118,7 +118,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            (pe.tracker as MachinePrinter).writeState()
         }
 
         "Complete" {

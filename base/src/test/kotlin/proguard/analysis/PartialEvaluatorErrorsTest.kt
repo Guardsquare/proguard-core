@@ -63,7 +63,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     "()Ljava/lang/Object;",
                 )
             }
-            (pe.tracker as MachinePrinter).writeState()
         }
 
         "Entire PE 2 functions" {
@@ -96,7 +95,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()I",
             )
-            (pe.tracker as MachinePrinter).printState()
         }
 
         "Variable types do not match" {

@@ -60,11 +60,12 @@ implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
     //*
-    private static final PartialEvaluatorStateTracker printer = new HumanPrinter();
-
-    public PartialEvaluatorStateTracker getTracker() {
-        return printer;
-    }
+    private static final boolean DEBUG         = false;
+    private static final boolean DEBUG_RESULTS = false;
+    /*/
+    public static boolean DEBUG         = System.getProperty("pe") != null;
+    public static boolean DEBUG_RESULTS = DEBUG;
+    //*/
 
     private final static Logger logger = LogManager.getLogger(PartialEvaluator.class);
 
@@ -84,16 +85,17 @@ implements   AttributeVisitor,
     private final boolean            evaluateAllCode;
     private final InstructionVisitor extraInstructionVisitor;
 
-    private InstructionOffsetValue[] branchOriginValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private InstructionOffsetValue[] branchTargetValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedVariables[]        variablesBefore     = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedStack[]            stacksBefore        = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedVariables[]        variablesAfter      = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedStack[]            stacksAfter         = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private boolean[]                generalizedContexts = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private int[]                    evaluationCounts    = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private boolean                  evaluateExceptions;
-    private int                      codeLength;
+    private InstructionOffsetValue[]        branchOriginValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private InstructionOffsetValue[]        branchTargetValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedVariables[]               variablesBefore     = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedStack[]                   stacksBefore        = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedVariables[]               variablesAfter      = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedStack[]                   stacksAfter         = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private boolean[]                       generalizedContexts = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private int[]                           evaluationCounts    = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private boolean                         evaluateExceptions;
+    private int                             codeLength;
+    private PartialEvaluatorStateTracker    stateTracker;
 
     private final BasicBranchUnit    branchUnit;
     private final BranchTargetFinder branchTargetFinder;
@@ -229,6 +231,10 @@ implements   AttributeVisitor,
         this.callingInstructionBlockStack = callingInstructionBlockStack == null ?
             this.instructionBlockStack :
             callingInstructionBlockStack;
+        if (DEBUG || DEBUG_RESULTS)
+        {
+            this.stateTracker = new HumanPrinter(DEBUG, DEBUG_RESULTS);
+        }
     }
 
     /**
@@ -247,6 +253,12 @@ implements   AttributeVisitor,
         this.branchTargetFinder           = builder.branchTargetFinder == null ? new BranchTargetFinder() : builder.branchTargetFinder;
         this.callingInstructionBlockStack = builder.callingInstructionBlockStack == null ? this.instructionBlockStack : builder.callingInstructionBlockStack;
         this.stopAnalysisAfterNEvaluations = builder.stopAnalysisAfterNEvaluations;
+        if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS)) {
+            this.stateTracker              = new HumanPrinter(DEBUG, DEBUG_RESULTS);
+        } else
+        {
+            this.stateTracker              = builder.stateTracker;
+        }
     }
 
     public static class Builder {
@@ -258,6 +270,7 @@ implements   AttributeVisitor,
         private BranchTargetFinder                  branchTargetFinder;
         private java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack;
         private int                                 stopAnalysisAfterNEvaluations = -1; // disabled by default
+        private PartialEvaluatorStateTracker        stateTracker;
 
         public static Builder create()
         {
@@ -268,6 +281,11 @@ implements   AttributeVisitor,
         public PartialEvaluator build()
         {
             return new PartialEvaluator(this);
+        }
+
+        public Builder setStateTracker(PartialEvaluatorStateTracker stateTracker) {
+            this.stateTracker = stateTracker;
+            return this;
         }
 
         /**
@@ -371,7 +389,7 @@ implements   AttributeVisitor,
             logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
             logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
-            if (printer != null) printer.registerException(clazz, method, codeAttribute, this, ex);
+            if (stateTracker != null) stateTracker.registerException(clazz, method, codeAttribute, this, ex);
 
             throw ex;
         }
@@ -395,7 +413,7 @@ implements   AttributeVisitor,
         initializeArrays(codeAttribute);
         initializeParameters(clazz, method, codeAttribute, variables);
 
-        if (printer != null) printer.startCodeAttribute(clazz, method, codeAttribute, variables);
+        if (stateTracker != null) stateTracker.startCodeAttribute(clazz, method, codeAttribute, variables);
 
         // Reset stacks.
         instructionBlockStack.clear();
@@ -413,7 +431,7 @@ implements   AttributeVisitor,
                                                      0,
                                                      codeAttribute.u4codeLength);
 
-        if (printer != null) printer.evaluationResults(clazz, method, codeAttribute, this);
+        if (stateTracker != null) stateTracker.evaluationResults(clazz, method, codeAttribute, this);
     }
 
 
@@ -764,7 +782,7 @@ implements   AttributeVisitor,
         // Execute all resulting instruction blocks on the execution stack.
         while (!instructionBlockStack.empty())
         {
-            if (printer != null) printer.startBranchCodeBlockEvaluation(instructionBlockStack);
+            if (stateTracker != null) stateTracker.startBranchCodeBlockEvaluation(instructionBlockStack);
 
             InstructionBlockDTO instructionBlock = instructionBlockStack.pop();
 
@@ -793,9 +811,9 @@ implements   AttributeVisitor,
     {
         byte[] code = codeAttribute.code;
 
-        if (printer != null)
+        if (stateTracker != null)
         {
-             printer.startInstructionBlock(clazz, method, codeAttribute, variables, stack, startOffset);
+             stateTracker.startInstructionBlock(clazz, method, codeAttribute, variables, stack, startOffset);
         }
 
         Processor processor = new Processor(variables,
@@ -857,7 +875,7 @@ implements   AttributeVisitor,
                     !stackChanged     &&
                     generalizedContexts[instructionOffset])
                 {
-                    if (printer != null) printer.skipInstructionBlock(clazz, method, instructionOffset,
+                    if (stateTracker != null) stateTracker.skipInstructionBlock(clazz, method, instructionOffset,
                             instruction, variablesBefore[instructionOffset], stacksBefore[instructionOffset]);
 
                     break;
@@ -867,7 +885,7 @@ implements   AttributeVisitor,
                 // of times.
                 if (evaluationCount >= GENERALIZE_AFTER_N_EVALUATIONS)
                 {
-                    if (printer != null) printer.generalizeInstructionBlock(clazz, method, instructionOffset, instruction, variables, stack, evaluationCount);
+                    if (stateTracker != null) stateTracker.generalizeInstructionBlock(clazz, method, instructionOffset, instruction, variables, stack, evaluationCount);
 
                     if (stopAnalysisAfterNEvaluations != -1 && evaluationCount >= stopAnalysisAfterNEvaluations)
                     {
@@ -902,7 +920,7 @@ implements   AttributeVisitor,
             // Reset the branch unit.
             branchUnit.reset();
 
-            if (printer != null) printer.startInstructionEvaluation(clazz, method, instructionOffset, instruction, variables, stack);
+            if (stateTracker != null) stateTracker.startInstructionEvaluation(clazz, method, instructionOffset, instruction, variables, stack);
 
             if (extraInstructionVisitor != null)
             {
@@ -940,7 +958,7 @@ implements   AttributeVisitor,
             InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
             int branchTargetCount = branchTargets.instructionOffsetCount();
 
-            if (printer != null) printer.afterInstructionEvaluation(clazz, method, instructionOffset, instruction,
+            if (stateTracker != null) stateTracker.afterInstructionEvaluation(clazz, method, instructionOffset, instruction,
                     variables, stack, branchUnit, branchTargets(instructionOffset));
 
             // Maintain a generalized local variable frame and stack at this
@@ -999,7 +1017,7 @@ implements   AttributeVisitor,
                     // Push them on the execution stack and exit from this block.
                     for (int index = 0; index < branchTargetCount; index++)
                     {
-                        if (printer != null)  printer.registerAlternativeBranch(clazz, method,
+                        if (stateTracker != null)  stateTracker.registerAlternativeBranch(clazz, method,
                                 instructionOffset,  instruction, variables, stack,
                                 index, branchTargetCount, branchTargets.instructionOffset(index));
 
@@ -1011,7 +1029,7 @@ implements   AttributeVisitor,
                     break;
                 }
 
-                if (printer != null) printer.definitiveBranch(clazz, method, instructionOffset, instruction, variables, stack, branchTargets);
+                if (stateTracker != null) stateTracker.definitiveBranch(clazz, method, instructionOffset, instruction, variables, stack, branchTargets);
 
                 // Continue at the definite branch target.
                 instructionOffset = branchTargets.instructionOffset(0);
@@ -1047,7 +1065,7 @@ implements   AttributeVisitor,
             }
         }
 
-        if (printer != null) printer.instructionBlockDone(clazz, method, codeAttribute, variables, stack, startOffset);
+        if (stateTracker != null) stateTracker.instructionBlockDone(clazz, method, codeAttribute, variables, stack, startOffset);
     }
 
 
@@ -1064,7 +1082,7 @@ implements   AttributeVisitor,
     {
         int subroutineEnd = branchTargetFinder.subroutineEnd(subroutineStart);
 
-        if (printer != null) printer.startSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
+        if (stateTracker != null) stateTracker.startSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
 
         // Create a temporary partial evaluator, so there are no conflicts
         // with variables that are alive across subroutine invocations, between
@@ -1085,10 +1103,10 @@ implements   AttributeVisitor,
 
         // Merge back the temporary partial evaluator. This way, we'll get
         // the lowest common denominator of stacks and variables.
-        if (printer != null) printer.generalizeSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
+        if (stateTracker != null) stateTracker.generalizeSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
         generalize(subroutinePartialEvaluator, 0, codeAttribute.u4codeLength);
 
-        if (printer != null) printer.endSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
+        if (stateTracker != null) stateTracker.endSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
     }
 
 
@@ -1151,7 +1169,7 @@ implements   AttributeVisitor,
                                            int           startOffset,
                                            int           endOffset)
     {
-        if (printer != null) printer.startExceptionHandlingForBlock(clazz, method, startOffset, endOffset);
+        if (stateTracker != null) stateTracker.startExceptionHandlingForBlock(clazz, method, startOffset, endOffset);
 
         ExceptionHandlerFilter exceptionEvaluator =
             new ExceptionHandlerFilter(startOffset,
@@ -1189,7 +1207,7 @@ implements   AttributeVisitor,
             int handlerPC = exceptionInfo.u2handlerPC;
             int catchType = exceptionInfo.u2catchType;
 
-            if (printer != null) printer.registerExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
+            if (stateTracker != null) stateTracker.registerExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
 
             // Reuse the existing variables and stack objects, ensuring the
             // right size.
@@ -1244,7 +1262,7 @@ implements   AttributeVisitor,
 //        }
         else
         {
-            if (printer != null) printer.registerUnusedExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
+            if (stateTracker != null) stateTracker.registerUnusedExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
         }
     }
 
