@@ -180,8 +180,6 @@ class MultiTypeTest : FreeSpec({
             }
 
             exception.message shouldContain "1 unknown classes: RemovedSuper"
-
-            allowIncompleteClassHierarchy.setBoolean(TypedReferenceValue(null, null, true, true), false)
         }
         "No super class" {
             // Allow incomplete Class Hierarchies
