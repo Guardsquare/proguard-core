@@ -19,7 +19,7 @@ package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
-import proguard.evaluation.exception.InvalidArrayIndex;
+import proguard.evaluation.exception.ArrayIndexException;
 import proguard.util.ArrayUtil;
 
 /**
@@ -140,7 +140,7 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
             int index = indexValue.value();
             if (index < 0 || index >= values.length)
             {
-                throw new InvalidArrayIndex(index, values.length);
+                throw new ArrayIndexException(index, values.length);
             }
 
             return values[index];
@@ -159,7 +159,7 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
                 int index = indexValue.value();
                 if (index < 0 || index >= values.length)
                 {
-                    throw new InvalidArrayIndex(index, values.length);
+                    throw new ArrayIndexException(index, values.length);
                 }
 
                 values[index] = value;

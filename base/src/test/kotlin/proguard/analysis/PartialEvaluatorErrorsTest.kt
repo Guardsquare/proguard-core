@@ -19,7 +19,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.InvalidArrayIndex
+import proguard.evaluation.exception.ArrayIndexException
 import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
@@ -188,7 +188,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            shouldThrow<InvalidArrayIndex> {
+            shouldThrow<ArrayIndexException> {
                 evaluateProgramClass(
                     programClass,
                     PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
@@ -211,7 +211,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            shouldThrow<InvalidArrayIndex> {
+            shouldThrow<ArrayIndexException> {
                 evaluateProgramClass(
                     programClass,
                     PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
