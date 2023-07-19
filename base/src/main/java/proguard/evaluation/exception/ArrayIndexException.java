@@ -35,10 +35,9 @@ public class ArrayIndexException extends ProguardCoreException
 
     public ArrayIndexException(int index, int bound)
     {
-        super(
-                ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
-                "Index [%s] out of bounds for array of length %s",
-                Integer.toString(index), Integer.toString(bound));
+        super(ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
+                  "Index [%s] out of bounds for array of length %s",
+                  Integer.toString(index), Integer.toString(bound));
         this.index = index;
         this.bound = bound;
     }
