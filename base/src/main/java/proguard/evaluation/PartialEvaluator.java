@@ -40,7 +40,7 @@ import proguard.classfile.util.BranchTargetFinder;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
-import proguard.evaluation.formatter.MachinePrinter;
+import proguard.evaluation.formatter.HumanPrinter;
 import proguard.evaluation.formatter.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
@@ -60,7 +60,7 @@ implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
     //*
-    private static final PartialEvaluatorStateTracker printer = new MachinePrinter();
+    private static final PartialEvaluatorStateTracker printer = new HumanPrinter();
 
     public PartialEvaluatorStateTracker getTracker() {
         return printer;
@@ -103,8 +103,8 @@ implements   AttributeVisitor,
     private final BasicBranchUnit    branchUnit;
     private final BranchTargetFinder branchTargetFinder;
 
-    private final java.util.Stack<MyInstructionBlock> callingInstructionBlockStack;
-    private final java.util.Stack<MyInstructionBlock> instructionBlockStack = new java.util.Stack<>();
+    private final java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack;
+    private final java.util.Stack<InstructionBlockDTO> instructionBlockStack = new java.util.Stack<>();
 
 
     /**
@@ -223,7 +223,7 @@ implements   AttributeVisitor,
                              InstructionVisitor                  extraInstructionVisitor,
                              BasicBranchUnit                     branchUnit,
                              BranchTargetFinder                  branchTargetFinder,
-                             java.util.Stack<MyInstructionBlock> callingInstructionBlockStack)
+                             java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack)
     {
         this.valueFactory                 = valueFactory;
         this.invocationUnit               = invocationUnit;
@@ -261,7 +261,7 @@ implements   AttributeVisitor,
         private InstructionVisitor                  extraInstructionVisitor;
         private BasicBranchUnit                     branchUnit;
         private BranchTargetFinder                  branchTargetFinder;
-        private java.util.Stack<MyInstructionBlock> callingInstructionBlockStack;
+        private java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack;
         private int                                 stopAnalysisAfterNEvaluations = -1; // disabled by default
 
         public static Builder create()
@@ -333,7 +333,7 @@ implements   AttributeVisitor,
         /**
          * the stack of instruction blocks to be evaluated.
          */
-        public Builder setCallingInstructionBlockStack(java.util.Stack<MyInstructionBlock> callingInstructionBlockStack)
+        public Builder setCallingInstructionBlockStack(java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack)
         {
             this.callingInstructionBlockStack = callingInstructionBlockStack;
             return this;
@@ -701,7 +701,7 @@ implements   AttributeVisitor,
                                              TracedStack     stack,
                                              int             startOffset)
     {
-        callingInstructionBlockStack.push(new MyInstructionBlock(variables,
+        callingInstructionBlockStack.push(new InstructionBlockDTO(variables,
                                                                  stack,
                                                                  startOffset));
     }
@@ -714,7 +714,7 @@ implements   AttributeVisitor,
                                       TracedStack     stack,
                                       int             startOffset)
     {
-        instructionBlockStack.push(new MyInstructionBlock(variables,
+        instructionBlockStack.push(new InstructionBlockDTO(variables,
                                                           stack,
                                                           startOffset));
     }
@@ -769,9 +769,9 @@ implements   AttributeVisitor,
         // Execute all resulting instruction blocks on the execution stack.
         while (!instructionBlockStack.empty())
         {
-            if (printer != null) printer.printStartBranchCodeBlockEvaluation(instructionBlockStack.size());
+            if (printer != null) printer.startBranchCodeBlockEvaluation(instructionBlockStack);
 
-            MyInstructionBlock instructionBlock = instructionBlockStack.pop();
+            InstructionBlockDTO instructionBlock = instructionBlockStack.pop();
 
             evaluateSingleInstructionBlock(clazz,
                                            method,
@@ -822,6 +822,9 @@ implements   AttributeVisitor,
                 maxOffset = instructionOffset;
             }
 
+            // Decode the instruction.
+            Instruction instruction = InstructionFactory.create(code, instructionOffset);
+
             // Maintain a generalized local variable frame and stack at this
             // instruction offset, before execution.
             int evaluationCount = evaluationCounts[instructionOffset];
@@ -859,7 +862,8 @@ implements   AttributeVisitor,
                     !stackChanged     &&
                     generalizedContexts[instructionOffset])
                 {
-                    if (printer != null) printer.skipInstructionBlock();
+                    if (printer != null) printer.skipInstructionBlock(clazz, method, instructionOffset,
+                            instruction, variablesBefore[instructionOffset], stacksBefore[instructionOffset]);
 
                     break;
                 }
@@ -868,7 +872,7 @@ implements   AttributeVisitor,
                 // of times.
                 if (evaluationCount >= GENERALIZE_AFTER_N_EVALUATIONS)
                 {
-                    if (printer != null) printer.generalizeInstructionBlock(evaluationCount);
+                    if (printer != null) printer.generalizeInstructionBlock(clazz, method, instructionOffset, instruction, variables, stack, evaluationCount);
 
                     if (stopAnalysisAfterNEvaluations != -1 && evaluationCount >= stopAnalysisAfterNEvaluations)
                     {
@@ -900,13 +904,10 @@ implements   AttributeVisitor,
             variables.setProducerValue(storeValue);
             stack.setProducerValue(storeValue);
 
-            // Decode the instruction.
-            Instruction instruction = InstructionFactory.create(code, instructionOffset);
-
             // Reset the branch unit.
             branchUnit.reset();
 
-            if (printer != null) printer.startInstructionEvaluation(instruction, clazz, instructionOffset, variables, stack);
+            if (printer != null) printer.startInstructionEvaluation(clazz, method, instructionOffset, instruction, variables, stack);
 
             if (extraInstructionVisitor != null)
             {
@@ -944,7 +945,8 @@ implements   AttributeVisitor,
             InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
             int branchTargetCount = branchTargets.instructionOffsetCount();
 
-            if (printer != null) printer.afterInstructionEvaluation(branchUnit, instructionOffset, variables, stack, branchTargets(instructionOffset));
+            if (printer != null) printer.afterInstructionEvaluation(clazz, method, instructionOffset, instruction,
+                    variables, stack, branchUnit, branchTargets(instructionOffset));
 
             // Maintain a generalized local variable frame and stack at this
             // instruction offset, after execution.
@@ -1002,9 +1004,9 @@ implements   AttributeVisitor,
                     // Push them on the execution stack and exit from this block.
                     for (int index = 0; index < branchTargetCount; index++)
                     {
-                        if (printer != null)  printer.registerAlternativeBranch(index, branchTargetCount,
-                                instructionOffset, branchTargets(index), variables, stack,
-                                branchTargets.instructionOffset(index));
+                        if (printer != null)  printer.registerAlternativeBranch(clazz, method,
+                                instructionOffset,  instruction, variables, stack,
+                                index, branchTargetCount,  branchTargets.instructionOffset(index), branchTargets(index));
 
                         pushInstructionBlock(new TracedVariables(variables),
                                              new TracedStack(stack),
@@ -1014,7 +1016,7 @@ implements   AttributeVisitor,
                     break;
                 }
 
-                if (printer != null) printer.definitiveBranch(instructionOffset, branchTargets);
+                if (printer != null) printer.definitiveBranch(clazz, method, instructionOffset, instruction, variables, stack, branchTargets);
 
                 // Continue at the definite branch target.
                 instructionOffset = branchTargets.instructionOffset(0);
@@ -1050,7 +1052,7 @@ implements   AttributeVisitor,
             }
         }
 
-        if (printer != null) printer.instructionBlockDone(startOffset);
+        if (printer != null) printer.instructionBlockDone(clazz, method, codeAttribute, variables, stack, startOffset);
     }
 
 
@@ -1067,7 +1069,7 @@ implements   AttributeVisitor,
     {
         int subroutineEnd = branchTargetFinder.subroutineEnd(subroutineStart);
 
-        if (printer != null) printer.startSubroutine(subroutineStart, subroutineEnd);
+        if (printer != null) printer.startSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
 
         // Create a temporary partial evaluator, so there are no conflicts
         // with variables that are alive across subroutine invocations, between
@@ -1088,9 +1090,10 @@ implements   AttributeVisitor,
 
         // Merge back the temporary partial evaluator. This way, we'll get
         // the lowest common denominator of stacks and variables.
+        if (printer != null) printer.generalizeSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
         generalize(subroutinePartialEvaluator, 0, codeAttribute.u4codeLength);
 
-        if (printer != null) printer.endSubroutine(subroutineStart, subroutineEnd);
+        if (printer != null) printer.endSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
     }
 
 
@@ -1102,8 +1105,6 @@ implements   AttributeVisitor,
                             int              codeStart,
                             int              codeEnd)
     {
-        if (printer != null) printer.generalizeSubroutine(codeStart, codeEnd);
-
         for (int offset = codeStart; offset < codeEnd; offset++)
         {
             if (other.branchOriginValues[offset] != null)
@@ -1155,7 +1156,7 @@ implements   AttributeVisitor,
                                            int           startOffset,
                                            int           endOffset)
     {
-        if (printer != null) printer.startExceptionHandling(startOffset, endOffset);
+        if (printer != null) printer.startExceptionHandlingForBlock(clazz, method, startOffset, endOffset);
 
         ExceptionHandlerFilter exceptionEvaluator =
             new ExceptionHandlerFilter(startOffset,
@@ -1193,7 +1194,7 @@ implements   AttributeVisitor,
             int handlerPC = exceptionInfo.u2handlerPC;
             int catchType = exceptionInfo.u2catchType;
 
-            if (printer != null) printer.registerExceptionHandler(startPC, endPC, handlerPC, exceptionInfo, clazz);
+            if (printer != null) printer.registerExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
 
             // Reuse the existing variables and stack objects, ensuring the
             // right size.
@@ -1248,7 +1249,7 @@ implements   AttributeVisitor,
 //        }
         else
         {
-            if (printer != null) printer.registerUnusedExceptionHandler(startPC, endPC, exceptionInfo);
+            if (printer != null) printer.registerUnusedExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
         }
     }
 
@@ -1474,16 +1475,16 @@ implements   AttributeVisitor,
      * This class represents an instruction block that has to be executed,
      * starting with a given state at a given instruction offset.
      */
-    private static class MyInstructionBlock
+    public static class InstructionBlockDTO
     {
         private final TracedVariables variables;
         private final TracedStack     stack;
         private final int             startOffset;
 
 
-        private MyInstructionBlock(TracedVariables variables,
-                                   TracedStack     stack,
-                                   int             startOffset)
+        private InstructionBlockDTO(TracedVariables variables,
+                                    TracedStack     stack,
+                                    int             startOffset)
         {
             this.variables   = variables;
             this.stack       = stack;

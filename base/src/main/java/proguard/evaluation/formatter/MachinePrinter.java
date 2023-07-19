@@ -430,17 +430,17 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
     // Exceptions
     @Override
-    public void startExceptionHandling(int startOffset, int endOffset)
+    public void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset)
     {
 
     }
 
     @Override
-    public void registerExceptionHandler(int startPC, int endPC, int handlerPC, ExceptionInfo info, Clazz clazz)
+    public void registerExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
     {
         // Register an exception handler being evaluated
         stateTracker.getLastCodeAttribute().blockEvaluations.add(new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
-                null, null, handlerPC
+                null, null, info.u2handlerPC
         ));
 
         // No need to copy branch stack
@@ -453,7 +453,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void registerUnusedExceptionHandler(int startPC, int endPC, ExceptionInfo info)
+    public void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
     {
         System.out.println("temp");
     }
@@ -471,7 +471,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     // Instruction block level
     @Override
     public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
-                                      TracedVariables variables, TracedStack stack, int startOffset)
+                                      TracedVariables startVariables, TracedStack startStack, int startOffset)
     {
         // Start of a single block evaluation
 
@@ -486,8 +486,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
         // If the last blockTracker is not initialized, it is one created by registerException; initialize it
         if (blockTracker != null && exInfo != null && blockTracker.evaluations.isEmpty()) {
-            blockTracker.startVariables = formatValueList(variables);
-            blockTracker.startStack = formatValueList(stack);
+            blockTracker.startVariables = formatValueList(startVariables);
+            blockTracker.startStack = formatValueList(startStack);
         }
         else
         {
@@ -509,7 +509,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
             getLastBlockEvaluationTracker().add(
                     new StateTracker.CodeAttributeTracker.BlockEvaluationTracker(
-                            formatValueList(variables), formatValueList(stack), startOffset
+                            formatValueList(startVariables), formatValueList(startStack), startOffset
                     ));
             getLastBlockEvaluation().exceptionHandlerInfo = exInfo;
             getLastBlockEvaluation().blockEvaluationStack = branchStack;
@@ -517,13 +517,18 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void printStartBranchCodeBlockEvaluation(int stackSize)
+    public void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlockDTO> branchStack)
     {
 
     }
 
     @Override
-    public void instructionBlockDone(int startOffset)
+    public void instructionBlockDone(Clazz clazz,
+                                     Method method,
+                                     CodeAttribute codeAttribute,
+                                     TracedVariables startVariables,
+                                     TracedStack startStack,
+                                     int startOffset)
     {
 
     }
@@ -531,21 +536,21 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
     // Instruction level:
     @Override
-    public void skipInstructionBlock()
+    public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore)
     {
         getLastBlockEvaluation().evaluations.add(
                 StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.seenIndicator());
     }
 
     @Override
-    public void generalizeInstructionBlock(int evaluationCount)
+    public void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
         getLastBlockEvaluation().evaluations.add(
                 StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker.generalizationIndicator(evaluationCount));
     }
 
     @Override
-    public void startInstructionEvaluation(Instruction instruction, Clazz clazz, int instructionOffset,
+    public void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                            TracedVariables variablesBefore, TracedStack stackBefore)
     {
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker prevEval =
@@ -567,19 +572,19 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void afterInstructionEvaluation(BasicBranchUnit branchUnit, int instructionOffset, TracedVariables variables, TracedStack stack, InstructionOffsetValue branchTarget)
+    public void afterInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesAfter, TracedStack stackAfter, BasicBranchUnit branchUnit, InstructionOffsetValue branchTarget)
     {
 
     }
 
     @Override
-    public void definitiveBranch(int instructionOffset, InstructionOffsetValue branchTargets)
+    public void definitiveBranch(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesAfter, TracedStack stackAfter, InstructionOffsetValue branchTargets)
     {
 
     }
 
     @Override
-    public void registerAlternativeBranch(int index, int branchTargetCount, int instructionOffset, InstructionOffsetValue offsetValue, TracedVariables variables, TracedStack stack, int offset)
+    public void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction, TracedVariables variablesAfter, TracedStack stackAfter, int branchIndex, int branchTargetCount, int offset, InstructionOffsetValue offsetValue)
     {
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker blockEval = getLastBlockEvaluation();
         StateTracker.CodeAttributeTracker.BlockEvaluationTracker.InstructionEvaluationTracker lastEval = blockEval.getLastEvaluation();
@@ -588,27 +593,26 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
             lastEval.updatedEvaluationStack = new ArrayList<>(blockEval.blockEvaluationStack);
         }
         lastEval.updatedEvaluationStack.add(new StateTracker.CodeAttributeTracker.InstructionBlock(
-            formatValueList(variables), formatValueList(stack), offset
+            formatValueList(variablesAfter), formatValueList(stackAfter), offset
         ));
     }
 
 
     // Subroutine:
     @Override
-    public void startSubroutine(int subroutineStart, int subroutineEnd)
+    public void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd)
     {
         getLastBlockEvaluation().getLastEvaluation().jsrBlockEvalTracker = new ArrayList<>();
         subRoutineTrackers.offer(getLastBlockEvaluation().getLastEvaluation().jsrBlockEvalTracker);
     }
 
     @Override
-    public void generalizeSubroutine(int subroutineStart, int subroutineEnd)
+    public void generalizeSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd)
     {
-        // throw new RuntimeException("NOT SUPPORTED");
     }
 
     @Override
-    public void endSubroutine(int subroutineStart, int subroutineEnd)
+    public void endSubroutine(Clazz clazz, Method method, TracedVariables variablesAfter, TracedStack stackAfter, int subroutineStart, int subroutineEnd)
     {
         subRoutineTrackers.pop();
     }
