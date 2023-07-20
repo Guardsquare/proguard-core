@@ -36,16 +36,20 @@ class InstructionBlockEvaluationRecord
     /**
      * Current branch evaluation stack
      */
-    public List<BranchTargetRecord> branchEvaluationStack = new ArrayList<>();
+    public List<BranchTargetRecord> branchEvaluationStack;
 
-    public InstructionBlockEvaluationRecord(List<String> startVariables, List<String> startStack, int startOffset)
+    public InstructionBlockEvaluationRecord(List<String> startVariables, List<String> startStack, int startOffset,
+                                            ExceptionHandlerRecord exceptionHandlerInfo,
+                                            List<BranchTargetRecord> branchEvaluationStack)
     {
-        this.startVariables=startVariables;
-        this.startStack=startStack;
-        this.startOffset=startOffset;
+        this.startVariables = startVariables;
+        this.startStack = startStack;
+        this.startOffset = startOffset;
+        this.exceptionHandlerInfo = exceptionHandlerInfo;
+        this.branchEvaluationStack = branchEvaluationStack;
     }
 
-    public InstructionEvaluationRecord getLastEvaluation()
+    public InstructionEvaluationRecord getLastInstructionEvaluation()
     {
         if (evaluations.isEmpty())
         {

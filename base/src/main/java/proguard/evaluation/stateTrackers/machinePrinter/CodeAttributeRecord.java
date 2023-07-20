@@ -35,19 +35,11 @@ class CodeAttributeRecord
      */
     public List<InstructionBlockEvaluationRecord> blockEvaluations = new ArrayList<>();
 
-    public CodeAttributeRecord(String clazz, String method, List<String> parameters)
+    public CodeAttributeRecord(String clazz, String method, List<String> parameters, List<InstructionRecord> instructions)
     {
-        this.clazz=clazz;
-        this.method=method;
-        this.parameters=parameters;
-    }
-
-    public InstructionBlockEvaluationRecord getLastBlockEvaluation()
-    {
-        if (blockEvaluations.isEmpty())
-        {
-            return null;
-        }
-        return blockEvaluations.get(blockEvaluations.size() - 1);
+        this.clazz = clazz;
+        this.method = method;
+        this.parameters = parameters;
+        this.instructions = instructions;
     }
 }

@@ -50,38 +50,16 @@ class InstructionEvaluationRecord
 
     public List<InstructionBlockEvaluationRecord> jsrBlockEvaluations;
 
-    public static InstructionEvaluationRecord seenIndicator()
+    public InstructionEvaluationRecord(
+            Boolean skipEvaluation, Boolean isGeneralization, Integer timesSeen, String instruction,
+            Integer instructionOffset, List<String> variablesBefore, List<String> stackBefore)
     {
-        return new InstructionEvaluationRecord(
-                true, null, null, null,
-                null, null, null, null);
-    }
-
-    public static InstructionEvaluationRecord generalizationIndicator(int timesSeen)
-    {
-        return new InstructionEvaluationRecord(null, true, timesSeen, null,
-                null, null, null, null);
-    }
-
-    public static InstructionEvaluationRecord instructionTracker(
-            String instruction, int instructionOffset, List<BranchTargetRecord> evaluationBlockStack,
-            List<String> variablesBefore, List<String> stackBefore)
-    {
-        return new InstructionEvaluationRecord(null, null, null,
-                instruction, instructionOffset, evaluationBlockStack, variablesBefore, stackBefore);
-    }
-
-    public InstructionEvaluationRecord(Boolean isSeenBefore, Boolean isGeneralization, Integer timesSeen, String instruction,
-                                       Integer instructionOffset, List<BranchTargetRecord> evaluationBlockStack,
-                                       List<String> variablesBefore, List<String> stackBefore)
-    {
-        this.skipEvaluation=isSeenBefore;
-        this.isGeneralization=isGeneralization;
-        this.timesSeen=timesSeen;
-        this.instruction=instruction;
-        this.instructionOffset=instructionOffset;
-        this.updatedEvaluationStack=evaluationBlockStack;
-        this.variablesBefore=variablesBefore;
-        this.stackBefore=stackBefore;
+        this.skipEvaluation = skipEvaluation;
+        this.isGeneralization = isGeneralization;
+        this.timesSeen = timesSeen;
+        this.instruction = instruction;
+        this.instructionOffset = instructionOffset;
+        this.variablesBefore = variablesBefore;
+        this.stackBefore = stackBefore;
     }
 }

@@ -10,14 +10,12 @@ import proguard.classfile.attribute.ExceptionInfo;
 import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
-import proguard.evaluation.BasicBranchUnit;
 import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.Stack;
 import proguard.evaluation.TracedStack;
 import proguard.evaluation.TracedVariables;
 import proguard.evaluation.Variables;
 import proguard.evaluation.stateTrackers.PartialEvaluatorStateTracker;
-import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 
 import java.io.BufferedWriter;
@@ -66,24 +64,36 @@ import java.util.List;
 
 public class MachinePrinter implements PartialEvaluatorStateTracker
 {
-    private final Gson gson;
+    /**
+     * GSON object used to create json string format
+     */
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    /**
+     * Tracks the state of the partial evaluator
+     */
     private final StateTracker stateTracker = new StateTracker();
-    private final Deque<List<InstructionBlockEvaluationRecord>> subRoutineTrackers;
 
-    public MachinePrinter()
-    {
-        subRoutineTrackers = new ArrayDeque<>();
-        gson=new GsonBuilder().setPrettyPrinting().create();
-    }
+    /**
+     * Traces the current depth of JSR recursion.
+     * All accesses to an InstructionBlockEvaluationRecord should be done through here
+     */
+    private final Deque<List<InstructionBlockEvaluationRecord>> subRoutineTrackers = new ArrayDeque<>();
 
-    public List<InstructionBlockEvaluationRecord> getLastBlockEvaluationTracker() {
+    /**
+     * @return the last relevant list of InstructionBlockEvaluationRecord referenced by PE
+     */
+    public List<InstructionBlockEvaluationRecord> getSubroutineInstructionBlockEvaluationTracker() {
         if (subRoutineTrackers.isEmpty()) {
             return null;
         }
         return subRoutineTrackers.peekLast();
     }
 
-    public InstructionBlockEvaluationRecord getLastBlockEvaluation() {
+    /**
+     * @return the last relevant InstructionBlockEvaluationRecord referenced by the PE
+     */
+    public InstructionBlockEvaluationRecord getLastInstructionBlockEvaluation() {
         if (subRoutineTrackers.isEmpty()) {
             return null;
         }
@@ -116,39 +126,36 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
      * Code attribute level *
      ************************/
     @Override
-    public void startCodeAttribute(Clazz clazz, Method method, proguard.classfile.attribute.CodeAttribute codeAttribute, Variables parameters)
+    public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
-        // Register the current code attribute
-        stateTracker.codeAttributes.add(new CodeAttributeRecord(
-                clazz.getName(), method.getName(clazz) + method.getDescriptor(clazz), formatValueList(parameters)
-        ));
-
-        // Clear the subroutine recursion tracker
-        subRoutineTrackers.clear();
-        subRoutineTrackers.add(stateTracker.getLastCodeAttribute().blockEvaluations);
-
         // Read out all instructions in this codeAttribute
+        List<InstructionRecord> instructions = new ArrayList<>();
         byte[] code = codeAttribute.code;
         int offset = 0;
         while (offset < code.length) {
             Instruction instruction = InstructionFactory.create(code, offset);
-            stateTracker.getLastCodeAttribute().instructions.add(
-                    new InstructionRecord(
-                            offset, instruction.toString()
-                    ));
-
+            instructions.add(new InstructionRecord(offset, instruction.toString()));
             offset += instruction.length(offset);
         }
+
+        // Create the new CodeAttributeRecord
+        CodeAttributeRecord attributeRecord = new CodeAttributeRecord(clazz.getName(),
+                method.getName(clazz) + method.getDescriptor(clazz), formatValueList(parameters), instructions);
+
+        // Clear the subroutine recursion tracker and add the current
+        subRoutineTrackers.clear();
+        subRoutineTrackers.add(attributeRecord.blockEvaluations);
+
+        // Register the current code attribute
+        stateTracker.codeAttributes.add(attributeRecord);
     }
 
-
     @Override
-    public void registerException(Clazz clazz, Method method, proguard.classfile.attribute.CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause)
+    public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute,
+                                  PartialEvaluator evaluator, Throwable cause)
     {
-        // Register an exception in the top level stateTracker
         stateTracker.getLastCodeAttribute().error = new ErrorRecord(
-                getLastBlockEvaluation().getLastEvaluation().instructionOffset, cause.getMessage()
-        );
+                getLastInstructionBlockEvaluation().getLastInstructionEvaluation().instructionOffset, cause.getMessage());
     }
 
 
@@ -156,31 +163,17 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
      * Exceptions *
      **************/
     @Override
-    public void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset)
-    {
-
-    }
-
-    @Override
     public void registerExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
     {
-        // Register an exception handler being evaluated
-        stateTracker.getLastCodeAttribute().blockEvaluations.add(new InstructionBlockEvaluationRecord(
-                null, null, info.u2handlerPC
-        ));
+        // TODO: currently instantiated with null and later corrected, can we do better?
 
-        // No need to copy branch stack
-        ClassConstant constant =(ClassConstant) ((ProgramClass) clazz).getConstant(info.u2catchType);
-       getLastBlockEvaluation().exceptionHandlerInfo =
-                new ExceptionHandlerRecord(
-                        startPC, endPC, info.u2handlerPC, constant == null ? "java/lang/Throwable" : constant.getName(clazz)
-                );
-    }
+        ClassConstant constant = (ClassConstant) ((ProgramClass) clazz).getConstant(info.u2catchType);
+        ExceptionHandlerRecord exceptionHandlerInfo = new ExceptionHandlerRecord(startPC, endPC,
+                info.u2handlerPC, constant == null ? "java/lang/Throwable" : constant.getName(clazz));
 
-    @Override
-    public void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
-    {
-
+        // Register an exception handler being evaluated. NOTE: do not copy the branch stack (should be empty but still)
+        getSubroutineInstructionBlockEvaluationTracker().add(
+                new InstructionBlockEvaluationRecord(null, null, info.u2handlerPC, exceptionHandlerInfo, null));
     }
 
 
@@ -188,9 +181,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
      * Results *
      ***********/
     @Override
-    public void evaluationResults(Clazz clazz, Method method, proguard.classfile.attribute.CodeAttribute codeAttribute, PartialEvaluator evaluator)
+    public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
-
+        // TODO: we no want?
     }
 
 
@@ -202,68 +195,49 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
                                       TracedVariables startVariables, TracedStack startStack, int startOffset)
     {
-        // Start of a single block evaluation
+        // If the last evaluation was handling an exception, this one is also, copy it over
+        InstructionBlockEvaluationRecord lastBlock = getLastInstructionBlockEvaluation();
 
-        // If the last evaluation was handling an exception, this one is also
-        InstructionBlockEvaluationRecord blockTracker = null;
-        ExceptionHandlerRecord exInfo = null;
-        if (getLastBlockEvaluation() != null)
-        {
-            blockTracker = getLastBlockEvaluation();
-            exInfo = blockTracker.exceptionHandlerInfo;
-        }
-
-        // If the last blockTracker is not initialized, it is one created by registerException; initialize it
-        if (blockTracker != null && exInfo != null && blockTracker.evaluations.isEmpty()) {
-            blockTracker.startVariables = formatValueList(startVariables);
-            blockTracker.startStack = formatValueList(startStack);
+        // If the last blockTracker is not initialized, it is one created by registerException, initialize it
+        if (lastBlock != null && lastBlock.exceptionHandlerInfo != null && lastBlock.evaluations.isEmpty()) {
+            lastBlock.startVariables = formatValueList(startVariables);
+            lastBlock.startStack = formatValueList(startStack);
+            // No need to copy branching information
         }
         else
         {
-            // Copy the last instruction block
-            InstructionBlockEvaluationRecord lastBlock =
-                    getLastBlockEvaluation();
+            ExceptionHandlerRecord exceptionHandlerInfo = null;
+
             List<BranchTargetRecord> branchStack = new ArrayList<>();
+            // If there is a last block, copy the branch stack, either from last instruction or last block
             if (lastBlock != null)
             {
-                if (lastBlock.getLastEvaluation() != null && lastBlock.getLastEvaluation().updatedEvaluationStack != null)
+                InstructionEvaluationRecord lastInstruction = lastBlock.getLastInstructionEvaluation();
+                if (lastInstruction != null && lastInstruction.updatedEvaluationStack != null)
                 {
-                    branchStack = new ArrayList<>(lastBlock.getLastEvaluation().updatedEvaluationStack);
+                    branchStack = new ArrayList<>(lastBlock.getLastInstructionEvaluation().updatedEvaluationStack);
                 }
                 else
                 {
-                    branchStack = new ArrayList<>(lastBlock.branchEvaluationStack);
+                    branchStack = new ArrayList<>(getLastInstructionBlockEvaluation().branchEvaluationStack);
                 }
+
+                // Copy the exceptionHandlerInfo from the last block
+                exceptionHandlerInfo = lastBlock.exceptionHandlerInfo;
             }
+
+            // Whatever the branch stack, if possible, pop, it is the block you start now
             if (!branchStack.isEmpty())
             {
-                branchStack.remove(branchStack.size()-1);
+                BranchTargetRecord stackHead = branchStack.remove(branchStack.size()-1);
+                assert stackHead.startOffset == startOffset;
             }
 
-            getLastBlockEvaluationTracker().add(
-                    new InstructionBlockEvaluationRecord(
-                            formatValueList(startVariables), formatValueList(startStack), startOffset
-                    ));
-            getLastBlockEvaluation().exceptionHandlerInfo = exInfo;
-            getLastBlockEvaluation().branchEvaluationStack= branchStack;
+            // Add the newly created InstructionBlockEvaluationRecord to the current subroutine block tracker
+            getSubroutineInstructionBlockEvaluationTracker().add(new InstructionBlockEvaluationRecord(
+                    formatValueList(startVariables), formatValueList(startStack), startOffset,
+                    exceptionHandlerInfo, branchStack));
         }
-    }
-
-    @Override
-    public void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlock> branchStack)
-    {
-
-    }
-
-    @Override
-    public void instructionBlockDone(Clazz clazz,
-                                     Method method,
-                                     proguard.classfile.attribute.CodeAttribute codeAttribute,
-                                     TracedVariables startVariables,
-                                     TracedStack startStack,
-                                     int startOffset)
-    {
-
     }
 
 
@@ -274,33 +248,35 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                      TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
-        getLastBlockEvaluation().evaluations.add(
-                InstructionEvaluationRecord.seenIndicator());
+        getLastInstructionBlockEvaluation().evaluations.add(
+                new InstructionEvaluationRecord(true, false, evaluationCount,
+                        instruction.toString(), instructionOffset,
+                        formatValueList(variablesBefore), formatValueList(stackBefore)
+                )
+        );
     }
 
     @Override
-    public void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
+    public void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
+                                           TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
-        getLastBlockEvaluation().evaluations.add(
-                InstructionEvaluationRecord.generalizationIndicator(evaluationCount));
+        getLastInstructionBlockEvaluation().evaluations.add(
+                new InstructionEvaluationRecord(false, true, evaluationCount,
+                        instruction.toString(), instructionOffset,
+                        formatValueList(variablesBefore), formatValueList(stackBefore)
+                )
+        );
     }
 
     @Override
     public void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                            TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
-        InstructionEvaluationRecord prevEval =
-               getLastBlockEvaluation().getLastEvaluation();
-        if (prevEval != null && prevEval.isGeneralization != null && prevEval.isGeneralization) {
-            prevEval.instruction = instruction.toString();
-            prevEval.instructionOffset = instructionOffset;
-            prevEval.variablesBefore = formatValueList(variablesBefore);
-            prevEval.stackBefore = formatValueList(stackBefore);
-        } else
-        {
-            getLastBlockEvaluation().evaluations.add(
-                    InstructionEvaluationRecord.instructionTracker(
-                            instruction.toString(), instructionOffset, null,
+        InstructionEvaluationRecord prevEval = getLastInstructionBlockEvaluation().getLastInstructionEvaluation();
+        if (prevEval == null || prevEval.instructionOffset != instructionOffset || prevEval.timesSeen != evaluationCount) {
+            getLastInstructionBlockEvaluation().evaluations.add(
+                    new InstructionEvaluationRecord(false, false, evaluationCount,
+                            instruction.toString(), instructionOffset,
                             formatValueList(variablesBefore), formatValueList(stackBefore)
                     )
             );
@@ -308,55 +284,43 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void afterInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesAfter, TracedStack stackAfter, BasicBranchUnit branchUnit, InstructionOffsetValue branchTarget)
+    public void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset,
+                                          Instruction fromInstruction, TracedVariables variablesAfter,
+                                          TracedStack stackAfter, int branchIndex, int branchTargetCount, int offset)
     {
+        InstructionBlockEvaluationRecord lastBlock = getLastInstructionBlockEvaluation();
+        InstructionEvaluationRecord lastInstruction = lastBlock.getLastInstructionEvaluation();
 
-    }
-
-    @Override
-    public void definitiveBranch(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesAfter, TracedStack stackAfter, InstructionOffsetValue branchTargets)
-    {
-
-    }
-
-    @Override
-    public void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction, TracedVariables variablesAfter, TracedStack stackAfter, int branchIndex, int branchTargetCount, int offset)
-    {
-        InstructionBlockEvaluationRecord blockEval = getLastBlockEvaluation();
-        InstructionEvaluationRecord lastEval = blockEval.getLastEvaluation();
-
-        if (lastEval.updatedEvaluationStack == null) {
-            lastEval.updatedEvaluationStack = new ArrayList<>(blockEval.branchEvaluationStack);
+        // If we don't already know, register that this is a branching instruction
+        if (lastInstruction.updatedEvaluationStack == null) {
+            lastInstruction.updatedEvaluationStack = new ArrayList<>(lastBlock.branchEvaluationStack);
         }
-        lastEval.updatedEvaluationStack.add(new BranchTargetRecord(
+        // Add this branch
+        lastInstruction.updatedEvaluationStack.add(new BranchTargetRecord(
             formatValueList(variablesAfter), formatValueList(stackAfter), offset
         ));
     }
 
 
-    // Subroutine:
+    /**************
+     * Subroutine *
+     **************/
     @Override
-    public void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd)
+    public void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack,
+                                int subroutineStart, int subroutineEnd)
     {
-        getLastBlockEvaluation().getLastEvaluation().jsrBlockEvaluations= new ArrayList<>();
-        subRoutineTrackers.offer(getLastBlockEvaluation().getLastEvaluation().jsrBlockEvaluations);
+        InstructionEvaluationRecord lastInstruction = getLastInstructionBlockEvaluation().getLastInstructionEvaluation();
+        lastInstruction.jsrBlockEvaluations = new ArrayList<>();
+        subRoutineTrackers.offer(lastInstruction.jsrBlockEvaluations);
     }
 
     @Override
-    public void generalizeSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd)
-    {
-    }
-
-    @Override
-    public void endSubroutine(Clazz clazz, Method method, TracedVariables variablesAfter, TracedStack stackAfter, int subroutineStart, int subroutineEnd)
+    public void endSubroutine(Clazz clazz, Method method, TracedVariables variablesAfter, TracedStack stackAfter,
+                              int subroutineStart, int subroutineEnd)
     {
         subRoutineTrackers.pop();
     }
 
-
-    /***************
-     * Subroutines *
-     ***************/
     public String getJson() {
         return gson.toJson(stateTracker);
     }
