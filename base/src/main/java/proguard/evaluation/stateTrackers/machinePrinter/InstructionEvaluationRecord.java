@@ -11,44 +11,44 @@ class InstructionEvaluationRecord
      * Has the instruction been seen in a given context before.
      * When true, the instructionBlock evaluation comes to an end
      */
-    public Boolean skipEvaluation;
+    private final boolean skipEvaluation;
     /**
      * Whether the instruction has been seen a lot, if true, start generalizing the values
      */
-    public Boolean isGeneralization;
+    private final boolean isGeneralization;
 
     /**
      * If we generalized, we remind how much times you saw the instruction.
      */
-    public Integer timesSeen;
+    private final int timesSeen;
 
     /**
      * String representation of an instruction.
      */
-    public String instruction;
+    private final String instruction;
 
     /**
      * Offset of the instruction within the code
      */
-    public Integer instructionOffset;
+    private final int instructionOffset;
 
     /**
      * Current stack of instruction blocks that need to be evaluated, used for branches,
      * only given when the instruction alters the branch evaluation stack
      */
-    public List<BranchTargetRecord> updatedEvaluationStack;
+    private List<BranchTargetRecord> updatedEvaluationStack;
 
     /**
      * Content of the variables before the instruction.
      */
-    public List<String> variablesBefore;
+    private final List<String> variablesBefore;
 
     /**
      * Content of the stack before the instruction.
      */
-    public List<String> stackBefore;
+    private final List<String> stackBefore;
 
-    public List<InstructionBlockEvaluationRecord> jsrBlockEvaluations;
+    private List<InstructionBlockEvaluationRecord> jsrBlockEvaluations;
 
     public InstructionEvaluationRecord(
             Boolean skipEvaluation, Boolean isGeneralization, Integer timesSeen, String instruction,
@@ -61,5 +61,60 @@ class InstructionEvaluationRecord
         this.instructionOffset = instructionOffset;
         this.variablesBefore = variablesBefore;
         this.stackBefore = stackBefore;
+    }
+
+    public void setUpdatedEvaluationStack(List<BranchTargetRecord> updatedEvaluationStack)
+    {
+        this.updatedEvaluationStack = updatedEvaluationStack;
+    }
+
+    public void setJsrBlockEvaluations(List<InstructionBlockEvaluationRecord> jsrBlockEvaluations)
+    {
+        this.jsrBlockEvaluations = jsrBlockEvaluations;
+    }
+
+    public boolean isSkipEvaluation()
+    {
+        return skipEvaluation;
+    }
+
+    public boolean isGeneralization()
+    {
+        return isGeneralization;
+    }
+
+    public int getTimesSeen()
+    {
+        return timesSeen;
+    }
+
+    public String getInstruction()
+    {
+        return instruction;
+    }
+
+    public int getInstructionOffset()
+    {
+        return instructionOffset;
+    }
+
+    public List<BranchTargetRecord> getUpdatedEvaluationStack()
+    {
+        return updatedEvaluationStack;
+    }
+
+    public List<String> getVariablesBefore()
+    {
+        return variablesBefore;
+    }
+
+    public List<String> getStackBefore()
+    {
+        return stackBefore;
+    }
+
+    public List<InstructionBlockEvaluationRecord> getJsrBlockEvaluations()
+    {
+        return jsrBlockEvaluations;
     }
 }

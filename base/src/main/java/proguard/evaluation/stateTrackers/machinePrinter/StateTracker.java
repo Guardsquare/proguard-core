@@ -8,7 +8,7 @@ import java.util.List;
  */
 class StateTracker
 {
-    public final List<CodeAttributeRecord> codeAttributes = new ArrayList<>();
+    private final List<CodeAttributeRecord> codeAttributes = new ArrayList<>();
 
     public CodeAttributeRecord getLastCodeAttribute()
     {
@@ -17,5 +17,10 @@ class StateTracker
             return null;
         }
         return codeAttributes.get(codeAttributes.size() - 1);
+    }
+
+    public List<CodeAttributeRecord> getCodeAttributes()
+    {
+        return codeAttributes;
     }
 }

@@ -7,22 +7,37 @@ class BranchTargetRecord
     /**
      * Variables at the start of the block evaluation
      */
-    public List<String> startVariables;
+    private final List<String> startVariables;
 
     /**
      * Stack at the start of the block evaluation
      */
-    public List<String> startStack;
+    private final List<String> startStack;
 
     /**
-     * Instruction offset of teh first instruction of the block
+     * Instruction offset of the first instruction of the block
      */
-    public int startOffset;
+    private final int startOffset;
 
     public BranchTargetRecord(List<String> variables, List<String> stack, int startOffset)
     {
         this.startVariables=variables;
         this.startStack=stack;
         this.startOffset=startOffset;
+    }
+
+    public List<String> getStartVariables()
+    {
+        return startVariables;
+    }
+
+    public List<String> getStartStack()
+    {
+        return startStack;
+    }
+
+    public int getStartOffset()
+    {
+        return startOffset;
     }
 }

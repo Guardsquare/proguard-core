@@ -9,22 +9,22 @@ class ExceptionHandlerRecord
     /**
      * Instruction offset from where the handler starts catching
      */
-    public int catchStartOffset;
+    private final int catchStartOffset;
 
     /**
      * Instruction offset from where the handler stops catching
      */
-    public int catchEndOffset;
+    private final int catchEndOffset;
 
     /**
      * Instruction offset of the exception handling code
      */
-    public int handlerStartOffset;
+    private final int handlerStartOffset;
 
     /**
      * What type the handler catches
      */
-    public String catchType;
+    private final String catchType;
 
     public ExceptionHandlerRecord(int catchStartOffset, int catchEndOffset, int handlerStartOffset, String catchType)
     {
@@ -32,5 +32,25 @@ class ExceptionHandlerRecord
         this.catchEndOffset=catchEndOffset;
         this.handlerStartOffset=handlerStartOffset;
         this.catchType=catchType;
+    }
+
+    public int getCatchStartOffset()
+    {
+        return catchStartOffset;
+    }
+
+    public int getCatchEndOffset()
+    {
+        return catchEndOffset;
+    }
+
+    public int getHandlerStartOffset()
+    {
+        return handlerStartOffset;
+    }
+
+    public String getCatchType()
+    {
+        return catchType;
     }
 }

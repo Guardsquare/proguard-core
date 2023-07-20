@@ -144,18 +144,19 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
         // Clear the subroutine recursion tracker and add the current
         subRoutineTrackers.clear();
-        subRoutineTrackers.add(attributeRecord.blockEvaluations);
+        subRoutineTrackers.add(attributeRecord.getBlockEvaluations());
 
         // Register the current code attribute
-        stateTracker.codeAttributes.add(attributeRecord);
+        stateTracker.getCodeAttributes().add(attributeRecord);
     }
 
     @Override
     public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute,
                                   PartialEvaluator evaluator, Throwable cause)
     {
-        stateTracker.getLastCodeAttribute().error = new ErrorRecord(
-                getLastInstructionBlockEvaluation().getLastInstructionEvaluation().instructionOffset, cause.getMessage());
+        stateTracker.getLastCodeAttribute().setError(new ErrorRecord(
+                getLastInstructionBlockEvaluation().getLastInstructionEvaluation().getInstructionOffset(),
+                cause.getMessage()));
     }
 
 
@@ -199,9 +200,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         InstructionBlockEvaluationRecord lastBlock = getLastInstructionBlockEvaluation();
 
         // If the last blockTracker is not initialized, it is one created by registerException, initialize it
-        if (lastBlock != null && lastBlock.exceptionHandlerInfo != null && lastBlock.evaluations.isEmpty()) {
-            lastBlock.startVariables = formatValueList(startVariables);
-            lastBlock.startStack = formatValueList(startStack);
+        if (lastBlock != null && lastBlock.getExceptionHandlerInfo() != null && lastBlock.getEvaluations().isEmpty()) {
+            lastBlock.setStartVariables(formatValueList(startVariables));
+            lastBlock.setStartStack(formatValueList(startStack));
             // No need to copy branching information
         }
         else
@@ -213,24 +214,24 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
             if (lastBlock != null)
             {
                 InstructionEvaluationRecord lastInstruction = lastBlock.getLastInstructionEvaluation();
-                if (lastInstruction != null && lastInstruction.updatedEvaluationStack != null)
+                if (lastInstruction != null && lastInstruction.getUpdatedEvaluationStack() != null)
                 {
-                    branchStack = new ArrayList<>(lastBlock.getLastInstructionEvaluation().updatedEvaluationStack);
+                    branchStack = new ArrayList<>(lastBlock.getLastInstructionEvaluation().getUpdatedEvaluationStack());
                 }
                 else
                 {
-                    branchStack = new ArrayList<>(getLastInstructionBlockEvaluation().branchEvaluationStack);
+                    branchStack = new ArrayList<>(getLastInstructionBlockEvaluation().getBranchEvaluationStack());
                 }
 
                 // Copy the exceptionHandlerInfo from the last block
-                exceptionHandlerInfo = lastBlock.exceptionHandlerInfo;
+                exceptionHandlerInfo = lastBlock.getExceptionHandlerInfo();
             }
 
             // Whatever the branch stack, if possible, pop, it is the block you start now
             if (!branchStack.isEmpty())
             {
                 BranchTargetRecord stackHead = branchStack.remove(branchStack.size()-1);
-                assert stackHead.startOffset == startOffset;
+                assert stackHead.getStartOffset() == startOffset;
             }
 
             // Add the newly created InstructionBlockEvaluationRecord to the current subroutine block tracker
@@ -248,7 +249,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                      TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
-        getLastInstructionBlockEvaluation().evaluations.add(
+        getLastInstructionBlockEvaluation().getEvaluations().add(
                 new InstructionEvaluationRecord(true, false, evaluationCount,
                         instruction.toString(), instructionOffset,
                         formatValueList(variablesBefore), formatValueList(stackBefore)
@@ -260,7 +261,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                            TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
-        getLastInstructionBlockEvaluation().evaluations.add(
+        getLastInstructionBlockEvaluation().getEvaluations().add(
                 new InstructionEvaluationRecord(false, true, evaluationCount,
                         instruction.toString(), instructionOffset,
                         formatValueList(variablesBefore), formatValueList(stackBefore)
@@ -273,8 +274,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                                            TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
         InstructionEvaluationRecord prevEval = getLastInstructionBlockEvaluation().getLastInstructionEvaluation();
-        if (prevEval == null || prevEval.instructionOffset != instructionOffset || prevEval.timesSeen != evaluationCount) {
-            getLastInstructionBlockEvaluation().evaluations.add(
+        if (prevEval == null || prevEval.getInstructionOffset() != instructionOffset ||
+                prevEval.getTimesSeen() != evaluationCount) {
+            getLastInstructionBlockEvaluation().getEvaluations().add(
                     new InstructionEvaluationRecord(false, false, evaluationCount,
                             instruction.toString(), instructionOffset,
                             formatValueList(variablesBefore), formatValueList(stackBefore)
@@ -292,11 +294,11 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         InstructionEvaluationRecord lastInstruction = lastBlock.getLastInstructionEvaluation();
 
         // If we don't already know, register that this is a branching instruction
-        if (lastInstruction.updatedEvaluationStack == null) {
-            lastInstruction.updatedEvaluationStack = new ArrayList<>(lastBlock.branchEvaluationStack);
+        if (lastInstruction.getUpdatedEvaluationStack() == null) {
+            lastInstruction.setUpdatedEvaluationStack(new ArrayList<>(lastBlock.getBranchEvaluationStack()));
         }
         // Add this branch
-        lastInstruction.updatedEvaluationStack.add(new BranchTargetRecord(
+        lastInstruction.getUpdatedEvaluationStack().add(new BranchTargetRecord(
             formatValueList(variablesAfter), formatValueList(stackAfter), offset
         ));
     }
@@ -310,8 +312,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                                 int subroutineStart, int subroutineEnd)
     {
         InstructionEvaluationRecord lastInstruction = getLastInstructionBlockEvaluation().getLastInstructionEvaluation();
-        lastInstruction.jsrBlockEvaluations = new ArrayList<>();
-        subRoutineTrackers.offer(lastInstruction.jsrBlockEvaluations);
+        lastInstruction.setJsrBlockEvaluations(new ArrayList<>());
+        subRoutineTrackers.offer(lastInstruction.getJsrBlockEvaluations());
     }
 
     @Override

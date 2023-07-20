@@ -11,29 +11,29 @@ class CodeAttributeRecord
     /**
      * Clazz this code attribute is a part of.
      */
-    public String clazz;
+    private final String clazz;
 
     /**
      * Method this code attribute is from.
      */
-    public String method;
+    private final String method;
 
     /**
      * List of instruction from this code attribute.
      */
-    public List<InstructionRecord> instructions = new ArrayList<>();
+    private final List<InstructionRecord> instructions;
 
     /**
      * List of parameters given to the code attribute.
      */
-    public List<String> parameters;
+    private final List<String> parameters;
 
-    public ErrorRecord error;
+    private ErrorRecord error;
 
     /**
      * List of block evaluations that happened on this code attribute.
      */
-    public List<InstructionBlockEvaluationRecord> blockEvaluations = new ArrayList<>();
+    private final List<InstructionBlockEvaluationRecord> blockEvaluations = new ArrayList<>();
 
     public CodeAttributeRecord(String clazz, String method, List<String> parameters, List<InstructionRecord> instructions)
     {
@@ -41,5 +41,40 @@ class CodeAttributeRecord
         this.method = method;
         this.parameters = parameters;
         this.instructions = instructions;
+    }
+
+    public String getClazz()
+    {
+        return clazz;
+    }
+
+    public String getMethod()
+    {
+        return method;
+    }
+
+    public List<InstructionRecord> getInstructions()
+    {
+        return instructions;
+    }
+
+    public List<String> getParameters()
+    {
+        return parameters;
+    }
+
+    public ErrorRecord getError()
+    {
+        return error;
+    }
+
+    public List<InstructionBlockEvaluationRecord> getBlockEvaluations()
+    {
+        return blockEvaluations;
+    }
+
+    public void setError(ErrorRecord error)
+    {
+        this.error = error;
     }
 }
