@@ -28,7 +28,9 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
         this.printDebugResults=printDebugResults;
     }
 
-    // Code attribute level:
+    /************************
+     * Code attribute level *
+     ************************/
     @Override
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
@@ -93,7 +95,9 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
 
-    // Exceptions
+    /**************
+     * Exceptions *
+     **************/
     @Override
     public void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset)
     {
@@ -123,7 +127,9 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
 
 
 
-    // Results
+    /***********
+     * Results *
+     ***********/
     @Override
     public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
@@ -173,7 +179,9 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
 
-    // Instruction block level
+    /***************************
+     * Instruction block level *
+     ***************************/
     @Override
     public void startInstructionBlock(Clazz clazz,
                                       Method method,
@@ -195,7 +203,7 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlockDTO> branchStack)
+    public void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlock> branchStack)
     {
         if (printDebugInfo)
         {
@@ -217,7 +225,9 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
         }
     }
 
-    // Instruction level
+    /*********************
+     * Instruction level *
+     *********************/
     @Override
     public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore)
     {
@@ -287,7 +297,9 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
         }
     }
 
-    // Subroutines
+    /***************
+     * Subroutines *
+     ***************/
     @Override
     public void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd)
     {
