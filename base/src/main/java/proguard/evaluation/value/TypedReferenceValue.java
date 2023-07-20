@@ -23,9 +23,11 @@ import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
 import proguard.evaluation.exception.ExpectedArrayException;
+import proguard.classfile.visitor.ClassVisitor;
 import proguard.evaluation.exception.IncompleteClassHierarchyException;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -44,7 +46,7 @@ import static proguard.classfile.util.ClassUtil.isInternalArrayType;
  */
 public class TypedReferenceValue extends ReferenceValue
 {
-    private static       boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
+    private static final boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
     private static final boolean DEBUG = false;
 
     protected final String  type;
@@ -356,7 +358,7 @@ public class TypedReferenceValue extends ReferenceValue
                 return typedReferenceValue(other, true, mayBeNull);
             }
         }
-        else if (thisDimensionCount < otherDimensionCount)
+        else
         {
             // See if this type is an interface type of arrays.
             if (ClassUtil.isInternalArrayInterfaceName(ClassUtil.internalClassNameFromClassType(thisType)))
@@ -522,11 +524,29 @@ public class TypedReferenceValue extends ReferenceValue
 
         if (commonClass == null)
         {
+            Set<String> unknownClasses1 = new HashSet<>();
+            class1.hierarchyAccept(!interfaces,
+                    !interfaces,
+                    interfaces,
+                    false,
+                    new UnknownSuperClassNameCollector(unknownClasses1));
+
+            Set<String> unknownClasses2 = new HashSet<>();
+            class2.hierarchyAccept(!interfaces,
+                    !interfaces,
+                    interfaces,
+                    false,
+                    new UnknownSuperClassNameCollector(unknownClasses2));
+
             throw new IncompleteClassHierarchyException("Can't find common super class of ["+
                                                         externalClassName(class1.getName()) +"] (with "+superClasses1Count +" known super classes: " +
-                                                        superClasses1.stream().map(clazz -> externalClassName(clazz.getName())).collect(joining(", ")) + ") and ["+
+                                                        superClasses1.stream().map(clazz -> externalClassName(clazz.getName())).collect(joining(", ")) +
+                                                        (!unknownClasses1.isEmpty() ? " and " + unknownClasses1.size() + " unknown classes: " + unknownClasses1.stream().map(ClassUtil::externalClassName).collect(joining(", ")) : "") +
+                                                        ") and ["+
                                                         externalClassName(class2.getName())+"] (with "+superClasses2Count+" known super classes: " +
-                                                        superClasses2.stream().map(clazz -> externalClassName(clazz.getName())).collect(joining(", ")) + ")");
+                                                        superClasses2.stream().map(clazz -> externalClassName(clazz.getName())).collect(joining(", ")) +
+                                                        (!unknownClasses2.isEmpty() ? " and " + unknownClasses2.size() + " unknown classes: " + unknownClasses2.stream().map(ClassUtil::externalClassName).collect(joining(", ")) : "") +
+                                                        ")");
         }
 
         if (DEBUG)
@@ -535,6 +555,25 @@ public class TypedReferenceValue extends ReferenceValue
         }
 
         return commonClass;
+    }
+
+    private static class UnknownSuperClassNameCollector implements ClassVisitor
+    {
+        private final Collection<String> unknownSuperClassNames;
+
+        UnknownSuperClassNameCollector(Collection<String> unknownSuperClassNames)
+        {
+            this.unknownSuperClassNames = unknownSuperClassNames;
+        }
+
+        @Override
+        public void visitAnyClass(Clazz clazz)
+        {
+            if (clazz.getSuperName() != null && clazz.getSuperClass() == null)
+            {
+                unknownSuperClassNames.add(clazz.getSuperName());
+            }
+        }
     }
 
 
