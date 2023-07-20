@@ -22,7 +22,7 @@ import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
-import proguard.evaluation.exception.ExpectedArrayException;
+import proguard.evaluation.exception.ValueTypeException;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.evaluation.exception.IncompleteClassHierarchyException;
 
@@ -620,18 +620,18 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public void arrayStore(IntegerValue indexValue, Value value)
     {
-        if (!isInternalArrayType(type))
+        if (!isInternalArrayType(type) && System.getProperty("pe") != null)
         {
-            throw new ExpectedArrayException(this);
+            throw new ValueTypeException("array reference", this);
         }
     }
 
     @Override
     public DoubleValue doubleArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (!isInternalArrayType(type))
+        if (!isInternalArrayType(type) && System.getProperty("pe") != null)
         {
-            throw new ExpectedArrayException(this);
+            throw new ValueTypeException("array reference", this);
         }
         return super.doubleArrayLoad(indexValue, valueFactory);
     }
@@ -639,9 +639,9 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public IntegerValue integerArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (!isInternalArrayType(type))
+        if (!isInternalArrayType(type) && System.getProperty("pe") != null)
         {
-            throw new ExpectedArrayException(this);
+            throw new ValueTypeException("array reference", this);
         }
         return super.integerArrayLoad(indexValue, valueFactory);
     }
@@ -649,9 +649,9 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public LongValue longArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (!isInternalArrayType(type))
+        if (!isInternalArrayType(type) && System.getProperty("pe") != null)
         {
-            throw new ExpectedArrayException(this);
+            throw new ValueTypeException("array reference", this);
         }
         return super.longArrayLoad(indexValue, valueFactory);
     }
@@ -659,9 +659,9 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public FloatValue floatArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
-        if (!isInternalArrayType(type))
+        if (!isInternalArrayType(type) && System.getProperty("pe") != null)
         {
-            throw new ExpectedArrayException(this);
+            throw new ValueTypeException("array reference", this);
         }
         return super.floatArrayLoad(indexValue, valueFactory);
     }

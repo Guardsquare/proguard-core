@@ -22,20 +22,28 @@ import proguard.evaluation.value.Value;
 import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-public class ExpectedArrayException extends ProguardCoreException
+public class ValueTypeException extends ProguardCoreException
 {
-    private final Value wrongValue;
+    private final String exceptedType;
+    private final Value actualType;
 
-    public ExpectedArrayException(Value wrongValue)
+    public ValueTypeException(String exceptedType, Value actualType)
     {
         super(ErrorId.EXPECTED_ARRAY,
-                "Invalid reference provided to arrayInstruction. Expected arrayReference but found: %s.",
-                wrongValue.toString());
-        this.wrongValue = wrongValue;
+                "Invalid reference provided to instruction. Expected %s but found: %s.",
+                exceptedType,
+                actualType.toString());
+        this.exceptedType = exceptedType;
+        this.actualType = actualType;
     }
 
-    public Value getWrongValue()
+    public Value getActualType()
     {
-        return wrongValue;
+        return actualType;
+    }
+
+    public String getExceptedType()
+    {
+        return exceptedType;
     }
 }

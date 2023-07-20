@@ -19,7 +19,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.ExpectedArrayException
+import proguard.evaluation.exception.ValueTypeException
 import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
@@ -190,7 +190,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             // Throws on sufficient valueFactory
-            shouldThrow<ExpectedArrayException> {
+            shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
                     programClass,
                     PartialEvaluator(TypedReferenceValueFactory()),
@@ -221,7 +221,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             // Throws on sufficient valueFactory
-            shouldThrow<ExpectedArrayException> {
+            shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
                     programClass,
                     PartialEvaluator(TypedReferenceValueFactory()),

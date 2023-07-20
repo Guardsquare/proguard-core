@@ -59,13 +59,9 @@ public class PartialEvaluator
 implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
-    //*
-    private static final boolean DEBUG         = false;
+    private static final boolean DEBUG        = System.getProperty("pe") != null;;
+    // public static final boolean DEBUG      = true;
     private static final boolean DEBUG_RESULTS = false;
-    /*/
-    public static boolean DEBUG         = System.getProperty("pe") != null;
-    public static boolean DEBUG_RESULTS = DEBUG;
-    //*/
 
     private final static Logger logger = LogManager.getLogger(PartialEvaluator.class);
 
