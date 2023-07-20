@@ -966,7 +966,8 @@ implements   AttributeVisitor,
                         // There's not even a context at this index yet.
                         variablesBefore[instructionOffset] = new TracedVariables(variables);
                         stacksBefore[instructionOffset] = new TracedStack(stack);
-                    } else
+                    }
+                    else
                     {
                         // Reuse the context objects at this index.
                         variablesBefore[instructionOffset].initialize(variables);
@@ -976,7 +977,8 @@ implements   AttributeVisitor,
                     // We'll execute in the generalized context, because it is
                     // the same as the current context.
                     generalizedContexts[instructionOffset] = true;
-                } else
+                }
+                else
                 {
                     // Merge in the current context.
                     boolean variablesChanged = variablesBefore[instructionOffset].generalize(variables, true);;
@@ -1016,7 +1018,8 @@ implements   AttributeVisitor,
 
                         // We'll execute in the generalized context.
                         generalizedContexts[instructionOffset] = true;
-                    } else
+                    }
+                    else
                     {
                         // We'll execute in the current context.
                         generalizedContexts[instructionOffset] = false;
@@ -1106,13 +1109,15 @@ implements   AttributeVisitor,
                         // There's not even a context at this index yet.
                         variablesAfter[instructionOffset] = new TracedVariables(variables);
                         stacksAfter[instructionOffset] = new TracedStack(stack);
-                    } else
+                    }
+                    else
                     {
                         // Reuse the context objects at this index.
                         variablesAfter[instructionOffset].initialize(variables);
                         stacksAfter[instructionOffset].copy(stack);
                     }
-                } else
+                }
+                else
                 {
                     // Merge in the current context.
                     variablesAfter[instructionOffset].generalize(variables, true);
@@ -1166,7 +1171,8 @@ implements   AttributeVisitor,
 
                     // Continue at the definite branch target.
                     instructionOffset = branchTargets.instructionOffset(0);
-                } else
+                }
+                else
                 {
                     // Just continue with the next instruction.
                     instructionOffset += instruction.length(instructionOffset);
@@ -1185,7 +1191,8 @@ implements   AttributeVisitor,
                             instructionOffset);
 
                     break;
-                } else if (instruction.opcode == Instruction.OP_RET)
+                }
+                else if (instruction.opcode == Instruction.OP_RET)
                 {
                     // Let the partial evaluator that has called the subroutine
                     // handle the evaluation after the return.
