@@ -31,7 +31,7 @@ import proguard.evaluation.value.TypedReferenceValueFactory
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
- * `PartialEvaluator`.t
+ * `PartialEvaluator`.
  *
  * @see PartialEvaluator
  */
