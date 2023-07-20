@@ -8,6 +8,11 @@ import proguard.classfile.instruction.InstructionFactory;
 import proguard.exception.ProguardCoreException;
 import proguard.util.CircularIntBuffer;
 
+/**
+ * This class is used to format an exception with the previous instructions.
+ * It is used by the {@link proguard.evaluation.PartialEvaluator} to print the
+ * erroneous instruction and any previous bytecode instructions and the next one to give some context.
+ */
 public class InstructionExceptionFormatter
 {
 
@@ -30,7 +35,8 @@ public class InstructionExceptionFormatter
         this.method = method;
     }
 
-    public void registerInstructionOffset(int offset) {
+    public void registerInstructionOffset(int offset)
+    {
         offsetBuffer.push(offset);
     }
 
@@ -57,7 +63,8 @@ public class InstructionExceptionFormatter
                 .append("\n");
 
         // Clazz and Method of the erroneous instruction
-        if (clazz != null && method != null) {
+        if (clazz != null && method != null)
+        {
             messageBuilder
                     .append(ANSI_CYAN)
                     .append("  --> ")
@@ -72,7 +79,8 @@ public class InstructionExceptionFormatter
         }
 
         // print the previous instructions
-        for (int i = offsetBuffer.size() - 1; i > 0; i--) {
+        for (int i = offsetBuffer.size() - 1; i > 0; i--)
+        {
             Instruction prevInstruction = InstructionFactory.create(code, offsetBuffer.peek(i));
             int offset = offsetBuffer.peek(i);
             messageBuilder
@@ -109,7 +117,8 @@ public class InstructionExceptionFormatter
                 .append("\n");
 
         int nextOffset = offsetBuffer.peek() + erroreousInstruction.length(offsetBuffer.peek());
-        if (nextOffset < code.length) {
+        if (nextOffset < code.length)
+        {
             messageBuilder
                     .append(ANSI_CYAN)
                     .append(nextOffset)

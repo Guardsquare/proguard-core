@@ -308,17 +308,19 @@ implements   AttributeVisitor,
 
         /**
          * Specifies how many instructions should be considered in the context of a pretty message.
-         * When <= 0, no pretty printing is applied whether instruction exceptions are printed prettier.
+         * When <= 0, no pretty printing is applied.
          */
-        public Builder setPrettyPrinting(int prettyInstructionBuffered) {
+        public Builder setPrettyPrinting(int prettyInstructionBuffered)
+        {
             this.prettyInstructionBuffered = prettyInstructionBuffered;
             return this;
         }
 
         /**
-         * Specifies 7 instructions should be considered in the context of a pretty message.
+         * Enable pretty printing with a default buffer size of 7.
          */
-        public Builder setPrettyPrinting() {
+        public Builder setPrettyPrinting()
+        {
             return this.setPrettyPrinting(7);
         }
 
@@ -950,20 +952,20 @@ implements   AttributeVisitor,
 
                 if (maxOffset < instructionOffset)
                 {
-                    maxOffset=instructionOffset;
+                    maxOffset = instructionOffset;
                 }
 
                 // Maintain a generalized local variable frame and stack at this
                 // instruction offset, before execution.
-                int evaluationCount=evaluationCounts[instructionOffset];
+                int evaluationCount = evaluationCounts[instructionOffset];
                 if (evaluationCount == 0)
                 {
                     // First time we're passing by this instruction.
                     if (variablesBefore[instructionOffset] == null)
                     {
                         // There's not even a context at this index yet.
-                        variablesBefore[instructionOffset]=new TracedVariables(variables);
-                        stacksBefore[instructionOffset]=new TracedStack(stack);
+                        variablesBefore[instructionOffset] = new TracedVariables(variables);
+                        stacksBefore[instructionOffset] = new TracedStack(stack);
                     } else
                     {
                         // Reuse the context objects at this index.
@@ -973,12 +975,12 @@ implements   AttributeVisitor,
 
                     // We'll execute in the generalized context, because it is
                     // the same as the current context.
-                    generalizedContexts[instructionOffset]=true;
+                    generalizedContexts[instructionOffset] = true;
                 } else
                 {
                     // Merge in the current context.
-                    boolean variablesChanged=variablesBefore[instructionOffset].generalize(variables, true);;
-                    boolean stackChanged=stacksBefore[instructionOffset].generalize(stack);
+                    boolean variablesChanged = variablesBefore[instructionOffset].generalize(variables, true);;
+                    boolean stackChanged = stacksBefore[instructionOffset].generalize(stack);
 
                     //System.out.println("GVars:  "+variablesBefore[instructionOffset]);
                     //System.out.println("GStack: "+stacksBefore[instructionOffset]);
@@ -1013,11 +1015,11 @@ implements   AttributeVisitor,
                         stack.generalize(stacksBefore[instructionOffset]);
 
                         // We'll execute in the generalized context.
-                        generalizedContexts[instructionOffset]=true;
+                        generalizedContexts[instructionOffset] = true;
                     } else
                     {
                         // We'll execute in the current context.
-                        generalizedContexts[instructionOffset]=false;
+                        generalizedContexts[instructionOffset] = false;
                     }
                 }
 
@@ -1025,12 +1027,12 @@ implements   AttributeVisitor,
                 evaluationCounts[instructionOffset]++;
 
                 // Remember this instruction's offset with any stored value.
-                Value storeValue=new InstructionOffsetValue(instructionOffset);
+                Value storeValue = new InstructionOffsetValue(instructionOffset);
                 variables.setProducerValue(storeValue);
                 stack.setProducerValue(storeValue);
 
                 // Decode the instruction.
-                Instruction instruction=InstructionFactory.create(code, instructionOffset);
+                Instruction instruction = InstructionFactory.create(code, instructionOffset);
 
                 // Reset the branch unit.
                 branchUnit.reset();
@@ -1062,17 +1064,22 @@ implements   AttributeVisitor,
                             processor);
                 } catch (RuntimeException ex)
                 {
-                    logger.error("Unexpected error while evaluating instruction:");
-                    logger.error("  Class       = [{}]", clazz.getName());
-                    logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
-                    logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
-                    logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+                    // Fallback to the default exception formatter.
+                    if (formatter == null)
+                    {
+                        logger.error("Unexpected error while evaluating instruction:");
+                        logger.error("  Class       = [{}]", clazz.getName());
+                        logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
+                        logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
+                        logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+                    }
+
                     throw ex;
                 }
 
                 // Collect the branch targets from the branch unit.
-                InstructionOffsetValue branchTargets=branchUnit.getTraceBranchTargets();
-                int branchTargetCount=branchTargets.instructionOffsetCount();
+                InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
+                int branchTargetCount = branchTargets.instructionOffsetCount();
 
                 if (DEBUG)
                 {
@@ -1097,8 +1104,8 @@ implements   AttributeVisitor,
                     if (variablesAfter[instructionOffset] == null)
                     {
                         // There's not even a context at this index yet.
-                        variablesAfter[instructionOffset]=new TracedVariables(variables);
-                        stacksAfter[instructionOffset]=new TracedStack(stack);
+                        variablesAfter[instructionOffset] = new TracedVariables(variables);
+                        stacksAfter[instructionOffset] = new TracedStack(stack);
                     } else
                     {
                         // Reuse the context objects at this index.
@@ -1116,7 +1123,7 @@ implements   AttributeVisitor,
                 if (branchUnit.wasCalled())
                 {
                     // Accumulate the branch targets at this offset.
-                    branchTargetValues[instructionOffset]=branchTargetValues[instructionOffset] == null ?
+                    branchTargetValues[instructionOffset] = branchTargetValues[instructionOffset] == null ?
                             branchTargets :
                             branchTargetValues[instructionOffset].generalize(branchTargets);
 
@@ -1128,11 +1135,11 @@ implements   AttributeVisitor,
                     }
 
                     // Accumulate the branch origins at the branch target offsets.
-                    InstructionOffsetValue instructionOffsetValue=new InstructionOffsetValue(instructionOffset);
-                    for (int index=0; index < branchTargetCount; index++)
+                    InstructionOffsetValue instructionOffsetValue = new InstructionOffsetValue(instructionOffset);
+                    for (int index = 0; index < branchTargetCount; index++)
                     {
-                        int branchTarget=branchTargets.instructionOffset(index);
-                        branchOriginValues[branchTarget]=branchOriginValues[branchTarget] == null ?
+                        int branchTarget = branchTargets.instructionOffset(index);
+                        branchOriginValues[branchTarget] = branchOriginValues[branchTarget] == null ?
                                 instructionOffsetValue :
                                 branchOriginValues[branchTarget].generalize(instructionOffsetValue);
                     }
@@ -1141,7 +1148,7 @@ implements   AttributeVisitor,
                     if (branchTargetCount > 1)
                     {
                         // Push them on the execution stack and exit from this block.
-                        for (int index=0; index < branchTargetCount; index++)
+                        for (int index = 0; index < branchTargetCount; index++)
                         {
                             if (DEBUG)
                                 System.out.println("Pushing alternative branch #"+index+" out of "+branchTargetCount+", from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(index)+"]");
@@ -1158,11 +1165,11 @@ implements   AttributeVisitor,
                         System.out.println("Definite branch from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(0)+"]");
 
                     // Continue at the definite branch target.
-                    instructionOffset=branchTargets.instructionOffset(0);
+                    instructionOffset = branchTargets.instructionOffset(0);
                 } else
                 {
                     // Just continue with the next instruction.
-                    instructionOffset+=instruction.length(instructionOffset);
+                    instructionOffset += instruction.length(instructionOffset);
                 }
 
                 // Is this a subroutine invocation?
