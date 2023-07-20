@@ -19,9 +19,9 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.ValueTypeException
 import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackTypeException
+import proguard.evaluation.exception.ValueTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
@@ -53,7 +53,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<VariableEmptySlotException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<VariableEmptySlotException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Variable types do not match" {
@@ -67,7 +74,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<VariableTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<VariableTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Variable types do not match, expect reference" {
@@ -79,7 +93,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<StackTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Stack types do not match instruction" {
@@ -122,7 +143,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackCategoryOneException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackCategoryOneException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(),
+                    "test",
+                    "()J",
+                )
+            }
         }
 
         "getfield but return the wrong type" {
@@ -171,7 +199,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 ),
             )
 
-            shouldThrow<VariableIndexOutOfBoundException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
+            shouldThrow<VariableIndexOutOfBoundException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(),
+                    "test",
+                    "()V",
+                )
+            }
         }
 
         "Load an int into an int array but mistakenly give object ref" {
@@ -189,7 +224,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            System.setProperty("pe", "true")
+            PartialEvaluator.DEBUG_PRETTY = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -207,7 +242,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()Ljava/lang/Object;",
             )
-            System.clearProperty("pe")
+            PartialEvaluator.DEBUG_PRETTY = false
         }
 
         "Load an int from an int array but mistakenly give object ref" {
@@ -222,7 +257,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            System.setProperty("pe", "true")
+            PartialEvaluator.DEBUG_PRETTY = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -240,7 +275,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()V",
             )
-            System.clearProperty("pe")
+            PartialEvaluator.DEBUG_PRETTY = false
         }
 
         "Load an int into an int array should work" {
