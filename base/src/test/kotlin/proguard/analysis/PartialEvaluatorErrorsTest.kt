@@ -1,7 +1,6 @@
 package proguard.analysis
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
 import proguard.classfile.ClassConstants
@@ -16,19 +15,18 @@ import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.instruction.Instruction
-import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
-import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.exception.StackCategoryOneException
+import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
-import proguard.evaluation.stateTrackers.MachinePrinter
+import proguard.evaluation.stateTrackers.HumanPrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
-import proguard.testutils.findMethod
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
@@ -67,38 +65,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             tracker.writeState("catch-empty-slot.json")
         }
 
-        "Entire PE 2 functions" {
-            val build = buildClass()
-                .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
-                    it.iconst(50).ireturn()
-                }
-            val programClass = build
-                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
-                    it
-                        .invokestatic(
-                            "PartialEvaluatorDummy",
-                            "initializer",
-                            "()I",
-                            it.targetClass,
-                            it.targetClass.findMethod("initializer"),
-                        )
-                        .ireturn()
-                }
-                .programClass
-
-            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
-            val pe = PartialEvaluator.Builder.create()
-                .setValueFactory(valueFactory)
-                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
-                .setEvaluateAllCode(true).build()
-            evaluateProgramClass(
-                programClass,
-                pe,
-                "test",
-                "()I",
-            )
-        }
-
         "Variable types do not match" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
@@ -111,6 +77,18 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             shouldThrow<VariableTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+        }
+
+        "Variable types do not match, expect reference" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_0()
+                        .areturn()
+                }
+                .programClass
+
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
         }
 
         "Stack types do not match instruction" {
@@ -126,7 +104,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
         "Stack types do not match instruction - long interpreted as int" {
@@ -139,7 +117,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
         }
 
         "dup of long" {
@@ -153,7 +131,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackCategoryOneException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
         }
 
         "getfield but return the wrong type" {
@@ -167,7 +145,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrowAny { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
+            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
         }
 
         "Variable index out of bound" {
@@ -378,7 +356,9 @@ fun buildClass(): ClassBuilder {
 val evaluateProgramClass =
     { programClass: ProgramClass, partialEvaluator: PartialEvaluator, methodName: String, methodDescriptor: String ->
         programClass.accept(
-            AllMethodVisitor(
+            NamedMethodVisitor(
+                methodName,
+                methodDescriptor,
                 AllAttributeVisitor(
                     AttributeNameFilter(Attribute.CODE, partialEvaluator),
                 ),

@@ -244,7 +244,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.INT, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.INT), e);
         }
     }
 
@@ -261,7 +261,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.LONG, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.LONG), e);
         }
     }
 
@@ -278,7 +278,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.FLOAT, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.FLOAT), e);
         }
     }
 
@@ -295,7 +295,7 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.DOUBLE, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.DOUBLE), e);
         }
     }
 
@@ -312,7 +312,8 @@ public class Variables
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.CLASS_START, e);
+            throw new VariableTypeException(index, value,
+                    String.format("%cSOME_REFERENCE%c", TypeConstants.CLASS_START, TypeConstants.CLASS_END), e);
         }
     }
 

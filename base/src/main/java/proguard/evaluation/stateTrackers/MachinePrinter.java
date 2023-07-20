@@ -512,7 +512,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlockDTO> branchStack)
+    public void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlock> branchStack)
     {
 
     }

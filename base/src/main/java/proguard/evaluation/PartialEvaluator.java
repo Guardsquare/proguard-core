@@ -100,8 +100,8 @@ implements   AttributeVisitor,
     private final BasicBranchUnit    branchUnit;
     private final BranchTargetFinder branchTargetFinder;
 
-    private final java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack;
-    private final java.util.Stack<InstructionBlockDTO> instructionBlockStack = new java.util.Stack<>();
+    private final java.util.Stack<InstructionBlock> callingInstructionBlockStack;
+    private final java.util.Stack<InstructionBlock> instructionBlockStack = new java.util.Stack<>();
 
 
     /**
@@ -220,7 +220,7 @@ implements   AttributeVisitor,
                              InstructionVisitor                  extraInstructionVisitor,
                              BasicBranchUnit                     branchUnit,
                              BranchTargetFinder                  branchTargetFinder,
-                             java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack)
+                             java.util.Stack<InstructionBlock> callingInstructionBlockStack)
     {
         this.valueFactory                 = valueFactory;
         this.invocationUnit               = invocationUnit;
@@ -253,9 +253,11 @@ implements   AttributeVisitor,
         this.branchTargetFinder           = builder.branchTargetFinder == null ? new BranchTargetFinder() : builder.branchTargetFinder;
         this.callingInstructionBlockStack = builder.callingInstructionBlockStack == null ? this.instructionBlockStack : builder.callingInstructionBlockStack;
         this.stopAnalysisAfterNEvaluations = builder.stopAnalysisAfterNEvaluations;
-        if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS)) {
+        if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS))
+        {
             this.stateTracker              = new HumanPrinter(DEBUG, DEBUG_RESULTS);
-        } else
+        }
+        else
         {
             this.stateTracker              = builder.stateTracker;
         }
@@ -268,7 +270,7 @@ implements   AttributeVisitor,
         private InstructionVisitor                  extraInstructionVisitor;
         private BasicBranchUnit                     branchUnit;
         private BranchTargetFinder                  branchTargetFinder;
-        private java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack;
+        private java.util.Stack<InstructionBlock> callingInstructionBlockStack;
         private int                                 stopAnalysisAfterNEvaluations = -1; // disabled by default
         private PartialEvaluatorStateTracker        stateTracker;
 
@@ -283,7 +285,8 @@ implements   AttributeVisitor,
             return new PartialEvaluator(this);
         }
 
-        public Builder setStateTracker(PartialEvaluatorStateTracker stateTracker) {
+        public Builder setStateTracker(PartialEvaluatorStateTracker stateTracker)
+        {
             this.stateTracker = stateTracker;
             return this;
         }
@@ -346,7 +349,7 @@ implements   AttributeVisitor,
         /**
          * the stack of instruction blocks to be evaluated.
          */
-        public Builder setCallingInstructionBlockStack(java.util.Stack<InstructionBlockDTO> callingInstructionBlockStack)
+        public Builder setCallingInstructionBlockStack(java.util.Stack<InstructionBlock> callingInstructionBlockStack)
         {
             this.callingInstructionBlockStack = callingInstructionBlockStack;
             return this;
@@ -714,7 +717,7 @@ implements   AttributeVisitor,
                                              TracedStack     stack,
                                              int             startOffset)
     {
-        callingInstructionBlockStack.push(new InstructionBlockDTO(variables,
+        callingInstructionBlockStack.push(new InstructionBlock(variables,
                                                                  stack,
                                                                  startOffset));
     }
@@ -727,7 +730,7 @@ implements   AttributeVisitor,
                                       TracedStack     stack,
                                       int             startOffset)
     {
-        instructionBlockStack.push(new InstructionBlockDTO(variables,
+        instructionBlockStack.push(new InstructionBlock(variables,
                                                           stack,
                                                           startOffset));
     }
@@ -784,7 +787,7 @@ implements   AttributeVisitor,
         {
             if (stateTracker != null) stateTracker.startBranchCodeBlockEvaluation(instructionBlockStack);
 
-            InstructionBlockDTO instructionBlock = instructionBlockStack.pop();
+            InstructionBlock instructionBlock = instructionBlockStack.pop();
 
             evaluateSingleInstructionBlock(clazz,
                                            method,
@@ -1488,16 +1491,16 @@ implements   AttributeVisitor,
      * This class represents an instruction block that has to be executed,
      * starting with a given state at a given instruction offset.
      */
-    public static class InstructionBlockDTO
+    public static class InstructionBlock
     {
         private final TracedVariables variables;
         private final TracedStack     stack;
         private final int             startOffset;
 
 
-        private InstructionBlockDTO(TracedVariables variables,
-                                    TracedStack     stack,
-                                    int             startOffset)
+        private InstructionBlock(TracedVariables variables,
+                                 TracedStack     stack,
+                                 int             startOffset)
         {
             this.variables   = variables;
             this.stack       = stack;

@@ -16,12 +16,16 @@ import java.util.List;
 
 public interface PartialEvaluatorStateTracker
 {
-    // Code attribute level:
+    /************************
+     * Code attribute level *
+     ************************/
     void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters);
 
     void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause);
 
-    // Exceptions
+    /**************
+     * Exceptions *
+     **************/
     void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset);
 
     void registerExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info);
@@ -29,11 +33,15 @@ public interface PartialEvaluatorStateTracker
     void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info);
 
 
-    // Results
+    /***********
+     * Results *
+     ***********/
     void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator);
 
 
-    // Instruction block level:
+    /***************************
+     * Instruction block level *
+     ***************************/
     void startInstructionBlock(Clazz clazz,
                                Method method,
                                CodeAttribute codeAttribute,
@@ -41,7 +49,7 @@ public interface PartialEvaluatorStateTracker
                                TracedStack startStack,
                                int startOffset);
 
-    void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlockDTO> branchStack);
+    void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlock> branchStack);
 
     void instructionBlockDone(Clazz clazz,
                               Method method,
@@ -51,7 +59,9 @@ public interface PartialEvaluatorStateTracker
                               int startOffset);
 
 
-    // Instruction level:
+    /*********************
+     * Instruction level *
+     *********************/
     void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                               TracedVariables variablesBefore, TracedStack stackBefore);
 
@@ -73,7 +83,9 @@ public interface PartialEvaluatorStateTracker
                                    int branchIndex, int branchTargetCount, int offset);
 
 
-    // Subroutine
+    /***************
+     * Subroutines *
+     ***************/
     void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd);
 
     void generalizeSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd);

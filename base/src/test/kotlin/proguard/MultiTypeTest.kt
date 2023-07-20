@@ -7,10 +7,13 @@
 
 package proguard
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
+import proguard.evaluation.exception.IncompleteClassHierarchyException
 import proguard.evaluation.value.MultiTypedReferenceValue
 import proguard.evaluation.value.MultiTypedReferenceValueFactory
 import proguard.evaluation.value.ParticularIntegerValue
@@ -159,6 +162,24 @@ class MultiTypeTest : FreeSpec({
             s.generalizedType.type shouldBe "LSuper;"
             s.isNull shouldBe Value.NEVER
             s.potentialTypes.map { it.type }.toSet() shouldBe setOf("LA;", "LB;")
+        }
+        "No super class with exception" {
+            // Don't allow incomplete Class Hierarchies
+            val allowIncompleteClassHierarchy = TypedReferenceValue::class.java.getDeclaredField("ALLOW_INCOMPLETE_CLASS_HIERARCHY")
+            allowIncompleteClassHierarchy.isAccessible = true
+            allowIncompleteClassHierarchy.setBoolean(TypedReferenceValue(null, null, true, true), false)
+
+            val exception = shouldThrow<IncompleteClassHierarchyException> {
+                PartialEvaluatorUtil.evaluate(
+                    "Target",
+                    "noSuperClass",
+                    "(Z)V",
+                    classPool,
+                    partialEvaluator
+                )
+            }
+
+            exception.message shouldContain "1 unknown classes: RemovedSuper"
         }
         "No super class" {
             // Allow incomplete Class Hierarchies
