@@ -19,76 +19,72 @@ public interface PartialEvaluatorStateTracker
     /************************
      * Code attribute level *
      ************************/
-    void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters);
+    default void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters) {}
 
-    void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator, Throwable cause);
+    default void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute,
+                                   PartialEvaluator evaluator, Throwable cause) {}
 
     /**************
      * Exceptions *
      **************/
-    void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset);
+    default void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset) {}
 
-    void registerExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info);
+    default void registerExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info) {}
 
-    void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info);
+    default void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info) {}
 
 
     /***********
      * Results *
      ***********/
-    void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator);
+    default void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator) {}
 
 
     /***************************
      * Instruction block level *
      ***************************/
-    void startInstructionBlock(Clazz clazz,
-                               Method method,
-                               CodeAttribute codeAttribute,
-                               TracedVariables startVariables,
-                               TracedStack startStack,
-                               int startOffset);
+    default void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
+                                       TracedVariables startVariables, TracedStack startStack, int startOffset) {}
 
-    void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlock> branchStack);
+    default void startBranchCodeBlockEvaluation(List<PartialEvaluator.InstructionBlock> branchStack) {}
 
-    void instructionBlockDone(Clazz clazz,
-                              Method method,
-                              CodeAttribute codeAttribute,
-                              TracedVariables startVariables,
-                              TracedStack startStack,
-                              int startOffset);
+    default void instructionBlockDone(Clazz clazz, Method method, CodeAttribute codeAttribute,
+                                      TracedVariables startVariables, TracedStack startStack, int startOffset) {}
 
 
     /*********************
      * Instruction level *
      *********************/
-    void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
-                              TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount);
+    default void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
+                                      TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount) {}
 
-    void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
-                                    TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount);
+    default void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
+                                            TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount) {}
 
-    void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
-                                    TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount);
+    default void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
+                                            TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount) {}
 
-    void afterInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
-                                    TracedVariables variablesAfter, TracedStack stackAfter, BasicBranchUnit branchUnit,
-                                    InstructionOffsetValue branchTarget);
+    default void afterInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
+                                            TracedVariables variablesAfter, TracedStack stackAfter, BasicBranchUnit branchUnit,
+                                            InstructionOffsetValue branchTarget) {}
 
-    void definitiveBranch(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
-                          TracedVariables variablesAfter, TracedStack stackAfter, InstructionOffsetValue branchTargets);
+    default void definitiveBranch(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
+                                  TracedVariables variablesAfter, TracedStack stackAfter, InstructionOffsetValue branchTargets) {}
 
-    void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction,
-                                   TracedVariables variablesAfter, TracedStack stackAfter,
-                                   int branchIndex, int branchTargetCount, int offset);
+    default void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction,
+                                           TracedVariables variablesAfter, TracedStack stackAfter,
+                                           int branchIndex, int branchTargetCount, int offset) {}
 
 
     /***************
      * Subroutines *
      ***************/
-    void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd);
+    default void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack,
+                                 int subroutineStart, int subroutineEnd) {}
 
-    void generalizeSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd);
+    default void generalizeSubroutine(Clazz clazz, Method method, TracedVariables startVariables,
+                                      TracedStack startStack, int subroutineStart, int subroutineEnd) {}
 
-    void endSubroutine(Clazz clazz, Method method, TracedVariables variablesAfter, TracedStack stackAfter, int subroutineStart, int subroutineEnd);
+    default void endSubroutine(Clazz clazz, Method method, TracedVariables variablesAfter, TracedStack stackAfter,
+                               int subroutineStart, int subroutineEnd) {}
 }

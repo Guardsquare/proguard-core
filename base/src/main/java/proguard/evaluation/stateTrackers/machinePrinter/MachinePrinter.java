@@ -112,7 +112,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         return res;
     }
 
-    // Code attribute level:
+    /************************
+     * Code attribute level *
+     ************************/
     @Override
     public void startCodeAttribute(Clazz clazz, Method method, proguard.classfile.attribute.CodeAttribute codeAttribute, Variables parameters)
     {
@@ -150,7 +152,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
 
-    // Exceptions
+    /**************
+     * Exceptions *
+     **************/
     @Override
     public void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset)
     {
@@ -176,11 +180,13 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
     {
-        System.out.println("temp");
+
     }
 
 
-    // Results
+    /***********
+     * Results *
+     ***********/
     @Override
     public void evaluationResults(Clazz clazz, Method method, proguard.classfile.attribute.CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
@@ -189,7 +195,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
 
 
-    // Instruction block level
+    /***************************
+     * Instruction block level *
+     ***************************/
     @Override
     public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
                                       TracedVariables startVariables, TracedStack startStack, int startOffset)
@@ -259,7 +267,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
 
-    // Instruction level:
+    /*********************
+     * Instruction level *
+     *********************/
     @Override
     public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                      TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
@@ -344,7 +354,9 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     }
 
 
-    // Access functions
+    /***************
+     * Subroutines *
+     ***************/
     public String getJson() {
         return gson.toJson(stateTracker);
     }
