@@ -253,9 +253,11 @@ implements   AttributeVisitor,
         this.branchTargetFinder           = builder.branchTargetFinder == null ? new BranchTargetFinder() : builder.branchTargetFinder;
         this.callingInstructionBlockStack = builder.callingInstructionBlockStack == null ? this.instructionBlockStack : builder.callingInstructionBlockStack;
         this.stopAnalysisAfterNEvaluations = builder.stopAnalysisAfterNEvaluations;
-        if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS)) {
+        if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS))
+        {
             this.stateTracker              = new HumanPrinter(DEBUG, DEBUG_RESULTS);
-        } else
+        }
+        else
         {
             this.stateTracker              = builder.stateTracker;
         }
@@ -283,7 +285,8 @@ implements   AttributeVisitor,
             return new PartialEvaluator(this);
         }
 
-        public Builder setStateTracker(PartialEvaluatorStateTracker stateTracker) {
+        public Builder setStateTracker(PartialEvaluatorStateTracker stateTracker)
+        {
             this.stateTracker = stateTracker;
             return this;
         }

@@ -113,7 +113,8 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info) {
+    public void registerUnusedExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
+    {
         if (printDebugInfo)
         {
             System.out.println("No information for partial evaluation of exception ["+startPC+" -> "+endPC+": "+info.u2handlerPC+"]");
