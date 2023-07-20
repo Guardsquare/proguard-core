@@ -63,13 +63,13 @@ public interface PartialEvaluatorStateTracker
      * Instruction level *
      *********************/
     void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
-                              TracedVariables variablesBefore, TracedStack stackBefore);
+                              TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount);
 
     void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                     TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount);
 
     void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
-                                    TracedVariables variablesBefore, TracedStack stackBefore);
+                                    TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount);
 
     void afterInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                     TracedVariables variablesAfter, TracedStack stackAfter, BasicBranchUnit branchUnit,
