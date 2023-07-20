@@ -189,6 +189,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
+            System.setProperty("pe", "true")
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -206,6 +207,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()Ljava/lang/Object;",
             )
+            System.clearProperty("pe")
         }
 
         "Load an int from an int array but mistakenly give object ref" {
@@ -220,6 +222,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
+            System.setProperty("pe", "true")
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -237,6 +240,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()V",
             )
+            System.clearProperty("pe")
         }
 
         "Load an int into an int array should work" {
