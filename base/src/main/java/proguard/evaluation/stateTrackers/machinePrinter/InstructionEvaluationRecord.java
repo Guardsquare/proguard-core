@@ -20,7 +20,7 @@ class InstructionEvaluationRecord
     /**
      * If we generalized, we remind how much times you saw the instruction.
      */
-    private final int timesSeen;
+    private final int evaluationCount;
 
     /**
      * String representation of an instruction.
@@ -51,12 +51,12 @@ class InstructionEvaluationRecord
     private List<InstructionBlockEvaluationRecord> jsrBlockEvaluations;
 
     public InstructionEvaluationRecord(
-            Boolean skipEvaluation, Boolean isGeneralization, Integer timesSeen, String instruction,
+            Boolean skipEvaluation, Boolean isGeneralization, Integer evaluationCount, String instruction,
             Integer instructionOffset, List<String> variablesBefore, List<String> stackBefore)
     {
         this.skipEvaluation = skipEvaluation;
         this.isGeneralization = isGeneralization;
-        this.timesSeen = timesSeen;
+        this.evaluationCount = evaluationCount;
         this.instruction = instruction;
         this.instructionOffset = instructionOffset;
         this.variablesBefore = variablesBefore;
@@ -83,9 +83,9 @@ class InstructionEvaluationRecord
         return isGeneralization;
     }
 
-    public int getTimesSeen()
+    public int getEvaluationCount()
     {
-        return timesSeen;
+        return evaluationCount;
     }
 
     public String getInstruction()

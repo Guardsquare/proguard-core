@@ -26,42 +26,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-
-/**
- * Capable of printing machine-readable output (JSON) xp
- * {
- *      "codeAttribute": {
- *          clazz
- *          method
- *          instructions: {offset, instruction}[],
- *          parameters: String(Value)[],
- *          error?: {
- *              clazz,
- *              method,
- *              message,
- *              stacktrace,
- *          }
- *          blockEvaluations: {
- *              startOffset,
- *              startVariables,
- *              startStack,
- *              blockEvaluationStack
- *              exceptionInfo?: { startOffset, endOffset, catchType (just string name) }
- *              evaluations: {
- *                  isSeenBefore,
- *                  isGeneralization,
- *                  timesSeen,
- *                  offset,
- *                  instruction
- *                  updatedEvaluationStack,
- *                  variablesBefore
- *                  stackBefore
- *              }[]
- *          }[]
- *      }[]
- * }
- */
-
 public class MachinePrinter implements PartialEvaluatorStateTracker
 {
     /**
@@ -80,10 +44,31 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
      */
     private final Deque<List<InstructionBlockEvaluationRecord>> subRoutineTrackers = new ArrayDeque<>();
 
+    public String getJson() {
+        return gson.toJson(stateTracker);
+    }
+
+    public void printState()
+    {
+        System.out.println(getJson());
+    }
+
+    public void writeState(String fileName) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+            writer.write(getJson());
+
+            writer.close();
+        }
+        catch (IOException ex) {
+            // Do nothing
+        }
+    }
+
     /**
      * @return the last relevant list of InstructionBlockEvaluationRecord referenced by PE
      */
-    public List<InstructionBlockEvaluationRecord> getSubroutineInstructionBlockEvaluationTracker() {
+    private List<InstructionBlockEvaluationRecord> getSubroutineInstructionBlockEvaluationTracker() {
         if (subRoutineTrackers.isEmpty()) {
             return null;
         }
@@ -93,7 +78,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     /**
      * @return the last relevant InstructionBlockEvaluationRecord referenced by the PE
      */
-    public InstructionBlockEvaluationRecord getLastInstructionBlockEvaluation() {
+    private InstructionBlockEvaluationRecord getLastInstructionBlockEvaluation() {
         if (subRoutineTrackers.isEmpty()) {
             return null;
         }
@@ -275,7 +260,7 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     {
         InstructionEvaluationRecord prevEval = getLastInstructionBlockEvaluation().getLastInstructionEvaluation();
         if (prevEval == null || prevEval.getInstructionOffset() != instructionOffset ||
-                prevEval.getTimesSeen() != evaluationCount) {
+                prevEval.getEvaluationCount() != evaluationCount) {
             getLastInstructionBlockEvaluation().getEvaluations().add(
                     new InstructionEvaluationRecord(false, false, evaluationCount,
                             instruction.toString(), instructionOffset,
@@ -321,26 +306,5 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                               int subroutineStart, int subroutineEnd)
     {
         subRoutineTrackers.pop();
-    }
-
-    public String getJson() {
-        return gson.toJson(stateTracker);
-    }
-
-    public void printState()
-    {
-        System.out.println(getJson());
-    }
-
-    public void writeState(String fileName) {
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-            writer.write(getJson());
-
-            writer.close();
-        }
-        catch (IOException ex) {
-            // Do nothing
-        }
     }
 }
