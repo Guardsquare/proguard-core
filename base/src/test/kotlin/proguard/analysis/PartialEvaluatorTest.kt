@@ -13,6 +13,7 @@ import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.stateTrackers.HumanPrinter
+import proguard.evaluation.stateTrackers.MachinePrinter
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
