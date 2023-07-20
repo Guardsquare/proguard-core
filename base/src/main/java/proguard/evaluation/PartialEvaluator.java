@@ -879,7 +879,7 @@ implements   AttributeVisitor,
                     generalizedContexts[instructionOffset])
                 {
                     if (stateTracker != null) stateTracker.skipInstructionBlock(clazz, method, instructionOffset,
-                            instruction, variablesBefore[instructionOffset], stacksBefore[instructionOffset]);
+                            instruction, variablesBefore[instructionOffset], stacksBefore[instructionOffset], evaluationCount);
 
                     break;
                 }
@@ -923,7 +923,7 @@ implements   AttributeVisitor,
             // Reset the branch unit.
             branchUnit.reset();
 
-            if (stateTracker != null) stateTracker.startInstructionEvaluation(clazz, method, instructionOffset, instruction, variables, stack);
+            if (stateTracker != null) stateTracker.startInstructionEvaluation(clazz, method, instructionOffset, instruction, variables, stack, evaluationCount);
 
             if (extraInstructionVisitor != null)
             {

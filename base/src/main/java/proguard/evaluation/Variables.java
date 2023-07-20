@@ -222,6 +222,22 @@ public class Variables
             throw new VariableIndexOutOfBoundException(index, size);
         }
 
+        return values[index];
+    }
+
+    /**
+     * Loads the Value from the variable with the given index.
+     * <p>
+     * Unlike `load`: throws a {@link VariableEmptySlotException} if the value is null.
+     */
+    private Value loadInternal(int index)
+    {
+        if (index < 0 ||
+            index >= size)
+        {
+            throw new VariableIndexOutOfBoundException(index, size);
+        }
+
         if (values[index] == null)
         {
             throw new VariableEmptySlotException(index);
@@ -237,7 +253,7 @@ public class Variables
      */
     public IntegerValue iload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.integerValue();
@@ -254,7 +270,7 @@ public class Variables
      */
     public LongValue lload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.longValue();
@@ -271,7 +287,7 @@ public class Variables
      */
     public FloatValue fload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.floatValue();
@@ -288,7 +304,7 @@ public class Variables
      */
     public DoubleValue dload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.doubleValue();
@@ -305,7 +321,7 @@ public class Variables
      */
     public ReferenceValue aload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.referenceValue();

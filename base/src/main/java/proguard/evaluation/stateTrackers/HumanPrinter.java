@@ -229,7 +229,7 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
      * Instruction level *
      *********************/
     @Override
-    public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore)
+    public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
         if (printDebugInfo)
         {
@@ -247,7 +247,7 @@ public class HumanPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
-    public void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore)
+    public void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
         if (printDebugInfo)
         {
