@@ -24,7 +24,7 @@ import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
-import proguard.evaluation.stateTrackers.MachinePrinter
+import proguard.evaluation.stateTrackers.machinePrinter.MachinePrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 

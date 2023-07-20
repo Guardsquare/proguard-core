@@ -1498,7 +1498,7 @@ implements   AttributeVisitor,
         private final int             startOffset;
 
 
-        private InstructionBlock(TracedVariables variables,
+        public InstructionBlock(TracedVariables variables,
                                  TracedStack     stack,
                                  int             startOffset)
         {
