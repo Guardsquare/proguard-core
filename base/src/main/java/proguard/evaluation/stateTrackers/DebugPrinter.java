@@ -24,8 +24,8 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
 
     public DebugPrinter(boolean printDebugInfo, boolean printDebugResults)
     {
-        this.printDebugInfo=printDebugInfo;
-        this.printDebugResults=printDebugResults;
+        this.printDebugInfo = printDebugInfo;
+        this.printDebugResults = printDebugResults;
     }
 
     /************************
@@ -66,8 +66,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
                     }
                 }
 
-                Instruction instruction=InstructionFactory.create(codeAttribute.code,
-                        offset);
+                Instruction instruction=InstructionFactory.create(codeAttribute.code, offset);
                 System.out.println(instruction.toString(clazz, offset));
 
                 if (evaluator.isTraced(offset))
@@ -88,7 +87,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
                     System.out.println("  Stack: "+evaluator.getStackAfter(offset));
                 }
 
-                offset+=instruction.length(offset);
+                offset += instruction.length(offset);
             }
             while (offset < codeAttribute.u4codeLength);
         }
@@ -137,7 +136,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         {
             System.out.println("Evaluation results:");
 
-            int offset=0;
+            int offset = 0;
             do
             {
                 if (evaluator.isBranchOrExceptionTarget(offset))
@@ -150,8 +149,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
                     }
                 }
 
-                Instruction instruction=InstructionFactory.create(codeAttribute.code,
-                        offset);
+                Instruction instruction=InstructionFactory.create(codeAttribute.code, offset);
                 System.out.println(instruction.toString(clazz, offset));
 
                 if (evaluator.isTraced(offset))
@@ -162,7 +160,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
 //                        System.out.println("     is to be initialized at ["+initializationOffset+"]");
 //                    }
 
-                    InstructionOffsetValue branchTargets=evaluator.branchTargets(offset);
+                    InstructionOffsetValue branchTargets = evaluator.branchTargets(offset);
                     if (branchTargets != null)
                     {
                         System.out.println("     has overall been branching to "+branchTargets);
@@ -172,7 +170,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
                     System.out.println("  Stack: "+evaluator.getStackAfter(offset));
                 }
 
-                offset+=instruction.length(offset);
+                offset += instruction.length(offset);
             }
             while (offset < codeAttribute.u4codeLength);
         }
@@ -193,9 +191,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         if (printDebugInfo)
         {
             System.out.println("Instruction block starting at ["+startOffset+"] in "+
-                    ClassUtil.externalFullMethodDescription(clazz.getName(),
-                            0,
-                            method.getName(clazz),
+                    ClassUtil.externalFullMethodDescription(clazz.getName(), 0, method.getName(clazz),
                             method.getDescriptor(clazz)));
             System.out.println("Init vars:  "+startVariables);
             System.out.println("Init stack: "+startStack);
@@ -261,8 +257,7 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
     {
         if (printDebugInfo)
         {
-            InstructionOffsetValue branchTargets=branchUnit.getTraceBranchTargets();
-            int branchTargetCount=branchTargets.instructionOffsetCount();
+            InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
             if (branchUnit.wasCalled())
             {
                 System.out.println("     is branching to "+branchTargets);
