@@ -1065,7 +1065,8 @@ implements   AttributeVisitor,
                             codeAttribute,
                             instructionOffset,
                             processor);
-                } catch (RuntimeException ex)
+                }
+                catch (RuntimeException ex)
                 {
                     // Fallback to the default exception formatter.
                     if (formatter == null)
