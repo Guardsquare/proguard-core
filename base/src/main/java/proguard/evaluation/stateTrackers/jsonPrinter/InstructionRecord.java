@@ -38,13 +38,25 @@ class InstructionRecord
     @NotNull
     private final String instruction;
 
-    private List<String> finalStackBefore;
-
+    /**
+     * Contains the final result computations from the partial evaluator regarding the variables of this instruction.
+     */
     private List<String> finalVariablesBefore;
 
+    /**
+     * Contains the final result computations from the partial evaluator regarding the stack of this instruction.
+     */
+    private List<String> finalStackBefore;
+
+    /**
+     * Contains the final result computations from the partial evaluator regarding the target instructions of this instruction.
+     */
     private List<Integer> finalTargetInstructions;
 
-    private List<Integer> finalSourceInstructions;
+    /**
+     * Contains the final result computations from the partial evaluator regarding the source instructions of this instruction.
+     */
+    private List<Integer> finalOriginInstructions;
 
     public InstructionRecord(int offset, @NotNull String instruction)
     {
@@ -82,14 +94,14 @@ class InstructionRecord
         this.finalTargetInstructions = finalTargetInstructions;
     }
 
-    public List<Integer> getFinalSourceInstructions()
+    public List<Integer> getFinalOriginInstructions()
     {
-        return finalSourceInstructions;
+        return finalOriginInstructions;
     }
 
-    public void setFinalSourceInstructions(List<Integer> finalSourceInstructions)
+    public void setFinalOriginInstructions(List<Integer> finalOriginInstructions)
     {
-        this.finalSourceInstructions = finalSourceInstructions;
+        this.finalOriginInstructions = finalOriginInstructions;
     }
 
     public int getOffset()

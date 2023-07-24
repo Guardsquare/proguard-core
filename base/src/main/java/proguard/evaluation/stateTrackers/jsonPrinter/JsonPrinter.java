@@ -42,7 +42,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -54,7 +53,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     /**
      * Debug flag for this class, when enabled, JSON is pretty printed.
      */
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /**
      * GSON object used to create json string format
@@ -251,9 +250,9 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
 
             InstructionOffsetValue origins = evaluator.branchOrigins(instruction.getOffset());
             if (origins != null) {
-                instruction.setFinalSourceInstructions(new ArrayList<>());
+                instruction.setFinalOriginInstructions(new ArrayList<>());
                 for (int index = 0; index < origins.instructionOffsetCount(); index++) {
-                    instruction.getFinalSourceInstructions().add(origins.instructionOffset(index));
+                    instruction.getFinalOriginInstructions().add(origins.instructionOffset(index));
                 }
             }
         }
