@@ -270,7 +270,7 @@ implements   AttributeVisitor,
         private InstructionVisitor                  extraInstructionVisitor;
         private BasicBranchUnit                     branchUnit;
         private BranchTargetFinder                  branchTargetFinder;
-        private java.util.Stack<InstructionBlock> callingInstructionBlockStack;
+        private java.util.Stack<InstructionBlock>   callingInstructionBlockStack;
         private int                                 stopAnalysisAfterNEvaluations = -1; // disabled by default
         private PartialEvaluatorStateTracker        stateTracker;
 
