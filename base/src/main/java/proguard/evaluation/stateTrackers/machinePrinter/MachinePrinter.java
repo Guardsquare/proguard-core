@@ -1,3 +1,21 @@
+/*
+ * ProGuardCORE -- library to process Java bytecode.
+ *
+ * Copyright (c) 2002-2023 Guardsquare NV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package proguard.evaluation.stateTrackers.machinePrinter;
 
 import com.google.gson.Gson;
@@ -26,23 +44,54 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+/**
+ * Tracks the state of the partial evaluator able to provide debug information in JSON format
+ */
 public class MachinePrinter implements PartialEvaluatorStateTracker
 {
     /**
+     * Debug flag for this class, when enabled, JSON is pretty printed.
+     */
+    private static final boolean DEBUG = false;
+
+    /**
      * GSON object used to create json string format
      */
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson;
 
     /**
      * Tracks the state of the partial evaluator
      */
-    private final StateTracker stateTracker = new StateTracker();
+    private final StateTracker stateTracker;
 
     /**
      * Traces the current depth of JSR recursion.
      * All accesses to an InstructionBlockEvaluationRecord should be done through here
      */
-    private final Deque<List<InstructionBlockEvaluationRecord>> subRoutineTrackers = new ArrayDeque<>();
+    private final Deque<List<InstructionBlockEvaluationRecord>> subRoutineTrackers;
+
+    private final Clazz clazzFilter;
+
+    private final Method methodFilter;
+
+    public MachinePrinter()
+    {
+        this(null, null);
+    }
+
+    public MachinePrinter(Clazz clazzFilter)
+    {
+        this(clazzFilter, null);
+    }
+
+    public MachinePrinter(Clazz clazzFilter, Method methodFilter)
+    {
+        this.gson = DEBUG ? new GsonBuilder().setPrettyPrinting().create() : new GsonBuilder().create();
+        this.stateTracker = new StateTracker();
+        this.subRoutineTrackers = new ArrayDeque<>();
+        this.clazzFilter = clazzFilter;
+        this.methodFilter = methodFilter;
+    }
 
     public String getJson() {
         return gson.toJson(stateTracker);
@@ -107,12 +156,21 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
         return res;
     }
 
+    /**
+     * @return whether the current class and method should be skipped/ are not tracked.
+     */
+    private boolean shouldSkip(Clazz clazz, Method method) {
+        return (clazzFilter != null && clazzFilter != clazz) || (methodFilter != null && methodFilter != method);
+    }
+
     /************************
      * Code attribute level *
      ************************/
     @Override
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
+        if (shouldSkip(clazz, method)) return;
+
         // Read out all instructions in this codeAttribute
         List<InstructionRecord> instructions = new ArrayList<>();
         byte[] code = codeAttribute.code;
@@ -139,6 +197,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void registerException(Clazz clazz, Method method, CodeAttribute codeAttribute,
                                   PartialEvaluator evaluator, Throwable cause)
     {
+        if (shouldSkip(clazz, method)) return;
+
         stateTracker.getLastCodeAttribute().setError(new ErrorRecord(
                 getLastInstructionBlockEvaluation().getLastInstructionEvaluation().getInstructionOffset(),
                 cause.getMessage()));
@@ -151,6 +211,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     @Override
     public void registerExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
     {
+        if (shouldSkip(clazz, method)) return;
+
         // TODO: currently instantiated with null and later corrected, can we do better?
 
         ClassConstant constant = (ClassConstant) ((ProgramClass) clazz).getConstant(info.u2catchType);
@@ -181,6 +243,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
                                       TracedVariables startVariables, TracedStack startStack, int startOffset)
     {
+        if (shouldSkip(clazz, method)) return;
+
         // If the last evaluation was handling an exception, this one is also, copy it over
         InstructionBlockEvaluationRecord lastBlock = getLastInstructionBlockEvaluation();
 
@@ -234,6 +298,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                      TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
+        if (shouldSkip(clazz, method)) return;
+
         getLastInstructionBlockEvaluation().getEvaluations().add(
                 new InstructionEvaluationRecord(true, false, evaluationCount,
                         instruction.toString(), instructionOffset,
@@ -246,6 +312,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void generalizeInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                            TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
+        if (shouldSkip(clazz, method)) return;
+
         getLastInstructionBlockEvaluation().getEvaluations().add(
                 new InstructionEvaluationRecord(false, true, evaluationCount,
                         instruction.toString(), instructionOffset,
@@ -258,6 +326,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void startInstructionEvaluation(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                            TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
+        if (shouldSkip(clazz, method)) return;
+
         InstructionEvaluationRecord prevEval = getLastInstructionBlockEvaluation().getLastInstructionEvaluation();
         if (prevEval == null || prevEval.getInstructionOffset() != instructionOffset ||
                 prevEval.getEvaluationCount() != evaluationCount) {
@@ -275,6 +345,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
                                           Instruction fromInstruction, TracedVariables variablesAfter,
                                           TracedStack stackAfter, int branchIndex, int branchTargetCount, int offset)
     {
+        if (shouldSkip(clazz, method)) return;
+
         InstructionBlockEvaluationRecord lastBlock = getLastInstructionBlockEvaluation();
         InstructionEvaluationRecord lastInstruction = lastBlock.getLastInstructionEvaluation();
 
@@ -296,6 +368,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack,
                                 int subroutineStart, int subroutineEnd)
     {
+        if (shouldSkip(clazz, method)) return;
+
         InstructionEvaluationRecord lastInstruction = getLastInstructionBlockEvaluation().getLastInstructionEvaluation();
         lastInstruction.setJsrBlockEvaluations(new ArrayList<>());
         subRoutineTrackers.offer(lastInstruction.getJsrBlockEvaluations());
@@ -305,6 +379,8 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
     public void endSubroutine(Clazz clazz, Method method, TracedVariables variablesAfter, TracedStack stackAfter,
                               int subroutineStart, int subroutineEnd)
     {
+        if (shouldSkip(clazz, method)) return;
+
         subRoutineTrackers.pop();
     }
 }

@@ -12,6 +12,7 @@ class InstructionEvaluationRecord
      * When true, the instructionBlock evaluation comes to an end
      */
     private final boolean skipEvaluation;
+
     /**
      * Whether the instruction has been seen a lot, if true, start generalizing the values
      */
