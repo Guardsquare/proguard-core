@@ -47,7 +47,7 @@ import java.util.List;
 /**
  * Tracks the state of the partial evaluator able to provide debug information in JSON format
  */
-public class MachinePrinter implements PartialEvaluatorStateTracker
+public class JsonPrinter implements PartialEvaluatorStateTracker
 {
     /**
      * Debug flag for this class, when enabled, JSON is pretty printed.
@@ -74,17 +74,17 @@ public class MachinePrinter implements PartialEvaluatorStateTracker
 
     private final Method methodFilter;
 
-    public MachinePrinter()
+    public JsonPrinter()
     {
         this(null, null);
     }
 
-    public MachinePrinter(Clazz clazzFilter)
+    public JsonPrinter(Clazz clazzFilter)
     {
         this(clazzFilter, null);
     }
 
-    public MachinePrinter(Clazz clazzFilter, Method methodFilter)
+    public JsonPrinter(Clazz clazzFilter, Method methodFilter)
     {
         this.gson = DEBUG ? new GsonBuilder().setPrettyPrinting().create() : new GsonBuilder().create();
         this.stateTracker = new StateTracker();

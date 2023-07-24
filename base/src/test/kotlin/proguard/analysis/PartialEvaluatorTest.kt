@@ -12,7 +12,7 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.stateTrackers.machinePrinter.MachinePrinter
+import proguard.evaluation.stateTrackers.machinePrinter.JsonPrinter
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
@@ -45,7 +45,7 @@ class PartialEvaluatorTest : FreeSpec({
                 .programClass
 
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
-            val tracker = MachinePrinter()
+            val tracker = JsonPrinter()
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
@@ -74,7 +74,10 @@ class PartialEvaluatorTest : FreeSpec({
                 .programClass
 
             val valueFactory = ParticularValueFactory()
-            val tracker = MachinePrinter(programClass.superClass, programClass.findMethod("test0"))
+            val tracker = JsonPrinter(
+                programClass.superClass,
+                programClass.findMethod("test0")
+            )
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setStateTracker(tracker).build()
@@ -112,7 +115,7 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
-            val tracker = MachinePrinter()
+            val tracker = JsonPrinter()
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
@@ -143,7 +146,7 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
-            val tracker = MachinePrinter()
+            val tracker = JsonPrinter()
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
@@ -201,7 +204,7 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
-            val tracker = MachinePrinter()
+            val tracker = JsonPrinter()
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
