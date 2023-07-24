@@ -12,7 +12,7 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.stateTrackers.HumanPrinter
+import proguard.evaluation.stateTrackers.DebugPrinter
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
@@ -45,7 +45,7 @@ class PartialEvaluatorTest : FreeSpec({
                 .programClass
 
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
-            val tracker = HumanPrinter(true, true)
+            val tracker = DebugPrinter(true, true)
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
                 .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
@@ -77,7 +77,7 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
-            val tracker = HumanPrinter(true, true)
+            val tracker = DebugPrinter(true, true)
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
@@ -107,7 +107,7 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
-            val tracker = HumanPrinter(true, true)
+            val tracker = DebugPrinter(true, true)
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
@@ -164,7 +164,7 @@ class PartialEvaluatorTest : FreeSpec({
                 }
                 .programClass
 
-            val tracker = HumanPrinter(true, true)
+            val tracker = DebugPrinter(true, true)
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
