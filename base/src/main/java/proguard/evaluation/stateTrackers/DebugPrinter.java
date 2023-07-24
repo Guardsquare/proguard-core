@@ -17,12 +17,12 @@ import proguard.evaluation.value.InstructionOffsetValue;
 
 import java.util.List;
 
-public class HumanPrinter implements PartialEvaluatorStateTracker
+public class DebugPrinter implements PartialEvaluatorStateTracker
 {
     private final boolean printDebugInfo;
     private final boolean printDebugResults;
 
-    public HumanPrinter(boolean printDebugInfo, boolean printDebugResults)
+    public DebugPrinter(boolean printDebugInfo, boolean printDebugResults)
     {
         this.printDebugInfo=printDebugInfo;
         this.printDebugResults=printDebugResults;

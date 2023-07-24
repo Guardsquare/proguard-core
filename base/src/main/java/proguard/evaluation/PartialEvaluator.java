@@ -40,7 +40,7 @@ import proguard.classfile.util.BranchTargetFinder;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
-import proguard.evaluation.stateTrackers.HumanPrinter;
+import proguard.evaluation.stateTrackers.DebugPrinter;
 import proguard.evaluation.stateTrackers.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
@@ -233,7 +233,7 @@ implements   AttributeVisitor,
             callingInstructionBlockStack;
         if (DEBUG || DEBUG_RESULTS)
         {
-            this.stateTracker = new HumanPrinter(DEBUG, DEBUG_RESULTS);
+            this.stateTracker = new DebugPrinter(DEBUG, DEBUG_RESULTS);
         }
     }
 
@@ -255,7 +255,7 @@ implements   AttributeVisitor,
         this.stopAnalysisAfterNEvaluations = builder.stopAnalysisAfterNEvaluations;
         if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS))
         {
-            this.stateTracker              = new HumanPrinter(DEBUG, DEBUG_RESULTS);
+            this.stateTracker              = new DebugPrinter(DEBUG, DEBUG_RESULTS);
         }
         else
         {
