@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package proguard.evaluation.stateTrackers.machinePrinter;
+package proguard.evaluation.stateTrackers.jsonPrinter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
