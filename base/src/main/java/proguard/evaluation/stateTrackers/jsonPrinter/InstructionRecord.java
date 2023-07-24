@@ -52,6 +52,46 @@ class InstructionRecord
         this.instruction = instruction;
     }
 
+    public List<String> getFinalStackBefore()
+    {
+        return finalStackBefore;
+    }
+
+    public void setFinalStackBefore(List<String> finalStackBefore)
+    {
+        this.finalStackBefore = finalStackBefore;
+    }
+
+    public List<String> getFinalVariablesBefore()
+    {
+        return finalVariablesBefore;
+    }
+
+    public void setFinalVariablesBefore(List<String> finalVariablesBefore)
+    {
+        this.finalVariablesBefore = finalVariablesBefore;
+    }
+
+    public List<Integer> getFinalTargetInstructions()
+    {
+        return finalTargetInstructions;
+    }
+
+    public void setFinalTargetInstructions(List<Integer> finalTargetInstructions)
+    {
+        this.finalTargetInstructions = finalTargetInstructions;
+    }
+
+    public List<Integer> getFinalSourceInstructions()
+    {
+        return finalSourceInstructions;
+    }
+
+    public void setFinalSourceInstructions(List<Integer> finalSourceInstructions)
+    {
+        this.finalSourceInstructions = finalSourceInstructions;
+    }
+
     public int getOffset()
     {
         return offset;

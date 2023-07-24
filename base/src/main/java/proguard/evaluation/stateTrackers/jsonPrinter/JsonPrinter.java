@@ -34,6 +34,7 @@ import proguard.evaluation.TracedStack;
 import proguard.evaluation.TracedVariables;
 import proguard.evaluation.Variables;
 import proguard.evaluation.stateTrackers.PartialEvaluatorStateTracker;
+import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 
 import java.io.BufferedWriter;
@@ -41,6 +42,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -52,7 +54,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     /**
      * Debug flag for this class, when enabled, JSON is pretty printed.
      */
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     /**
      * GSON object used to create json string format
@@ -232,7 +234,29 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     @Override
     public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
-        // TODO: we no want?
+        for (InstructionRecord instruction: stateTracker.getLastCodeAttribute().getInstructions()) {
+            TracedVariables variablesBefore = evaluator.getVariablesBefore(instruction.getOffset());
+            instruction.setFinalVariablesBefore(variablesBefore == null ? null : formatValueList(variablesBefore));
+
+            TracedStack stackBefore = evaluator.getStackBefore(instruction.getOffset());
+            instruction.setFinalStackBefore(stackBefore == null ? null : formatValueList(stackBefore));
+
+            InstructionOffsetValue targets = evaluator.branchTargets(instruction.getOffset());
+            if (targets != null) {
+                instruction.setFinalTargetInstructions(new ArrayList<>());
+                for (int index = 0; index < targets.instructionOffsetCount(); index++) {
+                    instruction.getFinalTargetInstructions().add(targets.instructionOffset(index));
+                }
+            }
+
+            InstructionOffsetValue origins = evaluator.branchOrigins(instruction.getOffset());
+            if (origins != null) {
+                instruction.setFinalSourceInstructions(new ArrayList<>());
+                for (int index = 0; index < origins.instructionOffsetCount(); index++) {
+                    instruction.getFinalSourceInstructions().add(origins.instructionOffset(index));
+                }
+            }
+        }
     }
 
 
