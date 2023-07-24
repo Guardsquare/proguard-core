@@ -4,9 +4,11 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.classfile.AccessConstants
+import proguard.classfile.ClassPool
 import proguard.classfile.attribute.Attribute.CODE
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
+import proguard.classfile.visitor.ClassPoolFiller
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.ExecutingInvocationUnit
@@ -18,10 +20,16 @@ import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.TypedReferenceValueFactory
+import proguard.io.ClassFilter
+import proguard.io.ClassReader
+import proguard.io.DataEntrySource
+import proguard.io.FileSource
+import proguard.io.JarReader
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.findMethod
+import java.io.File
 
 class PartialEvaluatorTest : FreeSpec({
     "Test lifecycle" - {
@@ -76,7 +84,7 @@ class PartialEvaluatorTest : FreeSpec({
             val valueFactory = ParticularValueFactory()
             val tracker = JsonPrinter(
                 programClass.superClass,
-                programClass.findMethod("test0")
+                programClass.findMethod("test0"),
             )
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
@@ -217,6 +225,45 @@ class PartialEvaluatorTest : FreeSpec({
                 "()I",
             )
             tracker.writeState("complete-cycle.json")
+        }
+
+        "On Big Function".config(enabled = true) {
+            val classPool = ClassPool()
+
+            val source: DataEntrySource = FileSource(
+                File("build/libs/proguard-core-9.0.11.jar"),
+            )
+
+            source.pumpDataEntries(
+                JarReader(
+                    false,
+                    ClassFilter(
+                        ClassReader(
+                            false,
+                            false,
+                            false,
+                            false,
+                            null,
+                            ClassPoolFiller(classPool),
+                        ),
+                    ),
+                ),
+            )
+
+            val tracker = JsonPrinter()
+            val pe = PartialEvaluator.Builder.create()
+                .setEvaluateAllCode(false).setStateTracker(tracker).build()
+            classPool.classesAccept(
+                NamedMethodVisitor(
+                    "evaluateSingleInstructionBlock",
+                    "(Lproguard/classfile/Clazz;Lproguard/classfile/Method;Lproguard/classfile/attribute/CodeAttribute;" +
+                        "Lproguard/evaluation/TracedVariables;Lproguard/evaluation/TracedStack;I)V",
+                    AllAttributeVisitor(
+                        AttributeNameFilter(CODE, pe),
+                    ),
+                ),
+            )
+            tracker.writeState("evaluateSingleInstructionBlock-reflective.json")
         }
     }
 

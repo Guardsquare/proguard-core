@@ -1,5 +1,7 @@
 package proguard.evaluation.stateTrackers.machinePrinter;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 /**
@@ -26,6 +28,7 @@ class InstructionEvaluationRecord
     /**
      * String representation of an instruction.
      */
+    @NotNull
     private final String instruction;
 
     /**
@@ -42,18 +45,20 @@ class InstructionEvaluationRecord
     /**
      * Content of the variables before the instruction.
      */
+    @NotNull
     private final List<String> variablesBefore;
 
     /**
      * Content of the stack before the instruction.
      */
+    @NotNull
     private final List<String> stackBefore;
 
     private List<InstructionBlockEvaluationRecord> jsrBlockEvaluations;
 
     public InstructionEvaluationRecord(
-            Boolean skipEvaluation, Boolean isGeneralization, Integer evaluationCount, String instruction,
-            Integer instructionOffset, List<String> variablesBefore, List<String> stackBefore)
+            Boolean skipEvaluation, Boolean isGeneralization, Integer evaluationCount, @NotNull String instruction,
+            Integer instructionOffset, @NotNull List<String> variablesBefore, @NotNull List<String> stackBefore)
     {
         this.skipEvaluation = skipEvaluation;
         this.isGeneralization = isGeneralization;
@@ -89,6 +94,7 @@ class InstructionEvaluationRecord
         return evaluationCount;
     }
 
+    @NotNull
     public String getInstruction()
     {
         return instruction;
@@ -104,11 +110,13 @@ class InstructionEvaluationRecord
         return updatedEvaluationStack;
     }
 
+    @NotNull
     public List<String> getVariablesBefore()
     {
         return variablesBefore;
     }
 
+    @NotNull
     public List<String> getStackBefore()
     {
         return stackBefore;

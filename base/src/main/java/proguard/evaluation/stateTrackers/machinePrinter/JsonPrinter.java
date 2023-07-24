@@ -221,7 +221,8 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
 
         // Register an exception handler being evaluated. NOTE: do not copy the branch stack (should be empty but still)
         getSubroutineInstructionBlockEvaluationTracker().add(
-                new InstructionBlockEvaluationRecord(null, null, info.u2handlerPC, exceptionHandlerInfo, null));
+                new InstructionBlockEvaluationRecord(null, null,
+                        info.u2handlerPC, exceptionHandlerInfo, new ArrayList<>()));
     }
 
 
@@ -252,7 +253,6 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         if (lastBlock != null && lastBlock.getExceptionHandlerInfo() != null && lastBlock.getEvaluations().isEmpty()) {
             lastBlock.setStartVariables(formatValueList(startVariables));
             lastBlock.setStartStack(formatValueList(startStack));
-            // No need to copy branching information
         }
         else
         {

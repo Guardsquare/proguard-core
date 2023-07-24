@@ -1,5 +1,7 @@
 package proguard.evaluation.stateTrackers.machinePrinter;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,7 @@ class InstructionBlockEvaluationRecord
     /**
      * List of instruction evaluation trackers.
      */
+    @NotNull
     private final List<InstructionEvaluationRecord> evaluations;
 
     /**
@@ -36,11 +39,12 @@ class InstructionBlockEvaluationRecord
     /**
      * Current branch evaluation stack
      */
+    @NotNull
     private final List<BranchTargetRecord> branchEvaluationStack;
 
     public InstructionBlockEvaluationRecord(List<String> startVariables, List<String> startStack, int startOffset,
                                             ExceptionHandlerRecord exceptionHandlerInfo,
-                                            List<BranchTargetRecord> branchEvaluationStack)
+                                            @NotNull List<BranchTargetRecord> branchEvaluationStack)
     {
         this.evaluations = new ArrayList<>();
         this.startVariables = startVariables;
@@ -69,6 +73,7 @@ class InstructionBlockEvaluationRecord
         return evaluations.get(evaluations.size() - 1);
     }
 
+    @NotNull
     public List<InstructionEvaluationRecord> getEvaluations()
     {
         return evaluations;
@@ -94,6 +99,7 @@ class InstructionBlockEvaluationRecord
         return startOffset;
     }
 
+    @NotNull
     public List<BranchTargetRecord> getBranchEvaluationStack()
     {
         return branchEvaluationStack;
