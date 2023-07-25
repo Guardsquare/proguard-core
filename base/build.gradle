@@ -24,16 +24,16 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
     testFixturesImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
     testFixturesImplementation group: "dev.zacsweers.kctfork", name: "core", version: "0.3.1"
-    testFixturesImplementation 'io.kotest:kotest-runner-junit5-jvm:5.6.2' // for kotest framework
-    testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.6.2' // for kotest framework
-    testImplementation 'io.kotest:kotest-assertions-core-jvm:5.6.2' // for kotest core jvm assertions
-    testFixturesImplementation 'io.kotest:kotest-assertions-core-jvm:5.6.2' // for kotest core jvm assertions
+    testFixturesImplementation 'io.kotest:kotest-runner-junit5-jvm:5.5.4' // for kotest framework
+    testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.5.4' // for kotest framework
+    testImplementation 'io.kotest:kotest-assertions-core-jvm:5.5.4' // for kotest core jvm assertions
+    testFixturesImplementation 'io.kotest:kotest-assertions-core-jvm:5.5.4' // for kotest core jvm assertions
 
-    testImplementation 'io.kotest:kotest-property-jvm:5.6.2' // for kotest property test
-    testImplementation 'io.kotest:kotest-framework-datatest:5.6.2'
-    testImplementation 'io.mockk:mockk:1.13.5' // for mocking
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3' // for junit framework
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3' // for junit framework
+    testImplementation 'io.kotest:kotest-property-jvm:5.5.4' // for kotest property test
+    testImplementation 'io.kotest:kotest-framework-datatest:5.5.4'
+    testImplementation 'io.mockk:mockk:1.13.3' // for mocking
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0' // for junit framework
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0' // for junit framework
 
     testFixturesImplementation("com.guardsquare:proguard-assembler:1.0.0")
 }
