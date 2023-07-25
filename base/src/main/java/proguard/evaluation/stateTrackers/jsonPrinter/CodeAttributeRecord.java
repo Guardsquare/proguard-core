@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Track the evaluation of a single code attribute (one call to visitCode attribute)
  */
-class CodeAttributeRecord
+class CodeAttributeRecord implements JsonSerializable
 {
     /**
      * Clazz this code attribute is a part of.
@@ -67,6 +67,20 @@ class CodeAttributeRecord
         this.method = method;
         this.parameters = parameters;
         this.instructions = instructions;
+    }
+
+    public StringBuilder toJson(StringBuilder builder) {
+        builder.append("{");
+        JsonPrinter.toJson("clazz", clazz, builder).append(",");
+        JsonPrinter.toJson("method", method, builder).append(",");
+        JsonPrinter.listToJson("instructions", instructions, builder).append(",");
+        JsonPrinter.stringListToJson("parameters", parameters, builder).append(",");
+        JsonPrinter.listToJson("blockEvaluations", blockEvaluations, builder);
+        if (error != null) {
+            builder.append(",");
+            JsonPrinter.serializeJsonSerializable("error", error, builder);
+        }
+        return builder.append("}");
     }
 
     @NotNull

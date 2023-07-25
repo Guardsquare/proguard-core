@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * DTO to track a single instruction
  */
-class InstructionRecord
+class InstructionRecord implements JsonSerializable
 {
     /**
      * The offset of the instruction
@@ -62,6 +62,35 @@ class InstructionRecord
     {
         this.offset = offset;
         this.instruction = instruction;
+    }
+
+    @Override
+    public StringBuilder toJson(StringBuilder builder)
+    {
+        builder.append("{");
+        JsonPrinter.toJson("offset", offset, builder).append(",");
+        JsonPrinter.toJson("instruction", instruction, builder);
+        if (finalVariablesBefore != null)
+        {
+            builder.append(",");
+            JsonPrinter.stringListToJson("finalVariablesBefore", finalVariablesBefore, builder);
+        }
+        if (finalStackBefore != null)
+        {
+            builder.append(",");
+            JsonPrinter.stringListToJson("finalStackBefore", finalStackBefore, builder);
+        }
+        if (finalTargetInstructions != null)
+        {
+            builder.append(",");
+            JsonPrinter.intListToJson("finalTargetInstructions", finalTargetInstructions, builder);
+        }
+        if (finalOriginInstructions != null)
+        {
+            builder.append(",");
+            JsonPrinter.intListToJson("finalOriginInstructions", finalOriginInstructions, builder);
+        }
+        return builder.append("}");
     }
 
     public List<String> getFinalStackBefore()

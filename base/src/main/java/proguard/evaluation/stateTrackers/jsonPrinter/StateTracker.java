@@ -41,4 +41,10 @@ class StateTracker
     {
         return codeAttributes;
     }
+
+    public String toJson() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        return JsonPrinter.listToJson("codeAttributes", codeAttributes, builder).append("}").toString();
+    }
 }

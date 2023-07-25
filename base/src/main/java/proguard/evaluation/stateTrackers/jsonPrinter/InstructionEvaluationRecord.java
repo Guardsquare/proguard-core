@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Track information about the evaluation of a single instruction.
  */
-class InstructionEvaluationRecord
+class InstructionEvaluationRecord implements JsonSerializable
 {
     /**
      * Has the instruction been seen in a given context before.
@@ -85,6 +85,30 @@ class InstructionEvaluationRecord
         this.instructionOffset = instructionOffset;
         this.variablesBefore = variablesBefore;
         this.stackBefore = stackBefore;
+    }
+
+    @Override
+    public StringBuilder toJson(StringBuilder builder)
+    {
+        builder.append("{");
+        JsonPrinter.toJson("skipEvaluation", skipEvaluation, builder).append(",");
+        JsonPrinter.toJson("isGeneralization", isGeneralization, builder).append(",");
+        JsonPrinter.toJson("evaluationCount", evaluationCount, builder).append(",");
+        JsonPrinter.toJson("instruction", instruction, builder).append(",");
+        JsonPrinter.toJson("instructionOffset", instructionOffset, builder).append(",");
+        JsonPrinter.stringListToJson("variablesBefore", variablesBefore, builder).append(",");
+        JsonPrinter.stringListToJson("stackBefore", stackBefore, builder);
+        if (updatedEvaluationStack != null)
+        {
+            builder.append(",");
+            JsonPrinter.listToJson("updatedEvaluationStack", updatedEvaluationStack, builder);
+        }
+        if (jsrBlockEvaluations != null)
+        {
+            builder.append(",");
+            JsonPrinter.listToJson("jsrBlockEvaluations", jsrBlockEvaluations, builder);
+        }
+        return builder.append("}");
     }
 
     public void setUpdatedEvaluationStack(List<BranchTargetRecord> updatedEvaluationStack)

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-class BranchTargetRecord
+class BranchTargetRecord implements JsonSerializable
 {
     /**
      * Variables at the start of the block evaluation
@@ -46,6 +46,15 @@ class BranchTargetRecord
         this.startVariables = variables;
         this.startStack = stack;
         this.startOffset = startOffset;
+    }
+
+    @Override
+    public StringBuilder toJson(StringBuilder builder)
+    {
+        builder.append("{");
+        JsonPrinter.toJson("startOffset", startOffset, builder).append(",");
+        JsonPrinter.stringListToJson("startStack", startStack, builder).append(",");
+        return JsonPrinter.stringListToJson("startVariables", startVariables, builder).append("}");
     }
 
     @NotNull

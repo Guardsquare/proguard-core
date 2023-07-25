@@ -20,6 +20,7 @@ package proguard.evaluation.stateTrackers.jsonPrinter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
@@ -44,6 +45,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Tracks the state of the partial evaluator able to provide debug information in JSON format
@@ -53,7 +55,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     /**
      * Debug flag for this class, when enabled, JSON is pretty printed.
      */
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     /**
      * GSON object used to create json string format
@@ -106,7 +108,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     public void writeState(String fileName) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-            writer.write(getJson());
+            writer.write(stateTracker.toJson());
 
             writer.close();
         }
@@ -162,6 +164,88 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
      */
     private boolean shouldSkip(Clazz clazz, Method method) {
         return (clazzFilter != null && clazzFilter != clazz) || (methodFilter != null && methodFilter != method);
+    }
+
+    static StringBuilder toJson(@NotNull String key, Function<StringBuilder, StringBuilder> callback, StringBuilder builder) {
+        builder
+                .append("\"")
+                .append(key)
+                .append("\":");
+        return callback.apply(builder);
+    }
+
+    static StringBuilder toJson(@NotNull String key, @NotNull String value, StringBuilder builder)
+    {
+        return toJson(key, (build) -> build.append("\"").append(value).append("\""), builder);
+    }
+
+    static StringBuilder toJson(@NotNull String key, int value, StringBuilder builder)
+    {
+        return toJson(key, (build) -> build.append(value), builder);
+    }
+
+    static StringBuilder toJson(@NotNull String key, boolean value, StringBuilder builder)
+    {
+        return toJson(key, (build) -> build.append(value), builder);
+    }
+
+    static <T extends JsonSerializable> void serializeJsonSerializable(@NotNull String key, T value, StringBuilder builder)
+    {
+        toJson(key, value::toJson, builder);
+    }
+
+    @NotNull
+    static <T extends JsonSerializable> StringBuilder listToJson(@NotNull String key, @NotNull List<T> formattableList, @NotNull StringBuilder builder) {
+        return toJson(key, build -> {
+            build.append("[");
+            if (!formattableList.isEmpty())
+            {
+                formattableList.get(0).toJson(build);
+            }
+            for (int index = 1; index < formattableList.size(); index++)
+            {
+                build.append(",");
+                formattableList.get(index).toJson(build);
+            }
+            build.append("]");
+            return build;
+        }, builder);
+    }
+
+    @NotNull
+    static StringBuilder stringListToJson(@NotNull String key, @NotNull List<String> formattableList, @NotNull StringBuilder builder) {
+        return toJson(key, build -> {
+            build.append("[");
+            if (!formattableList.isEmpty())
+            {
+                build.append("\"").append(formattableList.get(0)).append("\"");
+            }
+            for (int index = 1; index < formattableList.size(); index++)
+            {
+                build.append(",\"");
+                build.append(formattableList.get(index)).append("\"");
+            }
+            build.append("]");
+            return build;
+        }, builder);
+    }
+
+    @NotNull
+    static StringBuilder intListToJson(@NotNull String key, @NotNull List<Integer> formattableList, @NotNull StringBuilder builder) {
+        return toJson(key, build -> {
+            build.append("[");
+            if (!formattableList.isEmpty())
+            {
+                build.append(formattableList.get(0));
+            }
+            for (int index = 1; index < formattableList.size(); index++)
+            {
+                build.append(",");
+                build.append(formattableList.get(index));
+            }
+            build.append("]");
+            return build;
+        }, builder);
     }
 
     /************************

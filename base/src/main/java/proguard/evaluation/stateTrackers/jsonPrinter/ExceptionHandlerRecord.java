@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * DTO for exception handling info, when a blockEvaluation has this,
  * the block regard the evaluation of an exception handler
  */
-class ExceptionHandlerRecord
+class ExceptionHandlerRecord implements JsonSerializable
 {
     /**
      * Instruction offset from where the handler starts catching
@@ -53,6 +53,16 @@ class ExceptionHandlerRecord
         this.catchEndOffset = catchEndOffset;
         this.handlerStartOffset = handlerStartOffset;
         this.catchType = catchType;
+    }
+
+    @Override
+    public StringBuilder toJson(StringBuilder builder)
+    {
+        builder.append("{");
+        JsonPrinter.toJson("catchStartOffset", catchStartOffset, builder).append(",");
+        JsonPrinter.toJson("catchEndOffset", catchEndOffset, builder).append(",");
+        JsonPrinter.toJson("handlerStartOffset", handlerStartOffset, builder).append(",");
+        return JsonPrinter.toJson("catchType", catchType, builder).append("}");
     }
 
     public int getCatchStartOffset()

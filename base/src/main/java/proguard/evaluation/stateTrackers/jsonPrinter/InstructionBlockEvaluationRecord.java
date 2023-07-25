@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Track the evaluation of a single instruction block, starting at some offset in the code
  */
-class InstructionBlockEvaluationRecord
+class InstructionBlockEvaluationRecord implements JsonSerializable
 {
     /**
      * List of instruction evaluation trackers.
@@ -70,6 +70,30 @@ class InstructionBlockEvaluationRecord
         this.startOffset = startOffset;
         this.exceptionHandlerInfo = exceptionHandlerInfo;
         this.branchEvaluationStack = branchEvaluationStack;
+    }
+
+    @Override
+    public StringBuilder toJson(StringBuilder builder)
+    {
+        builder.append("{");
+        JsonPrinter.toJson("startOffset", startOffset, builder).append(",");
+        JsonPrinter.listToJson("evaluations", evaluations, builder).append(",");
+        JsonPrinter.listToJson("branchEvaluationStack", branchEvaluationStack, builder);
+        if (exceptionHandlerInfo != null) {
+            builder.append(",");
+            JsonPrinter.serializeJsonSerializable("exceptionHandlerInfo", exceptionHandlerInfo, builder);
+        }
+        if (startVariables != null)
+        {
+            builder.append(",");
+            JsonPrinter.stringListToJson("startVariables", startVariables, builder);
+        }
+        if (startStack != null)
+        {
+            builder.append(",");
+            JsonPrinter.stringListToJson("startStack", startStack, builder);
+        }
+        return builder.append("}");
     }
 
     public void setStartVariables(List<String> startVariables)

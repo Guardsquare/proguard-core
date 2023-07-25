@@ -20,7 +20,7 @@ package proguard.evaluation.stateTrackers.jsonPrinter;
 
 import org.jetbrains.annotations.NotNull;
 
-class ErrorRecord
+class ErrorRecord implements JsonSerializable
 {
     /**
      * Ths instruction offset of the instruction that caused the exception.
@@ -37,6 +37,14 @@ class ErrorRecord
     {
         this.instructionOffset = instructionOffset;
         this.message = message;
+    }
+
+    @Override
+    public StringBuilder toJson(StringBuilder builder)
+    {
+        builder.append("{");
+        JsonPrinter.toJson("instructionOffset", instructionOffset, builder).append(",");
+        return JsonPrinter.toJson("message", message, builder).append("}");
     }
 
     public int getInstructionOffset()
