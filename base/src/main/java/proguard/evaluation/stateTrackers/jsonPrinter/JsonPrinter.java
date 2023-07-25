@@ -18,8 +18,6 @@
 
 package proguard.evaluation.stateTrackers.jsonPrinter;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
@@ -58,11 +56,6 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     private static final boolean DEBUG = true;
 
     /**
-     * GSON object used to create json string format
-     */
-    private final Gson gson;
-
-    /**
      * Tracks the state of the partial evaluator
      */
     private final StateTracker stateTracker;
@@ -89,7 +82,6 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
 
     public JsonPrinter(Clazz clazzFilter, Method methodFilter)
     {
-        this.gson = DEBUG ? new GsonBuilder().setPrettyPrinting().create() : new GsonBuilder().create();
         this.stateTracker = new StateTracker();
         this.subRoutineTrackers = new ArrayDeque<>();
         this.clazzFilter = clazzFilter;
@@ -97,7 +89,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     }
 
     public String getJson() {
-        return gson.toJson(stateTracker);
+        return stateTracker.toJson();
     }
 
     public void printState()
@@ -108,7 +100,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     public void writeState(String fileName) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-            writer.write(stateTracker.toJson());
+            writer.write(getJson());
 
             writer.close();
         }
