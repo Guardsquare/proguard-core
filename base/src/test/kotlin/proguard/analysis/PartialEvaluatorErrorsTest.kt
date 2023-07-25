@@ -53,7 +53,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val tracker = JsonPrinter()
-            val pe = PartialEvaluator.Builder.create().setStateTracker(tracker).build()
+            val pe = PartialEvaluator.Builder.create().setPrettyPrinting().setStateTracker(tracker).build()
             shouldThrow<VariableEmptySlotException> {
                 evaluateProgramClass(
                     programClass,
@@ -76,7 +76,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<VariableTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<VariableTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Variable types do not match, expect reference" {
@@ -117,7 +124,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I") }
+            shouldThrow<StackTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()I",
+                )
+            }
         }
 
         "dup of long" {
@@ -131,7 +145,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackCategoryOneException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()J") }
+            shouldThrow<StackCategoryOneException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()J",
+                )
+            }
         }
 
         "getfield but return the wrong type" {
@@ -145,7 +166,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()F") }
+            shouldThrow<StackTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()F",
+                )
+            }
         }
 
         "Variable index out of bound" {
@@ -180,7 +208,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 ),
             )
 
-            shouldThrow<VariableIndexOutOfBoundException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V") }
+            shouldThrow<VariableIndexOutOfBoundException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()V",
+                )
+            }
         }
     }
 
@@ -279,7 +314,12 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            evaluateProgramClass(programClass, PartialEvaluator(), "test", "()I")
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                "test",
+                "()I",
+            )
         }
 
         "Index out of bound" {
@@ -320,7 +360,12 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V")
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                "test",
+                "()V",
+            )
         }
 
         "getfield but the referenced field does not exist" {
@@ -337,7 +382,12 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            evaluateProgramClass(programClass, PartialEvaluator(), "test", "()V")
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                "test",
+                "()V",
+            )
         }
     }
 })
