@@ -218,12 +218,12 @@ implements   AttributeVisitor,
      * @param callingInstructionBlockStack the stack of instruction blocks to
      *                                     be evaluated
      */
-    private PartialEvaluator(ValueFactory                        valueFactory,
-                             InvocationUnit                      invocationUnit,
-                             boolean                             evaluateAllCode,
-                             InstructionVisitor                  extraInstructionVisitor,
-                             BasicBranchUnit                     branchUnit,
-                             BranchTargetFinder                  branchTargetFinder,
+    private PartialEvaluator(ValueFactory                      valueFactory,
+                             InvocationUnit                    invocationUnit,
+                             boolean                           evaluateAllCode,
+                             InstructionVisitor                extraInstructionVisitor,
+                             BasicBranchUnit                   branchUnit,
+                             BranchTargetFinder                branchTargetFinder,
                              java.util.Stack<InstructionBlock> callingInstructionBlockStack)
     {
         this.valueFactory                 = valueFactory;
