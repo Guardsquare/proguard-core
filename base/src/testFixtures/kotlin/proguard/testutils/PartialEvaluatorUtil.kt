@@ -26,9 +26,9 @@ class PartialEvaluatorUtil {
             val method = clazz.findMethod(methodName, methodDescriptor) as ProgramMethod
 
             val codeAttribute =
-                method.attributes.find { it?.getAttributeName(clazz) == Attribute.CODE } as CodeAttribute
+                method.attributes.slice(0 until method.u2attributesCount).find { it.getAttributeName(clazz) == Attribute.CODE } as CodeAttribute
             val localVarTableAttribute =
-                codeAttribute.attributes.find { it?.getAttributeName(clazz) == Attribute.LOCAL_VARIABLE_TABLE } as LocalVariableTableAttribute?
+                codeAttribute.attributes.slice(0 until codeAttribute.u2attributesCount).find { it.getAttributeName(clazz) == Attribute.LOCAL_VARIABLE_TABLE } as LocalVariableTableAttribute?
 
             val instructions = ArrayList<Pair<Int, Instruction>>()
             codeAttribute.instructionsAccept(
