@@ -1,4 +1,22 @@
-package proguard.evaluation.stateTrackers;
+/*
+ * ProGuardCORE -- library to process Java bytecode.
+ *
+ * Copyright (c) 2002-2023 Guardsquare NV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package proguard.evaluation.util;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
@@ -28,9 +46,8 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         this.printDebugResults = printDebugResults;
     }
 
-    /************************
-     * Code attribute level *
-     ************************/
+    // region Code attribute level
+
     @Override
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
@@ -93,10 +110,10 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         }
     }
 
+    // endregion
 
-    /**************
-     * Exceptions *
-     **************/
+    // region Exception handling
+
     @Override
     public void startExceptionHandlingForBlock(Clazz clazz, Method method, int startOffset, int endOffset)
     {
@@ -124,11 +141,10 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         }
     }
 
+    // endregion
 
+    // region Results
 
-    /***********
-     * Results *
-     ***********/
     @Override
     public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
@@ -176,10 +192,10 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         }
     }
 
+    // endregion
 
-    /***************************
-     * Instruction block level *
-     ***************************/
+    // region Instruction block level
+
     @Override
     public void startInstructionBlock(Clazz clazz,
                                       Method method,
@@ -221,9 +237,10 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         }
     }
 
-    /*********************
-     * Instruction level *
-     *********************/
+    // endregion
+
+    // region Instruction level
+
     @Override
     public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction, TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
     {
@@ -292,9 +309,10 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
         }
     }
 
-    /***************
-     * Subroutines *
-     ***************/
+    // endregion
+
+    // region Subroutines
+
     @Override
     public void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd)
     {
@@ -321,4 +339,6 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
             System.out.println("Ending subroutine from "+subroutineStart+" to "+subroutineEnd);
         }
     }
+
+    // endregion
 }
