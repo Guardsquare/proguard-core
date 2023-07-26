@@ -8,7 +8,9 @@ import proguard.classfile.ClassPool
 import proguard.classfile.attribute.Attribute.CODE
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
+import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassPoolFiller
+import proguard.classfile.visitor.NamedClassVisitor
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.ExecutingInvocationUnit
@@ -102,6 +104,40 @@ class PartialEvaluatorTest : FreeSpec({
                 "()I",
             )
             tracker.writeState("methodFilter.json")
+        }
+
+        "2 methods" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test0", "()I", 50) {
+                    it
+                        .iconst_0()
+                        .ireturn()
+                }
+                .addMethod(AccessConstants.PUBLIC, "test1", "()I", 50) {
+                    it
+                        .iconst_1()
+                        .ireturn()
+                }
+                .programClass
+
+            val valueFactory = ParticularValueFactory()
+            val tracker = JsonPrinter()
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setStateTracker(tracker).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test0",
+                "()I",
+            )
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test1",
+                "()I",
+            )
+            tracker.writeState("2-methods.json")
         }
 
         "simple throw and catch" {
@@ -252,15 +288,15 @@ class PartialEvaluatorTest : FreeSpec({
 
             val tracker = JsonPrinter()
             val pe = PartialEvaluator.Builder.create()
-                .setEvaluateAllCode(false).setStateTracker(tracker).build()
-            classPool.classesAccept(
-                NamedMethodVisitor(
-                    "evaluateSingleInstructionBlock",
-                    "(Lproguard/classfile/Clazz;Lproguard/classfile/Method;Lproguard/classfile/attribute/CodeAttribute;" +
-                        "Lproguard/evaluation/TracedVariables;Lproguard/evaluation/TracedStack;I)V",
-                    AllAttributeVisitor(
-                        AttributeNameFilter(CODE, pe),
+                .setEvaluateAllCode(true).setStateTracker(tracker).build()
+            classPool.accept(
+                NamedClassVisitor(
+                    AllMethodVisitor(
+                        AllAttributeVisitor(
+                            AttributeNameFilter(CODE, pe),
+                        ),
                     ),
+                    "proguard/evaluation/PartialEvaluator",
                 ),
             )
             tracker.writeState("evaluateSingleInstructionBlock-reflective.json")
