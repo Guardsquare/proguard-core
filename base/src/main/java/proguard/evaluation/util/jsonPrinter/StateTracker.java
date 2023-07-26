@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package proguard.evaluation.stateTrackers.jsonPrinter;
+package proguard.evaluation.util.jsonPrinter;
 
 import java.util.ArrayList;
 import java.util.List;

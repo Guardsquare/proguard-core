@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package proguard.evaluation.stateTrackers.jsonPrinter;
+package proguard.evaluation.util.jsonPrinter;
 
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;
@@ -32,7 +32,7 @@ import proguard.evaluation.Stack;
 import proguard.evaluation.TracedStack;
 import proguard.evaluation.TracedVariables;
 import proguard.evaluation.Variables;
-import proguard.evaluation.stateTrackers.PartialEvaluatorStateTracker;
+import proguard.evaluation.util.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 
@@ -50,11 +50,6 @@ import java.util.function.Function;
  */
 public class JsonPrinter implements PartialEvaluatorStateTracker
 {
-    /**
-     * Debug flag for this class, when enabled, JSON is pretty printed.
-     */
-    private static final boolean DEBUG = true;
-
     /**
      * Tracks the state of the partial evaluator
      */
@@ -240,9 +235,8 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         }, builder);
     }
 
-    /************************
-     * Code attribute level *
-     ************************/
+    // region Code attribute level
+
     @Override
     public void startCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, Variables parameters)
     {
@@ -281,10 +275,10 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
                 cause.getMessage()));
     }
 
+    // endregion
 
-    /**************
-     * Exceptions *
-     **************/
+    // region Exception handling
+
     @Override
     public void registerExceptionHandler(Clazz clazz, Method method, int startPC, int endPC, ExceptionInfo info)
     {
@@ -302,10 +296,10 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
                         info.u2handlerPC, exceptionHandlerInfo, new ArrayList<>()));
     }
 
+    // endregion
 
-    /***********
-     * Results *
-     ***********/
+    // region Results
+
     @Override
     public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
@@ -334,11 +328,10 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         }
     }
 
+    // endregion
 
+    // region Instruction block level
 
-    /***************************
-     * Instruction block level *
-     ***************************/
     @Override
     public void startInstructionBlock(Clazz clazz, Method method, CodeAttribute codeAttribute,
                                       TracedVariables startVariables, TracedStack startStack, int startOffset)
@@ -389,10 +382,10 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         }
     }
 
+    // endregion
 
-    /*********************
-     * Instruction level *
-     *********************/
+    // region Instruction level
+
     @Override
     public void skipInstructionBlock(Clazz clazz, Method method, int instructionOffset, Instruction instruction,
                                      TracedVariables variablesBefore, TracedStack stackBefore, int evaluationCount)
@@ -459,10 +452,10 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         ));
     }
 
+    // endregion
 
-    /**************
-     * Subroutine *
-     **************/
+    // region subroutines
+
     @Override
     public void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack,
                                 int subroutineStart, int subroutineEnd)
@@ -482,4 +475,6 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
 
         subRoutineTrackers.pop();
     }
+
+    // endregion
 }

@@ -41,8 +41,8 @@ import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
 import proguard.evaluation.exception.InstructionExceptionFormatter;
-import proguard.evaluation.stateTrackers.DebugPrinter;
-import proguard.evaluation.stateTrackers.PartialEvaluatorStateTracker;
+import proguard.evaluation.util.DebugPrinter;
+import proguard.evaluation.util.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
@@ -89,17 +89,17 @@ implements   AttributeVisitor,
     private final int                prettyInstructionBuffered;
     private final InstructionVisitor extraInstructionVisitor;
 
-    private InstructionOffsetValue[]        branchOriginValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private InstructionOffsetValue[]        branchTargetValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedVariables[]               variablesBefore     = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedStack[]                   stacksBefore        = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedVariables[]               variablesAfter      = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedStack[]                   stacksAfter         = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private boolean[]                       generalizedContexts = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private int[]                           evaluationCounts    = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private boolean                         evaluateExceptions;
-    private int                             codeLength;
-    private PartialEvaluatorStateTracker    stateTracker;
+    private InstructionOffsetValue[]     branchOriginValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private InstructionOffsetValue[]     branchTargetValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedVariables[]            variablesBefore     = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedStack[]                stacksBefore        = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedVariables[]            variablesAfter      = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedStack[]                stacksAfter         = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private boolean[]                    generalizedContexts = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private int[]                        evaluationCounts    = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private boolean                      evaluateExceptions;
+    private int                          codeLength;
+    private PartialEvaluatorStateTracker stateTracker;
 
     private final BasicBranchUnit    branchUnit;
     private final BranchTargetFinder branchTargetFinder;
@@ -218,12 +218,12 @@ implements   AttributeVisitor,
      * @param callingInstructionBlockStack the stack of instruction blocks to
      *                                     be evaluated
      */
-    private PartialEvaluator(ValueFactory                        valueFactory,
-                             InvocationUnit                      invocationUnit,
-                             boolean                             evaluateAllCode,
-                             InstructionVisitor                  extraInstructionVisitor,
-                             BasicBranchUnit                     branchUnit,
-                             BranchTargetFinder                  branchTargetFinder,
+    private PartialEvaluator(ValueFactory                      valueFactory,
+                             InvocationUnit                    invocationUnit,
+                             boolean                           evaluateAllCode,
+                             InstructionVisitor                extraInstructionVisitor,
+                             BasicBranchUnit                   branchUnit,
+                             BranchTargetFinder                branchTargetFinder,
                              java.util.Stack<InstructionBlock> callingInstructionBlockStack)
     {
         this.valueFactory                 = valueFactory;
@@ -261,25 +261,25 @@ implements   AttributeVisitor,
         this.stopAnalysisAfterNEvaluations = builder.stopAnalysisAfterNEvaluations;
         if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS))
         {
-            this.stateTracker              = new DebugPrinter(DEBUG, DEBUG_RESULTS);
+            this.stateTracker = new DebugPrinter(DEBUG, DEBUG_RESULTS);
         }
         else
         {
-            this.stateTracker              = builder.stateTracker;
+            this.stateTracker = builder.stateTracker;
         }
     }
 
     public static class Builder {
-        private ValueFactory                        valueFactory;
-        private InvocationUnit                      invocationUnit;
-        private boolean                             evaluateAllCode               = true;
-        private int                                 prettyInstructionBuffered     = 7;
-        private InstructionVisitor                  extraInstructionVisitor;
-        private BasicBranchUnit                     branchUnit;
-        private BranchTargetFinder                  branchTargetFinder;
-        private java.util.Stack<InstructionBlock>   callingInstructionBlockStack;
-        private int                                 stopAnalysisAfterNEvaluations = -1; // disabled by default
-        private PartialEvaluatorStateTracker        stateTracker;
+        private ValueFactory                      valueFactory;
+        private InvocationUnit                    invocationUnit;
+        private boolean                           evaluateAllCode               = true;
+        private int                               prettyInstructionBuffered     = 7;
+        private InstructionVisitor                extraInstructionVisitor;
+        private BasicBranchUnit                   branchUnit;
+        private BranchTargetFinder                branchTargetFinder;
+        private java.util.Stack<InstructionBlock> callingInstructionBlockStack;
+        private int                               stopAnalysisAfterNEvaluations = -1; // disabled by default
+        private PartialEvaluatorStateTracker      stateTracker;
 
         public static Builder create()
         {
@@ -1553,9 +1553,9 @@ implements   AttributeVisitor,
         private final int             startOffset;
 
 
-        public InstructionBlock(TracedVariables variables,
-                                TracedStack     stack,
-                                int             startOffset)
+        private InstructionBlock(TracedVariables variables,
+                                 TracedStack     stack,
+                                 int             startOffset)
         {
             this.variables   = variables;
             this.stack       = stack;
