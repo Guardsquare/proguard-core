@@ -35,7 +35,6 @@ public final class ErrorId
     public static int EMPTY_CODE_ATTRIBUTE              = 1_005;
     public static int STACK_TYPE                        = 1_006;
     public static int STACK_CATEGORY_ONE                = 1_007;
-
     public static int ARRAY_INDEX_OUT_OF_BOUND          = 1_008;
 
     /**
