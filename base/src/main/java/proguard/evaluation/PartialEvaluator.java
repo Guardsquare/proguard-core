@@ -37,12 +37,12 @@ import proguard.classfile.instruction.TableSwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.BranchTargetFinder;
-import proguard.classfile.util.ClassUtil;
-import proguard.classfile.visitor.ClassPrinter;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
 import proguard.evaluation.exception.InstructionExceptionFormatter;
+import proguard.evaluation.util.DebugPrinter;
+import proguard.evaluation.util.PartialEvaluatorStateTracker;
 import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
@@ -89,22 +89,23 @@ implements   AttributeVisitor,
     private final int                prettyInstructionBuffered;
     private final InstructionVisitor extraInstructionVisitor;
 
-    private InstructionOffsetValue[] branchOriginValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private InstructionOffsetValue[] branchTargetValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedVariables[]        variablesBefore     = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedStack[]            stacksBefore        = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedVariables[]        variablesAfter      = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private TracedStack[]            stacksAfter         = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private boolean[]                generalizedContexts = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private int[]                    evaluationCounts    = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private boolean                  evaluateExceptions;
-    private int                      codeLength;
+    private InstructionOffsetValue[]     branchOriginValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private InstructionOffsetValue[]     branchTargetValues  = new InstructionOffsetValue[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedVariables[]            variablesBefore     = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedStack[]                stacksBefore        = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedVariables[]            variablesAfter      = new TracedVariables[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private TracedStack[]                stacksAfter         = new TracedStack[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private boolean[]                    generalizedContexts = new boolean[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private int[]                        evaluationCounts    = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
+    private boolean                      evaluateExceptions;
+    private int                          codeLength;
+    private PartialEvaluatorStateTracker stateTracker;
 
     private final BasicBranchUnit    branchUnit;
     private final BranchTargetFinder branchTargetFinder;
 
-    private final java.util.Stack<MyInstructionBlock> callingInstructionBlockStack;
-    private final java.util.Stack<MyInstructionBlock> instructionBlockStack = new java.util.Stack<>();
+    private final java.util.Stack<InstructionBlock> callingInstructionBlockStack;
+    private final java.util.Stack<InstructionBlock> instructionBlockStack = new java.util.Stack<>();
 
 
     /**
@@ -217,13 +218,13 @@ implements   AttributeVisitor,
      * @param callingInstructionBlockStack the stack of instruction blocks to
      *                                     be evaluated
      */
-    private PartialEvaluator(ValueFactory                        valueFactory,
-                             InvocationUnit                      invocationUnit,
-                             boolean                             evaluateAllCode,
-                             InstructionVisitor                  extraInstructionVisitor,
-                             BasicBranchUnit                     branchUnit,
-                             BranchTargetFinder                  branchTargetFinder,
-                             java.util.Stack<MyInstructionBlock> callingInstructionBlockStack)
+    private PartialEvaluator(ValueFactory                      valueFactory,
+                             InvocationUnit                    invocationUnit,
+                             boolean                           evaluateAllCode,
+                             InstructionVisitor                extraInstructionVisitor,
+                             BasicBranchUnit                   branchUnit,
+                             BranchTargetFinder                branchTargetFinder,
+                             java.util.Stack<InstructionBlock> callingInstructionBlockStack)
     {
         this.valueFactory                 = valueFactory;
         this.invocationUnit               = invocationUnit;
@@ -235,6 +236,10 @@ implements   AttributeVisitor,
         this.callingInstructionBlockStack = callingInstructionBlockStack == null ?
             this.instructionBlockStack :
             callingInstructionBlockStack;
+        if (DEBUG || DEBUG_RESULTS)
+        {
+            this.stateTracker = new DebugPrinter(DEBUG, DEBUG_RESULTS);
+        }
     }
 
     /**
@@ -254,18 +259,27 @@ implements   AttributeVisitor,
         this.branchTargetFinder           = builder.branchTargetFinder == null ? new BranchTargetFinder() : builder.branchTargetFinder;
         this.callingInstructionBlockStack = builder.callingInstructionBlockStack == null ? this.instructionBlockStack : builder.callingInstructionBlockStack;
         this.stopAnalysisAfterNEvaluations = builder.stopAnalysisAfterNEvaluations;
+        if (builder.stateTracker == null && (DEBUG || DEBUG_RESULTS))
+        {
+            this.stateTracker = new DebugPrinter(DEBUG, DEBUG_RESULTS);
+        }
+        else
+        {
+            this.stateTracker = builder.stateTracker;
+        }
     }
 
     public static class Builder {
-        private ValueFactory                        valueFactory;
-        private InvocationUnit                      invocationUnit;
-        private boolean                             evaluateAllCode               = true;
-        private int                                 prettyInstructionBuffered     = 7;
-        private InstructionVisitor                  extraInstructionVisitor;
-        private BasicBranchUnit                     branchUnit;
-        private BranchTargetFinder                  branchTargetFinder;
-        private java.util.Stack<MyInstructionBlock> callingInstructionBlockStack;
-        private int                                 stopAnalysisAfterNEvaluations = -1; // disabled by default
+        private ValueFactory                      valueFactory;
+        private InvocationUnit                    invocationUnit;
+        private boolean                           evaluateAllCode               = true;
+        private int                               prettyInstructionBuffered     = 7;
+        private InstructionVisitor                extraInstructionVisitor;
+        private BasicBranchUnit                   branchUnit;
+        private BranchTargetFinder                branchTargetFinder;
+        private java.util.Stack<InstructionBlock> callingInstructionBlockStack;
+        private int                               stopAnalysisAfterNEvaluations = -1; // disabled by default
+        private PartialEvaluatorStateTracker      stateTracker;
 
         public static Builder create()
         {
@@ -276,6 +290,12 @@ implements   AttributeVisitor,
         public PartialEvaluator build()
         {
             return new PartialEvaluator(this);
+        }
+
+        public Builder setStateTracker(PartialEvaluatorStateTracker stateTracker)
+        {
+            this.stateTracker = stateTracker;
+            return this;
         }
 
         /**
@@ -354,7 +374,7 @@ implements   AttributeVisitor,
         /**
          * the stack of instruction blocks to be evaluated.
          */
-        public Builder setCallingInstructionBlockStack(java.util.Stack<MyInstructionBlock> callingInstructionBlockStack)
+        public Builder setCallingInstructionBlockStack(java.util.Stack<InstructionBlock> callingInstructionBlockStack)
         {
             this.callingInstructionBlockStack = callingInstructionBlockStack;
             return this;
@@ -397,51 +417,7 @@ implements   AttributeVisitor,
             logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
             logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
 
-            if (DEBUG)
-            {
-                method.accept(clazz, new ClassPrinter());
-
-                System.out.println("Evaluation results:");
-
-                int offset = 0;
-                do
-                {
-                    if (isBranchOrExceptionTarget(offset))
-                    {
-                        System.out.println("Branch target from ["+branchOriginValues[offset]+"]:");
-                        if (isTraced(offset))
-                        {
-                            System.out.println("  Vars:  "+variablesBefore[offset]);
-                            System.out.println("  Stack: "+stacksBefore[offset]);
-                        }
-                    }
-
-                    Instruction instruction = InstructionFactory.create(codeAttribute.code,
-                                                                        offset);
-                    System.out.println(instruction.toString(clazz, offset));
-
-                    if (isTraced(offset))
-                    {
-//                        int initializationOffset = branchTargetFinder.initializationOffset(offset);
-//                        if (initializationOffset != NONE)
-//                        {
-//                            System.out.println("     is to be initialized at ["+initializationOffset+"]");
-//                        }
-
-                        InstructionOffsetValue branchTargets = branchTargets(offset);
-                        if (branchTargets != null)
-                        {
-                            System.out.println("     has overall been branching to "+branchTargets);
-                        }
-
-                        System.out.println("  Vars:  "+variablesAfter[offset]);
-                        System.out.println("  Stack: "+stacksAfter[offset]);
-                    }
-
-                    offset += instruction.length(offset);
-                }
-                while (offset < codeAttribute.u4codeLength);
-            }
+            if (stateTracker != null) stateTracker.registerException(clazz, method, codeAttribute, this, ex);
 
             throw ex;
         }
@@ -451,13 +427,7 @@ implements   AttributeVisitor,
     public void visitCodeAttribute0(Clazz clazz, Method method, CodeAttribute codeAttribute)
     {
         // Evaluate the instructions, starting at the entry point.
-        if (DEBUG)
-        {
-            System.out.println();
-            System.out.println("Partial evaluation: "+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz));
-            System.out.println("  Max locals = "+codeAttribute.u2maxLocals);
-            System.out.println("  Max stack  = "+codeAttribute.u2maxStack);
-        }
+
         // Empty code attribute, do not analyze
         if (codeAttribute.code.length == 0)
         {
@@ -470,6 +440,8 @@ implements   AttributeVisitor,
         // Initialize the reusable arrays and variables.
         initializeArrays(codeAttribute);
         initializeParameters(clazz, method, codeAttribute, variables);
+
+        if (stateTracker != null) stateTracker.startCodeAttribute(clazz, method, codeAttribute, variables);
 
         // Reset stacks.
         instructionBlockStack.clear();
@@ -487,49 +459,7 @@ implements   AttributeVisitor,
                                                      0,
                                                      codeAttribute.u4codeLength);
 
-        if (DEBUG_RESULTS)
-        {
-            System.out.println("Evaluation results:");
-
-            int offset = 0;
-            do
-            {
-                if (isBranchOrExceptionTarget(offset))
-                {
-                    System.out.println("Branch target from ["+branchOriginValues[offset]+"]:");
-                    if (isTraced(offset))
-                    {
-                        System.out.println("  Vars:  "+variablesBefore[offset]);
-                        System.out.println("  Stack: "+stacksBefore[offset]);
-                    }
-                }
-
-                Instruction instruction = InstructionFactory.create(codeAttribute.code,
-                                                                    offset);
-                System.out.println(instruction.toString(clazz, offset));
-
-                if (isTraced(offset))
-                {
-//                    int initializationOffset = branchTargetFinder.initializationOffset(offset);
-//                    if (initializationOffset != NONE)
-//                    {
-//                        System.out.println("     is to be initialized at ["+initializationOffset+"]");
-//                    }
-
-                    InstructionOffsetValue branchTargets = branchTargets(offset);
-                    if (branchTargets != null)
-                    {
-                        System.out.println("     has overall been branching to "+branchTargets);
-                    }
-
-                    System.out.println("  Vars:  "+variablesAfter[offset]);
-                    System.out.println("  Stack: "+stacksAfter[offset]);
-                }
-
-                offset += instruction.length(offset);
-            }
-            while (offset < codeAttribute.u4codeLength);
-        }
+        if (stateTracker != null) stateTracker.evaluationResults(clazz, method, codeAttribute, this);
     }
 
 
@@ -812,7 +742,7 @@ implements   AttributeVisitor,
                                              TracedStack     stack,
                                              int             startOffset)
     {
-        callingInstructionBlockStack.push(new MyInstructionBlock(variables,
+        callingInstructionBlockStack.push(new InstructionBlock(variables,
                                                                  stack,
                                                                  startOffset));
     }
@@ -825,7 +755,7 @@ implements   AttributeVisitor,
                                       TracedStack     stack,
                                       int             startOffset)
     {
-        instructionBlockStack.push(new MyInstructionBlock(variables,
+        instructionBlockStack.push(new InstructionBlock(variables,
                                                           stack,
                                                           startOffset));
     }
@@ -880,9 +810,9 @@ implements   AttributeVisitor,
         // Execute all resulting instruction blocks on the execution stack.
         while (!instructionBlockStack.empty())
         {
-            if (DEBUG) System.out.println("Popping alternative branch out of "+instructionBlockStack.size()+" blocks");
+            if (stateTracker != null) stateTracker.startBranchCodeBlockEvaluation(instructionBlockStack);
 
-            MyInstructionBlock instructionBlock = instructionBlockStack.pop();
+            InstructionBlock instructionBlock = instructionBlockStack.pop();
 
             evaluateSingleInstructionBlock(clazz,
                                            method,
@@ -917,15 +847,9 @@ implements   AttributeVisitor,
                         method)
                 : null;
 
-        if (DEBUG)
+        if (stateTracker != null)
         {
-             System.out.println("Instruction block starting at ["+startOffset+"] in "+
-                                ClassUtil.externalFullMethodDescription(clazz.getName(),
-                                                                        0,
-                                                                        method.getName(clazz),
-                                                                        method.getDescriptor(clazz)));
-             System.out.println("Init vars:  "+variables);
-             System.out.println("Init stack: "+stack);
+             stateTracker.startInstructionBlock(clazz, method, codeAttribute, variables, stack, startOffset);
         }
 
         Processor processor = new Processor(variables,
@@ -954,6 +878,9 @@ implements   AttributeVisitor,
                 {
                     maxOffset = instructionOffset;
                 }
+
+                // Decode the instruction.
+                Instruction instruction = InstructionFactory.create(code, instructionOffset);
 
                 // Maintain a generalized local variable frame and stack at this
                 // instruction offset, before execution.
@@ -992,7 +919,8 @@ implements   AttributeVisitor,
                             !stackChanged &&
                             generalizedContexts[instructionOffset])
                     {
-                        if (DEBUG) System.out.println("Repeated variables, stack, and branch targets");
+                        if (stateTracker != null) stateTracker.skipInstructionBlock(clazz, method, instructionOffset,
+                            instruction, variablesBefore[instructionOffset], stacksBefore[instructionOffset], evaluationCount);
 
                         break;
                     }
@@ -1001,8 +929,8 @@ implements   AttributeVisitor,
                     // of times.
                     if (evaluationCount >= GENERALIZE_AFTER_N_EVALUATIONS)
                     {
-                        if (DEBUG)
-                            System.out.println("Generalizing current context after "+evaluationCount+" evaluations");
+                        if (stateTracker != null) stateTracker.generalizeInstructionBlock(clazz, method, instructionOffset,
+                                instruction, variables, stack, evaluationCount);
 
                         if (stopAnalysisAfterNEvaluations != -1 && evaluationCount >= stopAnalysisAfterNEvaluations)
                         {
@@ -1034,16 +962,10 @@ implements   AttributeVisitor,
                 variables.setProducerValue(storeValue);
                 stack.setProducerValue(storeValue);
 
-                // Decode the instruction.
-                Instruction instruction = InstructionFactory.create(code, instructionOffset);
-
                 // Reset the branch unit.
                 branchUnit.reset();
 
-                if (DEBUG)
-                {
-                    System.out.println(instruction.toString(clazz, instructionOffset));
-                }
+                if (stateTracker != null) stateTracker.startInstructionEvaluation(clazz, method, instructionOffset, instruction, variables, stack, evaluationCount);
 
                 if (extraInstructionVisitor != null)
                 {
@@ -1085,20 +1007,8 @@ implements   AttributeVisitor,
                 InstructionOffsetValue branchTargets = branchUnit.getTraceBranchTargets();
                 int branchTargetCount = branchTargets.instructionOffsetCount();
 
-                if (DEBUG)
-                {
-                    if (branchUnit.wasCalled())
-                    {
-                        System.out.println("     is branching to "+branchTargets);
-                    }
-                    if (branchTargetValues[instructionOffset] != null)
-                    {
-                        System.out.println("     has up till now been branching to "+branchTargetValues[instructionOffset]);
-                    }
-
-                    System.out.println(" Vars:  "+variables);
-                    System.out.println(" Stack: "+stack);
-                }
+                if (stateTracker != null) stateTracker.afterInstructionEvaluation(clazz, method, instructionOffset, instruction,
+                    variables, stack, branchUnit, branchTargets(instructionOffset));
 
                 // Maintain a generalized local variable frame and stack at this
                 // instruction offset, after execution.
@@ -1156,8 +1066,9 @@ implements   AttributeVisitor,
                         // Push them on the execution stack and exit from this block.
                         for (int index = 0; index < branchTargetCount; index++)
                         {
-                            if (DEBUG)
-                                System.out.println("Pushing alternative branch #"+index+" out of "+branchTargetCount+", from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(index)+"]");
+                            if (stateTracker != null)  stateTracker.registerAlternativeBranch(clazz, method,
+                                instructionOffset,  instruction, variables, stack,
+                                index, branchTargetCount, branchTargets.instructionOffset(index));
 
                             pushInstructionBlock(new TracedVariables(variables),
                                     new TracedStack(stack),
@@ -1167,8 +1078,7 @@ implements   AttributeVisitor,
                         break;
                     }
 
-                    if (DEBUG)
-                        System.out.println("Definite branch from ["+instructionOffset+"] to ["+branchTargets.instructionOffset(0)+"]");
+                    if (stateTracker != null) stateTracker.definitiveBranch(clazz, method, instructionOffset, instruction, variables, stack, branchTargets);
 
                     // Continue at the definite branch target.
                     instructionOffset = branchTargets.instructionOffset(0);
@@ -1213,7 +1123,7 @@ implements   AttributeVisitor,
             }
         }
 
-        if (DEBUG) System.out.println("Ending processing of instruction block starting at ["+startOffset+"]");
+        if (stateTracker != null) stateTracker.instructionBlockDone(clazz, method, codeAttribute, variables, stack, startOffset);
     }
 
 
@@ -1230,7 +1140,7 @@ implements   AttributeVisitor,
     {
         int subroutineEnd = branchTargetFinder.subroutineEnd(subroutineStart);
 
-        if (DEBUG) System.out.println("Evaluating subroutine from "+subroutineStart+" to "+subroutineEnd);
+        if (stateTracker != null) stateTracker.startSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
 
         // Create a temporary partial evaluator, so there are no conflicts
         // with variables that are alive across subroutine invocations, between
@@ -1251,9 +1161,10 @@ implements   AttributeVisitor,
 
         // Merge back the temporary partial evaluator. This way, we'll get
         // the lowest common denominator of stacks and variables.
+        if (stateTracker != null) stateTracker.generalizeSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
         generalize(subroutinePartialEvaluator, 0, codeAttribute.u4codeLength);
 
-        if (DEBUG) System.out.println("Ending subroutine from "+subroutineStart+" to "+subroutineEnd);
+        if (stateTracker != null) stateTracker.endSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
     }
 
 
@@ -1265,8 +1176,6 @@ implements   AttributeVisitor,
                             int              codeStart,
                             int              codeEnd)
     {
-        if (DEBUG) System.out.println("Generalizing with temporary partial evaluation");
-
         for (int offset = codeStart; offset < codeEnd; offset++)
         {
             if (other.branchOriginValues[offset] != null)
@@ -1318,7 +1227,7 @@ implements   AttributeVisitor,
                                            int           startOffset,
                                            int           endOffset)
     {
-        if (DEBUG) System.out.println("Evaluating exceptions covering ["+startOffset+" -> "+endOffset+"]:");
+        if (stateTracker != null) stateTracker.startExceptionHandlingForBlock(clazz, method, startOffset, endOffset);
 
         ExceptionHandlerFilter exceptionEvaluator =
             new ExceptionHandlerFilter(startOffset,
@@ -1356,7 +1265,7 @@ implements   AttributeVisitor,
             int handlerPC = exceptionInfo.u2handlerPC;
             int catchType = exceptionInfo.u2catchType;
 
-            if (DEBUG) System.out.println("Evaluating exception ["+startPC +" -> "+endPC +": "+handlerPC+"]:");
+            if (stateTracker != null) stateTracker.registerExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
 
             // Reuse the existing variables and stack objects, ensuring the
             // right size.
@@ -1411,7 +1320,7 @@ implements   AttributeVisitor,
 //        }
         else
         {
-            if (DEBUG) System.out.println("No information for partial evaluation of exception ["+startPC +" -> "+endPC +": "+exceptionInfo.u2handlerPC+"]");
+            if (stateTracker != null) stateTracker.registerUnusedExceptionHandler(clazz, method, startPC, endPC, exceptionInfo);
         }
     }
 
@@ -1517,11 +1426,6 @@ implements   AttributeVisitor,
 
         // Initialize the method parameters.
         invocationUnit.enterMethod(clazz, method, parameters);
-
-        if (DEBUG)
-        {
-            System.out.println("  Params: "+parameters);
-        }
 
         // Initialize the variables with the parameters.
         variables.initialize(parameters);
@@ -1642,16 +1546,16 @@ implements   AttributeVisitor,
      * This class represents an instruction block that has to be executed,
      * starting with a given state at a given instruction offset.
      */
-    private static class MyInstructionBlock
+    public static class InstructionBlock
     {
         private final TracedVariables variables;
         private final TracedStack     stack;
         private final int             startOffset;
 
 
-        private MyInstructionBlock(TracedVariables variables,
-                                   TracedStack     stack,
-                                   int             startOffset)
+        private InstructionBlock(TracedVariables variables,
+                                 TracedStack     stack,
+                                 int             startOffset)
         {
             this.variables   = variables;
             this.stack       = stack;
