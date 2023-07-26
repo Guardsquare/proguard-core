@@ -27,13 +27,13 @@ import proguard.exception.ProguardCoreException;
  *
  * @see PartialEvaluator
  */
-public class ArrayIndexException extends ProguardCoreException
+public class ArrayIndexOutOfBounds extends ProguardCoreException
 {
     private final int index;
 
     private final int bound;
 
-    public ArrayIndexException(int index, int bound)
+    public ArrayIndexOutOfBounds(int index, int bound)
     {
         super(ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
                   "Index [%s] out of bounds for array of length %s",
