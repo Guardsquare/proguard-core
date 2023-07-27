@@ -1,6 +1,7 @@
 package proguard
 
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.shouldBe
 import proguard.classfile.Clazz
 import proguard.classfile.Method
 import proguard.classfile.ProgramClass
@@ -11,6 +12,7 @@ import proguard.classfile.attribute.LocalVariableTableAttribute
 import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.editor.AttributesEditor
 import proguard.classfile.editor.ConstantPoolEditor
+import proguard.classfile.instruction.Instruction
 import proguard.classfile.visitor.MemberVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
@@ -59,12 +61,17 @@ class PartialEvaluatorUtilTest : FreeSpec({
         val valueFactory = TypedReferenceValueFactory()
         val invocationUnit = BasicInvocationUnit(valueFactory)
         val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, true)
-        val (_, _) = PartialEvaluatorUtil.evaluate(
+        val (instructions, _) = PartialEvaluatorUtil.evaluate(
             "Main",
             "test",
             "()V",
             programClassPool,
             partialEvaluator
+        )
+        instructions.map { it.second.opcode } shouldBe arrayOf(
+            Instruction.OP_BIPUSH,
+            Instruction.OP_ISTORE_0,
+            Instruction.OP_RETURN
         )
     }
 })
