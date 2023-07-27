@@ -1117,7 +1117,7 @@ implements   AttributeVisitor,
             {
                 if (formatter != null)
                 {
-                    formatter.printException(ex);
+                    formatter.printException(ex, variablesBefore[instructionOffset], stacksBefore[instructionOffset]);
                 }
                 throw ex;
             }
