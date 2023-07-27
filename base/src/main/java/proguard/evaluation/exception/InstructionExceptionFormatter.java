@@ -5,6 +5,8 @@ import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
 import proguard.exception.ProguardCoreException;
 import proguard.util.CircularIntBuffer;
 
@@ -40,7 +42,7 @@ public class InstructionExceptionFormatter
         offsetBuffer.push(offset);
     }
 
-    public void printException(ProguardCoreException exception)
+    public void printException(ProguardCoreException exception, TracedVariables variables, TracedStack stack)
     {
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_BOLD = "\u001B[1m";
@@ -59,7 +61,7 @@ public class InstructionExceptionFormatter
                 .append(exception.getComponentErrorId())
                 .append("]: ")
                 .append(ANSI_RESET)
-                .append(getClass().getName())
+                .append(exception.getClass().getName())
                 .append("\n");
 
         // Clazz and Method of the erroneous instruction
@@ -127,6 +129,14 @@ public class InstructionExceptionFormatter
                     .append(InstructionFactory.create(code, nextOffset))
                     .append("\n");
         }
+
+        // Print stack and variables
+        messageBuilder
+                .append("Variables: ")
+                .append(variables)
+                .append("\nStack: ")
+                .append(stack)
+                .append("\n");
 
         logger.error(messageBuilder.toString());
 
