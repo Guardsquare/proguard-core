@@ -489,7 +489,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         List<InstructionBlockEvaluationRecord> blockList = subRoutineStack.get(subRoutineStack.size() - 2);
         InstructionBlockEvaluationRecord lastBlock = blockList.get(blockList.size() - 1);
         InstructionEvaluationRecord instruction = lastBlock.getLastInstructionEvaluation();
-        assert instruction.getInstruction().startsWith("RET");
+        assert instruction.getInstruction().startsWith("jsr");
 
         instruction.setUpdatedEvaluationStack(new ArrayList<>(lastBlock.getBranchEvaluationStack()));
         instruction.getUpdatedEvaluationStack().add(
