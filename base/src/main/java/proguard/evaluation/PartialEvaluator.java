@@ -186,16 +186,19 @@ implements   AttributeVisitor,
     /**
      * Creates a new PartialEvaluator, based on an existing one.
      * @param partialEvaluator the subroutine calling partial evaluator.
+     * NOTE: the implementation is NOT a copy constructor but is focussed solely on the support of jsr.
      */
     private PartialEvaluator(PartialEvaluator partialEvaluator)
     {
-        this(partialEvaluator.valueFactory,
-             partialEvaluator.invocationUnit,
-             partialEvaluator.evaluateAllCode,
-             partialEvaluator.extraInstructionVisitor,
-             partialEvaluator.branchUnit,
-             partialEvaluator.branchTargetFinder,
-             partialEvaluator.instructionBlockStack);
+        this.valueFactory                 = partialEvaluator.valueFactory;
+        this.invocationUnit               = partialEvaluator.invocationUnit;
+        this.evaluateAllCode              = partialEvaluator.evaluateAllCode;
+        this.extraInstructionVisitor      = partialEvaluator.extraInstructionVisitor;
+        this.branchUnit                   = partialEvaluator.branchUnit;
+        this.branchTargetFinder           = partialEvaluator.branchTargetFinder;
+        this.callingInstructionBlockStack = partialEvaluator.instructionBlockStack;
+        this.prettyInstructionBuffered    = partialEvaluator.prettyInstructionBuffered;
+        this.stateTracker                 = partialEvaluator.stateTracker;
     }
 
 
