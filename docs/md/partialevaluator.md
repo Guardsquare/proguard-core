@@ -567,7 +567,7 @@ stateDiagram-v2
                     L5 --> [*]
                     Repeat: Go to next instruction
                     BR_RET --> Repeat: No
-                    REG_RET: Register return offset in branch stack of subroutine caller 
+                    REG_RET: registerSubroutineReturn 
                     BR_RET --> REG_RET: Yes
                     REG_RET --> [*]
 

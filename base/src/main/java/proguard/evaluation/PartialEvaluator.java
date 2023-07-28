@@ -1090,7 +1090,7 @@ implements   AttributeVisitor,
                 {
                     // Let the partial evaluator that has called the subroutine
                     // handle the evaluation after the return.
-                    stateTracker.registerSubroutineReturn(clazz, method, instructionOffset, variables, stack);
+                    if (stateTracker != null) stateTracker.registerSubroutineReturn(clazz, method, instructionOffset, variables, stack);
 
                     pushCallingInstructionBlock(new TracedVariables(variables),
                             new TracedStack(stack),

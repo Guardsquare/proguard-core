@@ -16,17 +16,22 @@
  * limitations under the License.
  */
 
-package proguard.evaluation.exception;
+package proguard.evaluation;
 
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 
 /**
  * Represents an exception during partial evaluation when an incomplete class
  * hierarchy was encountered.
+ * <p/>
+ * Deprecated: use {@link proguard.evaluation.exception.IncompleteClassHierarchyException} instead.
  */
-public class IncompleteClassHierarchyException extends proguard.evaluation.IncompleteClassHierarchyException
+@Deprecated
+public class IncompleteClassHierarchyException extends ProguardCoreException
 {
     public IncompleteClassHierarchyException(String message)
     {
-        super(message);
+        super(ErrorId.INCOMPLETE_CLASS_HIERARCHY, message);
     }
 }
