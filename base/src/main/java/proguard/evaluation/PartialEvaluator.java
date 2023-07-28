@@ -182,23 +182,6 @@ implements   AttributeVisitor,
              null);
     }
 
-
-    /**
-     * Creates a new PartialEvaluator, based on an existing one.
-     * @param partialEvaluator the subroutine calling partial evaluator.
-     */
-    private PartialEvaluator(PartialEvaluator partialEvaluator)
-    {
-        this(partialEvaluator.valueFactory,
-             partialEvaluator.invocationUnit,
-             partialEvaluator.evaluateAllCode,
-             partialEvaluator.extraInstructionVisitor,
-             partialEvaluator.branchUnit,
-             partialEvaluator.branchTargetFinder,
-             partialEvaluator.instructionBlockStack);
-    }
-
-
     /**
      * Creates a new PartialEvaluator.
      * @param valueFactory                 the value factory that will create
@@ -1107,6 +1090,8 @@ implements   AttributeVisitor,
                 {
                     // Let the partial evaluator that has called the subroutine
                     // handle the evaluation after the return.
+                    stateTracker.registerSubroutineReturn(clazz, method, instructionOffset, variables, stack);
+
                     pushCallingInstructionBlock(new TracedVariables(variables),
                             new TracedStack(stack),
                             instructionOffset);
@@ -1145,8 +1130,7 @@ implements   AttributeVisitor,
         // Create a temporary partial evaluator, so there are no conflicts
         // with variables that are alive across subroutine invocations, between
         // different invocations.
-        PartialEvaluator subroutinePartialEvaluator =
-            new PartialEvaluator(this);
+        PartialEvaluator subroutinePartialEvaluator = subRoutineEvaluator();
 
         subroutinePartialEvaluator.initializeArrays(codeAttribute);
 
@@ -1165,6 +1149,25 @@ implements   AttributeVisitor,
         generalize(subroutinePartialEvaluator, 0, codeAttribute.u4codeLength);
 
         if (stateTracker != null) stateTracker.endSubroutine(clazz, method, variables, stack, subroutineStart, subroutineEnd);
+    }
+
+    /**
+     * Creates a new PartialEvaluator, based on this one.
+     * This partial evaluator is the subroutine calling partial evaluator.
+     */
+    private PartialEvaluator subRoutineEvaluator()
+    {
+        return Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(invocationUnit)
+                .setEvaluateAllCode(evaluateAllCode)
+                .setExtraInstructionVisitor(extraInstructionVisitor)
+                .setBranchUnit(branchUnit)
+                .setBranchTargetFinder(branchTargetFinder)
+                .setCallingInstructionBlockStack(instructionBlockStack)
+                .setPrettyPrinting(prettyInstructionBuffered)
+                .setStateTracker(stateTracker)
+                .build();
     }
 
 

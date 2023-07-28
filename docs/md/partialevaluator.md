@@ -551,8 +551,8 @@ stateDiagram-v2
                     definitiveBranch --> BR6
                     BR6: Instruction was JSR or JSR_W?
                     BR3 --> BR6 : No
-                    Repeat: Go to next instruction
-                    BR6 --> Repeat: No
+                    BR_RET: Instruction was RET?
+                    BR6 --> BR_RET
                     L5: Instruction was subroutine invocation
                     BR6 --> L5: Yes
                     state L5 {
@@ -564,7 +564,12 @@ stateDiagram-v2
                         generalizeSubroutine --> endSubroutine
                         endSubroutine --> [*]
                     }
-                    L5 --> Repeat
+                    L5 --> [*]
+                    Repeat: Go to next instruction
+                    BR_RET --> Repeat: No
+                    REG_RET: Register return offset in branch stack of subroutine caller 
+                    BR_RET --> REG_RET: Yes
+                    REG_RET --> [*]
 
                 }
                 L3 --> instructionBlockDone
