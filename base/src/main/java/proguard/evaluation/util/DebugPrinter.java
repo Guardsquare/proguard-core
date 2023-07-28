@@ -323,6 +323,12 @@ public class DebugPrinter implements PartialEvaluatorStateTracker
     }
 
     @Override
+    public void registerSubroutineReturn(Clazz clazz, Method method, int returnOffset, TracedVariables returnVariables, TracedStack returnStack)
+    {
+        System.out.println("Subroutine will return to "+returnOffset+".");
+    }
+
+    @Override
     public void generalizeSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd)
     {
         if (printDebugInfo)
