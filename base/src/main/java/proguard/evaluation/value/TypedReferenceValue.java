@@ -359,7 +359,7 @@ public class TypedReferenceValue extends ReferenceValue
                 return typedReferenceValue(other, true, mayBeNull);
             }
         }
-        else
+        else // if (thisDimensionCount < otherDimensionCount)
         {
             // See if this type is an interface type of arrays.
             if (ClassUtil.isInternalArrayInterfaceName(ClassUtil.internalClassNameFromClassType(thisType)))
