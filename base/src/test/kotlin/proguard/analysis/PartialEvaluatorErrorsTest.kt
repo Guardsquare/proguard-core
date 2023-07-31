@@ -22,12 +22,14 @@ import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.ArrayIndexOutOfBounds
 import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackTypeException
+import proguard.evaluation.exception.ValueTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
 import proguard.evaluation.util.DebugPrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.TypedReferenceValueFactory
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
@@ -95,7 +97,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<StackTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Stack types do not match instruction" {
@@ -211,11 +220,125 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableIndexOutOfBoundException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator(),
                     "test",
                     "()V",
                 )
             }
+        }
+
+        "Load an int into an int array but mistakenly give object ref" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .aload_0()
+                        .iconst_0()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
+
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
+            // Throws on sufficient valueFactory
+            shouldThrow<ValueTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(TypedReferenceValueFactory()),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
+
+            // Does not throw on basic value factory
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(),
+                "test",
+                "()Ljava/lang/Object;",
+            )
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
+        }
+
+        "Load an int from an int array but mistakenly give object ref" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it
+                        .aload_0()
+                        .iconst_0()
+                        .iaload()
+                        .return_()
+                }
+                .programClass
+
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
+            // Throws on sufficient valueFactory
+            shouldThrow<ValueTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(TypedReferenceValueFactory()),
+                    "test",
+                    "()V",
+                )
+            }
+
+            // Does not throw on basic value factory
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(),
+                "test",
+                "()V",
+            )
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
+        }
+
+        "Load an int into an int array should work" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .dup()
+                        .iconst_0()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
+
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(TypedReferenceValueFactory()),
+                "test",
+                "()Ljava/lang/Object;",
+            )
+        }
+
+        "Load an int from an int array should work" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .dup()
+                        .iconst_0()
+                        .iaload()
+                        .ireturn()
+                }
+                .programClass
+
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(TypedReferenceValueFactory()),
+                "test",
+                "()I",
+            )
         }
 
         "Index out of bound when storing in an array" {
@@ -291,46 +414,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .iconst_0()
                         .aload_0()
                         .aastore()
-                        .areturn()
-                }
-                .programClass
-
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(
-                    ParticularValueFactory(
-                        DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory(),
-                    ),
-                ),
-                "test",
-                "()Ljava/lang/Object;",
-            )
-        }
-
-        "Load a reference into reference array but mistakenly give object ref" {
-            // It is possible to perform the iastore instruction when the `arrayref` isn't actually an array reference.
-            // In this example the reference is a reference to the class itself and this is no issue according
-            // to the PartialEvaluator:
-            // [5] iconst_5
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}][3:LPartialEvaluatorDummy;!#0][4:0][5:5]
-            // [6] iastore
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}]
-            // [7] areturn
-            //      is branching to :
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack:
-            val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
-                    it
-                        .iconst_1()
-                        .newarray(Instruction.ARRAY_T_INT.toInt())
-                        .aload_0()
-                        .iconst_0()
-                        .iconst_5()
-                        .iastore()
                         .areturn()
                 }
                 .programClass
