@@ -12,7 +12,8 @@ public class CircularIntBuffer
     /**
      * Create a new CircularIntBuffer that can grow to a given maxSize.
      */
-    public CircularIntBuffer(int maxSize) {
+    public CircularIntBuffer(int maxSize)
+    {
         buffer = new int[maxSize];
         head = 0;
     }
@@ -20,10 +21,12 @@ public class CircularIntBuffer
     /**
      * Push a value into the buffer overriding the oldest element when exceeding max size.
      */
-    public void push(int value) {
+    public void push(int value)
+    {
         head = (head + 1) % buffer.length;
         buffer[head] = value;
-        if (curSize < buffer.length) {
+        if (curSize < buffer.length)
+        {
             curSize++;
         }
     }
@@ -31,8 +34,10 @@ public class CircularIntBuffer
     /**
      * Get the element at an offset of the head.
      */
-    public int peek(int offset) {
-        if (offset >= curSize) {
+    public int peek(int offset)
+    {
+        if (offset >= curSize)
+        {
             throw new IndexOutOfBoundsException("Offset ["+offset+"] out of bounds for buffer of size "+curSize+".");
         }
         return buffer[Math.floorMod(head - offset, buffer.length)];
@@ -41,14 +46,16 @@ public class CircularIntBuffer
     /**
      * Get the head value.
      */
-    public int peek() {
+    public int peek()
+    {
         return peek(0);
     }
 
     /**
      * Get current size of the buffer.
      */
-    public int size() {
+    public int size()
+    {
         return curSize;
     }
 }

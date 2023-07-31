@@ -61,11 +61,12 @@ public class InstructionExceptionFormatter
                 .append(exception.getComponentErrorId())
                 .append("]: ")
                 .append(ANSI_RESET)
-                .append(getClass().getName())
+                .append(exception.getClass().getName())
                 .append("\n");
 
         // Clazz and Method of the erroneous instruction
-        if (clazz != null && method != null) {
+        if (clazz != null && method != null)
+        {
             messageBuilder
                     .append(ANSI_CYAN)
                     .append("  --> ")
@@ -80,7 +81,8 @@ public class InstructionExceptionFormatter
         }
 
         // print the previous instructions
-        for (int i = offsetBuffer.size() - 1; i > 0; i--) {
+        for (int i = offsetBuffer.size() - 1; i > 0; i--)
+        {
             Instruction prevInstruction = InstructionFactory.create(code, offsetBuffer.peek(i));
             int offset = offsetBuffer.peek(i);
             messageBuilder
@@ -117,7 +119,8 @@ public class InstructionExceptionFormatter
                 .append("\n");
 
         int nextOffset = offsetBuffer.peek() + erroreousInstruction.length(offsetBuffer.peek());
-        if (nextOffset < code.length) {
+        if (nextOffset < code.length)
+        {
             messageBuilder
                     .append(ANSI_CYAN)
                     .append(nextOffset)
