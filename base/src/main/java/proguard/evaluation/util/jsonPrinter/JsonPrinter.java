@@ -22,8 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
+import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.ExceptionInfo;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeNameFilter;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
@@ -92,18 +96,18 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     /**
      * API to easily create a JSON debug file.
      */
-    static void writeJsonDebug(Clazz clazz, Method method, CodeAttribute codeAttribute, File file) {
-        writeJsonDebug(clazz, method, codeAttribute, file, PartialEvaluator.Builder.create());
+    static void writeJsonDebug(Clazz clazz, Method method, String fileName) {
+        writeJsonDebug(clazz, method, fileName, PartialEvaluator.Builder.create());
     }
 
     /**
      * API to easily create a JSON debug file. Allows to give a partial build Partial Evaluator.
      */
-    static void writeJsonDebug(Clazz clazz, Method method, CodeAttribute codeAttribute, File file, PartialEvaluator.Builder builder) {
+    static void writeJsonDebug(Clazz clazz, Method method, String fileName, PartialEvaluator.Builder builder) {
         JsonPrinter printer = new JsonPrinter();
         PartialEvaluator pe = builder.setStateTracker(printer).build();
-        pe.visitCodeAttribute(clazz, method, codeAttribute);
-        printer.writeState(file);
+        method.accept(clazz, new AllAttributeVisitor(new AttributeNameFilter(Attribute.CODE, pe)));
+        printer.writeState(fileName);
     }
 
     public String getJson() {
@@ -115,9 +119,9 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         System.out.println(getJson());
     }
 
-    public void writeState(File file) {
+    public void writeState(String fileName) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
             writer.write(getJson());
 
             writer.close();
