@@ -176,11 +176,6 @@ public interface PartialEvaluatorStateTracker
     default void registerSubroutineReturn(Clazz clazz, Method method, int returnOffset, TracedVariables returnVariables, TracedStack returnStack) {}
 
     /**
-     * The current instruction was RET and the partial evaluator pushes the return address to the branch stack of the calling partial evaluator
-     */
-    void registerSubroutineReturn(Clazz clazz, Method method, int returnOffset, TracedVariables returnVariables, TracedStack returnStack);
-
-    /**
      * The partial evaluator will start generalizing the results of the evaluated subroutine.
      */
     default void generalizeSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd) {}
