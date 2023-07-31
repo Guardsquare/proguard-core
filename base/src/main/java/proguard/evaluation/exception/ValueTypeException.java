@@ -18,33 +18,32 @@
 
 package proguard.evaluation.exception;
 
-import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-public class ArrayStoreTypeException extends ProguardCoreException
+public class ValueTypeException extends ProguardCoreException
 {
-    private final TypedReferenceValue array;
+    private final String exceptedType;
+    private final Value actualType;
 
-    private final Value value;
-
-    public ArrayStoreTypeException(TypedReferenceValue array, Value value)
+    public ValueTypeException(String exceptedType, Value actualType)
     {
-        super(ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
-                "Array of type [%s] can not store value [%s]",
-                array.getType(), value.toString());
-        this.array = array;
-        this.value = value;
+        super(ErrorId.EXPECTED_ARRAY,
+                "Invalid reference provided to instruction. Expected %s but found: %s.",
+                exceptedType,
+                actualType.toString());
+        this.exceptedType = exceptedType;
+        this.actualType = actualType;
     }
 
-    public TypedReferenceValue getArray()
+    public Value getActualType()
     {
-        return array;
+        return actualType;
     }
 
-    public Value getValue()
+    public String getExceptedType()
     {
-        return value;
+        return exceptedType;
     }
 }

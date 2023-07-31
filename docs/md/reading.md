@@ -63,6 +63,8 @@ file:
 > }
 > ```
 
+A complete example for reading from dex, apk and jar files can be found in: JarUtil.java
+
 ## Writing out streamed classes
 
 You can read classes, optionally perform some small modifications, and write

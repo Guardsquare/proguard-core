@@ -62,13 +62,16 @@ public class PartialEvaluator
 implements   AttributeVisitor,
              ExceptionInfoVisitor
 {
-    //*
-    private static final boolean DEBUG         = false;
+    private static final boolean DEBUG        = false;
     private static final boolean DEBUG_RESULTS = false;
-    /*/
-    public static boolean DEBUG         = System.getProperty("pe") != null;
-    public static boolean DEBUG_RESULTS = DEBUG;
-    //*/
+
+    /**
+     * Enables new exceptions to be thrown during evaluation.
+     * These are exceptions that are not thrown by the original ProGuard code.
+     * This is a temporary flag to allow the new exceptions to be tested.
+     * TODO: Remove this flag when the new exceptions are stable and will not break any dependent code.
+     */
+    public static boolean ENABLE_NEW_EXCEPTIONS = System.getProperty("proguard.pe.newexceptions") != null;
 
     private final static Logger logger = LogManager.getLogger(PartialEvaluator.class);
 
