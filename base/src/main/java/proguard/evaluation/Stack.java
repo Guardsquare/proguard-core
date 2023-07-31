@@ -17,6 +17,9 @@
  */
 package proguard.evaluation;
 
+import proguard.classfile.TypeConstants;
+import proguard.evaluation.exception.StackCategoryOneException;
+import proguard.evaluation.exception.StackTypeException;
 import proguard.evaluation.value.*;
 
 import java.util.Arrays;
@@ -288,7 +291,15 @@ public class Stack
      */
     public IntegerValue ipop()
     {
-        return pop().integerValue();
+        Value val = pop();
+        try
+        {
+            return val.integerValue();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackTypeException(val, Character.toString(TypeConstants.INT), ex);
+        }
     }
 
 
@@ -297,7 +308,15 @@ public class Stack
      */
     public LongValue lpop()
     {
-        return pop().longValue();
+        Value val = pop();
+        try
+        {
+            return val.longValue();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackTypeException(val, Character.toString(TypeConstants.LONG), ex);
+        }
     }
 
 
@@ -306,7 +325,15 @@ public class Stack
      */
     public FloatValue fpop()
     {
-        return pop().floatValue();
+        Value val = pop();
+        try
+        {
+            return val.floatValue();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackTypeException(val, Character.toString(TypeConstants.FLOAT), ex);
+        }
     }
 
 
@@ -315,7 +342,15 @@ public class Stack
      */
     public DoubleValue dpop()
     {
-        return pop().doubleValue();
+        Value val = pop();
+        try
+        {
+            return val.doubleValue();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackTypeException(val, Character.toString(TypeConstants.DOUBLE), ex);
+        }
     }
 
 
@@ -324,7 +359,15 @@ public class Stack
      */
     public ReferenceValue apop()
     {
-        return pop().referenceValue();
+        Value val = pop();
+        try
+        {
+            return val.referenceValue();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackTypeException(val, String.format("%cSOME_REFERENCE%c", TypeConstants.CLASS_START, TypeConstants.CLASS_END), ex);
+        }
     }
 
 
@@ -356,13 +399,24 @@ public class Stack
         values[--currentSize] = null;
     }
 
+    private Category1Value getSafeCategory1Value(Value value) {
+        try
+        {
+            return value.category1Value();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new StackCategoryOneException(value, ex);
+        }
+    }
+
 
     /**
      * Duplicates the top Category 1 value.
      */
     public void dup()
     {
-        values[currentSize] = values[currentSize - 1].category1Value();
+        values[currentSize] = getSafeCategory1Value(values[currentSize - 1]);
 
         currentSize++;
 
@@ -380,8 +434,8 @@ public class Stack
      */
     public void dup_x1()
     {
-        values[currentSize]     = values[currentSize - 1].category1Value();
-        values[currentSize - 1] = values[currentSize - 2].category1Value();
+        values[currentSize]     = getSafeCategory1Value(values[currentSize - 1]);
+        values[currentSize - 1] = getSafeCategory1Value(values[currentSize - 2]);
         values[currentSize - 2] = values[currentSize    ];
 
         currentSize++;
@@ -400,7 +454,7 @@ public class Stack
      */
     public void dup_x2()
     {
-        values[currentSize]     = values[currentSize - 1].category1Value();
+        values[currentSize]     = getSafeCategory1Value(values[currentSize - 1]);
         values[currentSize - 1] = values[currentSize - 2];
         values[currentSize - 2] = values[currentSize - 3];
         values[currentSize - 3] = values[currentSize    ];
@@ -483,8 +537,8 @@ public class Stack
      */
     public void swap()
     {
-        Value value1 = values[currentSize - 1].category1Value();
-        Value value2 = values[currentSize - 2].category1Value();
+        Value value1 = getSafeCategory1Value(values[currentSize - 1]);
+        Value value2 = getSafeCategory1Value(values[currentSize - 2]);
 
         values[currentSize - 1] = value2;
         values[currentSize - 2] = value1;

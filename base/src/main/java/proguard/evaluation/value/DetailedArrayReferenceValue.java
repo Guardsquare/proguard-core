@@ -19,6 +19,8 @@ package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
+import proguard.evaluation.PartialEvaluator;
+import proguard.evaluation.exception.ArrayIndexOutOfBounds;
 import proguard.util.ArrayUtil;
 
 /**
@@ -137,11 +139,12 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
             indexValue.isParticular())
         {
             int index = indexValue.value();
-            if (index >=0 &&
-                index < values.length)
+            if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && index < 0 || index >= values.length)
             {
-                return values[index];
+                throw new ArrayIndexOutOfBounds(index, values.length);
             }
+
+            return values[index];
         }
 
         return null;
@@ -155,11 +158,12 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
             if (indexValue.isParticular())
             {
                 int index = indexValue.value();
-                if (index >=0 &&
-                    index < values.length)
+                if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && index < 0 || index >= values.length)
                 {
-                    values[index] = value;
+                    throw new ArrayIndexOutOfBounds(index, values.length);
                 }
+
+                values[index] = value;
             }
             else
             {

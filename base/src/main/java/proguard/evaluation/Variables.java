@@ -222,6 +222,22 @@ public class Variables
             throw new VariableIndexOutOfBoundException(index, size);
         }
 
+        return values[index];
+    }
+
+    /**
+     * Loads the Value from the variable with the given index.
+     * <p>
+     * Unlike `load`: throws a {@link VariableEmptySlotException} if the value is null.
+     */
+    private Value loadInternal(int index)
+    {
+        if (index < 0 ||
+            index >= size)
+        {
+            throw new VariableIndexOutOfBoundException(index, size);
+        }
+
         if (values[index] == null)
         {
             throw new VariableEmptySlotException(index);
@@ -237,14 +253,14 @@ public class Variables
      */
     public IntegerValue iload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.integerValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.INT, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.INT), e);
         }
     }
 
@@ -254,14 +270,14 @@ public class Variables
      */
     public LongValue lload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.longValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.LONG, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.LONG), e);
         }
     }
 
@@ -271,14 +287,14 @@ public class Variables
      */
     public FloatValue fload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.floatValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.FLOAT, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.FLOAT), e);
         }
     }
 
@@ -288,14 +304,14 @@ public class Variables
      */
     public DoubleValue dload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.doubleValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.DOUBLE, e);
+            throw new VariableTypeException(index, value, Character.toString(TypeConstants.DOUBLE), e);
         }
     }
 
@@ -305,14 +321,15 @@ public class Variables
      */
     public ReferenceValue aload(int index)
     {
-        Value value = load(index);
+        Value value = loadInternal(index);
         try
         {
             return value.referenceValue();
         }
         catch (IllegalArgumentException e)
         {
-            throw new VariableTypeException(index, value, TypeConstants.CLASS_START, e);
+            throw new VariableTypeException(index, value,
+                    String.format("%cSOME_REFERENCE%c", TypeConstants.CLASS_START, TypeConstants.CLASS_END), e);
         }
     }
 
