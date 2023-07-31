@@ -37,6 +37,7 @@ import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -88,6 +89,23 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         this.methodFilter = methodFilter;
     }
 
+    /**
+     * API to easily create a JSON debug file.
+     */
+    static void writeJsonDebug(Clazz clazz, Method method, CodeAttribute codeAttribute, File file) {
+        writeJsonDebug(clazz, method, codeAttribute, file, PartialEvaluator.Builder.create());
+    }
+
+    /**
+     * API to easily create a JSON debug file. Allows to give a partial build Partial Evaluator.
+     */
+    static void writeJsonDebug(Clazz clazz, Method method, CodeAttribute codeAttribute, File file, PartialEvaluator.Builder builder) {
+        JsonPrinter printer = new JsonPrinter();
+        PartialEvaluator pe = builder.setStateTracker(printer).build();
+        pe.visitCodeAttribute(clazz, method, codeAttribute);
+        printer.writeState(file);
+    }
+
     public String getJson() {
         return stateTracker.toJson();
     }
@@ -97,15 +115,15 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         System.out.println(getJson());
     }
 
-    public void writeState(String fileName) {
+    public void writeState(File file) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(getJson());
 
             writer.close();
         }
         catch (IOException ex) {
-            // Do nothing
+            throw new RuntimeException(ex);
         }
     }
 

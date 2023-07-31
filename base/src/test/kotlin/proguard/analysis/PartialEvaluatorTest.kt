@@ -113,10 +113,10 @@ class PartialEvaluatorTest : FreeSpec({
                         .iconst_0()
                         .ireturn()
                 }
-                .addMethod(AccessConstants.PUBLIC, "test1", "()I", 50) {
+                .addMethod(AccessConstants.PUBLIC, "test0", "()V", 50) {
                     it
                         .iconst_1()
-                        .ireturn()
+                        .return_()
                 }
                 .programClass
 
@@ -134,8 +134,8 @@ class PartialEvaluatorTest : FreeSpec({
             evaluateProgramClass(
                 programClass,
                 pe,
-                "test1",
-                "()I",
+                "test0",
+                "()V",
             )
             tracker.writeState("2-methods.json")
         }
