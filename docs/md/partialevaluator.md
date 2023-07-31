@@ -511,3 +511,98 @@ The `StringBuilder` is now traced through the method, the value of the reference
 
 - Only `String`, `StringBuilder`, and `StringBuffer` are currently supported.
 - The `ParticularValueFactory` keeps track of one specific value of a reference. If more values would be possible (e.g., due to a branch), the result will be an `UnknownReferenceValue`
+
+## Lifecycle
+
+```mermaid
+%% [Mermaid Diagramming and charting tool](https://mermaid.js.org/)
+stateDiagram-v2
+    L0: Try
+    state L0 {
+        L1: Evaluate instruction block and branches
+        [*] --> startCodeAttribute
+        startCodeAttribute --> L1
+        state L1 {
+            L2: Evaluate single instruction block
+            [*] --> L2
+            state L2 {
+                L3: For each instruction in block
+                [*] --> startInstructionBlock
+                startInstructionBlock --> L3
+                state L3 {
+                    BR1: Instruction has been seen in this context?
+                    [*] --> BR1
+                    BR1 --> skipInstructionBlock : Yes
+                    skipInstructionBlock --> [*]
+                    BR2: Already evaluated a lot of times?
+                    BR1 --> BR2: No
+                    BR2 --> generalizeInstructionBlock: Yes
+                    generalizeInstructionBlock --> startInstructionEvaluation
+                    BR2 --> startInstructionEvaluation: No
+                    startInstructionEvaluation --> afterInstructionEvaluation
+                    BR3: Branch unit has been called?
+                    afterInstructionEvaluation --> BR3
+                    BR3 --> BR5 : Yes
+                    BR5: #Branch targets > 1?
+                    BR5 --> definitiveBranch: No
+                    BR5 --> registerAlternativeBranch: Yes
+                    registerAlternativeBranch --> registerAlternativeBranch
+                    registerAlternativeBranch --> [*]
+                    definitiveBranch --> BR6
+                    BR6: Instruction was JSR or JSR_W?
+                    BR3 --> BR6 : No
+                    BR_RET: Instruction was RET?
+                    BR6 --> BR_RET
+                    L5: Instruction was subroutine invocation
+                    BR6 --> L5: Yes
+                    state L5 {
+                        [*] --> startSubroutine
+                        recursion1: Evaluate all subroutines
+                        startSubroutine --> recursion1
+                        note left of recursion1: Recursively call back to evaluateInstructionBlockAndExceptionHandlers
+                        recursion1 --> generalizeSubroutine
+                        generalizeSubroutine --> endSubroutine
+                        endSubroutine --> [*]
+                    }
+                    L5 --> [*]
+                    Repeat: Go to next instruction
+                    BR_RET --> Repeat: No
+                    REG_RET: registerSubroutineReturn 
+                    BR_RET --> REG_RET: Yes
+                    REG_RET --> [*]
+
+                }
+                L3 --> instructionBlockDone
+                instructionBlockDone --> [*]
+            }
+            L6: For each generated instructionBlock on generated stack
+            L2 --> L6
+            state L6 {
+              evaluateSingleInstructionBlock --> pop
+              pop --> startBranchCodeBlockEvaluation
+              startBranchCodeBlockEvaluation --> evaluateSingleInstructionBlock
+            }
+            L6 --> [*]
+        }
+        L1 --> startExceptionHandlingForBlock
+        L7: For each exception handler registered on code attribute
+      startExceptionHandlingForBlock --> L7
+        state L7 {
+            BR7: Exception handler evaluation is needed?
+            [*] --> BR7
+            BR7 --> registerExceptionHandler: Yes
+            BR7 --> registerUnusedExceptionHandler: No
+            nextExceptionHandler: Go to next exception handler
+            registerExceptionHandler --> evaluateInstructionBlockAndBranches
+            evaluateInstructionBlockAndBranches --> nextExceptionHandler
+            registerUnusedExceptionHandler --> nextExceptionHandler
+        }
+        L7 --> evaluationResults
+        evaluationResults --> [*]
+    }
+    catch: Did catch?
+    L0 --> catch
+    catch -->  [*]: No
+    catch --> registerException: Yes
+  registerException --> [*]
+```

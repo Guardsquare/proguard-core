@@ -5,9 +5,16 @@ import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
 import proguard.exception.ProguardCoreException;
 import proguard.util.CircularIntBuffer;
 
+/**
+ * This class is used to format an exception with the previous instructions.
+ * It is used by the {@link proguard.evaluation.PartialEvaluator} to print the
+ * erroneous instruction and any previous bytecode instructions and the next one to give some context.
+ */
 public class InstructionExceptionFormatter
 {
 
@@ -30,11 +37,12 @@ public class InstructionExceptionFormatter
         this.method = method;
     }
 
-    public void registerInstructionOffset(int offset) {
+    public void registerInstructionOffset(int offset)
+    {
         offsetBuffer.push(offset);
     }
 
-    public void printException(ProguardCoreException exception)
+    public void printException(ProguardCoreException exception, TracedVariables variables, TracedStack stack)
     {
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_BOLD = "\u001B[1m";
@@ -118,6 +126,14 @@ public class InstructionExceptionFormatter
                     .append(InstructionFactory.create(code, nextOffset))
                     .append("\n");
         }
+
+        // Print stack and variables
+        messageBuilder
+                .append("Variables: ")
+                .append(variables)
+                .append("\nStack: ")
+                .append(stack)
+                .append("\n");
 
         logger.error(messageBuilder.toString());
 
