@@ -47,7 +47,7 @@ files just like you would with jar files. A small example showing how to use
         new ClassPrinter()),
         classReader);
 
-    source.pumpDataEntries(new JarReader(classReader));
+    source.pumpDataEntries(classReader);
 
 Do note that in order to use dex/apk file reading functionalities within 
 your project, you must import `proguard-core-android` in the `build.gradle` 
@@ -62,6 +62,8 @@ file:
 >   ...
 > }
 > ```
+
+A complete example for reading from dex, apk and jar files can be found in: JarUtil.java
 
 ## Writing out streamed classes
 
