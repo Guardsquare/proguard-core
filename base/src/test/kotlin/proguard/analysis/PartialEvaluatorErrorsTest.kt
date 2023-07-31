@@ -242,7 +242,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            PartialEvaluator.DEBUG_PRETTY = true
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -260,7 +260,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()Ljava/lang/Object;",
             )
-            PartialEvaluator.DEBUG_PRETTY = false
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
         }
 
         "Load an int from an int array but mistakenly give object ref" {
@@ -275,7 +275,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            PartialEvaluator.DEBUG_PRETTY = true
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -293,7 +293,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()V",
             )
-            PartialEvaluator.DEBUG_PRETTY = false
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
         }
 
         "Load an int into an int array should work" {
