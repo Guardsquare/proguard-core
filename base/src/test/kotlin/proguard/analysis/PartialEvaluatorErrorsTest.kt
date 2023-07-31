@@ -41,6 +41,8 @@ import proguard.evaluation.value.TypedReferenceValueFactory
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
 
+    PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
+
     /**
      * This is a list of code snippets on which the `PartialEvaluator` throws on error
      * but are in need of proper error messages with a concise and correct explanation of the error.
@@ -244,7 +246,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -262,7 +263,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()Ljava/lang/Object;",
             )
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
         }
 
         "Load an int from an int array but mistakenly give object ref" {
@@ -277,7 +277,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -295,7 +294,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()V",
             )
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
         }
 
         "Load an int into an int array should work" {
