@@ -27,7 +27,6 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.ExceptionInfo;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.attribute.visitor.AttributeNameFilter;
-import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
@@ -41,10 +40,8 @@ import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
