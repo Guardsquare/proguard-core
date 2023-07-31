@@ -33,13 +33,10 @@ public final class ErrorId
     public static int EXCESSIVE_COMPLEXITY              = 1_003;
     public static int INCOMPLETE_CLASS_HIERARCHY        = 1_004;
     public static int EMPTY_CODE_ATTRIBUTE              = 1_005;
-<<<<<<< HEAD
     public static int STACK_TYPE                        = 1_006;
     public static int STACK_CATEGORY_ONE                = 1_007;
     public static int ARRAY_INDEX_OUT_OF_BOUND          = 1_008;
-=======
     public static int ARRAY_STORE_TYPE_EXCEPTION        = 1_010;
->>>>>>> 4f613638 (docs: add copyright)
 
     /**
      * Private constructor to prevent instantiation of the class.
