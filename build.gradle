@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     id 'distribution'
     id 'io.github.gradle-nexus.publish-plugin'
@@ -39,6 +41,10 @@ allprojects {
             freeCompilerArgs = ["-opt-in=kotlin.RequiresOptIn"]
         }
     }
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
+        .configureEach {
+            compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_7
+        }
 }
 
 aggregateJavadoc {
@@ -53,7 +59,7 @@ task buildDocumentation(type: Exec) {
     inputs.file 'docs/mkdocs.yml'
     outputs.dir 'docs/html'
     executable 'sh'
-    args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:5.2.2 build"
+    args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:9.1.19 build"
 }
 
 clean {

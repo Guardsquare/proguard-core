@@ -3,13 +3,16 @@ package proguard.analysis
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import proguard.classfile.AccessConstants
 import proguard.classfile.attribute.Attribute.CODE
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
+import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.util.DebugPrinter
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
@@ -18,8 +21,164 @@ import proguard.evaluation.value.TypedReferenceValueFactory
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import proguard.testutils.findMethod
 
 class PartialEvaluatorTest : FreeSpec({
+    "Test lifecycle" - {
+        "With branches" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    it
+                        .iconst(50)
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        .ificmple(elseLabel)
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .ireturn()
+                }
+                .programClass
+
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val tracker = DebugPrinter(true, true)
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(true).setStateTracker(tracker).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+        }
+
+        "simple throw and catch" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val midLabel = it.createLabel()
+                    val endLabel = it.createLabel()
+                    it
+                        .label(startLabel)
+                        .aload_0()
+                        .label(midLabel)
+                        .athrow()
+                        .label(endLabel)
+                        // .catch_(startLabel, endLabel, "appel", null)
+                        .catchAll(startLabel, endLabel)
+                        .iconst_1()
+                        .ireturn()
+                }
+                .programClass
+
+            val tracker = DebugPrinter(true, true)
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(true).setStateTracker(tracker).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+        }
+
+        "simple catch, no throw" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val endLabel = it.createLabel()
+                    it
+                        .label(startLabel)
+                        .iconst_2()
+                        .ireturn()
+                        .label(endLabel)
+                        .catchAll(startLabel, endLabel)
+                        .iconst_1()
+                        .ireturn()
+                }
+                .programClass
+
+            val tracker = DebugPrinter(true, true)
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(false).setStateTracker(tracker).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+        }
+
+        "Complete" {
+            val build = buildClass()
+                .addMethod(AccessConstants.PRIVATE or AccessConstants.STATIC, "initializer", "()I", 50) {
+                    it.iconst(50).ireturn()
+                }
+            val programClass = build
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    val loadLabel = it.createLabel()
+                    val endLabel = it.createLabel()
+                    it
+                        .invokestatic(
+                            "PartialEvaluatorDummy",
+                            "initializer",
+                            "()I",
+                            it.targetClass,
+                            it.targetClass.findMethod("initializer"),
+                        )
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        .ificmple(elseLabel)
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .jsr(loadLabel)
+                        .athrow()
+                        .label(loadLabel)
+                        .astore_1()
+                        .aload_0()
+                        .ret(1)
+                        .label(endLabel)
+                        .catchAll(startLabel, endLabel)
+                        .iconst_5()
+                        .ireturn()
+                        .catchAll(startLabel, elseLabel)
+                        .iconst_1()
+                        .ireturn()
+                }
+                .programClass
+
+            val tracker = DebugPrinter(true, true)
+            val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+            val pe = PartialEvaluator.Builder.create()
+                .setValueFactory(valueFactory)
+                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setEvaluateAllCode(false).setStateTracker(tracker).build()
+            evaluateProgramClass(
+                programClass,
+                pe,
+                "test",
+                "()I",
+            )
+        }
+    }
+
     "Test partial evaluation computing mayBeExtension correctly" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
