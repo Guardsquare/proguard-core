@@ -282,24 +282,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "()Ljava/lang/Object;",
             )
         }
-
-        "bipush of to large number" {
-            val programClass = buildClass()
-                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
-                    it
-                        .bipush(300)
-                        .ireturn()
-                }
-                .programClass
-
-            val valueFac = ParticularValueFactory(DetailedArrayValueFactory())
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(valueFac, BasicInvocationUnit(valueFac), false),
-                "test",
-                "()I",
-            )
-        }
     }
 
     "Prints a warning when requested by the user" - {

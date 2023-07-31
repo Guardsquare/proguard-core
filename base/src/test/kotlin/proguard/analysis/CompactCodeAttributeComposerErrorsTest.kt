@@ -3,6 +3,10 @@ package proguard.analysis
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
+import proguard.evaluation.BasicInvocationUnit
+import proguard.evaluation.PartialEvaluator
+import proguard.evaluation.value.DetailedArrayValueFactory
+import proguard.evaluation.value.ParticularValueFactory
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the CompactCodeAttributeComposer
