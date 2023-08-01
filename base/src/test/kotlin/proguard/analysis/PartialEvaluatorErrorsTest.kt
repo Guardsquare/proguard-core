@@ -21,6 +21,7 @@ import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.ArrayIndexOutOfBounds
 import proguard.evaluation.exception.StackCategoryOneException
+import proguard.evaluation.exception.StackGeneralizationException
 import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.ValueTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
@@ -67,6 +68,37 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             }
         }
 
+        "Changing stack size" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    it.iconst(50)
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        // ifle checks first stack element against 0, thus popping only 1,
+                        // The code however is constructed for if_icmple that pops 2 elements.
+                        // Not popping 2 elements makes the stack size increase every loop iteration
+                        .ifle(elseLabel)
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .ireturn()
+                }
+                .programClass
+
+            shouldThrow<StackGeneralizationException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()I",
+                )
+            }
+        }
+
         "Variable types do not match" {
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
@@ -100,7 +132,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<StackTypeException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator(),
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
                     "test",
                     "()Ljava/lang/Object;",
                 )

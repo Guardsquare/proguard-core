@@ -37,6 +37,8 @@ public final class ErrorId
     public static int STACK_CATEGORY_ONE                = 1_007;
     public static int ARRAY_INDEX_OUT_OF_BOUND          = 1_008;
     public static int EXPECTED_ARRAY                    = 1_009;
+    public static int VARIABLE_GENERALIZATION           = 1_010;
+    public static int STACK_GENERALIZATION              = 1_011;
 
     /**
      * Private constructor to prevent instantiation of the class.
