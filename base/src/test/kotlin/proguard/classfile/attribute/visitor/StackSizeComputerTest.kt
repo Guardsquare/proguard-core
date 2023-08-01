@@ -6,7 +6,7 @@ import proguard.analysis.buildClass
 import proguard.classfile.AccessConstants
 import proguard.classfile.exception.NegativeStackSizeException
 
-class StackSizeComputerTest: FreeSpec({
+class StackSizeComputerTest : FreeSpec({
     "Throws exceptions" - {
         StackSizeComputer.prettyInstructionBuffered = 7
         "Stack size becomes negative" {
