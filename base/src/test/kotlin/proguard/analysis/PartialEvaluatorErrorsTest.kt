@@ -77,7 +77,10 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .label(startLabel)
                         .dup()
                         .iconst_5()
-                        .ifle(elseLabel) // To be working code, this should have been if_icmple
+                        // ifle checks first stack element against 0, thus popping only 1,
+                        // The code however is constructed for if_icmple that pops 2 elements.
+                        // Not popping 2 elements makes the stack size increase every loop iteration
+                        .ifle(elseLabel)
                         .iconst_5()
                         .isub()
                         .goto_(startLabel)
