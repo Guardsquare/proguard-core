@@ -17,16 +17,27 @@
  */
 package proguard.evaluation.value;
 
-import proguard.classfile.*;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
+import proguard.evaluation.PartialEvaluator;
+import proguard.evaluation.exception.ValueTypeException;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.evaluation.exception.IncompleteClassHierarchyException;
+import proguard.evaluation.exception.ArrayStoreTypeException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
 
-import static java.util.stream.Collectors.*;
-import static proguard.classfile.util.ClassUtil.*;
+import static java.util.stream.Collectors.joining;
+import static proguard.classfile.util.ClassUtil.externalClassName;
+import static proguard.classfile.util.ClassUtil.isInternalArrayType;
 
 /**
  * This {@link ReferenceValue} represents a partially evaluated reference value.
@@ -38,7 +49,7 @@ import static proguard.classfile.util.ClassUtil.*;
  */
 public class TypedReferenceValue extends ReferenceValue
 {
-    private static       boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
+    private static boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
     private static final boolean DEBUG = false;
 
     protected final String  type;
@@ -350,7 +361,7 @@ public class TypedReferenceValue extends ReferenceValue
                 return typedReferenceValue(other, true, mayBeNull);
             }
         }
-        else if (thisDimensionCount < otherDimensionCount)
+        else // if (thisDimensionCount < otherDimensionCount)
         {
             // See if this type is an interface type of arrays.
             if (ClassUtil.isInternalArrayInterfaceName(ClassUtil.internalClassNameFromClassType(thisType)))
@@ -609,6 +620,63 @@ public class TypedReferenceValue extends ReferenceValue
         return count;
     }
 
+    @Override
+    public DoubleValue doubleArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && !isInternalArrayType(type))
+        {
+            throw new ValueTypeException("array reference", this);
+        }
+        return super.doubleArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public IntegerValue integerArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && !isInternalArrayType(type))
+        {
+            throw new ValueTypeException("array reference", this);
+        }
+        return super.integerArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public LongValue longArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && !isInternalArrayType(type))
+        {
+            throw new ValueTypeException("array reference", this);
+        }
+        return super.longArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public FloatValue floatArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
+    {
+        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && !isInternalArrayType(type))
+        {
+            throw new ValueTypeException("array reference", this);
+        }
+        return super.floatArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public void arrayStore(IntegerValue indexValue, Value value)
+    {
+        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS)
+        {
+            if (!isInternalArrayType(type))
+            {
+                throw new ValueTypeException("array reference", this);
+            }
+            // When the array is over a primitive type, there is no class hierarchy,
+            // hence, the type of the array and the value you want to store in it should be the same
+            if (ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(this.type)) &&
+                    !Objects.equals(value.internalType(), ClassUtil.internalTypeFromArrayType(this.type))) {
+                throw new ArrayStoreTypeException(this, value);
+            }
+        }
+    }
 
     public int equal(TypedReferenceValue other)
     {

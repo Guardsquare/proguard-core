@@ -20,14 +20,18 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.ArrayIndexOutOfBounds
+import proguard.evaluation.exception.ArrayStoreTypeException
 import proguard.evaluation.exception.StackCategoryOneException
+import proguard.evaluation.exception.StackGeneralizationException
 import proguard.evaluation.exception.StackTypeException
+import proguard.evaluation.exception.ValueTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
 import proguard.evaluation.util.jsonPrinter.JsonPrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.TypedReferenceValueFactory
 
 /**
  * These test check that various invalid code snippets correctly throw exceptions from the
@@ -36,6 +40,8 @@ import proguard.evaluation.value.ParticularValueFactory
  * @see PartialEvaluator
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
+
+    PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
 
     /**
      * This is a list of code snippets on which the `PartialEvaluator` throws on error
@@ -64,6 +70,37 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 )
             }
             tracker.writeState("catch-empty-slot.json")
+        }
+
+        "Changing stack size" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    val startLabel = it.createLabel()
+                    val elseLabel = it.createLabel()
+                    it.iconst(50)
+                        .label(startLabel)
+                        .dup()
+                        .iconst_5()
+                        // ifle checks first stack element against 0, thus popping only 1,
+                        // The code however is constructed for if_icmple that pops 2 elements.
+                        // Not popping 2 elements makes the stack size increase every loop iteration
+                        .ifle(elseLabel)
+                        .iconst_5()
+                        .isub()
+                        .goto_(startLabel)
+                        .label(elseLabel)
+                        .ireturn()
+                }
+                .programClass
+
+            shouldThrow<StackGeneralizationException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()I",
+                )
+            }
         }
 
         "Variable types do not match" {
@@ -96,7 +133,14 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            shouldThrow<StackTypeException> { evaluateProgramClass(programClass, PartialEvaluator(), "test", "()Ljava/lang/Object;") }
+            shouldThrow<StackTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Stack types do not match instruction" {
@@ -212,11 +256,121 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableIndexOutOfBoundException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator(),
                     "test",
                     "()V",
                 )
             }
+        }
+
+        "Load an int into an int array but mistakenly give object ref" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .aload_0()
+                        .iconst_0()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
+
+            // Throws on sufficient valueFactory
+            shouldThrow<ValueTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(TypedReferenceValueFactory()),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
+
+            // Does not throw on basic value factory
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(),
+                "test",
+                "()Ljava/lang/Object;",
+            )
+        }
+
+        "Load an int from an int array but mistakenly give object ref" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()V", 50) {
+                    it
+                        .aload_0()
+                        .iconst_0()
+                        .iaload()
+                        .return_()
+                }
+                .programClass
+
+            // Throws on sufficient valueFactory
+            shouldThrow<ValueTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(TypedReferenceValueFactory()),
+                    "test",
+                    "()V",
+                )
+            }
+
+            // Does not throw on basic value factory
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(),
+                "test",
+                "()V",
+            )
+        }
+
+        "Load an int into an int array should work" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .dup()
+                        .iconst_0()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
+
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(TypedReferenceValueFactory()),
+                "test",
+                "()Ljava/lang/Object;",
+            )
+        }
+
+        "Load an int from an int array should work" {
+            // Only throws an error when value factory is of type TypedReferenceValueFactory
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()I", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .dup()
+                        .iconst_0()
+                        .iaload()
+                        .ireturn()
+                }
+                .programClass
+
+            evaluateProgramClass(
+                programClass,
+                PartialEvaluator(TypedReferenceValueFactory()),
+                "test",
+                "()I",
+            )
         }
 
         "Index out of bound when storing in an array" {
@@ -266,23 +420,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 )
             }
         }
-    }
-
-    /**
-     * Some code snippets have been identified where we want the partial evaluator to throw an exception,
-     * but they don't
-     */
-    "Should throw but works" - {
 
         "Store a reference in an a integer array" {
-            // From the PartialEvaluator debug output we can see that it is possible to store a reference into an
-            // integer array. This should not pass!
-            // [5] aload_0 v0
-            // Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            // Stack: [3:1:[I?=![1]#0{0}][3:1:[I?=![1]#0{0}][4:0][5:LPartialEvaluatorDummy;!#0]
-            // [6] aastore
-            //         Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            // Stack: [3:1:[I?=![1]#0{LPartialEvaluatorDummy;!#0}]
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it
@@ -295,34 +434,24 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .areturn()
                 }
                 .programClass
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
 
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(
-                    ParticularValueFactory(
-                        DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory(),
+            shouldThrow<ArrayStoreTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(
+                        ParticularValueFactory(
+                            DetailedArrayValueFactory(),
+                            ParticularReferenceValueFactory(),
+                        ),
                     ),
-                ),
-                "test",
-                "()Ljava/lang/Object;",
-            )
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
         "Load a reference into reference array but mistakenly give object ref" {
-            // It is possible to perform the iastore instruction when the `arrayref` isn't actually an array reference.
-            // In this example the reference is a reference to the class itself and this is no issue according
-            // to the PartialEvaluator:
-            // [5] iconst_5
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}][3:LPartialEvaluatorDummy;!#0][4:0][5:5]
-            // [6] iastore
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}]
-            // [7] areturn
-            //      is branching to :
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack:
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it
@@ -336,19 +465,23 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(
-                    ParticularValueFactory(
-                        DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory(),
+            shouldThrow<ValueTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(
+                        ParticularValueFactory(
+                            DetailedArrayValueFactory(),
+                            ParticularReferenceValueFactory(),
+                        ),
                     ),
-                ),
-                "test",
-                "()Ljava/lang/Object;",
-            )
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
+    }
 
+    "should throw but works" - {
         "Exiting a monitor when no monitor was active" {
             // This is a low priority issue
             // Right now nor the PGA nor the `PartialEvaluator` tracks the entering and existing of monitors
