@@ -20,6 +20,7 @@ import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.exception.ArrayIndexOutOfBounds
+import proguard.evaluation.exception.ArrayStoreTypeException
 import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackGeneralizationException
 import proguard.evaluation.exception.StackTypeException
@@ -39,6 +40,8 @@ import proguard.evaluation.value.TypedReferenceValueFactory
  * @see PartialEvaluator
  */
 class PartialEvaluatorErrorsTest : FreeSpec({
+
+    PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
 
     /**
      * This is a list of code snippets on which the `PartialEvaluator` throws on error
@@ -274,7 +277,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -292,7 +294,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()Ljava/lang/Object;",
             )
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
         }
 
         "Load an int from an int array but mistakenly give object ref" {
@@ -307,7 +308,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
             // Throws on sufficient valueFactory
             shouldThrow<ValueTypeException> {
                 evaluateProgramClass(
@@ -325,7 +325,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 "test",
                 "()V",
             )
-            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = false
         }
 
         "Load an int into an int array should work" {
@@ -420,23 +419,8 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 )
             }
         }
-    }
-
-    /**
-     * Some code snippets have been identified where we want the partial evaluator to throw an exception,
-     * but they don't
-     */
-    "Should throw but works" - {
 
         "Store a reference in an a integer array" {
-            // From the PartialEvaluator debug output we can see that it is possible to store a reference into an
-            // integer array. This should not pass!
-            // [5] aload_0 v0
-            // Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            // Stack: [3:1:[I?=![1]#0{0}][3:1:[I?=![1]#0{0}][4:0][5:LPartialEvaluatorDummy;!#0]
-            // [6] aastore
-            //         Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            // Stack: [3:1:[I?=![1]#0{LPartialEvaluatorDummy;!#0}]
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it
@@ -449,20 +433,54 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                         .areturn()
                 }
                 .programClass
+            PartialEvaluator.ENABLE_NEW_EXCEPTIONS = true
 
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(
-                    ParticularValueFactory(
-                        DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory(),
+            shouldThrow<ArrayStoreTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(
+                        ParticularValueFactory(
+                            DetailedArrayValueFactory(),
+                            ParticularReferenceValueFactory(),
+                        ),
                     ),
-                ),
-                "test",
-                "()Ljava/lang/Object;",
-            )
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
 
+        "Load a reference into reference array but mistakenly give object ref" {
+            val programClass = buildClass()
+                .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
+                    it
+                        .iconst_1()
+                        .newarray(Instruction.ARRAY_T_INT.toInt())
+                        .aload_0()
+                        .iconst_0()
+                        .iconst_5()
+                        .iastore()
+                        .areturn()
+                }
+                .programClass
+
+            shouldThrow<ValueTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(
+                        ParticularValueFactory(
+                            DetailedArrayValueFactory(),
+                            ParticularReferenceValueFactory(),
+                        ),
+                    ),
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
+        }
+    }
+
+    "should throw but works" - {
         "Exiting a monitor when no monitor was active" {
             // This is a low priority issue
             // Right now nor the PGA nor the `PartialEvaluator` tracks the entering and existing of monitors

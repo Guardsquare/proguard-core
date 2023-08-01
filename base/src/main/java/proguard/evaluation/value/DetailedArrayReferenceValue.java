@@ -153,6 +153,7 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue
 
     public void arrayStore(IntegerValue indexValue, Value value)
     {
+        super.arrayStore(indexValue, value);
         if (values != null)
         {
             if (indexValue.isParticular())

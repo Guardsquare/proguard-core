@@ -26,11 +26,13 @@ import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.exception.ValueTypeException;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.evaluation.exception.IncompleteClassHierarchyException;
+import proguard.evaluation.exception.ArrayStoreTypeException;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.stream.Collectors.joining;
@@ -619,15 +621,6 @@ public class TypedReferenceValue extends ReferenceValue
     }
 
     @Override
-    public void arrayStore(IntegerValue indexValue, Value value)
-    {
-        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && !isInternalArrayType(type))
-        {
-            throw new ValueTypeException("array reference", this);
-        }
-    }
-
-    @Override
     public DoubleValue doubleArrayLoad(IntegerValue indexValue, ValueFactory valueFactory)
     {
         if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && !isInternalArrayType(type))
@@ -665,6 +658,24 @@ public class TypedReferenceValue extends ReferenceValue
             throw new ValueTypeException("array reference", this);
         }
         return super.floatArrayLoad(indexValue, valueFactory);
+    }
+
+    @Override
+    public void arrayStore(IntegerValue indexValue, Value value)
+    {
+        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS)
+        {
+            if (!isInternalArrayType(type))
+            {
+                throw new ValueTypeException("array reference", this);
+            }
+            // When the array is over a primitive type, there is no class hierarchy,
+            // hence, the type of the array and the value you want to store in it should be the same
+            if (ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(this.type)) &&
+                    !Objects.equals(value.internalType(), ClassUtil.internalTypeFromArrayType(this.type))) {
+                throw new ArrayStoreTypeException(this, value);
+            }
+        }
     }
 
     public int equal(TypedReferenceValue other)
