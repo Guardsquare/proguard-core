@@ -663,11 +663,18 @@ public class TypedReferenceValue extends ReferenceValue
     @Override
     public void arrayStore(IntegerValue indexValue, Value value)
     {
-        // When the array is over a primitive type, there is no class hierarchy,
-        // hence, the type of the array and the value you want to store in it should be the same
-        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS && ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(this.type)) &&
-                !Objects.equals(value.internalType(), ClassUtil.internalTypeFromArrayType(this.type))) {
-            throw new ArrayStoreTypeException(this, value);
+        if (PartialEvaluator.ENABLE_NEW_EXCEPTIONS)
+        {
+            if (!isInternalArrayType(type))
+            {
+                throw new ValueTypeException("array reference", this);
+            }
+            // When the array is over a primitive type, there is no class hierarchy,
+            // hence, the type of the array and the value you want to store in it should be the same
+            if (ClassUtil.isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(this.type)) &&
+                    !Objects.equals(value.internalType(), ClassUtil.internalTypeFromArrayType(this.type))) {
+                throw new ArrayStoreTypeException(this, value);
+            }
         }
     }
 

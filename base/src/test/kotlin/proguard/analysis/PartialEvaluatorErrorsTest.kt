@@ -419,19 +419,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
         }
 
         "Load a reference into reference array but mistakenly give object ref" {
-            // It is possible to perform the iastore instruction when the `arrayref` isn't actually an array reference.
-            // In this example the reference is a reference to the class itself and this is no issue according
-            // to the PartialEvaluator:
-            // [5] iconst_5
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}][3:LPartialEvaluatorDummy;!#0][4:0][5:5]
-            // [6] iastore
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack: [1:[I?=![1]#0{0}]
-            // [7] areturn
-            //      is branching to :
-            //  Vars:  [P0:LPartialEvaluatorDummy;!#0]
-            //  Stack:
             val programClass = buildClass()
                 .addMethod(AccessConstants.PUBLIC, "test", "()Ljava/lang/Object;", 50) {
                     it
@@ -445,19 +432,23 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 }
                 .programClass
 
-            evaluateProgramClass(
-                programClass,
-                PartialEvaluator(
-                    ParticularValueFactory(
-                        DetailedArrayValueFactory(),
-                        ParticularReferenceValueFactory(),
+            shouldThrow<ValueTypeException> {
+                evaluateProgramClass(
+                    programClass,
+                    PartialEvaluator(
+                        ParticularValueFactory(
+                            DetailedArrayValueFactory(),
+                            ParticularReferenceValueFactory(),
+                        ),
                     ),
-                ),
-                "test",
-                "()Ljava/lang/Object;",
-            )
+                    "test",
+                    "()Ljava/lang/Object;",
+                )
+            }
         }
+    }
 
+    "should throw but works" - {
         "Exiting a monitor when no monitor was active" {
             // This is a low priority issue
             // Right now nor the PGA nor the `PartialEvaluator` tracks the entering and existing of monitors

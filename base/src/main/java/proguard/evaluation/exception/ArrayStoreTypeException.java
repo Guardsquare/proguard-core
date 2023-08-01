@@ -31,7 +31,7 @@ public class ArrayStoreTypeException extends ProguardCoreException
 
     public ArrayStoreTypeException(TypedReferenceValue array, Value value)
     {
-        super(ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
+        super(ErrorId.ARRAY_STORE_TYPE_EXCEPTION,
                 "Array of type [%s] can not store value [%s]",
                 array.getType(), value.toString());
         this.array = array;
