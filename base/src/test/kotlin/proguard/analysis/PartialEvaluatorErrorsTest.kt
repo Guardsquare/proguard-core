@@ -1,7 +1,6 @@
 package proguard.analysis
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import proguard.classfile.AccessConstants
 import proguard.classfile.ClassConstants
@@ -20,8 +19,8 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.exception.ArrayStoreTypeException
 import proguard.evaluation.exception.ArrayIndexOutOfBounds
+import proguard.evaluation.exception.ArrayStoreTypeException
 import proguard.evaluation.exception.StackCategoryOneException
 import proguard.evaluation.exception.StackTypeException
 import proguard.evaluation.exception.ValueTypeException
