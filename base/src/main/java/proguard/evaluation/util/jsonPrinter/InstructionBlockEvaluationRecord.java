@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Track the evaluation of a single instruction block, starting at some offset in the code
+ * Track the evaluation of a single instruction block, starting at some offset in the code.
  */
 class InstructionBlockEvaluationRecord implements JsonSerializable
 {
@@ -35,7 +35,7 @@ class InstructionBlockEvaluationRecord implements JsonSerializable
     private final List<InstructionEvaluationRecord> evaluations;
 
     /**
-     * Exception handler info. If present, this instructionBlock regards an exception handler
+     * Exception handler info. If present, this instructionBlock regards an exception handler.
      */
     private final ExceptionHandlerRecord exceptionHandlerInfo;
 
@@ -55,7 +55,7 @@ class InstructionBlockEvaluationRecord implements JsonSerializable
     private final int startOffset;
 
     /**
-     * Current branch evaluation stack
+     * Current branch evaluation stack.
      */
     @NotNull
     private final List<BranchTargetRecord> branchEvaluationStack;

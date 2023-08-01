@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Track the state of a partial evaluator instance
+ * Track the state of a partial evaluator instance.
  */
 class StateTracker
 {

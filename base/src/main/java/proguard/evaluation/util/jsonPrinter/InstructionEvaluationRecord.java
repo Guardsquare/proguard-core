@@ -29,12 +29,12 @@ class InstructionEvaluationRecord implements JsonSerializable
 {
     /**
      * Has the instruction been seen in a given context before.
-     * When true, the instructionBlock evaluation comes to an end
+     * When true, the instructionBlock evaluation comes to an end.
      */
     private final boolean skipEvaluation;
 
     /**
-     * Whether the instruction has been seen a lot, if true, start generalizing the values
+     * Whether the instruction has been seen a lot, if true, start generalizing the values.
      */
     private final boolean isGeneralization;
 
@@ -50,13 +50,13 @@ class InstructionEvaluationRecord implements JsonSerializable
     private final String instruction;
 
     /**
-     * Offset of the instruction within the code
+     * Offset of the instruction within the code.
      */
     private final int instructionOffset;
 
     /**
      * Current stack of instruction blocks that need to be evaluated, used for branches,
-     * only given when the instruction alters the branch evaluation stack
+     * only given when the instruction alters the branch evaluation stack.
      */
     private List<BranchTargetRecord> updatedEvaluationStack;
 

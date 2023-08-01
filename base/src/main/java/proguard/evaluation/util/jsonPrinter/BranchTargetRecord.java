@@ -25,19 +25,19 @@ import java.util.List;
 class BranchTargetRecord implements JsonSerializable
 {
     /**
-     * Variables at the start of the block evaluation
+     * Variables at the start of the block evaluation.
      */
     @NotNull
     private final List<String> startVariables;
 
     /**
-     * Stack at the start of the block evaluation
+     * Stack at the start of the block evaluation.
      */
     @NotNull
     private final List<String> startStack;
 
     /**
-     * Instruction offset of the first instruction of the block
+     * Instruction offset of the first instruction of the block.
      */
     private final int startOffset;
 

@@ -47,18 +47,18 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * Tracks the state of the partial evaluator able to provide debug information in JSON format
+ * Tracks the state of the partial evaluator able to provide debug information in JSON format.
  */
 public class JsonPrinter implements PartialEvaluatorStateTracker
 {
     /**
-     * Tracks the state of the partial evaluator
+     * Tracks the state of the partial evaluator.
      */
     private final StateTracker stateTracker;
 
     /**
      * Traces the current depth of JSR recursion.
-     * All accesses to an InstructionBlockEvaluationRecord should be done through here
+     * All accesses to an InstructionBlockEvaluationRecord should be done through here.
      */
     private final List<List<InstructionBlockEvaluationRecord>> subRoutineStack;
 
@@ -129,14 +129,14 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     }
 
     /**
-     * @return the last relevant list of InstructionBlockEvaluationRecord referenced by PE
+     * @return the last relevant list of InstructionBlockEvaluationRecord referenced by PE.
      */
     private List<InstructionBlockEvaluationRecord> curBlockEvalList() {
         return subRoutineStack.get(subRoutineStack.size() - 1);
     }
 
     /**
-     * @return the last relevant InstructionBlockEvaluationRecord referenced by the PE
+     * @return the last relevant InstructionBlockEvaluationRecord referenced by the PE.
      */
     private InstructionBlockEvaluationRecord lastBlockEval() {
         List<InstructionBlockEvaluationRecord> curList = curBlockEvalList();
@@ -147,7 +147,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     }
 
     /**
-     * Serialize variables
+     * Serialize variables.
      */
     private List<String> formatValueList(Variables variables) {
         List<String> res = new ArrayList<>();
@@ -159,7 +159,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     }
 
     /**
-     * Serialize the stack
+     * Serialize the stack.
      */
     private List<String> formatValueList(Stack stack) {
         List<String> res = new ArrayList<>();
@@ -270,7 +270,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     {
         if (shouldSkip(clazz, method)) return;
 
-        // Read out all instructions in this codeAttribute
+        // Read out all instructions in this codeAttribute.
         List<InstructionRecord> instructions = new ArrayList<>();
         byte[] code = codeAttribute.code;
         int offset = 0;
@@ -280,15 +280,15 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
             offset += instruction.length(offset);
         }
 
-        // Create the new CodeAttributeRecord
+        // Create the new CodeAttributeRecord.
         CodeAttributeRecord attributeRecord = new CodeAttributeRecord(clazz.getName(),
                 method.getName(clazz) + method.getDescriptor(clazz), formatValueList(parameters), instructions);
 
-        // Clear the subroutine recursion tracker and add the current
+        // Clear the subroutine recursion tracker and add the current.
         subRoutineStack.clear();
         subRoutineStack.add(attributeRecord.getBlockEvaluations());
 
-        // Register the current code attribute
+        // Register the current code attribute.
         stateTracker.getCodeAttributes().add(attributeRecord);
     }
 
@@ -316,7 +316,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         ExceptionHandlerRecord exceptionHandlerInfo = new ExceptionHandlerRecord(startPC, endPC,
                 info.u2handlerPC, constant == null ? "java/lang/Throwable" : constant.getName(clazz));
 
-        // Register an exception handler being evaluated. NOTE: do not copy the branch stack
+        // Register an exception handler being evaluated. NOTE: do not copy the branch stack.
         curBlockEvalList().add(
                 new InstructionBlockEvaluationRecord(null, null,
                         info.u2handlerPC, exceptionHandlerInfo, new ArrayList<>()));
@@ -329,7 +329,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     @Override
     public void evaluationResults(Clazz clazz, Method method, CodeAttribute codeAttribute, PartialEvaluator evaluator)
     {
-        // loop over all instruction and fill in their final evaluation state
+        // loop over all instruction and fill in their final evaluation state.
         for (InstructionRecord instruction: stateTracker.getLastCodeAttribute().getInstructions()) {
             TracedVariables variablesBefore = evaluator.getVariablesBefore(instruction.getOffset());
             instruction.setFinalVariablesBefore(variablesBefore == null ? null : formatValueList(variablesBefore));
@@ -365,28 +365,28 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
     {
         if (shouldSkip(clazz, method)) return;
 
-        // If the last evaluation was handling an exception, this one is also, copy it over
+        // If the last evaluation was handling an exception, this one is also, copy it over.
         InstructionBlockEvaluationRecord lastBlock = lastBlockEval();
 
-        // If the last blockTracker is not initialized, it is one created by registerException, initialize it
+        // If the last blockTracker is not initialized, it is one created by registerException, initialize it.
         if (lastBlock != null && lastBlock.getExceptionHandlerInfo() != null && lastBlock.getEvaluations().isEmpty()) {
             lastBlock.setStartVariables(formatValueList(startVariables));
             lastBlock.setStartStack(formatValueList(startStack));
         }
         else
         {
-            // The current block is not a newly registered exception handler. Threat it like any other block
+            // The current block is not a newly registered exception handler. Threat it like any other block.
 
             ExceptionHandlerRecord exceptionHandlerInfo = null;
             List<BranchTargetRecord> branchStack = new ArrayList<>();
 
-            // If there is a last block, copy the branch stack, either from last instruction or last block
+            // If there is a last block, copy the branch stack, either from last instruction or last block.
             if (lastBlock != null)
             {
                 InstructionEvaluationRecord lastInstruction = lastBlock.getLastInstructionEvaluation();
                 if (lastInstruction != null && lastInstruction.getUpdatedEvaluationStack() != null)
                 {
-                    // Copy branch stack from last instruction since it changed the branch stack
+                    // Copy branch stack from last instruction since it changed the branch stack.
                     branchStack = new ArrayList<>(lastInstruction.getUpdatedEvaluationStack());
                 }
                 else
@@ -395,18 +395,18 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
                     branchStack = new ArrayList<>(lastBlock.getBranchEvaluationStack());
                 }
 
-                // Copy the exceptionHandlerInfo from the last block
+                // Copy the exceptionHandlerInfo from the last block.
                 exceptionHandlerInfo = lastBlock.getExceptionHandlerInfo();
             }
 
-            // Whatever the branch stack, if possible, pop, it is the block you start now
+            // Whatever the branch stack, if possible, pop, it is the block you start now.
             if (!branchStack.isEmpty())
             {
                 BranchTargetRecord stackHead = branchStack.remove(branchStack.size()-1);
                 assert stackHead.getStartOffset() == startOffset;
             }
 
-            // Add the newly created InstructionBlockEvaluationRecord to the current subroutine block tracker
+            // Add the newly created InstructionBlockEvaluationRecord to the current subroutine block tracker.
             curBlockEvalList().add(new InstructionBlockEvaluationRecord(
                     formatValueList(startVariables), formatValueList(startStack), startOffset,
                     exceptionHandlerInfo, branchStack));
@@ -475,11 +475,11 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         InstructionBlockEvaluationRecord lastBlock = lastBlockEval();
         InstructionEvaluationRecord lastInstruction = lastBlock.getLastInstructionEvaluation();
 
-        // If we don't already know, register that this is a branching instruction
+        // If we don't already know, register that this is a branching instruction.
         if (lastInstruction.getUpdatedEvaluationStack() == null) {
             lastInstruction.setUpdatedEvaluationStack(new ArrayList<>(lastBlock.getBranchEvaluationStack()));
         }
-        // Add this branch to the current instruction
+        // Add this branch to the current instruction.
         lastInstruction.getUpdatedEvaluationStack().add(new BranchTargetRecord(
             formatValueList(variablesAfter), formatValueList(stackAfter), offset
         ));

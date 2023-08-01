@@ -23,17 +23,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * DTO to track a single instruction
+ * DTO to track a single instruction.
  */
 class InstructionRecord implements JsonSerializable
 {
     /**
-     * The offset of the instruction
+     * The offset of the instruction.
      */
     private final int offset;
 
     /**
-     * String representation of the instruction
+     * String representation of the instruction.
      */
     @NotNull
     private final String instruction;
