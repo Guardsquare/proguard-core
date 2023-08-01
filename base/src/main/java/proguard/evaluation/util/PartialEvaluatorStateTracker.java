@@ -155,7 +155,7 @@ public interface PartialEvaluatorStateTracker
     /**
      * The evaluator detects multiple branches need to be evaluated.
      * It adds these block evaluations to a stack of blocks that still need to be evaluated.
-     * After all branches have been registered, the evaluator exits the evaluation of the current instruction block
+     * After all branches have been registered, the evaluator exits the evaluation of the current instruction block.
      */
     default void registerAlternativeBranch(Clazz clazz, Method method, int fromInstructionOffset, Instruction fromInstruction,
                                    TracedVariables variablesAfter, TracedStack stackAfter,
@@ -171,7 +171,7 @@ public interface PartialEvaluatorStateTracker
     default void startSubroutine(Clazz clazz, Method method, TracedVariables startVariables, TracedStack startStack, int subroutineStart, int subroutineEnd) {}
 
     /**
-     * The current instruction was RET and the partial evaluator pushes the return address to the branch stack of the calling partial evaluator
+     * The current instruction was RET and the partial evaluator pushes the return address to the branch stack of the calling partial evaluator.
      */
     default void registerSubroutineReturn(Clazz clazz, Method method, int returnOffset, TracedVariables returnVariables, TracedStack returnStack) {}
 
