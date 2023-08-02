@@ -217,7 +217,8 @@ implements   AttributeVisitor,
         this.valueFactory                 = valueFactory;
         this.invocationUnit               = invocationUnit;
         this.evaluateAllCode              = evaluateAllCode;
-        this.prettyInstructionBuffered    = 7;
+        // To always support pretty printing, set this default value larger than 0.
+        this.prettyInstructionBuffered    = 0;
         this.extraInstructionVisitor      = extraInstructionVisitor;
         this.branchUnit                   = branchUnit;
         this.branchTargetFinder           = branchTargetFinder;
@@ -261,7 +262,8 @@ implements   AttributeVisitor,
         private ValueFactory                      valueFactory;
         private InvocationUnit                    invocationUnit;
         private boolean                           evaluateAllCode               = true;
-        private int                               prettyInstructionBuffered     = 7;
+        // To always support pretty printing, set this default value larger than 0.
+        private int                               prettyInstructionBuffered     = 0;
         private InstructionVisitor                extraInstructionVisitor;
         private BasicBranchUnit                   branchUnit;
         private BranchTargetFinder                branchTargetFinder;
