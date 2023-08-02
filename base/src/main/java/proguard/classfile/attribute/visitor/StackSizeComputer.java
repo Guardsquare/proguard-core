@@ -22,10 +22,15 @@ import org.apache.logging.log4j.Logger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.editor.ClassEstimates;
+import proguard.classfile.exception.NegativeStackSizeException;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.ClassPrinter;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
+import proguard.exception.InstructionExceptionFormatter;
 import proguard.util.ArrayUtil;
+import proguard.util.CircularIntBuffer;
 
 /**
  * This {@link AttributeVisitor} computes the stack sizes at all instruction offsets
@@ -40,6 +45,8 @@ implements   AttributeVisitor,
 {
     //*
     private static final boolean DEBUG = false;
+    public static int prettyInstructionBuffered = 0;
+
     /*/
     private static       boolean DEBUG = System.getProperty("ssc") != null;
     //*/
@@ -305,6 +312,15 @@ implements   AttributeVisitor,
             }
         }
 
+        InstructionExceptionFormatter formatter = prettyInstructionBuffered > 0 ?
+                new InstructionExceptionFormatter(
+                        logger,
+                        new CircularIntBuffer(prettyInstructionBuffered),
+                        codeAttribute.code,
+                        clazz,
+                        method)
+                : null;
+
         // Remember the initial stack size.
         int initialStackSize = stackSize;
 
@@ -323,6 +339,7 @@ implements   AttributeVisitor,
 
             Instruction instruction = InstructionFactory.create(codeAttribute.code,
                                                                 instructionOffset);
+            if (formatter != null) formatter.registerInstructionOffset(instructionOffset);
 
             if (DEBUG)
             {
@@ -341,11 +358,12 @@ implements   AttributeVisitor,
 
             if (stackSize < 0)
             {
-                throw new IllegalArgumentException("Stack size becomes negative after instruction "+
-                                                   instruction.toString(clazz, instructionOffset)+" in ["+
-                                                   clazz.getName()+"."+
-                                                   method.getName(clazz)+
-                                                   method.getDescriptor(clazz)+"]");
+                NegativeStackSizeException ex = new NegativeStackSizeException(clazz, method, instruction, instructionOffset);
+
+                if (formatter != null)
+                    formatter.printException(ex);
+
+                throw ex;
             }
 
             stackSize += instruction.stackPushCount(clazz);

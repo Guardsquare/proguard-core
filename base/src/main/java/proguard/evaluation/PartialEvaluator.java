@@ -40,7 +40,7 @@ import proguard.classfile.util.BranchTargetFinder;
 import proguard.classfile.visitor.ExceptionHandlerFilter;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
-import proguard.evaluation.exception.InstructionExceptionFormatter;
+import proguard.exception.InstructionExceptionFormatter;
 import proguard.evaluation.exception.StackGeneralizationException;
 import proguard.evaluation.exception.VariablesGeneralizationException;
 import proguard.evaluation.util.DebugPrinter;

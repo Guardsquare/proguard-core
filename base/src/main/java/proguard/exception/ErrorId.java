@@ -40,6 +40,7 @@ public final class ErrorId
     public static int VARIABLE_GENERALIZATION           = 1_010;
     public static int STACK_GENERALIZATION              = 1_011;
     public static int ARRAY_STORE_TYPE_EXCEPTION        = 1_012;
+    public static int NEGATIVE_STACK_SIZE               = 2_000;
 
     /**
      * Private constructor to prevent instantiation of the class.
