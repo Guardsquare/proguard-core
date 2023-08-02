@@ -4,34 +4,24 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.classfile.AccessConstants
-import proguard.classfile.ClassPool
 import proguard.classfile.attribute.Attribute.CODE
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
-import proguard.classfile.visitor.AllMethodVisitor
-import proguard.classfile.visitor.ClassPoolFiller
-import proguard.classfile.visitor.NamedClassVisitor
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
-import proguard.evaluation.util.jsonPrinter.JsonPrinter
+import proguard.evaluation.util.jsonprinter.JsonPrinter
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.TypedReferenceValueFactory
-import proguard.io.ClassFilter
-import proguard.io.ClassReader
-import proguard.io.DataEntrySource
-import proguard.io.FileSource
-import proguard.io.JarReader
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.findMethod
-import java.io.File
 
 class PartialEvaluatorTest : FreeSpec({
     "Test lifecycle" - {
@@ -66,7 +56,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            tracker.writeState("branches.json")
         }
 
         "With method filter" {
@@ -103,7 +92,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test1",
                 "()I",
             )
-            tracker.writeState("methodFilter.json")
         }
 
         "2 methods" {
@@ -137,7 +125,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test0",
                 "()V",
             )
-            tracker.writeState("2-methods.json")
         }
 
         "simple throw and catch" {
@@ -171,7 +158,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            tracker.writeState("simple-throw-and-catch.json")
         }
 
         "simple catch, no throw" {
@@ -202,7 +188,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            tracker.writeState("simple-catch-no-throw.json")
         }
 
         "Complete" {
@@ -260,46 +245,6 @@ class PartialEvaluatorTest : FreeSpec({
                 "test",
                 "()I",
             )
-            tracker.writeState("complete-cycle.json")
-        }
-
-        "On Big Function".config(enabled = true) {
-            val classPool = ClassPool()
-
-            val source: DataEntrySource = FileSource(
-                File("build/libs/proguard-core-9.0.11.jar"),
-            )
-
-            source.pumpDataEntries(
-                JarReader(
-                    false,
-                    ClassFilter(
-                        ClassReader(
-                            false,
-                            false,
-                            false,
-                            false,
-                            null,
-                            ClassPoolFiller(classPool),
-                        ),
-                    ),
-                ),
-            )
-
-            val tracker = JsonPrinter()
-            val pe = PartialEvaluator.Builder.create()
-                .setEvaluateAllCode(true).setStateTracker(tracker).build()
-            classPool.accept(
-                NamedClassVisitor(
-                    AllMethodVisitor(
-                        AllAttributeVisitor(
-                            AttributeNameFilter(CODE, pe),
-                        ),
-                    ),
-                    "proguard/evaluation/PartialEvaluator",
-                ),
-            )
-            tracker.writeState("evaluateSingleInstructionBlock-reflective.json")
         }
     }
 

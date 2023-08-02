@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package proguard.evaluation.util.jsonPrinter;
+package proguard.evaluation.util.jsonprinter;
 
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;

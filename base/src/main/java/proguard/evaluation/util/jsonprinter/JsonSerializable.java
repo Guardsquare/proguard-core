@@ -1,4 +1,4 @@
-package proguard.evaluation.util.jsonPrinter;
+package proguard.evaluation.util.jsonprinter;
 
 interface JsonSerializable
 {

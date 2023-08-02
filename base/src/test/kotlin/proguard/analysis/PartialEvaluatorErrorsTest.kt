@@ -28,7 +28,7 @@ import proguard.evaluation.exception.ValueTypeException
 import proguard.evaluation.exception.VariableEmptySlotException
 import proguard.evaluation.exception.VariableIndexOutOfBoundException
 import proguard.evaluation.exception.VariableTypeException
-import proguard.evaluation.util.jsonPrinter.JsonPrinter
+import proguard.evaluation.util.jsonprinter.JsonPrinter
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValueFactory
@@ -69,7 +69,6 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     "()Ljava/lang/Object;",
                 )
             }
-            tracker.writeState("catch-empty-slot.json")
         }
 
         "Changing stack size" {

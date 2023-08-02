@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package proguard.evaluation.util.jsonPrinter;
+package proguard.evaluation.util.jsonprinter;
 
 import java.util.ArrayList;
 import java.util.List;
