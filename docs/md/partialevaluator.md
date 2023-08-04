@@ -606,3 +606,12 @@ stateDiagram-v2
     catch --> registerException: Yes
   registerException --> [*]
 ```
+
+The lifecycle can be tracked by providing a `PartialEvaluatorStateTracker` to the partial evaluator through its builder.
+For example, when you want to get a JSON debug output regarding the evaluations made by the partial evaluator, you can do so by:
+
+    :::java
+    JsonPrinter tracker = new JsonPrinter();
+    PartialEvaluator partialEvaluator = PartialEvaluator.Builder.create().setStateTracker(tracker).build()
+
+
