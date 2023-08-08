@@ -85,10 +85,7 @@ implements   AttributeVisitor
 
     public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
     {
-        if (recordAttribute.u2componentsCount > 0)
-        {
-            attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
-        }
+        attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
     }
 
 
