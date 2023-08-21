@@ -6,6 +6,10 @@
 - Improve `PartialEvaluator` error messages when enabled with `PartialEvaluator.Builder.setPrettyPrinting()`.
 - Improve documentation for the `PartialEvaluator` [https://guardsquare.github.io/proguard-core/partialevaluator.html](https://guardsquare.github.io/proguard-core/partialevaluator.html).
 
+### Bug fixes
+
+- Fix `UnsupportedOperationException` when trying to shrink Kotlin metadata from a lambda function.
+
 ### API Changes
 
 - No longer consider Record attributes empty when they have no components in `NonEmptyAttributeFilter`. (#118)
@@ -19,9 +23,6 @@
 - Improve performance of `DynamicClassReferenceInitializer`.
 - Improve performance of `DynamicClassMemberReferenceInitializer`.
  
-### Bug fixes
-
-- Fix `UnsupportedOperationException` when trying to shrink Kotlin metadata from a lambda function.
 
 ### API changes
 
