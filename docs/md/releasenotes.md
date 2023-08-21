@@ -1,3 +1,16 @@
+## Version 9.1
+
+### Improved
+
+- Added `PartialEvaluator` JSON output for use with [proguard-core-visualizer](https://github.com/Guardsquare/proguard-core-visualizer).
+- Improve `PartialEvaluator` error messages when enabled with `PartialEvaluator.Builder.setPrettyPrinting()`.
+- Improve documentation for the `PartialEvaluator` [https://guardsquare.github.io/proguard-core/partialevaluator.html](https://guardsquare.github.io/proguard-core/partialevaluator.html).
+
+### API Changes
+
+- No longer consider Record attributes empty when they have no components in `NonEmptyAttributeFilter`. (#118)
+- Add new `ProguardCoreException` subclasses with more specific meanings.
+
 ## Version 9.0.10
 
 ### Improved
