@@ -18,7 +18,11 @@
 - `TaintSink` can now be configured with a predicate to filter on which `TaintSource`s trigger it.
 - Improve performance of `DynamicClassReferenceInitializer`.
 - Improve performance of `DynamicClassMemberReferenceInitializer`.
-- 
+ 
+### Bug fixes
+
+- Fix `UnsupportedOperationException` when trying to shrink Kotlin metadata from a lambda function.
+
 ### API changes
 
 - The constructors in `JvmInvokeTaintSink` are now deprecated, `JvmInvokeTaintSink#Builder` should be used instead.

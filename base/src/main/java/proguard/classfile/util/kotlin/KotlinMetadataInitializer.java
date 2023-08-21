@@ -316,7 +316,8 @@ implements ClassVisitor,
                     if (smd.isLambda())
                     {
                         // Only lambdas contain exactly 1 function.
-                        kotlinSyntheticClassKindMetadata.functions = Collections.singletonList(
+                        kotlinSyntheticClassKindMetadata.functions = new ArrayList<>(1);
+                        kotlinSyntheticClassKindMetadata.functions.add(
                             toKotlinFunctionMetadata(Objects.requireNonNull(smd.toKmLambda()).getFunction())
                         );
                     }
