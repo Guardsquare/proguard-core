@@ -1,5 +1,6 @@
 package proguard.analysis.cpa.jvm.domain.value
 
+import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -13,6 +14,7 @@ import proguard.evaluation.value.IdentifiedValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TopValue
 import proguard.evaluation.value.TypedReferenceValue
+import proguard.evaluation.value.UnknownIntegerValue
 import proguard.evaluation.value.UnknownValue
 import proguard.evaluation.value.Value
 import proguard.evaluation.value.ValueFactory
@@ -194,6 +196,13 @@ class ValueAbstractStateTest : FreeSpec({
             a.isLessOrEqual(b) shouldBe false
             a.join(b).value.shouldBeInstanceOf<UnknownValue>()
         }
+
+        "Joining a String and a variable with different computational type" {
+            val a = ValueAbstractState(valueFactory.createString(""))
+            val b = ValueAbstractState(valueFactory.createIntegerValue(0))
+
+            a.join(b).value shouldBe UNKNOWN_VALUE
+        }
     }
 
     "Joining top with unknown should result in unknown" {
@@ -203,6 +212,15 @@ class ValueAbstractStateTest : FreeSpec({
         a shouldNotBe b
         a.isLessOrEqual(b) shouldBe true
         a.join(b).value shouldBe UNKNOWN_VALUE
+    }
+
+    "Joining a know and unknown integer" {
+        val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
+
+        val a = ValueAbstractState(valueFactory.createIntegerValue())
+        val b = ValueAbstractState(valueFactory.createIntegerValue(0))
+
+        a.join(b).value shouldBe UnknownIntegerValue()
     }
 })
 

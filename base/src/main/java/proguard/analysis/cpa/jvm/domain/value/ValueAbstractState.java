@@ -42,10 +42,10 @@ import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
  */
 public class ValueAbstractState implements LatticeAbstractState<ValueAbstractState>
 {
-    private static final Logger logger = LogManager.getLogger(ValueAbstractState.class);
 
-    public static final ValueAbstractState UNKNOWN = new ValueAbstractState(UNKNOWN_VALUE);
-    private Value                 value;
+    private static final Logger             logger  = LogManager.getLogger(ValueAbstractState.class);
+    public static final  ValueAbstractState UNKNOWN = new ValueAbstractState(UNKNOWN_VALUE);
+    private              Value              value;
 
     public ValueAbstractState(Value value)
     {
@@ -72,6 +72,12 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
     @Override
     public ValueAbstractState join(ValueAbstractState abstractState)
     {
+        // generalize() throws if the computational types are not the same
+        if (this.value.computationalType() != abstractState.value.computationalType())
+        {
+            return UNKNOWN;
+        }
+
         ValueAbstractState result = abstractState.equals(this) ?
                 this :
                 new ValueAbstractState(this.value.generalize(abstractState.value));
