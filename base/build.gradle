@@ -51,6 +51,7 @@ jar {
 def javaVersionsForTest = 9..19
 
 test {
+    systemProperty "proguard.pe.newextensiongeneralize", "true"
     useJUnitPlatform()
 }
 

@@ -1,6 +1,5 @@
 package proguard.analysis.cpa.jvm.domain.value
 
-import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -34,7 +33,10 @@ class ValueAbstractStateTest : FreeSpec({
             a shouldBe b
             a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
-            a.join(b) shouldBe a
+            val leastUpperBound = a.join(b)
+            leastUpperBound shouldBe a
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Two abstract states with the different strings should not be equal" {
@@ -42,8 +44,11 @@ class ValueAbstractStateTest : FreeSpec({
             val b = ValueAbstractState(myOtherString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
-            a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
-            (a.join(b).value as TypedReferenceValue).type shouldBe "Ljava/lang/String;"
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<TypedReferenceValue>()
+            (leastUpperBound.value as TypedReferenceValue).type shouldBe "Ljava/lang/String;"
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Two abstract states with different instances but equal strings should be equal" {
@@ -53,7 +58,10 @@ class ValueAbstractStateTest : FreeSpec({
             a shouldBe b
             a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
-            a.join(b) shouldBe a
+            val leastUpperBound = a.join(b)
+            leastUpperBound shouldBe a
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
     }
 
@@ -69,7 +77,10 @@ class ValueAbstractStateTest : FreeSpec({
             a shouldBe b
             a.hashCode() shouldBe b.hashCode()
             b.isLessOrEqual(b) shouldBe true
-            a.join(b) shouldBe a
+            val leastUpperBound = a.join(b)
+            leastUpperBound shouldBe a
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Two abstract states with the different strings should not be equal" {
@@ -77,8 +88,11 @@ class ValueAbstractStateTest : FreeSpec({
             val a = ValueAbstractState(myString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
-            a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
-            (a.join(b).value as TypedReferenceValue).type shouldBe "Ljava/lang/String;"
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<TypedReferenceValue>()
+            (leastUpperBound.value as TypedReferenceValue).type shouldBe "Ljava/lang/String;"
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Two abstract states with different instances but equal strings should not be equal" {
@@ -87,8 +101,11 @@ class ValueAbstractStateTest : FreeSpec({
                 ValueAbstractState(valueFactory.createString("myString"))
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
-            a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
-            (a.join(b).value as TypedReferenceValue).type shouldBe "Ljava/lang/String;"
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<TypedReferenceValue>()
+            (leastUpperBound.value as TypedReferenceValue).type shouldBe "Ljava/lang/String;"
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
     }
 
@@ -104,7 +121,10 @@ class ValueAbstractStateTest : FreeSpec({
             a shouldBe b
             a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
-            a.join(b) shouldBe a
+            val leastUpperBound = a.join(b)
+            leastUpperBound shouldBe a
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Two abstract states with the different string builders should not be equal" {
@@ -112,8 +132,11 @@ class ValueAbstractStateTest : FreeSpec({
             val b = ValueAbstractState(myOtherStringBuilder)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
-            a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
-            (a.join(b).value as TypedReferenceValue).type shouldBe "Ljava/lang/StringBuilder;"
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<TypedReferenceValue>()
+            (leastUpperBound.value as TypedReferenceValue).type shouldBe "Ljava/lang/StringBuilder;"
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
     }
 
@@ -129,7 +152,10 @@ class ValueAbstractStateTest : FreeSpec({
             a shouldBe b
             a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
-            a.join(b) shouldBe a
+            val leastUpperBound = a.join(b)
+            leastUpperBound shouldBe a
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Two abstract states with the different string builder instances but the same ID should be equal" {
@@ -138,7 +164,10 @@ class ValueAbstractStateTest : FreeSpec({
             a shouldBe b
             a.hashCode() shouldBe b.hashCode()
             a.isLessOrEqual(b) shouldBe true
-            a.join(b) shouldBe a
+            val leastUpperBound = a.join(b)
+            leastUpperBound shouldBe a
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Two abstract states with the different string builder instances and the different ID should not be equal" {
@@ -147,11 +176,14 @@ class ValueAbstractStateTest : FreeSpec({
             a shouldNotBe b
             a.hashCode() shouldNotBe b.hashCode()
             a.isLessOrEqual(b) shouldNotBe true
-            a.join(b) shouldNotBe a
+            val leastUpperBound = a.join(b)
+            leastUpperBound shouldNotBe a
             val value = a.join(b).value
             value.shouldBeInstanceOf<TypedReferenceValue>()
             value.shouldNotBeInstanceOf<IdentifiedReferenceValue>()
             value.internalType() shouldBe TYPE_JAVA_LANG_STRING_BUILDER
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
     }
 
@@ -166,10 +198,13 @@ class ValueAbstractStateTest : FreeSpec({
             val b = ValueAbstractState(myString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
-            a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<TypedReferenceValue>()
             // Serializable because the common class is object,
             // so then the last (alphabetically) common interface is used.
-            (a.join(b).value as TypedReferenceValue).type shouldBe "Ljava/io/Serializable;"
+            (leastUpperBound.value as TypedReferenceValue).type shouldBe "Ljava/io/Serializable;"
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Joining a string with a string builder should result a common type" {
@@ -177,8 +212,11 @@ class ValueAbstractStateTest : FreeSpec({
             val b = ValueAbstractState(myStringBuilder)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
-            a.join(b).value.shouldBeInstanceOf<TypedReferenceValue>()
-            (a.join(b).value as TypedReferenceValue).type shouldBe "Ljava/io/Serializable;"
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<TypedReferenceValue>()
+            (leastUpperBound.value as TypedReferenceValue).type shouldBe "Ljava/io/Serializable;"
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Joining a string with an unknown type should result in an unknown type" {
@@ -186,7 +224,10 @@ class ValueAbstractStateTest : FreeSpec({
             val b = ValueAbstractState(UNKNOWN_VALUE)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe true
-            a.join(b).value.shouldBeInstanceOf<UnknownValue>()
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<UnknownValue>()
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Joining an unknown type with a string should result in an unknown type" {
@@ -194,14 +235,20 @@ class ValueAbstractStateTest : FreeSpec({
             val b = ValueAbstractState(myString)
             a shouldNotBe b
             a.isLessOrEqual(b) shouldBe false
-            a.join(b).value.shouldBeInstanceOf<UnknownValue>()
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value.shouldBeInstanceOf<UnknownValue>()
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
 
         "Joining a String and a variable with different computational type" {
             val a = ValueAbstractState(valueFactory.createString(""))
             val b = ValueAbstractState(valueFactory.createIntegerValue(0))
 
-            a.join(b).value shouldBe UNKNOWN_VALUE
+            val leastUpperBound = a.join(b)
+            leastUpperBound.value shouldBe UNKNOWN_VALUE
+            leastUpperBound.join(a) shouldBe leastUpperBound
+            leastUpperBound.join(b) shouldBe leastUpperBound
         }
     }
 
@@ -211,7 +258,10 @@ class ValueAbstractStateTest : FreeSpec({
 
         a shouldNotBe b
         a.isLessOrEqual(b) shouldBe true
-        a.join(b).value shouldBe UNKNOWN_VALUE
+        val leastUpperBound = a.join(b)
+        leastUpperBound.value shouldBe UNKNOWN_VALUE
+        leastUpperBound.join(a) shouldBe leastUpperBound
+        leastUpperBound.join(b) shouldBe leastUpperBound
     }
 
     "Joining a know and unknown integer" {
@@ -220,7 +270,10 @@ class ValueAbstractStateTest : FreeSpec({
         val a = ValueAbstractState(valueFactory.createIntegerValue())
         val b = ValueAbstractState(valueFactory.createIntegerValue(0))
 
-        a.join(b).value shouldBe UnknownIntegerValue()
+        val leastUpperBound = a.join(b)
+        leastUpperBound.value shouldBe UnknownIntegerValue()
+        leastUpperBound.join(a) shouldBe leastUpperBound
+        leastUpperBound.join(b) shouldBe leastUpperBound
     }
 })
 
@@ -245,5 +298,5 @@ private fun ValueFactory.createStringBuilder(sb: StringBuilder, id: Int): Value 
     false,
     false,
     id,
-    sb,
+    sb
 )

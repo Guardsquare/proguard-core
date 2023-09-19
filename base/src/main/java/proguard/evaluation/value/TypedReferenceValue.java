@@ -49,8 +49,10 @@ import static proguard.classfile.util.ClassUtil.isInternalArrayType;
  */
 public class TypedReferenceValue extends ReferenceValue
 {
-    private static boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
-    private static final boolean DEBUG = false;
+
+    private static       boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY = System.getProperty("allow.incomplete.class.hierarchy") != null;
+    private static final boolean ENABLE_NEW_EXTENSION_GENERALIZE  = System.getProperty("proguard.pe.newextensiongeneralize") != null;
+    private static final boolean DEBUG                            = false;
 
     protected final String  type;
     protected final Clazz   referencedClass;
@@ -337,7 +339,7 @@ public class TypedReferenceValue extends ReferenceValue
                                                        ClassUtil.internalArrayTypeFromClassName(commonClass.getName(),
                                                                                                 commonDimensionCount),
                                                    commonClass,
-                                                   mayBeExtension,
+                                                   ENABLE_NEW_EXTENSION_GENERALIZE || mayBeExtension,
                                                    mayBeNull);
                 }
                 catch (IncompleteClassHierarchyException e)
