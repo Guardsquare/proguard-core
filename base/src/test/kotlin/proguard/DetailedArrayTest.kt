@@ -2,10 +2,13 @@ package proguard
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.value.ArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
@@ -215,6 +218,79 @@ class DetailedArrayTest : FreeSpec({
             s.shouldBeInstanceOf<DetailedArrayReferenceValue>()
             s.type shouldBe "[Ljava/lang/String;"
             s.referenceArrayLoad(valueFactory.createIntegerValue(1), valueFactory).referenceValue().value() shouldBe "2"
+        }
+
+        "Array value unknown when there are possible paths where index is out of bound" {
+            val code = JavaSource(
+                "Test.java",
+                """
+            public class Test {
+    
+                public void arrayTest() {
+                
+                    int index = 1;
+                    if (gimmeFive() == 5) {
+                        index = 3;
+                    }
+                    
+                    int[] array = new int[index];
+                    array[2] = 42;
+                }
+                
+                public int gimmeFive()
+                {
+                    return 5;
+                }
+            }
+            """
+            )
+
+            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test",
+                "arrayTest",
+                "()V",
+                classPool,
+                partialEvaluator
+            )
+
+            val (instruction, _) = instructions.last()
+            val s = partialEvaluator.getVariablesBefore(instruction)
+                .getValue(variableTable["array"]!!) as ArrayReferenceValue
+            s.type shouldBe "[I"
+            s shouldNot beInstanceOf<DetailedArrayReferenceValue>()
+        }
+
+        "Array value unknown when index out of bounds" {
+            val code = JavaSource(
+                "Test.java",
+                """
+            public class Test {
+    
+                public void arrayTest() {
+                    int[] array = new int[1];
+                    array[2] = 42;
+                }
+            }
+            """
+            )
+
+            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test",
+                "arrayTest",
+                "()V",
+                classPool,
+                partialEvaluator
+            )
+
+            val (instruction, _) = instructions.last()
+            val s = partialEvaluator.getVariablesBefore(instruction)
+                .getValue(variableTable["array"]!!) as ArrayReferenceValue
+            s.type shouldBe "[I"
+            s shouldNot beInstanceOf<DetailedArrayReferenceValue>()
         }
     }
 })

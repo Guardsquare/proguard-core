@@ -9,6 +9,7 @@
 ### Bug fixes
 
 - Fix `UnsupportedOperationException` when trying to shrink Kotlin metadata from a lambda function.
+- Change behavior of array index out of bounds during partial evaluation, which is now handled as an unknown value instead of throwing an exception in the partial evaluator method.
 
 ### API Changes
 

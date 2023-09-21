@@ -29,6 +29,7 @@ import proguard.classfile.instruction.SimpleInstruction;
 import proguard.classfile.instruction.TableSwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
+import proguard.evaluation.exception.ArrayIndexOutOfBounds;
 import proguard.evaluation.value.DoubleValue;
 import proguard.evaluation.value.FloatValue;
 import proguard.evaluation.value.InstructionOffsetValue;
@@ -136,35 +137,70 @@ implements   InstructionVisitor
             {
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                stack.push(arrayReference.integerArrayLoad(arrayIndex, valueFactory));
+                try
+                {
+                    stack.push(arrayReference.integerArrayLoad(arrayIndex, valueFactory));
+                }
+                catch (ArrayIndexOutOfBounds e)
+                {
+                    handleArrayException(arrayReference, arrayReference);
+                }
                 break;
             }
             case Instruction.OP_LALOAD:
             {
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                stack.push(arrayReference.longArrayLoad(arrayIndex, valueFactory));
+                try
+                {
+                    stack.push(arrayReference.longArrayLoad(arrayIndex, valueFactory));
+                }
+                catch (ArrayIndexOutOfBounds e)
+                {
+                    handleArrayException(arrayReference, arrayReference);
+                }
                 break;
             }
             case Instruction.OP_FALOAD:
             {
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                stack.push(arrayReference.floatArrayLoad(arrayIndex, valueFactory));
+                try
+                {
+                    stack.push(arrayReference.floatArrayLoad(arrayIndex, valueFactory));
+                }
+                catch (ArrayIndexOutOfBounds e)
+                {
+                    handleArrayException(arrayReference, arrayReference);
+                }
                 break;
             }
             case Instruction.OP_DALOAD:
             {
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                stack.push(arrayReference.doubleArrayLoad(arrayIndex, valueFactory));
+                try
+                {
+                    stack.push(arrayReference.doubleArrayLoad(arrayIndex, valueFactory));
+                }
+                catch (ArrayIndexOutOfBounds e)
+                {
+                    handleArrayException(arrayReference, arrayReference);
+                }
                 break;
             }
             case Instruction.OP_AALOAD:
             {
                 IntegerValue   arrayIndex     = stack.ipop();
                 ReferenceValue arrayReference = stack.apop();
-                stack.push(arrayReference.referenceArrayLoad(arrayIndex, valueFactory));
+                try
+                {
+                    stack.push(arrayReference.referenceArrayLoad(arrayIndex, valueFactory));
+                }
+                catch (ArrayIndexOutOfBounds e)
+                {
+                    handleArrayException(arrayReference, arrayReference);
+                }
                 break;
             }
             case Instruction.OP_IASTORE:
@@ -959,6 +995,22 @@ implements   InstructionVisitor
             stack.replaceReferences(arrayReference, copy);
             variables.replaceReferences(arrayReference, copy);
         }
-        ((ReferenceValue) copy).arrayStore(arrayIndex, value);
+        try
+        {
+            ((ReferenceValue) copy).arrayStore(arrayIndex, value);
+        }
+        catch (ArrayIndexOutOfBounds e)
+        {
+            handleArrayException(copy, arrayReference);
+        }
+    }
+
+    private void handleArrayException(Value toReplace, ReferenceValue currentValue)
+    {
+        Value unknownArray = valueFactory.createArrayReferenceValue(currentValue.getType() == null ? null : currentValue.getType().substring(1),
+                                                                    currentValue.getReferencedClass(),
+                                                                    valueFactory.createIntegerValue());
+        stack.replaceReferences(toReplace, unknownArray);
+        variables.replaceReferences(toReplace, unknownArray);
     }
 }

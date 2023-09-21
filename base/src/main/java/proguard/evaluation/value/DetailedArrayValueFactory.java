@@ -35,12 +35,19 @@ extends      IdentifiedValueFactory
                                                     IntegerValue arrayLength)
     {
         return type == null ?
-            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
-            new DetailedArrayReferenceValue(TypeConstants.ARRAY + type,
-                                            referencedClass,
-                                            false,
-                                            arrayLength,
-                                            this,
-                                            referenceID++);
+               TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
+               arrayLength.isParticular() ?
+               new DetailedArrayReferenceValue(TypeConstants.ARRAY + type,
+                                               referencedClass,
+                                               false,
+                                               arrayLength,
+                                               this,
+                                               referenceID++) :
+               new IdentifiedArrayReferenceValue(TypeConstants.ARRAY + type,
+                                                 referencedClass,
+                                                 false,
+                                                 arrayLength,
+                                                 this,
+                                                 referenceID++);
     }
 }
