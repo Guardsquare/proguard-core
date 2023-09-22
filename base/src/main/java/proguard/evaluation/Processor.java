@@ -143,6 +143,7 @@ implements   InstructionVisitor
                 }
                 catch (ArrayIndexOutOfBounds e)
                 {
+                    stack.push(valueFactory.createIntegerValue());
                     handleArrayException(arrayReference, arrayReference);
                 }
                 break;
@@ -157,6 +158,7 @@ implements   InstructionVisitor
                 }
                 catch (ArrayIndexOutOfBounds e)
                 {
+                    stack.push(valueFactory.createLongValue());
                     handleArrayException(arrayReference, arrayReference);
                 }
                 break;
@@ -171,6 +173,7 @@ implements   InstructionVisitor
                 }
                 catch (ArrayIndexOutOfBounds e)
                 {
+                    stack.push(valueFactory.createFloatValue());
                     handleArrayException(arrayReference, arrayReference);
                 }
                 break;
@@ -185,6 +188,7 @@ implements   InstructionVisitor
                 }
                 catch (ArrayIndexOutOfBounds e)
                 {
+                    stack.push(valueFactory.createDoubleValue());
                     handleArrayException(arrayReference, arrayReference);
                 }
                 break;
@@ -199,6 +203,7 @@ implements   InstructionVisitor
                 }
                 catch (ArrayIndexOutOfBounds e)
                 {
+                    stack.push(valueFactory.createReferenceValue());
                     handleArrayException(arrayReference, arrayReference);
                 }
                 break;

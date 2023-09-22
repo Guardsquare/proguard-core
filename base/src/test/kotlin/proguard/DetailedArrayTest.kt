@@ -12,6 +12,7 @@ import proguard.evaluation.value.ArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.UnknownIntegerValue
 import proguard.evaluation.value.ValueFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
@@ -291,6 +292,40 @@ class DetailedArrayTest : FreeSpec({
                 .getValue(variableTable["array"]!!) as ArrayReferenceValue
             s.type shouldBe "[I"
             s shouldNot beInstanceOf<DetailedArrayReferenceValue>()
+        }
+
+        "Load array out of bounds" {
+            val code = JavaSource(
+                "Test.java",
+                """
+            public class Test {
+    
+                public void arrayTest() {
+                    int[] array = new int[1];
+                    int number = array[2];
+                }
+            }
+            """
+            )
+
+            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test",
+                "arrayTest",
+                "()V",
+                classPool,
+                partialEvaluator
+            )
+
+            val (instruction, _) = instructions.last()
+            val s = partialEvaluator.getVariablesBefore(instruction)
+                .getValue(variableTable["array"]!!) as ArrayReferenceValue
+            s.type shouldBe "[I"
+            s shouldNot beInstanceOf<DetailedArrayReferenceValue>()
+
+            val number = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["number"]!!)
+            number shouldBe UnknownIntegerValue()
         }
     }
 })
