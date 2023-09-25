@@ -22,29 +22,21 @@ package proguard.dexfile.reader;
  * @version $Rev$
  */
 public class DexLabel {
-    public String displayName;
-    private int offset = -1;
+    private final String displayName;
 
     /**
      * @param offset the offset of the label
      */
     public DexLabel(int offset) {
-        super();
-        this.offset = offset;
+        this.displayName = "L" + offset;
     }
 
     public DexLabel() {
-        super();
+        this.displayName = "L" + this.hashCode();
     }
 
     @Override
     public String toString() {
-        if (displayName != null) {
-            return displayName;
-        }
-        if (offset >= 0) {
-            return String.format("L%04x", offset);
-        }
-        return String.format("L%08x", this.hashCode());
+        return displayName;
     }
 }
