@@ -62,6 +62,8 @@ task testAllJavaVersions() { testAllTask ->
     
         task("testJava$version", type: Test) {
 
+            systemProperty "proguard.pe.newextensiongeneralize", "true"
+
             // The version of bytebuddy used by mockk only supports Java 20 experimentally so far
             if (version == 20) systemProperty 'net.bytebuddy.experimental', true
 
