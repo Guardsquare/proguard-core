@@ -7,7 +7,7 @@ import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.testutils.ClassPoolBuilder
 
-class TypedReferenceValueTest: StringSpec({
+class TypedReferenceValueTest : StringSpec({
 
     "Regression test: generalizing two types into parent should set the `mayBeExtension` flag" {
         val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
