@@ -34,7 +34,7 @@ public abstract class ProcessableViewModel
      * @param processingFlags   The processing flags of a processable to be rendered.
      * @return                  A list of strings containing rendered flags.
      */
-    protected static List<String> renderProcessingFlags(int processingFlags)
+    public static List<String> renderProcessingFlags(int processingFlags)
     {
         List<String> renderedFlags = new ArrayList<>();
         for (int key : PROCESSING_FLAG_MAP.keySet())

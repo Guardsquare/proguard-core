@@ -8,16 +8,19 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import proguard.classfile.Clazz;
-import proguard.classfile.Field;
 import proguard.classfile.Member;
 import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
+import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.ExceptionsAttribute;
+import proguard.classfile.attribute.SignatureAttribute;
+import proguard.classfile.attribute.annotation.AnnotationsAttribute;
+import proguard.classfile.attribute.annotation.RuntimeVisibleTypeAnnotationsAttribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-import proguard.classfile.constant.Constant;
 import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.renderer.core.StringListWriter;
 import proguard.classfile.visitor.ClassPrinter;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
@@ -109,23 +112,66 @@ public class MethodViewModel extends MemberViewModel
             {
                 programMethod.attributesAccept(programClass, new AttributeVisitor()
                 {
-                    List<String> exceptionAttributeList = new ArrayList<>();
+                    List<String> exceptionAttributeList                  = new ArrayList<>();
+                    List<String> signatureAttributeList                  = new ArrayList<>();
+                    List<String> runtimeInvisibleAnnotationAttributeList = new ArrayList<>();
+
+
+                    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+                    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
+                    {
+                        signatureAttributeList.add(renderAttributeAsString(clazz, method, signatureAttribute));
+                        if (!attributeList.containsKey("signature"))
+                            attributeList.put("signature", signatureAttributeList);
+                    }
+
                     public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
                     {
-                        StringWriter stringWriter = new StringWriter();
-                        codeAttribute.accept(clazz, method, new ClassPrinter(new PrintWriter(stringWriter)));
-                        stringWriter.flush();
-                        attributeList.put("code", stringWriter.toString());
+                        attributeList.put("code", renderAttributeAsList(clazz, method, codeAttribute));
                     }
 
                     public void visitExceptionsAttribute(Clazz clazz, Method method, ExceptionsAttribute exceptionsAttribute)
                     {
-                        StringWriter stringWriter = new StringWriter();
-                        exceptionsAttribute.accept(clazz, method, new ClassPrinter(new PrintWriter(stringWriter)));
-                        stringWriter.flush();
-                        exceptionAttributeList.add(stringWriter.toString());
+                        exceptionAttributeList.add(renderAttributeAsString(clazz, method, exceptionsAttribute));
                         if (!attributeList.containsKey("exceptions"))
                             attributeList.put("exceptions", exceptionAttributeList);
+                    }
+
+                    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
+                    {
+                        runtimeInvisibleAnnotationAttributeList.add(renderAttributeAsString(clazz, method, runtimeVisibleTypeAnnotationsAttribute));
+                        if (!attributeList.containsKey("runtime invisible annotations"))
+                            attributeList.put("runtime invisible annotations", runtimeInvisibleAnnotationAttributeList);
+                    }
+
+                    public void visitAnyAnnotationsAttribute(Clazz clazz, AnnotationsAttribute annotationsAttribute)
+                    {
+                        Object tmp = attributeList.get(annotationsAttribute.getClass().getName());
+                        List attributeContainer = null;
+                        if (tmp == null) {
+                            attributeContainer = new ArrayList<>();
+                        }
+                        else {
+                            attributeContainer = (List) tmp;
+                        }
+
+                        runtimeInvisibleAnnotationAttributeList.add(renderAttributeAsString(clazz, method, annotationsAttribute));
+                        if (!attributeList.containsKey(annotationsAttribute.getClass().getName()))
+                            attributeList.put(annotationsAttribute.getClass().getName(), attributeContainer);
+                    }
+
+                    private String renderAttributeAsString(Clazz clazz, Method method, Attribute attribute) {
+                        StringWriter stringWriter = new StringWriter();
+                        attribute.accept(clazz, method, new ClassPrinter(new PrintWriter(stringWriter)));
+                        stringWriter.flush();
+                        return stringWriter.toString();
+                    }
+
+                    private List<String> renderAttributeAsList(Clazz clazz, Method method, Attribute attribute) {
+                        StringListWriter writer = new StringListWriter(new ArrayList<>());
+                        attribute.accept(clazz, method, new ClassPrinter(new PrintWriter(writer)));
+                        return writer.getOutput();
                     }
                 });
             }

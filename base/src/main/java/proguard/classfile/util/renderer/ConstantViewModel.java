@@ -27,6 +27,7 @@ public class ConstantViewModel extends ProcessableViewModel
     public ConstantViewModel(Clazz clazz, Constant constant)
     {
         model = new MemberViewModel.Pair<>(clazz, constant);
+        this.processingFlags = renderProcessingFlags(constant.processingFlags);
     }
 
     /**

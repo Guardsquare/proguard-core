@@ -1,7 +1,9 @@
 package proguard.classfile.util.renderer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
