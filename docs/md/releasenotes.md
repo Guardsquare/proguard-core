@@ -12,6 +12,7 @@
 - Change behavior of array index out of bounds during partial evaluation, which is now handled as an unknown value instead of throwing an exception in the partial evaluator method.
 - Fix `IllegalArgumentException` when joining values with different computational type during value analysis.
 - Fix `TypedReferenceValue.generalize()` not setting `mayBeExtension` to true when generalizing to common parent type. For now only available experimentally by setting the system property `proguard.pe.newextensiongeneralize`.
+- Fix `MultiTypeReferenceValue` possibly using an imprecise type metadata (i.e., mayBeExtension, mayBeNull) in the generalized type.
 
 ### API Changes
 

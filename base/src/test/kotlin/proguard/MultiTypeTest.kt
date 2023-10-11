@@ -312,8 +312,7 @@ class MultiTypeTest : FreeSpec({
                 generalized.potentialTypes shouldBe setOf(a, b)
                 generalized.mayBeUnknown shouldBe false
             }
-            // Disabled since `MultiTypeReferenceValue#generalize` doesn't handle `mayBeExtension` properly.
-            "(X, Super) -> Super".config(enabled = false) {
+            "(X, Super) -> Super" {
                 var generalized = multiA.generalize(multiSuper) as MultiTypedReferenceValue
                 generalized.generalizedType shouldBe superMaybeExtension
                 generalized.potentialTypes shouldBe setOf(a, superClass)

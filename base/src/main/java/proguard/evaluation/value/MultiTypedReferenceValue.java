@@ -62,13 +62,10 @@ public class MultiTypedReferenceValue extends ReferenceValue
 
     private TypedReferenceValue checkForAlreadyContainedType(TypedReferenceValue newGeneralizedType)
     {
-        // If we have the generalized type already in our potential types, use this one instead.
-        // Even if this new type might have different values for "mayBeExtension" or "mayBeNull"
-        Optional<TypedReferenceValue> matchingPotentialType = potentialTypes.stream()
-                                                                            .filter(t -> Objects.equals(t.getType(), newGeneralizedType.getType()) &&
-                                                                                         Objects.equals(t.getReferencedClass(), newGeneralizedType.getReferencedClass()))
-                                                                            .findAny();
-        return matchingPotentialType.orElse(newGeneralizedType);
+        return potentialTypes.stream()
+                             .filter(newGeneralizedType::equals)
+                             .findAny()
+                             .orElse(newGeneralizedType);
     }
 
     public TypedReferenceValue generalize(Set<TypedReferenceValue> potentialTypes)
