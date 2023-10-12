@@ -58,7 +58,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                 .programClass
 
             val tracker = JsonPrinter()
-            val pe = PartialEvaluator.Builder.create().setPrettyPrinting().setStateTracker(tracker).build()
+            val pe = PartialEvaluator.Builder.create().setStateTracker(tracker).build()
             shouldThrow<VariableEmptySlotException> {
                 evaluateProgramClass(
                     programClass,
@@ -93,7 +93,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<StackGeneralizationException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator.Builder.create().build(),
                     "test",
                     "()I",
                 )
@@ -114,7 +114,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<VariableTypeException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator.Builder.create().build(),
                     "test",
                     "()Ljava/lang/Object;",
                 )
@@ -133,7 +133,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<StackTypeException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator.Builder.create().build(),
                     "test",
                     "()Ljava/lang/Object;",
                 )
@@ -169,7 +169,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<StackTypeException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator.Builder.create().build(),
                     "test",
                     "()I",
                 )
@@ -190,7 +190,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<StackCategoryOneException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator.Builder.create().build(),
                     "test",
                     "()J",
                 )
@@ -211,7 +211,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
             shouldThrow<StackTypeException> {
                 evaluateProgramClass(
                     programClass,
-                    PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                    PartialEvaluator.Builder.create().build(),
                     "test",
                     "()F",
                 )
@@ -447,7 +447,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             evaluateProgramClass(
                 programClass,
-                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                PartialEvaluator.Builder.create().build(),
                 "test",
                 "()I",
             )
@@ -468,7 +468,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             evaluateProgramClass(
                 programClass,
-                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                PartialEvaluator.Builder.create().build(),
                 "test",
                 "()V",
             )
@@ -490,7 +490,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
 
             evaluateProgramClass(
                 programClass,
-                PartialEvaluator.Builder.create().setPrettyPrinting().build(),
+                PartialEvaluator.Builder.create().build(),
                 "test",
                 "()V",
             )

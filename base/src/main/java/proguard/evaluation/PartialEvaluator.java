@@ -218,7 +218,7 @@ implements   AttributeVisitor,
         this.invocationUnit               = invocationUnit;
         this.evaluateAllCode              = evaluateAllCode;
         // To always support pretty printing, set this default value larger than 0.
-        this.prettyInstructionBuffered    = 0;
+        this.prettyInstructionBuffered    = 7;
         this.extraInstructionVisitor      = extraInstructionVisitor;
         this.branchUnit                   = branchUnit;
         this.branchTargetFinder           = branchTargetFinder;
@@ -263,7 +263,7 @@ implements   AttributeVisitor,
         private InvocationUnit                    invocationUnit;
         private boolean                           evaluateAllCode               = true;
         // To always support pretty printing, set this default value larger than 0.
-        private int                               prettyInstructionBuffered     = 0;
+        private int                               prettyInstructionBuffered     = 7;
         private InstructionVisitor                extraInstructionVisitor;
         private BasicBranchUnit                   branchUnit;
         private BranchTargetFinder                branchTargetFinder;
@@ -327,11 +327,11 @@ implements   AttributeVisitor,
         }
 
         /**
-         * Enable pretty printing with a default buffer size of 7.
+         * Disable pretty printing of errors.
          */
-        public Builder setPrettyPrinting()
+        public Builder disablePrettyPrinting()
         {
-            return this.setPrettyPrinting(7);
+            return this.setPrettyPrinting(0);
         }
 
         /**

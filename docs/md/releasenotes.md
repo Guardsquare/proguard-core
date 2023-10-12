@@ -1,8 +1,14 @@
+## Version 9.1.1
+
+### Improved
+
+- Enable new `PartialEvaluator` error message format by default.
+
 ## Version 9.1
 
 ### Improved
 
-- Added `PartialEvaluator` JSON output for use with [proguard-core-visualizer](https://github.com/Guardsquare/proguard-core-visualizer).
+- Added `PartialEvaluator` JSON output.
 - Improve `PartialEvaluator` error messages when enabled with `PartialEvaluator.Builder.setPrettyPrinting()`.
 - Improve documentation for the `PartialEvaluator` [https://guardsquare.github.io/proguard-core/partialevaluator.html](https://guardsquare.github.io/proguard-core/partialevaluator.html).
 
