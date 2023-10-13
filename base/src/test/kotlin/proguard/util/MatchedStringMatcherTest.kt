@@ -52,5 +52,45 @@ class MatchedStringMatcherTest : FreeSpec({
                 MatchedStringMatcher(variableStringMatcher, null).matches(shorterString) shouldBe false
             }
         }
+
+        "When the prefix is queried" - {
+            "Then the prefix should be the same string" {
+                MatchedStringMatcher(variableStringMatcher, null).prefix() shouldBe string
+            }
+        }
+    }
+
+    "Given a matched string followed by a fixed string" - {
+        val matchedString = "foo"
+        val fixedString = "bar"
+
+        val variableStringMatcher = mockk<VariableStringMatcher>()
+        every { variableStringMatcher.matchingString } returns matchedString
+
+        val matchedStringMatcher = MatchedStringMatcher(variableStringMatcher, FixedStringMatcher(fixedString))
+
+        "When matched against the full string" - {
+            val fullString = "foobar"
+
+            "Then they should match" {
+                matchedStringMatcher.matches(fullString) shouldBe true
+            }
+
+            "Then the prefix should match" {
+                matchedStringMatcher.prefix() shouldBe fullString
+            }
+        }
+
+        "When matched against just the matched string" - {
+            "Then they should not match" {
+                matchedStringMatcher.matches(matchedString) shouldBe false
+            }
+        }
+
+        "When the prefix is queried" - {
+            "Then the prefix should be the full string" {
+                matchedStringMatcher.prefix() shouldBe "foobar"
+            }
+        }
     }
 })

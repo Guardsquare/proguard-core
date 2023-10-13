@@ -49,6 +49,23 @@ public class MatchedStringMatcher extends StringMatcher
     // Implementation for StringMatcher.
 
     @Override
+    public String prefix()
+    {
+        String prefix = variableStringMatcher.getMatchingString();
+        // Append the next matcher's prefix if applicable
+        if (nextMatcher != null)
+        {
+            String nextPrefix = nextMatcher.prefix();
+            if (nextPrefix == null)
+            {
+                return null;
+            }
+            prefix += nextMatcher.prefix();
+        }
+        return prefix;
+    }
+
+    @Override
     protected boolean matches(String string, int beginOffset, int endOffset)
     {
         String matchingString = variableStringMatcher.getMatchingString();
