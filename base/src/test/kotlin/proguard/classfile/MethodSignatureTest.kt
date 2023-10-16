@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldNotBe
 
 class MethodSignatureTest : FreeSpec({
 
-    "Direct comparison" - {
+    "Direct comparison" {
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
@@ -30,7 +30,7 @@ class MethodSignatureTest : FreeSpec({
         m2.getPrettyFqn() shouldBe "void String.foo(int,Object)"
     }
 
-    "Different signatures" - {
+    "Different signatures" {
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
@@ -54,7 +54,7 @@ class MethodSignatureTest : FreeSpec({
         m2.getPrettyFqn() shouldNotBe "void String.foo(int,Object)"
     }
 
-    "NULL clazz comparison" - {
+    "NULL clazz comparison" {
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
@@ -69,7 +69,7 @@ class MethodSignatureTest : FreeSpec({
         MethodSignature.matchesIgnoreNull(m1, m2) shouldBe true
     }
 
-    "NULL method comparison" - {
+    "NULL method comparison" {
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
@@ -84,7 +84,7 @@ class MethodSignatureTest : FreeSpec({
         MethodSignature.matchesIgnoreNull(m1, m2) shouldBe true
     }
 
-    "NULL descriptor comparison" - {
+    "NULL descriptor comparison" {
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
