@@ -59,7 +59,10 @@ public class FixedStringMatcher extends StringMatcher
     @Override
     public String prefix()
     {
-        return this.fixedString;
+        // Append the next matcher's prefix if applicable
+        return (nextMatcher != null && nextMatcher.prefix() != null)
+            ? fixedString + nextMatcher.prefix()
+            : fixedString;
     }
 
     @Override

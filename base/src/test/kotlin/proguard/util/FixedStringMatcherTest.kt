@@ -47,5 +47,42 @@ class FixedStringMatcherTest : FreeSpec({
                 FixedStringMatcher(string).matches(shorterString) shouldBe false
             }
         }
+
+        "When the prefix is queried" - {
+            "Then the prefix should be the same string" {
+                FixedStringMatcher(string).prefix() shouldBe string
+            }
+        }
+    }
+
+    "Given a fixed string followed by another fixed string" - {
+        val firstString = "foo"
+        val secondString = "bar"
+
+        val fixedStringMatcher = FixedStringMatcher(firstString, FixedStringMatcher(secondString))
+
+        "When matched against the full string" - {
+            val fullString = "foobar"
+
+            "Then they should match" {
+                fixedStringMatcher.matches(fullString) shouldBe true
+            }
+
+            "Then the prefix should match" {
+                fixedStringMatcher.prefix() shouldBe fullString
+            }
+        }
+
+        "When matched against just the matched string" - {
+            "Then they should not match" {
+                fixedStringMatcher.matches(firstString) shouldBe false
+            }
+        }
+
+        "When the prefix is queried" - {
+            "Then the prefix should be the full string" {
+                fixedStringMatcher.prefix() shouldBe "foobar"
+            }
+        }
     }
 })
