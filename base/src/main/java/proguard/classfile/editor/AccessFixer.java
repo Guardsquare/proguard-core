@@ -343,7 +343,7 @@ implements   ClassVisitor
     /**
      * Returns whether the two given classes are in the same package.
      */
-    private boolean inSamePackage(Clazz class1, Clazz class2)
+    private static boolean inSamePackage(Clazz class1, Clazz class2)
     {
         return ClassUtil.internalPackageName(class1.getName()).equals(
                ClassUtil.internalPackageName(class2.getName()));

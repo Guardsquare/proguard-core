@@ -20,11 +20,14 @@ package proguard.classfile.editor
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.ClassConstants.NAME_JAVA_LANG_OBJECT
+import proguard.classfile.ProgramClass
+import proguard.classfile.ProgramField
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AllInnerClassesInfoVisitor
 import proguard.classfile.editor.ClassReferenceFixer.shortKotlinNestedClassName
@@ -41,11 +44,13 @@ import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
+import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.ClassRenamer
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
 import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
 import java.lang.RuntimeException
 
@@ -358,6 +363,153 @@ class ClassReferenceFixerTest : FreeSpec({
 
             "Then the inner class' short name should remain unchanged" {
                 name shouldBe "${'$'}Bar"
+            }
+        }
+    }
+
+    "Given two classes with an unidirectional association relationship" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Producer.java",
+                """
+                            public class Producer {} 
+                """.trimIndent()
+            ),
+            JavaSource(
+                "Consumer.java",
+                """
+                            public class Consumer {
+                                private Producer producer = new Producer();
+                            }
+                """.trimIndent()
+            )
+        )
+
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
+
+        "When we obfuscate the Producer class" - {
+            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+
+            "And apply the ClassReferenceFixer without ensuring unique names" - {
+                programClassPool.classesAccept(ClassReferenceFixer(false))
+
+                "Then field `producer`'s name in the Consumer class remains unchanged" {
+                    programClassPool.getClass("Consumer").findField("producer", "LObfuscated;") shouldNotBe null
+                }
+            }
+        }
+    }
+
+    "Given two classes with an unidirectional association relationship" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Producer.java",
+                """
+                            public class Producer {} 
+                """.trimIndent()
+            ),
+            JavaSource(
+                "Consumer.java",
+                """
+                            public class Consumer {
+                                private Producer producer = new Producer();
+                            }
+                """.trimIndent()
+            )
+        )
+
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
+
+        "When we obfuscate the Producer class" - {
+            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+
+            "And apply the ClassReferenceFixer with ensuring unique names" - {
+                programClassPool.classesAccept(ClassReferenceFixer(true))
+
+                "Then field `producer`'s name in the Consumer class should be renamed" {
+                    programClassPool.getClass("Consumer").findField("producer", "LObfuscated;") shouldBe null
+                }
+            }
+        }
+    }
+
+    "Given two classes with an unidirectional association relationship" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Producer.java",
+                """
+                            public class Producer {} 
+                """.trimIndent()
+            ),
+            JavaSource(
+                "Consumer.java",
+                """
+                            public class Consumer {
+                                private Producer producer = new Producer();
+                            }
+                """.trimIndent()
+            )
+        )
+
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
+
+        "When we obfuscate the Producer class" - {
+            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+
+            "And there is no member signature clashing " - {
+                "But we apply the ClassReferenceFixer with rename member when there is a member signature clash" - {
+                    programClassPool.classesAccept(ClassReferenceFixer(ClassReferenceFixer.SignatureConflictStrategy.RENAME_FIELD_IF_CLASH))
+
+                    "Then field `producer`'s name in the Consumer class should remain unchanged" {
+                        programClassPool.getClass("Consumer").findField("producer", "LObfuscated;") shouldNotBe null
+                    }
+                }
+            }
+        }
+    }
+
+    "Given two classes with an unidirectional association relationship" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Producer.java",
+                """
+                            public class Producer {} 
+                """.trimIndent()
+            ),
+            JavaSource(
+                "Consumer.java",
+                """
+                            public class Consumer {
+                                private Producer producer = new Producer();
+                            }
+                """.trimIndent()
+            )
+        )
+
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
+
+        "When we obfuscate the Producer class and introduce a member that clashes" - {
+            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+            val consumerClass = programClassPool.getClass("Consumer") as ProgramClass
+            val fieldToRename = consumerClass.findField("producer", "LProducer;")
+            val constantEditor = ConstantPoolEditor(consumerClass)
+            val classEditor = ClassEditor(consumerClass)
+
+            classEditor.addField(
+                ProgramField(
+                    PUBLIC,
+                    constantEditor.addUtf8Constant("producer"),
+                    constantEditor.addUtf8Constant("LObfuscated;"),
+                    programClassPool.getClass("Producer")
+                )
+            )
+
+            "And apply the ClassReferenceFixer with rename member when there is a member signature clash" - {
+                programClassPool.classesAccept(ClassReferenceFixer(ClassReferenceFixer.SignatureConflictStrategy.RENAME_FIELD_IF_CLASH))
+
+                "Then field `producer`'s name in the Consumer class should be renamed" {
+                    fieldToRename.getName(consumerClass) shouldNotBe "producer"
+                }
             }
         }
     }

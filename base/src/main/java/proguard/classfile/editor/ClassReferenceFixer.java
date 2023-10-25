@@ -19,6 +19,7 @@ package proguard.classfile.editor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
@@ -104,7 +105,10 @@ import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
 import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.util.DescriptorClassEnumeration;
+import proguard.classfile.visitor.AllFieldVisitor;
 import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberCounter;
+import proguard.classfile.visitor.MemberNameFilter;
 import proguard.classfile.visitor.MemberVisitor;
 
 import static proguard.classfile.kotlin.KotlinAnnotationArgument.EnumValue;
@@ -112,6 +116,7 @@ import static proguard.classfile.kotlin.KotlinAnnotationArgument.Value;
 import static proguard.classfile.kotlin.KotlinConstants.FUNCTION_NAME_MANGLE_SEPARATOR;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
 import static proguard.classfile.util.ClassUtil.internalSimpleClassName;
+
 
 /**
  * This {@link ClassVisitor} fixes references of constant pool entries, fields,
@@ -135,9 +140,32 @@ implements   ClassVisitor,
              AnnotationVisitor,
              ElementValueVisitor
 {
-    private static final Logger logger = LogManager.getLogger(ClassReferenceFixer.class);
+    private static final boolean DEBUG = false;
+    private static final Logger  logger = LogManager.getLogger(ClassReferenceFixer.class);
 
-    private final boolean ensureUniqueMemberNames;
+    /**
+     * Strategy to apply when the descriptor of a member needs to be updated.
+     */
+    public enum SignatureConflictStrategy
+    {
+        /**
+         * Do not update the name of members when updating their descriptor.
+         */
+        DONT_RENAME,
+
+        /**
+         * Rename the fields whose name clashes with another field in the class scope when updating
+         * the descriptor. This is to ensure that the fields' name is unique in the class scope.
+         */
+        RENAME_FIELD_IF_CLASH,
+
+        /**
+         * Always renaming members to ensure that they have a unique name when updating their descriptor.
+         */
+        ENSURE_UNIQUE_MEMBER_NAME
+    }
+
+    private final SignatureConflictStrategy renameStrategy;
 
     private final KotlinReferenceFixer kotlinReferenceFixer = new KotlinReferenceFixer();
 
@@ -148,9 +176,25 @@ implements   ClassVisitor,
      *                                names, in order to avoid naming conflicts
      *                                with similar methods.
      */
+    @Deprecated
     public ClassReferenceFixer(boolean ensureUniqueMemberNames)
     {
-        this.ensureUniqueMemberNames = ensureUniqueMemberNames;
+        this.renameStrategy = ensureUniqueMemberNames ?
+            SignatureConflictStrategy.ENSURE_UNIQUE_MEMBER_NAME :
+            SignatureConflictStrategy.DONT_RENAME;
+    }
+
+
+    /**
+     * Creates a new ClassReferenceFixer.
+     * @param renameStrategy specifies how class members whose
+     *                       descriptor changes should get new, unique
+     *                       names, in order to avoid naming conflicts
+     *                       with similar members.
+     */
+    public ClassReferenceFixer(SignatureConflictStrategy renameStrategy)
+    {
+        this.renameStrategy = renameStrategy;
     }
 
 
@@ -229,12 +273,29 @@ implements   ClassVisitor,
                 constantPoolEditor.addUtf8Constant(newDescriptor);
 
             // Update the name, if requested.
-            if (ensureUniqueMemberNames)
+            if (renameStrategy != SignatureConflictStrategy.DONT_RENAME)
             {
-                String name    = programMember.getName(programClass);
-                String newName = newUniqueMemberName(name, descriptor);
-                programMember.u2nameIndex =
-                    constantPoolEditor.addUtf8Constant(newName);
+                String        name           = programMember.getName(programClass);
+                MemberCounter clashesCounter = new MemberCounter();
+
+                programClass.accept(
+                    new AllFieldVisitor(
+                    new MemberNameFilter(name, clashesCounter)));
+
+                if (renameStrategy == SignatureConflictStrategy.ENSURE_UNIQUE_MEMBER_NAME ||
+                    (programMember instanceof Field && clashesCounter.getCount() > 1))
+                {
+                    String newName = newUniqueMemberName(name, descriptor);
+                    programMember.u2nameIndex =
+                        constantPoolEditor.addUtf8Constant(newName);
+
+                    if (DEBUG)
+                    {
+                        System.out.println("Renaming program member " + programClass.getName() + "." + name + descriptor +
+                                           " to " +  programClass.getName() + "." + newName + descriptor + " due to " +
+                                           renameStrategy.toString());
+                    }
+                }
             }
         }
 
