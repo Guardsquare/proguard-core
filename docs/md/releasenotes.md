@@ -3,7 +3,7 @@
 ### Improved
 
 - Enable new `PartialEvaluator` error message format by default.
-- Add an option for `ClassReferenceFixer` to only rename fields when there is a name clash.
+- Add the ability to implement a custom renaming strategy for `ClassReferenceFixer`.
 
 ## Version 9.1
 

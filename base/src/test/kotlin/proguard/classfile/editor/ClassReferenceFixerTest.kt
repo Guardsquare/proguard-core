@@ -21,15 +21,21 @@ package proguard.classfile.editor
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.ClassConstants
 import proguard.classfile.ClassConstants.NAME_JAVA_LANG_OBJECT
+import proguard.classfile.Method
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramField
+import proguard.classfile.ProgramMember
+import proguard.classfile.TypeConstants
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AllInnerClassesInfoVisitor
+import proguard.classfile.editor.ClassReferenceFixer.NameGenerationStrategy
 import proguard.classfile.editor.ClassReferenceFixer.shortKotlinNestedClassName
 import proguard.classfile.kotlin.KotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation
@@ -46,13 +52,16 @@ import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.ClassRenamer
+import proguard.classfile.visitor.AllFieldVisitor
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassNameFilter
+import proguard.classfile.visitor.MemberCounter
+import proguard.classfile.visitor.MemberNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
-import java.lang.RuntimeException
+import kotlin.math.abs
 
 class ClassReferenceFixerTest : FreeSpec({
     "Kotlin nested class short names should be generated correctly" - {
@@ -433,6 +442,21 @@ class ClassReferenceFixerTest : FreeSpec({
         }
     }
 
+    val renameFieldIfClashStrategy = NameGenerationStrategy { programClass: ProgramClass, programMember: ProgramMember?, name: String, descriptor: String ->
+        val newUniqueName = if (name == ClassConstants.METHOD_NAME_INIT) ClassConstants.METHOD_NAME_INIT else name + TypeConstants.SPECIAL_MEMBER_SEPARATOR + java.lang.Long.toHexString(abs(descriptor.hashCode().toDouble()).toLong())
+        if (programMember is Method) {
+            return@NameGenerationStrategy newUniqueName
+        } else {
+            val clashesCounter = MemberCounter()
+            programClass.accept(
+                AllFieldVisitor(
+                    MemberNameFilter(name, clashesCounter)
+                )
+            )
+            return@NameGenerationStrategy if (clashesCounter.count > 1) newUniqueName else name
+        }
+    }
+
     "Given two classes with an unidirectional association relationship" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
@@ -458,7 +482,7 @@ class ClassReferenceFixerTest : FreeSpec({
 
             "And there is no member signature clashing " - {
                 "But we apply the ClassReferenceFixer with rename member when there is a member signature clash" - {
-                    programClassPool.classesAccept(ClassReferenceFixer(ClassReferenceFixer.SignatureConflictStrategy.RENAME_FIELD_IF_CLASH))
+                    programClassPool.classesAccept(ClassReferenceFixer(renameFieldIfClashStrategy))
 
                     "Then field `producer`'s name in the Consumer class should remain unchanged" {
                         programClassPool.getClass("Consumer").findField("producer", "LObfuscated;") shouldNotBe null
@@ -505,10 +529,65 @@ class ClassReferenceFixerTest : FreeSpec({
             )
 
             "And apply the ClassReferenceFixer with rename member when there is a member signature clash" - {
-                programClassPool.classesAccept(ClassReferenceFixer(ClassReferenceFixer.SignatureConflictStrategy.RENAME_FIELD_IF_CLASH))
+                programClassPool.classesAccept(ClassReferenceFixer(renameFieldIfClashStrategy))
 
                 "Then field `producer`'s name in the Consumer class should be renamed" {
                     fieldToRename.getName(consumerClass) shouldNotBe "producer"
+                }
+            }
+        }
+    }
+
+    "Given two classes with an unidirectional association relationship" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Producer.java",
+                """
+                            public class Producer {} 
+                """.trimIndent()
+            ),
+            JavaSource(
+                "Consumer.java",
+                """
+                            public class Consumer {
+                                private Producer producer = new Producer();
+                                public Producer getProducer() {
+                                    return producer;
+                                }
+                            }
+                """.trimIndent()
+            )
+        )
+
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
+
+        "When we obfuscate the Producer class and introduce a member that clashes" - {
+            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+            val consumerClass = programClassPool.getClass("Consumer") as ProgramClass
+            val fieldToRename = consumerClass.findField("producer", "LProducer;")
+            val methodToRename = consumerClass.findMethod("getProducer", "()LProducer;")
+            val constantEditor = ConstantPoolEditor(consumerClass)
+            val classEditor = ClassEditor(consumerClass)
+
+            classEditor.addField(
+                ProgramField(
+                    PUBLIC,
+                    constantEditor.addUtf8Constant("producer"),
+                    constantEditor.addUtf8Constant("LObfuscated;"),
+                    programClassPool.getClass("Producer")
+                )
+            )
+
+            "And apply the ClassReferenceFixer with the RENAME_MEMBER strategy when there is a signature clash" - {
+                programClassPool.classesAccept(ClassReferenceFixer(renameFieldIfClashStrategy))
+
+                "Then field 'producer' in the Consumer class should be renamed" {
+                    fieldToRename.getName(consumerClass) shouldNotBe "producer"
+                }
+
+                "Then method 'getProducer' in the Consumer class should always be renamed even if there is no clash" {
+                    methodToRename.getName(consumerClass) shouldNotBe "getProducer"
+                    methodToRename.getName(consumerClass) shouldContain "$"
                 }
             }
         }

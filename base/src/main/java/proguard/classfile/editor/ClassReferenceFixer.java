@@ -105,10 +105,7 @@ import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
 import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.util.DescriptorClassEnumeration;
-import proguard.classfile.visitor.AllFieldVisitor;
 import proguard.classfile.visitor.ClassVisitor;
-import proguard.classfile.visitor.MemberCounter;
-import proguard.classfile.visitor.MemberNameFilter;
 import proguard.classfile.visitor.MemberVisitor;
 
 import static proguard.classfile.kotlin.KotlinAnnotationArgument.EnumValue;
@@ -121,7 +118,7 @@ import static proguard.classfile.util.ClassUtil.internalSimpleClassName;
 /**
  * This {@link ClassVisitor} fixes references of constant pool entries, fields,
  * methods, attributes and kotlin metadata to classes whose names have
- * changed. Descriptors of member references are not updated yet.
+ * changed. Descriptors of programMember references are not updated yet.
  *
  * @see MemberReferenceFixer
  * @author Eric Lafortune
@@ -140,32 +137,9 @@ implements   ClassVisitor,
              AnnotationVisitor,
              ElementValueVisitor
 {
-    private static final boolean DEBUG = false;
-    private static final Logger  logger = LogManager.getLogger(ClassReferenceFixer.class);
+    private static final Logger logger = LogManager.getLogger(ClassReferenceFixer.class);
 
-    /**
-     * Strategy to apply when the descriptor of a member needs to be updated.
-     */
-    public enum SignatureConflictStrategy
-    {
-        /**
-         * Do not update the name of members when updating their descriptor.
-         */
-        DONT_RENAME,
-
-        /**
-         * Rename the fields whose name clashes with another field in the class scope when updating
-         * the descriptor. This is to ensure that the fields' name is unique in the class scope.
-         */
-        RENAME_FIELD_IF_CLASH,
-
-        /**
-         * Always renaming members to ensure that they have a unique name when updating their descriptor.
-         */
-        ENSURE_UNIQUE_MEMBER_NAME
-    }
-
-    private final SignatureConflictStrategy renameStrategy;
+    private NameGenerationStrategy newNameStrategy;
 
     private final KotlinReferenceFixer kotlinReferenceFixer = new KotlinReferenceFixer();
 
@@ -176,25 +150,23 @@ implements   ClassVisitor,
      *                                names, in order to avoid naming conflicts
      *                                with similar methods.
      */
-    @Deprecated
     public ClassReferenceFixer(boolean ensureUniqueMemberNames)
     {
-        this.renameStrategy = ensureUniqueMemberNames ?
-            SignatureConflictStrategy.ENSURE_UNIQUE_MEMBER_NAME :
-            SignatureConflictStrategy.DONT_RENAME;
+        newNameStrategy = ensureUniqueMemberNames ?
+            (programClass, programMember, originalName, originalDescriptor) -> originalName.equals(ClassConstants.METHOD_NAME_INIT) ?
+                ClassConstants.METHOD_NAME_INIT :
+                originalName + TypeConstants.SPECIAL_MEMBER_SEPARATOR + Long.toHexString(Math.abs(originalDescriptor.hashCode())) : null;
     }
-
 
     /**
      * Creates a new ClassReferenceFixer.
-     * @param renameStrategy specifies how class members whose
-     *                       descriptor changes should get new, unique
-     *                       names, in order to avoid naming conflicts
-     *                       with similar members.
+     * @param newNameStrategy specifies how class members whose descriptor
+     *                        changes should get a new name in order to avoid
+     *                        naming conflicts with similar members.
      */
-    public ClassReferenceFixer(SignatureConflictStrategy renameStrategy)
+    public ClassReferenceFixer(NameGenerationStrategy newNameStrategy)
     {
-        this.renameStrategy = renameStrategy;
+        this.newNameStrategy = newNameStrategy;
     }
 
 
@@ -273,29 +245,12 @@ implements   ClassVisitor,
                 constantPoolEditor.addUtf8Constant(newDescriptor);
 
             // Update the name, if requested.
-            if (renameStrategy != SignatureConflictStrategy.DONT_RENAME)
+            if (newNameStrategy != null)
             {
-                String        name           = programMember.getName(programClass);
-                MemberCounter clashesCounter = new MemberCounter();
-
-                programClass.accept(
-                    new AllFieldVisitor(
-                    new MemberNameFilter(name, clashesCounter)));
-
-                if (renameStrategy == SignatureConflictStrategy.ENSURE_UNIQUE_MEMBER_NAME ||
-                    (programMember instanceof Field && clashesCounter.getCount() > 1))
-                {
-                    String newName = newUniqueMemberName(name, descriptor);
-                    programMember.u2nameIndex =
-                        constantPoolEditor.addUtf8Constant(newName);
-
-                    if (DEBUG)
-                    {
-                        System.out.println("Renaming program member " + programClass.getName() + "." + name + descriptor +
-                                           " to " +  programClass.getName() + "." + newName + descriptor + " due to " +
-                                           renameStrategy.toString());
-                    }
-                }
+                String name    = programMember.getName(programClass);
+                String newName = newNameStrategy.getNewName(programClass, programMember, name, descriptor);
+                programMember.u2nameIndex =
+                    constantPoolEditor.addUtf8Constant(newName);
             }
         }
 
@@ -1145,17 +1100,6 @@ implements   ClassVisitor,
 
 
     /**
-     * Returns a unique class member name, based on the given name and descriptor.
-     */
-    private String newUniqueMemberName(String name, String descriptor)
-    {
-        return name.equals(ClassConstants.METHOD_NAME_INIT) ?
-            ClassConstants.METHOD_NAME_INIT :
-            name + TypeConstants.SPECIAL_MEMBER_SEPARATOR + Long.toHexString(Math.abs((descriptor).hashCode()));
-    }
-
-
-    /**
      * Returns the new class name based on the given class name and the new
      * name of the given referenced class. Class names of array types
      * are handled properly.
@@ -1267,5 +1211,23 @@ implements   ClassVisitor,
 
             annotationsAttributeEditor.addAnnotation(jvmName);
         }
+    }
+
+
+    /**
+     * This interface provides an abstraction on how a {@link Member} should be renamed when its descriptor
+     * need to be updated. 
+     */
+    public interface NameGenerationStrategy
+    {
+        /**
+         * A method for generating a new name for a program member.
+         * @param programClass       The program class that the ClassReferenceFixer is visiting.
+         * @param programMember      The program member that the ClassReferenceFixer is visiting.
+         * @param originalName       The original name of the program member.
+         * @param originalDescriptor The original descriptor of the program member.
+         * @return The new name of the program member.
+         */
+        String getNewName(ProgramClass programClass, ProgramMember programMember, String originalName, String originalDescriptor);
     }
 }
