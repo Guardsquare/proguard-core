@@ -8,7 +8,7 @@ import proguard.classfile.exception.NegativeStackSizeException
 
 class StackSizeComputerTest : FreeSpec({
     "Throws exceptions" - {
-        StackSizeComputer.prettyInstructionBuffered = 7
+        MaxStackSizeComputer.prettyInstructionBuffered = 7
         "Stack size becomes negative" {
             // The stack size will be negative in this snippet, because we used the wrong type operation
             shouldThrow<NegativeStackSizeException> {

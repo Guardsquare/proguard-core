@@ -30,7 +30,7 @@ import proguard.classfile.attribute.visitor.*;
 public class StackSizeUpdater
 implements   AttributeVisitor
 {
-    private final StackSizeComputer stackSizeComputer = new StackSizeComputer();
+    private final MaxStackSizeComputer stackSizeComputer = new MaxStackSizeComputer();
 
 
     // Implementations for AttributeVisitor.
