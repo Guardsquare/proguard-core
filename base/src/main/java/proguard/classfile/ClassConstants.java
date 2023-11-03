@@ -137,6 +137,7 @@ public class ClassConstants
     public static final String METHOD_NAME_CLASS_IS_ASSIGNABLE_FROM         = "isAssignableFrom";
     public static final String METHOD_TYPE_CLASS_IS_ASSIGNABLE_FROM         = "(Ljava/lang/Class;)Z";
     public static final String METHOD_NAME_CLASS_GET_CLASS_LOADER           = "getClassLoader";
+    public static final String METHOD_TYPE_CLASS_GET_CLASS_LOADER           = "()Ljava/lang/ClassLoader;";
     public static final String METHOD_NAME_CLASS_GET_COMPONENT_TYPE         = "getComponentType";
     public static final String METHOD_TYPE_CLASS_GET_COMPONENT_TYPE         = "()Ljava/lang/Class;";
     public static final String METHOD_NAME_CLASS_GET_FIELD                  = "getField";
