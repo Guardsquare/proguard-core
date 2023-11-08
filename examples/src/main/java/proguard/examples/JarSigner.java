@@ -119,8 +119,7 @@ public class JarSigner
 
             source.pumpDataEntries(
                 new JarReader(
-                new DataEntryCopier(jarWriter)
-                ));
+                new DataEntryCopier(jarWriter)));
 
             jarWriter.close();
         }
