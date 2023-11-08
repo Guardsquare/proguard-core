@@ -64,6 +64,13 @@ public class WrappedDataEntry implements DataEntry
 
 
     @Override
+    public long getModificationTime()
+    {
+        return wrappedEntry.getModificationTime();
+    }
+
+
+    @Override
     public boolean isDirectory()
     {
         return wrappedEntry.isDirectory();

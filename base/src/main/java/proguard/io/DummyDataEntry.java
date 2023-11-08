@@ -74,6 +74,13 @@ public class DummyDataEntry implements DataEntry
 
 
     @Override
+    public long getModificationTime()
+    {
+        return -1;
+    }
+
+
+    @Override
     public boolean isDirectory()
     {
         return isDirectory;

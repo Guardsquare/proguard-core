@@ -108,6 +108,13 @@ public class FileDataEntry implements DataEntry
 
 
     @Override
+    public long getModificationTime()
+    {
+        return file.lastModified();
+    }
+
+
+    @Override
     public boolean isDirectory()
     {
         return file.isDirectory();
