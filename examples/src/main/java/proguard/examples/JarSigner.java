@@ -112,11 +112,11 @@ public class JarSigner
                 new FixedFileWriter(
                 new File(outputJarFileName))));
 
-            // Parse and push all classes from the input jar.
             DataEntrySource source =
                 new FileSource(
                 new File(inputJarFileName));
 
+            // Copy all input entries to the output.
             source.pumpDataEntries(
                 new JarReader(
                 new DataEntryCopier(jarWriter)));
