@@ -51,7 +51,6 @@ jar {
 def javaVersionsForTest = 9..19
 
 test {
-    systemProperty "proguard.pe.newextensiongeneralize", "true"
     useJUnitPlatform()
 }
 
@@ -61,8 +60,6 @@ task testAllJavaVersions() { testAllTask ->
     javaVersionsForTest.each {version ->
     
         task("testJava$version", type: Test) {
-
-            systemProperty "proguard.pe.newextensiongeneralize", "true"
 
             // The version of bytebuddy used by mockk only supports Java 20 experimentally so far
             if (version == 20) systemProperty 'net.bytebuddy.experimental', true

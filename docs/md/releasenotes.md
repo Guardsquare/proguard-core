@@ -1,5 +1,9 @@
 ## Version 9.1.1
 
+### Bugfixes
+
+- Enable fix previously behind system property: fix `TypedReferenceValue.generalize()` not setting `mayBeExtension` to true when generalizing to common parent type.
+
 ### Improved
 
 - Enable new `PartialEvaluator` error message format by default.
