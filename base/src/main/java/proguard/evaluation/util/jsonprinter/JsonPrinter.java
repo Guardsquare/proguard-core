@@ -274,7 +274,7 @@ public class JsonPrinter implements PartialEvaluatorStateTracker
         List<InstructionRecord> instructions = new ArrayList<>();
         byte[] code = codeAttribute.code;
         int offset = 0;
-        while (offset < code.length) {
+        while (offset < codeAttribute.u4codeLength) {
             Instruction instruction = InstructionFactory.create(code, offset);
             instructions.add(new InstructionRecord(offset, instruction.toString()));
             offset += instruction.length(offset);
