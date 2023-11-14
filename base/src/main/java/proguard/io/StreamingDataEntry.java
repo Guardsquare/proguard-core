@@ -64,13 +64,6 @@ public class StreamingDataEntry
 
 
     @Override
-    public long getModificationTime()
-    {
-        return -1;
-    }
-
-
-    @Override
     public boolean isDirectory()
     {
         return false;
