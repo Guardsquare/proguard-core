@@ -94,7 +94,7 @@ public class SignedJarWriter extends JarWriter
                            DataEntryWriter          zipEntryWriter)
     {
         this(privateKeyEntry,
-             new String[] { DEFAULT_DIGEST_ALGORITHM },
+             digestAlgorithms,
              creator,
              null,
              zipEntryWriter);
