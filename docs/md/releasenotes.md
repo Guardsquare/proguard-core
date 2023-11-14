@@ -3,6 +3,7 @@
 ### Bugfixes
 
 - Enable fix previously behind system property: fix `TypedReferenceValue.generalize()` not setting `mayBeExtension` to true when generalizing to common parent type.
+- Avoid printing `PartialEvaluator` messages when an `ExcessiveComplexityException` occurs.
 
 ### Improved
 

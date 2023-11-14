@@ -1121,6 +1121,11 @@ implements   AttributeVisitor,
                     break;
                 }
             }
+            catch (ExcessiveComplexityException ex)
+            {
+                // No need to log the exception with the formatter since this is an expected flow.
+                throw ex;
+            }
             catch (ProguardCoreException ex)
             {
                 if (formatter != null)
