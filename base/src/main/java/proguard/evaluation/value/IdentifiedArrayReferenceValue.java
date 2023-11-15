@@ -17,6 +17,7 @@
  */
 package proguard.evaluation.value;
 
+import java.util.Objects;
 import proguard.classfile.Clazz;
 
 /**
@@ -128,6 +129,26 @@ public class IdentifiedArrayReferenceValue extends ArrayReferenceValue
 //        return generalize((ArrayReferenceValue)other);
 //    }
 
+    public ReferenceValue generalize(IdentifiedArrayReferenceValue other)
+    {
+        if (this.equals(other)) return this;
+
+        if (Objects.equals(this.type, other.type)         &&
+            Objects.equals(this.id, other.id)             &&
+            this.referencedClass == other.referencedClass &&
+            this.valuefactory    == other.valuefactory)
+        {
+            return new IdentifiedArrayReferenceValue(
+                this.type,
+                this.referencedClass,
+                this.mayBeExtension || other.mayBeExtension,
+                this.arrayLength.generalize(other.arrayLength),
+                this.valuefactory,
+                this.id
+            );
+        }
+        return generalize((ArrayReferenceValue)other);
+    }
 
     public int equal(IdentifiedArrayReferenceValue other)
     {

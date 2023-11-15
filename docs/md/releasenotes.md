@@ -10,6 +10,7 @@
 - Enable new `PartialEvaluator` error message format by default.
 - Add the ability to implement a custom renaming strategy for `ClassReferenceFixer`.
 - Add new `MaxStackSizeComputer` to compute the maximum stack size of a code attribute which is more memory efficient than the existing `StackSizeComputer`.
+- Add `IdentifiedArrayReferenceValue.generalize()` to maintain `ID` when applied to two instances with same `ID`.
 
 ## Version 9.1
 

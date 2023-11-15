@@ -5,12 +5,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldNotBeInstanceOf
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.ArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayValueFactory
+import proguard.evaluation.value.IdentifiedArrayReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.UnknownIntegerValue
 import proguard.evaluation.value.ValueFactory
@@ -21,11 +23,7 @@ import proguard.testutils.PartialEvaluatorUtil
 class DetailedArrayTest : FreeSpec({
     val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
     val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
-    val partialEvaluator = PartialEvaluator(
-        valueFactory,
-        invocationUnit,
-        false
-    )
+    val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
     "Array values evaluated correctly" - {
 
@@ -326,6 +324,75 @@ class DetailedArrayTest : FreeSpec({
 
             val number = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["number"]!!)
             number shouldBe UnknownIntegerValue()
+        }
+    }
+
+    "Array reference generalization" - {
+        val code = JavaSource(
+            "Test.java",
+            """
+        import java.util.Random;
+
+        public class Test {
+        
+            Random r = new Random();
+
+            public void arrayReferenceTest() {
+                byte[] array = {0, 1, 2, 3, 4, 5};
+                array[1] = 11;
+                if (r.nextInt() > 5) {
+                    array[5] = 55;
+                }
+                array[2] = 22;
+            }
+            
+            public void arrayReferenceRedefinedTest() {
+                byte[] array = {0, 1, 2, 3, 4, 5};
+                array[1] = 11;
+                if (r.nextInt() > 5) {
+                    array = new byte[]{5, 4, 3, 2, 1, 0};
+                }
+                array[2] = 22;
+            }
+        }
+        """
+        )
+
+        val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+        "IdentifiedArrayReference generalize maintains id" {
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test",
+                "arrayReferenceTest",
+                "()V",
+                classPool,
+                partialEvaluator
+            )
+
+            val (aastoreInstruction, _) = instructions[26] // aastore
+            val firstArray = partialEvaluator
+                .getVariablesAfter(aastoreInstruction).getValue(variableTable["array"]!!)
+            firstArray.shouldBeInstanceOf<IdentifiedArrayReferenceValue>()
+
+            val (finalInstruction, _) = instructions.last()
+            val finalArray = partialEvaluator
+                .getVariablesAfter(finalInstruction).getValue(variableTable["array"]!!)
+            finalArray.shouldBeInstanceOf<IdentifiedArrayReferenceValue>()
+
+            finalArray.id shouldBe firstArray.id
+            finalArray.type shouldBe "[B"
+        }
+
+        "IdentifiedArrayReference redefined in branch generalize looses id" {
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test", "arrayReferenceRedefinedTest", "()V", classPool, partialEvaluator
+            )
+
+            val (instruction, _) = instructions.last()
+            val array = partialEvaluator.getVariablesAfter(instruction).getValue(variableTable["array"]!!)
+            array.shouldNotBeInstanceOf<IdentifiedArrayReferenceValue>()
+            array.shouldBeInstanceOf<ArrayReferenceValue>()
+            array.type shouldBe "[B"
         }
     }
 })
