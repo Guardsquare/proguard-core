@@ -183,17 +183,6 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
         }
     }
 
-    test("$prefix: the hasAnnotations flag of the type param in $className should be $expected") {
-        verify(exactly = 1) {
-            kotlinTypeParamVisitor.visitAnyTypeParameter(
-                clazz,
-                withArg {
-                    it.flags.common.hasAnnotations shouldBe expected
-                }
-            )
-        }
-    }
-
     test("$prefix: the hasAnnotation flag of the value param in $className should be $expected") {
         verify(exactly = 1) {
             kotlinValueParamVisitor.visitAnyValueParameter(

@@ -240,7 +240,6 @@ implements KotlinMetadataVisitor,
 
         pw.println(
             typeParameterFlags(kotlinTypeParameterMetadata.flags) +
-            hasAnnotationsFlag(kotlinTypeParameterMetadata.flags.common) +
             kotlinTypeParameterMetadata.name
         );
 
@@ -912,8 +911,6 @@ implements KotlinMetadataVisitor,
         }
         else
         {
-            pw.print(hasAnnotationsFlag(kotlinTypeMetadata.flags.common));
-
             if (kotlinTypeMetadata.className != null)
             {
                 pw.print(externalClassName(kotlinTypeMetadata.className));

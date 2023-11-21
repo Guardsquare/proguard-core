@@ -1820,8 +1820,6 @@ implements ClassVisitor,
     {
         Set<Flag> flagSet = new HashSet<>();
 
-        flagSet.addAll(convertCommonFlags(flags.common));
-
         if (flags.isReified) flagSet.add(Flag.TypeParameter.IS_REIFIED);
 
         return flagsOf(flagSet.toArray(new Flag[0]));

@@ -55,8 +55,6 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe false
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -72,8 +70,6 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe false
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -92,8 +88,6 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe true
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -109,11 +103,56 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe true
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
+        }
+    }
+
+    "Given a type parameter with annotation" - {
+        val clazz = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                @Target(AnnotationTarget.TYPE_PARAMETER)
+                annotation class Ann
+                inline fun <@Ann T> bar(): Int = 42
+                """
+            )
+        ).programClassPool.getClass("TestKt")
+
+        "Then the flags should be initialized correctly" {
+            clazz.accept(
+                ReferencedKotlinMetadataVisitor(
+                    AllTypeParameterVisitor(
+                        KotlinTypeParameterFilter(
+                            {
+                                true
+                            },
+                            { _, kotlinTypeMetadata ->
+                                kotlinTypeMetadata.flags.isReified shouldBe false
+                            }
+                        )
+                    )
+                )
+            )
+        }
+
+        "Then the flags should be written and re-initialized correctly" {
+            clazz.accept(
+                ReWritingMetadataVisitor(
+                    AllTypeParameterVisitor(
+                        KotlinTypeParameterFilter(
+                            {
+                                true
+                            },
+                            { _, kotlinTypeMetadata ->
+                                kotlinTypeMetadata.flags.isReified shouldBe false
+                            }
+                        )
+                    )
+                )
+            )
         }
     }
 })

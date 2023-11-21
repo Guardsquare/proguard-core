@@ -55,8 +55,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe false
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -73,8 +71,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe false
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -93,8 +89,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe true
                         it.flags.isSuspend shouldBe false
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -110,8 +104,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isNullable shouldBe true
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -130,8 +122,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe true
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -148,8 +138,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe true
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -169,8 +157,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe false
                         it.flags.isDefinitelyNonNull shouldBe true
-
-                        it.flags.common.hasAnnotations shouldBe false
                     }
                 )
             }
@@ -214,8 +200,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-
-                                kotlinTypeMetadata.typeArguments?.get(0)?.flags?.common?.hasAnnotations shouldBe true
                             }
                         )
                     )
@@ -235,8 +219,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-
-                                kotlinTypeMetadata.typeArguments?.get(0)?.flags?.common?.hasAnnotations shouldBe true
                             }
                         )
                     )
@@ -267,8 +249,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe true
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-
-                                kotlinTypeMetadata.typeArguments?.get(0)?.flags?.common?.hasAnnotations shouldBe false
                             }
                         )
                     )
@@ -288,8 +268,6 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe true
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-
-                                kotlinTypeMetadata.typeArguments?.get(0)?.flags?.common?.hasAnnotations shouldBe false
                             }
                         )
                     )

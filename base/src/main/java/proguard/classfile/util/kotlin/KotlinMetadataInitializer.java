@@ -961,13 +961,6 @@ implements ClassVisitor,
                 .map(KotlinAnnotationUtilKt::convertAnnotation)
                 .collect(Collectors.toList());
 
-
-        //PROBBUG if a value parameter or a type parameter has an annotation then
-        //        the annotation will be stored there but the flag will be
-        //        incorrectly set on this type. Sometimes the flag is not set
-        //        when there are annotations, sometimes the flag is set but there are no annotations.
-        type.flags.common.hasAnnotations = !type.annotations.isEmpty();
-
         return type;
     }
 
@@ -1003,12 +996,6 @@ implements ClassVisitor,
                 .stream()
                 .map(KotlinAnnotationUtilKt::convertAnnotation)
                 .collect(Collectors.toList());
-
-        //PROBBUG if a value parameter or a type parameter has an annotation then
-        //        the annotation will be stored there but the flag will be
-        //        incorrectly set on this type. Sometimes the flag is not set
-        //        when there are annotations, sometimes the flag is set but there are no annotations.
-        kotlinTypeParameterMetadata.flags.common.hasAnnotations = !kotlinTypeParameterMetadata.annotations.isEmpty();
 
         return kotlinTypeParameterMetadata;
     }
@@ -1302,9 +1289,7 @@ implements ClassVisitor,
 
     private static KotlinTypeFlags convertTypeFlags(int kotlinFlags)
     {
-        KotlinTypeFlags flags = new KotlinTypeFlags(
-            convertCommonFlags(kotlinFlags)
-        );
+        KotlinTypeFlags flags = new KotlinTypeFlags();
 
         flags.isNullable          = Flag.Type.IS_NULLABLE.invoke(kotlinFlags);
         flags.isSuspend           = Flag.Type.IS_SUSPEND.invoke(kotlinFlags);
@@ -1316,9 +1301,7 @@ implements ClassVisitor,
 
     private static KotlinTypeParameterFlags convertTypeParameterFlags(int kotlinFlags)
     {
-        KotlinTypeParameterFlags flags = new KotlinTypeParameterFlags(
-            convertCommonFlags(kotlinFlags)
-        );
+        KotlinTypeParameterFlags flags = new KotlinTypeParameterFlags();
 
         flags.isReified = Flag.TypeParameter.IS_REIFIED.invoke(kotlinFlags);
 

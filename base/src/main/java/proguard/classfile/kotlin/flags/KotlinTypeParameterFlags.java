@@ -20,22 +20,11 @@ package proguard.classfile.kotlin.flags;
 
 /**
  * Flags for Kotlin type parameters.
- *
- * No valid visibility or modality flags.
- *
- * hasAnnotation is valid.
  */
 public class KotlinTypeParameterFlags implements KotlinFlags
 {
-    public final KotlinCommonFlags common;
-
     /**
      * Signifies that the corresponding type parameter is `reified`.
      */
     public boolean isReified;
-
-    public KotlinTypeParameterFlags(KotlinCommonFlags common)
-    {
-        this.common = common;
-    }
 }

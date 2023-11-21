@@ -236,7 +236,7 @@ implements   Processable,
     private static class KotlinStarProjectionMetadata
     extends KotlinTypeMetadata
     {
-        KotlinStarProjectionMetadata() { super(new KotlinTypeFlags(new KotlinCommonFlags())); }
+        KotlinStarProjectionMetadata() { super(new KotlinTypeFlags()); }
 
         @Override
         public boolean isStarProjection()

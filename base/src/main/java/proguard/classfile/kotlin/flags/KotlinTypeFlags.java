@@ -20,16 +20,9 @@ package proguard.classfile.kotlin.flags;
 
 /**
  * Flags for Kotlin types.
- *
- * No valid common visibility or modality flags.
- *
- * hasAnnotation is valid.
  */
 public class KotlinTypeFlags implements KotlinFlags
 {
-
-    public final KotlinCommonFlags common;
-
     /**
      * Signifies that the corresponding type is marked as nullable, i.e. has a question mark at the end of its notation.
      */
@@ -44,9 +37,4 @@ public class KotlinTypeFlags implements KotlinFlags
      * Signifies that the corresponding type is `suspend`.
      */
     public boolean isSuspend;
-
-    public KotlinTypeFlags(KotlinCommonFlags common)
-    {
-        this.common = common;
-    }
 }
