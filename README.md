@@ -87,7 +87,7 @@ Just add it to your project dependencies, e.g. Gradle:
 
 ```gradle
 dependencies {
-    compile 'com.guardsquare:proguard-core:9.0.0'
+    compile 'com.guardsquare:proguard-core:9.1.1'
 }
 ```
 or Maven:
