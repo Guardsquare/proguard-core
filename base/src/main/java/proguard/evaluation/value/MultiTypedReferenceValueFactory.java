@@ -90,9 +90,9 @@ public class MultiTypedReferenceValueFactory extends TypedReferenceValueFactory
     }
 
     @Override
-    public ReferenceValue createArrayReferenceValue(String type, Clazz referencedClass, IntegerValue arrayLength, Value elementValue)
+    public ReferenceValue createArrayReferenceValue(String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues)
     {
-        return wrap(super.createArrayReferenceValue(type, referencedClass, arrayLength, elementValue));
+        return wrap(super.createArrayReferenceValue(type, referencedClass, arrayLength, elementValues));
     }
 
     @Override

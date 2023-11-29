@@ -196,11 +196,11 @@ implements   ValueFactory
         return createReferenceValue(type, referencedClass, false, false);
     }
 
-
+    @Override
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength,
-                                                    Value        elementValue)
+                                                    Object       elementValues)
     {
         return createArrayReferenceValue(type, referencedClass, arrayLength);
     }

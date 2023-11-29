@@ -53,7 +53,7 @@ extends      BasicValueFactory
                                                                     REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL;
     }
 
-
+    @Override
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength)
@@ -67,11 +67,11 @@ extends      BasicValueFactory
                                                      true));
     }
 
-
+    @Override
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength,
-                                                    Value        elementValue)
+                                                    Object       elementValues)
     {
         return createReferenceValue(TypeConstants.ARRAY + type,
                                     referencedClass,

@@ -764,34 +764,6 @@ class ParticularReferenceTest : FreeSpec({
         }
     }
 
-    "String function returning primitive array " - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
-            JavaSource(
-                "A.java",
-                """
-                class A {
-                    public void functions() throws java.io.UnsupportedEncodingException
-                    {
-                        String str = "42";
-                        byte[] arr = str.getBytes("UTF-8");
-                        System.out.println(arr);
-                    }
-                }
-                """
-            ),
-            javacArguments = listOf("-source", "8", "-target", "8")
-        )
-
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
-
-        "Primitive array evaluated correctly" {
-            val value = invocationsWithStack[14]!!.stack[0]
-            value.shouldBeInstanceOf<ParticularReferenceValue>()
-            value.type shouldBe "[B"
-            value.value() shouldBe arrayOf(52.toByte(), 50.toByte())
-        }
-    }
-
     "Given an identified and a particular value" - {
         val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
         val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")

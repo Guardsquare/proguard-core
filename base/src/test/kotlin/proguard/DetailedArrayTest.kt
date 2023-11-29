@@ -13,12 +13,14 @@ import proguard.evaluation.value.ArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedArrayReferenceValue
+import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.UnknownIntegerValue
 import proguard.evaluation.value.ValueFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
+import proguard.util.PartialEvaluatorHelper
 
 class DetailedArrayTest : FreeSpec({
     val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
@@ -78,6 +80,54 @@ class DetailedArrayTest : FreeSpec({
                 .getValue(variableTable["array"]!!) as DetailedArrayReferenceValue
             s.type shouldBe "[I"
             s.integerArrayLoad(valueFactory.createIntegerValue(1), valueFactory).integerValue().value() shouldBe 42
+        }
+
+        "Regression test: array from String with future update does not change previous value" {
+
+            val code = JavaSource(
+                "Test.java",
+                """
+                    public class Test {
+        
+                        public void arrayTest() {
+                            byte[] array = "00000".getBytes();
+                            array[0] = 4;
+                            array[1] = 42;
+                            array[1] = 102;
+                        }
+                    }
+                    """
+            )
+
+            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test",
+                "arrayTest",
+                "()V",
+                classPool,
+                partialEvaluator
+            )
+            /*
+                [8]  =>  (11, iconst_1)
+                [9]  =>  (12, bipush 42)
+                [10]  =>  (14, bastore)
+                [11]  =>  (15, aload_1 v1)
+             */
+            val (instruction, _) = instructions[10]
+            val s = partialEvaluator.getVariablesAfter(instruction)
+                .getValue(variableTable["array"]!!) as DetailedArrayReferenceValue
+            s.type shouldBe "[B"
+            s.integerArrayLoad(valueFactory.createIntegerValue(1), valueFactory).integerValue()
+                .value() shouldBe 42
+
+            val (instructionEnd, _) = instructions.last()
+            val sEnd = partialEvaluator.getVariablesAfter(instructionEnd)
+                .getValue(variableTable["array"]!!) as DetailedArrayReferenceValue
+
+            sEnd.type shouldBe "[B"
+            sEnd.integerArrayLoad(valueFactory.createIntegerValue(0), valueFactory).integerValue().value() shouldBe 4
+            sEnd.integerArrayLoad(valueFactory.createIntegerValue(1), valueFactory).integerValue().value() shouldBe 102
         }
 
         "String array with no assignment in try block" {
@@ -324,6 +374,45 @@ class DetailedArrayTest : FreeSpec({
 
             val number = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["number"]!!)
             number shouldBe UnknownIntegerValue()
+        }
+    }
+
+    "String function returning primitive array" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "A.java",
+                """
+                class A {
+                    public void functions() throws java.io.UnsupportedEncodingException
+                    {
+                        String str = "42";
+                        
+                        byte[] byteArray = str.getBytes("UTF-8");
+                        System.out.println(byteArray);
+                        
+                        char[] charArray = str.toCharArray();
+                        System.out.println(charArray);
+                    }
+                }
+                """
+            ),
+            javacArguments = listOf("-source", "8", "-target", "8")
+        )
+
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, DetailedArrayValueFactory())
+
+        "Primitive byte array evaluated correctly" {
+            val value = invocationsWithStack[14]!!.stack[0]
+            value.shouldBeInstanceOf<DetailedArrayReferenceValue>()
+            value.type shouldBe "[B"
+            value.value() shouldBe arrayOf(ParticularIntegerValue(52), ParticularIntegerValue(50))
+        }
+
+        "Primitive char array evaluated correctly" {
+            val value = invocationsWithStack[26]!!.stack[0]
+            value.shouldBeInstanceOf<DetailedArrayReferenceValue>()
+            value.type shouldBe "[C"
+            value.value() shouldBe arrayOf(ParticularIntegerValue('4'.code), ParticularIntegerValue('2'.code))
         }
     }
 

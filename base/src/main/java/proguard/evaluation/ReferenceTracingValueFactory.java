@@ -341,12 +341,13 @@ implements   InstructionVisitor,
      * Creates a new ReferenceValue that represents an array with elements of
      * the given type, with the given length and initial element values.
      */
+    @Override
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength,
-                                                    Value        elementValue)
+                                                    Object       elementValues)
     {
-        return trace(valueFactory.createArrayReferenceValue(type, referencedClass, arrayLength, elementValue));
+        return trace(valueFactory.createArrayReferenceValue(type, referencedClass, arrayLength, elementValues));
     }
 
 

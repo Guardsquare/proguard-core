@@ -245,16 +245,16 @@ implements   ValueFactory
                                                                arrayLength);
     }
 
-
+    @Override
     public ReferenceValue createArrayReferenceValue(String       type,
                                                     Clazz        referencedClass,
                                                     IntegerValue arrayLength,
-                                                    Value        elementValue)
+                                                    Object        elementValues)
     {
         return arrayReferenceValueFactory.createArrayReferenceValue(type,
                                                                     referencedClass,
                                                                     arrayLength,
-                                                                    elementValue);
+                                                                    elementValues);
     }
 
 

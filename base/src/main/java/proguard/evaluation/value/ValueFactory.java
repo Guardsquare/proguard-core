@@ -211,7 +211,6 @@ public interface ValueFactory
                                              Clazz        referencedClass,
                                              IntegerValue arrayLength);
 
-
     /**
      * Creates a new ReferenceValue that represents a non-null array with
      * elements of the given type, with the given length and initial element
@@ -220,5 +219,5 @@ public interface ValueFactory
     ReferenceValue createArrayReferenceValue(String       type,
                                              Clazz        referencedClass,
                                              IntegerValue arrayLength,
-                                             Value        elementValue);
+                                             Object       elementValues);
 }

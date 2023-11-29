@@ -18,6 +18,7 @@
 
 package proguard.evaluation;
 
+import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -592,6 +593,15 @@ public class ExecutingInvocationUnit
         if (returnType.length() == 1 && isInternalPrimitiveType(returnType))
         {
             return createPrimitiveValue(methodResult, returnType);
+        }
+
+        // If the return value is a primitive array, store this in a (Detailed)ArrayReferenceValue
+        if (ClassUtil.internalArrayTypeDimensionCount(returnType) == 1 && isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(returnType)))
+        {
+            return valueFactory.createArrayReferenceValue(returnType,
+                                                          null,
+                                                          valueFactory.createIntegerValue(Array.getLength(methodResult)),
+                                                          methodResult);
         }
 
         // If it is not a primitiveValue, it will be stored in a ParticularReferenceValue.
