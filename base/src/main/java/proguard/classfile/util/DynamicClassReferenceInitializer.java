@@ -41,6 +41,7 @@ import proguard.classfile.instruction.SimpleInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.AllInstructionVisitor;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
+import proguard.classfile.instruction.visitor.MultiInstructionVisitor;
 import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.classfile.visitor.ClassConstantClassFilter;
 import proguard.classfile.visitor.ClassVisitor;
@@ -103,6 +104,17 @@ implements   ClassVisitor,
         new NameAndTypeConstant(12, 13),
         new Utf8Constant(ClassConstants.METHOD_NAME_CLASS_GET_COMPONENT_TYPE),
         new Utf8Constant(ClassConstants.METHOD_TYPE_CLASS_GET_COMPONENT_TYPE),
+
+        // 14 getclassloader
+        new MethodrefConstant(1, 15, null, null),
+        new NameAndTypeConstant(16, 17),
+        new Utf8Constant(ClassConstants.METHOD_NAME_CLASS_GET_CLASS_LOADER),
+        new Utf8Constant(ClassConstants.METHOD_TYPE_CLASS_GET_CLASS_LOADER),
+
+        // 18 3-arg forName
+        new MethodrefConstant(1, 19, null, null),
+        new NameAndTypeConstant(4, 20),
+        new Utf8Constant(ClassConstants.METHOD_TYPE_CLASS_FOR_NAME_CLASSLOADER)
     };
 
     // Class.forName("SomeClass").
@@ -110,6 +122,16 @@ implements   ClassVisitor,
     {
         new ConstantInstruction(Instruction.OP_LDC, X),
         new ConstantInstruction(Instruction.OP_INVOKESTATIC, 0),
+    };
+
+    // Class.forName("SomeClass", true/false, class.getClassLoader()).
+    private final Instruction[] CONSTANT_CLASS_FOR_NAME_3_INSTRUCTIONS = new Instruction[]
+    {
+        new ConstantInstruction(Instruction.OP_LDC, X),
+        new SimpleInstruction(Instruction.OP_ICONST_0, Y),
+        new ConstantInstruction(Instruction.OP_LDC, Z),
+        new ConstantInstruction(Instruction.OP_INVOKEVIRTUAL, 14),
+        new ConstantInstruction(Instruction.OP_INVOKESTATIC, 18),
     };
 
     // (SomeClass)Class.forName(someName).newInstance().
@@ -208,6 +230,10 @@ implements   ClassVisitor,
     private final InstructionSequenceMatcher constantClassForNameMatcher =
         new InstructionSequenceMatcher(CLASS_FOR_NAME_CONSTANTS,
                                        CONSTANT_CLASS_FOR_NAME_INSTRUCTIONS);
+
+    private final InstructionSequenceMatcher constantClassForName3Matcher =
+        new InstructionSequenceMatcher(CLASS_FOR_NAME_CONSTANTS,
+                                       CONSTANT_CLASS_FOR_NAME_3_INSTRUCTIONS);
 
     private final InstructionSequenceMatcher classForNameCastMatcher =
         new InstructionSequenceMatcher(CLASS_FOR_NAME_CONSTANTS,
@@ -310,19 +336,27 @@ implements   ClassVisitor,
             clazz.constantPoolEntryAccept(classForNameCastMatcher.matchedConstantIndex(X), this);
         }
 
-        // Try to match the Class.forName("SomeClass") construct.
+        // Try to match the Class.forName("SomeClass") or the Class.forName("SomeClass", true/false, classLoader) construct.
+        // Assumes the ClassLoader is obtained by loading the class and subsequently calling "getClassLoader" on it.
         instruction.accept(clazz, method, codeAttribute, offset,
-                           constantClassForNameMatcher);
+                           new MultiInstructionVisitor(
+                               constantClassForNameMatcher,
+                               constantClassForName3Matcher));
 
-        if (constantClassForNameMatcher.isMatching())
+        if (constantClassForNameMatcher.isMatching() ||
+            constantClassForName3Matcher.isMatching())
         {
             // Match found. Initialize the matched string constant.
-            clazz.constantPoolEntryAccept(constantClassForNameMatcher.matchedConstantIndex(X), this);
+            InstructionSequenceMatcher matchedMatcher =
+                constantClassForNameMatcher.isMatching()
+                    ? constantClassForNameMatcher
+                    : constantClassForName3Matcher;
+            clazz.constantPoolEntryAccept(matchedMatcher.matchedConstantIndex(X), this);
 
             // Don't look for the dynamic construct.
             classForNameCastMatcher.reset();
 
-             // There can be no other reflection patters at this offset.
+            // There can be no other reflection patters at this offset.
             return;
         }
 
