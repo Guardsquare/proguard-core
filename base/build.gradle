@@ -6,7 +6,6 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'com.adarshr.test-logger'
-    id 'de.jansauer.printcoverage'
     id 'jacoco'
     id "org.jlleitschuh.gradle.ktlint"
     id "java-test-fixtures"
@@ -85,9 +84,8 @@ jacocoTestReport {
     classDirectories.setFrom(classes)
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/*.exec')
     reports {
-        xml.enabled true
-        csv.enabled false
-        html.destination file("${buildDir}/reports/coverage")
+        xml.required = true
+        csv.required = false
     }
 }
 

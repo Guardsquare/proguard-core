@@ -6,7 +6,6 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'com.adarshr.test-logger'
-    id 'de.jansauer.printcoverage'
     id 'jacoco'
     id "org.jlleitschuh.gradle.ktlint"
     id "org.sonarqube"
