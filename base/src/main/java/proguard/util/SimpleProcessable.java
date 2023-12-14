@@ -17,13 +17,9 @@
  */
 package proguard.util;
 
-import java.util.Arrays;
-
 /**
  * This class provides a straightforward implementation of the Processable
  * interface.
- *
- * @author Eric Lafortune
  */
 public class SimpleProcessable
 implements   Processable
@@ -31,12 +27,10 @@ implements   Processable
     public int    processingFlags;
     public Object processingInfo;
 
-
     /**
      * Creates an uninitialized SimpleProcessable.
      */
     public SimpleProcessable() {}
-
 
     /**
      * Creates an initialized SimpleProcessable.
@@ -47,7 +41,6 @@ implements   Processable
         this.processingFlags = processingFlags;
         this.processingInfo  = processingInfo;
     }
-
     
     // Implementations for Processable.
 
@@ -57,20 +50,46 @@ implements   Processable
         return processingFlags;
     }
 
-
     @Override
     public void setProcessingFlags(int processingFlags)
     {
         this.processingFlags = processingFlags;
     }
 
+    /**
+     * Adds all given flags to this processable.
+     */
+    public void addProcessingFlags(int... flags) {
+        for (int flag : flags) {
+            processingFlags = processingFlags | flag;
+        }
+    }
+
+    /**
+     * Removes all given flags from this processable.
+     */
+    public void removeProcessingFlags(int... flags) {
+        for (int flag : flags) {
+            processingFlags = processingFlags & ~flag;
+        }
+    }
+
+    /**
+     * Checks whether all the given flags are set on this processable.
+     */
+    public boolean hasProcessingFlags(int... flags) {
+        int allFlags = 0;
+        for (int flag : flags) {
+            allFlags = allFlags | flag;
+        }
+        return (~processingFlags & allFlags) == 0;
+    }
 
     @Override
     public Object getProcessingInfo()
     {
         return processingInfo;
     }
-
 
     @Override
     public void setProcessingInfo(Object processingInfo) {
