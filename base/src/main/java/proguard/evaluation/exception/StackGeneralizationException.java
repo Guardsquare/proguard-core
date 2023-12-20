@@ -1,19 +1,26 @@
 package proguard.evaluation.exception;
 
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
 import proguard.evaluation.TracedStack;
-import proguard.evaluation.TracedVariables;
 import proguard.exception.ErrorId;
-import proguard.exception.ProguardCoreException;
 
-public class StackGeneralizationException extends ProguardCoreException
+public class StackGeneralizationException extends PartialEvaluatorException
 {
     private final TracedStack first;
     private final TracedStack second;
 
+    @Deprecated
     public StackGeneralizationException(Throwable cause, TracedStack first, TracedStack second)
     {
-        super(ErrorId.STACK_GENERALIZATION, cause, "Could not generalize stacks %s and %s because: \"%s\".",
-                first.toString(), second.toString(), cause.getMessage());
+        this(null, null, cause, first, second);
+    }
+
+
+    public StackGeneralizationException(Clazz clazz, Method method, Throwable cause, TracedStack first, TracedStack second)
+    {
+        super(ErrorId.STACK_GENERALIZATION, cause,clazz, method,  "Could not generalize stacks %s and %s because: \"%s\".",
+              first.toString(), second.toString(), cause.getMessage());
         this.first = first;
         this.second = second;
     }

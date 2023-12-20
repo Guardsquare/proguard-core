@@ -914,7 +914,7 @@ implements   AttributeVisitor,
                     }
                     catch (IllegalArgumentException ex)
                     {
-                        throw new StackGeneralizationException(ex, stacksBefore[instructionOffset], stack);
+                        throw new StackGeneralizationException(clazz, method, ex, stacksBefore[instructionOffset], stack);
                     }
 
                     //System.out.println("GVars:  "+variablesBefore[instructionOffset]);
