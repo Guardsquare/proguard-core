@@ -64,10 +64,10 @@ public class CallGraph
             return;
         }
 
-        outgoing.computeIfAbsent((MethodSignature) call.caller.signature, e -> new HashSet<>())
+        outgoing.computeIfAbsent((MethodSignature) call.caller.signature, e -> new LinkedHashSet<>())
                 .add(call);
 
-        incoming.computeIfAbsent(call.getTarget(), e -> new HashSet<>())
+        incoming.computeIfAbsent(call.getTarget(), e -> new LinkedHashSet<>())
                 .add(call);
     }
 

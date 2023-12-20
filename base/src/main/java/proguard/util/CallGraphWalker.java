@@ -21,7 +21,7 @@ package proguard.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -83,7 +83,7 @@ public class CallGraphWalker
                                                      int maxDepth,
                                                      int maxWidth)
     {
-        Set<MethodSignature> visited = new HashSet<>();
+        Set<MethodSignature> visited = new LinkedHashSet<>();
         explore(callGraph,
                 start,
                 CallGraphWalker::calculateSuccessors,
@@ -123,7 +123,7 @@ public class CallGraphWalker
                                                        int maxDepth,
                                                        int maxWidth)
     {
-        Set<MethodSignature> visited = new HashSet<>();
+        Set<MethodSignature> visited = new LinkedHashSet<>();
         explore(callGraph,
                 start,
                 CallGraphWalker::calculatePredecessors,
@@ -352,7 +352,7 @@ public class CallGraphWalker
      */
     private static Set<Node> calculatePredecessors(CallGraph callGraph, Node curr)
     {
-        Set<Node> predecessors = new HashSet<>();
+        Set<Node> predecessors = new LinkedHashSet<>();
         for (Call i : callGraph.incoming.getOrDefault(curr.signature, Collections.emptySet()))
         {
             if (!(i.caller.signature instanceof MethodSignature))
@@ -379,7 +379,7 @@ public class CallGraphWalker
      */
     private static Set<Node> calculateSuccessors(CallGraph callGraph, Node curr)
     {
-        Set<Node> successors = new HashSet<>();
+        Set<Node> successors = new LinkedHashSet<>();
         for (Call i : callGraph.outgoing.getOrDefault(curr.signature, Collections.emptySet()))
         {
             // Only add the caller to the chain if this doesn't create a loop
