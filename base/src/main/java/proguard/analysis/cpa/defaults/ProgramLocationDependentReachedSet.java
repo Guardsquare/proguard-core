@@ -20,18 +20,17 @@ package proguard.analysis.cpa.defaults;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import proguard.classfile.Signature;
+
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.interfaces.ReachedSet;
+import proguard.classfile.Signature;
 
 /**
  * This {@link ReachedSet} stores {@link ProgramLocationDependent} {@link AbstractState}s.
@@ -46,7 +45,7 @@ public final class ProgramLocationDependentReachedSet<CfaNodeT extends CfaNode<C
     implements ReachedSet
 {
 
-    private Map<CfaNodeT, Set<AbstractStateT>> locationToStates = new HashMap<>();
+    private Map<CfaNodeT, Set<AbstractStateT>> locationToStates = new LinkedHashMap<>();
 
     // implementations for ReachedSet
 
@@ -54,7 +53,7 @@ public final class ProgramLocationDependentReachedSet<CfaNodeT extends CfaNode<C
     public boolean add(AbstractState abstractState)
     {
         AbstractStateT state = (AbstractStateT) abstractState;
-        return locationToStates.computeIfAbsent(state.getProgramLocation(), x -> new HashSet<>()).add(state);
+        return locationToStates.computeIfAbsent(state.getProgramLocation(), x -> new LinkedHashSet<>()).add(state);
     }
 
     @Override
@@ -95,7 +94,7 @@ public final class ProgramLocationDependentReachedSet<CfaNodeT extends CfaNode<C
     public Collection<AbstractStateT> asCollection()
     {
         int initialSize = locationToStates.values().size();
-        return locationToStates.values().stream().reduce(new HashSet<>(initialSize), (x, y) ->
+        return locationToStates.values().stream().reduce(new LinkedHashSet<>(initialSize), (x, y) ->
         {
             x.addAll(y);
             return x;

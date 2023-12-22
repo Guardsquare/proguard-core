@@ -21,7 +21,7 @@ package proguard.analysis.cpa.bam;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
@@ -360,7 +360,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
                                    .filter(e -> ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) e).getProgramLocation().isExitNode())
                                    .map(e -> wrappedCpa.getExpandOperator().expand(callState, e, entryNode, call))
                                    .map(e -> wrappedCpa.getRebuildOperator().rebuild(callState, e))
-                                   .collect(Collectors.toSet());
+                                   .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         return exitStates;
@@ -371,7 +371,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
 
         public final SignatureT         function;
         public final AbstractState      entryState;
-        public final Set<AbstractState> incompleteCallStates = new HashSet<>();
+        public final Set<AbstractState> incompleteCallStates = new LinkedHashSet<>();
 
         public StackEntry(SignatureT function, AbstractState entryState)
         {

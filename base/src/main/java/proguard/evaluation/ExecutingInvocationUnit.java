@@ -18,16 +18,43 @@
 
 package proguard.evaluation;
 
+import static proguard.classfile.AccessConstants.FINAL;
+import static proguard.classfile.AccessConstants.STATIC;
+import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
+import static proguard.classfile.TypeConstants.BOOLEAN;
+import static proguard.classfile.TypeConstants.BYTE;
+import static proguard.classfile.TypeConstants.CHAR;
+import static proguard.classfile.TypeConstants.DOUBLE;
+import static proguard.classfile.TypeConstants.FLOAT;
+import static proguard.classfile.TypeConstants.INT;
+import static proguard.classfile.TypeConstants.LONG;
+import static proguard.classfile.TypeConstants.SHORT;
+import static proguard.classfile.TypeConstants.VOID;
+import static proguard.classfile.util.ClassUtil.externalClassName;
+import static proguard.classfile.util.ClassUtil.isInternalPrimitiveType;
+import static proguard.classfile.util.ClassUtil.isNullOrFinal;
+import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
+import static proguard.evaluation.value.ReflectiveMethodCallUtil.callMethod;
+
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
@@ -58,33 +85,6 @@ import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.ReflectiveMethodCallUtil;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static proguard.classfile.AccessConstants.FINAL;
-import static proguard.classfile.AccessConstants.STATIC;
-import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
-import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
-import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
-import static proguard.classfile.TypeConstants.BOOLEAN;
-import static proguard.classfile.TypeConstants.BYTE;
-import static proguard.classfile.TypeConstants.CHAR;
-import static proguard.classfile.TypeConstants.DOUBLE;
-import static proguard.classfile.TypeConstants.FLOAT;
-import static proguard.classfile.TypeConstants.INT;
-import static proguard.classfile.TypeConstants.LONG;
-import static proguard.classfile.TypeConstants.SHORT;
-import static proguard.classfile.TypeConstants.VOID;
-import static proguard.classfile.util.ClassUtil.externalClassName;
-import static proguard.classfile.util.ClassUtil.isInternalPrimitiveType;
-import static proguard.classfile.util.ClassUtil.isNullOrFinal;
-import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
-import static proguard.evaluation.value.ReflectiveMethodCallUtil.callMethod;
 
 /**
  * <p>This {@link ExecutingInvocationUnit} reflectively executes the method calls it visits on a given
@@ -467,7 +467,13 @@ public class ExecutingInvocationUnit
         // On error: return at least a typed reference and potentially a replacement
         // for the instance, if we know that the method call should return its own instance
         // according the approximation of `returnsOwnInstance`.
-        String  finalReturnType = returnType;
+        String finalReturnType;
+        if (returnClazz != null && methodName.equals(METHOD_NAME_INIT)) {
+            // Make constructors' return types correspond to their referenced class types
+            finalReturnType = ClassUtil.internalTypeFromClassName(returnClazz.getName());
+        } else {
+            finalReturnType = returnType;
+        }
         BiFunction<ReferenceValue, Object, Value> errorHandler = (instance, objectId) ->
         {
 

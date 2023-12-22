@@ -1,5 +1,7 @@
 package proguard.analysis.cpa;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
@@ -287,6 +289,21 @@ public class CpaValueTest {
         ReferenceValue stackTop = printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
         assertInstanceOf(UnknownReferenceValue.class, stackTop);
         assertTrue(((JvmShallowHeapAbstractState)lastAbstractState.getHeap()).referenceToObject.isEmpty());
+    }
+
+    /**
+     * Tests that the reached set order is deterministic
+     */
+    @Test
+    public void testControlFlowDeterminism()
+    {
+        ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet = runCpa("ControlFlowDeterminism");
+        List<Integer> expected = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 177, 180, 182, 185, 241, -1, 16, 19, 22, 144, 147, 149, 152,
+            154, 155, 158, 161, 171, 174, 164, 165, 167, 170, 188, 188, 228, 228, 230, 233, 235, 238, 240, -2, 189, 192, 195, 196, 199, 201, 204, 205,
+            208, 211, 214, 217, 220, 222, 225, 23, 26, 29, 30, 32, 33, 35, 37, 40, 97, 68, 84, 86, 88, 91, 94, 95, 99, 141, 124, 131, 134, 135, 137,
+            140, 126, 128, 70, 72, 75, 78, 79, 81);
+        List<Integer> actual = reachedSet.asCollection().stream().map(e -> e.getProgramLocation().getOffset()).collect(Collectors.toList());
+        assertEquals(expected, actual);
     }
 
     private static JvmValueAbstractState getLastAbstractState(ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature> reachedSet)

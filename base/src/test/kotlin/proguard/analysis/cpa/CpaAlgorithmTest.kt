@@ -32,6 +32,7 @@ import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment
 import proguard.analysis.cpa.defaults.StopAlwaysOperator
 import proguard.analysis.cpa.defaults.StopContainedOperator
 import proguard.analysis.cpa.defaults.StopSepOperator
+import proguard.analysis.cpa.interfaces.AbstractState
 import proguard.testutils.cpa.BoundedAdditiveTransferRelation
 import proguard.testutils.cpa.IntegerAbstractState
 
@@ -65,6 +66,18 @@ class CpaAlgorithmTest : FreeSpec({
         ).run(reachedset, waitlist)
         // the test should return all states reachable from 0
         reachedset shouldBe setOf(
+            IntegerAbstractState(2),
+            IntegerAbstractState(4),
+            IntegerAbstractState(6),
+            IntegerAbstractState(8),
+            IntegerAbstractState(10)
+        )
+
+        val orderedReachedSet: MutableList<AbstractState> = ArrayList()
+        reachedset.forEach { orderedReachedSet.add(it) }
+
+        // the order of the elements should be deterministic
+        orderedReachedSet shouldBe listOf(
             IntegerAbstractState(2),
             IntegerAbstractState(4),
             IntegerAbstractState(6),

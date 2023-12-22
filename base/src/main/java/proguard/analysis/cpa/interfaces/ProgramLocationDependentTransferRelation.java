@@ -21,7 +21,7 @@ package proguard.analysis.cpa.interfaces;
 import proguard.classfile.Signature;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -49,7 +49,7 @@ public interface ProgramLocationDependentTransferRelation<CfaNodeT extends CfaNo
             throw new IllegalArgumentException(getClass().getName() + " does not support " + abstractState.getClass().getName());
         }
         ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state = (ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) abstractState;
-        Set<AbstractState> successors = new HashSet<>();
+        Set<AbstractState> successors = new LinkedHashSet<>();
         for (CfaEdgeT edge : getEdges(state))
         {
             AbstractState successor = getEdgeAbstractSuccessor(abstractState, edge, precision);

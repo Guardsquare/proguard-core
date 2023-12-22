@@ -18,7 +18,7 @@
 
 package proguard.analysis.cpa.algorithms;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -103,8 +103,8 @@ public class CpaAlgorithm
 
                 for (AbstractState successorState : transferRelation.getAbstractSuccessors(currentState, currentPrecision))
                 {
-                    Set<AbstractState> gen  = new HashSet<>(); // abstract states to be added to the waitlist and reached set
-                    Set<AbstractState> kill = new HashSet<>(); // abstract states to be removed from the waitlist and reached set
+                    Set<AbstractState> gen  = new LinkedHashSet<>(); // abstract states to be added to the waitlist and reached set
+                    Set<AbstractState> kill = new LinkedHashSet<>(); // abstract states to be removed from the waitlist and reached set
                     for (AbstractState reachedState : reachedSet.getReached(successorState)) // iterate only over the reached sets which may be merged with the successor state
                     {
                         AbstractState mergedState = mergeOperator.merge(successorState, reachedState, successorState.getPrecision());
