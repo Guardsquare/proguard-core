@@ -19,6 +19,8 @@ package proguard.classfile.util;
 
 import proguard.classfile.*;
 
+import java.util.Iterator;
+
 /**
  * An {@link InternalTypeEnumeration} provides an enumeration of all
  * types listed in a given internal descriptor or signature of a class, a
@@ -31,6 +33,8 @@ import proguard.classfile.*;
  * @author Eric Lafortune
  */
 public class InternalTypeEnumeration
+implements   Iterator<String>,
+             Iterable<String>
 {
     private final String descriptor;
     private final int    formalTypeParametersIndex;
@@ -268,6 +272,29 @@ public class InternalTypeEnumeration
             }
         }
         while (nestingLevel > 0);
+    }
+
+
+    // Implementations for Iterator.
+    @Override
+    public boolean hasNext()
+    {
+        return hasMoreTypes();
+    }
+
+
+    @Override
+    public String next()
+    {
+        return nextType();
+    }
+
+
+    // Implementations for Iterable.
+    @Override
+    public Iterator<String> iterator()
+    {
+        return this;
     }
 
 
