@@ -17,6 +17,7 @@ import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
 import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.ReachedSet;
+import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
@@ -26,6 +27,7 @@ import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState;
+import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
 import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
@@ -38,6 +40,11 @@ import proguard.evaluation.value.ValueFactory;
 public class JvmValueBamCpaRun
     extends JvmBamCpaRun<SimpleCpa, JvmAbstractState<ValueAbstractState>, JvmValueAbstractState>
 {
+    public interface TransferRelationFactory {
+        TransferRelation newTransferRelation(ValueFactory vf, ExecutingInvocationUnit eiu);
+    }
+
+    private final TransferRelationFactory transferRelationFactory;
     private final MethodSignature mainMethodSignature;
     private final ValueFactory valueFactory;
     private final ExecutingInvocationUnit executingInvocationUnit;
@@ -48,6 +55,7 @@ public class JvmValueBamCpaRun
     private JvmValueBamCpaRun(JvmCfa                                       cfa,
                               MethodSignature                              mainMethodSignature,
                               ValueFactory                                 valueFactory,
+                              TransferRelationFactory                      transferRelationFactory,
                               ExecutingInvocationUnit                      executingInvocationUnit,
                               int                                          maxCallStackDepth,
                               HeapModel                                    heapModel,
@@ -57,6 +65,7 @@ public class JvmValueBamCpaRun
     {
         super(cfa, maxCallStackDepth, heapModel, abortOperator, reduceHeap);
         this.valueFactory            = valueFactory;
+        this.transferRelationFactory = transferRelationFactory;
         this.executingInvocationUnit = executingInvocationUnit;
         this.mainMethodSignature     = mainMethodSignature;
         this.staticFields            = staticFields;
@@ -68,7 +77,7 @@ public class JvmValueBamCpaRun
         DelegateAbstractDomain<ValueAbstractState> abstractDomain = new DelegateAbstractDomain<>();
         return new SimpleCpa(
             abstractDomain,
-            new JvmValueTransferRelation(valueFactory, executingInvocationUnit),
+            transferRelationFactory.newTransferRelation(valueFactory, executingInvocationUnit),
             new MergeJoinOperator(abstractDomain),
             new StopJoinOperator(abstractDomain),
             new StaticPrecisionAdjustment()
@@ -122,6 +131,7 @@ public class JvmValueBamCpaRun
 
         private MethodSignature                              mainSignature;
         private ValueFactory                                 valueFactory;
+        private TransferRelationFactory                      transferRelationFactory;
         private MapAbstractState<String, ValueAbstractState> staticFields = new HashMapAbstractState<>();
 
         @Deprecated
@@ -137,11 +147,16 @@ public class JvmValueBamCpaRun
 
         public Builder(JvmCfa cfa, MethodSignature mainSignature)
         {
-            super.heapModel         = HeapModel.SHALLOW;
-            super.maxCallStackDepth = 10;
-            super.cfa               = cfa;
-            this.valueFactory       = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
-            this.mainSignature      = mainSignature;
+            super.heapModel              = HeapModel.SHALLOW;
+            super.maxCallStackDepth      = 10;
+            super.cfa                    = cfa;
+            this.valueFactory            = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
+            this.mainSignature           = mainSignature;
+            this.transferRelationFactory = Builder::defaultTransferRelationFactory;
+        }
+
+        private static JvmValueTransferRelation defaultTransferRelationFactory(ValueFactory valueFactory, ExecutingInvocationUnit executingInvocationUnit) {
+            return new JvmValueTransferRelation(valueFactory,executingInvocationUnit);
         }
 
         @Override
@@ -151,6 +166,7 @@ public class JvmValueBamCpaRun
                 cfa,
                 mainSignature,
                 valueFactory,
+                transferRelationFactory,
                 new ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory),
                 maxCallStackDepth,
                 heapModel,
@@ -178,6 +194,11 @@ public class JvmValueBamCpaRun
         public Builder setValueFactory(ValueFactory valueFactory)
         {
             this.valueFactory = valueFactory;
+            return this;
+        }
+
+        public Builder setTransferRelationFactory(TransferRelationFactory transferRelationFactory){
+            this.transferRelationFactory = transferRelationFactory;
             return this;
         }
 
