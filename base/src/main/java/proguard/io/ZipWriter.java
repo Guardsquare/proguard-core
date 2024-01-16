@@ -17,10 +17,14 @@
  */
 package proguard.io;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+
 import proguard.classfile.TypeConstants;
 import proguard.util.StringMatcher;
 
 import java.io.*;
+import java.time.ZoneId;
 
 /**
  * This {@link DataEntryWriter} sends data entries to the zip files specified by
@@ -53,7 +57,7 @@ public class ZipWriter implements DataEntryWriter
         this(null,
              1,
              false,
-             0,
+             -1,
              dataEntryWriter);
     }
 
@@ -66,7 +70,8 @@ public class ZipWriter implements DataEntryWriter
      *                              uncompressed entries.
      * @param useZip64              Whether to write out the archive in zip64 format.
      * @param modificationTime      the modification date and time of the zip
-     *                              entries, in DOS format.
+     *                              entries, in DOS format. If {@code -1}, the modification time
+     *                              of each {@link DataEntry} will be passed through.
      * @param dataEntryWriter       the data entry writer that can provide
      *                              output streams for the zip archives.
      */
@@ -98,7 +103,8 @@ public class ZipWriter implements DataEntryWriter
      * @param extraUncompressedAlignment        the desired alignment for the data of
      *                                          entries matching extraAlignmentFilter.
      * @param modificationTime                  the modification date and time of the zip
-     *                                          entries, in DOS format.
+     *                                          entries, in DOS format. If {@code -1}, the modification time
+     *                                          of each {@link DataEntry} will be passed through.
      * @param dataEntryWriter                   the data entry writer that can provide
      *                                          output streams for the zip archives.
      */
@@ -129,7 +135,8 @@ public class ZipWriter implements DataEntryWriter
      *                              uncompressed entries.
      * @param useZip64              Whether to write out the archive in zip64 format.
      * @param modificationTime      the modification date and time of the zip
-     *                              entries, in DOS format.
+     *                              entries, in DOS format. If {@code -1}, the modification time
+     *                              of each {@link DataEntry} will be passed through.
      * @param dataEntryWriter       the data entry writer that can provide
      *                              output streams for the zip archives.
      */
@@ -161,7 +168,8 @@ public class ZipWriter implements DataEntryWriter
      * @param extraUncompressedAlignment        the desired alignment for the data of
      *                                          entries matching extraAlignmentFilter.
      * @param modificationTime                  the modification date and time of the zip
-     *                                          entries, in DOS format.
+     *                                          entries, in DOS format. If {@code -1}, the modification time
+     *                                          of each {@link DataEntry} will be passed through.
      * @param dataEntryWriter                   the data entry writer that can provide
      *                                          output streams for the zip archives.
      */
@@ -195,7 +203,8 @@ public class ZipWriter implements DataEntryWriter
      * @param extraUncompressedAlignment        the desired alignment for the data of
      *                                          entries matching extraAlignmentFilter.
      * @param modificationTime                  the modification date and time of the zip
-     *                                          entries, in DOS format.
+     *                                          entries, in DOS format. If {@code -1}, the modification time
+     *                                          of each {@link DataEntry} will be passed through.
      * @param dataEntryWriter                   the data entry writer that can provide
      *                                          output streams for the zip archives.
      */
@@ -240,12 +249,11 @@ public class ZipWriter implements DataEntryWriter
         OutputStream outputStream =
             currentZipOutput.createOutputStream(name,
                                                 false,
-                                                modificationTime);
+                                                getDosModificationTime(dataEntry));
         outputStream.close();
 
         return true;
     }
-
 
     @Override
     public boolean sameOutputStream(DataEntry dataEntry1,
@@ -290,7 +298,31 @@ public class ZipWriter implements DataEntryWriter
             currentZipOutput.createOutputStream(name,
                                                 compress1 && compress2,
                                                 uncompressedAlignment,
-                                                modificationTime);
+                                                getDosModificationTime(dataEntry));
+    }
+
+
+    /**
+     * Returns the modification time of a {@link DataEntry} in dos format.
+     * <p>
+     * If {@link ZipWriter#modificationTime} is -1, the modification time of the
+     * {@link DataEntry} will be used, otherwise {@link ZipWriter#modificationTime}
+     * will be used for all encountered {@link DataEntry}s.
+     * <p>
+     * If a {@link DataEntry} has no valid modification time, the {@link Instant#now()}
+     * will be assumed.
+     */
+    private int getDosModificationTime(DataEntry dataEntry)
+    {
+        int dosModificationTime = modificationTime;
+        if (dosModificationTime == -1) {
+            long dataEntryModificationTime = dataEntry.getModificationTime();
+            if (dataEntryModificationTime == -1) {
+                dataEntryModificationTime = Instant.now().toEpochMilli();
+            }
+            dosModificationTime = (int) javaToDosTime(dataEntryModificationTime);
+        }
+        return dosModificationTime;
     }
 
 
@@ -377,5 +409,32 @@ public class ZipWriter implements DataEntryWriter
             currentParentEntry = null;
             currentZipOutput   = null;
         }
+    }
+
+    /*
+     * Utility method for conversion of a java time to dos time.
+     * Copied from
+     * https://github.com/apache/commons-compress/blob/master/src/main/java/org/apache/commons/compress/archivers/zip/ZipUtil.java
+     *
+     * Licenced under Apache Licence v2.
+     */
+    private static final long DOSTIME_BEFORE_1980 = 1 << 21 | 1 << 16; // 0x210000
+
+    // version with integer overflow fixed - see https://bugs.openjdk.org/browse/JDK-8130914
+    private static long javaToDosTime(final long t)
+    {
+        final LocalDateTime ldt =
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(t), ZoneId.systemDefault());
+
+        if (ldt.getYear() < 1980) {
+            return DOSTIME_BEFORE_1980;
+        }
+
+        return (ldt.getYear() - 1980 << 25
+                | ldt.getMonthValue() << 21
+                | ldt.getDayOfMonth() << 16
+                | ldt.getHour() << 11
+                | ldt.getMinute() << 5
+                | ldt.getSecond() >> 1) & 0xffffffffL;
     }
 }

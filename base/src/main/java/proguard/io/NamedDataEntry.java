@@ -19,6 +19,7 @@ package proguard.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 /**
  * This <code>DataEntry</code> represents a named output entry with a parent.

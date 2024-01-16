@@ -80,6 +80,13 @@ public class ZipFileDataEntry implements DataEntry
 
 
     @Override
+    public long getModificationTime()
+    {
+        return zipEntry.getLastModifiedTime().toMillis();
+    }
+
+
+    @Override
     public boolean isDirectory()
     {
         return zipEntry.isDirectory();

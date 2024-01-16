@@ -45,6 +45,14 @@ public interface DataEntry
      */
     public long getSize();
 
+    /**
+     * Returns the modification time of this data entry in milliseconds,
+     * since the epoch (1970-01-01T00:00:00Z), or -1 if unknown.
+     */
+    public default long getModificationTime()
+    {
+        return -1;
+    }
 
     /**
      * Returns whether the data entry represents a directory.
