@@ -1383,7 +1383,7 @@ class JvmTransferRelationTest : FreeSpec({
             val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
             sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
 
-            val successors = transferRelation.getAbstractSuccessors(sourceState, null)
+            val successors = transferRelation.generateAbstractSuccessors(sourceState, null)
             successors.size shouldBe 1
         }
 
@@ -1414,7 +1414,7 @@ class JvmTransferRelationTest : FreeSpec({
             val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
             sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
 
-            val successors = transferRelation.getAbstractSuccessors(sourceState, null)
+            val successors = transferRelation.generateAbstractSuccessors(sourceState, null)
             successors.size shouldBe 1
         }
     }

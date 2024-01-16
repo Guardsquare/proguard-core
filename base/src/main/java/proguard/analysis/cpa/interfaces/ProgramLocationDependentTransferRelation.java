@@ -20,6 +20,7 @@ package proguard.analysis.cpa.interfaces;
 
 import proguard.classfile.Signature;
 
+import java.util.Collections;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,14 +36,23 @@ public interface ProgramLocationDependentTransferRelation<CfaNodeT extends CfaNo
 {
 
     /**
-     * Computes a successor state for the CFA {@code edge}.
+     * Computes the successor states for the CFA {@code edge}.
      */
-    AbstractState getEdgeAbstractSuccessor(AbstractState abstractState, CfaEdgeT edge, Precision precision);
+    Collection<? extends AbstractState> generateEdgeAbstractSuccessors(AbstractState abstractState, CfaEdgeT edge, Precision precision);
 
+
+    default Collection<? extends  AbstractState> wrapAbstractSuccessorInCollection(AbstractState abstractState)
+    {
+        if (abstractState == null)
+        {
+            return Collections.emptyList();
+        }
+        return Collections.singleton(abstractState);
+    }
     // implementations for TransferRelation
 
     @Override
-    default Collection<? extends AbstractState> getAbstractSuccessors(AbstractState abstractState, Precision precision)
+    default Collection<? extends AbstractState> generateAbstractSuccessors(AbstractState abstractState, Precision precision)
     {
         if (!(abstractState instanceof ProgramLocationDependent))
         {
@@ -52,10 +62,10 @@ public interface ProgramLocationDependentTransferRelation<CfaNodeT extends CfaNo
         Set<AbstractState> successors = new LinkedHashSet<>();
         for (CfaEdgeT edge : getEdges(state))
         {
-            AbstractState successor = getEdgeAbstractSuccessor(abstractState, edge, precision);
-            if (successor != null)
+            Collection<? extends AbstractState> edgeSuccessors = generateEdgeAbstractSuccessors(abstractState, edge, precision);
+            if (edgeSuccessors != null)
             {
-                successors.add(successor);
+                successors.addAll(edgeSuccessors);
             }
         }
         return successors;

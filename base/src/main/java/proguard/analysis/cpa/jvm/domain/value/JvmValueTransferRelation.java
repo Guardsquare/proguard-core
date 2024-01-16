@@ -1,6 +1,9 @@
 package proguard.analysis.cpa.jvm.domain.value;
 
 import proguard.analysis.cpa.defaults.StackAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.interfaces.Precision;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
 import proguard.analysis.datastructure.callgraph.Call;
@@ -16,6 +19,7 @@ import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
@@ -263,5 +267,10 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
         IdentifiedReferenceValue identifiedReferenceValue = (IdentifiedReferenceValue) result;
         state.setField(identifiedReferenceValue.id, new ValueAbstractState(identifiedReferenceValue));
+    }
+
+    @Override
+    public Collection<? extends AbstractState> generateEdgeAbstractSuccessors(AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
+        return wrapAbstractSuccessorInCollection(generateEdgeAbstractSuccessor(abstractState,edge,precision));
     }
 }

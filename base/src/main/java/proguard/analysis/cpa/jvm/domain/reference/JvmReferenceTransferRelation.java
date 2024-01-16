@@ -18,7 +18,7 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.instruction.Instruction;
@@ -43,14 +43,14 @@ public class JvmReferenceTransferRelation
     // implementations for JvmTransferRelation
 
     @Override
-    public JvmReferenceAbstractState getEdgeAbstractSuccessor(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
+    public JvmReferenceAbstractState generateEdgeAbstractSuccessor(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
     {
         if (!(abstractState instanceof JvmReferenceAbstractState))
         {
             throw new IllegalArgumentException(getClass().getName() + " does not support " + abstractState.getClass().getName());
         }
 
-        return (JvmReferenceAbstractState) super.getEdgeAbstractSuccessor(abstractState, edge, precision);
+        return (JvmReferenceAbstractState) super.generateEdgeAbstractSuccessor(abstractState, edge, precision);
     }
 
     @Override
@@ -86,5 +86,10 @@ public class JvmReferenceTransferRelation
         {
             state.push(getAbstractDefault());
         }
+    }
+    @Override
+    public Collection<? extends AbstractState> generateEdgeAbstractSuccessors(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
+    {
+        return wrapAbstractSuccessorInCollection(generateEdgeAbstractSuccessor(abstractState,edge,precision));
     }
 }

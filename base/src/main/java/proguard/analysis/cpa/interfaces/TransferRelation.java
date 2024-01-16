@@ -32,5 +32,5 @@ public interface TransferRelation
     /**
      * Returns abstract successor states of the {@code abstractState} under the selected {@code precision}.
      */
-    Collection<? extends AbstractState> getAbstractSuccessors(AbstractState abstractState, Precision precision);
+    Collection<? extends AbstractState> generateAbstractSuccessors(AbstractState abstractState, Precision precision);
 }

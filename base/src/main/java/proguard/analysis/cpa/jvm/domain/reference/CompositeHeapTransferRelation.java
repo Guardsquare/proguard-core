@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Collection;
 
 import proguard.analysis.cpa.interfaces.*;
 import proguard.classfile.MethodSignature;
@@ -64,8 +65,7 @@ public class CompositeHeapTransferRelation
 
     // implementations for ProgramLocationDependentTransferRelation
 
-    @Override
-    public CompositeHeapJvmAbstractState getEdgeAbstractSuccessor(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
+    public CompositeHeapJvmAbstractState generateEdgeAbstractSuccessor(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
     {
         if (!(abstractState instanceof CompositeHeapJvmAbstractState))
         {
@@ -74,7 +74,7 @@ public class CompositeHeapTransferRelation
         CompositeHeapJvmAbstractState compositeState = (CompositeHeapJvmAbstractState) abstractState;
         Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> stateIterator = compositeState.getWrappedStates().iterator();
         List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> successorStates = new ArrayList<>(compositeState.getWrappedStates().size());
-        jvmTransferRelations.forEach(tr -> successorStates.add((JvmAbstractState<? extends AbstractState>) tr.getEdgeAbstractSuccessor(stateIterator.next(), edge, precision)));
+        jvmTransferRelations.forEach(tr -> successorStates.add((JvmAbstractState<? extends AbstractState>) tr.generateEdgeAbstractSuccessor(stateIterator.next(), edge, precision)));
         if (successorStates.stream().anyMatch(Objects::isNull))
         {
             return null;
@@ -85,5 +85,10 @@ public class CompositeHeapTransferRelation
             result.updateHeapDependence();
             return result;
         }
+    }
+
+    @Override
+    public Collection<? extends AbstractState> generateEdgeAbstractSuccessors(AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
+        return wrapAbstractSuccessorInCollection(generateEdgeAbstractSuccessor(abstractState,edge,precision));
     }
 }

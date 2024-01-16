@@ -101,7 +101,7 @@ public class CpaAlgorithm
                 currentState = precisionAdjustmentResult.getAbstractState();
                 currentPrecision = currentState.getPrecision();
 
-                for (AbstractState successorState : transferRelation.getAbstractSuccessors(currentState, currentPrecision))
+                for (AbstractState successorState : transferRelation.generateAbstractSuccessors(currentState, currentPrecision))
                 {
                     Set<AbstractState> gen  = new LinkedHashSet<>(); // abstract states to be added to the waitlist and reached set
                     Set<AbstractState> kill = new LinkedHashSet<>(); // abstract states to be removed from the waitlist and reached set

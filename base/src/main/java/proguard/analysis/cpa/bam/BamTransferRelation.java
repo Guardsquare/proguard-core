@@ -53,7 +53,7 @@ import proguard.analysis.cpa.interfaces.Waitlist;
 /**
  * This {@link TransferRelation} extends an analysis inter-procedurally. The transfer relation applies as close as possible the algorithms described in {@see
  * https://dl.acm.org/doi/pdf/10.1145/3368089.3409718}. On a high level the task of this domain-independent transfer relation is to extend the intra-procedural domain-dependent transfer relation of a
- * {@link CpaWithBamOperators} inter-procedurally. For more details on how the transfer relation works see {@link BamTransferRelation#getAbstractSuccessors(AbstractState, Precision)}.
+ * {@link CpaWithBamOperators} inter-procedurally. For more details on how the transfer relation works see {@link BamTransferRelation#generateAbstractSuccessors(AbstractState, Precision)}.
  *
  * @author Carlo Alberto Pozzoli
  */
@@ -138,7 +138,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
      * <p>- Exit nodes reached are the base cases of the recursion (along with the stop operator), in this case the transfer relation returns with no successors.
      */
     @Override
-    public Collection<? extends AbstractState> getAbstractSuccessors(AbstractState abstractState, Precision precision)
+    public Collection<? extends AbstractState> generateAbstractSuccessors(AbstractState abstractState, Precision precision)
     {
         if (!(abstractState instanceof ProgramLocationDependent))
         {
@@ -168,7 +168,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
                 }
                 else
                 {
-                    abstractSuccessors.add(((ProgramLocationDependentTransferRelation) wrappedCpa.getTransferRelation()).getEdgeAbstractSuccessor(abstractState, callEdge, precision));
+                    abstractSuccessors.addAll(((ProgramLocationDependentTransferRelation) wrappedCpa.getTransferRelation()).generateEdgeAbstractSuccessors(abstractState, callEdge, precision));
                 }
             }
         }
@@ -176,7 +176,7 @@ public class BamTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
         // the exit node case is not checked specifically because in case of exit node the wrapped intra-procedural transfer relation does not produce successors
         else
         {
-            abstractSuccessors.addAll(wrappedCpa.getTransferRelation().getAbstractSuccessors(abstractState, precision));
+            abstractSuccessors.addAll(wrappedCpa.getTransferRelation().generateAbstractSuccessors(abstractState, precision));
         }
 
         return abstractSuccessors;

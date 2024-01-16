@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Collection;
 
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
@@ -79,9 +80,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
 {
 
     // implementations for ProgramLocationDependentTransferRelation
-
-    @Override
-    public AbstractState getEdgeAbstractSuccessor(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
+    public AbstractState generateEdgeAbstractSuccessor(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
     {
         if (!(abstractState instanceof JvmAbstractState))
         {

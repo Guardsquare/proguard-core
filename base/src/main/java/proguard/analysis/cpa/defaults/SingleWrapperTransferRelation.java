@@ -58,8 +58,8 @@ public class SingleWrapperTransferRelation
     // implementations for TransferRelation
 
     @Override
-    public Collection<? extends AbstractState> getAbstractSuccessors(AbstractState abstractState, Precision precision)
+    public Collection<? extends AbstractState> generateAbstractSuccessors(AbstractState abstractState, Precision precision)
     {
-        return wrappedTransferRelation.getAbstractSuccessors(abstractState, precision);
+        return wrappedTransferRelation.generateAbstractSuccessors(abstractState, precision);
     }
 }

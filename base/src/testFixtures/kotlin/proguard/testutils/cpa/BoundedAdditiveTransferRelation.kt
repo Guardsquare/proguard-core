@@ -26,7 +26,7 @@ class BoundedAdditiveTransferRelation(
     private val step: Int,
     private val cap: Int
 ) : TransferRelation {
-    override fun getAbstractSuccessors(
+    override fun generateAbstractSuccessors(
         abstractState: AbstractState?,
         precision: Precision?
     ): MutableCollection<out AbstractState> {

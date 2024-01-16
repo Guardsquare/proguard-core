@@ -134,7 +134,7 @@ public class JvmMemoryLocationTransferRelation<AbstractStateT extends LatticeAbs
     // implementations for TransferRelation
 
     @Override
-    public Collection<? extends AbstractState> getAbstractSuccessors(AbstractState abstractState, Precision precision)
+    public Collection<? extends AbstractState> generateAbstractSuccessors(AbstractState abstractState, Precision precision)
     {
         if (!(abstractState instanceof JvmMemoryLocationAbstractState))
         {
