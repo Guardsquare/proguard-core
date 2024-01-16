@@ -82,10 +82,13 @@ jacocoTestReport {
     sourceDirectories.setFrom(sources)
     def classes = files(sourceSets.main.output.classesDirs)
     classDirectories.setFrom(classes)
-    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/*.exec')
+    executionData.setFrom project.fileTree(dir: "$project.buildDir/jacoco", include: '*.exec')
     reports {
         xml.required = true
         csv.required = false
+    }
+    javaVersionsForTest.each { version ->
+        mustRunAfter "testJava$version"
     }
 }
 
