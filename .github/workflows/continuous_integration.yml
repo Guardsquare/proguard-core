@@ -22,6 +22,16 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: assemble
+      - name: Archive Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Results
+          path: base/build/reports/test
+      - name: Archive Code Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: Code Coverage Results
+          path: base/build/reports/jacoco
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
