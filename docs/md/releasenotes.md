@@ -16,6 +16,17 @@
 - Add `IdentifiedArrayReferenceValue.generalize()` to maintain `ID` when applied to two instances with same `ID`.
 - Improve `ExecutingInvocationUnit` support to methods that transform a `String` into an array of a primitive type. 
 
+## New Code Style
+
+We have changed our code style to follow the Google Java Style Guide. A new auto-formatter is now available to make contributing to 
+ProGuardCORE easier:
+
+```
+./gradlew spotlessApply
+```
+
+More information can be found in the `Code Style` section in `CONTRIBUTING.md`. 
+
 ## Version 9.1
 
 ### Improved

@@ -163,18 +163,15 @@ of the [Google Developer Documentation Style
 Guide](https://developers.google.com/style/).
 
 ## Code format
+We follow the [Google Java Code Style](https://google.github.io/styleguide/javaguide.html). The code should be
+auto-formatted before any pull request by running:
+  
+  ```
+  ./gradlew spotlessApply
+  ```
 
-We strive for code that is super-aligned. Ideally, the code should look like a
-set of tables, for variable declarations, parameter declarations, ternary
-operators, etc.
-
-- The basic indentation is 4 spaces (never tabs).
-
-- Curly braces are on separate lines.
-
-- The ideal maximum line length is 120 characters. Documentation and comments
-  should stick to this limit. Code that has a nice table-like structure can
-  exceed it.
+In particular some elements of the code style are not covered by Spotless and particular attention should be
+given to them:
 
 - Imports of multiple classes in the same package are declared explicitly, **no wildcard imports**.
 
@@ -182,10 +179,6 @@ operators, etc.
   methods, variables.
 
 - Whenever overriding a method, add the @Override annotation.
-
-In practice, an IDE can help to obtain a clean indentation and structure, but
-it is often not sufficient. Be careful to never upset a cleanly formatted
-source file by automatically reformatting it.
 
 ### Naming Conventions
 

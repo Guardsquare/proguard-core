@@ -9,6 +9,7 @@ plugins {
     id 'jacoco'
     id "org.jlleitschuh.gradle.ktlint"
     id "org.sonarqube"
+    id 'com.diffplug.spotless'
 }
 
 dependencies {
@@ -97,3 +98,8 @@ if (hasProperty('PROGUARD_SIGNING_KEY')) {
     }
 }
 
+spotless {
+    java {
+        googleJavaFormat()
+    }
+}
