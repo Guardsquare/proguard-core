@@ -8,8 +8,7 @@ plugins {
     id 'com.adarshr.test-logger' version '3.0.0' apply false
     id "org.sonarqube" version "3.4.0.2513"
     id "io.freefair.aggregate-javadoc" version "6.5.0.3"
-    id "org.jlleitschuh.gradle.ktlint" version "10.3.0" apply false
-    id "com.diffplug.spotless" version "6.13.0"
+    id "com.diffplug.spotless" version "6.13.0" apply false
 }
 
 allprojects {
@@ -33,6 +32,21 @@ allprojects {
         javadoc {
             options.addStringOption('Xdoclint:none', '-quiet')
         }
+
+        spotless {
+            java {
+                importOrder()
+                googleJavaFormat()
+            }
+        }
+    }
+
+    pluginManager.withPlugin('kotlin') {
+        spotless {
+            kotlin {
+                ktlint()
+            }
+        }
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -45,6 +59,15 @@ allprojects {
         .configureEach {
             compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_7
         }
+
+    apply plugin: 'com.diffplug.spotless'
+
+    spotless {
+        groovyGradle {
+            greclipse()
+            toggleOffOn('formatter:off', 'formatter:on')
+        }
+    }
 }
 
 aggregateJavadoc {

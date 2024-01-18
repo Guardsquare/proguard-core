@@ -7,9 +7,7 @@ plugins {
     id 'signing'
     id 'com.adarshr.test-logger'
     id 'jacoco'
-    id "org.jlleitschuh.gradle.ktlint"
     id "org.sonarqube"
-    id 'com.diffplug.spotless'
 }
 
 dependencies {
@@ -95,11 +93,5 @@ if (hasProperty('PROGUARD_SIGNING_KEY')) {
         String password = findProperty('PROGUARD_SIGNING_PASSWORD')
         useInMemoryPgpKeys(key, password)
         sign publishing.publications
-    }
-}
-
-spotless {
-    java {
-        googleJavaFormat()
     }
 }
