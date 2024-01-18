@@ -36,110 +36,98 @@ import proguard.evaluation.value.Value;
  *
  * @author Samuel Hopstock
  */
-public class ConcreteCall
-    extends Call
-{
+public class ConcreteCall extends Call {
 
-    private final Clazz  targetClass;
-    private final Method target;
+  private final Clazz targetClass;
+  private final Method target;
 
+  public ConcreteCall(
+      CodeLocation caller,
+      Clazz targetClass,
+      Method target,
+      Value instance,
+      List<Value> arguments,
+      Value returnValue,
+      int throwsNullptr,
+      Instruction instruction,
+      boolean controlFlowDependent,
+      boolean runtimeTypeDependent) {
+    super(
+        caller,
+        instance,
+        arguments,
+        returnValue,
+        throwsNullptr,
+        instruction,
+        controlFlowDependent,
+        runtimeTypeDependent);
+    this.targetClass = targetClass;
+    this.target = target;
+  }
 
-    public ConcreteCall(CodeLocation caller,
-                        Clazz targetClass,
-                        Method target,
-                        Value instance,
-                        List<Value> arguments,
-                        Value returnValue,
-                        int throwsNullptr,
-                        Instruction instruction,
-                        boolean controlFlowDependent,
-                        boolean runtimeTypeDependent)
-    {
-        super(caller,
-              instance,
-              arguments,
-              returnValue,
-              throwsNullptr,
-              instruction,
-              controlFlowDependent,
-              runtimeTypeDependent);
-        this.targetClass = targetClass;
-        this.target = target;
+  public ConcreteCall(
+      CodeLocation caller,
+      Clazz targetClass,
+      Method target,
+      int throwsNullptr,
+      Instruction instruction,
+      boolean controlFlowDependent,
+      boolean runtimeTypeDependent) {
+    this(
+        caller,
+        targetClass,
+        target,
+        null,
+        Collections.emptyList(),
+        null,
+        throwsNullptr,
+        instruction,
+        controlFlowDependent,
+        runtimeTypeDependent);
+  }
+
+  @Override
+  public MethodSignature getTarget() {
+    return (MethodSignature) Signature.of(targetClass, target);
+  }
+
+  @Override
+  public boolean hasIncompleteTarget() {
+    // Concrete calls by definition know what the target will be.
+    return false;
+  }
+
+  public Clazz getTargetClass() {
+    return targetClass;
+  }
+
+  public Method getTargetMethod() {
+    return target;
+  }
+
+  public void targetMethodAccept(MemberVisitor memberVisitor) {
+    if (this.targetClass != null && this.target != null) {
+      this.target.accept(this.targetClass, memberVisitor);
     }
+  }
 
-    public ConcreteCall(CodeLocation caller,
-                        Clazz targetClass,
-                        Method target,
-                        int throwsNullptr,
-                        Instruction instruction,
-                        boolean controlFlowDependent,
-                        boolean runtimeTypeDependent)
-    {
-        this(caller,
-             targetClass,
-             target,
-             null,
-             Collections.emptyList(),
-             null,
-             throwsNullptr,
-             instruction,
-             controlFlowDependent,
-             runtimeTypeDependent);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    ConcreteCall that = (ConcreteCall) o;
+    return Objects.equals(targetClass, that.targetClass) && Objects.equals(target, that.target);
+  }
 
-    @Override
-    public MethodSignature getTarget()
-    {
-        return (MethodSignature) Signature.of(targetClass, target);
-    }
-
-    @Override
-    public boolean hasIncompleteTarget()
-    {
-        // Concrete calls by definition know what the target will be.
-        return false;
-    }
-
-    public Clazz getTargetClass()
-    {
-        return targetClass;
-    }
-
-    public Method getTargetMethod()
-    {
-        return target;
-    }
-
-    public void targetMethodAccept(MemberVisitor memberVisitor)
-    {
-        if (this.targetClass != null && this.target != null)
-        {
-            this.target.accept(this.targetClass, memberVisitor);
-        }
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-        if (!super.equals(o))
-        {
-            return false;
-        }
-        ConcreteCall that = (ConcreteCall) o;
-        return Objects.equals(targetClass, that.targetClass) && Objects.equals(target, that.target);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(super.hashCode(), targetClass, target);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), targetClass, target);
+  }
 }

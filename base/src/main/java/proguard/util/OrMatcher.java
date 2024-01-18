@@ -18,48 +18,38 @@
 package proguard.util;
 
 /**
- * This {@link StringMatcher} tests whether strings matches at least one of the given {@link StringMatcher} instances.
+ * This {@link StringMatcher} tests whether strings matches at least one of the given {@link
+ * StringMatcher} instances.
  *
  * @author Eric Lafortune
  */
-public class OrMatcher extends StringMatcher
-{
-    private final StringMatcher[] matchers;
+public class OrMatcher extends StringMatcher {
+  private final StringMatcher[] matchers;
 
+  /** Creates a new OrMatcher with the given string matchers. */
+  public OrMatcher(StringMatcher... matchers) {
+    this.matchers = matchers;
+  }
 
-    /**
-     * Creates a new OrMatcher with the given string matchers.
-     */
-    public OrMatcher(StringMatcher... matchers)
-    {
-        this.matchers = matchers;
+  // Implementations for StringMatcher.
+
+  @Override
+  public String prefix() {
+    if (this.matchers.length == 0 || this.matchers[0] == null) return null;
+    if (this.matchers.length == 1) return this.matchers[0].prefix();
+    // TODO(T6101) - if there is more than 1 matcher, find a more specific prefix than the empty
+    // string
+    return "";
+  }
+
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    for (StringMatcher matcher : matchers) {
+      if (matcher.matches(string, beginOffset, endOffset)) {
+        return true;
+      }
     }
 
-
-    // Implementations for StringMatcher.
-
-    @Override
-    public String prefix()
-    {
-        if (this.matchers.length == 0 || this.matchers[0] == null)
-            return null;
-        if (this.matchers.length == 1)
-            return this.matchers[0].prefix();
-        // TODO(T6101) - if there is more than 1 matcher, find a more specific prefix than the empty string
-        return "";
-    }
-
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        for (StringMatcher matcher : matchers)
-        {
-            if (matcher.matches(string, beginOffset, endOffset))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

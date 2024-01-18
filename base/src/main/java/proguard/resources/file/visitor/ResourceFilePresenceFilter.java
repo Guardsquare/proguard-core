@@ -23,91 +23,80 @@ import proguard.resources.file.ResourceFilePool;
 import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
- * This {@link ResourceFileVisitor} delegates its visits to one of two
- * {@link ResourceFileVisitor} instances, depending on whether the name of
- * the visited resource file is present in a given {@link FilePool} or not.
+ * This {@link ResourceFileVisitor} delegates its visits to one of two {@link ResourceFileVisitor}
+ * instances, depending on whether the name of the visited resource file is present in a given
+ * {@link FilePool} or not.
  *
  * @author Thomas Neidhart
  */
-public class ResourceFilePresenceFilter
-    implements   ResourceFileVisitor
-{
-    private final FilePool            filePool;
-    private final ResourceFileVisitor presentResourceFileVisitor;
-    private final ResourceFileVisitor missingResourceFileVisitor;
+public class ResourceFilePresenceFilter implements ResourceFileVisitor {
+  private final FilePool filePool;
+  private final ResourceFileVisitor presentResourceFileVisitor;
+  private final ResourceFileVisitor missingResourceFileVisitor;
 
+  /**
+   * Creates a new ResourceFilePresenceFilter.
+   *
+   * @param filePool the <code>ResourceFilePool</code> in which the presence will be tested.
+   * @param presentResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits of
+   *     present resource files will be delegated.
+   * @param missingResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits of
+   *     missing resource files will be delegated.
+   */
+  public ResourceFilePresenceFilter(
+      FilePool filePool,
+      ResourceFileVisitor presentResourceFileVisitor,
+      ResourceFileVisitor missingResourceFileVisitor) {
+    this.filePool = filePool;
+    this.presentResourceFileVisitor = presentResourceFileVisitor;
+    this.missingResourceFileVisitor = missingResourceFileVisitor;
+  }
 
-    /**
-     * Creates a new ResourceFilePresenceFilter.
-     * @param filePool           the <code>ResourceFilePool</code> in which the
-     *                                   presence will be tested.
-     * @param presentResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits
-     *                                   of present resource files will be delegated.
-     * @param missingResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits
-     *                                   of missing resource files will be delegated.
-     */
-    public ResourceFilePresenceFilter(FilePool            filePool,
-                                      ResourceFileVisitor presentResourceFileVisitor,
-                                      ResourceFileVisitor missingResourceFileVisitor)
-    {
-        this.filePool                   = filePool;
-        this.presentResourceFileVisitor = presentResourceFileVisitor;
-        this.missingResourceFileVisitor = missingResourceFileVisitor;
+  /**
+   * Creates a new ResourceFilePresenceFilter.
+   *
+   * @param resourceFilePool the <code>ResourceFilePool</code> in which the presence will be tested.
+   * @param presentResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits of
+   *     present resource files will be delegated.
+   * @param missingResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits of
+   *     missing resource files will be delegated.
+   */
+  @Deprecated
+  public ResourceFilePresenceFilter(
+      ResourceFilePool resourceFilePool,
+      ResourceFileVisitor presentResourceFileVisitor,
+      ResourceFileVisitor missingResourceFileVisitor) {
+    this.filePool = resourceFilePool;
+    this.presentResourceFileVisitor = presentResourceFileVisitor;
+    this.missingResourceFileVisitor = missingResourceFileVisitor;
+  }
+
+  // Implementations for ResourceFileVisitor.
+
+  @Override
+  public void visitResourceFile(ResourceFile resourceFile) {
+    ResourceFileVisitor resourceFileVisitor = resourceFileVisitor(resourceFile);
+
+    if (resourceFileVisitor != null) {
+      resourceFileVisitor.visitResourceFile(resourceFile);
     }
+  }
 
-    /**
-     * Creates a new ResourceFilePresenceFilter.
-     * @param resourceFilePool           the <code>ResourceFilePool</code> in which the
-     *                                   presence will be tested.
-     * @param presentResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits
-     *                                   of present resource files will be delegated.
-     * @param missingResourceFileVisitor the <code>ResourceFileVisitor</code> to which visits
-     *                                   of missing resource files will be delegated.
-     */
-    @Deprecated
-    public ResourceFilePresenceFilter(ResourceFilePool    resourceFilePool,
-                                      ResourceFileVisitor presentResourceFileVisitor,
-                                      ResourceFileVisitor missingResourceFileVisitor)
-    {
-        this.filePool                   = resourceFilePool;
-        this.presentResourceFileVisitor = presentResourceFileVisitor;
-        this.missingResourceFileVisitor = missingResourceFileVisitor;
+  @Override
+  public void visitKotlinModule(KotlinModule kotlinModule) {
+    ResourceFileVisitor resourceFileVisitor = resourceFileVisitor(kotlinModule);
+
+    if (resourceFileVisitor != null) {
+      resourceFileVisitor.visitResourceFile(kotlinModule);
     }
+  }
 
-    // Implementations for ResourceFileVisitor.
+  // Small utility methods.
 
-    @Override
-    public void visitResourceFile(ResourceFile resourceFile)
-    {
-        ResourceFileVisitor resourceFileVisitor = resourceFileVisitor(resourceFile);
-
-        if (resourceFileVisitor != null)
-        {
-            resourceFileVisitor.visitResourceFile(resourceFile);
-        }
-    }
-
-
-    @Override
-    public void visitKotlinModule(KotlinModule kotlinModule)
-    {
-        ResourceFileVisitor resourceFileVisitor = resourceFileVisitor(kotlinModule);
-
-        if (resourceFileVisitor != null)
-        {
-            resourceFileVisitor.visitResourceFile(kotlinModule);
-        }
-    }
-
-    // Small utility methods.
-
-    /**
-     * Returns the appropriate <code>ResourceFileVisitor</code>.
-     */
-    protected ResourceFileVisitor resourceFileVisitor(ResourceFile resourceFile)
-    {
-        return filePool.getResourceFile(resourceFile.getFileName()) != null ?
-               presentResourceFileVisitor :
-               missingResourceFileVisitor;
-    }
+  /** Returns the appropriate <code>ResourceFileVisitor</code>. */
+  protected ResourceFileVisitor resourceFileVisitor(ResourceFile resourceFile) {
+    return filePool.getResourceFile(resourceFile.getFileName()) != null
+        ? presentResourceFileVisitor
+        : missingResourceFileVisitor;
+  }
 }

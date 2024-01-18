@@ -19,17 +19,13 @@ package proguard.io;
 
 import java.io.IOException;
 
-
 /**
- * This interface provides methods for reading data entries. The implementation
- * determines what to do with the read data, if anything.
+ * This interface provides methods for reading data entries. The implementation determines what to
+ * do with the read data, if anything.
  *
  * @author Eric Lafortune
  */
-public interface DataEntryReader
-{
-    /**
-     * Reads the given data entry.
-     */
-    public void read(DataEntry dataEntry) throws IOException;
+public interface DataEntryReader {
+  /** Reads the given data entry. */
+  public void read(DataEntry dataEntry) throws IOException;
 }

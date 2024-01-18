@@ -17,44 +17,38 @@
  */
 package proguard.util;
 
-
 /**
- * This abstract class provides methods to determine whether strings match a
- * given criterion, which is specified by the implementation.
+ * This abstract class provides methods to determine whether strings match a given criterion, which
+ * is specified by the implementation.
  *
  * @author Eric Lafortune
  */
-public abstract class StringMatcher
-{
-    /**
-     * Checks whether the given string matches.
-     * @param string the string to match.
-     * @return a boolean indicating whether the string matches the criterion.
-     */
-    public boolean matches(String string)
-    {
-        return matches(string, 0, string.length());
-    }
+public abstract class StringMatcher {
+  /**
+   * Checks whether the given string matches.
+   *
+   * @param string the string to match.
+   * @return a boolean indicating whether the string matches the criterion.
+   */
+  public boolean matches(String string) {
+    return matches(string, 0, string.length());
+  }
 
+  /**
+   * Returns a common prefix of all strings matched by this {@link StringMatcher}. If the returned
+   * value is null, then this {@link StringMatcher} does not match any string.
+   */
+  public String prefix() {
+    return "";
+  }
 
-    /**
-     * Returns a common prefix of all strings matched by this {@link StringMatcher}.
-     * If the returned value is null, then this {@link StringMatcher} does not match any string.
-     */
-    public String prefix()
-    {
-        return "";
-    }
-    
-
-    /**
-     * Checks whether the given substring matches.
-     * @param string the string to match.
-     * @param beginOffset the start offset of the substring (inclusive).
-     * @param endOffset the end offset of the substring (exclusive).
-     * @return a boolean indicating whether the substring matches the criterion.
-     */
-    protected abstract boolean matches(String string,
-                                       int    beginOffset,
-                                       int    endOffset);
+  /**
+   * Checks whether the given substring matches.
+   *
+   * @param string the string to match.
+   * @param beginOffset the start offset of the substring (inclusive).
+   * @param endOffset the end offset of the substring (exclusive).
+   * @return a boolean indicating whether the substring matches the criterion.
+   */
+  protected abstract boolean matches(String string, int beginOffset, int endOffset);
 }

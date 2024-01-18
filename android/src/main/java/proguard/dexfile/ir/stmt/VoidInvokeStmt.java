@@ -21,8 +21,8 @@ import proguard.dexfile.ir.expr.Value;
 import proguard.dexfile.ir.stmt.Stmt.E1Stmt;
 
 /**
- * Represent a void-expr: the expr result is ignored.
- * possible op type: AbstractInvokeExpr, FieldExpr, or others
+ * Represent a void-expr: the expr result is ignored. possible op type: AbstractInvokeExpr,
+ * FieldExpr, or others
  *
  * @author <a href="mailto:pxb1988@gmail.com">Panxiaobo</a>
  * @version $Rev: 8da5a5faa6bd $
@@ -30,18 +30,17 @@ import proguard.dexfile.ir.stmt.Stmt.E1Stmt;
  */
 public class VoidInvokeStmt extends E1Stmt {
 
-    public VoidInvokeStmt(Value op) {
-        super(ST.VOID_INVOKE, op);
-    }
+  public VoidInvokeStmt(Value op) {
+    super(ST.VOID_INVOKE, op);
+  }
 
-    @Override
-    public Stmt clone(LabelAndLocalMapper mapper) {
-        return new VoidInvokeStmt(op.clone(mapper));
-    }
+  @Override
+  public Stmt clone(LabelAndLocalMapper mapper) {
+    return new VoidInvokeStmt(op.clone(mapper));
+  }
 
-    @Override
-    public String toString() {
-        return "void " + op;
-    }
-
+  @Override
+  public String toString() {
+    return "void " + op;
+  }
 }

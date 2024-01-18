@@ -18,43 +18,28 @@
 package proguard.classfile.attribute;
 
 /**
- * This line number table entry contains additional information about its
- * source. This information can not be represented in class files, but it
- * can be used internally to represent lines in inlined or merged code.
+ * This line number table entry contains additional information about its source. This information
+ * can not be represented in class files, but it can be used internally to represent lines in
+ * inlined or merged code.
  *
  * @author Eric Lafortune
  */
-public class ExtendedLineNumberInfo
-extends      LineNumberInfo
-{
-    public String source;
+public class ExtendedLineNumberInfo extends LineNumberInfo {
+  public String source;
 
+  /** Creates an uninitialized ExtendedLineNumberInfo. */
+  public ExtendedLineNumberInfo() {}
 
-    /**
-     * Creates an uninitialized ExtendedLineNumberInfo.
-     */
-    public ExtendedLineNumberInfo()
-    {
-    }
+  /** Creates an initialized ExtendedLineNumberInfo. */
+  public ExtendedLineNumberInfo(int u2startPC, int u2lineNumber, String source) {
+    super(u2startPC, u2lineNumber);
 
+    this.source = source;
+  }
 
-    /**
-     * Creates an initialized ExtendedLineNumberInfo.
-     */
-    public ExtendedLineNumberInfo(int    u2startPC,
-                                  int    u2lineNumber,
-                                  String source)
-    {
-        super(u2startPC, u2lineNumber);
+  // Implementations for LineNumberInfo.
 
-        this.source = source;
-    }
-
-
-    // Implementations for LineNumberInfo.
-
-    public String getSource()
-    {
-        return source;
-    }
+  public String getSource() {
+    return source;
+  }
 }

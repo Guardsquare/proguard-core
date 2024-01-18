@@ -20,17 +20,18 @@ package proguard.classfile.kotlin.flags;
 /**
  * Flags for Kotlin types.
  *
- * No valid common flags.
+ * <p>No valid common flags.
  */
-public class KotlinEffectExpressionFlags implements KotlinFlags
-{
-    /**
-     * Signifies that the corresponding effect expression should be negated to compute the proposition or the conclusion of an effect.
-     */
-    public boolean isNegated;
+public class KotlinEffectExpressionFlags implements KotlinFlags {
+  /**
+   * Signifies that the corresponding effect expression should be negated to compute the proposition
+   * or the conclusion of an effect.
+   */
+  public boolean isNegated;
 
-    /**
-     * Signifies that the corresponding effect expression checks whether a value of some variable is `null`.
-     */
-    public boolean isNullCheckPredicate;
+  /**
+   * Signifies that the corresponding effect expression checks whether a value of some variable is
+   * `null`.
+   */
+  public boolean isNullCheckPredicate;
 }

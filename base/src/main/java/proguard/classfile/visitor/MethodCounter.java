@@ -18,30 +18,23 @@ import proguard.util.Counter;
  *
  * @author Ruben Pieters
  */
-public class MethodCounter
-implements   MemberVisitor,
-             Counter
-{
-    private int count;
+public class MethodCounter implements MemberVisitor, Counter {
+  private int count;
 
+  // Implementations for Counter.
 
-    // Implementations for Counter.
+  @Override
+  public int getCount() {
+    return count;
+  }
 
-    @Override
-    public int getCount()
-    {
-        return count;
-    }
+  // Implementations for MemberVisitor.
 
+  @Override
+  public void visitAnyMember(Clazz clazz, Member member) {}
 
-    // Implementations for MemberVisitor.
-
-    @Override
-    public void visitAnyMember(Clazz clazz, Member member) {}
-
-    @Override
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        count++;
-    }
+  @Override
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    count++;
+  }
 }

@@ -24,33 +24,25 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
- * This {@link AttributeVisitor} lets a given {@link MemberVisitor} visit all methods whose code attribute is visited.
+ * This {@link AttributeVisitor} lets a given {@link MemberVisitor} visit all methods whose code
+ * attribute is visited.
  *
  * @author Johan Leys
  */
-public class CodeAttributeToMethodVisitor
-implements   AttributeVisitor
-{
-    private final MemberVisitor memberVisitor;
+public class CodeAttributeToMethodVisitor implements AttributeVisitor {
+  private final MemberVisitor memberVisitor;
 
+  /** Creates a new CodeAttributeToMethodVisitor. */
+  public CodeAttributeToMethodVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    /**
-     * Creates a new CodeAttributeToMethodVisitor.
-     */
-    public CodeAttributeToMethodVisitor(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
-    }
+  // Implementations for AttributeToMemberVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeToMemberVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    @Override
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        method.accept(clazz, memberVisitor);
-    }
+  @Override
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    method.accept(clazz, memberVisitor);
+  }
 }

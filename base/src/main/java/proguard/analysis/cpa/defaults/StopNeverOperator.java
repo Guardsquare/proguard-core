@@ -25,20 +25,20 @@ import proguard.analysis.cpa.interfaces.StopOperator;
 import proguard.analysis.cpa.interfaces.Waitlist;
 
 /**
- * This {@link StopOperator} always returns false, i.e., it can be used for analyses running
- * until the {@link Waitlist} becomes empty.
+ * This {@link StopOperator} always returns false, i.e., it can be used for analyses running until
+ * the {@link Waitlist} becomes empty.
  *
  * @author Dmitry Ivanov
  */
-public final class StopNeverOperator
-    implements StopOperator
-{
+public final class StopNeverOperator implements StopOperator {
 
-    //implementations for StopOperator
+  // implementations for StopOperator
 
-    @Override
-    public boolean stop(AbstractState abstractState, Collection<? extends AbstractState> reachedAbstractStates, Precision precision)
-    {
-        return false;
-    }
+  @Override
+  public boolean stop(
+      AbstractState abstractState,
+      Collection<? extends AbstractState> reachedAbstractStates,
+      Precision precision) {
+    return false;
+  }
 }

@@ -18,52 +18,42 @@
 
 package proguard.evaluation.value;
 
-/**
- * Represents a value that is completely unknown.
- */
-public class UnknownValue extends Value
-{
-    UnknownValue() { }
+/** Represents a value that is completely unknown. */
+public class UnknownValue extends Value {
+  UnknownValue() {}
 
-    @Override
-    public Value generalize(Value other)
-    {
-        return this;
-    }
+  @Override
+  public Value generalize(Value other) {
+    return this;
+  }
 
-    @Override
-    public boolean isCategory2()
-    {
-        return false;
-    }
+  @Override
+  public boolean isCategory2() {
+    return false;
+  }
 
-    @Override
-    public int computationalType()
-    {
-        return Value.TYPE_UNKNOWN;
-    }
+  @Override
+  public int computationalType() {
+    return Value.TYPE_UNKNOWN;
+  }
 
-    @Override
-    public String internalType()
-    {
-        return null;
-    }
+  @Override
+  public String internalType() {
+    return null;
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return super.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
 
-    @Override
-    public boolean equals(Object o)
-    {
-        return o instanceof UnknownValue;
-    }
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof UnknownValue;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "UNKNOWN";
-    }
+  @Override
+  public String toString() {
+    return "UNKNOWN";
+  }
 }

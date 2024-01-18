@@ -20,40 +20,32 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link ClassVisitor} delegates its visits to another given
- * {@link ClassVisitor}, except for one given class.
+ * This {@link ClassVisitor} delegates its visits to another given {@link ClassVisitor}, except for
+ * one given class.
  *
  * @author Eric Lafortune
  */
-public class ExceptClassFilter
-implements   ClassVisitor
-{
-    private final Clazz        exceptClass;
-    private final ClassVisitor classVisitor;
+public class ExceptClassFilter implements ClassVisitor {
+  private final Clazz exceptClass;
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param exceptClass the class that will not be visited.
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public ExceptClassFilter(Clazz exceptClass, ClassVisitor classVisitor) {
+    this.exceptClass = exceptClass;
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new ClassNameFilter.
-     * @param exceptClass  the class that will not be visited.
-     * @param classVisitor the <code>ClassVisitor</code> to which visits will
-     *                     be delegated.
-     */
-    public ExceptClassFilter(Clazz        exceptClass,
-                             ClassVisitor classVisitor)
-    {
-        this.exceptClass  = exceptClass;
-        this.classVisitor = classVisitor;
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    if (!clazz.equals(exceptClass)) {
+      clazz.accept(classVisitor);
     }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        if (!clazz.equals(exceptClass))
-        {
-            clazz.accept(classVisitor);
-        }
-    }
+  }
 }

@@ -37,133 +37,120 @@ import proguard.classfile.Signature;
  *
  * @author Carlo Alberto Pozzoli
  */
-public class BamCacheImpl<SignatureT extends Signature>
-    implements BamCache<SignatureT>
-{
+public class BamCacheImpl<SignatureT extends Signature> implements BamCache<SignatureT> {
 
-    private static final Logger log = LogManager.getLogger(BamCacheImpl.class);
+  private static final Logger log = LogManager.getLogger(BamCacheImpl.class);
 
-    private final Map<SignatureT, Map<HashKey, BlockAbstraction>> cache = new HashMap<>();
-    private       int                                             size  = 0;
+  private final Map<SignatureT, Map<HashKey, BlockAbstraction>> cache = new HashMap<>();
+  private int size = 0;
 
-    // Implementations for BamCache
+  // Implementations for BamCache
 
-    @Override
-    public void put(AbstractState stateKey, Precision precisionKey, SignatureT blockKey, BlockAbstraction blockAbstraction)
-    {
-        if (cache.computeIfAbsent(blockKey, k -> new HashMap<>()).put(getHashKey(stateKey, precisionKey), blockAbstraction) == null)
-        {
-            size++;
-            log.trace("BamCacheSize: {}", size);
-        }
+  @Override
+  public void put(
+      AbstractState stateKey,
+      Precision precisionKey,
+      SignatureT blockKey,
+      BlockAbstraction blockAbstraction) {
+    if (cache
+            .computeIfAbsent(blockKey, k -> new HashMap<>())
+            .put(getHashKey(stateKey, precisionKey), blockAbstraction)
+        == null) {
+      size++;
+      log.trace("BamCacheSize: {}", size);
     }
+  }
 
-    @Override
-    public BlockAbstraction get(AbstractState stateKey, Precision precisionKey, SignatureT blockKey)
-    {
-        return cache.getOrDefault(blockKey, Collections.emptyMap()).get(getHashKey(stateKey, precisionKey));
-    }
+  @Override
+  public BlockAbstraction get(AbstractState stateKey, Precision precisionKey, SignatureT blockKey) {
+    return cache
+        .getOrDefault(blockKey, Collections.emptyMap())
+        .get(getHashKey(stateKey, precisionKey));
+  }
 
+  @Override
+  public Collection<BlockAbstraction> get(SignatureT blockKey) {
+    return cache.getOrDefault(blockKey, Collections.emptyMap()).values();
+  }
 
-    @Override
-    public Collection<BlockAbstraction> get(SignatureT blockKey)
-    {
-        return cache.getOrDefault(blockKey, Collections.emptyMap()).values();
-    }
+  @Override
+  public Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey) {
+    return cache.getOrDefault(blockKey, Collections.emptyMap()).entrySet().stream()
+        .filter(e -> e.getKey().precisionKey.equals(precision))
+        .map(Entry::getValue)
+        .collect(Collectors.toSet());
+  }
 
-    @Override
-    public Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey)
-    {
-        return cache.getOrDefault(blockKey, Collections.emptyMap())
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getKey().precisionKey.equals(precision))
-                    .map(Entry::getValue)
-                    .collect(Collectors.toSet());
-    }
+  @Override
+  public Collection<BlockAbstraction> values() {
+    return cache.values().stream()
+        .map(Map::values)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet());
+  }
 
-    @Override
-    public Collection<BlockAbstraction> values()
-    {
-        return cache.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toSet());
-    }
+  @Override
+  public int size() {
+    return size;
+  }
 
-    @Override
-    public int size()
-    {
-        return size;
-    }
+  @Override
+  public Set<SignatureT> getAllMethods() {
+    return Collections.unmodifiableSet(cache.keySet());
+  }
 
-    @Override
-    public Set<SignatureT> getAllMethods()
-    {
-        return Collections.unmodifiableSet(cache.keySet());
-    }
+  private HashKey getHashKey(AbstractState stateKey, Precision precisionKey) {
+    return new HashKey(stateKey, precisionKey);
+  }
 
-    private HashKey getHashKey(AbstractState stateKey, Precision precisionKey)
-    {
-        return new HashKey(stateKey, precisionKey);
-    }
+  /**
+   * The key of the cache is created from the three parameters that define a block abstraction. The
+   * equals and hashCode methods are overridden to guarantee the correct behavior of the hash map.
+   */
+  private static class HashKey {
+
+    private final AbstractState stateKey;
+    private final Precision precisionKey;
 
     /**
-     * The key of the cache is created from the three parameters that define a block abstraction. The equals and hashCode methods are overridden to guarantee the correct behavior of the hash map.
+     * Create a cache key from its components.
+     *
+     * @param stateKey the entry abstract state of a method
+     * @param precisionKey a precision
      */
-    private static class HashKey
-    {
-
-        private final AbstractState stateKey;
-        private final Precision     precisionKey;
-
-        /**
-         * Create a cache key from its components.
-         *
-         * @param stateKey     the entry abstract state of a method
-         * @param precisionKey a precision
-         */
-        public HashKey(AbstractState stateKey, Precision precisionKey)
-        {
-            this.stateKey = stateKey;
-            this.precisionKey = precisionKey;
-        }
-
-        /**
-         * Returns the entry state of the block that composes the key.
-         */
-        public AbstractState getStateKey()
-        {
-            return stateKey;
-        }
-
-        /**
-         * Returns the precision that composes the key.
-         */
-        public Precision getPrecisionKey()
-        {
-            return precisionKey;
-        }
-
-        // Implementations for Object
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (o == this)
-            {
-                return true;
-            }
-            if (!(o instanceof HashKey))
-            {
-                return false;
-            }
-            HashKey other = (HashKey) o;
-            return Objects.equals(stateKey, other.stateKey)
-                   && Objects.equals(precisionKey, other.precisionKey);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return Objects.hash(stateKey, precisionKey);
-        }
+    public HashKey(AbstractState stateKey, Precision precisionKey) {
+      this.stateKey = stateKey;
+      this.precisionKey = precisionKey;
     }
+
+    /** Returns the entry state of the block that composes the key. */
+    public AbstractState getStateKey() {
+      return stateKey;
+    }
+
+    /** Returns the precision that composes the key. */
+    public Precision getPrecisionKey() {
+      return precisionKey;
+    }
+
+    // Implementations for Object
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == this) {
+        return true;
+      }
+      if (!(o instanceof HashKey)) {
+        return false;
+      }
+      HashKey other = (HashKey) o;
+      return Objects.equals(stateKey, other.stateKey)
+          && Objects.equals(precisionKey, other.precisionKey);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(stateKey, precisionKey);
+    }
+  }
 }

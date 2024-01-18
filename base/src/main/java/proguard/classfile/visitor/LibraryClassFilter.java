@@ -19,39 +19,31 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassVisitor} delegates its visits to another given
- * {@link ClassVisitor}, but only when visiting library classes.
+ * This {@link ClassVisitor} delegates its visits to another given {@link ClassVisitor}, but only
+ * when visiting library classes.
  *
  * @author Eric Lafortune
  */
-public class LibraryClassFilter
-implements   ClassVisitor
-{
-    private final ClassVisitor classVisitor;
+public class LibraryClassFilter implements ClassVisitor {
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new LibraryClassFilter.
+   *
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public LibraryClassFilter(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new LibraryClassFilter.
-     * @param classVisitor     the <code>ClassVisitor</code> to which visits
-     *                         will be delegated.
-     */
-    public LibraryClassFilter(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
+  // Implementations for ClassVisitor.
 
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        classVisitor.visitLibraryClass(libraryClass);
-    }
+  @Override
+  public void visitLibraryClass(LibraryClass libraryClass) {
+    classVisitor.visitLibraryClass(libraryClass);
+  }
 }

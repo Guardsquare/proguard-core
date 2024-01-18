@@ -20,13 +20,11 @@ package proguard.resources.kotlinmodule.visitor;
 
 import proguard.resources.kotlinmodule.KotlinModule;
 
-
 /**
  * A visitor for {@link KotlinModule}.
  *
  * @author James Hamilton
  */
-public interface KotlinModuleVisitor
-{
-    void visitKotlinModule(KotlinModule kotlinModule);
+public interface KotlinModuleVisitor {
+  void visitKotlinModule(KotlinModule kotlinModule);
 }

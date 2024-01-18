@@ -19,32 +19,24 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassPoolVisitor} lets a given {@link ClassVisitor} visit
- * {@link Clazz} instances with a given name, in the class pools that it
- * visits.
+ * This {@link ClassPoolVisitor} lets a given {@link ClassVisitor} visit {@link Clazz} instances
+ * with a given name, in the class pools that it visits.
  *
  * @author Eric Lafortune
  */
-public class NamedClassVisitor implements ClassPoolVisitor
-{
-    private final ClassVisitor classVisitor;
-    private final String       name;
+public class NamedClassVisitor implements ClassPoolVisitor {
+  private final ClassVisitor classVisitor;
+  private final String name;
 
+  public NamedClassVisitor(ClassVisitor classVisitor, String name) {
+    this.classVisitor = classVisitor;
+    this.name = name;
+  }
 
-    public NamedClassVisitor(ClassVisitor classVisitor,
-                             String       name)
-    {
-        this.classVisitor = classVisitor;
-        this.name         = name;
-    }
+  // Implementations for NamedClassVisitor.
 
-
-    // Implementations for NamedClassVisitor.
-
-    public void visitClassPool(ClassPool classPool)
-    {
-        classPool.classAccept(name, classVisitor);
-    }
+  public void visitClassPool(ClassPool classPool) {
+    classPool.classAccept(name, classVisitor);
+  }
 }

@@ -29,28 +29,28 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.classfile.MethodSignature;
 
 /**
- * The {@link JvmMemoryLocationCpa} backtraces memory locations. See {@see JvmMemoryLocationTransferRelation} for details.
+ * The {@link JvmMemoryLocationCpa} backtraces memory locations. See {@see
+ * JvmMemoryLocationTransferRelation} for details.
  *
  * @param <AbstractStateT> The type of the values of the traced analysis.
- *
  * @author Dmitry Ivanov
  */
 public class JvmMemoryLocationCpa<AbstractStateT extends LatticeAbstractState<AbstractStateT>>
-    extends SimpleCpa
-{
+    extends SimpleCpa {
 
-    public JvmMemoryLocationCpa(AbstractStateT threshold, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa)
-    {
-        this(threshold, bamCpa, new DelegateAbstractDomain<JvmMemoryLocationAbstractState>());
-    }
+  public JvmMemoryLocationCpa(
+      AbstractStateT threshold, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa) {
+    this(threshold, bamCpa, new DelegateAbstractDomain<JvmMemoryLocationAbstractState>());
+  }
 
-    private JvmMemoryLocationCpa(AbstractStateT threshold,
-                                 BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
-                                 AbstractDomain abstractDomain)
-    {
-        super(abstractDomain,
-              new JvmMemoryLocationTransferRelation<>(threshold, bamCpa),
-              new JvmMemoryLocationMergeJoinOperator(abstractDomain),
-              new StopSepOperator(abstractDomain));
-    }
+  private JvmMemoryLocationCpa(
+      AbstractStateT threshold,
+      BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
+      AbstractDomain abstractDomain) {
+    super(
+        abstractDomain,
+        new JvmMemoryLocationTransferRelation<>(threshold, bamCpa),
+        new JvmMemoryLocationMergeJoinOperator(abstractDomain),
+        new StopSepOperator(abstractDomain));
+  }
 }

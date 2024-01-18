@@ -18,31 +18,23 @@
 package proguard.util;
 
 /**
- * This {@link StringFunction} returns the most recently matched string of a given
- * {@link VariableStringMatcher}.
+ * This {@link StringFunction} returns the most recently matched string of a given {@link
+ * VariableStringMatcher}.
  *
  * @author Eric Lafortune
  */
-public class MatchedStringFunction implements StringFunction
-{
-    private final VariableStringMatcher variableStringMatcher;
+public class MatchedStringFunction implements StringFunction {
+  private final VariableStringMatcher variableStringMatcher;
 
+  /** Creates a new MatchedStringFunction with the given variable string matcher. */
+  public MatchedStringFunction(VariableStringMatcher variableStringMatcher) {
+    this.variableStringMatcher = variableStringMatcher;
+  }
 
-    /**
-     * Creates a new MatchedStringFunction with the given variable string
-     * matcher.
-     */
-    public MatchedStringFunction(VariableStringMatcher variableStringMatcher)
-    {
-        this.variableStringMatcher = variableStringMatcher;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        return variableStringMatcher.getMatchingString();
-    }
+  @Override
+  public String transform(String string) {
+    return variableStringMatcher.getMatchingString();
+  }
 }

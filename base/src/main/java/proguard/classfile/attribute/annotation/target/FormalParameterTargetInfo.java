@@ -26,53 +26,37 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class FormalParameterTargetInfo extends TargetInfo
-{
-    public int u1formalParameterIndex;
+public class FormalParameterTargetInfo extends TargetInfo {
+  public int u1formalParameterIndex;
 
+  /** Creates an uninitialized FormalParameterTargetInfo. */
+  public FormalParameterTargetInfo() {}
 
-    /**
-     * Creates an uninitialized FormalParameterTargetInfo.
-     */
-    public FormalParameterTargetInfo()
-    {
-    }
+  /** Creates a partially initialized FormalParameterTargetInfo. */
+  public FormalParameterTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
+  /** Creates an initialized FormalParameterTargetInfo. */
+  public FormalParameterTargetInfo(byte u1targetType, int u1formalParameterIndex) {
+    super(u1targetType);
 
-    /**
-     * Creates a partially initialized FormalParameterTargetInfo.
-     */
-    public FormalParameterTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+    this.u1formalParameterIndex = u1formalParameterIndex;
+  }
 
+  // Implementations for TargetInfo.
 
-    /**
-     * Creates an initialized FormalParameterTargetInfo.
-     */
-    public FormalParameterTargetInfo(byte u1targetType,
-                                     int  u1formalParameterIndex)
-    {
-        super(u1targetType);
+  /** Lets the visitor visit, with Method null. */
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitFormalParameterTargetInfo(clazz, null, typeAnnotation, this);
+  }
 
-        this.u1formalParameterIndex = u1formalParameterIndex;
-    }
-
-
-    // Implementations for TargetInfo.
-
-    /**
-     * Lets the visitor visit, with Method null.
-     */
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitFormalParameterTargetInfo(clazz, null, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitFormalParameterTargetInfo(clazz, method, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitFormalParameterTargetInfo(clazz, method, typeAnnotation, this);
+  }
 }

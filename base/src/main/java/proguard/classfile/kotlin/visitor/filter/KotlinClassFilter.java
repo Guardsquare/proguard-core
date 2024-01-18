@@ -23,30 +23,23 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.kotlin.KotlinConstants;
 import proguard.classfile.visitor.ClassVisitor;
 
-/**
- * Delegates to the given {@link ClassVisitor} if the class has the
- * kotlin.Metadata annotation.
- *
- */
-public class KotlinClassFilter
-implements   ClassVisitor
-{
-    private final ClassVisitor filteredDelegate;
+/** Delegates to the given {@link ClassVisitor} if the class has the kotlin.Metadata annotation. */
+public class KotlinClassFilter implements ClassVisitor {
+  private final ClassVisitor filteredDelegate;
 
-    public KotlinClassFilter(ClassVisitor delegate)
-    {
-        this.filteredDelegate =
-            new AllAttributeVisitor(
+  public KotlinClassFilter(ClassVisitor delegate) {
+    this.filteredDelegate =
+        new AllAttributeVisitor(
             new AllAnnotationVisitor(
-            new AnnotationTypeFilter(KotlinConstants.TYPE_KOTLIN_METADATA,
-                                     new AnnotationToAnnotatedClassVisitor(delegate))));
-    }
+                new AnnotationTypeFilter(
+                    KotlinConstants.TYPE_KOTLIN_METADATA,
+                    new AnnotationToAnnotatedClassVisitor(delegate))));
+  }
 
-    // Implementations for ClassVisitor.
+  // Implementations for ClassVisitor.
 
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        clazz.accept(filteredDelegate);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    clazz.accept(filteredDelegate);
+  }
 }

@@ -19,15 +19,16 @@
 package proguard.analysis.cpa.interfaces;
 
 /**
- * The {@link AbortOperator} defines whether the analysis should terminate upon encountering a specific abstract state.
+ * The {@link AbortOperator} defines whether the analysis should terminate upon encountering a
+ * specific abstract state.
  *
  * @author Dmitry Ivanov
  */
-public interface AbortOperator
-{
+public interface AbortOperator {
 
-    /**
-     * The operator receives a newly discovered abstract state and returns whether the analysis should terminate.
-     */
-    boolean abort(AbstractState abstractState);
+  /**
+   * The operator receives a newly discovered abstract state and returns whether the analysis should
+   * terminate.
+   */
+  boolean abort(AbstractState abstractState);
 }

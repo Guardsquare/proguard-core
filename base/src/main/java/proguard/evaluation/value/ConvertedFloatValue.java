@@ -18,44 +18,30 @@
 package proguard.evaluation.value;
 
 /**
- * This {@link FloatValue} represents a float value that is converted from another
- * scalar value.
+ * This {@link FloatValue} represents a float value that is converted from another scalar value.
  *
  * @author Eric Lafortune
  */
-public final class ConvertedFloatValue extends SpecificFloatValue
-{
-    private final Value value;
+public final class ConvertedFloatValue extends SpecificFloatValue {
+  private final Value value;
 
+  /** Creates a new converted float value of the given value. */
+  public ConvertedFloatValue(Value value) {
+    this.value = value;
+  }
 
-    /**
-     * Creates a new converted float value of the given value.
-     */
-    public ConvertedFloatValue(Value value)
-    {
-        this.value = value;
-    }
+  // Implementations for Object.
 
+  public boolean equals(Object object) {
+    return this == object
+        || super.equals(object) && this.value.equals(((ConvertedFloatValue) object).value);
+  }
 
-    // Implementations for Object.
+  public int hashCode() {
+    return super.hashCode() ^ value.hashCode();
+  }
 
-    public boolean equals(Object object)
-    {
-        return this == object ||
-               super.equals(object) &&
-               this.value.equals(((ConvertedFloatValue)object).value);
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               value.hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "(float)("+value+")";
-    }
+  public String toString() {
+    return "(float)(" + value + ")";
+  }
 }

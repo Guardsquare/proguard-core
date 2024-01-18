@@ -23,37 +23,30 @@ import proguard.classfile.attribute.visitor.ExceptionInfoVisitor;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 
 /**
- * This {@link ExceptionInfoVisitor} lets a given
- * {@link ConstantVisitor} visit all catch class constants of exceptions
- * that it visits.
+ * This {@link ExceptionInfoVisitor} lets a given {@link ConstantVisitor} visit all catch class
+ * constants of exceptions that it visits.
  *
  * @author Eric Lafortune
  */
-public class ExceptionHandlerConstantVisitor
-implements   ExceptionInfoVisitor
-{
-    private final ConstantVisitor constantVisitor;
+public class ExceptionHandlerConstantVisitor implements ExceptionInfoVisitor {
+  private final ConstantVisitor constantVisitor;
 
+  /**
+   * Creates a new ExceptionHandlerConstantVisitor.
+   *
+   * @param constantVisitor the ConstantVisitor that will visit the catch class constants.
+   */
+  public ExceptionHandlerConstantVisitor(ConstantVisitor constantVisitor) {
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new ExceptionHandlerConstantVisitor.
-     * @param constantVisitor the ConstantVisitor that will visit the catch
-     *                        class constants.
-     */
-    public ExceptionHandlerConstantVisitor(ConstantVisitor constantVisitor)
-    {
-        this.constantVisitor = constantVisitor;
+  // Implementations for ExceptionInfoVisitor.
+
+  public void visitExceptionInfo(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, ExceptionInfo exceptionInfo) {
+    int catchType = exceptionInfo.u2catchType;
+    if (catchType != 0) {
+      clazz.constantPoolEntryAccept(catchType, constantVisitor);
     }
-
-
-    // Implementations for ExceptionInfoVisitor.
-
-    public void visitExceptionInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, ExceptionInfo exceptionInfo)
-    {
-        int catchType = exceptionInfo.u2catchType;
-        if (catchType != 0)
-        {
-            clazz.constantPoolEntryAccept(catchType, constantVisitor);
-        }
-    }
+  }
 }

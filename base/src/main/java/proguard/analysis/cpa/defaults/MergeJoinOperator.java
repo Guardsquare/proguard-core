@@ -28,26 +28,23 @@ import proguard.analysis.cpa.interfaces.Precision;
  *
  * @author Dmitry Ivanov
  */
-public final class MergeJoinOperator
-    implements MergeOperator
-{
-    private final AbstractDomain abstractDomain;
+public final class MergeJoinOperator implements MergeOperator {
+  private final AbstractDomain abstractDomain;
 
-    /**
-     * Create a merge operator from an abstract domain defining the join operator.
-     *
-     * @param abstractDomain abstract domain
-     */
-    public MergeJoinOperator(AbstractDomain abstractDomain)
-    {
-        this.abstractDomain = abstractDomain;
-    }
+  /**
+   * Create a merge operator from an abstract domain defining the join operator.
+   *
+   * @param abstractDomain abstract domain
+   */
+  public MergeJoinOperator(AbstractDomain abstractDomain) {
+    this.abstractDomain = abstractDomain;
+  }
 
-    // implementations for MergeOperator
+  // implementations for MergeOperator
 
-    @Override
-    public AbstractState merge(AbstractState abstractState1, AbstractState abstractState2, Precision precision)
-    {
-        return abstractDomain.join(abstractState1, abstractState2);
-    }
+  @Override
+  public AbstractState merge(
+      AbstractState abstractState1, AbstractState abstractState2, Precision precision) {
+    return abstractDomain.join(abstractState1, abstractState2);
+  }
 }

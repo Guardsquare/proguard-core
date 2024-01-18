@@ -21,32 +21,23 @@ import proguard.classfile.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
- * This {@link ClassVisitor} adds all classes that it visits to the list of subclasses
- * of the given target class.
+ * This {@link ClassVisitor} adds all classes that it visits to the list of subclasses of the given
+ * target class.
  *
  * @author Eric Lafortune
  */
-public class SubclassToAdder
-implements   ClassVisitor
-{
-    private final Clazz targetClass;
+public class SubclassToAdder implements ClassVisitor {
+  private final Clazz targetClass;
 
+  /** Creates a new SubclassAdder that will add subclasses to the given target class. */
+  public SubclassToAdder(Clazz targetClass) {
+    this.targetClass = targetClass;
+  }
 
-    /**
-     * Creates a new SubclassAdder that will add subclasses to the given
-     * target class.
-     */
-    public SubclassToAdder(Clazz targetClass)
-    {
-        this.targetClass = targetClass;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        targetClass.addSubClass(clazz);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    targetClass.addSubClass(clazz);
+  }
 }

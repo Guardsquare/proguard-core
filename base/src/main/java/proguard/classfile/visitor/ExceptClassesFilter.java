@@ -20,61 +20,48 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link ClassVisitor} delegates its visits to another given
- * {@link ClassVisitor}, except for classes are in a given list.
+ * This {@link ClassVisitor} delegates its visits to another given {@link ClassVisitor}, except for
+ * classes are in a given list.
  *
  * @author Eric Lafortune
  */
-public class ExceptClassesFilter
-implements   ClassVisitor
-{
-    private final Clazz[]      exceptClasses;
-    private final ClassVisitor classVisitor;
+public class ExceptClassesFilter implements ClassVisitor {
+  private final Clazz[] exceptClasses;
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new ExceptClassesFilter.
+   *
+   * @param exceptClasses the classes that will not be visited.
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public ExceptClassesFilter(Clazz[] exceptClasses, ClassVisitor classVisitor) {
+    this.exceptClasses = exceptClasses;
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new ExceptClassesFilter.
-     * @param exceptClasses the classes that will not be visited.
-     * @param classVisitor  the <code>ClassVisitor</code> to which visits will
-     *                      be delegated.
-     */
-    public ExceptClassesFilter(Clazz[]      exceptClasses,
-                               ClassVisitor classVisitor)
-    {
-        this.exceptClasses = exceptClasses;
-        this.classVisitor  = classVisitor;
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    if (!present(clazz)) {
+      clazz.accept(classVisitor);
+    }
+  }
+
+  // Small utility methods.
+
+  private boolean present(Clazz clazz) {
+    if (exceptClasses == null) {
+      return false;
     }
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        if (!present(clazz))
-        {
-            clazz.accept(classVisitor);
-        }
+    for (Clazz exceptClass : exceptClasses) {
+      if (exceptClass.equals(clazz)) {
+        return true;
+      }
     }
 
-
-    // Small utility methods.
-
-    private boolean present(Clazz clazz)
-    {
-        if (exceptClasses == null)
-        {
-            return false;
-        }
-
-        for (Clazz exceptClass : exceptClasses)
-        {
-            if (exceptClass.equals(clazz))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

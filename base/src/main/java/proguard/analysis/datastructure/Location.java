@@ -19,26 +19,23 @@
 package proguard.analysis.datastructure;
 
 /**
- * Helper data structure that makes it possible to identify
- * specific places inside a program, either inside the bytecode
- * ({@link CodeLocation}) or some other file, e.g. JAR/APK
- * resources ({@link FileLocation}).
+ * Helper data structure that makes it possible to identify specific places inside a program, either
+ * inside the bytecode ({@link CodeLocation}) or some other file, e.g. JAR/APK resources ({@link
+ * FileLocation}).
  *
  * @author Dennis Titze
  */
-public abstract class Location
-implements            Comparable<Location>
-{
+public abstract class Location implements Comparable<Location> {
 
-    public final int line;
+  public final int line;
 
-    protected Location(int line)
-    {
-        this.line = line;
-    }
+  protected Location(int line) {
+    this.line = line;
+  }
 
-    /**
-     * Returns the name of the location, e.g., the signature of a CodeLocation, or the filename of a FileLocation
-     */
-    public abstract String getName();
+  /**
+   * Returns the name of the location, e.g., the signature of a CodeLocation, or the filename of a
+   * FileLocation
+   */
+  public abstract String getName();
 }

@@ -17,67 +17,53 @@
  */
 package proguard.resources.file.io;
 
+import java.io.*;
 import proguard.io.*;
 import proguard.resources.file.*;
 import proguard.resources.file.visitor.*;
 
-import java.io.*;
-
 /**
- * This {@link DataEntryReader} creates plain {@link ResourceFile} instances for the data
- * entries that it reads, and passes them to the given {@link ResourceFileVisitor}.
+ * This {@link DataEntryReader} creates plain {@link ResourceFile} instances for the data entries
+ * that it reads, and passes them to the given {@link ResourceFileVisitor}.
  *
  * @author Eric Lafortune
  */
-public class ResourceFileDataEntryReader implements DataEntryReader
-{
-    private final ResourceFileVisitor resourceFileVisitor;
-    private final DataEntryFilter     adaptedDataEntryFilter;
+public class ResourceFileDataEntryReader implements DataEntryReader {
+  private final ResourceFileVisitor resourceFileVisitor;
+  private final DataEntryFilter adaptedDataEntryFilter;
 
+  /** Creates a new ResourceFileDataEntryReader */
+  public ResourceFileDataEntryReader(ResourceFileVisitor resourceFileVisitor) {
+    this(resourceFileVisitor, null);
+  }
 
-    /**
-     * Creates a new ResourceFileDataEntryReader
-     */
-    public ResourceFileDataEntryReader(ResourceFileVisitor resourceFileVisitor)
-    {
-        this(resourceFileVisitor, null);
+  /**
+   * Creates a new ResourceFileDataEntryReader with the given filter that accepts data entries for
+   * resource files that need to be adapted.
+   */
+  public ResourceFileDataEntryReader(
+      ResourceFileVisitor resourceFileVisitor, DataEntryFilter adaptedDataEntryFilter) {
+    this.resourceFileVisitor = resourceFileVisitor;
+    this.adaptedDataEntryFilter = adaptedDataEntryFilter;
+  }
+
+  // Implementations for DataEntryReader.
+
+  @Override
+  public void read(DataEntry dataEntry) throws IOException {
+    if (!dataEntry.isDirectory()) {
+      ResourceFile resourceFile = new ResourceFile(dataEntry.getName(), dataEntry.getSize());
+
+      // Collect references to Java tokens, if specified.
+      if (adaptedDataEntryFilter != null && adaptedDataEntryFilter.accepts(dataEntry)) {
+        ResourceJavaReferenceCollector resourceJavaReferenceCollector =
+            new ResourceJavaReferenceCollector();
+        resourceJavaReferenceCollector.read(dataEntry);
+        resourceFile.references = resourceJavaReferenceCollector.getReferences();
+      }
+
+      // Pass the resource file to the visitor.
+      resourceFileVisitor.visitResourceFile(resourceFile);
     }
-
-
-    /**
-     * Creates a new ResourceFileDataEntryReader with the given filter that
-     * accepts data entries for resource files that need to be adapted.
-     */
-    public ResourceFileDataEntryReader(ResourceFileVisitor resourceFileVisitor,
-                                       DataEntryFilter     adaptedDataEntryFilter)
-    {
-        this.resourceFileVisitor    = resourceFileVisitor;
-        this.adaptedDataEntryFilter = adaptedDataEntryFilter;
-    }
-
-
-    // Implementations for DataEntryReader.
-
-    @Override
-    public void read(DataEntry dataEntry) throws IOException
-    {
-        if (!dataEntry.isDirectory())
-        {
-            ResourceFile resourceFile = new ResourceFile(dataEntry.getName(), dataEntry.getSize());
-
-            // Collect references to Java tokens, if specified.
-            if (adaptedDataEntryFilter != null &&
-                adaptedDataEntryFilter.accepts(dataEntry))
-            {
-                ResourceJavaReferenceCollector resourceJavaReferenceCollector = new ResourceJavaReferenceCollector();
-                resourceJavaReferenceCollector.read(dataEntry);
-                resourceFile.references = resourceJavaReferenceCollector.getReferences();
-            }
-
-            // Pass the resource file to the visitor.
-            resourceFileVisitor.visitResourceFile(resourceFile);
-        }
-    }
-
-
+  }
 }

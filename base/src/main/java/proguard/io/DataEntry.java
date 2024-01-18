@@ -20,54 +20,38 @@ package proguard.io;
 import java.io.*;
 
 /**
- * This interface describes a data entry, for exanple a ZIP entry, a file, or
- * a directory.
+ * This interface describes a data entry, for exanple a ZIP entry, a file, or a directory.
  *
  * @author Eric Lafortune
  */
-public interface DataEntry
-{
-    /**
-     * Returns the name of this data entry.
-     */
-    public String getName();
+public interface DataEntry {
+  /** Returns the name of this data entry. */
+  public String getName();
 
+  /**
+   * Returns the original name of this data entry, i.e. the name of the data entry before any
+   * renaming or obfuscation.
+   */
+  public String getOriginalName();
 
-    /**
-     * Returns the original name of this data entry, i.e. the name of the
-     * data entry before any renaming or obfuscation.
-     */
-    public String getOriginalName();
+  /** Returns the size of this data entry, in bytes, or -1 if unknown. */
+  public long getSize();
 
+  /** Returns whether the data entry represents a directory. */
+  public boolean isDirectory();
 
-    /**
-     * Returns the size of this data entry, in bytes, or -1 if unknown.
-     */
-    public long getSize();
+  /**
+   * Returns an input stream for reading the content of this data entry. The data entry may not
+   * represent a directory.
+   */
+  public InputStream getInputStream() throws IOException;
 
+  /** Closes the previously retrieved InputStream. */
+  public void closeInputStream() throws IOException;
 
-    /**
-     * Returns whether the data entry represents a directory.
-     */
-    public boolean isDirectory();
-
-
-    /**
-     * Returns an input stream for reading the content of this data entry.
-     * The data entry may not represent a directory.
-     */
-    public InputStream getInputStream() throws IOException;
-
-
-    /**
-     * Closes the previously retrieved InputStream.
-     */
-    public void closeInputStream() throws IOException;
-
-
-    /**
-     * Returns the parent of this data entry, or <code>null</null> if it doesn't
-     * have one.
-     */
-    public DataEntry getParent();
+  /**
+   * Returns the parent of this data entry, or <code>null</null> if it doesn't
+   * have one.
+   */
+  public DataEntry getParent();
 }

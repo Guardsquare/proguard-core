@@ -25,11 +25,8 @@ import proguard.analysis.datastructure.callgraph.Call;
  *
  * @author Carlo Alberto Pozzoli
  */
-public interface CallEdge
-{
+public interface CallEdge {
 
-    /**
-     * Get the information about the procedure call represented by the edge.
-     */
-    Call getCall();
+  /** Get the information about the procedure call represented by the edge. */
+  Call getCall();
 }

@@ -21,14 +21,12 @@ import proguard.classfile.Clazz;
 import proguard.classfile.attribute.module.ExportsInfo;
 
 /**
- * This interface specifies the methods for a visitor of
- * {@link ExportsInfo} instances. Note that there is only a single
- * implementation of {@link ExportsInfo}, such that this interface
- * is not strictly necessary as a visitor.
+ * This interface specifies the methods for a visitor of {@link ExportsInfo} instances. Note that
+ * there is only a single implementation of {@link ExportsInfo}, such that this interface is not
+ * strictly necessary as a visitor.
  *
  * @author Joachim Vandersmissen
  */
-public interface ExportsInfoVisitor
-{
-    public void visitExportsInfo(Clazz clazz, ExportsInfo exportsInfo);
+public interface ExportsInfoVisitor {
+  public void visitExportsInfo(Clazz clazz, ExportsInfo exportsInfo);
 }

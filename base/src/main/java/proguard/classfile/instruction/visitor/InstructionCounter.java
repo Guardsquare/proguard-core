@@ -27,29 +27,23 @@ import proguard.util.Counter;
  *
  * @author Eric Lafortune
  */
-public class InstructionCounter
-implements   InstructionVisitor,
-             Counter
-{
-    private int count;
+public class InstructionCounter implements InstructionVisitor, Counter {
+  private int count;
 
+  // Implementations for Counter.
 
-    // Implementations for Counter.
+  public synchronized int getCount() {
+    return count;
+  }
 
-    public synchronized int getCount()
-    {
-        return count;
-    }
+  // Implementations for InstructionVisitor.
 
-
-    // Implementations for InstructionVisitor.
-
-    public synchronized void visitAnyInstruction(Clazz         clazz,
-                                                 Method        method,
-                                                 CodeAttribute codeAttribute,
-                                                 int           offset,
-                                                 Instruction   instruction)
-    {
-        count++;
-    }
+  public synchronized void visitAnyInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      Instruction instruction) {
+    count++;
+  }
 }

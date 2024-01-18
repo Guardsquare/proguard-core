@@ -25,26 +25,19 @@ import proguard.util.Counter;
  *
  * @author Eric Lafortune
  */
-public class ClassCounter
-implements   ClassVisitor,
-             Counter
-{
-    private int count;
+public class ClassCounter implements ClassVisitor, Counter {
+  private int count;
 
+  // Implementations for Counter.
 
-    // Implementations for Counter.
+  public synchronized int getCount() {
+    return count;
+  }
 
-    public synchronized int getCount()
-    {
-        return count;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) 
-    {
-        count++;
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    count++;
+  }
 }

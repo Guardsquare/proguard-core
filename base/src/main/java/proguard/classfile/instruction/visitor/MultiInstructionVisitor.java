@@ -22,88 +22,101 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.*;
 import proguard.util.ArrayUtil;
 
-
 /**
- * This {@link InstructionVisitor} delegates all visits to each {@link InstructionVisitor}
- * in a given list.
+ * This {@link InstructionVisitor} delegates all visits to each {@link InstructionVisitor} in a
+ * given list.
  *
  * @author Eric Lafortune
  */
-public class MultiInstructionVisitor implements InstructionVisitor
-{
-    private InstructionVisitor[] instructionVisitors;
-    private int                  instructionVisitorCount;
+public class MultiInstructionVisitor implements InstructionVisitor {
+  private InstructionVisitor[] instructionVisitors;
+  private int instructionVisitorCount;
 
+  public MultiInstructionVisitor() {
+    this.instructionVisitors = new InstructionVisitor[16];
+  }
 
-    public MultiInstructionVisitor()
-    {
-        this.instructionVisitors = new InstructionVisitor[16];
+  public MultiInstructionVisitor(InstructionVisitor... instructionVisitors) {
+    this.instructionVisitors = instructionVisitors;
+    this.instructionVisitorCount = instructionVisitors.length;
+  }
+
+  public void addInstructionVisitor(InstructionVisitor instructionVisitor) {
+    instructionVisitors =
+        ArrayUtil.add(instructionVisitors, instructionVisitorCount++, instructionVisitor);
+  }
+
+  // Implementations for InstructionVisitor.
+
+  public void visitSimpleInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      SimpleInstruction simpleInstruction) {
+    for (int index = 0; index < instructionVisitorCount; index++) {
+      instructionVisitors[index].visitSimpleInstruction(
+          clazz, method, codeAttribute, offset, simpleInstruction);
     }
+  }
 
-
-    public MultiInstructionVisitor(InstructionVisitor... instructionVisitors)
-    {
-        this.instructionVisitors     = instructionVisitors;
-        this.instructionVisitorCount = instructionVisitors.length;
+  public void visitVariableInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      VariableInstruction variableInstruction) {
+    for (int index = 0; index < instructionVisitorCount; index++) {
+      instructionVisitors[index].visitVariableInstruction(
+          clazz, method, codeAttribute, offset, variableInstruction);
     }
+  }
 
-
-    public void addInstructionVisitor(InstructionVisitor instructionVisitor)
-    {
-        instructionVisitors =
-            ArrayUtil.add(instructionVisitors,
-                          instructionVisitorCount++,
-                          instructionVisitor);
+  public void visitConstantInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      ConstantInstruction constantInstruction) {
+    for (int index = 0; index < instructionVisitorCount; index++) {
+      instructionVisitors[index].visitConstantInstruction(
+          clazz, method, codeAttribute, offset, constantInstruction);
     }
+  }
 
-
-    // Implementations for InstructionVisitor.
-
-    public void visitSimpleInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, SimpleInstruction simpleInstruction)
-    {
-        for (int index = 0; index < instructionVisitorCount; index++)
-        {
-            instructionVisitors[index].visitSimpleInstruction(clazz, method, codeAttribute, offset, simpleInstruction);
-        }
+  public void visitBranchInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      BranchInstruction branchInstruction) {
+    for (int index = 0; index < instructionVisitorCount; index++) {
+      instructionVisitors[index].visitBranchInstruction(
+          clazz, method, codeAttribute, offset, branchInstruction);
     }
+  }
 
-    public void visitVariableInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, VariableInstruction variableInstruction)
-    {
-        for (int index = 0; index < instructionVisitorCount; index++)
-        {
-            instructionVisitors[index].visitVariableInstruction(clazz, method, codeAttribute, offset, variableInstruction);
-        }
+  public void visitTableSwitchInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      TableSwitchInstruction tableSwitchInstruction) {
+    for (int index = 0; index < instructionVisitorCount; index++) {
+      instructionVisitors[index].visitTableSwitchInstruction(
+          clazz, method, codeAttribute, offset, tableSwitchInstruction);
     }
+  }
 
-    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
-    {
-        for (int index = 0; index < instructionVisitorCount; index++)
-        {
-            instructionVisitors[index].visitConstantInstruction(clazz, method, codeAttribute, offset, constantInstruction);
-        }
+  public void visitLookUpSwitchInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      LookUpSwitchInstruction lookUpSwitchInstruction) {
+    for (int index = 0; index < instructionVisitorCount; index++) {
+      instructionVisitors[index].visitLookUpSwitchInstruction(
+          clazz, method, codeAttribute, offset, lookUpSwitchInstruction);
     }
-
-    public void visitBranchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, BranchInstruction branchInstruction)
-    {
-        for (int index = 0; index < instructionVisitorCount; index++)
-        {
-            instructionVisitors[index].visitBranchInstruction(clazz, method, codeAttribute, offset, branchInstruction);
-        }
-    }
-
-    public void visitTableSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, TableSwitchInstruction tableSwitchInstruction)
-    {
-        for (int index = 0; index < instructionVisitorCount; index++)
-        {
-            instructionVisitors[index].visitTableSwitchInstruction(clazz, method, codeAttribute, offset, tableSwitchInstruction);
-        }
-    }
-
-    public void visitLookUpSwitchInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, LookUpSwitchInstruction lookUpSwitchInstruction)
-    {
-        for (int index = 0; index < instructionVisitorCount; index++)
-        {
-            instructionVisitors[index].visitLookUpSwitchInstruction(clazz, method, codeAttribute, offset, lookUpSwitchInstruction);
-        }
-    }
+  }
 }

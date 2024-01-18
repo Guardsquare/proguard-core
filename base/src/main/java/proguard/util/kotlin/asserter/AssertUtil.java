@@ -30,117 +30,93 @@ import proguard.classfile.visitor.AllFieldVisitor;
 import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
-public class AssertUtil
-{
-    private       String    parentElement;
-    private final Reporter  reporter;
-    private final ClassPool programClassPool;
-    private final ClassPool libraryClassPool;
+public class AssertUtil {
+  private String parentElement;
+  private final Reporter reporter;
+  private final ClassPool programClassPool;
+  private final ClassPool libraryClassPool;
 
-    public AssertUtil(String    parentElement,
-                      Reporter  reporter,
-                      ClassPool programClassPool,
-                      ClassPool libraryClassPool)
-    {
-        this.parentElement    = parentElement;
-        this.reporter         = reporter;
-        this.programClassPool = programClassPool;
-        this.libraryClassPool = libraryClassPool;
+  public AssertUtil(
+      String parentElement,
+      Reporter reporter,
+      ClassPool programClassPool,
+      ClassPool libraryClassPool) {
+    this.parentElement = parentElement;
+    this.reporter = reporter;
+    this.programClassPool = programClassPool;
+    this.libraryClassPool = libraryClassPool;
+  }
+
+  public void setParentElement(String parentElement) {
+    this.parentElement = parentElement;
+  }
+
+  public void reportIfNull(String checkedElementName, Object... checkedElement) {
+    if (Arrays.stream(checkedElement).allMatch(Objects::isNull)) {
+      reporter.report(parentElement + " has no " + checkedElementName + ".");
+    }
+  }
+
+  public void reportIfNullReference(String checkedElementName, Object checkedElement) {
+    if (checkedElement == null) {
+      reporter.report(parentElement + " has no reference for its " + checkedElementName + ".");
+    }
+  }
+
+  public void reportIfClassDangling(String checkedElementName, Clazz clazz) {
+    if (clazz != null) {
+      if (!programClassPool.contains(clazz)
+          && !libraryClassPool.contains(clazz)
+          && !dummyClassPool.contains(clazz)) {
+        reporter.report(
+            parentElement + " has dangling class reference for its " + checkedElementName + ".");
+      }
+    }
+  }
+
+  public void reportIfFieldDangling(String checkedElementName, Clazz checkedClass, Field field) {
+    if (checkedClass != null && field != null) {
+      ExactMemberMatcher match = new ExactMemberMatcher(field);
+
+      checkedClass.accept(new AllFieldVisitor(match));
+
+      if (!match.memberMatched) {
+        reporter.report(
+            parentElement + " has a dangling reference for its " + checkedElementName + ".");
+      }
+    }
+  }
+
+  public void reportIfMethodDangling(String checkedElementName, Clazz checkedClass, Method method) {
+    if (checkedClass != null && method != null) {
+      ExactMemberMatcher match = new ExactMemberMatcher(method);
+
+      checkedClass.accept(new AllMethodVisitor(match));
+
+      if (!match.memberMatched) {
+        reporter.report(
+            parentElement + " has a dangling reference for its " + checkedElementName + ".");
+      }
+    }
+  }
+
+  // Small helper classes.
+
+  private static class ExactMemberMatcher implements MemberVisitor {
+    private final Member memberToMatch;
+
+    boolean memberMatched;
+
+    ExactMemberMatcher(Member memberToMatch) {
+      this.memberToMatch = memberToMatch;
     }
 
-    public void setParentElement(String parentElement)
-    {
-        this.parentElement = parentElement;
+    // Implementations for MemberVisitor.
+    @Override
+    public void visitAnyMember(Clazz clazz, Member member) {
+      if (member == memberToMatch) {
+        memberMatched = true;
+      }
     }
-
-    public void reportIfNull(String checkedElementName, Object ... checkedElement)
-    {
-        if (Arrays.stream(checkedElement).allMatch(Objects::isNull))
-        {
-            reporter.report(parentElement + " has no " + checkedElementName + ".");
-        }
-    }
-
-    public void reportIfNullReference(String checkedElementName, Object checkedElement)
-    {
-        if (checkedElement == null)
-        {
-            reporter.report(parentElement + " has no reference for its " + checkedElementName + ".");
-        }
-    }
-
-    public void reportIfClassDangling(String checkedElementName,
-                                      Clazz  clazz)
-    {
-        if (clazz != null)
-        {
-            if (!programClassPool.contains(clazz) &&
-                !libraryClassPool.contains(clazz) &&
-                !dummyClassPool  .contains(clazz))
-            {
-                reporter.report(parentElement + " has dangling class reference for its " + checkedElementName + ".");
-            }
-        }
-    }
-
-    public void reportIfFieldDangling(String checkedElementName,
-                                      Clazz  checkedClass,
-                                      Field  field)
-    {
-        if (checkedClass != null && field != null)
-        {
-            ExactMemberMatcher match = new ExactMemberMatcher(field);
-
-            checkedClass.accept(new AllFieldVisitor(match));
-
-            if (!match.memberMatched)
-            {
-                reporter.report(parentElement + " has a dangling reference for its " + checkedElementName + ".");
-            }
-        }
-    }
-
-    public void reportIfMethodDangling(String checkedElementName,
-                                       Clazz  checkedClass,
-                                       Method method)
-    {
-        if (checkedClass != null && method != null)
-        {
-            ExactMemberMatcher match = new ExactMemberMatcher(method);
-
-            checkedClass.accept(new AllMethodVisitor(match));
-
-            if (!match.memberMatched)
-            {
-                reporter.report(parentElement + " has a dangling reference for its " + checkedElementName + ".");
-            }
-        }
-    }
-
-
-    // Small helper classes.
-
-    private static class ExactMemberMatcher
-    implements           MemberVisitor
-    {
-        private final Member memberToMatch;
-
-        boolean memberMatched;
-
-        ExactMemberMatcher(Member memberToMatch)
-        {
-            this.memberToMatch = memberToMatch;
-        }
-
-
-        // Implementations for MemberVisitor.
-        @Override
-        public void visitAnyMember(Clazz clazz, Member member)
-        {
-            if (member == memberToMatch)
-            {
-                memberMatched = true;
-            }
-        }
-    }
+  }
 }

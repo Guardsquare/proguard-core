@@ -23,43 +23,45 @@ import proguard.classfile.attribute.visitor.LocalVariableTypeInfoVisitor;
 import proguard.util.ArrayUtil;
 
 /**
- * This {@link LocalVariableTypeInfoVisitor} adds all local variable types that it
- * visits to the given target local variable type attribute.
+ * This {@link LocalVariableTypeInfoVisitor} adds all local variable types that it visits to the
+ * given target local variable type attribute.
  */
-public class LocalVariableTypeInfoAdder
-implements   LocalVariableTypeInfoVisitor
-{
-    private final ConstantAdder                     constantAdder;
-    private final LocalVariableTypeTableAttributeEditor localVariableTypeTableAttributeEditor;
+public class LocalVariableTypeInfoAdder implements LocalVariableTypeInfoVisitor {
+  private final ConstantAdder constantAdder;
+  private final LocalVariableTypeTableAttributeEditor localVariableTypeTableAttributeEditor;
 
+  /**
+   * Creates a new LocalVariableTypeInfoAdder that will copy local variable types into the given
+   * target local variable type table.
+   */
+  public LocalVariableTypeInfoAdder(
+      ProgramClass targetClass,
+      LocalVariableTypeTableAttribute targetLocalVariableTypeTableAttribute) {
+    this.constantAdder = new ConstantAdder(targetClass);
+    this.localVariableTypeTableAttributeEditor =
+        new LocalVariableTypeTableAttributeEditor(targetLocalVariableTypeTableAttribute);
+  }
 
-    /**
-     * Creates a new LocalVariableTypeInfoAdder that will copy local variable
-     * types into the given target local variable type table.
-     */
-    public LocalVariableTypeInfoAdder(ProgramClass                    targetClass,
-                                      LocalVariableTypeTableAttribute targetLocalVariableTypeTableAttribute)
-    {
-        this.constantAdder                         = new ConstantAdder(targetClass);
-        this.localVariableTypeTableAttributeEditor = new LocalVariableTypeTableAttributeEditor(targetLocalVariableTypeTableAttribute);
-    }
+  // Implementations for LocalVariableTypeInfoVisitor.
 
+  public void visitLocalVariableTypeInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableTypeInfo localVariableTypeInfo) {
+    // Create a new local variable type.
+    LocalVariableTypeInfo newLocalVariableTypeInfo =
+        new LocalVariableTypeInfo(
+            localVariableTypeInfo.u2startPC,
+            localVariableTypeInfo.u2length,
+            constantAdder.addConstant(clazz, localVariableTypeInfo.u2nameIndex),
+            constantAdder.addConstant(clazz, localVariableTypeInfo.u2signatureIndex),
+            localVariableTypeInfo.u2index);
 
-    // Implementations for LocalVariableTypeInfoVisitor.
+    newLocalVariableTypeInfo.referencedClasses =
+        ArrayUtil.cloneOrNull(localVariableTypeInfo.referencedClasses);
 
-    public void visitLocalVariableTypeInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeInfo localVariableTypeInfo)
-    {
-        // Create a new local variable type.
-        LocalVariableTypeInfo newLocalVariableTypeInfo =
-            new LocalVariableTypeInfo(localVariableTypeInfo.u2startPC,
-                                      localVariableTypeInfo.u2length,
-                                      constantAdder.addConstant(clazz, localVariableTypeInfo.u2nameIndex),
-                                      constantAdder.addConstant(clazz, localVariableTypeInfo.u2signatureIndex),
-                                      localVariableTypeInfo.u2index);
-
-        newLocalVariableTypeInfo.referencedClasses = ArrayUtil.cloneOrNull(localVariableTypeInfo.referencedClasses);
-
-        // Add it to the target.
-        localVariableTypeTableAttributeEditor.addLocalVariableTypeInfo(newLocalVariableTypeInfo);
-    }
+    // Add it to the target.
+    localVariableTypeTableAttributeEditor.addLocalVariableTypeInfo(newLocalVariableTypeInfo);
+  }
 }

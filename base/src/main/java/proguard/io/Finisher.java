@@ -20,15 +20,12 @@ package proguard.io;
 import java.io.IOException;
 
 /**
- * This interface specifies a listener that is called to finish an output stream
- * before it is closed.
+ * This interface specifies a listener that is called to finish an output stream before it is
+ * closed.
  *
  * @author Eric Lafortune
  */
-public interface Finisher
-{
-    /**
-     * Finishes an output stream right before it is closed.
-     */
-    public void finish() throws IOException;
+public interface Finisher {
+  /** Finishes an output stream right before it is closed. */
+  public void finish() throws IOException;
 }

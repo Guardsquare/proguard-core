@@ -29,51 +29,47 @@ import proguard.classfile.kotlin.visitor.AllValueParameterVisitor;
 import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor;
 import proguard.util.kotlin.asserter.AssertUtil;
 
-/**
- */
-public class ValueParameterIntegrity
-extends      AbstractKotlinMetadataConstraint
-implements   KotlinValueParameterVisitor
-{
+/** */
+public class ValueParameterIntegrity extends AbstractKotlinMetadataConstraint
+    implements KotlinValueParameterVisitor {
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
-    {
-        kotlinMetadata.accept(clazz, new AllValueParameterVisitor(this));
-    }
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {
+    kotlinMetadata.accept(clazz, new AllValueParameterVisitor(this));
+  }
 
+  // Implementations for KotlinValueParameterVisitor.
+  @Override
+  public void visitAnyValueParameter(
+      Clazz clazz, KotlinValueParameterMetadata kotlinValueParameterMetadata) {}
 
-    // Implementations for KotlinValueParameterVisitor.
-    @Override
-    public void visitAnyValueParameter(Clazz                        clazz,
-                                       KotlinValueParameterMetadata kotlinValueParameterMetadata) {}
-    @Override
-    public void visitConstructorValParameter(Clazz                        clazz,
-                                             KotlinClassKindMetadata      kotlinClassKindMetadata,
-                                             KotlinConstructorMetadata    kotlinConstructorMetadata,
-                                             KotlinValueParameterMetadata kotlinValueParameterMetadata)
-    {
-        new AssertUtil("Constructor value parameter", reporter, programClassPool, libraryClassPool)
-            .reportIfNullReference("type", kotlinValueParameterMetadata.type);
-    }
+  @Override
+  public void visitConstructorValParameter(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    new AssertUtil("Constructor value parameter", reporter, programClassPool, libraryClassPool)
+        .reportIfNullReference("type", kotlinValueParameterMetadata.type);
+  }
 
-    @Override
-    public void visitFunctionValParameter(Clazz                        clazz,
-                                          KotlinMetadata               kotlinMetadata,
-                                          KotlinFunctionMetadata       kotlinFunctionMetadata,
-                                          KotlinValueParameterMetadata kotlinValueParameterMetadata)
-    {
-        new AssertUtil("Function value parameter", reporter, programClassPool, libraryClassPool)
-            .reportIfNullReference("type", kotlinValueParameterMetadata.type);
-    }
+  @Override
+  public void visitFunctionValParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    new AssertUtil("Function value parameter", reporter, programClassPool, libraryClassPool)
+        .reportIfNullReference("type", kotlinValueParameterMetadata.type);
+  }
 
-    @Override
-    public void visitPropertyValParameter(Clazz                              clazz,
-                                          KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                          KotlinPropertyMetadata             kotlinPropertyMetadata,
-                                          KotlinValueParameterMetadata       kotlinValueParameterMetadata)
-    {
-        new AssertUtil("Property value parameter", reporter, programClassPool, libraryClassPool)
-            .reportIfNullReference("type", kotlinValueParameterMetadata.type);
-    }
+  @Override
+  public void visitPropertyValParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    new AssertUtil("Property value parameter", reporter, programClassPool, libraryClassPool)
+        .reportIfNullReference("type", kotlinValueParameterMetadata.type);
+  }
 }

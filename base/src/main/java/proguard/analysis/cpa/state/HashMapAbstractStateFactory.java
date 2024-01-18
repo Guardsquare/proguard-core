@@ -28,25 +28,22 @@ import proguard.analysis.cpa.defaults.MapAbstractState;
  * @author Dmitry Ivanov
  */
 public class HashMapAbstractStateFactory<KeyT, StateT extends LatticeAbstractState<StateT>>
-    implements MapAbstractStateFactory<KeyT, StateT>
-{
+    implements MapAbstractStateFactory<KeyT, StateT> {
 
-    private static final HashMapAbstractStateFactory<?, ?> INSTANCE = new HashMapAbstractStateFactory<>();
+  private static final HashMapAbstractStateFactory<?, ?> INSTANCE =
+      new HashMapAbstractStateFactory<>();
 
-    private HashMapAbstractStateFactory()
-    {
-    }
+  private HashMapAbstractStateFactory() {}
 
-    public static <K, V extends LatticeAbstractState<V>> HashMapAbstractStateFactory<K, V> getInstance()
-    {
-        return (HashMapAbstractStateFactory<K, V>) INSTANCE;
-    }
+  public static <K, V extends LatticeAbstractState<V>>
+      HashMapAbstractStateFactory<K, V> getInstance() {
+    return (HashMapAbstractStateFactory<K, V>) INSTANCE;
+  }
 
-    // implementations for MapAbstractStateFactory
+  // implementations for MapAbstractStateFactory
 
-    @Override
-    public MapAbstractState<KeyT, StateT> createMapAbstractState()
-    {
-        return new HashMapAbstractState<>();
-    }
+  @Override
+  public MapAbstractState<KeyT, StateT> createMapAbstractState() {
+    return new HashMapAbstractState<>();
+  }
 }

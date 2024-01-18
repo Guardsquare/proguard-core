@@ -17,74 +17,56 @@
  */
 package proguard.classfile.kotlin;
 
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_SYNTHETIC_CLASS;
+
+import java.util.List;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.reflect.*;
 import proguard.classfile.kotlin.reflect.visitor.CallableReferenceInfoVisitor;
 import proguard.classfile.kotlin.visitor.*;
 
-import java.util.List;
+public class KotlinSyntheticClassKindMetadata extends KotlinMetadata {
+  public List<KotlinFunctionMetadata> functions;
 
-import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_SYNTHETIC_CLASS;
+  // For CallableReferences, the synthetic class will implement CallableReference.
+  public CallableReferenceInfo callableReferenceInfo;
 
-public class KotlinSyntheticClassKindMetadata
-extends KotlinMetadata
-{
-    public List<KotlinFunctionMetadata> functions;
+  public final Flavor flavor;
 
-    // For CallableReferences, the synthetic class will implement CallableReference.
-    public CallableReferenceInfo callableReferenceInfo;
+  public enum Flavor {
+    REGULAR,
+    LAMBDA,
+    DEFAULT_IMPLS,
+    WHEN_MAPPINGS
+  }
 
-    public final Flavor flavor;
+  public KotlinSyntheticClassKindMetadata(int[] mv, int xi, String xs, String pn, Flavor flavor) {
+    super(METADATA_KIND_SYNTHETIC_CLASS, mv, xi, xs, pn);
+    this.flavor = flavor;
+  }
 
-    public enum Flavor
-    {
-        REGULAR,
-        LAMBDA,
-        DEFAULT_IMPLS,
-        WHEN_MAPPINGS
+  @Override
+  public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor) {
+    kotlinMetadataVisitor.visitKotlinSyntheticClassMetadata(clazz, this);
+  }
+
+  public void functionsAccept(Clazz clazz, KotlinFunctionVisitor kotlinFunctionVisitor) {
+    for (KotlinFunctionMetadata function : functions) {
+      function.accept(clazz, this, kotlinFunctionVisitor);
     }
+  }
 
-    public KotlinSyntheticClassKindMetadata(int[]  mv,
-                                            int    xi,
-                                            String xs,
-                                            String pn,
-                                            Flavor flavor)
-    {
-        super(METADATA_KIND_SYNTHETIC_CLASS, mv, xi, xs, pn);
-        this.flavor = flavor;
+  public void callableReferenceInfoAccept(
+      CallableReferenceInfoVisitor callableReferenceInfoVisitor) {
+    if (this.callableReferenceInfo != null) {
+      this.callableReferenceInfo.accept(callableReferenceInfoVisitor);
     }
+  }
 
-
-    @Override
-    public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        kotlinMetadataVisitor.visitKotlinSyntheticClassMetadata(clazz, this);
-    }
-
-
-    public void functionsAccept(Clazz clazz, KotlinFunctionVisitor kotlinFunctionVisitor)
-    {
-        for (KotlinFunctionMetadata function : functions)
-        {
-            function.accept(clazz, this, kotlinFunctionVisitor);
-        }
-    }
-
-    
-    public void callableReferenceInfoAccept(CallableReferenceInfoVisitor callableReferenceInfoVisitor)
-    {
-        if (this.callableReferenceInfo != null)
-        {
-            this.callableReferenceInfo.accept(callableReferenceInfoVisitor);
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        String functionName = functions.size() > 0 ? functions.get(0).name : "//";
-        return "Kotlin synthetic class(" + functionName + ")";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    String functionName = functions.size() > 0 ? functions.get(0).name : "//";
+    return "Kotlin synthetic class(" + functionName + ")";
+  }
 }

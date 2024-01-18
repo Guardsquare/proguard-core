@@ -21,30 +21,23 @@ import proguard.classfile.Clazz;
 import proguard.classfile.attribute.*;
 
 /**
- * This {@link AttributeVisitor} lets a given {@link InnerClassesInfoVisitor} visit all
- * {@link InnerClassesInfo} instances of the {@link InnerClassesAttribute} instances it visits.
+ * This {@link AttributeVisitor} lets a given {@link InnerClassesInfoVisitor} visit all {@link
+ * InnerClassesInfo} instances of the {@link InnerClassesAttribute} instances it visits.
  *
  * @author Eric Lafortune
  */
-public class AllInnerClassesInfoVisitor
-implements   AttributeVisitor
-{
-    private final InnerClassesInfoVisitor innerClassesInfoVisitor;
+public class AllInnerClassesInfoVisitor implements AttributeVisitor {
+  private final InnerClassesInfoVisitor innerClassesInfoVisitor;
 
+  public AllInnerClassesInfoVisitor(InnerClassesInfoVisitor innerClassesInfoVisitor) {
+    this.innerClassesInfoVisitor = innerClassesInfoVisitor;
+  }
 
-    public AllInnerClassesInfoVisitor(InnerClassesInfoVisitor innerClassesInfoVisitor)
-    {
-        this.innerClassesInfoVisitor = innerClassesInfoVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
-    {
-        innerClassesAttribute.innerClassEntriesAccept(clazz, innerClassesInfoVisitor);
-    }
+  public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute) {
+    innerClassesAttribute.innerClassEntriesAccept(clazz, innerClassesInfoVisitor);
+  }
 }

@@ -22,28 +22,25 @@ import proguard.evaluation.value.Value;
 import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-public class ValueTypeException extends ProguardCoreException
-{
-    private final String exceptedType;
-    private final Value actualType;
+public class ValueTypeException extends ProguardCoreException {
+  private final String exceptedType;
+  private final Value actualType;
 
-    public ValueTypeException(String exceptedType, Value actualType)
-    {
-        super(ErrorId.EXPECTED_ARRAY,
-                "Invalid reference provided to instruction. Expected %s but found: %s.",
-                exceptedType,
-                actualType.toString());
-        this.exceptedType = exceptedType;
-        this.actualType = actualType;
-    }
+  public ValueTypeException(String exceptedType, Value actualType) {
+    super(
+        ErrorId.EXPECTED_ARRAY,
+        "Invalid reference provided to instruction. Expected %s but found: %s.",
+        exceptedType,
+        actualType.toString());
+    this.exceptedType = exceptedType;
+    this.actualType = actualType;
+  }
 
-    public Value getActualType()
-    {
-        return actualType;
-    }
+  public Value getActualType() {
+    return actualType;
+  }
 
-    public String getExceptedType()
-    {
-        return exceptedType;
-    }
+  public String getExceptedType() {
+    return exceptedType;
+  }
 }

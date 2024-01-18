@@ -27,43 +27,41 @@ import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 
 /**
- * This expand operator behaves the same as the {@link JvmDefaultExpandOperator} but operates on {@link JvmReferenceAbstractState}s.
+ * This expand operator behaves the same as the {@link JvmDefaultExpandOperator} but operates on
+ * {@link JvmReferenceAbstractState}s.
  *
  * @author Dmitry Ivanov
  */
 public class JvmReferenceExpandOperator
-    extends JvmDefaultExpandOperator<SetAbstractState<Reference>>
-{
+    extends JvmDefaultExpandOperator<SetAbstractState<Reference>> {
 
-    /**
-     * Create the expand operator for the JVM reference analysis.
-     *
-     * @param cfa the control flow automaton of the analyzed program
-     */
-    public JvmReferenceExpandOperator(JvmCfa cfa)
-    {
-        this(cfa, true);
-    }
+  /**
+   * Create the expand operator for the JVM reference analysis.
+   *
+   * @param cfa the control flow automaton of the analyzed program
+   */
+  public JvmReferenceExpandOperator(JvmCfa cfa) {
+    this(cfa, true);
+  }
 
-    /**
-     * Create the expand operator for the JVM reference analysis.
-     *
-     * @param cfa        the control flow automaton of the analyzed program
-     * @param expandHeap whether expansion of the heap is performed
-     */
-    public JvmReferenceExpandOperator(JvmCfa cfa, boolean expandHeap)
-    {
-        super(cfa, expandHeap);
-    }
+  /**
+   * Create the expand operator for the JVM reference analysis.
+   *
+   * @param cfa the control flow automaton of the analyzed program
+   * @param expandHeap whether expansion of the heap is performed
+   */
+  public JvmReferenceExpandOperator(JvmCfa cfa, boolean expandHeap) {
+    super(cfa, expandHeap);
+  }
 
-    // implementations for JvmAbstractStateFactory
+  // implementations for JvmAbstractStateFactory
 
-    @Override
-    public JvmReferenceAbstractState createJvmAbstractState(JvmCfaNode programLocation,
-                                                            JvmFrameAbstractState<SetAbstractState<Reference>> frame,
-                                                            JvmHeapAbstractState<SetAbstractState<Reference>> heap,
-                                                            MapAbstractState<String, SetAbstractState<Reference>> staticFields)
-    {
-        return new JvmReferenceAbstractState(programLocation, frame, heap, staticFields);
-    }
+  @Override
+  public JvmReferenceAbstractState createJvmAbstractState(
+      JvmCfaNode programLocation,
+      JvmFrameAbstractState<SetAbstractState<Reference>> frame,
+      JvmHeapAbstractState<SetAbstractState<Reference>> heap,
+      MapAbstractState<String, SetAbstractState<Reference>> staticFields) {
+    return new JvmReferenceAbstractState(programLocation, frame, heap, staticFields);
+  }
 }

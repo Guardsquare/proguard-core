@@ -17,205 +17,163 @@
  */
 package proguard.classfile.kotlin;
 
+import java.util.*;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.KotlinFunctionFlags;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.visitor.MemberVisitor;
 import proguard.util.*;
 
-import java.util.*;
+public class KotlinFunctionMetadata extends SimpleProcessable implements Processable {
+  public String name;
 
-public class KotlinFunctionMetadata
-extends      SimpleProcessable
-implements   Processable
-{
-    public String name;
+  public List<KotlinContractMetadata> contracts;
 
+  public KotlinTypeMetadata receiverType;
 
-    public List<KotlinContractMetadata> contracts;
+  public List<KotlinTypeMetadata> contextReceivers;
 
-    public KotlinTypeMetadata receiverType;
+  public KotlinTypeMetadata returnType;
 
-    public List<KotlinTypeMetadata> contextReceivers;
+  public List<KotlinTypeParameterMetadata> typeParameters;
 
-    public KotlinTypeMetadata returnType;
+  public List<KotlinValueParameterMetadata> valueParameters;
 
-    public List<KotlinTypeParameterMetadata> typeParameters;
+  public KotlinVersionRequirementMetadata versionRequirement;
 
-    public List<KotlinValueParameterMetadata> valueParameters;
+  public KotlinFunctionFlags flags;
 
-    public KotlinVersionRequirementMetadata versionRequirement;
+  // Extensions.
+  public MethodSignature jvmSignature;
+  public Method referencedMethod;
+  public Clazz referencedMethodClass;
 
-    public KotlinFunctionFlags flags;
+  // Functions with default parameters have a corresponding $default method.
+  // this could be in the $DefaultImpls of an interface, so we need a class ref as well.
+  public Method referencedDefaultMethod;
+  public Clazz referencedDefaultMethodClass;
 
-    // Extensions.
-    public MethodSignature jvmSignature;
-    public Method          referencedMethod;
-    public Clazz           referencedMethodClass;
+  // Interfaces with non-abstract methods have an implementation in a corresponding inner class
+  // called DefaultImpls.
+  public Method referencedDefaultImplementationMethod;
+  public Clazz referencedDefaultImplementationMethodClass;
 
-    // Functions with default parameters have a corresponding $default method.
-    // this could be in the $DefaultImpls of an interface, so we need a class ref as well.
-    public Method          referencedDefaultMethod;
-    public Clazz           referencedDefaultMethodClass;
+  // The JVM internal name of the original class the lambda class where this function is copied
+  // from. This
+  // information is present for lambdas copied from bodies of inline functions to the use site by
+  // kotlinc.
+  public String lambdaClassOriginName;
+  public Clazz referencedLambdaClassOrigin;
 
-    // Interfaces with non-abstract methods have an implementation in a corresponding inner class called DefaultImpls.
-    public Method          referencedDefaultImplementationMethod;
-    public Clazz           referencedDefaultImplementationMethodClass;
+  public KotlinFunctionMetadata(KotlinFunctionFlags flags, String name) {
+    this.name = name;
+    this.flags = flags;
+  }
 
-    // The JVM internal name of the original class the lambda class where this function is copied from. This
-    // information is present for lambdas copied from bodies of inline functions to the use site by kotlinc.
-    public String          lambdaClassOriginName;
-    public Clazz           referencedLambdaClassOrigin;
+  public void accept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinFunctionVisitor kotlinFunctionVisitor) {
+    kotlinFunctionVisitor.visitFunction(clazz, kotlinDeclarationContainerMetadata, this);
+  }
 
+  public void accept(
+      Clazz clazz,
+      KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata,
+      KotlinFunctionVisitor kotlinFunctionVisitor) {
+    kotlinFunctionVisitor.visitSyntheticFunction(clazz, kotlinSyntheticClassKindMetadata, this);
+  }
 
-    public KotlinFunctionMetadata(KotlinFunctionFlags flags, String name)
-    {
-        this.name  = name;
-        this.flags = flags;
+  public void valueParametersAccept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinValueParameterVisitor kotlinValueParameterVisitor) {
+    if (valueParameters != null) {
+      for (KotlinValueParameterMetadata valueParameter : valueParameters) {
+        valueParameter.accept(clazz, kotlinMetadata, this, kotlinValueParameterVisitor);
+      }
     }
+  }
 
-
-    public void accept(Clazz                              clazz,
-                       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                       KotlinFunctionVisitor              kotlinFunctionVisitor)
-    {
-        kotlinFunctionVisitor.visitFunction(clazz, kotlinDeclarationContainerMetadata, this);
+  public void typeParametersAccept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    if (typeParameters != null) {
+      for (KotlinTypeParameterMetadata typeParameter : typeParameters) {
+        typeParameter.accept(clazz, kotlinMetadata, this, kotlinTypeParameterVisitor);
+      }
     }
+  }
 
+  public void returnTypeAccept(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeVisitor kotlinTypeVisitor) {
+    kotlinTypeVisitor.visitFunctionReturnType(clazz, kotlinMetadata, this, returnType);
+  }
 
-    public void accept(Clazz                            clazz,
-                       KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata,
-                       KotlinFunctionVisitor            kotlinFunctionVisitor)
-    {
-        kotlinFunctionVisitor.visitSyntheticFunction(clazz, kotlinSyntheticClassKindMetadata, this);
+  public void receiverTypeAccept(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeVisitor kotlinTypeVisitor) {
+    if (receiverType != null) {
+      kotlinTypeVisitor.visitFunctionReceiverType(clazz, kotlinMetadata, this, receiverType);
     }
+  }
 
-
-    public void valueParametersAccept(Clazz                       clazz,
-                                      KotlinMetadata              kotlinMetadata,
-                                      KotlinValueParameterVisitor kotlinValueParameterVisitor)
-    {
-        if (valueParameters != null)
-        {
-            for (KotlinValueParameterMetadata valueParameter : valueParameters)
-            {
-                valueParameter.accept(clazz, kotlinMetadata, this, kotlinValueParameterVisitor);
-            }
-        }
+  public void contextReceiverTypesAccept(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeVisitor kotlinTypeVisitor) {
+    if (contextReceivers != null) {
+      for (KotlinTypeMetadata contextReceiver : contextReceivers) {
+        kotlinTypeVisitor.visitFunctionContextReceiverType(
+            clazz, kotlinMetadata, this, contextReceiver);
+      }
     }
+  }
 
-
-    public void typeParametersAccept(Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeParameterVisitor kotlinTypeParameterVisitor)
-    {
-        if (typeParameters != null)
-        {
-            for (KotlinTypeParameterMetadata typeParameter : typeParameters)
-            {
-                typeParameter.accept(clazz, kotlinMetadata, this, kotlinTypeParameterVisitor);
-            }
-        }
+  public void contractsAccept(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinContractVisitor kotlinContractVisitor) {
+    if (contracts != null) {
+      for (KotlinContractMetadata contract : contracts) {
+        contract.accept(clazz, kotlinMetadata, this, kotlinContractVisitor);
+      }
     }
+  }
 
-
-    public void returnTypeAccept(Clazz             clazz,
-                                 KotlinMetadata    kotlinMetadata,
-                                 KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        kotlinTypeVisitor.visitFunctionReturnType(clazz, kotlinMetadata, this, returnType);
+  public void versionRequirementAccept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor) {
+    if (versionRequirement != null) {
+      versionRequirement.accept(clazz, kotlinMetadata, this, kotlinVersionRequirementVisitor);
     }
+  }
 
+  @Deprecated
+  public void referencedMethodAccept(Clazz clazz, MemberVisitor methodVisitor) {
+    referencedMethodAccept(methodVisitor);
+  }
 
-    public void receiverTypeAccept(Clazz             clazz,
-                                   KotlinMetadata    kotlinMetadata,
-                                   KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        if (receiverType != null)
-        {
-            kotlinTypeVisitor.visitFunctionReceiverType(clazz,
-                                                        kotlinMetadata,
-                                                        this,
-                                                        receiverType);
-        }
+  public void referencedMethodAccept(MemberVisitor methodVisitor) {
+    if (referencedMethod != null && referencedMethodClass != null) {
+      referencedMethod.accept(referencedMethodClass, methodVisitor);
     }
+  }
 
-    public void contextReceiverTypesAccept(Clazz             clazz,
-                                           KotlinMetadata    kotlinMetadata,
-                                           KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        if (contextReceivers != null)
-        {
-            for (KotlinTypeMetadata contextReceiver : contextReceivers)
-            {
-                kotlinTypeVisitor.visitFunctionContextReceiverType(clazz, kotlinMetadata, this, contextReceiver);
-            }
-        }
+  public void referencedDefaultMethodAccept(MemberVisitor methodVisitor) {
+    if (referencedDefaultMethod != null && referencedDefaultMethodClass != null) {
+      referencedDefaultMethod.accept(referencedDefaultMethodClass, methodVisitor);
     }
+  }
 
-    public void contractsAccept(Clazz                 clazz,
-                                KotlinMetadata        kotlinMetadata,
-                                KotlinContractVisitor kotlinContractVisitor)
-    {
-        if (contracts != null)
-        {
-            for (KotlinContractMetadata contract : contracts)
-            {
-                contract.accept(clazz, kotlinMetadata, this, kotlinContractVisitor);
-            }
-        }
+  public void referencedDefaultImplementationMethodAccept(MemberVisitor memberVisitor) {
+    if (referencedDefaultImplementationMethodClass != null
+        && referencedDefaultImplementationMethod != null) {
+      referencedDefaultImplementationMethod.accept(
+          referencedDefaultImplementationMethodClass, memberVisitor);
     }
+  }
 
-
-    public void versionRequirementAccept(Clazz                           clazz,
-                                         KotlinMetadata                  kotlinMetadata,
-                                         KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor)
-    {
-        if (versionRequirement != null)
-        {
-            versionRequirement.accept(clazz, kotlinMetadata, this, kotlinVersionRequirementVisitor);
-        }
-    }
-
-
-    @Deprecated
-    public void referencedMethodAccept(Clazz clazz, MemberVisitor methodVisitor)
-    {
-        referencedMethodAccept(methodVisitor);
-    }
-
-    public void referencedMethodAccept(MemberVisitor methodVisitor)
-    {
-        if (referencedMethod      != null &&
-            referencedMethodClass != null)
-        {
-            referencedMethod.accept(referencedMethodClass, methodVisitor);
-        }
-    }
-
-    public void referencedDefaultMethodAccept(MemberVisitor methodVisitor)
-    {
-        if (referencedDefaultMethod      != null &&
-            referencedDefaultMethodClass != null)
-        {
-            referencedDefaultMethod.accept(referencedDefaultMethodClass, methodVisitor);
-        }
-    }
-
-    public void referencedDefaultImplementationMethodAccept(MemberVisitor memberVisitor)
-    {
-        if (referencedDefaultImplementationMethodClass != null &&
-            referencedDefaultImplementationMethod      != null)
-        {
-            referencedDefaultImplementationMethod.accept(referencedDefaultImplementationMethodClass, memberVisitor);
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin " +
-               (flags.isSynthesized ? "synthesized " : "") +
-               "function(" + name + ")";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin " + (flags.isSynthesized ? "synthesized " : "") + "function(" + name + ")";
+  }
 }

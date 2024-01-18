@@ -17,56 +17,42 @@
  */
 package proguard.resources.file.visitor;
 
+import java.util.Set;
 import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 import proguard.resources.file.*;
 import proguard.resources.kotlinmodule.KotlinModule;
 
-import java.util.Set;
-
 /**
- * This {@link ResourceFileVisitor} initializes the class references from
- * non-binary resources files with the corresponding classes from the program
- * class pool.
+ * This {@link ResourceFileVisitor} initializes the class references from non-binary resources files
+ * with the corresponding classes from the program class pool.
  *
  * @author Lars Vandenbergh
  */
-public class ResourceJavaReferenceClassInitializer
-implements   ResourceFileVisitor
-{
-    private final ClassPool programClassPool;
+public class ResourceJavaReferenceClassInitializer implements ResourceFileVisitor {
+  private final ClassPool programClassPool;
 
+  public ResourceJavaReferenceClassInitializer(ClassPool programClassPool) {
+    this.programClassPool = programClassPool;
+  }
 
-    public ResourceJavaReferenceClassInitializer(ClassPool programClassPool)
-    {
-        this.programClassPool = programClassPool;
+  // Implementations for ResourceFileVisitor.
+
+  @Override
+  public void visitResourceFile(ResourceFile resourceFile) {
+    Set<ResourceJavaReference> references = resourceFile.references;
+
+    if (references != null) {
+      for (ResourceJavaReference reference : references) {
+        String externalClassName = reference.externalClassName;
+        String internalClassName = ClassUtil.internalClassName(externalClassName);
+
+        // Find the class corresponding to the fully qualified class name.
+        reference.referencedClass = programClassPool.getClass(internalClassName);
+      }
     }
+  }
 
-
-    // Implementations for ResourceFileVisitor.
-
-    @Override
-    public void visitResourceFile(ResourceFile resourceFile)
-    {
-        Set<ResourceJavaReference> references = resourceFile.references;
-
-        if (references != null)
-        {
-            for (ResourceJavaReference reference : references)
-            {
-                String externalClassName = reference.externalClassName;
-                String internalClassName = ClassUtil.internalClassName(externalClassName);
-
-                // Find the class corresponding to the fully qualified class name.
-                reference.referencedClass = programClassPool.getClass(internalClassName);
-            }
-        }
-    }
-
-
-    @Override
-    public void visitKotlinModule(KotlinModule kotlinModule)
-    {
-
-    }
+  @Override
+  public void visitKotlinModule(KotlinModule kotlinModule) {}
 }

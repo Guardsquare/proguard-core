@@ -17,18 +17,15 @@
  */
 package proguard.util.kotlin.asserter;
 
-/**
- * Interface for reporting errors.
- */
-public interface Reporter
-{
-    void setErrorMessage(String message);
+/** Interface for reporting errors. */
+public interface Reporter {
+  void setErrorMessage(String message);
 
-    void report(String error);
+  void report(String error);
 
-    void resetCounter(String contextName);
+  void resetCounter(String contextName);
 
-    int getCount();
+  int getCount();
 
-    void print(String className, String s);
+  void print(String className, String s);
 }

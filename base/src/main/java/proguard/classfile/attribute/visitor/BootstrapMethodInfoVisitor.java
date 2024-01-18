@@ -21,14 +21,12 @@ import proguard.classfile.Clazz;
 import proguard.classfile.attribute.BootstrapMethodInfo;
 
 /**
- * This interface specifies the methods for a visitor of
- * {@link BootstrapMethodInfo} instances. Note that there is only a single
- * implementation of {@link BootstrapMethodInfo}, such that this interface
- * is not strictly necessary as a visitor.
+ * This interface specifies the methods for a visitor of {@link BootstrapMethodInfo} instances. Note
+ * that there is only a single implementation of {@link BootstrapMethodInfo}, such that this
+ * interface is not strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface BootstrapMethodInfoVisitor
-{
-    public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo);
+public interface BootstrapMethodInfoVisitor {
+  public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo);
 }

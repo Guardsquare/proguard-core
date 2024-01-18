@@ -19,13 +19,13 @@ package proguard.dexfile.ir.ts.an;
 import java.util.List;
 
 public class SimpleLiveValue implements AnalyzeValue {
-    public boolean used = false;
+  public boolean used = false;
 
-    public SimpleLiveValue parent;
-    public List<SimpleLiveValue> otherParents;
+  public SimpleLiveValue parent;
+  public List<SimpleLiveValue> otherParents;
 
-    @Override
-    public char toRsp() {
-        return used ? 'x' : '.';
-    }
+  @Override
+  public char toRsp() {
+    return used ? 'x' : '.';
+  }
 }

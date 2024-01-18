@@ -25,35 +25,27 @@ import proguard.analysis.cpa.interfaces.AbstractState;
  *
  * @author Dmitry Ivanov
  */
-public abstract class AbstractWrapperState
-    implements AbstractState
-{
+public abstract class AbstractWrapperState implements AbstractState {
 
-    /**
-     * Returns the wrapped abstract states.
-     */
-    public abstract Iterable<? extends AbstractState> getWrappedStates();
+  /** Returns the wrapped abstract states. */
+  public abstract Iterable<? extends AbstractState> getWrappedStates();
 
-    // implementations for AbstractState
+  // implementations for AbstractState
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj)
-        {
-            return true;
-        }
-        if (!(obj instanceof AbstractWrapperState))
-        {
-            return false;
-        }
-        AbstractWrapperState other = (AbstractWrapperState) obj;
-        return getWrappedStates().equals(other.getWrappedStates());
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
-
-    @Override
-    public int hashCode()
-    {
-        return getWrappedStates().hashCode();
+    if (!(obj instanceof AbstractWrapperState)) {
+      return false;
     }
+    AbstractWrapperState other = (AbstractWrapperState) obj;
+    return getWrappedStates().equals(other.getWrappedStates());
+  }
+
+  @Override
+  public int hashCode() {
+    return getWrappedStates().hashCode();
+  }
 }

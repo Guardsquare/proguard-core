@@ -19,30 +19,23 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This interface specifies the methods for a visitor of
- * {@link Clazz} instances.
+ * This interface specifies the methods for a visitor of {@link Clazz} instances.
  *
  * @author Eric Lafortune
  */
-public interface ClassVisitor
-{
-    /**
-     * Visits any Clazz instance. The more specific default implementations of
-     * this interface delegate to this method.
-     */
-    void visitAnyClass(Clazz clazz);
+public interface ClassVisitor {
+  /**
+   * Visits any Clazz instance. The more specific default implementations of this interface delegate
+   * to this method.
+   */
+  void visitAnyClass(Clazz clazz);
 
+  default void visitProgramClass(ProgramClass programClass) {
+    visitAnyClass(programClass);
+  }
 
-    default void visitProgramClass(ProgramClass programClass)
-    {
-        visitAnyClass(programClass);
-    }
-
-
-    default void visitLibraryClass(LibraryClass libraryClass)
-    {
-        visitAnyClass(libraryClass);
-    }
+  default void visitLibraryClass(LibraryClass libraryClass) {
+    visitAnyClass(libraryClass);
+  }
 }

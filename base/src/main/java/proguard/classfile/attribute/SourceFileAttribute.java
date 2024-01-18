@@ -25,35 +25,22 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class SourceFileAttribute extends Attribute
-{
-    public int u2sourceFileIndex;
+public class SourceFileAttribute extends Attribute {
+  public int u2sourceFileIndex;
 
+  /** Creates an uninitialized SourceFileAttribute. */
+  public SourceFileAttribute() {}
 
-    /**
-     * Creates an uninitialized SourceFileAttribute.
-     */
-    public SourceFileAttribute()
-    {
-    }
+  /** Creates an initialized SourceFileAttribute. */
+  public SourceFileAttribute(int u2attributeNameIndex, int u2sourceFileIndex) {
+    super(u2attributeNameIndex);
 
+    this.u2sourceFileIndex = u2sourceFileIndex;
+  }
 
-    /**
-     * Creates an initialized SourceFileAttribute.
-     */
-    public SourceFileAttribute(int u2attributeNameIndex,
-                               int u2sourceFileIndex)
-    {
-        super(u2attributeNameIndex);
+  // Implementations for Attribute.
 
-        this.u2sourceFileIndex = u2sourceFileIndex;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSourceFileAttribute(clazz, this);
-    }
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSourceFileAttribute(clazz, this);
+  }
 }

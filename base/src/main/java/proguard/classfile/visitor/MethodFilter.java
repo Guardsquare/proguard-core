@@ -19,77 +19,59 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link MemberVisitor} delegates its visits to one of two other given
- * {@link MemberVisitor} instances, depending on whether the visited method
- * is a method or a field.
+ * This {@link MemberVisitor} delegates its visits to one of two other given {@link MemberVisitor}
+ * instances, depending on whether the visited method is a method or a field.
  *
  * @author Thomas Neidhart
  */
-public class MethodFilter implements MemberVisitor
-{
-    private final MemberVisitor methodMemberVisitor;
-    private final MemberVisitor fieldMemberVisitor;
+public class MethodFilter implements MemberVisitor {
+  private final MemberVisitor methodMemberVisitor;
+  private final MemberVisitor fieldMemberVisitor;
 
+  /**
+   * Creates a new MethodFilter.
+   *
+   * @param methodMemberVisitor the MemberVisitor to which method visits will be delegated.
+   */
+  public MethodFilter(MemberVisitor methodMemberVisitor) {
+    this(methodMemberVisitor, null);
+  }
 
-    /**
-     * Creates a new MethodFilter.
-     * @param methodMemberVisitor the MemberVisitor to which method visits will be delegated.
-     */
-    public MethodFilter(MemberVisitor methodMemberVisitor)
-    {
-        this(methodMemberVisitor, null);
+  /**
+   * Creates a new MethodFilter.
+   *
+   * @param methodMemberVisitor the MemberVisitor to which method visits will be delegated.
+   * @param fieldMemberVisitor the MemberVisitor to which field visits will be delegated.
+   */
+  public MethodFilter(MemberVisitor methodMemberVisitor, MemberVisitor fieldMemberVisitor) {
+    this.methodMemberVisitor = methodMemberVisitor;
+    this.fieldMemberVisitor = fieldMemberVisitor;
+  }
+
+  // Implementations for MemberVisitor.
+
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    if (fieldMemberVisitor != null) {
+      fieldMemberVisitor.visitProgramField(programClass, programField);
     }
+  }
 
-
-    /**
-     * Creates a new MethodFilter.
-     * @param methodMemberVisitor the MemberVisitor to which method visits will be delegated.
-     * @param fieldMemberVisitor  the MemberVisitor to which field visits will be delegated.
-     */
-    public MethodFilter(MemberVisitor methodMemberVisitor,
-                        MemberVisitor fieldMemberVisitor)
-    {
-        this.methodMemberVisitor = methodMemberVisitor;
-        this.fieldMemberVisitor  = fieldMemberVisitor;
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    if (methodMemberVisitor != null) {
+      methodMemberVisitor.visitProgramMethod(programClass, programMethod);
     }
+  }
 
-
-    // Implementations for MemberVisitor.
-
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        if (fieldMemberVisitor != null)
-        {
-            fieldMemberVisitor.visitProgramField(programClass, programField);
-        }
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+    if (fieldMemberVisitor != null) {
+      fieldMemberVisitor.visitLibraryField(libraryClass, libraryField);
     }
+  }
 
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        if (methodMemberVisitor != null)
-        {
-            methodMemberVisitor.visitProgramMethod(programClass, programMethod);
-        }
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    if (methodMemberVisitor != null) {
+      methodMemberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
     }
-
-
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
-    {
-        if (fieldMemberVisitor != null)
-        {
-            fieldMemberVisitor.visitLibraryField(libraryClass, libraryField);
-        }
-    }
-
-
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        if (methodMemberVisitor != null)
-        {
-            methodMemberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
-        }
-    }
+  }
 }

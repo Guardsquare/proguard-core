@@ -22,31 +22,23 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
 
 /**
- * This {@link AttributeVisitor} lets a given {@link ClassVisitor} visit all the
- * classes referenced by the type descriptors of the signatures that it visits.
+ * This {@link AttributeVisitor} lets a given {@link ClassVisitor} visit all the classes referenced
+ * by the type descriptors of the signatures that it visits.
  *
  * @author Joachim Vandersmissen
  */
-public class SignatureAttributeReferencedClassVisitor
-implements   AttributeVisitor
-{
-    private final ClassVisitor classVisitor;
+public class SignatureAttributeReferencedClassVisitor implements AttributeVisitor {
+  private final ClassVisitor classVisitor;
 
+  public SignatureAttributeReferencedClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    public SignatureAttributeReferencedClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
+  // Implementations for AttributeVisitor
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitSignatureAttribute(Clazz clazz,
-                                        SignatureAttribute signatureAttribute)
-    {
-        signatureAttribute.referencedClassesAccept(classVisitor);
-    }
+  public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute) {
+    signatureAttribute.referencedClassesAccept(classVisitor);
+  }
 }

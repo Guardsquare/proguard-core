@@ -17,133 +17,95 @@
  */
 package proguard.classfile.visitor;
 
+import java.io.PrintWriter;
 import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 
-import java.io.PrintWriter;
-
-
 /**
- * This {@link ClassVisitor} and {@link MemberVisitor}
- * prints out the class names of the classes it visits, and the full class
- * member descriptions of the class members it visits. The names are printed
- * in a readable, Java-like format. The access modifiers can be included or not.
+ * This {@link ClassVisitor} and {@link MemberVisitor} prints out the class names of the classes it
+ * visits, and the full class member descriptions of the class members it visits. The names are
+ * printed in a readable, Java-like format. The access modifiers can be included or not.
  *
  * @author Eric Lafortune
  */
-public class SimpleClassPrinter
-implements   ClassVisitor,
-             MemberVisitor
-{
-    private final boolean     printAccessModifiers;
-    private final PrintWriter pw;
+public class SimpleClassPrinter implements ClassVisitor, MemberVisitor {
+  private final boolean printAccessModifiers;
+  private final PrintWriter pw;
 
+  /**
+   * Creates a new SimpleClassPrinter that prints to the standard output, with or without the access
+   * modifiers.
+   */
+  public SimpleClassPrinter(boolean printAccessModifiers) {
+    // We're using the system's default character encoding for writing to
+    // the standard output.
+    this(printAccessModifiers, new PrintWriter(System.out, true));
+  }
 
-    /**
-     * Creates a new SimpleClassPrinter that prints to the standard output, with
-     * or without the access modifiers.
-     */
-    public SimpleClassPrinter(boolean printAccessModifiers)
-    {
-        // We're using the system's default character encoding for writing to
-        // the standard output.
-        this(printAccessModifiers, new PrintWriter(System.out, true));
-    }
+  /**
+   * Creates a new SimpleClassPrinter that prints to the given writer, with or without the access
+   * modifiers.
+   */
+  public SimpleClassPrinter(boolean printAccessModifiers, PrintWriter printWriter) {
+    this.printAccessModifiers = printAccessModifiers;
+    this.pw = printWriter;
+  }
 
+  // Implementations for ClassVisitor.
 
-    /**
-     * Creates a new SimpleClassPrinter that prints to the given writer, with
-     * or without the access modifiers.
-     */
-    public SimpleClassPrinter(boolean     printAccessModifiers,
-                              PrintWriter printWriter)
-    {
-        this.printAccessModifiers = printAccessModifiers;
-        this.pw                   = printWriter;
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    pw.println(
+        ClassUtil.externalFullClassDescription(
+            printAccessModifiers ? clazz.getAccessFlags() : 0, clazz.getName()));
+    ;
+  }
 
+  // Implementations for MemberVisitor.
 
-    // Implementations for ClassVisitor.
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    pw.println(
+        ClassUtil.externalFullClassDescription(
+                printAccessModifiers ? programClass.getAccessFlags() : 0, programClass.getName())
+            + ": "
+            + ClassUtil.externalFullFieldDescription(
+                printAccessModifiers ? programField.getAccessFlags() : 0,
+                programField.getName(programClass),
+                programField.getDescriptor(programClass)));
+  }
 
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        pw.println(ClassUtil.externalFullClassDescription(
-                       printAccessModifiers ?
-                           clazz.getAccessFlags() :
-                           0,
-                       clazz.getName()));;
-    }
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    pw.println(
+        ClassUtil.externalFullClassDescription(
+                printAccessModifiers ? programClass.getAccessFlags() : 0, programClass.getName())
+            + ": "
+            + ClassUtil.externalFullMethodDescription(
+                programClass.getName(),
+                printAccessModifiers ? programMethod.getAccessFlags() : 0,
+                programMethod.getName(programClass),
+                programMethod.getDescriptor(programClass)));
+  }
 
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+    pw.println(
+        ClassUtil.externalFullClassDescription(
+                printAccessModifiers ? libraryClass.getAccessFlags() : 0, libraryClass.getName())
+            + ": "
+            + ClassUtil.externalFullFieldDescription(
+                printAccessModifiers ? libraryField.getAccessFlags() : 0,
+                libraryField.getName(libraryClass),
+                libraryField.getDescriptor(libraryClass)));
+  }
 
-    // Implementations for MemberVisitor.
-
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        pw.println(ClassUtil.externalFullClassDescription(
-                       printAccessModifiers ?
-                           programClass.getAccessFlags() :
-                           0,
-                       programClass.getName()) +
-                   ": " +
-                   ClassUtil.externalFullFieldDescription(
-                       printAccessModifiers ?
-                           programField.getAccessFlags() :
-                           0,
-                       programField.getName(programClass),
-                       programField.getDescriptor(programClass)));
-    }
-
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        pw.println(ClassUtil.externalFullClassDescription(
-                       printAccessModifiers ?
-                           programClass.getAccessFlags() :
-                           0,
-                       programClass.getName()) +
-                   ": " +
-                   ClassUtil.externalFullMethodDescription(
-                       programClass.getName(),
-                       printAccessModifiers ?
-                           programMethod.getAccessFlags() :
-                           0,
-                       programMethod.getName(programClass),
-                       programMethod.getDescriptor(programClass)));
-    }
-
-
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
-    {
-        pw.println(ClassUtil.externalFullClassDescription(
-                       printAccessModifiers ?
-                           libraryClass.getAccessFlags() :
-                           0,
-                       libraryClass.getName()) +
-                   ": " +
-                   ClassUtil.externalFullFieldDescription(
-                       printAccessModifiers ?
-                           libraryField.getAccessFlags() :
-                           0,
-                       libraryField.getName(libraryClass),
-                       libraryField.getDescriptor(libraryClass)));
-    }
-
-
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        pw.println(ClassUtil.externalFullClassDescription(
-                       printAccessModifiers ?
-                           libraryClass.getAccessFlags() :
-                           0,
-                       libraryClass.getName()) +
-                   ": " +
-                   ClassUtil.externalFullMethodDescription(
-                       libraryClass.getName(),
-                       printAccessModifiers ?
-                           libraryMethod.getAccessFlags() :
-                           0,
-                       libraryMethod.getName(libraryClass),
-                       libraryMethod.getDescriptor(libraryClass)));
-    }
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    pw.println(
+        ClassUtil.externalFullClassDescription(
+                printAccessModifiers ? libraryClass.getAccessFlags() : 0, libraryClass.getName())
+            + ": "
+            + ClassUtil.externalFullMethodDescription(
+                libraryClass.getName(),
+                printAccessModifiers ? libraryMethod.getAccessFlags() : 0,
+                libraryMethod.getName(libraryClass),
+                libraryMethod.getDescriptor(libraryClass)));
+  }
 }

@@ -23,117 +23,91 @@ import proguard.classfile.attribute.annotation.Annotation;
 import proguard.util.*;
 
 /**
- * This {@link AnnotationVisitor} delegates its visits to another given
- * {@link AnnotationVisitor}, but only when the visited annotation has
- * a type that matches a given regular expression.
+ * This {@link AnnotationVisitor} delegates its visits to another given {@link AnnotationVisitor},
+ * but only when the visited annotation has a type that matches a given regular expression.
  *
  * @author Eric Lafortune
  */
-public class AnnotationTypeFilter
-implements   AnnotationVisitor
-{
-    private final StringMatcher     stringMatcher;
-    private final AnnotationVisitor annotationVisitor;
+public class AnnotationTypeFilter implements AnnotationVisitor {
+  private final StringMatcher stringMatcher;
+  private final AnnotationVisitor annotationVisitor;
 
+  /**
+   * Creates a new AnnotationTypeFilter.
+   *
+   * @param regularExpression the regular expression against which annotation type names will be
+   *     matched.
+   * @param annotationVisitor the annotation visitor to which visits will be delegated.
+   */
+  public AnnotationTypeFilter(String regularExpression, AnnotationVisitor annotationVisitor) {
+    this(regularExpression, null, annotationVisitor);
+  }
 
-    /**
-     * Creates a new AnnotationTypeFilter.
-     * @param regularExpression the regular expression against which
-     *                          annotation type names will be matched.
-     * @param annotationVisitor the annotation visitor to which visits
-     *                          will be delegated.
-     */
-    public AnnotationTypeFilter(String            regularExpression,
-                                AnnotationVisitor annotationVisitor)
-    {
-        this(regularExpression, null, annotationVisitor);
+  /**
+   * Creates a new AnnotationTypeFilter.
+   *
+   * @param regularExpression the regular expression against which annotation type names will be
+   *     matched.
+   * @param wildcardManager an optional scope for StringMatcher instances that match wildcards.
+   * @param annotationVisitor the annotation visitor to which visits will be delegated.
+   */
+  public AnnotationTypeFilter(
+      String regularExpression,
+      WildcardManager wildcardManager,
+      AnnotationVisitor annotationVisitor) {
+    this(
+        new ListParser(new ClassNameParser(wildcardManager)).parse(regularExpression),
+        annotationVisitor);
+  }
+
+  /**
+   * Creates a new AnnotationTypeFilter.
+   *
+   * @param stringMatcher the matcher against which annotation type names will be matched.
+   * @param annotationVisitor the <code>annotationVisitor</code> to which visits will be delegated.
+   */
+  public AnnotationTypeFilter(StringMatcher stringMatcher, AnnotationVisitor annotationVisitor) {
+    this.stringMatcher = stringMatcher;
+    this.annotationVisitor = annotationVisitor;
+  }
+
+  // Implementations for AnnotationVisitor.
+
+  public void visitAnnotation(Clazz clazz, Annotation annotation) {
+    if (accepted(annotation.getType(clazz))) {
+      annotationVisitor.visitAnnotation(clazz, annotation);
     }
+  }
 
-
-    /**
-     * Creates a new AnnotationTypeFilter.
-     * @param regularExpression the regular expression against which
-     *                          annotation type names will be matched.
-     * @param wildcardManager   an optional scope for StringMatcher instances
-     *                          that match wildcards.
-     * @param annotationVisitor the annotation visitor to which visits
-     *                          will be delegated.
-     */
-    public AnnotationTypeFilter(String            regularExpression,
-                                WildcardManager   wildcardManager,
-                                AnnotationVisitor annotationVisitor)
-    {
-        this(new ListParser(new ClassNameParser(wildcardManager)).parse(regularExpression),
-             annotationVisitor);
+  public void visitAnnotation(Clazz clazz, Field field, Annotation annotation) {
+    if (accepted(annotation.getType(clazz))) {
+      annotationVisitor.visitAnnotation(clazz, field, annotation);
     }
+  }
 
-
-    /**
-     * Creates a new AnnotationTypeFilter.
-     * @param stringMatcher     the matcher against which annotation type names
-     *                          will be matched.
-     * @param annotationVisitor the <code>annotationVisitor</code> to which
-     *                          visits will be delegated.
-     */
-    public AnnotationTypeFilter(StringMatcher     stringMatcher,
-                                AnnotationVisitor annotationVisitor)
-    {
-        this.stringMatcher     = stringMatcher;
-        this.annotationVisitor = annotationVisitor;
+  public void visitAnnotation(Clazz clazz, Method method, Annotation annotation) {
+    if (accepted(annotation.getType(clazz))) {
+      annotationVisitor.visitAnnotation(clazz, method, annotation);
     }
+  }
 
-
-    // Implementations for AnnotationVisitor.
-
-    public void visitAnnotation(Clazz clazz, Annotation annotation)
-    {
-        if (accepted(annotation.getType(clazz)))
-        {
-            annotationVisitor.visitAnnotation(clazz, annotation);
-        }
+  public void visitAnnotation(
+      Clazz clazz, Method method, int parameterIndex, Annotation annotation) {
+    if (accepted(annotation.getType(clazz))) {
+      annotationVisitor.visitAnnotation(clazz, method, parameterIndex, annotation);
     }
+  }
 
-
-    public void visitAnnotation(Clazz clazz, Field field, Annotation annotation)
-    {
-        if (accepted(annotation.getType(clazz)))
-        {
-            annotationVisitor.visitAnnotation(clazz, field, annotation);
-        }
+  public void visitAnnotation(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, Annotation annotation) {
+    if (accepted(annotation.getType(clazz))) {
+      annotationVisitor.visitAnnotation(clazz, method, codeAttribute, annotation);
     }
+  }
 
+  // Small utility methods.
 
-    public void visitAnnotation(Clazz clazz, Method method, Annotation annotation)
-    {
-        if (accepted(annotation.getType(clazz)))
-        {
-            annotationVisitor.visitAnnotation(clazz, method, annotation);
-        }
-    }
-
-
-    public void visitAnnotation(Clazz clazz, Method method, int parameterIndex, Annotation annotation)
-    {
-        if (accepted(annotation.getType(clazz)))
-        {
-            annotationVisitor.visitAnnotation(clazz, method, parameterIndex, annotation);
-        }
-    }
-
-
-    public void visitAnnotation(Clazz clazz, Method method, CodeAttribute codeAttribute, Annotation annotation)
-    {
-        if (accepted(annotation.getType(clazz)))
-        {
-            annotationVisitor.visitAnnotation(clazz, method, codeAttribute, annotation);
-        }
-    }
-
-
-    // Small utility methods.
-
-    private boolean accepted(String name)
-    {
-        return stringMatcher.matches(name);
-    }
+  private boolean accepted(String name) {
+    return stringMatcher.matches(name);
+  }
 }

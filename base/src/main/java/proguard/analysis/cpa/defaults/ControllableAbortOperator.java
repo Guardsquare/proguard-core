@@ -22,21 +22,19 @@ import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * This {@link AbortOperator} allows changing its behavior by setting the boolean field {@link #abort} to the desired output.
+ * This {@link AbortOperator} allows changing its behavior by setting the boolean field {@link
+ * #abort} to the desired output.
  *
  * @author Dmitry Ivanov
  */
-public class ControllableAbortOperator
-    implements AbortOperator
-{
+public class ControllableAbortOperator implements AbortOperator {
 
-    public boolean abort;
+  public boolean abort;
 
-    // implementations for AbortOperator
+  // implementations for AbortOperator
 
-    @Override
-    public boolean abort(AbstractState abstractState)
-    {
-        return abort;
-    }
+  @Override
+  public boolean abort(AbstractState abstractState) {
+    return abort;
+  }
 }

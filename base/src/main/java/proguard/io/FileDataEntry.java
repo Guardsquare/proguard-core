@@ -17,135 +17,105 @@
  */
 package proguard.io;
 
-import proguard.classfile.TypeConstants;
-
 import java.io.*;
+import proguard.classfile.TypeConstants;
 
 /**
  * This {@link DataEntry} represents a file.
  *
  * @author Eric Lafortune
  */
-public class FileDataEntry implements DataEntry
-{
-    private final File        directory;
-    private final File        file;
-    private       InputStream inputStream;
+public class FileDataEntry implements DataEntry {
+  private final File directory;
+  private final File file;
+  private InputStream inputStream;
 
+  /**
+   * Creates a new FileDataEntry.
+   *
+   * @param file the the absolute or relative location of the file.
+   */
+  public FileDataEntry(File file) {
+    this(null, file);
+  }
 
-    /**
-     * Creates a new FileDataEntry.
-     * @param file the the absolute or relative location of the file.
-     */
-    public FileDataEntry(File file)
-    {
-        this(null, file);
+  /**
+   * Creates a new FileDataEntry.
+   *
+   * @param directory the base directory for the file.
+   * @param file the the absolute or relative location of the file.
+   */
+  public FileDataEntry(File directory, File file) {
+    this.directory = directory;
+    this.file = file;
+  }
+
+  /** Returns the complete file, including its directory. */
+  public File getFile() {
+    return directory == null || file.equals(directory)
+        ? file
+        : new File(directory, getRelativeFilePath());
+  }
+
+  // Implementations for DataEntry.
+
+  @Override
+  public String getName() {
+    // Chop the directory name from the file name and get the right separators.
+    return directory == null || file.equals(directory) ? file.getName() : getRelativeFilePath();
+  }
+
+  /**
+   * Returns the file path of this data entry, relative to the base directory. If the file equals
+   * the base directory, an empty string is returned.
+   */
+  private String getRelativeFilePath() {
+    return directory == null || file.equals(directory)
+        ? ""
+        : file.getPath()
+            .substring(directory.getPath().length() + File.separator.length())
+            .replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
+  }
+
+  @Override
+  public String getOriginalName() {
+    return getName();
+  }
+
+  @Override
+  public long getSize() {
+    return file.length();
+  }
+
+  @Override
+  public boolean isDirectory() {
+    return file.isDirectory();
+  }
+
+  @Override
+  public InputStream getInputStream() throws IOException {
+    if (inputStream == null) {
+      inputStream = new BufferedInputStream(new FileInputStream(file));
     }
 
+    return inputStream;
+  }
 
-    /**
-     * Creates a new FileDataEntry.
-     * @param directory the base directory for the file.
-     * @param file      the the absolute or relative location of the file.
-     */
-    public FileDataEntry(File directory,
-                         File file)
-    {
-        this.directory = directory;
-        this.file      = file;
-    }
+  @Override
+  public void closeInputStream() throws IOException {
+    inputStream.close();
+    inputStream = null;
+  }
 
+  @Override
+  public DataEntry getParent() {
+    return null;
+  }
 
-    /**
-     * Returns the complete file, including its directory.
-     */
-    public File getFile()
-    {
-        return directory == null ||
-               file.equals(directory) ? file :
-                                        new File(directory, getRelativeFilePath());
-    }
+  // Implementations for Object.
 
-
-    // Implementations for DataEntry.
-
-    @Override
-    public String getName()
-    {
-        // Chop the directory name from the file name and get the right separators.
-        return directory == null ||
-               file.equals(directory) ? file.getName() :
-                                        getRelativeFilePath();
-    }
-
-
-    /**
-     * Returns the file path of this data entry, relative to the base directory.
-     * If the file equals the base directory, an empty string is returned.
-     */
-    private String getRelativeFilePath()
-    {
-        return directory == null ||
-               file.equals(directory) ? "" :
-                                        file.getPath()
-                                            .substring(directory.getPath().length() + File.separator.length())
-                                            .replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
-    }
-
-
-    @Override
-    public String getOriginalName()
-    {
-        return getName();
-    }
-
-
-    @Override
-    public long getSize()
-    {
-        return file.length();
-    }
-
-
-    @Override
-    public boolean isDirectory()
-    {
-        return file.isDirectory();
-    }
-
-
-    @Override
-    public InputStream getInputStream() throws IOException
-    {
-        if (inputStream == null)
-        {
-            inputStream = new BufferedInputStream(new FileInputStream(file));
-        }
-
-        return inputStream;
-    }
-
-
-    @Override
-    public void closeInputStream() throws IOException
-    {
-        inputStream.close();
-        inputStream = null;
-    }
-
-
-    @Override
-    public DataEntry getParent()
-    {
-        return null;
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return getName();
-    }
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

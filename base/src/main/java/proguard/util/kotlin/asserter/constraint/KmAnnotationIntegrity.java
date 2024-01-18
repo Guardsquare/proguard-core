@@ -41,109 +41,102 @@ import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
 import proguard.classfile.kotlin.visitor.MultiKotlinMetadataVisitor;
 import proguard.util.kotlin.asserter.AssertUtil;
 
-/**
- * This class checks the assumption: All properties need a JVM signature for their getter
- */
-public class KmAnnotationIntegrity
-extends      AbstractKotlinMetadataConstraint
-implements   KotlinTypeVisitor,
-             KotlinTypeAliasVisitor,
-             KotlinTypeParameterVisitor,
-             KotlinAnnotationVisitor,
-             KotlinAnnotationArgumentVisitor
-{
+/** This class checks the assumption: All properties need a JVM signature for their getter */
+public class KmAnnotationIntegrity extends AbstractKotlinMetadataConstraint
+    implements KotlinTypeVisitor,
+        KotlinTypeAliasVisitor,
+        KotlinTypeParameterVisitor,
+        KotlinAnnotationVisitor,
+        KotlinAnnotationArgumentVisitor {
 
-    private AssertUtil util;
+  private AssertUtil util;
 
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {
+    kotlinMetadata.accept(
+        clazz,
+        new MultiKotlinMetadataVisitor(
+            new AllTypeVisitor(this),
+            new AllTypeAliasVisitor(this),
+            new AllTypeParameterVisitor(this)));
+  }
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
-    {
-        kotlinMetadata.accept(clazz, new MultiKotlinMetadataVisitor(
-            new AllTypeVisitor(         this),
-            new AllTypeAliasVisitor(    this),
-            new AllTypeParameterVisitor(this)
-        ));
-    }
+  // Implementations for KotlinTypeVisitor.
+  @Override
+  public void visitAnyType(Clazz clazz, KotlinTypeMetadata type) {
+    util = new AssertUtil("Type", reporter, programClassPool, libraryClassPool);
+    type.annotationsAccept(clazz, this);
+  }
 
-    // Implementations for KotlinTypeVisitor.
-    @Override
-    public void visitAnyType(Clazz clazz, KotlinTypeMetadata type)
-    {
-        util = new AssertUtil("Type", reporter,programClassPool, libraryClassPool);
-        type.annotationsAccept(clazz, this);
+  // Implementations for KotlinTypeAliasVisitor.
+  @Override
+  public void visitTypeAlias(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasMetadata kotlinTypeAliasMetadata) {
+    util = new AssertUtil("Type alias", reporter, programClassPool, libraryClassPool);
+    kotlinTypeAliasMetadata.annotationsAccept(clazz, this);
+  }
 
-    }
+  // Implementations for KotlinTypeParameterVisitor.
+  @Override
+  public void visitAnyTypeParameter(
+      Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
+    util = new AssertUtil("Type parameter", reporter, programClassPool, libraryClassPool);
+    kotlinTypeParameterMetadata.annotationsAccept(clazz, this);
+  }
 
-    // Implementations for KotlinTypeAliasVisitor.
-    @Override
-    public void visitTypeAlias(Clazz                              clazz,
-                               KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                               KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
-    {
-        util = new AssertUtil("Type alias", reporter,programClassPool, libraryClassPool);
-        kotlinTypeAliasMetadata.annotationsAccept(clazz, this);
-    }
+  // Implementations for KotlinAnnotationVisitor.
+  @Override
+  public void visitAnyAnnotation(
+      Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation antn) {
 
-    // Implementations for KotlinTypeParameterVisitor.
-    @Override
-    public void visitAnyTypeParameter(Clazz                       clazz,
-                                      KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
-    {
-        util = new AssertUtil("Type parameter", reporter,programClassPool, libraryClassPool);
-        kotlinTypeParameterMetadata.annotationsAccept(clazz, this);
-    }
+    // TODO: there's an annotation added by the compiler, ParameterName, but it's not in the
+    //       class pool - should this be a dummy class, are there more?
+    //       util.reportIfClassDangling("annotation class", antn.referencedAnnotationClass);
 
-    // Implementations for KotlinAnnotationVisitor.
-    @Override
-    public void visitAnyAnnotation(Clazz                clazz,
-                                   KotlinAnnotatable    annotatable,
-                                   KotlinAnnotation     antn)
-    {
+    util.reportIfNullReference("annotation class", antn.referencedAnnotationClass);
+    antn.argumentsAccept(clazz, annotatable, this);
+  }
 
-        // TODO: there's an annotation added by the compiler, ParameterName, but it's not in the
-        //       class pool - should this be a dummy class, are there more?
-        //       util.reportIfClassDangling("annotation class", antn.referencedAnnotationClass);
+  // Implementations for KotlinAnnotationArgumentVisitor.
+  @Override
+  public void visitAnyArgument(
+      Clazz clazz,
+      KotlinAnnotatable annotatable,
+      KotlinAnnotation annotation,
+      KotlinAnnotationArgument argument,
+      Value value) {
+    util.reportIfNullReference("annotation method", argument.referencedAnnotationMethod);
+    util.reportIfMethodDangling(
+        "annotation method",
+        argument.referencedAnnotationMethodClass,
+        argument.referencedAnnotationMethod);
+    util.reportIfNullReference("annotation class", argument.referencedAnnotationMethodClass);
+    util.reportIfClassDangling("annotation class", argument.referencedAnnotationMethodClass);
+  }
 
-        util.reportIfNullReference("annotation class", antn.referencedAnnotationClass);
-        antn.argumentsAccept(clazz, annotatable, this);
-    }
+  @Override
+  public void visitClassArgument(
+      Clazz clazz,
+      KotlinAnnotatable annotatable,
+      KotlinAnnotation annotation,
+      KotlinAnnotationArgument argument,
+      ClassValue value) {
+    visitAnyArgument(clazz, annotatable, annotation, argument, value);
+    util.reportIfNullReference("annotation argument class referenced", value.referencedClass);
+    util.reportIfClassDangling("annotation argument class referenced", value.referencedClass);
+  }
 
-    // Implementations for KotlinAnnotationArgumentVisitor.
-    @Override
-    public void visitAnyArgument(Clazz                    clazz,
-                                 KotlinAnnotatable        annotatable,
-                                 KotlinAnnotation         annotation,
-                                 KotlinAnnotationArgument argument,
-                                 Value                    value)
-    {
-        util.reportIfNullReference("annotation method", argument.referencedAnnotationMethod);
-        util.reportIfMethodDangling("annotation method", argument.referencedAnnotationMethodClass, argument.referencedAnnotationMethod);
-        util.reportIfNullReference("annotation class", argument.referencedAnnotationMethodClass);
-        util.reportIfClassDangling("annotation class", argument.referencedAnnotationMethodClass);
-    }
-
-    @Override
-    public void visitClassArgument(Clazz                               clazz,
-                                   KotlinAnnotatable                   annotatable,
-                                   KotlinAnnotation                    annotation,
-                                   KotlinAnnotationArgument            argument,
-                                   ClassValue value)
-    {
-        visitAnyArgument(clazz, annotatable, annotation, argument, value);
-        util.reportIfNullReference("annotation argument class referenced", value.referencedClass);
-        util.reportIfClassDangling("annotation argument class referenced", value.referencedClass);
-    }
-
-    @Override
-    public void visitEnumArgument(Clazz                    clazz,
-                                  KotlinAnnotatable        annotatable,
-                                  KotlinAnnotation         annotation,
-                                  KotlinAnnotationArgument argument,
-                                  EnumValue                value)
-    {
-        visitAnyArgument(clazz, annotatable, annotation, argument, value);
-        util.reportIfNullReference("annotation argument enum referenced", value.referencedClass);
-        util.reportIfClassDangling("annotation argument enum referenced", value.referencedClass);
-    }
+  @Override
+  public void visitEnumArgument(
+      Clazz clazz,
+      KotlinAnnotatable annotatable,
+      KotlinAnnotation annotation,
+      KotlinAnnotationArgument argument,
+      EnumValue value) {
+    visitAnyArgument(clazz, annotatable, annotation, argument, value);
+    util.reportIfNullReference("annotation argument enum referenced", value.referencedClass);
+    util.reportIfClassDangling("annotation argument enum referenced", value.referencedClass);
+  }
 }

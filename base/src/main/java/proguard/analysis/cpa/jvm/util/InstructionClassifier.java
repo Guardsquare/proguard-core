@@ -28,52 +28,45 @@ import proguard.classfile.instruction.Instruction;
  *
  * @author Carlo Alberto Pozzoli
  */
-public class InstructionClassifier
-{
+public class InstructionClassifier {
 
-    private static final Set<Byte> returnInstructions = Stream.of(
-        Instruction.OP_RETURN,
-        Instruction.OP_IRETURN,
-        Instruction.OP_LRETURN,
-        Instruction.OP_FRETURN,
-        Instruction.OP_DRETURN,
-        Instruction.OP_ARETURN
-    ).collect(Collectors.toSet());
+  private static final Set<Byte> returnInstructions =
+      Stream.of(
+              Instruction.OP_RETURN,
+              Instruction.OP_IRETURN,
+              Instruction.OP_LRETURN,
+              Instruction.OP_FRETURN,
+              Instruction.OP_DRETURN,
+              Instruction.OP_ARETURN)
+          .collect(Collectors.toSet());
 
-    private static final Set<Byte> invokeInstructions = Stream.of(
-        Instruction.OP_INVOKEDYNAMIC,
-        Instruction.OP_INVOKESTATIC,
-        Instruction.OP_INVOKESPECIAL,
-        Instruction.OP_INVOKEVIRTUAL,
-        Instruction.OP_INVOKEINTERFACE
-    ).collect(Collectors.toSet());
+  private static final Set<Byte> invokeInstructions =
+      Stream.of(
+              Instruction.OP_INVOKEDYNAMIC,
+              Instruction.OP_INVOKESTATIC,
+              Instruction.OP_INVOKESPECIAL,
+              Instruction.OP_INVOKEVIRTUAL,
+              Instruction.OP_INVOKEINTERFACE)
+          .collect(Collectors.toSet());
 
-    private static final Set<Byte> longShiftInstructions = Stream.of(
-        Instruction.OP_LSHL,
-        Instruction.OP_LSHR,
-        Instruction.OP_LUSHR
-    ).collect(Collectors.toSet());
+  private static final Set<Byte> longShiftInstructions =
+      Stream.of(Instruction.OP_LSHL, Instruction.OP_LSHR, Instruction.OP_LUSHR)
+          .collect(Collectors.toSet());
 
-    public static boolean isReturn(byte opcode)
-    {
-        return returnInstructions.contains(opcode);
-    }
+  public static boolean isReturn(byte opcode) {
+    return returnInstructions.contains(opcode);
+  }
 
-    /**
-     * Checks if the opcode is nonvoid return.
-     */
-    public static boolean isTypedReturn(byte opcode)
-    {
-        return returnInstructions.contains(opcode) && opcode != Instruction.OP_RETURN;
-    }
+  /** Checks if the opcode is nonvoid return. */
+  public static boolean isTypedReturn(byte opcode) {
+    return returnInstructions.contains(opcode) && opcode != Instruction.OP_RETURN;
+  }
 
-    public static boolean isInvoke(byte opcode)
-    {
-        return invokeInstructions.contains(opcode);
-    }
+  public static boolean isInvoke(byte opcode) {
+    return invokeInstructions.contains(opcode);
+  }
 
-    public static boolean isLongShift(byte opcode)
-    {
-        return longShiftInstructions.contains(opcode);
-    }
+  public static boolean isLongShift(byte opcode) {
+    return longShiftInstructions.contains(opcode);
+  }
 }

@@ -26,50 +26,32 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Eric Lafortune
  */
-public class PermittedSubclassesAttribute extends Attribute
-{
-    public int   u2classesCount;
-    public int[] u2classes;
+public class PermittedSubclassesAttribute extends Attribute {
+  public int u2classesCount;
+  public int[] u2classes;
 
+  /** Creates an uninitialized PermittedSubclassesAttribute. */
+  public PermittedSubclassesAttribute() {}
 
-    /**
-     * Creates an uninitialized PermittedSubclassesAttribute.
-     */
-    public PermittedSubclassesAttribute()
-    {
+  /** Creates an initialized PermittedSubclassesAttribute. */
+  public PermittedSubclassesAttribute(
+      int u2attributeNameIndex, int u2classesCount, int[] u2classes) {
+    super(u2attributeNameIndex);
+
+    this.u2classesCount = u2classesCount;
+    this.u2classes = u2classes;
+  }
+
+  // Implementations for Attribute.
+
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitPermittedSubclassesAttribute(clazz, this);
+  }
+
+  /** Applies the given visitor to all member class constants. */
+  public void permittedSubclassConstantsAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    for (int index = 0; index < u2classesCount; index++) {
+      clazz.constantPoolEntryAccept(u2classes[index], constantVisitor);
     }
-
-
-    /**
-     * Creates an initialized PermittedSubclassesAttribute.
-     */
-    public PermittedSubclassesAttribute(int   u2attributeNameIndex,
-                                        int   u2classesCount,
-                                        int[] u2classes)
-    {
-        super(u2attributeNameIndex);
-
-        this.u2classesCount = u2classesCount;
-        this.u2classes      = u2classes;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitPermittedSubclassesAttribute(clazz, this);
-    }
-
-
-    /**
-     * Applies the given visitor to all member class constants.
-     */
-    public void permittedSubclassConstantsAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        for (int index = 0; index < u2classesCount; index++)
-        {
-            clazz.constantPoolEntryAccept(u2classes[index], constantVisitor);
-        }
-    }
+  }
 }

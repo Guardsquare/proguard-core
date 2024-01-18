@@ -19,16 +19,13 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.ClassPool;
 
-
 /**
- * This interface specifies the methods for a visitor of
- * {@link ClassPool} instances. Note that there is only a single
- * implementation of {@link ClassPool}, such that this interface
- * is not strictly necessary as a visitor.
+ * This interface specifies the methods for a visitor of {@link ClassPool} instances. Note that
+ * there is only a single implementation of {@link ClassPool}, such that this interface is not
+ * strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface ClassPoolVisitor
-{
-    public void visitClassPool(ClassPool classPool);
+public interface ClassPoolVisitor {
+  public void visitClassPool(ClassPool classPool);
 }

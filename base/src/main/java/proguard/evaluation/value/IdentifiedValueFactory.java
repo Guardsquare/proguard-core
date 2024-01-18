@@ -20,146 +20,101 @@ package proguard.evaluation.value;
 import proguard.classfile.*;
 
 /**
- * This class provides methods to create and reuse Value instances that are
- * identified by unique integer IDs.
+ * This class provides methods to create and reuse Value instances that are identified by unique
+ * integer IDs.
  *
  * @author Eric Lafortune
  */
-public class IdentifiedValueFactory
-extends      ParticularValueFactory
-{
-    protected int integerID;
-    protected int longID;
-    protected int floatID;
-    protected int doubleID;
-    protected int referenceID;
+public class IdentifiedValueFactory extends ParticularValueFactory {
+  protected int integerID;
+  protected int longID;
+  protected int floatID;
+  protected int doubleID;
+  protected int referenceID;
 
+  // Implementations for BasicValueFactory.
 
-   // Implementations for BasicValueFactory.
+  public IntegerValue createIntegerValue() {
+    return new IdentifiedIntegerValue(this, integerID++);
+  }
 
-    public IntegerValue createIntegerValue()
-    {
-        return new IdentifiedIntegerValue(this, integerID++);
-    }
+  public LongValue createLongValue() {
+    return new IdentifiedLongValue(this, longID++);
+  }
 
+  public FloatValue createFloatValue() {
+    return new IdentifiedFloatValue(this, floatID++);
+  }
 
-    public LongValue createLongValue()
-    {
-        return new IdentifiedLongValue(this, longID++);
-    }
+  public DoubleValue createDoubleValue() {
+    return new IdentifiedDoubleValue(this, doubleID++);
+  }
 
+  public ReferenceValue createReferenceValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
+    return type == null
+        ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
+        : new IdentifiedReferenceValue(
+            type, referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
+  }
 
-    public FloatValue createFloatValue()
-    {
-        return new IdentifiedFloatValue(this, floatID++);
-    }
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object value) {
+    return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
 
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Clazz creationClass,
+      Method creationMethod,
+      int creationOffset) {
+    return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
 
-    public DoubleValue createDoubleValue()
-    {
-        return new IdentifiedDoubleValue(this, doubleID++);
-    }
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Clazz creationClass,
+      Method creationMethod,
+      int creationOffset,
+      Object value) {
+    return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
 
+  @Override
+  public ReferenceValue createReferenceValueForId(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object id) {
+    return type == null
+        ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
+        : new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, id);
+  }
 
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull)
-    {
-        return type == null ?
-            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
-            new IdentifiedReferenceValue(type,
-                                         referencedClass,
-                                         mayBeExtension,
-                                         mayBeNull,
-                                         this,
-                                         referenceID++);
-    }
+  @Override
+  public ReferenceValue createReferenceValueForId(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Object id,
+      Object value) {
+    return type == null
+        ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
+        : new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, id);
+  }
 
-
-
-    @Override
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull,
-                                               Object  value)
-    {
-        return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
-
-    @Override
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull,
-                                               Clazz   creationClass,
-                                               Method  creationMethod,
-                                               int     creationOffset)
-    {
-        return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
-
-    @Override
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull,
-                                               Clazz   creationClass,
-                                               Method  creationMethod,
-                                               int     creationOffset,
-                                               Object  value)
-    {
-        return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
-
-
-    @Override
-    public ReferenceValue createReferenceValueForId(String  type,
-                                                    Clazz   referencedClass,
-                                                    boolean mayBeExtension,
-                                                    boolean mayBeNull,
-                                                    Object  id)
-    {
-        return type == null ?
-            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
-            new IdentifiedReferenceValue(type,
-                                         referencedClass,
-                                         mayBeExtension,
-                                         mayBeNull,
-                                         this,
-                                         id);
-    }
-
-    @Override
-    public ReferenceValue createReferenceValueForId(String  type,
-                                                    Clazz   referencedClass,
-                                                    boolean mayBeExtension,
-                                                    boolean mayBeNull,
-                                                    Object  id,
-                                                    Object  value)
-    {
-        return type == null ?
-            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
-                new IdentifiedReferenceValue(type,
-                        referencedClass,
-                        mayBeExtension,
-                        mayBeNull,
-                        this,
-                        id);
-    }
-
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength)
-    {
-        return type == null ?
-            TypedReferenceValueFactory.REFERENCE_VALUE_NULL :
-            new IdentifiedArrayReferenceValue(TypeConstants.ARRAY + type,
-                                              referencedClass,
-                                              false,
-                                              arrayLength,
-                                              this,
-                                              referenceID++);
-    }
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength) {
+    return type == null
+        ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
+        : new IdentifiedArrayReferenceValue(
+            TypeConstants.ARRAY + type, referencedClass, false, arrayLength, this, referenceID++);
+  }
 }

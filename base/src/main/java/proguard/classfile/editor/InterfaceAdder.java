@@ -22,33 +22,23 @@ import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 
 /**
- * This {@link ConstantVisitor} adds all interfaces that it visits to the given
- * target class.
+ * This {@link ConstantVisitor} adds all interfaces that it visits to the given target class.
  *
  * @author Eric Lafortune
  */
-public class InterfaceAdder
-implements   ConstantVisitor
-{
-    private final ConstantAdder    constantAdder;
-    private final InterfacesEditor interfacesEditor;
+public class InterfaceAdder implements ConstantVisitor {
+  private final ConstantAdder constantAdder;
+  private final InterfacesEditor interfacesEditor;
 
+  /** Creates a new InterfaceAdder that will add interfaces to the given target class. */
+  public InterfaceAdder(ProgramClass targetClass) {
+    constantAdder = new ConstantAdder(targetClass);
+    interfacesEditor = new InterfacesEditor(targetClass);
+  }
 
-    /**
-     * Creates a new InterfaceAdder that will add interfaces to the given
-     * target class.
-     */
-    public InterfaceAdder(ProgramClass targetClass)
-    {
-        constantAdder    = new ConstantAdder(targetClass);
-        interfacesEditor = new InterfacesEditor(targetClass);
-    }
+  // Implementations for ConstantVisitor.
 
-
-    // Implementations for ConstantVisitor.
-
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        interfacesEditor.addInterface(constantAdder.addConstant(clazz, classConstant));
-    }
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    interfacesEditor.addInterface(constantAdder.addConstant(clazz, classConstant));
+  }
 }

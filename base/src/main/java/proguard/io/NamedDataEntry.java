@@ -25,81 +25,59 @@ import java.io.InputStream;
  *
  * @author Eric Lafortune
  */
-public class NamedDataEntry implements DataEntry
-{
-    private final DataEntry parent;
-    private final String    name;
-    private final long      size;
-    private final boolean   isDirectory;
+public class NamedDataEntry implements DataEntry {
+  private final DataEntry parent;
+  private final String name;
+  private final long size;
+  private final boolean isDirectory;
 
+  public NamedDataEntry(DataEntry parent, String name, long size, boolean isDirectory) {
+    this.parent = parent;
+    this.name = name;
+    this.size = size;
+    this.isDirectory = isDirectory;
+  }
 
-    public NamedDataEntry(DataEntry parent,
-                          String    name,
-                          long      size,
-                          boolean   isDirectory)
-    {
-        this.parent      = parent;
-        this.name        = name;
-        this.size        = size;
-        this.isDirectory = isDirectory;
-    }
+  // Implementations for DataEntry.
 
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    // Implementations for DataEntry.
+  @Override
+  public String getOriginalName() {
+    return getName();
+  }
 
-    @Override
-    public String getName()
-    {
-        return name;
-    }
+  @Override
+  public long getSize() {
+    return size;
+  }
 
+  @Override
+  public boolean isDirectory() {
+    return isDirectory;
+  }
 
-    @Override
-    public String getOriginalName()
-    {
-        return getName();
-    }
+  @Override
+  public InputStream getInputStream() throws IOException {
+    throw new UnsupportedOperationException(
+        "Can't retrieve input stream for output entry [" + name + "]");
+  }
 
+  @Override
+  public void closeInputStream() throws IOException {}
 
-    @Override
-    public long getSize()
-    {
-        return size;
-    }
+  @Override
+  public DataEntry getParent() {
+    return parent;
+  }
 
+  // Implementations for Object.
 
-    @Override
-    public boolean isDirectory()
-    {
-        return isDirectory;
-    }
-
-
-    @Override
-    public InputStream getInputStream() throws IOException
-    {
-        throw new UnsupportedOperationException("Can't retrieve input stream for output entry ["+name+"]");
-    }
-
-
-    @Override
-    public void closeInputStream() throws IOException
-    {
-    }
-
-
-    @Override
-    public DataEntry getParent()
-    {
-        return parent;
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return String.valueOf(parent) + ':' + name;
-    }
+  @Override
+  public String toString() {
+    return String.valueOf(parent) + ':' + name;
+  }
 }

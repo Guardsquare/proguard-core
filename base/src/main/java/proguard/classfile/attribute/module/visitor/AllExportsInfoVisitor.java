@@ -23,30 +23,23 @@ import proguard.classfile.attribute.module.ModuleAttribute;
 import proguard.classfile.attribute.visitor.*;
 
 /**
- * This {@link AttributeVisitor} lets a given {@link ExportsInfoVisitor} visit all
- * {@link ExportsInfo} instances of the {@link ModuleAttribute} instances it visits.
+ * This {@link AttributeVisitor} lets a given {@link ExportsInfoVisitor} visit all {@link
+ * ExportsInfo} instances of the {@link ModuleAttribute} instances it visits.
  *
  * @author Joachim Vandersmissen
  */
-public class AllExportsInfoVisitor
-implements   AttributeVisitor
-{
-    private final ExportsInfoVisitor exportsInfoVisitor;
+public class AllExportsInfoVisitor implements AttributeVisitor {
+  private final ExportsInfoVisitor exportsInfoVisitor;
 
+  public AllExportsInfoVisitor(ExportsInfoVisitor exportsInfoVisitor) {
+    this.exportsInfoVisitor = exportsInfoVisitor;
+  }
 
-    public AllExportsInfoVisitor(ExportsInfoVisitor exportsInfoVisitor)
-    {
-        this.exportsInfoVisitor = exportsInfoVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
-    {
-        moduleAttribute.exportsAccept(clazz, exportsInfoVisitor);
-    }
+  public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute) {
+    moduleAttribute.exportsAccept(clazz, exportsInfoVisitor);
+  }
 }

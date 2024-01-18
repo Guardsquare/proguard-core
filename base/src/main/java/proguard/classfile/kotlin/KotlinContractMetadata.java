@@ -17,48 +17,35 @@
  */
 package proguard.classfile.kotlin;
 
+import java.util.*;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
 
-import java.util.*;
+public class KotlinContractMetadata extends SimpleProcessable implements Processable {
+  public List<KotlinEffectMetadata> effects;
 
+  public void accept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinContractVisitor kotlinContractVisitor) {
+    kotlinContractVisitor.visitContract(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+  }
 
-public class KotlinContractMetadata
-extends      SimpleProcessable
-implements   Processable
-{
-    public List<KotlinEffectMetadata> effects;
-
-
-    public void accept(Clazz                  clazz,
-                       KotlinMetadata         kotlinMetadata,
-                       KotlinFunctionMetadata kotlinFunctionMetadata,
-                       KotlinContractVisitor  kotlinContractVisitor)
-    {
-        kotlinContractVisitor.visitContract(clazz,
-                                            kotlinMetadata,
-                                            kotlinFunctionMetadata,
-                                            this);
+  public void effectsAccept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinEffectVisitor kotlinEffectVisitor) {
+    for (KotlinEffectMetadata effect : effects) {
+      effect.accept(clazz, kotlinMetadata, kotlinFunctionMetadata, this, kotlinEffectVisitor);
     }
+  }
 
-
-    public void effectsAccept(Clazz                 clazz,
-                             KotlinMetadata         kotlinMetadata,
-                             KotlinFunctionMetadata kotlinFunctionMetadata,
-                             KotlinEffectVisitor    kotlinEffectVisitor)
-    {
-        for (KotlinEffectMetadata effect : effects)
-        {
-            effect.accept(clazz, kotlinMetadata, kotlinFunctionMetadata, this, kotlinEffectVisitor);
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin contract";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin contract";
+  }
 }

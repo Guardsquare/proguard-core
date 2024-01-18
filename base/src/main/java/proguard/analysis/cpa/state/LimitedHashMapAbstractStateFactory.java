@@ -25,26 +25,29 @@ import proguard.analysis.cpa.defaults.LimitedHashMapAbstractState;
 import proguard.analysis.cpa.util.TriFunction;
 
 /**
- * This interface contains a method creating a fresh instance of {@link LimitedHashMapAbstractState}.
+ * This interface contains a method creating a fresh instance of {@link
+ * LimitedHashMapAbstractState}.
  *
  * @author Dmitry Ivanov
  */
-public class LimitedHashMapAbstractStateFactory<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
-    implements MapAbstractStateFactory<KeyT, AbstractSpaceT>
-{
+public class LimitedHashMapAbstractStateFactory<
+        KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
+    implements MapAbstractStateFactory<KeyT, AbstractSpaceT> {
 
-    private final TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>> removeElement;
+  private final TriFunction<
+          LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>>
+      removeElement;
 
-    public LimitedHashMapAbstractStateFactory(TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>> removeElement)
-    {
-        this.removeElement = removeElement;
-    }
+  public LimitedHashMapAbstractStateFactory(
+      TriFunction<LimitedHashMap<KeyT, AbstractSpaceT>, KeyT, AbstractSpaceT, Optional<KeyT>>
+          removeElement) {
+    this.removeElement = removeElement;
+  }
 
-    // implementations for MapAbstractStateFactory
+  // implementations for MapAbstractStateFactory
 
-    @Override
-    public LimitedHashMapAbstractState<KeyT, AbstractSpaceT> createMapAbstractState()
-    {
-        return new LimitedHashMapAbstractState<>(removeElement);
-    }
+  @Override
+  public LimitedHashMapAbstractState<KeyT, AbstractSpaceT> createMapAbstractState() {
+    return new LimitedHashMapAbstractState<>(removeElement);
+  }
 }

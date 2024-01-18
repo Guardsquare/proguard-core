@@ -27,50 +27,31 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Joachim Vandersmissen
  */
-public class ModulePackagesAttribute extends Attribute
-{
-    public int   u2packagesCount;
-    public int[] u2packages;
+public class ModulePackagesAttribute extends Attribute {
+  public int u2packagesCount;
+  public int[] u2packages;
 
+  /** Creates an uninitialized ModulePackagesAttribute. */
+  public ModulePackagesAttribute() {}
 
-    /**
-     * Creates an uninitialized ModulePackagesAttribute.
-     */
-    public ModulePackagesAttribute()
-    {
+  /** Creates an initialized ModulePackagesAttribute. */
+  public ModulePackagesAttribute(int u2attributeNameIndex, int u2packagesCount, int[] u2packages) {
+    super(u2attributeNameIndex);
+    this.u2packagesCount = u2packagesCount;
+    this.u2packages = u2packages;
+  }
+
+  // Implementations for Attribute.
+
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitModulePackagesAttribute(clazz, this);
+  }
+
+  /** Applies the given constant pool visitor to all packages. */
+  public void packagesAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    // Loop over all packages.
+    for (int index = 0; index < u2packagesCount; index++) {
+      clazz.constantPoolEntryAccept(u2packages[index], constantVisitor);
     }
-
-
-    /**
-     * Creates an initialized ModulePackagesAttribute.
-     */
-    public ModulePackagesAttribute(int   u2attributeNameIndex,
-                                   int   u2packagesCount,
-                                   int[] u2packages)
-    {
-        super(u2attributeNameIndex);
-        this.u2packagesCount = u2packagesCount;
-        this.u2packages      = u2packages;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitModulePackagesAttribute(clazz, this);
-    }
-
-
-    /**
-     * Applies the given constant pool visitor to all packages.
-     */
-    public void packagesAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        // Loop over all packages.
-        for (int index = 0; index < u2packagesCount; index++)
-        {
-            clazz.constantPoolEntryAccept(u2packages[index], constantVisitor);
-        }
-    }
+  }
 }

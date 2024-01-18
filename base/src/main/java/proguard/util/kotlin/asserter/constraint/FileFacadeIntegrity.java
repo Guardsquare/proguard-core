@@ -24,15 +24,12 @@ import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata;
 /**
  * @author James Hamilton
  */
-public class FileFacadeIntegrity
-extends AbstractKotlinMetadataConstraint
-{
+public class FileFacadeIntegrity extends AbstractKotlinMetadataConstraint {
 
-
-    @Override
-    public void visitKotlinFileFacadeMetadata(Clazz clazz, KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata)
-    {
-/*        new AssertUtil("File facade " + clazz.getName(), reporter).
-            reportIfNullReference("referenced module", kotlinFileFacadeKindMetadata.referencedModule);*/
-    }
+  @Override
+  public void visitKotlinFileFacadeMetadata(
+      Clazz clazz, KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata) {
+    /*        new AssertUtil("File facade " + clazz.getName(), reporter).
+    reportIfNullReference("referenced module", kotlinFileFacadeKindMetadata.referencedModule);*/
+  }
 }

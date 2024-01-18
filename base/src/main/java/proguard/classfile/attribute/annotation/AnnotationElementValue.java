@@ -25,49 +25,31 @@ import proguard.classfile.attribute.annotation.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class AnnotationElementValue extends ElementValue
-{
-    public Annotation annotationValue;
+public class AnnotationElementValue extends ElementValue {
+  public Annotation annotationValue;
 
+  /** Creates an uninitialized AnnotationElementValue. */
+  public AnnotationElementValue() {}
 
-    /**
-     * Creates an uninitialized AnnotationElementValue.
-     */
-    public AnnotationElementValue()
-    {
-    }
+  /** Creates an initialized AnnotationElementValue. */
+  public AnnotationElementValue(int u2elementNameIndex, Annotation annotationValue) {
+    super(u2elementNameIndex);
 
+    this.annotationValue = annotationValue;
+  }
 
-    /**
-     * Creates an initialized AnnotationElementValue.
-     */
-    public AnnotationElementValue(int        u2elementNameIndex,
-                                  Annotation annotationValue)
-    {
-        super(u2elementNameIndex);
+  /** Applies the given visitor to the annotation. */
+  public void annotationAccept(Clazz clazz, AnnotationVisitor annotationVisitor) {
+    annotationVisitor.visitAnnotation(clazz, annotationValue);
+  }
 
-        this.annotationValue = annotationValue;
-    }
+  // Implementations for ElementValue.
 
+  public char getTag() {
+    return ElementValue.TAG_ANNOTATION;
+  }
 
-    /**
-     * Applies the given visitor to the annotation.
-     */
-    public void annotationAccept(Clazz clazz, AnnotationVisitor annotationVisitor)
-    {
-        annotationVisitor.visitAnnotation(clazz, annotationValue);
-    }
-
-
-    // Implementations for ElementValue.
-
-    public char getTag()
-    {
-        return ElementValue.TAG_ANNOTATION;
-    }
-
-    public void accept(Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor)
-    {
-        elementValueVisitor.visitAnnotationElementValue(clazz, annotation, this);
-    }
+  public void accept(Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor) {
+    elementValueVisitor.visitAnnotationElementValue(clazz, annotation, this);
+  }
 }

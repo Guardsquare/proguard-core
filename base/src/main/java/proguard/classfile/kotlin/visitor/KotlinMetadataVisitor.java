@@ -20,44 +20,41 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinMetadataVisitor
-{
-    void visitAnyKotlinMetadata(Clazz          clazz,
-                                KotlinMetadata kotlinMetadata);
+public interface KotlinMetadataVisitor {
+  void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata);
 
+  default void visitUnsupportedKotlinMetadata(
+      Clazz clazz, UnsupportedKotlinMetadata kotlinMetadata) {
+    visitAnyKotlinMetadata(clazz, kotlinMetadata);
+  }
 
-    default void visitUnsupportedKotlinMetadata(Clazz clazz, UnsupportedKotlinMetadata kotlinMetadata)
-    {
-        visitAnyKotlinMetadata(clazz, kotlinMetadata);
-    }
+  default void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);
+  }
 
-    default void visitKotlinDeclarationContainerMetadata(Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);
-    }
+  default void visitKotlinClassMetadata(
+      Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata) {
+    visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
+  }
 
-    default void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
-    {
-        visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
-    }
+  default void visitKotlinFileFacadeMetadata(
+      Clazz clazz, KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata) {
+    visitKotlinDeclarationContainerMetadata(clazz, kotlinFileFacadeKindMetadata);
+  }
 
-    default void visitKotlinFileFacadeMetadata(Clazz clazz, KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata)
-    {
-        visitKotlinDeclarationContainerMetadata(clazz, kotlinFileFacadeKindMetadata);
-    }
+  default void visitKotlinSyntheticClassMetadata(
+      Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    visitAnyKotlinMetadata(clazz, kotlinSyntheticClassKindMetadata);
+  }
 
-    default void visitKotlinSyntheticClassMetadata(Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        visitAnyKotlinMetadata(clazz, kotlinSyntheticClassKindMetadata);
-    }
+  default void visitKotlinMultiFileFacadeMetadata(
+      Clazz clazz, KotlinMultiFileFacadeKindMetadata kotlinMultiFileFacadeKindMetadata) {
+    visitAnyKotlinMetadata(clazz, kotlinMultiFileFacadeKindMetadata);
+  }
 
-    default void visitKotlinMultiFileFacadeMetadata(Clazz clazz, KotlinMultiFileFacadeKindMetadata kotlinMultiFileFacadeKindMetadata)
-    {
-        visitAnyKotlinMetadata(clazz, kotlinMultiFileFacadeKindMetadata);
-    }
-
-    default void visitKotlinMultiFilePartMetadata(Clazz clazz, KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata)
-    {
-        visitKotlinDeclarationContainerMetadata(clazz, kotlinMultiFilePartKindMetadata);
-    }
+  default void visitKotlinMultiFilePartMetadata(
+      Clazz clazz, KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata) {
+    visitKotlinDeclarationContainerMetadata(clazz, kotlinMultiFilePartKindMetadata);
+  }
 }

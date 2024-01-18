@@ -25,12 +25,12 @@ import proguard.dexfile.reader.Visibility;
  */
 public interface DexAnnotationAble {
 
-    /**
-     * 访问注解
-     *
-     * @param name       注解名
-     * @param visibility 是否运行时可见
-     * @return
-     */
-    DexAnnotationVisitor visitAnnotation(String name, Visibility visibility);
+  /**
+   * 访问注解
+   *
+   * @param name 注解名
+   * @param visibility 是否运行时可见
+   * @return
+   */
+  DexAnnotationVisitor visitAnnotation(String name, Visibility visibility);
 }

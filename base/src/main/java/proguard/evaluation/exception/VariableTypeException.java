@@ -18,41 +18,35 @@
 
 package proguard.evaluation.exception;
 
+import static proguard.classfile.util.ClassUtil.externalType;
+
 import proguard.evaluation.value.Value;
 import proguard.exception.ErrorId;
 
-import static proguard.classfile.util.ClassUtil.externalType;
+/** Exception thrown when the type in a variable does not match the expected type. */
+public class VariableTypeException extends VariableEvaluationException {
+  /** The type that was expected but not given and caused this exception. */
+  private final String expectedType;
 
-/**
- * Exception thrown when the type in a variable does not match the expected type.
- */
-public class VariableTypeException extends VariableEvaluationException
-{
-    /**
-     * The type that was expected but not given and caused this exception.
-     */
-    private final String expectedType;
+  /** The type that was found to be of incorrect type. */
+  private final Value foundValue;
 
-    /**
-     * The type that was found to be of incorrect type.
-     */
-    private final Value foundValue;
+  public VariableTypeException(int index, Value foundValue, String expectedType, Throwable cause) {
+    super(
+        "Value in slot %s of type %s expected, but found: %s ",
+        ErrorId.VARIABLE_TYPE,
+        new String[] {Integer.toString(index), externalType(expectedType), foundValue.toString()},
+        index,
+        cause);
+    this.expectedType = expectedType;
+    this.foundValue = foundValue;
+  }
 
-    public VariableTypeException(int index, Value foundValue, String expectedType, Throwable cause)
-    {
-        super("Value in slot %s of type %s expected, but found: %s ", ErrorId.VARIABLE_TYPE,
-                new String[] {Integer.toString(index), externalType(expectedType), foundValue.toString()}, index, cause);
-        this.expectedType = expectedType;
-        this.foundValue = foundValue;
-    }
+  public String getExpectedType() {
+    return expectedType;
+  }
 
-    public String getExpectedType()
-    {
-        return expectedType;
-    }
-
-    public Value getFoundValue()
-    {
-        return foundValue;
-    }
+  public Value getFoundValue() {
+    return foundValue;
+  }
 }

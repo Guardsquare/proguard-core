@@ -24,31 +24,30 @@ import proguard.analysis.cpa.defaults.DifferentialMapAbstractState;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 
 /**
- * This interface contains a method creating a fresh instance of {@link DifferentialMapAbstractState}.
+ * This interface contains a method creating a fresh instance of {@link
+ * DifferentialMapAbstractState}.
  *
  * @author Dmitry Ivanov
  */
 public class DifferentialMapAbstractStateFactory<KeyT, StateT extends LatticeAbstractState<StateT>>
-    implements MapAbstractStateFactory<KeyT, StateT>
-{
+    implements MapAbstractStateFactory<KeyT, StateT> {
 
-    private final Predicate<DifferentialMap<KeyT, StateT>> shouldCollapse;
+  private final Predicate<DifferentialMap<KeyT, StateT>> shouldCollapse;
 
-    /**
-     * Create a differential map abstract state factory.
-     *
-     * @param shouldCollapse a collapse criterion
-     */
-    public DifferentialMapAbstractStateFactory(Predicate<DifferentialMap<KeyT, StateT>> shouldCollapse)
-    {
-        this.shouldCollapse = shouldCollapse;
-    }
+  /**
+   * Create a differential map abstract state factory.
+   *
+   * @param shouldCollapse a collapse criterion
+   */
+  public DifferentialMapAbstractStateFactory(
+      Predicate<DifferentialMap<KeyT, StateT>> shouldCollapse) {
+    this.shouldCollapse = shouldCollapse;
+  }
 
-    // implementations for MapAbstractStateFactory
+  // implementations for MapAbstractStateFactory
 
-    @Override
-    public DifferentialMapAbstractState<KeyT, StateT> createMapAbstractState()
-    {
-        return new DifferentialMapAbstractState<>(shouldCollapse);
-    }
+  @Override
+  public DifferentialMapAbstractState<KeyT, StateT> createMapAbstractState() {
+    return new DifferentialMapAbstractState<>(shouldCollapse);
+  }
 }

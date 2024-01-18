@@ -23,27 +23,14 @@ package proguard.io;
  *
  * @author Eric Lafortune
  */
-public class DirectoryFilter extends FilteredDataEntryReader
-{
-    /**
-     * Creates a new ClassFilter that delegates reading directories to the
-     * given reader.
-     */
-    public DirectoryFilter(DataEntryReader directoryReader)
-    {
-        this (directoryReader, null);
-    }
+public class DirectoryFilter extends FilteredDataEntryReader {
+  /** Creates a new ClassFilter that delegates reading directories to the given reader. */
+  public DirectoryFilter(DataEntryReader directoryReader) {
+    this(directoryReader, null);
+  }
 
-
-    /**
-     * Creates a new ClassFilter that delegates to either of the two given
-     * readers.
-     */
-    public DirectoryFilter(DataEntryReader directoryReader,
-                           DataEntryReader otherReader)
-    {
-        super(new DataEntryDirectoryFilter(),
-              directoryReader,
-              otherReader);
-    }
+  /** Creates a new ClassFilter that delegates to either of the two given readers. */
+  public DirectoryFilter(DataEntryReader directoryReader, DataEntryReader otherReader) {
+    super(new DataEntryDirectoryFilter(), directoryReader, otherReader);
+  }
 }

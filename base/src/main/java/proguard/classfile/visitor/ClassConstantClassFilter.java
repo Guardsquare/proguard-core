@@ -27,80 +27,64 @@ import proguard.util.ListParser;
 import proguard.util.StringMatcher;
 
 /**
- * This ClassVisitor delegates all visits to another given visitor, but only
- * if the visited class contains the specified class constant. This can be
- * useful to avoid applying expensive visitors when they aren't necessary.
+ * This ClassVisitor delegates all visits to another given visitor, but only if the visited class
+ * contains the specified class constant. This can be useful to avoid applying expensive visitors
+ * when they aren't necessary.
  */
 public class ClassConstantClassFilter
-implements   ClassVisitor,
+    implements ClassVisitor,
 
-             // Implementation interfaces.
-             ConstantVisitor
-{
-    private final StringMatcher regularExpressionMatcher;
-    private final ClassVisitor  classVisitor;
+        // Implementation interfaces.
+        ConstantVisitor {
+  private final StringMatcher regularExpressionMatcher;
+  private final ClassVisitor classVisitor;
 
-    private boolean found;
+  private boolean found;
 
-    /**
-     * Creates a new  ClassConstantClassFilter.
-     * @param regularExpression the regular expression against which class
-     *                          names of class constants will be matched.
-     * @param classVisitor      the class visitor for classes that contain
-     *                          the specified class constant.
-     */
-    public ClassConstantClassFilter(String       regularExpression,
-                                    ClassVisitor classVisitor)
-    {
-        this(new ListParser(new ClassNameParser()).parse(regularExpression),
-             classVisitor);
+  /**
+   * Creates a new ClassConstantClassFilter.
+   *
+   * @param regularExpression the regular expression against which class names of class constants
+   *     will be matched.
+   * @param classVisitor the class visitor for classes that contain the specified class constant.
+   */
+  public ClassConstantClassFilter(String regularExpression, ClassVisitor classVisitor) {
+    this(new ListParser(new ClassNameParser()).parse(regularExpression), classVisitor);
+  }
+
+  /**
+   * Creates a new ClassConstantClassFilter.
+   *
+   * @param regularExpressionMatcher the string matcher against which class names will be matched.
+   * @param classVisitor the class visitor for classes that contain the specified class constant.
+   */
+  public ClassConstantClassFilter(
+      StringMatcher regularExpressionMatcher, ClassVisitor classVisitor) {
+    this.regularExpressionMatcher = regularExpressionMatcher;
+    this.classVisitor = classVisitor;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    found = false;
+    programClass.constantPoolEntriesAccept(this);
+    if (found) {
+      classVisitor.visitProgramClass(programClass);
     }
+  }
 
+  // Implementations for ConstantVisitor.
 
-    /**
-     * Creates a new  ClassConstantClassFilter.
-     * @param regularExpressionMatcher the string matcher against which
-     *                                 class names will be matched.
-     * @param classVisitor             the class visitor for classes that
-     *                                 contain the specified class constant.
-     */
-    public ClassConstantClassFilter(StringMatcher regularExpressionMatcher,
-                                    ClassVisitor  classVisitor)
-    {
-        this.regularExpressionMatcher = regularExpressionMatcher;
-        this.classVisitor             = classVisitor;
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
+
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    if (!found && regularExpressionMatcher.matches(classConstant.getName(clazz))) {
+      found = true;
     }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        found = false;
-        programClass.constantPoolEntriesAccept(this);
-        if (found)
-        {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    // Implementations for ConstantVisitor.
-
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
-
-
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        if (!found && regularExpressionMatcher.matches(classConstant.getName(clazz)))
-        {
-            found = true;
-        }
-    }
-
+  }
 }

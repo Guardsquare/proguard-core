@@ -27,33 +27,28 @@ import proguard.evaluation.value.Value;
  *
  * @author Dennis Titze
  */
-public class PartialEvaluatorUtils
-{
+public class PartialEvaluatorUtils {
 
-    /**
-     * Returns the value from the stack, counting from the top of the stack.
-     * If the stack does not contain that many elements, returns null.
-     */
-    public static Value getStackValue(Stack stack, int indexFromTop)
-    {
-        if (stack != null && stack.size() > indexFromTop)
-        {
-            return stack.getTop(indexFromTop);
-        }
-        return null;
+  /**
+   * Returns the value from the stack, counting from the top of the stack. If the stack does not
+   * contain that many elements, returns null.
+   */
+  public static Value getStackValue(Stack stack, int indexFromTop) {
+    if (stack != null && stack.size() > indexFromTop) {
+      return stack.getTop(indexFromTop);
     }
+    return null;
+  }
 
-    /**
-     * Returns the value from the before stack at offset, counting from the top. If the stack does not
-     * contain that many elements, returns null.
-     */
-    public static Value getStackBefore(PartialEvaluator partialEvaluator, int offset, int index)
-    {
-        if (partialEvaluator.getStackBefore(offset) != null
-            && partialEvaluator.getStackBefore(offset).size() > index)
-        {
-            return partialEvaluator.getStackBefore(offset).getTop(index);
-        }
-        return null;
+  /**
+   * Returns the value from the before stack at offset, counting from the top. If the stack does not
+   * contain that many elements, returns null.
+   */
+  public static Value getStackBefore(PartialEvaluator partialEvaluator, int offset, int index) {
+    if (partialEvaluator.getStackBefore(offset) != null
+        && partialEvaluator.getStackBefore(offset).size() > index) {
+      return partialEvaluator.getStackBefore(offset).getTop(index);
     }
+    return null;
+  }
 }

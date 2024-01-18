@@ -21,69 +21,46 @@ import proguard.classfile.attribute.*;
 import proguard.util.ArrayUtil;
 
 /**
- * This class can add exceptions to the exception table of a given code
- * attribute. The exceptions must have been filled out beforehand.
+ * This class can add exceptions to the exception table of a given code attribute. The exceptions
+ * must have been filled out beforehand.
  *
  * @author Eric Lafortune
  */
-public class ExceptionInfoEditor
-{
-    private final CodeAttribute codeAttribute;
+public class ExceptionInfoEditor {
+  private final CodeAttribute codeAttribute;
 
+  /** Creates a new ExceptionInfoEditor that can add exceptions to the given code attribute. */
+  public ExceptionInfoEditor(CodeAttribute codeAttribute) {
+    this.codeAttribute = codeAttribute;
+  }
 
-    /**
-     * Creates a new ExceptionInfoEditor that can add exceptions to the
-     * given code attribute.
-     */
-    public ExceptionInfoEditor(CodeAttribute codeAttribute)
-    {
-        this.codeAttribute = codeAttribute;
+  /** Prepends the given exception to the exception table. */
+  void prependException(ExceptionInfo exceptionInfo) {
+    ExceptionInfo[] exceptionTable = codeAttribute.exceptionTable;
+    int exceptionTableLength = codeAttribute.u2exceptionTableLength;
+
+    int newExceptionTableLength = exceptionTableLength + 1;
+
+    // Is the exception table large enough?
+    if (exceptionTable.length < newExceptionTableLength) {
+      ExceptionInfo[] newExceptionTable = new ExceptionInfo[newExceptionTableLength];
+
+      System.arraycopy(exceptionTable, 0, newExceptionTable, 1, exceptionTableLength);
+      newExceptionTable[0] = exceptionInfo;
+
+      codeAttribute.exceptionTable = newExceptionTable;
+    } else {
+      System.arraycopy(exceptionTable, 0, exceptionTable, 1, exceptionTableLength);
+      exceptionTable[0] = exceptionInfo;
     }
 
+    codeAttribute.u2exceptionTableLength = newExceptionTableLength;
+  }
 
-    /**
-     * Prepends the given exception to the exception table.
-     */
-    void prependException(ExceptionInfo exceptionInfo)
-    {
-        ExceptionInfo[] exceptionTable       = codeAttribute.exceptionTable;
-        int             exceptionTableLength = codeAttribute.u2exceptionTableLength;
-
-        int newExceptionTableLength = exceptionTableLength + 1;
-
-        // Is the exception table large enough?
-        if (exceptionTable.length < newExceptionTableLength)
-        {
-            ExceptionInfo[] newExceptionTable =
-                new ExceptionInfo[newExceptionTableLength];
-
-            System.arraycopy(exceptionTable, 0,
-                             newExceptionTable, 1,
-                             exceptionTableLength);
-            newExceptionTable[0] = exceptionInfo;
-
-            codeAttribute.exceptionTable = newExceptionTable;
-        }
-        else
-        {
-            System.arraycopy(exceptionTable, 0,
-                             exceptionTable, 1,
-                             exceptionTableLength);
-            exceptionTable[0] = exceptionInfo;
-        }
-
-        codeAttribute.u2exceptionTableLength = newExceptionTableLength;
-    }
-
-
-    /**
-     * Appends the given exception to the exception table.
-     */
-    public void appendException(ExceptionInfo exceptionInfo)
-    {
-        codeAttribute.exceptionTable =
-            ArrayUtil.add(codeAttribute.exceptionTable,
-                          codeAttribute.u2exceptionTableLength++,
-                          exceptionInfo);
-    }
+  /** Appends the given exception to the exception table. */
+  public void appendException(ExceptionInfo exceptionInfo) {
+    codeAttribute.exceptionTable =
+        ArrayUtil.add(
+            codeAttribute.exceptionTable, codeAttribute.u2exceptionTableLength++, exceptionInfo);
+  }
 }

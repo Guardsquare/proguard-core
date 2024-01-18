@@ -22,10 +22,7 @@ package proguard.util;
  *
  * @author Eric Lafortune
  */
-public interface Counter
-{
-    /**
-     * Returns the current value of the counter.
-     */
-    public int getCount();
+public interface Counter {
+  /** Returns the current value of the counter. */
+  public int getCount();
 }

@@ -38,70 +38,81 @@ import proguard.classfile.MethodSignature;
 
 /**
  * This abstract analyzer runs the {@link JvmMemoryLocationCpa} and returns the {@link ReachedSet}.
- * The reached set contains a flattened forest of memory location traces. Their roots are the endpoints. For each root a tree of source
- * {@link JvmMemoryLocation}s is constructed. The threshold defines the minimal value above which the {@link AbstractState} should be
- * in order to be included into the continuation of the trace.
+ * The reached set contains a flattened forest of memory location traces. Their roots are the
+ * endpoints. For each root a tree of source {@link JvmMemoryLocation}s is constructed. The
+ * threshold defines the minimal value above which the {@link AbstractState} should be in order to
+ * be included into the continuation of the trace.
  *
  * @param <AbstractStateT> The type of the values of the traced analysis.
- *
  * @author Dmitry Ivanov
  */
-public abstract class JvmMemoryLocationBamCpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractStateT extends LatticeAbstractState<AbstractStateT>>
-    extends SequentialCpaRun<JvmMemoryLocationCpa<AbstractStateT>,
-                             JvmMemoryLocationAbstractState<?>,
-                             BamCpaRun<CpaT, ? extends ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>, JvmCfaNode, JvmCfaEdge, MethodSignature>>
-    implements TraceExtractor
-{
+public abstract class JvmMemoryLocationBamCpaRun<
+        CpaT extends ConfigurableProgramAnalysis,
+        AbstractStateT extends LatticeAbstractState<AbstractStateT>>
+    extends SequentialCpaRun<
+        JvmMemoryLocationCpa<AbstractStateT>,
+        JvmMemoryLocationAbstractState<?>,
+        BamCpaRun<
+            CpaT,
+            ? extends ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>,
+            JvmCfaNode,
+            JvmCfaEdge,
+            MethodSignature>>
+    implements TraceExtractor {
 
-    protected final AbstractStateT threshold;
+  protected final AbstractStateT threshold;
 
-    /**
-     * Create a CPA run.
-     *
-     * @param inputCpaRun   an unwrapped traced CPA BAM run
-     * @param threshold     a cut-off threshold
-     */
-    public JvmMemoryLocationBamCpaRun(BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun, AbstractStateT threshold)
-    {
-        this(inputCpaRun, threshold, NeverAbortOperator.INSTANCE);
-    }
+  /**
+   * Create a CPA run.
+   *
+   * @param inputCpaRun an unwrapped traced CPA BAM run
+   * @param threshold a cut-off threshold
+   */
+  public JvmMemoryLocationBamCpaRun(
+      BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature>
+          inputCpaRun,
+      AbstractStateT threshold) {
+    this(inputCpaRun, threshold, NeverAbortOperator.INSTANCE);
+  }
 
-    /**
-     * Create a CPA run.
-     *
-     * @param inputCpaRun   a traced CPA BAM run wrapped with an ARG computation
-     * @param threshold     a cut-off threshold
-     * @param abortOperator an abort operator
-     */
-    public JvmMemoryLocationBamCpaRun(BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature> inputCpaRun,
-                                      AbstractStateT threshold,
-                                      AbortOperator abortOperator)
-    {
-        super(inputCpaRun);
-        this.threshold = threshold;
-        cpa = new JvmMemoryLocationCpa<>(threshold, inputCpaRun.getCpa());
-        this.abortOperator = abortOperator;
-    }
+  /**
+   * Create a CPA run.
+   *
+   * @param inputCpaRun a traced CPA BAM run wrapped with an ARG computation
+   * @param threshold a cut-off threshold
+   * @param abortOperator an abort operator
+   */
+  public JvmMemoryLocationBamCpaRun(
+      BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature>
+          inputCpaRun,
+      AbstractStateT threshold,
+      AbortOperator abortOperator) {
+    super(inputCpaRun);
+    this.threshold = threshold;
+    cpa = new JvmMemoryLocationCpa<>(threshold, inputCpaRun.getCpa());
+    this.abortOperator = abortOperator;
+  }
 
-    // implementations for CpaRun
+  // implementations for CpaRun
 
-    @Override
-    public ReachedSet createReachedSet()
-    {
-        return new ProgramLocationDependentReachedSet<>();
-    }
+  @Override
+  public ReachedSet createReachedSet() {
+    return new ProgramLocationDependentReachedSet<>();
+  }
 
-    @Override
-    protected Waitlist createWaitlist()
-    {
-        return new BreadthFirstWaitlist();
-    }
+  @Override
+  protected Waitlist createWaitlist() {
+    return new BreadthFirstWaitlist();
+  }
 
-    // implementations for TraceExtractor
+  // implementations for TraceExtractor
 
-    @Override
-    public ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState<?>, MethodSignature> getOutputReachedSet()
-    {
-        return (ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState<?>, MethodSignature>) super.getOutputReachedSet();
-    }
+  @Override
+  public ProgramLocationDependentReachedSet<
+          JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState<?>, MethodSignature>
+      getOutputReachedSet() {
+    return (ProgramLocationDependentReachedSet<
+            JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState<?>, MethodSignature>)
+        super.getOutputReachedSet();
+  }
 }

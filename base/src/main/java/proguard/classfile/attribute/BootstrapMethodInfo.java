@@ -26,61 +26,35 @@ import proguard.util.SimpleProcessable;
  *
  * @author Eric Lafortune
  */
-public class BootstrapMethodInfo
-extends      SimpleProcessable
-{
-    public static final int FLAG_BRIDGES      = 4;
-    public static final int FLAG_MARKERS      = 2;
-    public static final int FLAG_SERIALIZABLE = 1;
+public class BootstrapMethodInfo extends SimpleProcessable {
+  public static final int FLAG_BRIDGES = 4;
+  public static final int FLAG_MARKERS = 2;
+  public static final int FLAG_SERIALIZABLE = 1;
 
+  public int u2methodHandleIndex;
+  public int u2methodArgumentCount;
+  public int[] u2methodArguments;
 
-    public int   u2methodHandleIndex;
-    public int   u2methodArgumentCount;
-    public int[] u2methodArguments;
+  /** Creates an uninitialized BootstrapMethodInfo. */
+  public BootstrapMethodInfo() {}
 
+  /** Creates an initialized BootstrapMethodInfo. */
+  public BootstrapMethodInfo(
+      int u2methodHandleIndex, int u2methodArgumentCount, int[] u2methodArguments) {
+    this.u2methodHandleIndex = u2methodHandleIndex;
+    this.u2methodArgumentCount = u2methodArgumentCount;
+    this.u2methodArguments = u2methodArguments;
+  }
 
-    /**
-     * Creates an uninitialized BootstrapMethodInfo.
-     */
-    public BootstrapMethodInfo()
-    {
+  /** Applies the given constant pool visitor to the method handle of the bootstrap method. */
+  public void methodHandleAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    clazz.constantPoolEntryAccept(u2methodHandleIndex, constantVisitor);
+  }
+
+  /** Applies the given constant pool visitor to the argument constants of the bootstrap method. */
+  public void methodArgumentsAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    for (int index = 0; index < u2methodArgumentCount; index++) {
+      clazz.constantPoolEntryAccept(u2methodArguments[index], constantVisitor);
     }
-
-
-    /**
-     * Creates an initialized BootstrapMethodInfo.
-     */
-    public BootstrapMethodInfo(int   u2methodHandleIndex,
-                               int   u2methodArgumentCount,
-                               int[] u2methodArguments)
-    {
-        this.u2methodHandleIndex   = u2methodHandleIndex;
-        this.u2methodArgumentCount = u2methodArgumentCount;
-        this.u2methodArguments     = u2methodArguments;
-    }
-
-
-    /**
-     * Applies the given constant pool visitor to the method handle of the
-     * bootstrap method.
-     */
-    public void methodHandleAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        clazz.constantPoolEntryAccept(u2methodHandleIndex,
-                                      constantVisitor);
-    }
-
-
-    /**
-     * Applies the given constant pool visitor to the argument constants of the
-     * bootstrap method.
-     */
-    public void methodArgumentsAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        for (int index = 0; index < u2methodArgumentCount; index++)
-        {
-            clazz.constantPoolEntryAccept(u2methodArguments[index],
-                                          constantVisitor);
-        }
-    }
+  }
 }

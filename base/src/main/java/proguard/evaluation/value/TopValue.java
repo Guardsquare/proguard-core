@@ -20,59 +20,45 @@ package proguard.evaluation.value;
 import static proguard.evaluation.value.BasicValueFactory.UNKNOWN_VALUE;
 
 /**
- * Representation of a partially evaluated top value. A top value is the
- * dummy value that takes up the extra space when storing a long value or a
- * double value.
+ * Representation of a partially evaluated top value. A top value is the dummy value that takes up
+ * the extra space when storing a long value or a double value.
  *
  * @author Eric Lafortune
  */
-public class TopValue extends Category1Value
-{
-    // Implementations for Value.
+public class TopValue extends Category1Value {
+  // Implementations for Value.
 
-    public boolean isSpecific()
-    {
-        return true;
-    }
+  public boolean isSpecific() {
+    return true;
+  }
 
-    public boolean isParticular()
-    {
-        return true;
-    }
+  public boolean isParticular() {
+    return true;
+  }
 
-    public final Value generalize(Value other)
-    {
-        return this.getClass() == other.getClass() ? this : UNKNOWN_VALUE;
-    }
+  public final Value generalize(Value other) {
+    return this.getClass() == other.getClass() ? this : UNKNOWN_VALUE;
+  }
 
-    public final int computationalType()
-    {
-        return TYPE_TOP;
-    }
+  public final int computationalType() {
+    return TYPE_TOP;
+  }
 
-    public final String internalType()
-    {
-        return null;
-    }
+  public final String internalType() {
+    return null;
+  }
 
+  // Implementations for Object.
 
-    // Implementations for Object.
+  public boolean equals(Object object) {
+    return object != null && this.getClass() == object.getClass();
+  }
 
-    public boolean equals(Object object)
-    {
-        return object != null &&
-               this.getClass() == object.getClass();
-    }
+  public int hashCode() {
+    return this.getClass().hashCode();
+  }
 
-
-    public int hashCode()
-    {
-        return this.getClass().hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "T";
-    }
+  public String toString() {
+    return "T";
+  }
 }

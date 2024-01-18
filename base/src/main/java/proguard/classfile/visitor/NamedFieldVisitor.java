@@ -19,36 +19,27 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This class visits {@link ProgramMember} instances referring to fields, identified by
- * a name and descriptor pair.
+ * This class visits {@link ProgramMember} instances referring to fields, identified by a name and
+ * descriptor pair.
  *
  * @author Eric Lafortune
  */
-public class NamedFieldVisitor
-implements   ClassVisitor
-{
-    private final String        name;
-    private final String        descriptor;
-    private final MemberVisitor memberVisitor;
+public class NamedFieldVisitor implements ClassVisitor {
+  private final String name;
+  private final String descriptor;
+  private final MemberVisitor memberVisitor;
 
+  public NamedFieldVisitor(String name, String descriptor, MemberVisitor memberVisitor) {
+    this.name = name;
+    this.descriptor = descriptor;
+    this.memberVisitor = memberVisitor;
+  }
 
-    public NamedFieldVisitor(String        name,
-                             String        descriptor,
-                             MemberVisitor memberVisitor)
-    {
-        this.name          = name;
-        this.descriptor    = descriptor;
-        this.memberVisitor = memberVisitor;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        clazz.fieldAccept(name, descriptor, memberVisitor);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    clazz.fieldAccept(name, descriptor, memberVisitor);
+  }
 }

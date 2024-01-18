@@ -17,130 +17,96 @@
  */
 package proguard.classfile.util;
 
-import proguard.util.*;
-
 import java.io.PrintWriter;
 import java.util.List;
+import proguard.util.*;
 
 /**
  * This class prints out and counts warnings.
  *
  * @author Eric Lafortune
  */
-public class WarningPrinter
-{
-    private final PrintWriter   printWriter;
-    private final StringMatcher classFilter;
-    private int                 warningCount;
+public class WarningPrinter {
+  private final PrintWriter printWriter;
+  private final StringMatcher classFilter;
+  private int warningCount;
 
+  /** Creates a new WarningPrinter that prints to the given print writer. */
+  public WarningPrinter(PrintWriter printWriter) {
+    this.printWriter = printWriter;
+    this.classFilter = null;
+  }
 
-    /**
-     * Creates a new WarningPrinter that prints to the given print writer.
-     */
-    public WarningPrinter(PrintWriter printWriter)
-    {
-        this.printWriter = printWriter;
-        this.classFilter = null;
+  /**
+   * Creates a new WarningPrinter that prints to the given print stream, except if the names of any
+   * involved classes matches the given filter.
+   */
+  public WarningPrinter(PrintWriter printWriter, List classFilter) {
+    this.printWriter = printWriter;
+    this.classFilter =
+        classFilter == null ? null : new ListParser(new ClassNameParser()).parse(classFilter);
+  }
+
+  /**
+   * Prints out the given warning and increments the warning count, if the given class name passes
+   * the class name filter.
+   */
+  public void print(String className, String warning) {
+    if (accepts(className)) {
+      print(warning);
     }
+  }
 
+  /** Returns whether the given class name passes the class name filter. */
+  public boolean accepts(String className) {
+    return classFilter == null || !classFilter.matches(className);
+  }
 
-    /**
-     * Creates a new WarningPrinter that prints to the given print stream,
-     * except if the names of any involved classes matches the given filter.
-     */
-    public WarningPrinter(PrintWriter printWriter, List classFilter)
-    {
-        this.printWriter = printWriter;
-        this.classFilter = classFilter == null ? null :
-            new ListParser(new ClassNameParser()).parse(classFilter);
+  /**
+   * Prints out the given warning and increments the warning count, if the given class names pass
+   * the class name filter.
+   */
+  public void print(String className1, String className2, String warning) {
+    if (accepts(className1, className2)) {
+      print(warning);
     }
+  }
 
+  /** Returns whether the given class names pass the class name filter. */
+  public boolean accepts(String className1, String className2) {
+    return classFilter == null
+        || !(classFilter.matches(className1) || classFilter.matches(className2));
+  }
 
-    /**
-     * Prints out the given warning and increments the warning count, if
-     * the given class name passes the class name filter.
-     */
-    public void print(String className, String warning)
-    {
-        if (accepts(className))
-        {
-            print(warning);
-        }
+  /** Prints out the given warning and increments the warning count. */
+  private void print(String warning) {
+    printWriter.println(warning);
+
+    warningCount++;
+  }
+
+  /**
+   * Prints out the given note without incrementing the warning count, if the given class name
+   * passes the class name filter.
+   */
+  public void note(String className, String message) {
+    if (accepts(className)) {
+      printWriter.println(message);
     }
+  }
 
-
-    /**
-     * Returns whether the given class name passes the class name filter.
-     */
-    public boolean accepts(String className)
-    {
-        return classFilter == null ||
-            !classFilter.matches(className);
+  /**
+   * Prints out the given note without incrementing the warning count, if the given class nams pass
+   * the class name filter.
+   */
+  public void note(String className1, String className2, String message) {
+    if (accepts(className1, className2)) {
+      printWriter.println(message);
     }
+  }
 
-
-    /**
-     * Prints out the given warning and increments the warning count, if
-     * the given class names pass the class name filter.
-     */
-    public void print(String className1, String className2, String warning)
-    {
-        if (accepts(className1, className2))
-        {
-            print(warning);
-        }
-    }
-
-
-    /**
-     * Returns whether the given class names pass the class name filter.
-     */
-    public boolean accepts(String className1, String className2)
-    {
-        return classFilter == null ||
-            !(classFilter.matches(className1) ||
-              classFilter.matches(className2));
-    }
-
-
-    /**
-     * Prints out the given warning and increments the warning count.
-     */
-    private void print(String warning)
-    {
-        printWriter.println(warning);
-
-        warningCount++;
-    }
-
-    /**
-     * Prints out the given note without incrementing the warning count, if
-     * the given class name passes the class name filter.
-     */
-    public void note(String className, String message)
-    {
-        if (accepts(className)) {
-            printWriter.println(message);
-        }
-    }
-
-    /**
-     * Prints out the given note without incrementing the warning count, if
-     * the given class nams pass the class name filter.
-     */
-    public void note(String className1, String className2, String message)
-    {
-        if (accepts(className1, className2)) {
-            printWriter.println(message);
-        }
-    }
-
-
-    /**
-     * Returns the number of warnings printed so far.
-     */
-    public int getWarningCount()
-    {
-        return warningCount;
-    }
+  /** Returns the number of warnings printed so far. */
+  public int getWarningCount() {
+    return warningCount;
+  }
 }

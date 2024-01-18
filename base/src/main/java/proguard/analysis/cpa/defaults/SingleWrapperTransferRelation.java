@@ -26,40 +26,36 @@ import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.interfaces.WrapperTransferRelation;
 
 /**
- * This {@link WrapperTransferRelation} applies its (only) inner {@link TransferRelation}
- * to the input.
+ * This {@link WrapperTransferRelation} applies its (only) inner {@link TransferRelation} to the
+ * input.
  *
  * @author Dmitry Ivanov
  */
-public class SingleWrapperTransferRelation
-    implements WrapperTransferRelation
-{
+public class SingleWrapperTransferRelation implements WrapperTransferRelation {
 
-    protected TransferRelation wrappedTransferRelation;
+  protected TransferRelation wrappedTransferRelation;
 
-    /**
-     * Create a wrapper transfer relation around the given {@link TransferRelation}.
-     *
-     * @param wrappedTransferRelation a transfer relation to be wrapped
-     */
-    public SingleWrapperTransferRelation(TransferRelation wrappedTransferRelation)
-    {
-        this.wrappedTransferRelation = wrappedTransferRelation;
-    }
+  /**
+   * Create a wrapper transfer relation around the given {@link TransferRelation}.
+   *
+   * @param wrappedTransferRelation a transfer relation to be wrapped
+   */
+  public SingleWrapperTransferRelation(TransferRelation wrappedTransferRelation) {
+    this.wrappedTransferRelation = wrappedTransferRelation;
+  }
 
-    // implementations for WrapperTransferRelation
+  // implementations for WrapperTransferRelation
 
-    @Override
-    public Iterable<TransferRelation> getWrappedTransferRelations()
-    {
-        return Collections.singletonList(wrappedTransferRelation);
-    }
+  @Override
+  public Iterable<TransferRelation> getWrappedTransferRelations() {
+    return Collections.singletonList(wrappedTransferRelation);
+  }
 
-    // implementations for TransferRelation
+  // implementations for TransferRelation
 
-    @Override
-    public Collection<? extends AbstractState> generateAbstractSuccessors(AbstractState abstractState, Precision precision)
-    {
-        return wrappedTransferRelation.generateAbstractSuccessors(abstractState, precision);
-    }
+  @Override
+  public Collection<? extends AbstractState> generateAbstractSuccessors(
+      AbstractState abstractState, Precision precision) {
+    return wrappedTransferRelation.generateAbstractSuccessors(abstractState, precision);
+  }
 }

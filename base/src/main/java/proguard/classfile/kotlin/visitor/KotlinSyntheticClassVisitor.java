@@ -21,14 +21,12 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.KotlinMetadata;
 import proguard.classfile.kotlin.KotlinSyntheticClassKindMetadata;
 
-/**
- * A {@link KotlinMetadataVisitor} that visits {@link KotlinSyntheticClassKindMetadata}.
- */
-public interface KotlinSyntheticClassVisitor extends KotlinMetadataVisitor
-{
-    @Override
-    default void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) { }
+/** A {@link KotlinMetadataVisitor} that visits {@link KotlinSyntheticClassKindMetadata}. */
+public interface KotlinSyntheticClassVisitor extends KotlinMetadataVisitor {
+  @Override
+  default void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    @Override
-    void visitKotlinSyntheticClassMetadata(Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata);
+  @Override
+  void visitKotlinSyntheticClassMetadata(
+      Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata);
 }

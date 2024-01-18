@@ -21,42 +21,34 @@ import proguard.classfile.*;
 
 /**
  * This {@link ClassPoolVisitor} and {@link ClassVisitor} remembers the {@link ClassPool} instances
- * that it visits and applies the given {@link ClassPoolVisitor} to the most
- * recently remembered one, every time it visits a Clazz instance.
+ * that it visits and applies the given {@link ClassPoolVisitor} to the most recently remembered
+ * one, every time it visits a Clazz instance.
  *
  * @author Eric Lafortune
  */
-public class ClassPoolClassVisitor
-implements   ClassPoolVisitor,
-             ClassVisitor
-{
-    private ClassPoolVisitor classPoolVisitor;
-    private ClassPool        classPool;
+public class ClassPoolClassVisitor implements ClassPoolVisitor, ClassVisitor {
+  private ClassPoolVisitor classPoolVisitor;
+  private ClassPool classPool;
 
+  /**
+   * Creates a new ClassPoolClassVisitor.
+   *
+   * @param classPoolVisitor
+   */
+  public ClassPoolClassVisitor(ClassPoolVisitor classPoolVisitor) {
+    this.classPoolVisitor = classPoolVisitor;
+  }
 
-    /**
-     * Creates a new ClassPoolClassVisitor.
-     * @param classPoolVisitor
-     */
-    public ClassPoolClassVisitor(ClassPoolVisitor classPoolVisitor)
-    {
-        this.classPoolVisitor = classPoolVisitor;
-    }
+  // Implementations for ClassPoolVisitor.
 
+  public void visitClassPool(ClassPool classPool) {
+    this.classPool = classPool;
+  }
 
-    // Implementations for ClassPoolVisitor.
+  // Implementations for ClassVisitor.
 
-    public void visitClassPool(ClassPool classPool)
-    {
-        this.classPool = classPool;
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        classPoolVisitor.visitClassPool(classPool);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    classPoolVisitor.visitClassPool(classPool);
+  }
 }

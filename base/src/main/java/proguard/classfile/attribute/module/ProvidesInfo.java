@@ -26,56 +26,33 @@ import proguard.util.SimpleProcessable;
  *
  * @author Joachim Vandersmissen
  */
-public class ProvidesInfo extends SimpleProcessable
-{
-    public int   u2providesIndex;
-    public int   u2providesWithCount;
-    public int[] u2providesWithIndex;
+public class ProvidesInfo extends SimpleProcessable {
+  public int u2providesIndex;
+  public int u2providesWithCount;
+  public int[] u2providesWithIndex;
 
+  /** Creates an uninitialized ProvidesInfo. */
+  public ProvidesInfo() {}
 
-    /**
-     * Creates an uninitialized ProvidesInfo.
-     */
-    public ProvidesInfo()
-    {
+  /** Creates an initialized ProvidesInfo. */
+  public ProvidesInfo(int u2providesIndex, int u2providesWithCount, int[] u2providesWithIndex) {
+    this.u2providesIndex = u2providesIndex;
+    this.u2providesWithCount = u2providesWithCount;
+    this.u2providesWithIndex = u2providesWithIndex;
+  }
+
+  /** Applies the given constant pool visitor to the class constant of the provides, if any. */
+  public void providesAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    if (u2providesIndex != 0) {
+      clazz.constantPoolEntryAccept(u2providesIndex, constantVisitor);
     }
+  }
 
-
-    /**
-     * Creates an initialized ProvidesInfo.
-     */
-    public ProvidesInfo(int   u2providesIndex,
-                        int   u2providesWithCount,
-                        int[] u2providesWithIndex)
-    {
-        this.u2providesIndex     = u2providesIndex;
-        this.u2providesWithCount = u2providesWithCount;
-        this.u2providesWithIndex = u2providesWithIndex;
+  /** Applies the given constant pool visitor to all with entries. */
+  public void withAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    // Loop over all u2providesWithIndex entries.
+    for (int index = 0; index < u2providesWithCount; index++) {
+      clazz.constantPoolEntryAccept(u2providesWithIndex[index], constantVisitor);
     }
-
-
-    /**
-     * Applies the given constant pool visitor to the class constant of the
-     * provides, if any.
-     */
-    public void providesAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        if (u2providesIndex != 0)
-        {
-            clazz.constantPoolEntryAccept(u2providesIndex, constantVisitor);
-        }
-    }
-
-
-    /**
-     * Applies the given constant pool visitor to all with entries.
-     */
-    public void withAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        // Loop over all u2providesWithIndex entries.
-        for (int index = 0; index < u2providesWithCount; index++)
-        {
-            clazz.constantPoolEntryAccept(u2providesWithIndex[index], constantVisitor);
-        }
-    }
+  }
 }

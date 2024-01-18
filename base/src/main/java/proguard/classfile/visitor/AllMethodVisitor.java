@@ -19,30 +19,23 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassVisitor} lets a given {@link MemberVisitor} visit all {@link Method}
- * instances of the classes it visits.
+ * This {@link ClassVisitor} lets a given {@link MemberVisitor} visit all {@link Method} instances
+ * of the classes it visits.
  *
  * @author Eric Lafortune
  */
-public class AllMethodVisitor
-implements   ClassVisitor
-{
-    private final MemberVisitor memberVisitor;
+public class AllMethodVisitor implements ClassVisitor {
+  private final MemberVisitor memberVisitor;
 
+  public AllMethodVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    public AllMethodVisitor(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        clazz.methodsAccept(memberVisitor);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    clazz.methodsAccept(memberVisitor);
+  }
 }

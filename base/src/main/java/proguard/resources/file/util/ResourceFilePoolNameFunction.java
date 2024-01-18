@@ -23,22 +23,16 @@ import proguard.resources.file.ResourceFilePool;
 import proguard.util.StringFunction;
 
 /**
- * This {@link StringFunction} maps resource file names on their (obfuscated) resource file name, as present on the
- * {@link ResourceFile} object in the given resource file pool.
+ * This {@link StringFunction} maps resource file names on their (obfuscated) resource file name, as
+ * present on the {@link ResourceFile} object in the given resource file pool.
  *
  * @author Johan Leys
  */
 @Deprecated
-public class ResourceFilePoolNameFunction
-    extends FilePoolNameFunction
-{
+public class ResourceFilePoolNameFunction extends FilePoolNameFunction {
 
-    /**
-     * Creates a new ResourceFilePoolNameFunction based on the given resource file
-     * pool.
-     */
-    public ResourceFilePoolNameFunction(ResourceFilePool resourceFilePool)
-    {
-        super(resourceFilePool);
-    }
+  /** Creates a new ResourceFilePoolNameFunction based on the given resource file pool. */
+  public ResourceFilePoolNameFunction(ResourceFilePool resourceFilePool) {
+    super(resourceFilePool);
+  }
 }

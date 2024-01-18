@@ -17,7 +17,6 @@
  */
 package proguard.classfile;
 
-
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.visitor.MemberVisitor;
@@ -28,103 +27,70 @@ import proguard.util.SimpleProcessable;
  *
  * @author Eric Lafortune
  */
-public abstract class ProgramMember
-extends               SimpleProcessable
-implements            Member
-{
-    public int         u2accessFlags;
-    public int         u2nameIndex;
-    public int         u2descriptorIndex;
-    public int         u2attributesCount;
-    public Attribute[] attributes;
+public abstract class ProgramMember extends SimpleProcessable implements Member {
+  public int u2accessFlags;
+  public int u2nameIndex;
+  public int u2descriptorIndex;
+  public int u2attributesCount;
+  public Attribute[] attributes;
 
-    /**
-     * Creates an uninitialized ProgramMember.
-     */
-    protected ProgramMember()
-    {
-    }
+  /** Creates an uninitialized ProgramMember. */
+  protected ProgramMember() {}
 
+  /** Creates an initialized ProgramMember. */
+  protected ProgramMember(
+      int u2accessFlags,
+      int u2nameIndex,
+      int u2descriptorIndex,
+      int u2attributesCount,
+      Attribute[] attributes) {
+    this(u2accessFlags, u2nameIndex, u2descriptorIndex, u2attributesCount, attributes, 0, null);
+  }
 
-    /**
-     * Creates an initialized ProgramMember.
-     */
-    protected ProgramMember(int         u2accessFlags,
-                            int         u2nameIndex,
-                            int         u2descriptorIndex,
-                            int         u2attributesCount,
-                            Attribute[] attributes)
-    {
-        this(u2accessFlags,
-             u2nameIndex,
-             u2descriptorIndex,
-             u2attributesCount,
-             attributes,
-             0,
-             null);
-    }
+  /** Creates an initialized ProgramMember. */
+  protected ProgramMember(
+      int u2accessFlags,
+      int u2nameIndex,
+      int u2descriptorIndex,
+      int u2attributesCount,
+      Attribute[] attributes,
+      int processingFlags,
+      Object processingInfo) {
+    super(processingFlags, processingInfo);
 
+    this.u2accessFlags = u2accessFlags;
+    this.u2nameIndex = u2nameIndex;
+    this.u2descriptorIndex = u2descriptorIndex;
+    this.u2attributesCount = u2attributesCount;
+    this.attributes = attributes;
+  }
 
-    /**
-     * Creates an initialized ProgramMember.
-     */
-    protected ProgramMember(int         u2accessFlags,
-                            int         u2nameIndex,
-                            int         u2descriptorIndex,
-                            int         u2attributesCount,
-                            Attribute[] attributes,
-                            int         processingFlags,
-                            Object      processingInfo)
-    {
-        super(processingFlags, processingInfo);
+  /** Accepts the given member info visitor. */
+  public abstract void accept(ProgramClass programClass, MemberVisitor memberVisitor);
 
-        this.u2accessFlags     = u2accessFlags;
-        this.u2nameIndex       = u2nameIndex;
-        this.u2descriptorIndex = u2descriptorIndex;
-        this.u2attributesCount = u2attributesCount;
-        this.attributes        = attributes;
-    }
+  /** Lets the given attribute info visitor visit all the attributes of this member info. */
+  public abstract void attributesAccept(
+      ProgramClass programClass, AttributeVisitor attributeVisitor);
 
+  // Implementations for Member.
 
-    /**
-     * Accepts the given member info visitor.
-     */
-    public abstract void accept(ProgramClass  programClass,
-                                MemberVisitor memberVisitor);
+  @Override
+  public int getAccessFlags() {
+    return u2accessFlags;
+  }
 
+  @Override
+  public String getName(Clazz clazz) {
+    return clazz.getString(u2nameIndex);
+  }
 
+  @Override
+  public String getDescriptor(Clazz clazz) {
+    return clazz.getString(u2descriptorIndex);
+  }
 
-    /**
-     * Lets the given attribute info visitor visit all the attributes of
-     * this member info.
-     */
-    public abstract void attributesAccept(ProgramClass     programClass,
-                                          AttributeVisitor attributeVisitor);
-
-
-    // Implementations for Member.
-
-    @Override
-    public int getAccessFlags()
-    {
-        return u2accessFlags;
-    }
-
-    @Override
-    public String getName(Clazz clazz)
-    {
-        return clazz.getString(u2nameIndex);
-    }
-
-    @Override
-    public String getDescriptor(Clazz clazz)
-    {
-        return clazz.getString(u2descriptorIndex);
-    }
-
-    @Override
-    public void accept(Clazz clazz, MemberVisitor memberVisitor)
-    {
-        accept((ProgramClass)clazz, memberVisitor);
-    }
+  @Override
+  public void accept(Clazz clazz, MemberVisitor memberVisitor) {
+    accept((ProgramClass) clazz, memberVisitor);
+  }
 }

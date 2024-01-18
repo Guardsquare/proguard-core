@@ -20,201 +20,137 @@ package proguard.io;
 import java.io.*;
 
 /**
- * This class delegates its method calls to the corresponding {@link DataInput} methods,
- * converting its IOExceptions to RuntimeExceptions.
+ * This class delegates its method calls to the corresponding {@link DataInput} methods, converting
+ * its IOExceptions to RuntimeExceptions.
  *
  * @author Eric Lafortune
  */
-public class RuntimeDataInput
-{
-    private final DataInput dataInput;
+public class RuntimeDataInput {
+  private final DataInput dataInput;
 
+  public RuntimeDataInput(DataInput dataInput) {
+    this.dataInput = dataInput;
+  }
 
-    public RuntimeDataInput(DataInput dataInput)
-    {
-        this.dataInput = dataInput;
+  // Methods delegating to DataInput.
+
+  public boolean readBoolean() {
+    try {
+      return dataInput.readBoolean();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-
-    // Methods delegating to DataInput.
-
-    public boolean readBoolean()
-    {
-        try
-        {
-            return dataInput.readBoolean();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public byte readByte() {
+    try {
+      return dataInput.readByte();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public byte readByte()
-    {
-        try
-        {
-            return dataInput.readByte();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public char readChar() {
+    try {
+      return dataInput.readChar();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public char readChar()
-    {
-        try
-        {
-            return dataInput.readChar();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public double readDouble() {
+    try {
+      return dataInput.readDouble();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public double readDouble()
-    {
-        try
-        {
-            return dataInput.readDouble();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public float readFloat() {
+    try {
+      return dataInput.readFloat();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public float readFloat()
-    {
-        try
-        {
-            return dataInput.readFloat();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public void readFully(byte[] b) {
+    try {
+      dataInput.readFully(b);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public void readFully(byte[] b)
-    {
-        try
-        {
-            dataInput.readFully(b);
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public void readFully(byte[] b, int off, int len) {
+    try {
+      dataInput.readFully(b, off, len);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public void readFully(byte[] b, int off, int len)
-    {
-        try
-        {
-            dataInput.readFully(b, off, len);
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public int readInt() {
+    try {
+      return dataInput.readInt();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public int readInt()
-    {
-        try
-        {
-            return dataInput.readInt();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public String readLine() {
+    try {
+      return dataInput.readLine();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public String readLine()
-    {
-        try
-        {
-            return dataInput.readLine();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public long readLong() {
+    try {
+      return dataInput.readLong();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public long readLong()
-    {
-        try
-        {
-            return dataInput.readLong();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public short readShort() {
+    try {
+      return dataInput.readShort();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public short readShort()
-    {
-        try
-        {
-            return dataInput.readShort();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public int readUnsignedByte() {
+    try {
+      return dataInput.readUnsignedByte();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public int readUnsignedByte()
-    {
-        try
-        {
-            return dataInput.readUnsignedByte();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public int readUnsignedShort() {
+    try {
+      return dataInput.readUnsignedShort();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public int readUnsignedShort()
-    {
-        try
-        {
-            return dataInput.readUnsignedShort();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public String readUTF() {
+    try {
+      return dataInput.readUTF();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
+  }
 
-    public String readUTF()
-    {
-        try
-        {
-            return dataInput.readUTF();
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+  public int skipBytes(int n) {
+    try {
+      return dataInput.skipBytes(n);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage(), ex);
     }
-
-    public int skipBytes(int n)
-    {
-        try
-        {
-            return dataInput.skipBytes(n);
-        }
-        catch (IOException ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
-    }
+  }
 }

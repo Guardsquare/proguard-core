@@ -17,164 +17,146 @@
  */
 package proguard.classfile.kotlin;
 
+import java.util.List;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.*;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
 
-import java.util.List;
+public class KotlinPropertyMetadata extends SimpleProcessable {
+  public String name;
 
-public class KotlinPropertyMetadata
-extends      SimpleProcessable
-{
-    public String name;
+  public List<KotlinTypeParameterMetadata> typeParameters;
 
+  public KotlinTypeMetadata receiverType;
 
-    public List<KotlinTypeParameterMetadata> typeParameters;
+  public List<KotlinTypeMetadata> contextReceivers;
 
-    public KotlinTypeMetadata receiverType;
+  public List<KotlinValueParameterMetadata> setterParameters;
 
-    public List<KotlinTypeMetadata> contextReceivers;
+  public KotlinTypeMetadata type;
 
-    public List<KotlinValueParameterMetadata> setterParameters;
+  public KotlinVersionRequirementMetadata versionRequirement;
 
-    public KotlinTypeMetadata type;
+  public KotlinPropertyFlags flags;
 
-    public KotlinVersionRequirementMetadata versionRequirement;
+  public KotlinPropertyAccessorFlags getterFlags;
 
-    public KotlinPropertyFlags flags;
+  public KotlinPropertyAccessorFlags setterFlags;
 
-    public KotlinPropertyAccessorFlags getterFlags;
+  // Extensions.
+  public FieldSignature backingFieldSignature;
+  // Store the class where the referencedBackingField is declared.
+  public Clazz referencedBackingFieldClass;
+  public Field referencedBackingField;
+  public MethodSignature getterSignature;
+  public Method referencedGetterMethod;
+  public MethodSignature setterSignature;
+  public Method referencedSetterMethod;
 
-    public KotlinPropertyAccessorFlags setterFlags;
+  public MethodSignature syntheticMethodForAnnotations;
 
-    // Extensions.
-    public FieldSignature  backingFieldSignature;
-    // Store the class where the referencedBackingField is declared.
-    public Clazz           referencedBackingFieldClass;
-    public Field           referencedBackingField;
-    public MethodSignature getterSignature;
-    public Method          referencedGetterMethod;
-    public MethodSignature setterSignature;
-    public Method          referencedSetterMethod;
+  public Clazz referencedSyntheticMethodClass;
+  public Method referencedSyntheticMethodForAnnotations;
 
-    public MethodSignature syntheticMethodForAnnotations;
+  public MethodSignature syntheticMethodForDelegate;
 
-    public Clazz           referencedSyntheticMethodClass;
-    public Method          referencedSyntheticMethodForAnnotations;
+  public Clazz referencedSyntheticMethodForDelegateClass;
+  public Method referencedSyntheticMethodForDelegateMethod;
 
-    public MethodSignature syntheticMethodForDelegate;
+  public KotlinPropertyMetadata(
+      KotlinPropertyFlags flags,
+      String name,
+      KotlinPropertyAccessorFlags getterFlags,
+      KotlinPropertyAccessorFlags setterFlags) {
+    this.name = name;
+    this.flags = flags;
+    this.getterFlags = getterFlags;
+    this.setterFlags = setterFlags;
+  }
 
-    public Clazz           referencedSyntheticMethodForDelegateClass;
-    public Method          referencedSyntheticMethodForDelegateMethod;
+  public void accept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyVisitor kotlinPropertyVisitor) {
+    kotlinPropertyVisitor.visitProperty(clazz, kotlinDeclarationContainerMetadata, this);
+  }
 
+  void acceptAsDelegated(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyVisitor kotlinPropertyVisitor) {
+    kotlinPropertyVisitor.visitDelegatedProperty(clazz, kotlinDeclarationContainerMetadata, this);
+  }
 
-    public KotlinPropertyMetadata(KotlinPropertyFlags         flags,
-                                  String                      name,
-                                  KotlinPropertyAccessorFlags getterFlags,
-                                  KotlinPropertyAccessorFlags setterFlags)
-    {
-        this.name        = name;
-        this.flags       = flags;
-        this.getterFlags = getterFlags;
-        this.setterFlags = setterFlags;
+  public void typeAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeVisitor kotlinTypeVisitor) {
+    kotlinTypeVisitor.visitPropertyType(clazz, kotlinDeclarationContainerMetadata, this, type);
+  }
+
+  public void receiverTypeAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeVisitor kotlinTypeVisitor) {
+    if (receiverType != null) {
+      kotlinTypeVisitor.visitPropertyReceiverType(
+          clazz, kotlinDeclarationContainerMetadata, this, receiverType);
     }
+  }
 
-
-    public void accept(Clazz                              clazz,
-                       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                       KotlinPropertyVisitor              kotlinPropertyVisitor)
-    {
-        kotlinPropertyVisitor.visitProperty(clazz, kotlinDeclarationContainerMetadata, this);
+  public void contextReceiverTypesAccept(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeVisitor kotlinTypeVisitor) {
+    if (contextReceivers != null) {
+      for (KotlinTypeMetadata contextReceiver : contextReceivers) {
+        kotlinTypeVisitor.visitPropertyContextReceiverType(
+            clazz, kotlinMetadata, this, contextReceiver);
+      }
     }
+  }
 
-
-    void acceptAsDelegated(Clazz                              clazz,
-                           KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                           KotlinPropertyVisitor              kotlinPropertyVisitor)
-    {
-        kotlinPropertyVisitor.visitDelegatedProperty(clazz, kotlinDeclarationContainerMetadata, this);
+  public void setterParametersAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinValueParameterVisitor kotlinValueParameterVisitor) {
+    for (KotlinValueParameterMetadata setterParameter : setterParameters) {
+      setterParameter.accept(
+          clazz, kotlinDeclarationContainerMetadata, this, kotlinValueParameterVisitor);
     }
+  }
 
-
-    public void typeAccept(Clazz                              clazz,
-                           KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                           KotlinTypeVisitor                  kotlinTypeVisitor)
-    {
-        kotlinTypeVisitor.visitPropertyType(clazz, kotlinDeclarationContainerMetadata, this, type);
+  public void typeParametersAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    for (KotlinTypeParameterMetadata typeParameter : typeParameters) {
+      typeParameter.accept(
+          clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeParameterVisitor);
     }
+  }
 
-
-    public void receiverTypeAccept(Clazz                              clazz,
-                                   KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                   KotlinTypeVisitor                  kotlinTypeVisitor)
-    {
-        if (receiverType != null)
-        {
-            kotlinTypeVisitor.visitPropertyReceiverType(clazz,
-                                                        kotlinDeclarationContainerMetadata,
-                                                        this,
-                                                        receiverType);
-        }
+  public void versionRequirementAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor) {
+    if (versionRequirement != null) {
+      versionRequirement.accept(
+          clazz, kotlinDeclarationContainerMetadata, this, kotlinVersionRequirementVisitor);
     }
+  }
 
-    public void contextReceiverTypesAccept(Clazz             clazz,
-                                           KotlinMetadata    kotlinMetadata,
-                                           KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        if (contextReceivers != null)
-        {
-            for (KotlinTypeMetadata contextReceiver : contextReceivers)
-            {
-                kotlinTypeVisitor.visitPropertyContextReceiverType(clazz, kotlinMetadata, this, contextReceiver);
-            }
-        }
-    }
-
-
-    public void setterParametersAccept(Clazz                              clazz,
-                                       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                       KotlinValueParameterVisitor        kotlinValueParameterVisitor)
-    {
-        for (KotlinValueParameterMetadata setterParameter : setterParameters)
-        {
-            setterParameter.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinValueParameterVisitor);
-        }
-    }
-
-
-    public void typeParametersAccept(Clazz                              clazz,
-                                     KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                     KotlinTypeParameterVisitor         kotlinTypeParameterVisitor)
-    {
-        for (KotlinTypeParameterMetadata typeParameter : typeParameters)
-        {
-            typeParameter.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeParameterVisitor);
-        }
-    }
-
-
-    public void versionRequirementAccept(Clazz                              clazz,
-                                         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                         KotlinVersionRequirementVisitor    kotlinVersionRequirementVisitor)
-    {
-        if (versionRequirement != null)
-        {
-            versionRequirement.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinVersionRequirementVisitor);
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin " +
-               (flags.isDelegated ? "delegated " : "") +
-               "property (" + name + " | " +
-               (backingFieldSignature != null ? "b" : "") +
-               (flags.hasGetter ? "g" + (getterFlags.isDefault ? "" : "+") : "") +
-               (flags.hasSetter ? "s" + (setterFlags.isDefault ? "" : "+") : "") +
-               ")";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin "
+        + (flags.isDelegated ? "delegated " : "")
+        + "property ("
+        + name
+        + " | "
+        + (backingFieldSignature != null ? "b" : "")
+        + (flags.hasGetter ? "g" + (getterFlags.isDefault ? "" : "+") : "")
+        + (flags.hasSetter ? "s" + (setterFlags.isDefault ? "" : "+") : "")
+        + ")";
+  }
 }

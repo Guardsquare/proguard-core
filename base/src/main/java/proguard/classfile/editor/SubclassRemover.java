@@ -21,31 +21,23 @@ import proguard.classfile.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
- * This {@link ClassVisitor} removes the given class from the list of subclasses of the
- * classes that it visits.
+ * This {@link ClassVisitor} removes the given class from the list of subclasses of the classes that
+ * it visits.
  *
  * @author Eric Lafortune
  */
-public class SubclassRemover
-implements   ClassVisitor
-{
-    private final Clazz subclass;
+public class SubclassRemover implements ClassVisitor {
+  private final Clazz subclass;
 
+  /** Creates a new SubclassRemover that will remove the given subclass. */
+  public SubclassRemover(Clazz subclass) {
+    this.subclass = subclass;
+  }
 
-    /**
-     * Creates a new SubclassRemover that will remove the given subclass.
-     */
-    public SubclassRemover(Clazz subclass)
-    {
-        this.subclass = subclass;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        clazz.removeSubClass(subclass);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    clazz.removeSubClass(subclass);
+  }
 }

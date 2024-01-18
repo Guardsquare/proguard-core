@@ -21,61 +21,56 @@ package proguard.dexfile.reader;
  */
 public class DexException extends RuntimeException {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
+  /** */
+  private static final long serialVersionUID = 1L;
 
-    /**
-     *
-     */
-    public DexException() {
-    }
+  /** */
+  public DexException() {}
 
-    /**
-     * @param message
-     */
-    public DexException(String message) {
-        super(message);
-    }
+  /**
+   * @param message
+   */
+  public DexException(String message) {
+    super(message);
+  }
 
-    /**
-     * @param cause
-     */
-    public DexException(Throwable cause) {
-        super(cause);
-    }
+  /**
+   * @param cause
+   */
+  public DexException(Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param message
-     * @param cause
-     */
-    public DexException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message
+   * @param cause
+   */
+  public DexException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    /**
-     * this is equals to
-     *
-     * <b> new DexException(String.format(messageFormat, args), cause); </b>
-     *
-     * @param cause
-     * @param messageFormat
-     * @param args
-     */
-    public DexException(Throwable cause, String messageFormat, Object... args) {
-        this(String.format(messageFormat, args), cause);
-    }
+  /**
+   * this is equals to
+   *
+   * <p><b> new DexException(String.format(messageFormat, args), cause); </b>
+   *
+   * @param cause
+   * @param messageFormat
+   * @param args
+   */
+  public DexException(Throwable cause, String messageFormat, Object... args) {
+    this(String.format(messageFormat, args), cause);
+  }
 
-    /**
-     * this is equals to
-     *
-     * <b> new DexException(String.format(messageFormat, args)); </b>
-     *
-     * @param messageFormat
-     * @param args
-     */
-    public DexException(String messageFormat, Object... args) {
-        this(String.format(messageFormat, args));
-    }
+  /**
+   * this is equals to
+   *
+   * <p><b> new DexException(String.format(messageFormat, args)); </b>
+   *
+   * @param messageFormat
+   * @param args
+   */
+  public DexException(String messageFormat, Object... args) {
+    this(String.format(messageFormat, args));
+  }
 }

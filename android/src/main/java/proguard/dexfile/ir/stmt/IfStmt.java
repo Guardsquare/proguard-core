@@ -28,36 +28,36 @@ import proguard.dexfile.ir.stmt.Stmt.E1Stmt;
  */
 public class IfStmt extends E1Stmt implements JumpStmt {
 
-    public LabelStmt target;
+  public LabelStmt target;
 
-    public LabelStmt getTarget() {
-        return target;
-    }
+  public LabelStmt getTarget() {
+    return target;
+  }
 
-    public void setTarget(LabelStmt target) {
-        this.target = target;
-    }
+  public void setTarget(LabelStmt target) {
+    this.target = target;
+  }
 
-    /**
-     * IF
-     *
-     * @param type
-     * @param condition
-     * @param target
-     */
-    public IfStmt(ST type, Value condition, LabelStmt target) {
-        super(type, condition);
-        this.target = target;
-    }
+  /**
+   * IF
+   *
+   * @param type
+   * @param condition
+   * @param target
+   */
+  public IfStmt(ST type, Value condition, LabelStmt target) {
+    super(type, condition);
+    this.target = target;
+  }
 
-    @Override
-    public Stmt clone(LabelAndLocalMapper mapper) {
-        LabelStmt nTarget = mapper.map(target);
-        return new IfStmt(st, op.clone(mapper), nTarget);
-    }
+  @Override
+  public Stmt clone(LabelAndLocalMapper mapper) {
+    LabelStmt nTarget = mapper.map(target);
+    return new IfStmt(st, op.clone(mapper), nTarget);
+  }
 
-    @Override
-    public String toString() {
-        return "if " + op + " GOTO " + target.getDisplayName();
-    }
+  @Override
+  public String toString() {
+    return "if " + op + " GOTO " + target.getDisplayName();
+  }
 }

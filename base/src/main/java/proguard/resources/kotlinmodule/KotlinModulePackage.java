@@ -18,34 +18,32 @@
 
 package proguard.resources.kotlinmodule;
 
+import java.util.*;
 import proguard.classfile.kotlin.*;
 import proguard.resources.kotlinmodule.visitor.KotlinModulePackageVisitor;
-
-import java.util.*;
 
 /**
  * @author James Hamilton
  */
-public class KotlinModulePackage
-{
-    public String                    fqName;
-    public final List<String>        fileFacadeNames;
-    public final Map<String, String> multiFileClassParts;
+public class KotlinModulePackage {
+  public String fqName;
+  public final List<String> fileFacadeNames;
+  public final Map<String, String> multiFileClassParts;
 
-    public final List<KotlinFileFacadeKindMetadata>           referencedFileFacades;
-    public final Map<String, KotlinMultiFilePartKindMetadata> referencedMultiFileParts;
+  public final List<KotlinFileFacadeKindMetadata> referencedFileFacades;
+  public final Map<String, KotlinMultiFilePartKindMetadata> referencedMultiFileParts;
 
-    public KotlinModulePackage(String fqName, List<String> fileFacadeNames, Map<String, String> multiFileClassParts)
-    {
-        this.fqName                   = fqName;
-        this.fileFacadeNames          = fileFacadeNames;
-        this.multiFileClassParts      = multiFileClassParts;
-        this.referencedFileFacades    = new ArrayList<>(Collections.nCopies(fileFacadeNames.size(), null));
-        this.referencedMultiFileParts = new HashMap<>();
-    }
+  public KotlinModulePackage(
+      String fqName, List<String> fileFacadeNames, Map<String, String> multiFileClassParts) {
+    this.fqName = fqName;
+    this.fileFacadeNames = fileFacadeNames;
+    this.multiFileClassParts = multiFileClassParts;
+    this.referencedFileFacades = new ArrayList<>(Collections.nCopies(fileFacadeNames.size(), null));
+    this.referencedMultiFileParts = new HashMap<>();
+  }
 
-    public void accept(KotlinModule kotlinModule, KotlinModulePackageVisitor kotlinModulePartVisitor)
-    {
-        kotlinModulePartVisitor.visitKotlinModulePackage(kotlinModule, this);
-    }
+  public void accept(
+      KotlinModule kotlinModule, KotlinModulePackageVisitor kotlinModulePartVisitor) {
+    kotlinModulePartVisitor.visitKotlinModulePackage(kotlinModule, this);
+  }
 }

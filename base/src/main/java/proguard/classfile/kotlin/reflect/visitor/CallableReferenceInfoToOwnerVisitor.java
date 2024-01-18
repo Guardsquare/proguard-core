@@ -24,20 +24,15 @@ import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 /**
  * @author James Hamilton
  */
-public class CallableReferenceInfoToOwnerVisitor
-implements CallableReferenceInfoVisitor
-{
-    private final KotlinMetadataVisitor kotlinMetadataVisitor;
+public class CallableReferenceInfoToOwnerVisitor implements CallableReferenceInfoVisitor {
+  private final KotlinMetadataVisitor kotlinMetadataVisitor;
 
+  public CallableReferenceInfoToOwnerVisitor(KotlinMetadataVisitor kotlinMetadataVisitor) {
+    this.kotlinMetadataVisitor = kotlinMetadataVisitor;
+  }
 
-    public CallableReferenceInfoToOwnerVisitor(KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        this.kotlinMetadataVisitor = kotlinMetadataVisitor;
-    }
-
-    @Override
-    public void visitAnyCallableReferenceInfo(CallableReferenceInfo callableReferenceInfo)
-    {
-       callableReferenceInfo.ownerAccept(kotlinMetadataVisitor);
-    }
+  @Override
+  public void visitAnyCallableReferenceInfo(CallableReferenceInfo callableReferenceInfo) {
+    callableReferenceInfo.ownerAccept(kotlinMetadataVisitor);
+  }
 }

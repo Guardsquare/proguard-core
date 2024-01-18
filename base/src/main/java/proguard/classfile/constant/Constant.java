@@ -22,55 +22,46 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.util.SimpleProcessable;
 
 /**
- * This abstract class represents an entry in the constant pool of a class.
- * Specific types of entries are subclassed from it.
+ * This abstract class represents an entry in the constant pool of a class. Specific types of
+ * entries are subclassed from it.
  *
  * @author Eric Lafortune
  */
-public abstract class Constant extends SimpleProcessable
-{
-    public static final int UTF8                = 1;
-    public static final int INTEGER             = 3;
-    public static final int FLOAT               = 4;
-    public static final int LONG                = 5;
-    public static final int DOUBLE              = 6;
-    public static final int CLASS               = 7;
-    public static final int STRING              = 8;
-    public static final int FIELDREF            = 9;
-    public static final int METHODREF           = 10;
-    public static final int INTERFACE_METHODREF = 11;
-    public static final int NAME_AND_TYPE       = 12;
-    public static final int METHOD_HANDLE       = 15;
-    public static final int METHOD_TYPE         = 16;
-    public static final int DYNAMIC             = 17;
-    public static final int INVOKE_DYNAMIC      = 18;
-    public static final int MODULE              = 19;
-    public static final int PACKAGE             = 20;
+public abstract class Constant extends SimpleProcessable {
+  public static final int UTF8 = 1;
+  public static final int INTEGER = 3;
+  public static final int FLOAT = 4;
+  public static final int LONG = 5;
+  public static final int DOUBLE = 6;
+  public static final int CLASS = 7;
+  public static final int STRING = 8;
+  public static final int FIELDREF = 9;
+  public static final int METHODREF = 10;
+  public static final int INTERFACE_METHODREF = 11;
+  public static final int NAME_AND_TYPE = 12;
+  public static final int METHOD_HANDLE = 15;
+  public static final int METHOD_TYPE = 16;
+  public static final int DYNAMIC = 17;
+  public static final int INVOKE_DYNAMIC = 18;
+  public static final int MODULE = 19;
+  public static final int PACKAGE = 20;
 
-    public static final int PRIMITIVE_ARRAY     = 99;
+  public static final int PRIMITIVE_ARRAY = 99;
 
+  // public int  u1tag;
+  // public byte info[];
 
-    //public int  u1tag;
-    //public byte info[];
+  // Abstract methods to be implemented by extensions.
 
-    // Abstract methods to be implemented by extensions.
+  /** Returns the constant pool info tag that specifies the entry type. */
+  public abstract int getTag();
 
-    /**
-     * Returns the constant pool info tag that specifies the entry type.
-     */
-    public abstract int getTag();
+  /**
+   * Returns whether the constant is of category 2. This means that it takes up the space of two
+   * category 1 types in the constant pool or on the stack, for instance.
+   */
+  public abstract boolean isCategory2();
 
-
-    /**
-     * Returns whether the constant is of category 2. This means that it takes
-     * up the space of two category 1 types in the constant pool or on the
-     * stack, for instance.
-     */
-    public abstract boolean isCategory2();
-
-
-    /**
-     * Accepts the given visitor.
-     */
-    public abstract void accept(Clazz clazz, ConstantVisitor constantVisitor);
+  /** Accepts the given visitor. */
+  public abstract void accept(Clazz clazz, ConstantVisitor constantVisitor);
 }

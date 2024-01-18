@@ -23,65 +23,55 @@ import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
- * The {@link JvmStackLocation} is a memory location at the operand stack.
- * Indexing starts from the top of the stack.
+ * The {@link JvmStackLocation} is a memory location at the operand stack. Indexing starts from the
+ * top of the stack.
  *
  * @author Dmitry Ivanov
  */
-public class JvmStackLocation
-    extends JvmMemoryLocation
-{
+public class JvmStackLocation extends JvmMemoryLocation {
 
-    public final int index;
+  public final int index;
 
-    /**
-     * Create a stack location.
-     *
-     * @param index a stack element index from the top
-     */
-    public JvmStackLocation(int index)
-    {
-        this.index = index;
+  /**
+   * Create a stack location.
+   *
+   * @param index a stack element index from the top
+   */
+  public JvmStackLocation(int index) {
+    this.index = index;
+  }
+
+  // implementations for MemoryLocation
+
+  @Override
+  public <T extends LatticeAbstractState> T extractValueOrDefault(
+      JvmAbstractState abstractState, T defaultValue) {
+    return (T) abstractState.peekOrDefault(index, defaultValue);
+  }
+
+  /** Returns the stack index from the top. */
+  public int getIndex() {
+    return index;
+  }
+
+  // implementations for Object
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof JvmStackLocation)) {
+      return false;
     }
+    JvmStackLocation other = (JvmStackLocation) obj;
+    return index == other.index;
+  }
 
-    // implementations for MemoryLocation
+  @Override
+  public int hashCode() {
+    return Objects.hash(index);
+  }
 
-    @Override
-    public <T extends LatticeAbstractState> T extractValueOrDefault(JvmAbstractState abstractState, T defaultValue)
-    {
-        return (T) abstractState.peekOrDefault(index, defaultValue);
-    }
-
-    /**
-     * Returns the stack index from the top.
-     */
-    public int getIndex()
-    {
-        return index;
-    }
-
-    // implementations for Object
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (!(obj instanceof JvmStackLocation))
-        {
-            return false;
-        }
-        JvmStackLocation other = (JvmStackLocation) obj;
-        return index == other.index;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(index);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "JvmStackLocation(" + index + ")";
-    }
+  @Override
+  public String toString() {
+    return "JvmStackLocation(" + index + ")";
+  }
 }

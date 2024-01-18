@@ -24,79 +24,61 @@ import proguard.classfile.constant.*;
 
 /**
  * This {@link ConstantVisitor} and {@link BootstrapMethodInfoVisitor} travels from any invoke
- * dynamic constants or bootstrap method info entries that it visits to their
- * bootstrap method handle constants, and applies a given constant visitor.
+ * dynamic constants or bootstrap method info entries that it visits to their bootstrap method
+ * handle constants, and applies a given constant visitor.
  *
  * @author Eric Lafortune
  */
 public class BootstrapMethodHandleTraveler
-implements   ConstantVisitor,
-             AttributeVisitor,
-             BootstrapMethodInfoVisitor
-{
-    private ConstantVisitor bootstrapMethodHandleVisitor;
+    implements ConstantVisitor, AttributeVisitor, BootstrapMethodInfoVisitor {
+  private ConstantVisitor bootstrapMethodHandleVisitor;
 
-    // Field serving as a method argument.
-    int bootstrapMethodAttributeIndex;
+  // Field serving as a method argument.
+  int bootstrapMethodAttributeIndex;
 
+  /**
+   * Creates a new BootstrapMethodHandleVisitor that will delegate to the given constant visitor.
+   */
+  public BootstrapMethodHandleTraveler(ConstantVisitor bootstrapMethodHandleVisitor) {
+    this.bootstrapMethodHandleVisitor = bootstrapMethodHandleVisitor;
+  }
 
-    /**
-     * Creates a new BootstrapMethodHandleVisitor that will delegate to the
-     * given constant visitor.
-     */
-    public BootstrapMethodHandleTraveler(ConstantVisitor bootstrapMethodHandleVisitor)
-    {
-        this.bootstrapMethodHandleVisitor = bootstrapMethodHandleVisitor;
-    }
+  // Implementations for ConstantVisitor.
 
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-    // Implementations for ConstantVisitor.
+  public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant) {
+    // Pass the method index.
+    bootstrapMethodAttributeIndex = dynamicConstant.u2bootstrapMethodAttributeIndex;
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+    // Delegate to the bootstrap method.
+    clazz.attributesAccept(this);
+  }
 
+  public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
+    // Pass the method index.
+    bootstrapMethodAttributeIndex = invokeDynamicConstant.u2bootstrapMethodAttributeIndex;
 
-    public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant)
-    {
-        // Pass the method index.
-        bootstrapMethodAttributeIndex =
-            dynamicConstant.u2bootstrapMethodAttributeIndex;
+    // Delegate to the bootstrap method.
+    clazz.attributesAccept(this);
+  }
 
-        // Delegate to the bootstrap method.
-        clazz.attributesAccept(this);
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant)
-    {
-        // Pass the method index.
-        bootstrapMethodAttributeIndex =
-            invokeDynamicConstant.u2bootstrapMethodAttributeIndex;
+  public void visitBootstrapMethodsAttribute(
+      Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute) {
+    // Check bootstrap methods.
+    bootstrapMethodsAttribute.bootstrapMethodEntryAccept(
+        clazz, bootstrapMethodAttributeIndex, this);
+  }
 
-        // Delegate to the bootstrap method.
-        clazz.attributesAccept(this);
-    }
+  // Implementations for BootstrapMethodInfoVisitor.
 
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitBootstrapMethodsAttribute(Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute)
-    {
-        // Check bootstrap methods.
-        bootstrapMethodsAttribute.bootstrapMethodEntryAccept(clazz,
-                                                             bootstrapMethodAttributeIndex,
-                                                             this);
-    }
-
-
-    // Implementations for BootstrapMethodInfoVisitor.
-
-    public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo)
-    {
-        // Check bootstrap method.
-        clazz.constantPoolEntryAccept(bootstrapMethodInfo.u2methodHandleIndex,
-                                      bootstrapMethodHandleVisitor);
-    }
+  public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo) {
+    // Check bootstrap method.
+    clazz.constantPoolEntryAccept(
+        bootstrapMethodInfo.u2methodHandleIndex, bootstrapMethodHandleVisitor);
+  }
 }

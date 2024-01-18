@@ -21,83 +21,64 @@ import proguard.classfile.attribute.annotation.*;
 import proguard.util.ArrayUtil;
 
 /**
- * This class can add annotations to a given annotations attribute.
- * Annotations to be added must have been filled out beforehand.
+ * This class can add annotations to a given annotations attribute. Annotations to be added must
+ * have been filled out beforehand.
  *
  * @author Eric Lafortune
  */
-public class AnnotationsAttributeEditor
-{
-    private AnnotationsAttribute targetAnnotationsAttribute;
+public class AnnotationsAttributeEditor {
+  private AnnotationsAttribute targetAnnotationsAttribute;
 
+  /**
+   * Creates a new AnnotationsAttributeEditor that will edit annotations in the given annotations
+   * attribute.
+   */
+  public AnnotationsAttributeEditor(AnnotationsAttribute targetAnnotationsAttribute) {
+    this.targetAnnotationsAttribute = targetAnnotationsAttribute;
+  }
 
-    /**
-     * Creates a new AnnotationsAttributeEditor that will edit annotations in
-     * the given annotations attribute.
-     */
-    public AnnotationsAttributeEditor(AnnotationsAttribute targetAnnotationsAttribute)
-    {
-        this.targetAnnotationsAttribute = targetAnnotationsAttribute;
+  /** Adds a given annotation to the annotations attribute. */
+  public void addAnnotation(Annotation annotation) {
+    int annotationsCount = targetAnnotationsAttribute.u2annotationsCount;
+    Annotation[] annotations = targetAnnotationsAttribute.annotations;
+
+    // Make sure there is enough space for the new annotation.
+    if (annotations.length <= annotationsCount) {
+      targetAnnotationsAttribute.annotations = new Annotation[annotationsCount + 1];
+      System.arraycopy(annotations, 0, targetAnnotationsAttribute.annotations, 0, annotationsCount);
+      annotations = targetAnnotationsAttribute.annotations;
     }
 
+    // Add the annotation.
+    annotations[targetAnnotationsAttribute.u2annotationsCount++] = annotation;
+  }
 
-    /**
-     * Adds a given annotation to the annotations attribute.
-     */
-    public void addAnnotation(Annotation annotation)
-    {
-        int          annotationsCount = targetAnnotationsAttribute.u2annotationsCount;
-        Annotation[] annotations      = targetAnnotationsAttribute.annotations;
+  /** Deletes a given annotation from the annotations attribute. */
+  public void deleteAnnotation(Annotation annotation) {
+    int index =
+        findAnnotationIndex(
+            annotation,
+            targetAnnotationsAttribute.annotations,
+            targetAnnotationsAttribute.u2annotationsCount);
+    deleteAnnotation(index);
+  }
 
-        // Make sure there is enough space for the new annotation.
-        if (annotations.length <= annotationsCount)
-        {
-            targetAnnotationsAttribute.annotations = new Annotation[annotationsCount+1];
-            System.arraycopy(annotations, 0,
-                             targetAnnotationsAttribute.annotations, 0,
-                             annotationsCount);
-            annotations = targetAnnotationsAttribute.annotations;
-        }
+  /** Deletes the annotation at the given idnex from the annotations attribute. */
+  public void deleteAnnotation(int index) {
+    ArrayUtil.remove(
+        targetAnnotationsAttribute.annotations,
+        targetAnnotationsAttribute.u2annotationsCount,
+        index);
+    targetAnnotationsAttribute.u2annotationsCount--;
+  }
 
-        // Add the annotation.
-        annotations[targetAnnotationsAttribute.u2annotationsCount++] = annotation;
+  private int findAnnotationIndex(
+      Annotation annotation, Annotation[] annotations, int annotationCount) {
+    for (int index = 0; index < annotationCount; index++) {
+      if (annotation == annotations[index]) {
+        return index;
+      }
     }
-
-
-    /**
-     * Deletes a given annotation from the annotations attribute.
-     */
-    public void deleteAnnotation(Annotation annotation)
-    {
-        int index = findAnnotationIndex(annotation,
-                                        targetAnnotationsAttribute.annotations,
-                                        targetAnnotationsAttribute.u2annotationsCount);
-        deleteAnnotation(index);
-    }
-
-
-    /**
-     * Deletes the annotation at the given idnex from the annotations attribute.
-     */
-    public void deleteAnnotation(int index)
-    {
-        ArrayUtil.remove(targetAnnotationsAttribute.annotations,
-                         targetAnnotationsAttribute.u2annotationsCount,
-                         index);
-        targetAnnotationsAttribute.u2annotationsCount--;
-    }
-
-
-    private int findAnnotationIndex(Annotation annotation, Annotation[] annotations, int annotationCount)
-    {
-        for (int index = 0; index < annotationCount; index++)
-        {
-            if (annotation == annotations[index])
-            {
-                return index;
-            }
-
-        }
-        return -1;
-    }
+    return -1;
+  }
 }

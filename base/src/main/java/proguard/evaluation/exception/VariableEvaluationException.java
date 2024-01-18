@@ -20,24 +20,18 @@ package proguard.evaluation.exception;
 
 import proguard.exception.ProguardCoreException;
 
-/**
- * Partial evaluator exception regarding Variables.
- */
-public abstract class VariableEvaluationException extends ProguardCoreException
-{
-    /**
-     * The index of the variable this exception is about.
-     */
-    private final int index;
+/** Partial evaluator exception regarding Variables. */
+public abstract class VariableEvaluationException extends ProguardCoreException {
+  /** The index of the variable this exception is about. */
+  private final int index;
 
-    public VariableEvaluationException(String message, int componentErrorId, String[] errorParameters, int index, Throwable cause)
-    {
-        super( componentErrorId, cause, message, errorParameters);
-        this.index = index;
-    }
+  public VariableEvaluationException(
+      String message, int componentErrorId, String[] errorParameters, int index, Throwable cause) {
+    super(componentErrorId, cause, message, errorParameters);
+    this.index = index;
+  }
 
-    public int getIndex()
-    {
-        return index;
-    }
+  public int getIndex() {
+    return index;
+  }
 }

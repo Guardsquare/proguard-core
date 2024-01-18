@@ -28,192 +28,153 @@ import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
- * This {@link ClassVisitor} replaces all instances of {@link PrimitiveArrayConstant}
- * by Java bytecode compliant array store instructions.
+ * This {@link ClassVisitor} replaces all instances of {@link PrimitiveArrayConstant} by Java
+ * bytecode compliant array store instructions.
  *
  * @see ArrayInitializationReplacer
  * @author Thomas Neidhart
  */
 public class PrimitiveArrayConstantReplacer
-implements   ClassVisitor,
-             AttributeVisitor,
-             InstructionVisitor,
-             ConstantVisitor,
-             PrimitiveArrayConstantElementVisitor
-{
-    private final CodeAttributeEditor  codeAttributeEditor  = new CodeAttributeEditor();
-    private final ConstantPoolShrinker constantPoolShrinker = new ConstantPoolShrinker();
+    implements ClassVisitor,
+        AttributeVisitor,
+        InstructionVisitor,
+        ConstantVisitor,
+        PrimitiveArrayConstantElementVisitor {
+  private final CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor();
+  private final ConstantPoolShrinker constantPoolShrinker = new ConstantPoolShrinker();
 
-    // Fields acting as parameters and return values.
+  // Fields acting as parameters and return values.
 
-    private boolean                        classModified;
-    private InstructionSequenceBuilder builder;
+  private boolean classModified;
+  private InstructionSequenceBuilder builder;
 
+  // Implementations for ClassVisitor.
 
-    // Implementations for ClassVisitor.
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    ConstantCounter counter = new ConstantCounter();
+    programClass.constantPoolEntriesAccept(
+        new ConstantTagFilter(Constant.PRIMITIVE_ARRAY, counter));
 
+    // Replace PrimitiveArray constants if the class has any.
+    if (counter.getCount() > 0) {
+      classModified = false;
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        ConstantCounter counter = new ConstantCounter();
-        programClass.constantPoolEntriesAccept(
-            new ConstantTagFilter(Constant.PRIMITIVE_ARRAY,
-            counter));
+      programClass.methodsAccept(new AllAttributeVisitor(this));
 
-        // Replace PrimitiveArray constants if the class has any.
-        if (counter.getCount() > 0)
-        {
-            classModified = false;
-
-            programClass.methodsAccept(new AllAttributeVisitor(this));
-
-            if (classModified)
-            {
-                // Remove the now unused PrimitiveArray constants.
-                programClass.accept(constantPoolShrinker);
-            }
-        }
+      if (classModified) {
+        // Remove the now unused PrimitiveArray constants.
+        programClass.accept(constantPoolShrinker);
+      }
     }
+  }
 
+  // Implementations for AttributeVisitor.
 
-    // Implementations for AttributeVisitor.
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    codeAttributeEditor.reset(codeAttribute.u4codeLength);
 
+    codeAttribute.instructionsAccept(clazz, method, this);
 
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        codeAttributeEditor.reset(codeAttribute.u4codeLength);
+    if (codeAttributeEditor.isModified()) {
+      codeAttributeEditor.visitCodeAttribute(clazz, method, codeAttribute);
 
-        codeAttribute.instructionsAccept(clazz, method, this);
-
-        if (codeAttributeEditor.isModified())
-        {
-            codeAttributeEditor.visitCodeAttribute(clazz, method, codeAttribute);
-
-            classModified = true;
-        }
+      classModified = true;
     }
+  }
 
+  // Implementations for InstructionVisitor.
 
-    // Implementations for InstructionVisitor.
+  public void visitAnyInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      Instruction instruction) {}
 
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction) {}
+  public void visitConstantInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      ConstantInstruction constantInstruction) {
+    builder = null;
 
+    clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
 
-    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
-    {
-        builder = null;
+    if (builder != null) {
+      codeAttributeEditor.replaceInstruction(offset, builder.instructions());
 
-        clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
-
-        if (builder != null)
-        {
-            codeAttributeEditor.replaceInstruction(offset, builder.instructions());
-
-            classModified = true;
-        }
+      classModified = true;
     }
+  }
 
+  // Implementations for ConstantVisitor.
 
-    // Implementations for ConstantVisitor.
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+  public void visitPrimitiveArrayConstant(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant) {
+    char primitiveType = primitiveArrayConstant.getPrimitiveType();
+    int arrayLength = primitiveArrayConstant.getLength();
 
+    // Start composing a new array initialization sequence.
+    builder = new InstructionSequenceBuilder((ProgramClass) clazz);
 
-    public void visitPrimitiveArrayConstant(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant)
-    {
-        char primitiveType = primitiveArrayConstant.getPrimitiveType();
-        int  arrayLength   = primitiveArrayConstant.getLength();
+    // Push the primitive array length.
+    builder.pushInt(arrayLength);
 
-        // Start composing a new array initialization sequence.
-        builder = new InstructionSequenceBuilder((ProgramClass) clazz);
+    // Create the primitive array.
+    builder.newarray(InstructionUtil.arrayTypeFromInternalType(primitiveType));
 
-        // Push the primitive array length.
-        builder.pushInt(arrayLength);
+    // Fill out the primitive array elements.
+    primitiveArrayConstant.primitiveArrayElementsAccept(clazz, this);
+  }
 
-        // Create the primitive array.
-        builder.newarray(InstructionUtil.arrayTypeFromInternalType(primitiveType));
+  // Implementations for PrimitiveArrayConstantElementVisitor.
 
-        // Fill out the primitive array elements.
-        primitiveArrayConstant.primitiveArrayElementsAccept(clazz, this);
-    }
+  public void visitBooleanArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, boolean value) {
+    builder.dup().pushInt(index).iconst(value ? 1 : 0).bastore();
+  }
 
+  public void visitByteArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, byte value) {
+    builder.dup().pushInt(index).pushInt(value).bastore();
+  }
 
-    // Implementations for PrimitiveArrayConstantElementVisitor.
+  public void visitCharArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, char value) {
+    builder.dup().pushInt(index).pushInt(value).castore();
+  }
 
-    public void visitBooleanArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, boolean value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .iconst(value ? 1 : 0)
-               .bastore();
-    }
+  public void visitShortArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, short value) {
+    builder.dup().pushInt(index).pushInt(value).sastore();
+  }
 
+  public void visitIntArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, int value) {
+    builder.dup().pushInt(index).pushInt(value).iastore();
+  }
 
-    public void visitByteArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, byte value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .pushInt(value)
-               .bastore();
-    }
+  public void visitFloatArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, float value) {
+    builder.dup().pushInt(index).pushFloat(value).fastore();
+  }
 
+  public void visitLongArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, long value) {
+    builder.dup().pushInt(index).pushLong(value).lastore();
+  }
 
-    public void visitCharArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, char value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .pushInt(value)
-               .castore();
-    }
-
-
-    public void visitShortArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, short value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .pushInt(value)
-               .sastore();
-    }
-
-
-    public void visitIntArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, int value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .pushInt(value)
-               .iastore();
-    }
-
-
-    public void visitFloatArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, float value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .pushFloat(value)
-               .fastore();
-    }
-
-
-    public void visitLongArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, long value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .pushLong(value)
-               .lastore();
-    }
-
-
-    public void visitDoubleArrayConstantElement(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, double value)
-    {
-        builder.dup()
-               .pushInt(index)
-               .pushDouble(value)
-               .dastore();
-    }
+  public void visitDoubleArrayConstantElement(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant, int index, double value) {
+    builder.dup().pushInt(index).pushDouble(value).dastore();
+  }
 }

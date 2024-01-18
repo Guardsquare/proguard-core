@@ -25,66 +25,48 @@ import proguard.classfile.attribute.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class BootstrapMethodsAttribute extends Attribute
-{
-    public int                   u2bootstrapMethodsCount;
-    public BootstrapMethodInfo[] bootstrapMethods;
+public class BootstrapMethodsAttribute extends Attribute {
+  public int u2bootstrapMethodsCount;
+  public BootstrapMethodInfo[] bootstrapMethods;
 
+  /** Creates an uninitialized BootstrapMethodsAttribute. */
+  public BootstrapMethodsAttribute() {}
 
-    /**
-     * Creates an uninitialized BootstrapMethodsAttribute.
-     */
-    public BootstrapMethodsAttribute()
-    {
+  /** Creates an initialized BootstrapMethodsAttribute. */
+  public BootstrapMethodsAttribute(
+      int u2attributeNameIndex,
+      int u2bootstrapMethodsCount,
+      BootstrapMethodInfo[] bootstrapMethods) {
+    super(u2attributeNameIndex);
+
+    this.u2bootstrapMethodsCount = u2bootstrapMethodsCount;
+    this.bootstrapMethods = bootstrapMethods;
+  }
+
+  // Implementations for Attribute.
+
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitBootstrapMethodsAttribute(clazz, this);
+  }
+
+  /** Applies the given visitor to all bootstrap method info entries. */
+  public void bootstrapMethodEntriesAccept(
+      Clazz clazz, BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor) {
+    for (int index = 0; index < u2bootstrapMethodsCount; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of BootstrapMethodInfo.
+      bootstrapMethodInfoVisitor.visitBootstrapMethodInfo(clazz, bootstrapMethods[index]);
     }
+  }
 
-
-    /**
-     * Creates an initialized BootstrapMethodsAttribute.
-     */
-    public BootstrapMethodsAttribute(int                   u2attributeNameIndex,
-                                     int                   u2bootstrapMethodsCount,
-                                     BootstrapMethodInfo[] bootstrapMethods)
-    {
-        super(u2attributeNameIndex);
-
-        this.u2bootstrapMethodsCount = u2bootstrapMethodsCount;
-        this.bootstrapMethods        = bootstrapMethods;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitBootstrapMethodsAttribute(clazz, this);
-    }
-
-
-    /**
-     * Applies the given visitor to all bootstrap method info entries.
-     */
-    public void bootstrapMethodEntriesAccept(Clazz clazz, BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor)
-    {
-        for (int index = 0; index < u2bootstrapMethodsCount; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of BootstrapMethodInfo.
-            bootstrapMethodInfoVisitor.visitBootstrapMethodInfo(clazz, bootstrapMethods[index]);
-        }
-    }
-
-
-    /**
-     * Applies the given visitor to the specified bootstrap method info
-     * entry.
-     */
-    public void bootstrapMethodEntryAccept(Clazz                      clazz,
-                                           int                        bootstrapMethodIndex,
-                                           BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor)
-    {
-        // We don't need double dispatching here, since there is only one
-        // type of BootstrapMethodInfo.
-        bootstrapMethodInfoVisitor.visitBootstrapMethodInfo(clazz, bootstrapMethods[bootstrapMethodIndex]);
-    }
+  /** Applies the given visitor to the specified bootstrap method info entry. */
+  public void bootstrapMethodEntryAccept(
+      Clazz clazz,
+      int bootstrapMethodIndex,
+      BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor) {
+    // We don't need double dispatching here, since there is only one
+    // type of BootstrapMethodInfo.
+    bootstrapMethodInfoVisitor.visitBootstrapMethodInfo(
+        clazz, bootstrapMethods[bootstrapMethodIndex]);
+  }
 }

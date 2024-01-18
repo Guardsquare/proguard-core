@@ -32,46 +32,34 @@ import proguard.io.DataEntryTokenizer;
 import proguard.resources.file.ResourceJavaReference;
 
 /**
- * This {@link DataEntryReader} collects the java references in a resource file and adds them to the references field.
+ * This {@link DataEntryReader} collects the java references in a resource file and adds them to the
+ * references field.
  */
-public class ResourceJavaReferenceCollector
-    implements DataEntryReader
-{
-    private Set<ResourceJavaReference> references;
+public class ResourceJavaReferenceCollector implements DataEntryReader {
+  private Set<ResourceJavaReference> references;
 
+  public Set<ResourceJavaReference> getReferences() {
+    return references;
+  }
 
-    public Set<ResourceJavaReference> getReferences()
-    {
-        return references;
+  @Override
+  public void read(DataEntry dataEntry) throws IOException {
+    Set<ResourceJavaReference> set = new HashSet<>();
+
+    Reader reader = new BufferedReader(new InputStreamReader(dataEntry.getInputStream()));
+
+    try {
+      DataEntryTokenizer tokenizer = new DataEntryTokenizer(reader);
+      DataEntryToken token;
+      while ((token = tokenizer.nextToken()) != null) {
+        if (token.type == DataEntryTokenType.JAVA_IDENTIFIER) {
+          set.add(new ResourceJavaReference(token.string));
+        }
+      }
+    } finally {
+      dataEntry.closeInputStream();
     }
 
-
-    @Override
-    public void read(DataEntry dataEntry) throws IOException
-    {
-        Set<ResourceJavaReference> set = new HashSet<>();
-
-        Reader reader =
-            new BufferedReader(
-                new InputStreamReader(dataEntry.getInputStream()));
-
-        try
-        {
-            DataEntryTokenizer tokenizer = new DataEntryTokenizer(reader);
-            DataEntryToken     token;
-            while ((token = tokenizer.nextToken()) != null)
-            {
-                if (token.type == DataEntryTokenType.JAVA_IDENTIFIER)
-                {
-                    set.add(new ResourceJavaReference(token.string));
-                }
-            }
-        }
-        finally
-        {
-            dataEntry.closeInputStream();
-        }
-
-        references = set;
-    }
+    references = set;
+  }
 }

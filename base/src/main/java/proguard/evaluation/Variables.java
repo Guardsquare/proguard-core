@@ -17,7 +17,7 @@
  */
 package proguard.evaluation;
 
-
+import java.util.Arrays;
 import proguard.classfile.TypeConstants;
 import proguard.evaluation.exception.VariableEmptySlotException;
 import proguard.evaluation.exception.VariableIndexOutOfBoundException;
@@ -31,400 +31,289 @@ import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.Value;
 
-import java.util.Arrays;
-
 /**
- * This class represents a local variable frame that contains {@link Value}
- * instances. Values are generalizations of all values that have been stored in
- * the respective variables.
+ * This class represents a local variable frame that contains {@link Value} instances. Values are
+ * generalizations of all values that have been stored in the respective variables.
  *
  * @author Eric Lafortune
  */
-public class Variables
-{
-    private static final TopValue TOP_VALUE = new TopValue();
+public class Variables {
+  private static final TopValue TOP_VALUE = new TopValue();
 
+  protected Value[] values;
+  protected int size;
 
-    protected Value[] values;
-    protected int     size;
+  /** Creates a new Variables object with a given maximum number of variables. */
+  public Variables(int size) {
+    this.values = new Value[size];
+    this.size = size;
+  }
 
+  /** Creates a Variables object that is a copy of the given Variables object. */
+  public Variables(Variables variables) {
+    // Create the values array.
+    this(variables.size);
 
-    /**
-     * Creates a new Variables object with a given maximum number of variables.
-     */
-    public Variables(int size)
-    {
-        this.values = new Value[size];
-        this.size   = size;
+    // Copy the values.
+    initialize(variables);
+  }
+
+  /** Resets this Variables object, so that it can be reused. */
+  public void reset(int size) {
+    // Is the values array large enough?
+    if (values.length < size) {
+      // Create a new one.
+      values = new Value[size];
+    } else {
+      // Clear the old variables.
+      Arrays.fill(values, 0, this.size, null);
     }
 
+    this.size = size;
+  }
 
-    /**
-     * Creates a Variables object that is a copy of the given Variables object.
-     */
-    public Variables(Variables variables)
-    {
-        // Create the values array.
-        this(variables.size);
-
-        // Copy the values.
-        initialize(variables);
+  /**
+   * Initializes the values of this Variables object with the values of the given Variables object.
+   * The other object may have fewer values, in which case the remaining values are left unchanged.
+   */
+  public void initialize(Variables other) {
+    if (this.size < other.size) {
+      throw new IllegalArgumentException(
+          "Variable frame is too small ["
+              + this.size
+              + "] compared to other frame ["
+              + other.size
+              + "]");
     }
 
+    // Copy the values.
+    System.arraycopy(other.values, 0, this.values, 0, other.size);
+  }
 
-    /**
-     * Resets this Variables object, so that it can be reused.
-     */
-    public void reset(int size)
-    {
-        // Is the values array large enough?
-        if (values.length < size)
-        {
-            // Create a new one.
-            values = new Value[size];
-        }
-        else
-        {
-            // Clear the old variables.
-            Arrays.fill(values, 0, this.size, null);
-        }
-
-        this.size = size;
+  /**
+   * Generalizes the values of this Variables object with the values of the given Variables object.
+   *
+   * @param clearConflictingOtherVariables specifies whether the other variables should be cleared
+   *     too, in case of conflicts.
+   * @return whether the generalization has made any difference.
+   */
+  public boolean generalize(Variables other, boolean clearConflictingOtherVariables) {
+    if (this.size != other.size) {
+      throw new IllegalArgumentException(
+          "Variable frames have different sizes [" + this.size + "] and [" + other.size + "]");
     }
 
+    boolean changed = false;
 
-    /**
-     * Initializes the values of this Variables object with the values of the
-     * given Variables object. The other object may have fewer values, in which
-     * case the remaining values are left unchanged.
-     */
-    public void initialize(Variables other)
-    {
-        if (this.size < other.size)
-        {
-            throw new IllegalArgumentException("Variable frame is too small ["+this.size+"] compared to other frame ["+other.size+"]");
+    for (int index = 0; index < size; index++) {
+      Value thisValue = this.values[index];
+      Value otherValue = other.values[index];
+
+      // Occasionally, two values of different types might be present
+      // in the same variable in a variable frame (corresponding to
+      // two local variables that share the same index), at some point
+      // outside of their scopes. Don't generalize the variable then,
+      // but let it clear instead.
+      if (thisValue != null
+          && otherValue != null
+          && thisValue.computationalType() == otherValue.computationalType()) {
+        Value newValue = thisValue.generalize(otherValue);
+
+        changed = changed || !thisValue.equals(newValue);
+
+        this.values[index] = newValue;
+      } else {
+        changed = changed || thisValue != null;
+
+        this.values[index] = null;
+
+        if (clearConflictingOtherVariables) {
+          other.values[index] = null;
         }
-
-        // Copy the values.
-        System.arraycopy(other.values, 0, this.values, 0, other.size);
+      }
     }
 
+    return changed;
+  }
 
-    /**
-     * Generalizes the values of this Variables object with the values of the
-     * given Variables object.
-     * @param clearConflictingOtherVariables specifies whether the other
-     *                                       variables should be cleared too,
-     *                                       in case of conflicts.
-     * @return whether the generalization has made any difference.
-     */
-    public boolean generalize(Variables other,
-                              boolean   clearConflictingOtherVariables)
-    {
-        if (this.size != other.size)
-        {
-            throw new IllegalArgumentException("Variable frames have different sizes ["+this.size+"] and ["+other.size+"]");
-        }
+  /** Returns the number of variables. */
+  public int size() {
+    return size;
+  }
 
-        boolean changed = false;
-
-        for (int index = 0; index < size; index++)
-        {
-            Value thisValue  = this.values[index];
-            Value otherValue = other.values[index];
-
-            // Occasionally, two values of different types might be present
-            // in the same variable in a variable frame (corresponding to
-            // two local variables that share the same index), at some point
-            // outside of their scopes. Don't generalize the variable then,
-            // but let it clear instead.
-            if (thisValue  != null &&
-                otherValue != null &&
-                thisValue.computationalType() == otherValue.computationalType())
-            {
-                Value newValue = thisValue.generalize(otherValue);
-
-                changed = changed || !thisValue.equals(newValue);
-
-                this.values[index] = newValue;
-            }
-            else
-            {
-                changed = changed || thisValue != null;
-
-                this.values[index] = null;
-
-                if (clearConflictingOtherVariables)
-                {
-                    other.values[index] = null;
-                }
-            }
-        }
-
-        return changed;
+  /** Gets the Value of the variable with the given index, without disturbing it. */
+  public Value getValue(int index) {
+    if (index < 0 || index >= size) {
+      throw new VariableIndexOutOfBoundException(index, size);
     }
 
+    return values[index];
+  }
 
-    /**
-     * Returns the number of variables.
-     */
-    public int size()
-    {
-        return size;
+  /** Stores the given Value at the given variable index. */
+  public void store(int index, Value value) {
+    if (index < 0 || index >= size) {
+      throw new VariableIndexOutOfBoundException(index, size);
     }
 
+    // Store the value.
+    values[index] = value;
 
-    /**
-     * Gets the Value of the variable with the given index, without disturbing it.
-     */
-    public Value getValue(int index)
-    {
-        if (index < 0 ||
-            index >= size)
-        {
-            throw new VariableIndexOutOfBoundException(index, size);
-        }
+    // Account for the extra space required by Category 2 values.
+    if (value.isCategory2()) {
+      values[index + 1] = TOP_VALUE;
+    }
+  }
 
-        return values[index];
+  /** Loads the Value from the variable with the given index. */
+  public Value load(int index) {
+    if (index < 0 || index >= size) {
+      throw new VariableIndexOutOfBoundException(index, size);
     }
 
+    return values[index];
+  }
 
-    /**
-     * Stores the given Value at the given variable index.
-     */
-    public void store(int index, Value value)
-    {
-        if (index < 0 ||
-            index >= size)
-        {
-            throw new VariableIndexOutOfBoundException(index, size);
-        }
-
-        // Store the value.
-        values[index] = value;
-
-        // Account for the extra space required by Category 2 values.
-        if (value.isCategory2())
-        {
-            values[index + 1] = TOP_VALUE;
-        }
+  /**
+   * Loads the Value from the variable with the given index.
+   *
+   * <p>Unlike `load`: throws a {@link VariableEmptySlotException} if the value is null.
+   */
+  private Value loadInternal(int index) {
+    if (index < 0 || index >= size) {
+      throw new VariableIndexOutOfBoundException(index, size);
     }
 
+    if (values[index] == null) {
+      throw new VariableEmptySlotException(index);
+    }
+    return values[index];
+  }
 
-    /**
-     * Loads the Value from the variable with the given index.
-     */
-    public Value load(int index)
-    {
-        if (index < 0 ||
-            index >= size)
-        {
-            throw new VariableIndexOutOfBoundException(index, size);
-        }
+  // Load methods that provide convenient casts to the expected value types.
 
-        return values[index];
+  /** Loads the IntegerValue from the variable with the given index. */
+  public IntegerValue iload(int index) {
+    Value value = loadInternal(index);
+    try {
+      return value.integerValue();
+    } catch (IllegalArgumentException e) {
+      throw new VariableTypeException(index, value, Character.toString(TypeConstants.INT), e);
+    }
+  }
+
+  /** Loads the LongValue from the variable with the given index. */
+  public LongValue lload(int index) {
+    Value value = loadInternal(index);
+    try {
+      return value.longValue();
+    } catch (IllegalArgumentException e) {
+      throw new VariableTypeException(index, value, Character.toString(TypeConstants.LONG), e);
+    }
+  }
+
+  /** Loads the FloatValue from the variable with the given index. */
+  public FloatValue fload(int index) {
+    Value value = loadInternal(index);
+    try {
+      return value.floatValue();
+    } catch (IllegalArgumentException e) {
+      throw new VariableTypeException(index, value, Character.toString(TypeConstants.FLOAT), e);
+    }
+  }
+
+  /** Loads the DoubleValue from the variable with the given index. */
+  public DoubleValue dload(int index) {
+    Value value = loadInternal(index);
+    try {
+      return value.doubleValue();
+    } catch (IllegalArgumentException e) {
+      throw new VariableTypeException(index, value, Character.toString(TypeConstants.DOUBLE), e);
+    }
+  }
+
+  /** Loads the ReferenceValue from the variable with the given index. */
+  public ReferenceValue aload(int index) {
+    Value value = loadInternal(index);
+    try {
+      return value.referenceValue();
+    } catch (IllegalArgumentException e) {
+      throw new VariableTypeException(
+          index,
+          value,
+          String.format("%cSOME_REFERENCE%c", TypeConstants.CLASS_START, TypeConstants.CLASS_END),
+          e);
+    }
+  }
+
+  /** Loads the InstructionOffsetValue from the variable with the given index. */
+  public InstructionOffsetValue oload(int index) {
+    return load(index).instructionOffsetValue();
+  }
+
+  /** Replaces all the references to {@param toReplace} with references to {@param replacement}. */
+  public void replaceReferences(Value toReplace, Value replacement) {
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] == toReplace) {
+        values[i] = replacement;
+      }
+    }
+  }
+
+  // Implementations for Object.
+
+  public boolean equals(Object object) {
+    if (object == null || this.getClass() != object.getClass()) {
+      return false;
     }
 
-    /**
-     * Loads the Value from the variable with the given index.
-     * <p>
-     * Unlike `load`: throws a {@link VariableEmptySlotException} if the value is null.
-     */
-    private Value loadInternal(int index)
-    {
-        if (index < 0 ||
-            index >= size)
-        {
-            throw new VariableIndexOutOfBoundException(index, size);
-        }
+    Variables other = (Variables) object;
 
-        if (values[index] == null)
-        {
-            throw new VariableEmptySlotException(index);
-        }
-        return values[index];
+    if (this.size != other.size) {
+      return false;
     }
 
+    for (int index = 0; index < size; index++) {
+      Value thisValue = this.values[index];
+      Value otherValue = other.values[index];
 
-    // Load methods that provide convenient casts to the expected value types.
-
-    /**
-     * Loads the IntegerValue from the variable with the given index.
-     */
-    public IntegerValue iload(int index)
-    {
-        Value value = loadInternal(index);
-        try
-        {
-            return value.integerValue();
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new VariableTypeException(index, value, Character.toString(TypeConstants.INT), e);
-        }
+      // Occasionally, two values of different types might be
+      // present in the same variable in a variable frame
+      // (corresponding to two local variables that share the
+      // same index), at some point outside of their scopes.
+      // We'll ignore these.
+      if (thisValue != null
+          && otherValue != null
+          && thisValue.computationalType() == otherValue.computationalType()
+          && !thisValue.equals(otherValue)) {
+        return false;
+      }
     }
 
+    return true;
+  }
 
-    /**
-     * Loads the LongValue from the variable with the given index.
-     */
-    public LongValue lload(int index)
-    {
-        Value value = loadInternal(index);
-        try
-        {
-            return value.longValue();
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new VariableTypeException(index, value, Character.toString(TypeConstants.LONG), e);
-        }
+  public int hashCode() {
+    int hashCode = size;
+
+    for (int index = 0; index < size; index++) {
+      Value value = values[index];
+      if (value != null) {
+        hashCode ^= value.hashCode();
+      }
     }
 
+    return hashCode;
+  }
 
-    /**
-     * Loads the FloatValue from the variable with the given index.
-     */
-    public FloatValue fload(int index)
-    {
-        Value value = loadInternal(index);
-        try
-        {
-            return value.floatValue();
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new VariableTypeException(index, value, Character.toString(TypeConstants.FLOAT), e);
-        }
+  public String toString() {
+    StringBuffer buffer = new StringBuffer();
+
+    for (int index = 0; index < size; index++) {
+      Value value = values[index];
+      buffer = buffer.append('[').append(value == null ? "empty" : value.toString()).append(']');
     }
 
-
-    /**
-     * Loads the DoubleValue from the variable with the given index.
-     */
-    public DoubleValue dload(int index)
-    {
-        Value value = loadInternal(index);
-        try
-        {
-            return value.doubleValue();
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new VariableTypeException(index, value, Character.toString(TypeConstants.DOUBLE), e);
-        }
-    }
-
-
-    /**
-     * Loads the ReferenceValue from the variable with the given index.
-     */
-    public ReferenceValue aload(int index)
-    {
-        Value value = loadInternal(index);
-        try
-        {
-            return value.referenceValue();
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new VariableTypeException(index, value,
-                    String.format("%cSOME_REFERENCE%c", TypeConstants.CLASS_START, TypeConstants.CLASS_END), e);
-        }
-    }
-
-
-    /**
-     * Loads the InstructionOffsetValue from the variable with the given index.
-     */
-    public InstructionOffsetValue oload(int index)
-    {
-        return load(index).instructionOffsetValue();
-    }
-
-    /**
-     * Replaces all the references to {@param toReplace} with references to {@param replacement}.
-     */
-    public void replaceReferences(Value toReplace, Value replacement)
-    {
-        for (int i = 0; i < values.length; i++)
-        {
-            if (values[i] == toReplace)
-            {
-                values[i] = replacement;
-            }
-        }
-    }
-
-    // Implementations for Object.
-
-    public boolean equals(Object object)
-    {
-        if (object == null ||
-            this.getClass() != object.getClass())
-        {
-            return false;
-        }
-
-        Variables other = (Variables)object;
-
-        if (this.size != other.size)
-        {
-            return false;
-        }
-
-        for (int index = 0; index < size; index++)
-        {
-            Value thisValue  = this.values[index];
-            Value otherValue = other.values[index];
-
-            // Occasionally, two values of different types might be
-            // present in the same variable in a variable frame
-            // (corresponding to two local variables that share the
-            // same index), at some point outside of their scopes.
-            // We'll ignore these.
-            if (thisValue  != null &&
-                otherValue != null &&
-                thisValue.computationalType() == otherValue.computationalType() &&
-                !thisValue.equals(otherValue))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-
-    public int hashCode()
-    {
-        int hashCode = size;
-
-        for (int index = 0; index < size; index++)
-        {
-            Value value = values[index];
-            if (value != null)
-            {
-                hashCode ^= value.hashCode();
-            }
-        }
-
-        return hashCode;
-    }
-
-
-    public String toString()
-    {
-        StringBuffer buffer = new StringBuffer();
-
-        for (int index = 0; index < size; index++)
-        {
-            Value value = values[index];
-            buffer = buffer.append('[')
-                           .append(value == null ? "empty" : value.toString())
-                           .append(']');
-        }
-
-        return buffer.toString();
-    }
+    return buffer.toString();
+  }
 }

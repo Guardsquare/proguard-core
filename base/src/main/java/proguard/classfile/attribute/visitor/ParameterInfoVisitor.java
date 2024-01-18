@@ -21,14 +21,13 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.ParameterInfo;
 
 /**
- * This interface specifies the method for a visitor of
- * {@link ParameterInfo} instances. Note that there is only a single
- * implementation of {@link ParameterInfo}, such that this interface
- * is not strictly necessary as a visitor.
+ * This interface specifies the method for a visitor of {@link ParameterInfo} instances. Note that
+ * there is only a single implementation of {@link ParameterInfo}, such that this interface is not
+ * strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface ParameterInfoVisitor
-{
-    public void visitParameterInfo(Clazz clazz, Method method, int parameterIndex, ParameterInfo parameterInfo);
+public interface ParameterInfoVisitor {
+  public void visitParameterInfo(
+      Clazz clazz, Method method, int parameterIndex, ParameterInfo parameterInfo);
 }

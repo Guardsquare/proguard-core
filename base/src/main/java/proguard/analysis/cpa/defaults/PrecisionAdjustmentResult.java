@@ -23,40 +23,33 @@ import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 
 /**
- * This is the result of {@link PrecisionAdjustment}, namely an {@link AbstractState} and {@link Precision}.
+ * This is the result of {@link PrecisionAdjustment}, namely an {@link AbstractState} and {@link
+ * Precision}.
  *
  * @author Dmitry Ivanov
  */
-public class PrecisionAdjustmentResult
-{
-    private final AbstractState abstractState;
-    private final Precision     precision;
+public class PrecisionAdjustmentResult {
+  private final AbstractState abstractState;
+  private final Precision precision;
 
-    /**
-     * Create a precision adjustment result tuple.
-     *
-     * @param abstractState abstract state
-     * @param precision     precision
-     */
-    public PrecisionAdjustmentResult(AbstractState abstractState, Precision precision)
-    {
-        this.abstractState = abstractState;
-        this.precision = precision;
-    }
+  /**
+   * Create a precision adjustment result tuple.
+   *
+   * @param abstractState abstract state
+   * @param precision precision
+   */
+  public PrecisionAdjustmentResult(AbstractState abstractState, Precision precision) {
+    this.abstractState = abstractState;
+    this.precision = precision;
+  }
 
-    /**
-     * Returns the abstract state.
-     */
-    public AbstractState getAbstractState()
-    {
-        return abstractState;
-    }
+  /** Returns the abstract state. */
+  public AbstractState getAbstractState() {
+    return abstractState;
+  }
 
-    /**
-     * Returns the precision.
-     */
-    public Precision getPrecision()
-    {
-        return precision;
-    }
+  /** Returns the precision. */
+  public Precision getPrecision() {
+    return precision;
+  }
 }

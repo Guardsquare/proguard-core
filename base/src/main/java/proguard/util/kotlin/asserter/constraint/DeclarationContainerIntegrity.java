@@ -22,29 +22,25 @@ import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.util.kotlin.asserter.AssertUtil;
 
-/**
- */
-public class DeclarationContainerIntegrity
-extends      AbstractKotlinMetadataConstraint
-implements   KotlinMetadataVisitor
-{
-    // Implementations for KotlinMetadataVisitor.
+/** */
+public class DeclarationContainerIntegrity extends AbstractKotlinMetadataConstraint
+    implements KotlinMetadataVisitor {
+  // Implementations for KotlinMetadataVisitor.
 
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz clazz,
-                                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        if (kotlinDeclarationContainerMetadata.ownerClassName != null)
-        {
-            AssertUtil assertUtil = new AssertUtil("Declaration container " +
-                                                   kotlinDeclarationContainerMetadata.ownerClassName,
-                                                   reporter,
-                                                   programClassPool,
-                                                   libraryClassPool);
-            assertUtil
-                .reportIfNullReference("referenced owner class", kotlinDeclarationContainerMetadata.ownerReferencedClass);
-            assertUtil
-                .reportIfClassDangling("referenced owner class", kotlinDeclarationContainerMetadata.ownerReferencedClass);
-        }
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    if (kotlinDeclarationContainerMetadata.ownerClassName != null) {
+      AssertUtil assertUtil =
+          new AssertUtil(
+              "Declaration container " + kotlinDeclarationContainerMetadata.ownerClassName,
+              reporter,
+              programClassPool,
+              libraryClassPool);
+      assertUtil.reportIfNullReference(
+          "referenced owner class", kotlinDeclarationContainerMetadata.ownerReferencedClass);
+      assertUtil.reportIfClassDangling(
+          "referenced owner class", kotlinDeclarationContainerMetadata.ownerReferencedClass);
     }
+  }
 }

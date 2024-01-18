@@ -22,90 +22,63 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.evaluation.value.InstructionOffsetValue;
 
 /**
- * This {@link BranchUnit} remembers the branch unit commands that are invoked on it.
- * It doesn't consider conditions when branching.
+ * This {@link BranchUnit} remembers the branch unit commands that are invoked on it. It doesn't
+ * consider conditions when branching.
  *
  * @author Eric Lafortune
  */
-public class BasicBranchUnit
-implements   BranchUnit
-{
-    protected InstructionOffsetValue traceBranchTargets;
-    protected boolean                wasCalled;
+public class BasicBranchUnit implements BranchUnit {
+  protected InstructionOffsetValue traceBranchTargets;
+  protected boolean wasCalled;
 
+  /**
+   * Resets the accumulated branch targets and the flag that tells whether any of the branch unit
+   * methods was called.
+   */
+  public void reset() {
+    traceBranchTargets = InstructionOffsetValue.EMPTY_VALUE;
 
-    /**
-     * Resets the accumulated branch targets and the flag that tells whether
-     * any of the branch unit methods was called.
-     */
-    public void reset()
-    {
-        traceBranchTargets = InstructionOffsetValue.EMPTY_VALUE;
+    wasCalled = false;
+  }
 
-        wasCalled = false;
-    }
+  /** Returns whether any of the branch unit methods was called. */
+  public boolean wasCalled() {
+    return wasCalled;
+  }
 
-    /**
-     * Returns whether any of the branch unit methods was called.
-     */
-    public boolean wasCalled()
-    {
-        return wasCalled;
-    }
+  /** Returns the accumulated branch targets that were passed to the branch unit methods. */
+  public InstructionOffsetValue getTraceBranchTargets() {
+    return traceBranchTargets;
+  }
 
+  // Implementations for BranchUnit.
 
-    /**
-     * Returns the accumulated branch targets that were passed to the branch
-     * unit methods.
-     */
-    public InstructionOffsetValue getTraceBranchTargets()
-    {
-        return traceBranchTargets;
-    }
+  public void branch(Clazz clazz, CodeAttribute codeAttribute, int offset, int branchTarget) {
+    // Override the branch targets.
+    traceBranchTargets = new InstructionOffsetValue(branchTarget);
 
+    wasCalled = true;
+  }
 
-    // Implementations for BranchUnit.
+  public void branchConditionally(
+      Clazz clazz, CodeAttribute codeAttribute, int offset, int branchTarget, int conditional) {
+    // Accumulate the branch targets.
+    traceBranchTargets = traceBranchTargets.add(branchTarget);
 
-    public void branch(Clazz         clazz,
-                       CodeAttribute codeAttribute,
-                       int           offset,
-                       int           branchTarget)
-    {
-        // Override the branch targets.
-        traceBranchTargets = new InstructionOffsetValue(branchTarget);
+    wasCalled = true;
+  }
 
-        wasCalled = true;
-    }
+  public void returnFromMethod() {
+    // Stop processing this block.
+    traceBranchTargets = InstructionOffsetValue.EMPTY_VALUE;
 
+    wasCalled = true;
+  }
 
-    public void branchConditionally(Clazz         clazz,
-                                    CodeAttribute codeAttribute,
-                                    int           offset,
-                                    int           branchTarget,
-                                    int           conditional)
-    {
-        // Accumulate the branch targets.
-        traceBranchTargets =
-            traceBranchTargets.add(branchTarget);
+  public void throwException() {
+    // Stop processing this block.
+    traceBranchTargets = InstructionOffsetValue.EMPTY_VALUE;
 
-        wasCalled = true;
-    }
-
-
-    public void returnFromMethod()
-    {
-        // Stop processing this block.
-        traceBranchTargets = InstructionOffsetValue.EMPTY_VALUE;
-
-        wasCalled = true;
-    }
-
-
-    public void throwException()
-    {
-        // Stop processing this block.
-        traceBranchTargets = InstructionOffsetValue.EMPTY_VALUE;
-
-        wasCalled = true;
-    }
+    wasCalled = true;
+  }
 }

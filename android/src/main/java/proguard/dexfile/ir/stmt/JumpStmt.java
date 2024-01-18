@@ -18,7 +18,7 @@ package proguard.dexfile.ir.stmt;
 
 public interface JumpStmt {
 
-    LabelStmt getTarget();
+  LabelStmt getTarget();
 
-    void setTarget(LabelStmt labelStmt);
+  void setTarget(LabelStmt labelStmt);
 }

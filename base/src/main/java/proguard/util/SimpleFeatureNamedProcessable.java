@@ -24,66 +24,45 @@ import java.util.*;
  *
  * @author Eric Lafortune
  */
-public class SimpleFeatureNamedProcessable
-extends      SimpleProcessable
-implements   FeatureNamed
-{
-    public String      featureName;
-    public Set<String> extraFeatureNames = new HashSet<>();
+public class SimpleFeatureNamedProcessable extends SimpleProcessable implements FeatureNamed {
+  public String featureName;
+  public Set<String> extraFeatureNames = new HashSet<>();
 
+  /** Creates an uninitialized SimpleFeatureNamedProcessable. */
+  public SimpleFeatureNamedProcessable() {}
 
-    /**
-     * Creates an uninitialized SimpleFeatureNamedProcessable.
-     */
-    public SimpleFeatureNamedProcessable() {}
+  /** Creates an initialized SimpleFeatureNamedProcessable. */
+  public SimpleFeatureNamedProcessable(
+      String featureName, int processingFlags, Object processingInfo) {
+    super(processingFlags, processingInfo);
 
+    this.featureName = featureName;
+  }
 
-    /**
-     * Creates an initialized SimpleFeatureNamedProcessable.
-     */
-    public SimpleFeatureNamedProcessable(String featureName,
-                                         int    processingFlags,
-                                         Object processingInfo)
-    {
-        super(processingFlags, processingInfo);
+  // Implementations for FeatureNamed.
 
-        this.featureName = featureName;
-    }
+  @Override
+  public String getFeatureName() {
+    return featureName;
+  }
 
+  @Override
+  public void setFeatureName(String featureName) {
+    this.featureName = featureName;
+  }
 
-    // Implementations for FeatureNamed.
+  @Override
+  public void addExtraFeatureName(String featureName) {
+    extraFeatureNames.add(featureName);
+  }
 
-    @Override
-    public String getFeatureName()
-    {
-        return featureName;
-    }
+  @Override
+  public Set<String> getExtraFeatureNames() {
+    return extraFeatureNames;
+  }
 
-
-    @Override
-    public void setFeatureName(String featureName)
-    {
-        this.featureName = featureName;
-    }
-
-
-    @Override
-    public void addExtraFeatureName(String featureName)
-    {
-        extraFeatureNames.add(featureName);
-    }
-
-
-    @Override
-    public Set<String> getExtraFeatureNames()
-    {
-        return extraFeatureNames;
-    }
-
-
-    @Override
-    public boolean isInFeature(String featureName)
-    {
-        return extraFeatureNames.contains(featureName);
-    }
+  @Override
+  public boolean isInFeature(String featureName) {
+    return extraFeatureNames.contains(featureName);
+  }
 }

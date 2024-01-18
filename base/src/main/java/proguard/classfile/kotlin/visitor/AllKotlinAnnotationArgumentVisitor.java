@@ -26,22 +26,16 @@ import proguard.classfile.kotlin.*;
  *
  * @author James Hamilton
  */
-public class AllKotlinAnnotationArgumentVisitor implements KotlinAnnotationVisitor
-{
-    private final KotlinAnnotationArgumentVisitor delegate;
+public class AllKotlinAnnotationArgumentVisitor implements KotlinAnnotationVisitor {
+  private final KotlinAnnotationArgumentVisitor delegate;
 
+  public AllKotlinAnnotationArgumentVisitor(KotlinAnnotationArgumentVisitor delegate) {
+    this.delegate = delegate;
+  }
 
-    public AllKotlinAnnotationArgumentVisitor(KotlinAnnotationArgumentVisitor delegate)
-    {
-        this.delegate = delegate;
-    }
-
-
-    @Override
-    public void visitAnyAnnotation(Clazz             clazz,
-                                   KotlinAnnotatable annotatable,
-                                   KotlinAnnotation  annotation)
-    {
-        annotation.argumentsAccept(clazz, annotatable, this.delegate);
-    }
+  @Override
+  public void visitAnyAnnotation(
+      Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation) {
+    annotation.argumentsAccept(clazz, annotatable, this.delegate);
+  }
 }

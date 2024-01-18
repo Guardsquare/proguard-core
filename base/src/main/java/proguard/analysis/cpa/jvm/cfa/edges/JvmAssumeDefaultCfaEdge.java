@@ -18,39 +18,37 @@
 
 package proguard.analysis.cpa.jvm.cfa.edges;
 
-import proguard.classfile.attribute.CodeAttribute;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.classfile.attribute.CodeAttribute;
 
 /**
  * An edge representing an assumption that the default case of a switch statement is taken.
  *
  * @author Carlo Alberto Pozzoli
  */
-public class JvmAssumeDefaultCfaEdge
-    extends JvmInstructionCfaEdge
-{
+public class JvmAssumeDefaultCfaEdge extends JvmInstructionCfaEdge {
 
-    /**
-     * Create a disconnected JVM CFA assume default edge.
-     *
-     * @param methodCode the code attribute of the method the edge belongs to
-     * @param offset     the offset of the instruction represented by the edge
-     */
-    public JvmAssumeDefaultCfaEdge(CodeAttribute methodCode, int offset)
-    {
-        super(methodCode, offset);
-    }
+  /**
+   * Create a disconnected JVM CFA assume default edge.
+   *
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   */
+  public JvmAssumeDefaultCfaEdge(CodeAttribute methodCode, int offset) {
+    super(methodCode, offset);
+  }
 
-    /**
-     * Create a JVM CFA assume default edge. Also sets it as the entering and leaving edge of the source and target nodes.
-     *
-     * @param source     the source node of the edge
-     * @param target     the target node of the edge
-     * @param methodCode the code attribute of the method the edge belongs to
-     * @param offset     the offset of the instruction represented by the edge
-     */
-    public JvmAssumeDefaultCfaEdge(JvmCfaNode source, JvmCfaNode target, CodeAttribute methodCode, int offset)
-    {
-        super(source, target, methodCode, offset);
-    }
+  /**
+   * Create a JVM CFA assume default edge. Also sets it as the entering and leaving edge of the
+   * source and target nodes.
+   *
+   * @param source the source node of the edge
+   * @param target the target node of the edge
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   */
+  public JvmAssumeDefaultCfaEdge(
+      JvmCfaNode source, JvmCfaNode target, CodeAttribute methodCode, int offset) {
+    super(source, target, methodCode, offset);
+  }
 }

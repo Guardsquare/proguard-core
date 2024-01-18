@@ -31,84 +31,74 @@ import java.util.Objects;
  *
  * @author Dennis Titze, Samuel Hopstock
  */
-public class FieldSignature
-    extends Signature
-{
+public class FieldSignature extends Signature {
 
-    private static final transient Map<Field, FieldSignature> signatureCache = new IdentityHashMap<>();
-    public final                   String                     memberName;
-    public final                   String                     descriptor;
+  private static final transient Map<Field, FieldSignature> signatureCache =
+      new IdentityHashMap<>();
+  public final String memberName;
+  public final String descriptor;
 
-    public FieldSignature(String clazzName, String memberName, String descriptor)
-    {
-        super(clazzName, Objects.hash(clazzName, memberName, descriptor));
-        this.memberName = memberName;
-        this.descriptor = descriptor;
+  public FieldSignature(String clazzName, String memberName, String descriptor) {
+    super(clazzName, Objects.hash(clazzName, memberName, descriptor));
+    this.memberName = memberName;
+    this.descriptor = descriptor;
+  }
+
+  public FieldSignature(Clazz clazz, Field field) {
+    this(clazz.getName(), field.getName(clazz), field.getDescriptor(clazz));
+  }
+
+  @Override
+  public boolean isIncomplete() {
+    return className == null || memberName == null || descriptor == null;
+  }
+
+  @Override
+  protected String calculateFqn() {
+    return String.format("L%s;%s", className, memberName);
+  }
+
+  @Override
+  protected String calculatePrettyFqn() {
+    String type = descriptor == null ? null : externalShortClassName(externalType(descriptor));
+    String shortClazzName =
+        className == null ? "?" : externalShortClassName(externalClassName(className));
+    return String.format("%s %s.%s", type, shortClazzName, memberName);
+  }
+
+  /**
+   * Get the singleton {@link FieldSignature} object for this specific {@link Field}. If it is not
+   * yet available in the cache, it will be newly instantiated.
+   *
+   * @param clazz The class containing the target field
+   * @param field The field whose signature is to be generated
+   * @return The cached or newly generated {@link FieldSignature} object
+   */
+  public static FieldSignature computeIfAbsent(Clazz clazz, Field field) {
+    return signatureCache.computeIfAbsent(field, f -> new FieldSignature(clazz, field));
+  }
+
+  /**
+   * Remove all currently cached {@link FieldSignature} objects from the cache, allowing them to be
+   * removed by the garbage collector.
+   */
+  public static void clearCache() {
+    signatureCache.clear();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-
-    public FieldSignature(Clazz clazz, Field field)
-    {
-        this(clazz.getName(), field.getName(clazz), field.getDescriptor(clazz));
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
-
-    @Override
-    public boolean isIncomplete()
-    {
-        return className == null || memberName == null || descriptor == null;
+    if (!super.equals(o)) {
+      return false;
     }
-
-    @Override
-    protected String calculateFqn()
-    {
-        return String.format("L%s;%s", className, memberName);
-    }
-
-    @Override
-    protected String calculatePrettyFqn()
-    {
-        String type = descriptor == null ? null : externalShortClassName(externalType(descriptor));
-        String shortClazzName = className == null ? "?" : externalShortClassName(externalClassName(className));
-        return String.format("%s %s.%s", type, shortClazzName, memberName);
-    }
-
-    /**
-     * Get the singleton {@link FieldSignature} object for this specific {@link Field}.
-     * If it is not yet available in the cache, it will be newly instantiated.
-     *
-     * @param clazz The class containing the target field
-     * @param field The field whose signature is to be generated
-     * @return The cached or newly generated {@link FieldSignature} object
-     */
-    public static FieldSignature computeIfAbsent(Clazz clazz, Field field)
-    {
-        return signatureCache.computeIfAbsent(field, f -> new FieldSignature(clazz, field));
-    }
-
-    /**
-     * Remove all currently cached {@link FieldSignature} objects from the cache,
-     * allowing them to be removed by the garbage collector.
-     */
-    public static void clearCache()
-    {
-        signatureCache.clear();
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-        if (!super.equals(o))
-        {
-            return false;
-        }
-        FieldSignature that = (FieldSignature) o;
-        return Objects.equals(memberName, that.memberName) && Objects.equals(descriptor, that.descriptor);
-    }
+    FieldSignature that = (FieldSignature) o;
+    return Objects.equals(memberName, that.memberName)
+        && Objects.equals(descriptor, that.descriptor);
+  }
 }

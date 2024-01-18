@@ -17,35 +17,25 @@
  */
 package proguard.classfile.kotlin;
 
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_FILE_FACADE;
+
 import proguard.classfile.*;
 import proguard.classfile.kotlin.visitor.*;
 
-import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_FILE_FACADE;
+public class KotlinFileFacadeKindMetadata extends KotlinDeclarationContainerMetadata {
 
-public class KotlinFileFacadeKindMetadata
-extends KotlinDeclarationContainerMetadata
-{
+  public KotlinFileFacadeKindMetadata(int[] mv, int xi, String xs, String pn) {
+    super(METADATA_KIND_FILE_FACADE, mv, xi, xs, pn);
+  }
 
-    public KotlinFileFacadeKindMetadata(int[]  mv,
-                                        int    xi,
-                                        String xs,
-                                        String pn)
-    {
-        super(METADATA_KIND_FILE_FACADE, mv, xi, xs, pn);
-    }
+  @Override
+  public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor) {
+    kotlinMetadataVisitor.visitKotlinFileFacadeMetadata(clazz, this);
+  }
 
-
-    @Override
-    public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        kotlinMetadataVisitor.visitKotlinFileFacadeMetadata(clazz, this);
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin file facade(" + ownerClassName + ")";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin file facade(" + ownerClassName + ")";
+  }
 }

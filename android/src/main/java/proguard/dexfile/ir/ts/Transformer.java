@@ -25,5 +25,5 @@ import proguard.dexfile.ir.IrMethod;
  */
 public interface Transformer {
 
-    void transform(IrMethod method);
+  void transform(IrMethod method);
 }

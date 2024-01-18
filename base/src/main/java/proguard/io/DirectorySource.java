@@ -20,70 +20,53 @@ package proguard.io;
 import java.io.*;
 
 /**
- * This DataEntrySource can read a given file or directory, recursively,
- * passing its files as {@link DataEntry} instances to {@link DataEntryReader}
- * instances.
+ * This DataEntrySource can read a given file or directory, recursively, passing its files as {@link
+ * DataEntry} instances to {@link DataEntryReader} instances.
  *
  * @author Eric Lafortune
  */
-public class DirectorySource implements DataEntrySource
-{
-    private final File directory;
+public class DirectorySource implements DataEntrySource {
+  private final File directory;
 
+  /** Creates a new DirectorySource for the given directory. */
+  public DirectorySource(File directory) {
+    this.directory = directory;
+  }
 
-    /**
-     * Creates a new DirectorySource for the given directory.
-     */
-    public DirectorySource(File directory)
-    {
-        this.directory = directory;
+  // Implementations for DataEntrySource.
+
+  @Override
+  public void pumpDataEntries(DataEntryReader dataEntryReader) throws IOException {
+    if (!directory.exists()) {
+      throw new IOException("No such file or directory: " + directory);
     }
 
+    readFiles(directory, dataEntryReader);
+  }
 
-    // Implementations for DataEntrySource.
+  // Small utility methods.
 
-    @Override
-    public void pumpDataEntries(DataEntryReader dataEntryReader)
-    throws IOException
-    {
-        if (!directory.exists())
-        {
-            throw new IOException("No such file or directory: " + directory);
+  /**
+   * Reads the given subdirectory recursively, applying the given DataEntryReader to all files that
+   * are encountered.
+   */
+  private void readFiles(File file, DataEntryReader dataEntryReader) throws IOException {
+    // Pass the file data entry to the reader.
+    dataEntryReader.read(new FileDataEntry(directory, file));
+
+    if (file.isDirectory()) {
+      // Recurse into the subdirectory.
+      File[] listedFiles = file.listFiles();
+
+      for (int index = 0; index < listedFiles.length; index++) {
+        File listedFile = listedFiles[index];
+        try {
+          readFiles(listedFile, dataEntryReader);
+        } catch (IOException e) {
+          throw new IOException(
+              "Can't read [" + listedFile.getName() + "] (" + e.getMessage() + ")", e);
         }
-
-        readFiles(directory, dataEntryReader);
+      }
     }
-
-
-    // Small utility methods.
-
-    /**
-     * Reads the given subdirectory recursively, applying the given DataEntryReader
-     * to all files that are encountered.
-     */
-    private void readFiles(File file, DataEntryReader dataEntryReader)
-    throws IOException
-    {
-        // Pass the file data entry to the reader.
-        dataEntryReader.read(new FileDataEntry(directory, file));
-
-        if (file.isDirectory())
-        {
-            // Recurse into the subdirectory.
-            File[] listedFiles = file.listFiles();
-
-            for (int index = 0; index < listedFiles.length; index++)
-            {
-                File listedFile = listedFiles[index];
-                try
-                {
-                    readFiles(listedFile, dataEntryReader);
-                }
-                catch (IOException e)
-                {
-                    throw new IOException("Can't read ["+listedFile.getName()+"] ("+e.getMessage()+")", e);
-                }
-            }
-        }
-    }
+  }
 }

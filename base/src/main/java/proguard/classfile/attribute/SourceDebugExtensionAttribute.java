@@ -25,36 +25,25 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author James Hamilton
  */
-public class SourceDebugExtensionAttribute extends Attribute
-{
-    public int    u4attributeLength;
-    public byte[] info;
+public class SourceDebugExtensionAttribute extends Attribute {
+  public int u4attributeLength;
+  public byte[] info;
 
+  /** Creates an uninitialized SourceDebugExtensionAttribute. */
+  public SourceDebugExtensionAttribute() {}
 
-    /**
-     * Creates an uninitialized SourceDebugExtensionAttribute.
-     */
-    public SourceDebugExtensionAttribute() {}
+  /** Creates an initialized SourceDebugExtensionAttribute. */
+  public SourceDebugExtensionAttribute(
+      int u2attributeNameIndex, int u4attributeLength, byte[] info) {
+    super(u2attributeNameIndex);
 
+    this.u4attributeLength = u4attributeLength;
+    this.info = info;
+  }
 
-    /**
-     * Creates an initialized SourceDebugExtensionAttribute.
-     */
-    public SourceDebugExtensionAttribute(int    u2attributeNameIndex,
-                                         int    u4attributeLength,
-                                         byte[] info)
-    {
-        super(u2attributeNameIndex);
+  // Implementations for Attribute.
 
-        this.u4attributeLength = u4attributeLength;
-        this.info              = info;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSourceDebugExtensionAttribute(clazz, this);
-    }
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSourceDebugExtensionAttribute(clazz, this);
+  }
 }

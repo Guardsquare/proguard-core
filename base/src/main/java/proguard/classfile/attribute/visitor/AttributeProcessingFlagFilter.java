@@ -23,55 +23,46 @@ import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 
 /**
- * This {@link AttributeVisitor} delegates its visits to another given
- * {@link AttributeVisitor}, but only when the visited attribute has the proper
- * processing flags.
+ * This {@link AttributeVisitor} delegates its visits to another given {@link AttributeVisitor}, but
+ * only when the visited attribute has the proper processing flags.
  *
  * @author Johan Leys
  */
-public class AttributeProcessingFlagFilter
-implements   AttributeVisitor
-{
-    private final int              requiredSetProcessingFlags;
-    private final int              requiredUnsetProcessingFlags;
-    private final AttributeVisitor attributeVisitor;
+public class AttributeProcessingFlagFilter implements AttributeVisitor {
+  private final int requiredSetProcessingFlags;
+  private final int requiredUnsetProcessingFlags;
+  private final AttributeVisitor attributeVisitor;
 
+  /**
+   * Creates a new AttributeProcessingFlagFilter.
+   *
+   * @param requiredSetProcessingFlags the attribute processing flags that should be set.
+   * @param requiredUnsetProcessingFlags the attribute processing flags that should beunset.
+   * @param attributeVisitor the <code>AttributeVisitor</code> to which visits will be delegated.
+   */
+  public AttributeProcessingFlagFilter(
+      int requiredSetProcessingFlags,
+      int requiredUnsetProcessingFlags,
+      AttributeVisitor attributeVisitor) {
+    this.requiredSetProcessingFlags = requiredSetProcessingFlags;
+    this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
+    this.attributeVisitor = attributeVisitor;
+  }
 
-    /**
-     * Creates a new AttributeProcessingFlagFilter.
-     *
-     * @param requiredSetProcessingFlags   the attribute processing flags that should be set.
-     * @param requiredUnsetProcessingFlags the attribute processing flags that should beunset.
-     * @param attributeVisitor             the <code>AttributeVisitor</code> to which visits will be delegated.
-     */
-    public AttributeProcessingFlagFilter(int              requiredSetProcessingFlags,
-                                         int              requiredUnsetProcessingFlags,
-                                         AttributeVisitor attributeVisitor)
-    {
-        this.requiredSetProcessingFlags   = requiredSetProcessingFlags;
-        this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
-        this.attributeVisitor             = attributeVisitor;
+  // Implementations for AttributeVisitor.
+
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    if (accepted(codeAttribute.processingFlags)) {
+      codeAttribute.accept(clazz, method, attributeVisitor);
     }
+  }
 
+  // Small utility methods.
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        if (accepted(codeAttribute.processingFlags))
-        {
-            codeAttribute.accept(clazz, method, attributeVisitor);
-        }
-    }
-
-    // Small utility methods.
-
-    private boolean accepted(int processingFlags)
-    {
-        return (requiredSetProcessingFlags & ~processingFlags) == 0 &&
-               (requiredUnsetProcessingFlags &  processingFlags) == 0;
-    }
+  private boolean accepted(int processingFlags) {
+    return (requiredSetProcessingFlags & ~processingFlags) == 0
+        && (requiredUnsetProcessingFlags & processingFlags) == 0;
+  }
 }

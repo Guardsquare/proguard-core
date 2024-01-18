@@ -17,75 +17,60 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.Set;
 import proguard.classfile.Clazz;
 import proguard.classfile.Member;
 
-import java.util.Set;
-
-
 /**
- * This MemberVisitor delegates its visits to one of two other visitors,
- * depending on whether the member is present in the given member collection or not.
+ * This MemberVisitor delegates its visits to one of two other visitors, depending on whether the
+ * member is present in the given member collection or not.
  *
  * @author Johan Leys
  */
-public class MemberCollectionFilter
-implements   MemberVisitor
-{
-    private final Set<Member> members;
+public class MemberCollectionFilter implements MemberVisitor {
+  private final Set<Member> members;
 
-    private final MemberVisitor acceptedVisitor;
-    private final MemberVisitor rejectedVisitor;
+  private final MemberVisitor acceptedVisitor;
+  private final MemberVisitor rejectedVisitor;
 
-    /**
-     * Creates a new MemberCollectionFilter.
-     *
-     * @param members         the members collection to be searched in.
-     * @param acceptedVisitor this visitor will be called for members that are
-     *                        present in the member collection.
-     */
-    public MemberCollectionFilter(Set<Member>   members,
-                                  MemberVisitor acceptedVisitor)
-    {
-        this(members, acceptedVisitor, null);
+  /**
+   * Creates a new MemberCollectionFilter.
+   *
+   * @param members the members collection to be searched in.
+   * @param acceptedVisitor this visitor will be called for members that are present in the member
+   *     collection.
+   */
+  public MemberCollectionFilter(Set<Member> members, MemberVisitor acceptedVisitor) {
+    this(members, acceptedVisitor, null);
+  }
+
+  /**
+   * Creates a new MemberCollectionFilter.
+   *
+   * @param members the member collection to be searched in.
+   * @param acceptedVisitor this visitor will be called for members that are present in the member
+   *     collection.
+   * @param rejectedVisitor this visitor will be called otherwise.
+   */
+  public MemberCollectionFilter(
+      Set<Member> members, MemberVisitor acceptedVisitor, MemberVisitor rejectedVisitor) {
+    this.members = members;
+    this.acceptedVisitor = acceptedVisitor;
+    this.rejectedVisitor = rejectedVisitor;
+  }
+
+  // Implementations for MemberVisitor.
+
+  public void visitAnyMember(Clazz clazz, Member member) {
+    MemberVisitor delegateVisitor = delegateVisitor(member);
+    if (delegateVisitor != null) {
+      member.accept(clazz, delegateVisitor);
     }
+  }
 
+  // Small utility methods.
 
-    /**
-     * Creates a new MemberCollectionFilter.
-     *
-     * @param members         the member collection to be searched in.
-     * @param acceptedVisitor this visitor will be called for members that are
-     *                        present in the member collection.
-     * @param rejectedVisitor this visitor will be called otherwise.
-     */
-    public MemberCollectionFilter(Set<Member>   members,
-                                  MemberVisitor acceptedVisitor,
-                                  MemberVisitor rejectedVisitor)
-    {
-        this.members       = members;
-        this.acceptedVisitor = acceptedVisitor;
-        this.rejectedVisitor = rejectedVisitor;
-    }
-
-
-    // Implementations for MemberVisitor.
-
-    public void visitAnyMember(Clazz clazz, Member member)
-    {
-        MemberVisitor delegateVisitor = delegateVisitor(member);
-        if (delegateVisitor != null)
-        {
-            member.accept(clazz, delegateVisitor);
-        }
-    }
-
-
-    // Small utility methods.
-
-    private MemberVisitor delegateVisitor(Member member)
-    {
-        return (members.contains(member)) ?
-            acceptedVisitor : rejectedVisitor;
-    }
+  private MemberVisitor delegateVisitor(Member member) {
+    return (members.contains(member)) ? acceptedVisitor : rejectedVisitor;
+  }
 }

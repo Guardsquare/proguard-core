@@ -21,118 +21,86 @@ import java.util.*;
 
 /**
  * A key-values map that can have multiple values associated with each key.
- * <p/>
- * There is an efficient lookup method to retrieve all values of all keys.
+ *
+ * <p>There is an efficient lookup method to retrieve all values of all keys.
  *
  * @param <K> the key type
  * @param <V> the value type
- *
  * @author Johan Leys
  */
-public class MultiValueMap<K, V>
-{
-    private final Map<K, Set<V>> keyValueMap = createKeyMap();
+public class MultiValueMap<K, V> {
+  private final Map<K, Set<V>> keyValueMap = createKeyMap();
 
-    private final Set<V> values = createValueSet();
+  private final Set<V> values = createValueSet();
 
+  protected Set<V> createValueSet() {
+    return new LinkedHashSet<V>();
+  }
 
-    protected Set<V> createValueSet()
-    {
-        return new LinkedHashSet<V>();
+  protected Map<K, Set<V>> createKeyMap() {
+    return new LinkedHashMap<K, Set<V>>();
+  }
+
+  public int size() {
+    return keyValueMap.size();
+  }
+
+  public Set<K> keySet() {
+    return keyValueMap.keySet();
+  }
+
+  public Collection<Set<V>> values() {
+    return keyValueMap.values();
+  }
+
+  public Set<Map.Entry<K, Set<V>>> entrySet() {
+    return keyValueMap.entrySet();
+  }
+
+  public void put(K key, V value) {
+    putAll(key, Collections.singleton(value));
+  }
+
+  public void putAll(Set<K> key, V value) {
+    putAll(key, Collections.singleton(value));
+  }
+
+  public void putAll(Set<K> keys, Set<V> values) {
+    for (K key : keys) {
+      putAll(key, values);
     }
+  }
 
-
-    protected Map<K, Set<V>> createKeyMap()
-    {
-        return new LinkedHashMap<K, Set<V>>();
+  public void putAll(K key, Set<V> values) {
+    this.values.addAll(values);
+    Set<V> existingValues = keyValueMap.get(key);
+    if (existingValues == null) {
+      existingValues = createValueSet();
+      keyValueMap.put(key, existingValues);
     }
+    existingValues.addAll(values);
+  }
 
+  public boolean remove(K key, V value) {
+    Set<V> values = keyValueMap.get(key);
+    return values != null && values.remove(value);
+  }
 
-    public int size()
-    {
-        return keyValueMap.size();
-    }
+  public Set<V> get(K key) {
+    return keyValueMap.get(key);
+  }
 
+  /**
+   * Returns a Set with all values of all keys.
+   *
+   * @return a Set with all values of all keys.
+   */
+  public Set<V> getValues() {
+    return values;
+  }
 
-    public Set<K> keySet()
-    {
-        return keyValueMap.keySet();
-    }
-
-
-    public Collection<Set<V>> values()
-    {
-        return keyValueMap.values();
-    }
-
-
-    public Set<Map.Entry<K, Set<V>>> entrySet()
-    {
-        return keyValueMap.entrySet();
-    }
-
-
-    public void put(K key, V value)
-    {
-        putAll(key, Collections.singleton(value));
-    }
-
-
-    public void putAll(Set<K> key, V value)
-    {
-        putAll(key, Collections.singleton(value));
-    }
-
-
-    public void putAll(Set<K> keys, Set<V> values)
-    {
-        for (K key : keys)
-        {
-            putAll(key, values);
-        }
-    }
-
-
-    public void putAll(K key, Set<V> values)
-    {
-        this.values.addAll(values);
-        Set<V> existingValues = keyValueMap.get(key);
-        if (existingValues == null)
-        {
-            existingValues = createValueSet();
-            keyValueMap.put(key, existingValues);
-        }
-        existingValues.addAll(values);
-    }
-
-
-    public boolean remove(K key, V value)
-    {
-        Set<V> values = keyValueMap.get(key);
-        return values != null && values.remove(value);
-    }
-
-
-    public Set<V> get(K key)
-    {
-        return keyValueMap.get(key);
-    }
-
-
-    /**
-     * Returns a Set with all values of all keys.
-     *
-     * @return a Set with all values of all keys.
-     */
-    public Set<V> getValues()
-    {
-        return values;
-    }
-
-
-    public void clear()
-    {
-        keyValueMap.clear();
-        values.clear();
-    }
+  public void clear() {
+    keyValueMap.clear();
+    values.clear();
+  }
 }

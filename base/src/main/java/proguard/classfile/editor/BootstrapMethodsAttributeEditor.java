@@ -21,68 +21,57 @@ import proguard.classfile.attribute.*;
 import proguard.util.ArrayUtil;
 
 /**
- * This class can add/remove bootstrap methods to/from a given bootstrap methods
- * attribute. Bootstrap methods to be added must have been filled out beforehand.
+ * This class can add/remove bootstrap methods to/from a given bootstrap methods attribute.
+ * Bootstrap methods to be added must have been filled out beforehand.
  *
  * @author Eric Lafortune
  */
-public class BootstrapMethodsAttributeEditor
-{
-    private BootstrapMethodsAttribute targetBootstrapMethodsAttribute;
+public class BootstrapMethodsAttributeEditor {
+  private BootstrapMethodsAttribute targetBootstrapMethodsAttribute;
 
+  /**
+   * Creates a new BootstrapMethodsAttributeEditor that will edit bootstrap methods in the given
+   * bootstrap methods attribute.
+   */
+  public BootstrapMethodsAttributeEditor(
+      BootstrapMethodsAttribute targetBootstrapMethodsAttribute) {
+    this.targetBootstrapMethodsAttribute = targetBootstrapMethodsAttribute;
+  }
 
-    /**
-     * Creates a new BootstrapMethodsAttributeEditor that will edit bootstrap
-     * methods in the given bootstrap methods attribute.
-     */
-    public BootstrapMethodsAttributeEditor(BootstrapMethodsAttribute targetBootstrapMethodsAttribute)
-    {
-        this.targetBootstrapMethodsAttribute = targetBootstrapMethodsAttribute;
+  /**
+   * Adds a given bootstrap method to the bootstrap methods attribute.
+   *
+   * @return the index of the bootstrap method.
+   */
+  public int addBootstrapMethodInfo(BootstrapMethodInfo bootstrapMethodInfo) {
+    targetBootstrapMethodsAttribute.bootstrapMethods =
+        ArrayUtil.add(
+            targetBootstrapMethodsAttribute.bootstrapMethods,
+            targetBootstrapMethodsAttribute.u2bootstrapMethodsCount,
+            bootstrapMethodInfo);
+
+    return targetBootstrapMethodsAttribute.u2bootstrapMethodsCount++;
+  }
+
+  /** Removes the given bootstrap method from the bootstrap method attribute. */
+  public void removeBootstrapMethodInfo(BootstrapMethodInfo bootstrapMethodInfo) {
+    ArrayUtil.remove(
+        targetBootstrapMethodsAttribute.bootstrapMethods,
+        targetBootstrapMethodsAttribute.u2bootstrapMethodsCount--,
+        findBootstrapMethodInfoIndex(bootstrapMethodInfo));
+  }
+
+  /** Finds the index of the given bootstrap method info in the target attribute. */
+  private int findBootstrapMethodInfoIndex(BootstrapMethodInfo bootstrapMethodInfo) {
+    int methodsCount = targetBootstrapMethodsAttribute.u2bootstrapMethodsCount;
+    BootstrapMethodInfo[] methodInfos = targetBootstrapMethodsAttribute.bootstrapMethods;
+
+    for (int index = 0; index < methodsCount; index++) {
+      if (methodInfos[index].equals(bootstrapMethodInfo)) {
+        return index;
+      }
     }
 
-
-    /**
-     * Adds a given bootstrap method to the bootstrap methods attribute.
-     * @return the index of the bootstrap method.
-     */
-    public int addBootstrapMethodInfo(BootstrapMethodInfo bootstrapMethodInfo)
-    {
-        targetBootstrapMethodsAttribute.bootstrapMethods =
-            ArrayUtil.add(targetBootstrapMethodsAttribute.bootstrapMethods,
-                          targetBootstrapMethodsAttribute.u2bootstrapMethodsCount,
-                          bootstrapMethodInfo);
-
-        return targetBootstrapMethodsAttribute.u2bootstrapMethodsCount++;
-    }
-
-
-    /**
-     * Removes the given bootstrap method from the bootstrap method attribute.
-     */
-    public void removeBootstrapMethodInfo(BootstrapMethodInfo bootstrapMethodInfo)
-    {
-        ArrayUtil.remove(targetBootstrapMethodsAttribute.bootstrapMethods,
-                         targetBootstrapMethodsAttribute.u2bootstrapMethodsCount--,
-                         findBootstrapMethodInfoIndex(bootstrapMethodInfo));
-    }
-
-
-    /**
-     * Finds the index of the given bootstrap method info in the target attribute.
-     */
-    private int findBootstrapMethodInfoIndex(BootstrapMethodInfo bootstrapMethodInfo)
-    {
-        int                   methodsCount = targetBootstrapMethodsAttribute.u2bootstrapMethodsCount;
-        BootstrapMethodInfo[] methodInfos  = targetBootstrapMethodsAttribute.bootstrapMethods;
-
-        for (int index = 0; index < methodsCount; index++)
-        {
-            if (methodInfos[index].equals(bootstrapMethodInfo))
-            {
-                return index;
-            }
-        }
-
-        return methodsCount;
-    }
+    return methodsCount;
+  }
 }

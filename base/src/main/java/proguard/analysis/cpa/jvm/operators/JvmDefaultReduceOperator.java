@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.jvm.operators;
 
-import java.util.Collections;
 import java.util.ListIterator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
@@ -37,122 +36,117 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.util.ClassUtil;
 
 /**
- * This {@link ReduceOperator} simulates the JVM behavior on a method call. It takes a clone of the caller {@link JvmAbstractState}, creates an empty stack and a local variables array with the callee
- * arguments.
+ * This {@link ReduceOperator} simulates the JVM behavior on a method call. It takes a clone of the
+ * caller {@link JvmAbstractState}, creates an empty stack and a local variables array with the
+ * callee arguments.
  *
  * @author Carlo Alberto Pozzoli
  */
-
 public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT>>
     implements ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>,
-               JvmAbstractStateFactory<StateT>
-{
-    
-    private final boolean reduceHeap;
+        JvmAbstractStateFactory<StateT> {
 
-    /**
-     * Create the default reduce operator for the JVM.
-     */
-    public JvmDefaultReduceOperator()
-    {
-        this(true);
+  private final boolean reduceHeap;
+
+  /** Create the default reduce operator for the JVM. */
+  public JvmDefaultReduceOperator() {
+    this(true);
+  }
+
+  /**
+   * Create the default reduce operator for the JVM.
+   *
+   * @param reduceHeap whether reduction of the heap is performed
+   */
+  public JvmDefaultReduceOperator(boolean reduceHeap) {
+    this.reduceHeap = reduceHeap;
+  }
+
+  // Implementations for ReduceOperator
+
+  @Override
+  public JvmAbstractState<StateT> reduce(
+      AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
+
+    if (!(expandedInitialState instanceof JvmAbstractState)) {
+      throw new IllegalArgumentException(
+          "The operator works on JVM states, states of type "
+              + expandedInitialState.getClass().getName()
+              + " are not supported");
     }
 
-    /**
-     * Create the default reduce operator for the JVM.
-     *
-     * @param reduceHeap whether reduction of the heap is performed
-     */
-    public JvmDefaultReduceOperator(boolean reduceHeap)
-    {
-        this.reduceHeap = reduceHeap;
-    }
+    JvmAbstractState<StateT> initialJvmState =
+        (JvmAbstractState<StateT>) expandedInitialState.copy();
+    initialJvmState.setProgramLocation(blockEntryNode);
 
-    // Implementations for ReduceOperator
+    ListAbstractState<StateT> localVariables = new ListAbstractState<>();
+    StackAbstractState<StateT> callStack = new StackAbstractState<>();
+    JvmFrameAbstractState<StateT> frame = new JvmFrameAbstractState<>(localVariables, callStack);
 
-    @Override
-    public JvmAbstractState<StateT> reduce(AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call)
-    {
+    int i = 0;
+    if (call.getTarget().descriptor.argumentTypes != null) {
+      int argSize = call.getJvmArgumentSize();
+      ListIterator<String> iterator =
+          call.getTarget()
+              .descriptor
+              .argumentTypes
+              .listIterator(call.getTarget().descriptor.argumentTypes.size());
 
-        if (!(expandedInitialState instanceof JvmAbstractState))
-        {
-            throw new IllegalArgumentException("The operator works on JVM states, states of type " + expandedInitialState.getClass().getName() + " are not supported");
+      // set local variables in reverse order from the stack
+      // variables of size 2 need to be reversed as done in JvmTransferRelation
+      while (iterator.hasPrevious()) {
+        String type = iterator.previous();
+        int size = ClassUtil.internalTypeSize(type);
+
+        StateT state = initialJvmState.peek(i++);
+
+        localVariables.set(argSize - size, state, null);
+
+        if (size == 2) {
+          state = initialJvmState.peek(i++);
+
+          localVariables.set(argSize - size + 1, state, null);
         }
 
-        JvmAbstractState<StateT> initialJvmState = (JvmAbstractState<StateT>) expandedInitialState.copy();
-        initialJvmState.setProgramLocation(blockEntryNode);
-
-        ListAbstractState<StateT> localVariables = new ListAbstractState<>();
-        StackAbstractState<StateT> callStack = new StackAbstractState<>();
-        JvmFrameAbstractState<StateT> frame = new JvmFrameAbstractState<>(localVariables, callStack);
-
-        int i = 0;
-        if (call.getTarget().descriptor.argumentTypes != null)
-        {
-            int argSize = call.getJvmArgumentSize();
-            ListIterator<String> iterator = call.getTarget().descriptor.argumentTypes.listIterator(call.getTarget().descriptor.argumentTypes.size());
-
-            // set local variables in reverse order from the stack
-            // variables of size 2 need to be reversed as done in JvmTransferRelation
-            while (iterator.hasPrevious())
-            {
-                String type = iterator.previous();
-                int size = ClassUtil.internalTypeSize(type);
-
-                StateT state = initialJvmState.peek(i++);
-
-                localVariables.set(argSize - size, state, null);
-
-                if (size == 2)
-                {
-                    state = initialJvmState.peek(i++);
-
-                    localVariables.set(argSize - size + 1, state, null);
-                }
-
-                argSize -= size;
-            }
-        }
-
-        MapAbstractState<String, StateT> staticFields = initialJvmState.getStaticFields();
-        reduceStaticFields(staticFields);
-
-
-        if (!call.isStatic())
-        {
-            StateT state = initialJvmState.peek(i++);
-
-            localVariables.set(0, state, null);
-        }
-        
-        JvmHeapAbstractState<StateT> heap = initialJvmState.getHeap();
-        if (reduceHeap)
-        {
-            reduceHeap(heap, frame, initialJvmState.getStaticFields());
-        }
-
-        return createJvmAbstractState(initialJvmState.getProgramLocation(), frame, heap, initialJvmState.getStaticFields());
+        argSize -= size;
+      }
     }
 
-    /**
-     * Reduces the static fields. The default implementation doesn't perform any reduction.
-     *
-     * @param staticFields the static fields map that is modified by this method by performing reduction
-     */
-    protected void reduceStaticFields(MapAbstractState<String, StateT> staticFields)
-    {
+    MapAbstractState<String, StateT> staticFields = initialJvmState.getStaticFields();
+    reduceStaticFields(staticFields);
+
+    if (!call.isStatic()) {
+      StateT state = initialJvmState.peek(i++);
+
+      localVariables.set(0, state, null);
     }
 
-    /**
-     * Reduces the heap state. The default implementation doesn't perform any reduction.
-     *
-     * @param heap                the heap that is modified by this method by performing reduction
-     * @param reducedFrame        the frame after reduction has been performed on it
-     * @param reducedStaticFields the static fields after reduction has been performed on them
-     */
-    protected void reduceHeap(JvmHeapAbstractState<StateT> heap,
-                              JvmFrameAbstractState<StateT> reducedFrame,
-                              MapAbstractState<String, StateT> reducedStaticFields)
-    {
+    JvmHeapAbstractState<StateT> heap = initialJvmState.getHeap();
+    if (reduceHeap) {
+      reduceHeap(heap, frame, initialJvmState.getStaticFields());
     }
+
+    return createJvmAbstractState(
+        initialJvmState.getProgramLocation(), frame, heap, initialJvmState.getStaticFields());
+  }
+
+  /**
+   * Reduces the static fields. The default implementation doesn't perform any reduction.
+   *
+   * @param staticFields the static fields map that is modified by this method by performing
+   *     reduction
+   */
+  protected void reduceStaticFields(MapAbstractState<String, StateT> staticFields) {}
+
+  /**
+   * Reduces the heap state. The default implementation doesn't perform any reduction.
+   *
+   * @param heap the heap that is modified by this method by performing reduction
+   * @param reducedFrame the frame after reduction has been performed on it
+   * @param reducedStaticFields the static fields after reduction has been performed on them
+   */
+  protected void reduceHeap(
+      JvmHeapAbstractState<StateT> heap,
+      JvmFrameAbstractState<StateT> reducedFrame,
+      MapAbstractState<String, StateT> reducedStaticFields) {}
 }

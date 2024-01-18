@@ -25,13 +25,16 @@ import java.util.Collection;
  *
  * @author Dmitry Ivanov
  */
-public interface StopOperator
-{
+public interface StopOperator {
 
-    /**
-     * The operator may decide based on the (generalized under the given {@code precision}) convergence.
-     * In this case it needs to look up the {@code abstractState} in the {@code reachedAbstractStates}.
-     * Otherwise, it can return {@code true} if sufficient information is collected, e.g., a safety property is violated.
-     */
-    boolean stop(AbstractState abstractState, Collection<? extends AbstractState> reachedAbstractStates, Precision precision);
+  /**
+   * The operator may decide based on the (generalized under the given {@code precision})
+   * convergence. In this case it needs to look up the {@code abstractState} in the {@code
+   * reachedAbstractStates}. Otherwise, it can return {@code true} if sufficient information is
+   * collected, e.g., a safety property is violated.
+   */
+  boolean stop(
+      AbstractState abstractState,
+      Collection<? extends AbstractState> reachedAbstractStates,
+      Precision precision);
 }

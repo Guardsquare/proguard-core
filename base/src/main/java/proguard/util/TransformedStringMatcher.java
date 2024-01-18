@@ -21,43 +21,36 @@
 package proguard.util;
 
 /**
- * This StringMatcher delegates its tests to another given StringMatcher,
- * with strings that have been transformed with a given function.
+ * This StringMatcher delegates its tests to another given StringMatcher, with strings that have
+ * been transformed with a given function.
  *
  * @author Eric Lafortune
  */
-public class TransformedStringMatcher extends StringMatcher
-{
-    private final StringFunction stringFunction;
-    private final StringMatcher  stringMatcher;
+public class TransformedStringMatcher extends StringMatcher {
+  private final StringFunction stringFunction;
+  private final StringMatcher stringMatcher;
 
+  /**
+   * Creates a new TransformedStringMatcher.
+   *
+   * @param stringFunction the function to transform strings.
+   * @param stringMatcher the string matcher to test the transformed strings.
+   */
+  public TransformedStringMatcher(StringFunction stringFunction, StringMatcher stringMatcher) {
+    this.stringFunction = stringFunction;
+    this.stringMatcher = stringMatcher;
+  }
 
-    /**
-     * Creates a new TransformedStringMatcher.
-     * @param stringFunction the function to transform strings.
-     * @param stringMatcher  the string matcher to test the transformed
-     *                       strings.
-     */
-    public TransformedStringMatcher(StringFunction stringFunction,
-                                    StringMatcher  stringMatcher)
-    {
-        this.stringFunction = stringFunction;
-        this.stringMatcher  = stringMatcher;
-    }
+  // Implementations for StringMatcher.
 
+  @Override
+  public boolean matches(String string) {
+    return stringMatcher.matches(stringFunction.transform(string));
+  }
 
-    // Implementations for StringMatcher.
-
-    @Override
-    public boolean matches(String string)
-    {
-        return stringMatcher.matches(stringFunction.transform(string));
-    }
-
-
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        return stringMatcher.matches(stringFunction.transform(string.substring(beginOffset, endOffset)));
-    }
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    return stringMatcher.matches(
+        stringFunction.transform(string.substring(beginOffset, endOffset)));
+  }
 }

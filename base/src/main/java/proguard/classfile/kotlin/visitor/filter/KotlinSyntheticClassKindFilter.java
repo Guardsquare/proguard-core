@@ -17,60 +17,55 @@
  */
 package proguard.classfile.kotlin.visitor.filter;
 
+import java.util.function.Predicate;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 
-import java.util.function.Predicate;
+/** Delegate to another {@link KotlinMetadataVisitor} if the predicate returns true. */
+public class KotlinSyntheticClassKindFilter implements KotlinMetadataVisitor {
+  private final Predicate<KotlinSyntheticClassKindMetadata> predicate;
+  private final KotlinMetadataVisitor kotlinMetadataVisitor;
 
-/**
- * Delegate to another {@link KotlinMetadataVisitor} if the predicate returns true.
- *
- */
-public class KotlinSyntheticClassKindFilter
-implements   KotlinMetadataVisitor
-{
-    private final Predicate<KotlinSyntheticClassKindMetadata> predicate;
-    private final KotlinMetadataVisitor                       kotlinMetadataVisitor;
+  public KotlinSyntheticClassKindFilter(KotlinMetadataVisitor kotlinMetadataVisitor) {
+    this(__ -> true, kotlinMetadataVisitor);
+  }
 
-    public KotlinSyntheticClassKindFilter(KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        this(__ -> true, kotlinMetadataVisitor);
+  public KotlinSyntheticClassKindFilter(
+      Predicate<KotlinSyntheticClassKindMetadata> predicate,
+      KotlinMetadataVisitor kotlinMetadataVisitor) {
+    this.predicate = predicate;
+    this.kotlinMetadataVisitor = kotlinMetadataVisitor;
+  }
+
+  @Override
+  public void visitKotlinSyntheticClassMetadata(
+      Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    if (this.predicate.test(kotlinSyntheticClassKindMetadata)) {
+      kotlinSyntheticClassKindMetadata.accept(clazz, kotlinMetadataVisitor);
     }
+  }
 
-    public KotlinSyntheticClassKindFilter(Predicate<KotlinSyntheticClassKindMetadata> predicate, KotlinMetadataVisitor kotlinMetadataVisitor) {
-        this.predicate             = predicate;
-        this.kotlinMetadataVisitor = kotlinMetadataVisitor;
-    }
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
+  // Helper methods.
 
-    @Override
-    public void visitKotlinSyntheticClassMetadata(Clazz                            clazz,
-                                                  KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        if (this.predicate.test(kotlinSyntheticClassKindMetadata))
-        {
-            kotlinSyntheticClassKindMetadata.accept(clazz, kotlinMetadataVisitor);
-        }
-    }
+  public static boolean isLambda(
+      KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    return kotlinSyntheticClassKindMetadata.flavor
+        == KotlinSyntheticClassKindMetadata.Flavor.LAMBDA;
+  }
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+  public static boolean isWhenMappings(
+      KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    return kotlinSyntheticClassKindMetadata.flavor
+        == KotlinSyntheticClassKindMetadata.Flavor.WHEN_MAPPINGS;
+  }
 
-    // Helper methods.
-
-    public static boolean isLambda(KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        return kotlinSyntheticClassKindMetadata.flavor == KotlinSyntheticClassKindMetadata.Flavor.LAMBDA;
-    }
-
-    public static boolean isWhenMappings(KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        return kotlinSyntheticClassKindMetadata.flavor == KotlinSyntheticClassKindMetadata.Flavor.WHEN_MAPPINGS;
-    }
-
-    public static boolean isDefaultImpls(KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        return kotlinSyntheticClassKindMetadata.flavor == KotlinSyntheticClassKindMetadata.Flavor.DEFAULT_IMPLS;
-    }
+  public static boolean isDefaultImpls(
+      KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    return kotlinSyntheticClassKindMetadata.flavor
+        == KotlinSyntheticClassKindMetadata.Flavor.DEFAULT_IMPLS;
+  }
 }

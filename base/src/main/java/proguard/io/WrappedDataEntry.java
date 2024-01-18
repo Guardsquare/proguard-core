@@ -24,70 +24,50 @@ import java.io.*;
  *
  * @author Thomas Neidhart
  */
-public class WrappedDataEntry implements DataEntry
-{
-    protected final DataEntry wrappedEntry;
+public class WrappedDataEntry implements DataEntry {
+  protected final DataEntry wrappedEntry;
 
+  public WrappedDataEntry(DataEntry wrappedEntry) {
+    this.wrappedEntry = wrappedEntry;
+  }
 
-    public WrappedDataEntry(DataEntry wrappedEntry)
-    {
-        this.wrappedEntry = wrappedEntry;
-    }
+  @Override
+  public void closeInputStream() throws IOException {
+    wrappedEntry.closeInputStream();
+  }
 
+  @Override
+  public String getName() {
+    return wrappedEntry.getName();
+  }
 
-    @Override
-    public void closeInputStream() throws IOException
-    {
-        wrappedEntry.closeInputStream();
-    }
+  @Override
+  public String getOriginalName() {
+    return wrappedEntry.getOriginalName();
+  }
 
+  @Override
+  public long getSize() {
+    return wrappedEntry.getSize();
+  }
 
-    @Override
-    public String getName()
-    {
-        return wrappedEntry.getName();
-    }
+  @Override
+  public boolean isDirectory() {
+    return wrappedEntry.isDirectory();
+  }
 
+  @Override
+  public InputStream getInputStream() throws IOException {
+    return wrappedEntry.getInputStream();
+  }
 
-    @Override
-    public String getOriginalName()
-    {
-        return wrappedEntry.getOriginalName();
-    }
+  @Override
+  public DataEntry getParent() {
+    return wrappedEntry.getParent();
+  }
 
-
-    @Override
-    public long getSize()
-    {
-        return wrappedEntry.getSize();
-    }
-
-
-    @Override
-    public boolean isDirectory()
-    {
-        return wrappedEntry.isDirectory();
-    }
-
-
-    @Override
-    public InputStream getInputStream() throws IOException
-    {
-        return wrappedEntry.getInputStream();
-    }
-
-
-    @Override
-    public DataEntry getParent()
-    {
-        return wrappedEntry.getParent();
-    }
-
-
-    @Override
-    public String toString()
-    {
-        return getName();
-    }
-
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

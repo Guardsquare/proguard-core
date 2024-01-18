@@ -18,129 +18,108 @@
 
 package proguard.evaluation.util.jsonprinter;
 
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+/** DTO to track a single instruction. */
+class InstructionRecord implements JsonSerializable {
+  /** The offset of the instruction. */
+  private final int offset;
 
-/**
- * DTO to track a single instruction.
- */
-class InstructionRecord implements JsonSerializable
-{
-    /**
-     * The offset of the instruction.
-     */
-    private final int offset;
+  /** String representation of the instruction. */
+  @NotNull private final String instruction;
 
-    /**
-     * String representation of the instruction.
-     */
-    @NotNull
-    private final String instruction;
+  /**
+   * Contains the final result computations from the partial evaluator regarding the variables of
+   * this instruction.
+   */
+  private List<String> finalVariablesBefore;
 
-    /**
-     * Contains the final result computations from the partial evaluator regarding the variables of this instruction.
-     */
-    private List<String> finalVariablesBefore;
+  /**
+   * Contains the final result computations from the partial evaluator regarding the stack of this
+   * instruction.
+   */
+  private List<String> finalStackBefore;
 
-    /**
-     * Contains the final result computations from the partial evaluator regarding the stack of this instruction.
-     */
-    private List<String> finalStackBefore;
+  /**
+   * Contains the final result computations from the partial evaluator regarding the target
+   * instructions of this instruction.
+   */
+  private List<Integer> finalTargetInstructions;
 
-    /**
-     * Contains the final result computations from the partial evaluator regarding the target instructions of this instruction.
-     */
-    private List<Integer> finalTargetInstructions;
+  /**
+   * Contains the final result computations from the partial evaluator regarding the source
+   * instructions of this instruction.
+   */
+  private List<Integer> finalOriginInstructions;
 
-    /**
-     * Contains the final result computations from the partial evaluator regarding the source instructions of this instruction.
-     */
-    private List<Integer> finalOriginInstructions;
+  public InstructionRecord(int offset, @NotNull String instruction) {
+    this.offset = offset;
+    this.instruction = instruction;
+  }
 
-    public InstructionRecord(int offset, @NotNull String instruction)
-    {
-        this.offset = offset;
-        this.instruction = instruction;
+  @Override
+  public StringBuilder toJson(StringBuilder builder) {
+    builder.append("{");
+    JsonPrinter.toJson("offset", offset, builder).append(",");
+    JsonPrinter.toJson("instruction", instruction, builder);
+    if (finalVariablesBefore != null) {
+      builder.append(",");
+      JsonPrinter.stringListToJson("finalVariablesBefore", finalVariablesBefore, builder);
     }
-
-    @Override
-    public StringBuilder toJson(StringBuilder builder)
-    {
-        builder.append("{");
-        JsonPrinter.toJson("offset", offset, builder).append(",");
-        JsonPrinter.toJson("instruction", instruction, builder);
-        if (finalVariablesBefore != null)
-        {
-            builder.append(",");
-            JsonPrinter.stringListToJson("finalVariablesBefore", finalVariablesBefore, builder);
-        }
-        if (finalStackBefore != null)
-        {
-            builder.append(",");
-            JsonPrinter.stringListToJson("finalStackBefore", finalStackBefore, builder);
-        }
-        if (finalTargetInstructions != null)
-        {
-            builder.append(",");
-            JsonPrinter.intListToJson("finalTargetInstructions", finalTargetInstructions, builder);
-        }
-        if (finalOriginInstructions != null)
-        {
-            builder.append(",");
-            JsonPrinter.intListToJson("finalOriginInstructions", finalOriginInstructions, builder);
-        }
-        return builder.append("}");
+    if (finalStackBefore != null) {
+      builder.append(",");
+      JsonPrinter.stringListToJson("finalStackBefore", finalStackBefore, builder);
     }
-
-    public List<String> getFinalStackBefore()
-    {
-        return finalStackBefore;
+    if (finalTargetInstructions != null) {
+      builder.append(",");
+      JsonPrinter.intListToJson("finalTargetInstructions", finalTargetInstructions, builder);
     }
-
-    public void setFinalStackBefore(List<String> finalStackBefore)
-    {
-        this.finalStackBefore = finalStackBefore;
+    if (finalOriginInstructions != null) {
+      builder.append(",");
+      JsonPrinter.intListToJson("finalOriginInstructions", finalOriginInstructions, builder);
     }
+    return builder.append("}");
+  }
 
-    public List<String> getFinalVariablesBefore()
-    {
-        return finalVariablesBefore;
-    }
+  public List<String> getFinalStackBefore() {
+    return finalStackBefore;
+  }
 
-    public void setFinalVariablesBefore(List<String> finalVariablesBefore)
-    {
-        this.finalVariablesBefore = finalVariablesBefore;
-    }
+  public void setFinalStackBefore(List<String> finalStackBefore) {
+    this.finalStackBefore = finalStackBefore;
+  }
 
-    public List<Integer> getFinalTargetInstructions()
-    {
-        return finalTargetInstructions;
-    }
+  public List<String> getFinalVariablesBefore() {
+    return finalVariablesBefore;
+  }
 
-    public void setFinalTargetInstructions(List<Integer> finalTargetInstructions)
-    {
-        this.finalTargetInstructions = finalTargetInstructions;
-    }
+  public void setFinalVariablesBefore(List<String> finalVariablesBefore) {
+    this.finalVariablesBefore = finalVariablesBefore;
+  }
 
-    public List<Integer> getFinalOriginInstructions()
-    {
-        return finalOriginInstructions;
-    }
+  public List<Integer> getFinalTargetInstructions() {
+    return finalTargetInstructions;
+  }
 
-    public void setFinalOriginInstructions(List<Integer> finalOriginInstructions)
-    {
-        this.finalOriginInstructions = finalOriginInstructions;
-    }
+  public void setFinalTargetInstructions(List<Integer> finalTargetInstructions) {
+    this.finalTargetInstructions = finalTargetInstructions;
+  }
 
-    public int getOffset()
-    {
-        return offset;
-    }
+  public List<Integer> getFinalOriginInstructions() {
+    return finalOriginInstructions;
+  }
 
-    @NotNull
-    public String getInstruction()
-    {
-        return instruction;
-    }
+  public void setFinalOriginInstructions(List<Integer> finalOriginInstructions) {
+    this.finalOriginInstructions = finalOriginInstructions;
+  }
+
+  public int getOffset() {
+    return offset;
+  }
+
+  @NotNull
+  public String getInstruction() {
+    return instruction;
+  }
 }

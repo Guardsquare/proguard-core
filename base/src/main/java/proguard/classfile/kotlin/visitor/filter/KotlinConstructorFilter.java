@@ -17,36 +17,30 @@
  */
 package proguard.classfile.kotlin.visitor.filter;
 
+import java.util.function.Predicate;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor;
 
-import java.util.function.Predicate;
+public class KotlinConstructorFilter implements KotlinConstructorVisitor {
+  private final KotlinConstructorVisitor kotlinConstructorVisitor;
+  private final Predicate<KotlinConstructorMetadata> predicate;
 
+  public KotlinConstructorFilter(
+      Predicate<KotlinConstructorMetadata> predicate,
+      KotlinConstructorVisitor kotlinConstructorVisitor) {
+    this.kotlinConstructorVisitor = kotlinConstructorVisitor;
+    this.predicate = predicate;
+  }
 
-public class KotlinConstructorFilter
-implements   KotlinConstructorVisitor
-{
-    private final KotlinConstructorVisitor             kotlinConstructorVisitor;
-    private final Predicate<KotlinConstructorMetadata> predicate;
-
-    public KotlinConstructorFilter(Predicate<KotlinConstructorMetadata> predicate,
-                                   KotlinConstructorVisitor             kotlinConstructorVisitor)
-    {
-        this.kotlinConstructorVisitor = kotlinConstructorVisitor;
-        this.predicate                = predicate;
+  // Implementations for KotlinConstructorFilter.
+  @Override
+  public void visitConstructor(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata) {
+    if (predicate.test(kotlinConstructorMetadata)) {
+      kotlinConstructorMetadata.accept(clazz, kotlinClassKindMetadata, kotlinConstructorVisitor);
     }
-
-
-    // Implementations for KotlinConstructorFilter.
-    @Override
-    public void visitConstructor(Clazz clazz,
-                                 KotlinClassKindMetadata kotlinClassKindMetadata,
-                                 KotlinConstructorMetadata kotlinConstructorMetadata)
-    {
-        if (predicate.test(kotlinConstructorMetadata))
-        {
-            kotlinConstructorMetadata.accept(clazz, kotlinClassKindMetadata, kotlinConstructorVisitor);
-        }
-    }
+  }
 }

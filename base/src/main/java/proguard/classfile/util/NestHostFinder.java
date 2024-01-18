@@ -27,78 +27,59 @@ import proguard.classfile.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class NestHostFinder
-implements   ClassVisitor,
-             AttributeVisitor
-{
-    private String nestHostClassName;
+public class NestHostFinder implements ClassVisitor, AttributeVisitor {
+  private String nestHostClassName;
 
-
-    /**
-     * Returns whether the two given classes are in the same nest.
-     */
-    public boolean inSameNest(Clazz class1, Clazz class2)
-    {
-        // Are the classes the same?
-        if (class1.equals(class2))
-        {
-            return true;
-        }
-
-        // Do the classes have the same nest host?
-        String nestHostClassName1 = findNestHostClassName(class1);
-        String nestHostClassName2 = findNestHostClassName(class2);
-
-        return nestHostClassName1.equals(nestHostClassName2);
+  /** Returns whether the two given classes are in the same nest. */
+  public boolean inSameNest(Clazz class1, Clazz class2) {
+    // Are the classes the same?
+    if (class1.equals(class2)) {
+      return true;
     }
 
+    // Do the classes have the same nest host?
+    String nestHostClassName1 = findNestHostClassName(class1);
+    String nestHostClassName2 = findNestHostClassName(class2);
 
-    /**
-     * Returns the class name of the nest host of the given class.
-     * This may be the class itself, if the class doesn't have a nest host
-     * attribute (including for class versions below Java 11 and for library
-     * classes).
-     */
-    public String findNestHostClassName(Clazz clazz)
-    {
-        // The default is the name of the class itself.
-        nestHostClassName = clazz.getName();
+    return nestHostClassName1.equals(nestHostClassName2);
+  }
 
-        // Look for an explicit attribute.
-        clazz.accept(this);
+  /**
+   * Returns the class name of the nest host of the given class. This may be the class itself, if
+   * the class doesn't have a nest host attribute (including for class versions below Java 11 and
+   * for library classes).
+   */
+  public String findNestHostClassName(Clazz clazz) {
+    // The default is the name of the class itself.
+    nestHostClassName = clazz.getName();
 
-        // Return the found name.
-        return nestHostClassName;
+    // Look for an explicit attribute.
+    clazz.accept(this);
+
+    // Return the found name.
+    return nestHostClassName;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    // Only program classes store their versions and attributes.
+    // The nest host attribute only exists since Java 10.
+    if (programClass.u4version >= VersionConstants.CLASS_VERSION_10) {
+      programClass.attributesAccept(this);
     }
+  }
 
+  // Implementations for AttributeVisitor.
 
-    // Implementations for ClassVisitor.
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        // Only program classes store their versions and attributes.
-        // The nest host attribute only exists since Java 10.
-        if (programClass.u4version >= VersionConstants.CLASS_VERSION_10)
-        {
-            programClass.attributesAccept(this);
-        }
-    }
-
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitNestHostAttribute(Clazz clazz, NestHostAttribute nestHostAttribute)
-    {
-        // Remember the class name of the nest host.
-        nestHostClassName = clazz.getClassName(nestHostAttribute.u2hostClassIndex);
-    }
+  public void visitNestHostAttribute(Clazz clazz, NestHostAttribute nestHostAttribute) {
+    // Remember the class name of the nest host.
+    nestHostClassName = clazz.getClassName(nestHostAttribute.u2hostClassIndex);
+  }
 }

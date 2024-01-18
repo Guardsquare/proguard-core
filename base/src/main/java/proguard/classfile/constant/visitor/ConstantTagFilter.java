@@ -21,61 +21,46 @@ import proguard.classfile.Clazz;
 import proguard.classfile.constant.Constant;
 
 /**
- * This {@link ConstantVisitor} delegates its visits to one or more
- * specified types of constants.
+ * This {@link ConstantVisitor} delegates its visits to one or more specified types of constants.
  *
  * @author Eric Lafortune
  */
-public class ConstantTagFilter
-implements   ConstantVisitor
-{
-    private final int             constantTagMask;
-    private final ConstantVisitor constantVisitor;
+public class ConstantTagFilter implements ConstantVisitor {
+  private final int constantTagMask;
+  private final ConstantVisitor constantVisitor;
 
+  /**
+   * Creates a new ConstantTagFilter.
+   *
+   * @param constantTag the type of constants for which visits will be delegated.
+   * @param constantVisitor the <code>ConstantVisitor</code> to which visits will be delegated.
+   */
+  public ConstantTagFilter(int constantTag, ConstantVisitor constantVisitor) {
+    this.constantTagMask = 1 << constantTag;
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new ConstantTagFilter.
-     * @param constantTag     the type of constants for which visits will be
-     *                        delegated.
-     * @param constantVisitor the <code>ConstantVisitor</code> to which visits
-     *                        will be delegated.
-     */
-    public ConstantTagFilter(int             constantTag,
-                             ConstantVisitor constantVisitor)
-    {
-        this.constantTagMask = 1 << constantTag;
-        this.constantVisitor = constantVisitor;
+  /**
+   * Creates a new ConstantTagFilter.
+   *
+   * @param constantTags the types of constants for which visits will be delegated.
+   * @param constantVisitor the <code>ConstantVisitor</code> to which visits will be delegated.
+   */
+  public ConstantTagFilter(int[] constantTags, ConstantVisitor constantVisitor) {
+    int constantTagMask = 0;
+    for (int index = 0; index < constantTags.length; index++) {
+      constantTagMask |= 1 << constantTags[index];
     }
 
+    this.constantTagMask = constantTagMask;
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new ConstantTagFilter.
-     * @param constantTags    the types of constants for which visits will be
-     *                        delegated.
-     * @param constantVisitor the <code>ConstantVisitor</code> to which visits
-     *                        will be delegated.
-     */
-    public ConstantTagFilter(int[]           constantTags,
-                             ConstantVisitor constantVisitor)
-    {
-        int constantTagMask = 0;
-        for (int index = 0; index < constantTags.length; index++)
-        {
-            constantTagMask |= 1 << constantTags[index];
-        }
+  // Implementations for ConstantVisitor.
 
-        this.constantTagMask = constantTagMask;
-        this.constantVisitor = constantVisitor;
+  public void visitAnyConstant(Clazz clazz, Constant constant) {
+    if (((1 << constant.getTag()) & constantTagMask) != 0) {
+      constant.accept(clazz, constantVisitor);
     }
-
-
-    // Implementations for ConstantVisitor.
-
-    public void visitAnyConstant(Clazz clazz, Constant constant)
-    {
-        if (((1 << constant.getTag()) & constantTagMask) != 0)
-        {
-            constant.accept(clazz, constantVisitor);
-        }
-    }
+  }
 }

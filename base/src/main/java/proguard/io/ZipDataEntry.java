@@ -17,107 +17,82 @@
  */
 package proguard.io;
 
-import proguard.classfile.TypeConstants;
-
 import java.io.*;
 import java.util.zip.*;
+import proguard.classfile.TypeConstants;
 
 /**
  * This {@link DataEntry} represents a ZIP entry.
  *
  * @author Eric Lafortune
  */
-public class ZipDataEntry implements DataEntry
-{
-    private final DataEntry      parent;
-    private final ZipEntry       zipEntry;
-    private       ZipInputStream zipInputStream;
-    private       InputStream    bufferedInputStream;
+public class ZipDataEntry implements DataEntry {
+  private final DataEntry parent;
+  private final ZipEntry zipEntry;
+  private ZipInputStream zipInputStream;
+  private InputStream bufferedInputStream;
 
+  public ZipDataEntry(DataEntry parent, ZipEntry zipEntry, ZipInputStream zipInputStream) {
+    this.parent = parent;
+    this.zipEntry = zipEntry;
+    this.zipInputStream = zipInputStream;
+  }
 
-    public ZipDataEntry(DataEntry      parent,
-                        ZipEntry       zipEntry,
-                        ZipInputStream zipInputStream)
-    {
-        this.parent         = parent;
-        this.zipEntry       = zipEntry;
-        this.zipInputStream = zipInputStream;
+  // Implementations for DataEntry.
+
+  @Override
+  public String getName() {
+    // Get the right separators.
+    String name = zipEntry.getName().replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
+
+    // Chop the trailing directory slash, if any.
+    int length = name.length();
+    return length > 0 && name.charAt(length - 1) == TypeConstants.PACKAGE_SEPARATOR
+        ? name.substring(0, length - 1)
+        : name;
+  }
+
+  @Override
+  public String getOriginalName() {
+    return getName();
+  }
+
+  @Override
+  public long getSize() {
+    // Try to get some estimate of the size.
+    return Math.max(zipEntry.getSize(), zipEntry.getCompressedSize());
+  }
+
+  @Override
+  public boolean isDirectory() {
+    return zipEntry.isDirectory();
+  }
+
+  @Override
+  public InputStream getInputStream() throws IOException {
+    if (bufferedInputStream == null) {
+      bufferedInputStream = new BufferedInputStream(zipInputStream);
     }
 
+    return bufferedInputStream;
+  }
 
-    // Implementations for DataEntry.
+  @Override
+  public void closeInputStream() throws IOException {
+    zipInputStream.closeEntry();
+    zipInputStream = null;
+    bufferedInputStream = null;
+  }
 
-    @Override
-    public String getName()
-    {
-        // Get the right separators.
-        String name = zipEntry.getName()
-            .replace(File.separatorChar, TypeConstants.PACKAGE_SEPARATOR);
+  @Override
+  public DataEntry getParent() {
+    return parent;
+  }
 
-        // Chop the trailing directory slash, if any.
-        int length = name.length();
-        return length > 0 &&
-               name.charAt(length-1) == TypeConstants.PACKAGE_SEPARATOR ?
-                   name.substring(0, length -1) :
-                   name;
-    }
+  // Implementations for Object.
 
-
-    @Override
-    public String getOriginalName()
-    {
-        return getName();
-    }
-
-
-    @Override
-    public long getSize()
-    {
-        // Try to get some estimate of the size.
-        return Math.max(zipEntry.getSize(), zipEntry.getCompressedSize());
-    }
-
-
-    @Override
-    public boolean isDirectory()
-    {
-        return zipEntry.isDirectory();
-    }
-
-
-    @Override
-    public InputStream getInputStream() throws IOException
-    {
-        if (bufferedInputStream == null)
-        {
-            bufferedInputStream = new BufferedInputStream(zipInputStream);
-        }
-
-        return bufferedInputStream;
-    }
-
-
-    @Override
-    public void closeInputStream() throws IOException
-    {
-        zipInputStream.closeEntry();
-        zipInputStream      = null;
-        bufferedInputStream = null;
-    }
-
-
-    @Override
-    public DataEntry getParent()
-    {
-        return parent;
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return parent.toString() + ':' + getName();
-    }
+  @Override
+  public String toString() {
+    return parent.toString() + ':' + getName();
+  }
 }

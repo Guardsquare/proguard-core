@@ -18,6 +18,8 @@
 
 package proguard.util.kotlin.asserter;
 
+import java.util.Arrays;
+import java.util.List;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
@@ -54,188 +56,167 @@ import proguard.util.kotlin.asserter.constraint.SyntheticClassIntegrity;
 import proguard.util.kotlin.asserter.constraint.TypeIntegrity;
 import proguard.util.kotlin.asserter.constraint.ValueParameterIntegrity;
 
-import java.util.Arrays;
-import java.util.List;
+/** Performs a series of checks to see whether the kotlin metadata is intact. */
+public class KotlinMetadataAsserter {
 
-/**
- * Performs a series of checks to see whether the kotlin metadata is intact.
- */
-public class KotlinMetadataAsserter
-{
+  // This is the list of constraints that will be checked using this asserter.
+  private static final List<KotlinAsserterConstraint> DEFAULT_CONSTRAINTS =
+      Arrays.asList(
+          new FunctionIntegrity(),
+          new ConstructorIntegrity(),
+          new PropertyIntegrity(),
+          new ClassIntegrity(),
+          new TypeIntegrity(),
+          new KmAnnotationIntegrity(),
+          new ValueParameterIntegrity(),
+          new SyntheticClassIntegrity(),
+          new FileFacadeIntegrity(),
+          new MultiFilePartIntegrity(),
+          new DeclarationContainerIntegrity(),
+          new KotlinModuleIntegrity());
 
-    // This is the list of constraints that will be checked using this asserter.
-    private static final List<KotlinAsserterConstraint> DEFAULT_CONSTRAINTS = Arrays.asList(
-        new FunctionIntegrity(),
-        new ConstructorIntegrity(),
-        new PropertyIntegrity(),
-        new ClassIntegrity(),
-        new TypeIntegrity(),
-        new KmAnnotationIntegrity(),
-        new ValueParameterIntegrity(),
-        new SyntheticClassIntegrity(),
-        new FileFacadeIntegrity(),
-        new MultiFilePartIntegrity(),
-        new DeclarationContainerIntegrity(),
-        new KotlinModuleIntegrity()
-    );
+  public void execute(
+      WarningLogger warningLogger,
+      ClassPool programClassPool,
+      ClassPool libraryClassPool,
+      ResourceFilePool resourceFilePool) {
+    Reporter reporter = new DefaultReporter(warningLogger);
+    MyKotlinMetadataAsserter kotlinMetadataAsserter =
+        new MyKotlinMetadataAsserter(
+            reporter, DEFAULT_CONSTRAINTS, programClassPool, libraryClassPool);
 
-    public void execute(WarningLogger    warningLogger,
-                        ClassPool        programClassPool,
-                        ClassPool        libraryClassPool,
-                        ResourceFilePool resourceFilePool)
-    {
-        Reporter reporter = new DefaultReporter(warningLogger);
-        MyKotlinMetadataAsserter kotlinMetadataAsserter = new MyKotlinMetadataAsserter(reporter,
-                                                                                       DEFAULT_CONSTRAINTS,
-                                                                                       programClassPool,
-                                                                                       libraryClassPool);
+    reporter.setErrorMessage(
+        "Warning: Kotlin metadata errors encountered in %s. Not processing the metadata for this class.");
+    programClassPool.classesAccept(new ReferencedKotlinMetadataVisitor(kotlinMetadataAsserter));
+    libraryClassPool.classesAccept(new ReferencedKotlinMetadataVisitor(kotlinMetadataAsserter));
 
-        reporter.setErrorMessage("Warning: Kotlin metadata errors encountered in %s. Not processing the metadata for this class.");
-        programClassPool.classesAccept(new ReferencedKotlinMetadataVisitor(kotlinMetadataAsserter));
-        libraryClassPool.classesAccept(new ReferencedKotlinMetadataVisitor(kotlinMetadataAsserter));
+    ClassVisitor aliasReferenceCleaner =
+        new ReferencedKotlinMetadataVisitor(new KotlinTypeAliasReferenceCleaner(reporter));
+    programClassPool.classesAccept(aliasReferenceCleaner);
+    libraryClassPool.classesAccept(aliasReferenceCleaner);
 
-        ClassVisitor aliasReferenceCleaner =
-            new ReferencedKotlinMetadataVisitor(new KotlinTypeAliasReferenceCleaner(reporter));
-        programClassPool.classesAccept(aliasReferenceCleaner);
-        libraryClassPool.classesAccept(aliasReferenceCleaner);
+    reporter.setErrorMessage(
+        "Warning: Kotlin module errors encountered in module %s. Not processing the metadata for this module.");
+    resourceFilePool.resourceFilesAccept(
+        new ResourceFileProcessingFlagFilter(
+            0, ProcessingFlags.DONT_PROCESS_KOTLIN_MODULE, kotlinMetadataAsserter));
+  }
 
-        reporter.setErrorMessage("Warning: Kotlin module errors encountered in module %s. Not processing the metadata for this module.");
-        resourceFilePool.resourceFilesAccept(new ResourceFileProcessingFlagFilter(0,
-                                                                                  ProcessingFlags.DONT_PROCESS_KOTLIN_MODULE,
-                                                                                  kotlinMetadataAsserter));
+  /** This class performs a series of checks to see whether the kotlin metadata is intact */
+  private static class MyKotlinMetadataAsserter
+      implements KotlinMetadataVisitor, ResourceFileVisitor, KotlinModuleVisitor {
+    private final List<? extends KotlinAsserterConstraint> constraints;
+    private final Reporter reporter;
+    private final ClassPool programClassPool;
+    private final ClassPool libraryClassPool;
+
+    MyKotlinMetadataAsserter(
+        Reporter reporter,
+        List<KotlinAsserterConstraint> constraints,
+        ClassPool programClassPool,
+        ClassPool libraryClassPool) {
+      this.constraints = constraints;
+      this.reporter = reporter;
+      this.programClassPool = programClassPool;
+      this.libraryClassPool = libraryClassPool;
     }
 
-    /**
-     * This class performs a series of checks to see whether the kotlin metadata is intact
-     */
-    private static class MyKotlinMetadataAsserter
-    implements           KotlinMetadataVisitor,
-                         ResourceFileVisitor,
-                         KotlinModuleVisitor
-    {
-        private final List<? extends KotlinAsserterConstraint> constraints;
-        private final Reporter                                 reporter;
-        private final ClassPool                                programClassPool;
-        private final ClassPool                                libraryClassPool;
+    @Override
+    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {
+      reporter.resetCounter(clazz.getName());
 
-        MyKotlinMetadataAsserter(Reporter                       reporter,
-            List<KotlinAsserterConstraint> constraints,
-            ClassPool                      programClassPool,
-            ClassPool                      libraryClassPool)
-        {
-            this.constraints      = constraints;
-            this.reporter         = reporter;
-            this.programClassPool = programClassPool;
-            this.libraryClassPool = libraryClassPool;
-        }
+      constraints.forEach(
+          constraint ->
+              constraint.check(
+                  reporter, programClassPool, libraryClassPool, clazz, kotlinMetadata));
 
-        @Override
-        public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
-        {
-            reporter.resetCounter(clazz.getName());
-
-            constraints.forEach(constraint -> constraint.check(reporter, programClassPool, libraryClassPool, clazz, kotlinMetadata));
-
-            if (reporter.getCount() > 0)
-            {
-                clazz.accept(new KotlinMetadataRemover());
-            }
-        }
-
-        @Override
-        public void visitKotlinModule(KotlinModule kotlinModule)
-        {
-            reporter.resetCounter(kotlinModule.name);
-
-            constraints.forEach(constraint -> constraint.check(reporter, kotlinModule));
-
-            if (reporter.getCount() > 0)
-            {
-                kotlinModule.accept(new ProcessingFlagSetter(ProcessingFlags.DONT_PROCESS_KOTLIN_MODULE));
-            }
-        }
-
-        @Override
-        public void visitResourceFile(ResourceFile resourceFile) {}
+      if (reporter.getCount() > 0) {
+        clazz.accept(new KotlinMetadataRemover());
+      }
     }
 
-    /**
-     * // TODO: This may leave behind further invalid metadata.
-     * 
-     * Cleans up any dangling references caused by removing metadata.
-     * <p>
-     * A {@link KotlinTypeMetadata} can have a referencedTypeAlias, which
-     * refers to a type alias that is declared in a declaration container
-     * of which the metadata was invalid and therefore removed, from it's "owner" class.
-     * <p>
-     * To avoid visiting invalid metadata later, we check if there is a link to
-     * a class without metadata and remove the metadata from the class using the type alias
-     * if necessary.
-     * <p>Example, assuming `kotlin.Exception` is not available:
-     * <code>
-     *     // AClass visited first.
-     *     // AClass.kt <--- Has a reference to MyFileFacade where MyAlias is declared.
-     *     class MyClass : MyAlias()
-     *
-     *     // MyFileFacade.kt <--- Invalid because reference for kotlin.Exception not found
-     *     typealias MyAlias = kotlin.Exception
-     *
-     *     // MyClass hangs onto the reference to MyFileFacade metadata, even though the
-     *     // metadata from its owner class (MyFileFacadeKt.class) has been removed.
-     * </code>
-     * </p>
-     */
-    private static class KotlinTypeAliasReferenceCleaner implements KotlinMetadataVisitor,
-                                                                    KotlinTypeVisitor,
-                                                                    KotlinTypeAliasVisitor
-    {
-        private final Reporter reporter;
-        private       int      count;
+    @Override
+    public void visitKotlinModule(KotlinModule kotlinModule) {
+      reporter.resetCounter(kotlinModule.name);
 
-        private KotlinTypeAliasReferenceCleaner(Reporter reporter)
-        {
-            this.reporter = reporter;
-        }
+      constraints.forEach(constraint -> constraint.check(reporter, kotlinModule));
 
-        @Override
-        public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
-        {
-            reporter.resetCounter(clazz.getName());
-            kotlinMetadata.accept(clazz, new AllTypeVisitor(this));
-            if (reporter.getCount() > 0)
-            {
-                clazz.accept(new KotlinMetadataRemover());
-            }
-        }
-
-
-        @Override
-        public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata)
-        {
-            if (kotlinTypeMetadata.aliasName           != null &&
-                kotlinTypeMetadata.referencedTypeAlias != null)
-            {
-                // The count will be increase if the alias' declaration container has no metadata.
-                count = 0;
-                kotlinTypeMetadata.referencedTypeAliasAccept(clazz, this);
-
-                boolean declarationContainerClazzHasNoMetadata = count == 0;
-
-                if (declarationContainerClazzHasNoMetadata)
-                {
-                    reporter.report("Type alias '" + kotlinTypeMetadata.aliasName + "' is declared in a container with no metadata");
-                }
-            }
-        }
-
-
-        @Override
-        public void visitTypeAlias(Clazz                              clazz,
-                                   KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                   KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
-        {
-            // The counter will only increase if the owner class has metadata attached.
-            kotlinDeclarationContainerMetadata.referencedOwnerClassAccept((__, metadata) -> count++);
-        }
+      if (reporter.getCount() > 0) {
+        kotlinModule.accept(new ProcessingFlagSetter(ProcessingFlags.DONT_PROCESS_KOTLIN_MODULE));
+      }
     }
+
+    @Override
+    public void visitResourceFile(ResourceFile resourceFile) {}
+  }
+
+  /**
+   * // TODO: This may leave behind further invalid metadata.
+   *
+   * <p>Cleans up any dangling references caused by removing metadata.
+   *
+   * <p>A {@link KotlinTypeMetadata} can have a referencedTypeAlias, which refers to a type alias
+   * that is declared in a declaration container of which the metadata was invalid and therefore
+   * removed, from it's "owner" class.
+   *
+   * <p>To avoid visiting invalid metadata later, we check if there is a link to a class without
+   * metadata and remove the metadata from the class using the type alias if necessary.
+   *
+   * <p>Example, assuming `kotlin.Exception` is not available: <code>
+   *     // AClass visited first.
+   *     // AClass.kt <--- Has a reference to MyFileFacade where MyAlias is declared.
+   *     class MyClass : MyAlias()
+   *
+   *     // MyFileFacade.kt <--- Invalid because reference for kotlin.Exception not found
+   *     typealias MyAlias = kotlin.Exception
+   *
+   *     // MyClass hangs onto the reference to MyFileFacade metadata, even though the
+   *     // metadata from its owner class (MyFileFacadeKt.class) has been removed.
+   * </code>
+   */
+  private static class KotlinTypeAliasReferenceCleaner
+      implements KotlinMetadataVisitor, KotlinTypeVisitor, KotlinTypeAliasVisitor {
+    private final Reporter reporter;
+    private int count;
+
+    private KotlinTypeAliasReferenceCleaner(Reporter reporter) {
+      this.reporter = reporter;
+    }
+
+    @Override
+    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {
+      reporter.resetCounter(clazz.getName());
+      kotlinMetadata.accept(clazz, new AllTypeVisitor(this));
+      if (reporter.getCount() > 0) {
+        clazz.accept(new KotlinMetadataRemover());
+      }
+    }
+
+    @Override
+    public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata) {
+      if (kotlinTypeMetadata.aliasName != null && kotlinTypeMetadata.referencedTypeAlias != null) {
+        // The count will be increase if the alias' declaration container has no metadata.
+        count = 0;
+        kotlinTypeMetadata.referencedTypeAliasAccept(clazz, this);
+
+        boolean declarationContainerClazzHasNoMetadata = count == 0;
+
+        if (declarationContainerClazzHasNoMetadata) {
+          reporter.report(
+              "Type alias '"
+                  + kotlinTypeMetadata.aliasName
+                  + "' is declared in a container with no metadata");
+        }
+      }
+    }
+
+    @Override
+    public void visitTypeAlias(
+        Clazz clazz,
+        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+        KotlinTypeAliasMetadata kotlinTypeAliasMetadata) {
+      // The counter will only increase if the owner class has metadata attached.
+      kotlinDeclarationContainerMetadata.referencedOwnerClassAccept((__, metadata) -> count++);
+    }
+  }
 }

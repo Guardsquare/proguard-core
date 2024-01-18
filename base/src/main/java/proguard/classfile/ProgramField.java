@@ -26,137 +26,111 @@ import proguard.classfile.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class ProgramField extends ProgramMember implements Field
-{
-    private static final Attribute[] EMPTY_ATTRIBUTES = new Attribute[0];
+public class ProgramField extends ProgramMember implements Field {
+  private static final Attribute[] EMPTY_ATTRIBUTES = new Attribute[0];
 
+  /**
+   * An extra field pointing to the Clazz object referenced in the descriptor string. This field is
+   * filled out by the <code>{@link
+   * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}</code>. References
+   * to primitive types are ignored.
+   */
+  public Clazz referencedClass;
 
-    /**
-     * An extra field pointing to the Clazz object referenced in the
-     * descriptor string. This field is filled out by the <code>{@link
-     * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}</code>.
-     * References to primitive types are ignored.
-     */
-    public Clazz referencedClass;
+  /** Creates an uninitialized ProgramField. */
+  public ProgramField() {}
 
+  /** Creates an initialized ProgramField without attributes. */
+  public ProgramField(
+      int u2accessFlags, int u2nameIndex, int u2descriptorIndex, Clazz referencedClass) {
+    this(
+        u2accessFlags,
+        u2nameIndex,
+        u2descriptorIndex,
+        0,
+        EMPTY_ATTRIBUTES,
+        referencedClass,
+        0,
+        null);
+  }
 
-    /**
-     * Creates an uninitialized ProgramField.
-     */
-    public ProgramField()
-    {
+  /** Creates an initialized ProgramField without attributes. */
+  public ProgramField(
+      int u2accessFlags,
+      int u2nameIndex,
+      int u2descriptorIndex,
+      Clazz referencedClass,
+      int processingFlags,
+      Object processingInfo) {
+    this(
+        u2accessFlags,
+        u2nameIndex,
+        u2descriptorIndex,
+        0,
+        EMPTY_ATTRIBUTES,
+        referencedClass,
+        processingFlags,
+        processingInfo);
+  }
+
+  /** Creates an initialized ProgramField. */
+  public ProgramField(
+      int u2accessFlags,
+      int u2nameIndex,
+      int u2descriptorIndex,
+      int u2attributesCount,
+      Attribute[] attributes,
+      Clazz referencedClass) {
+    this(
+        u2accessFlags,
+        u2nameIndex,
+        u2descriptorIndex,
+        u2attributesCount,
+        attributes,
+        referencedClass,
+        0,
+        null);
+  }
+
+  /** Creates an initialized ProgramField. */
+  public ProgramField(
+      int u2accessFlags,
+      int u2nameIndex,
+      int u2descriptorIndex,
+      int u2attributesCount,
+      Attribute[] attributes,
+      Clazz referencedClass,
+      int processingFlags,
+      Object processingInfo) {
+    super(
+        u2accessFlags,
+        u2nameIndex,
+        u2descriptorIndex,
+        u2attributesCount,
+        attributes,
+        processingFlags,
+        processingInfo);
+
+    this.referencedClass = referencedClass;
+  }
+
+  // Implementations for ProgramMember.
+
+  public void accept(ProgramClass programClass, MemberVisitor memberVisitor) {
+    memberVisitor.visitProgramField(programClass, this);
+  }
+
+  public void attributesAccept(ProgramClass programClass, AttributeVisitor attributeVisitor) {
+    for (int index = 0; index < u2attributesCount; index++) {
+      attributes[index].accept(programClass, this, attributeVisitor);
     }
+  }
 
+  // Implementations for Member.
 
-    /**
-     * Creates an initialized ProgramField without attributes.
-     */
-    public ProgramField(int   u2accessFlags,
-                        int   u2nameIndex,
-                        int   u2descriptorIndex,
-                        Clazz referencedClass)
-    {
-        this(u2accessFlags,
-             u2nameIndex,
-             u2descriptorIndex,
-             0,
-             EMPTY_ATTRIBUTES,
-             referencedClass,
-             0,
-             null);
+  public void referencedClassesAccept(ClassVisitor classVisitor) {
+    if (referencedClass != null) {
+      referencedClass.accept(classVisitor);
     }
-
-
-    /**
-     * Creates an initialized ProgramField without attributes.
-     */
-    public ProgramField(int    u2accessFlags,
-                        int    u2nameIndex,
-                        int    u2descriptorIndex,
-                        Clazz  referencedClass,
-                        int    processingFlags,
-                        Object processingInfo)
-    {
-        this(u2accessFlags,
-             u2nameIndex,
-             u2descriptorIndex,
-             0,
-             EMPTY_ATTRIBUTES,
-             referencedClass,
-             processingFlags,
-             processingInfo);
-    }
-
-
-    /**
-     * Creates an initialized ProgramField.
-     */
-    public ProgramField(int         u2accessFlags,
-                        int         u2nameIndex,
-                        int         u2descriptorIndex,
-                        int         u2attributesCount,
-                        Attribute[] attributes,
-                        Clazz       referencedClass)
-    {
-        this(u2accessFlags,
-             u2nameIndex,
-             u2descriptorIndex,
-             u2attributesCount,
-             attributes,
-             referencedClass,
-             0,
-             null);
-    }
-
-
-    /**
-     * Creates an initialized ProgramField.
-     */
-    public ProgramField(int         u2accessFlags,
-                        int         u2nameIndex,
-                        int         u2descriptorIndex,
-                        int         u2attributesCount,
-                        Attribute[] attributes,
-                        Clazz       referencedClass,
-                        int         processingFlags,
-                        Object      processingInfo)
-    {
-        super(u2accessFlags,
-              u2nameIndex,
-              u2descriptorIndex,
-              u2attributesCount,
-              attributes,
-              processingFlags,
-              processingInfo);
-
-        this.referencedClass = referencedClass;
-    }
-
-
-    // Implementations for ProgramMember.
-
-    public void accept(ProgramClass programClass, MemberVisitor memberVisitor)
-    {
-        memberVisitor.visitProgramField(programClass, this);
-    }
-
-
-    public void attributesAccept(ProgramClass programClass, AttributeVisitor attributeVisitor)
-    {
-        for (int index = 0; index < u2attributesCount; index++)
-        {
-            attributes[index].accept(programClass, this, attributeVisitor);
-        }
-    }
-
-
-    // Implementations for Member.
-
-    public void referencedClassesAccept(ClassVisitor classVisitor)
-    {
-        if (referencedClass != null)
-        {
-            referencedClass.accept(classVisitor);
-        }
-    }
+  }
 }

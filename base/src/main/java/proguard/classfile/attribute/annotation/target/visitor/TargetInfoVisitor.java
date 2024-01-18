@@ -23,115 +23,136 @@ import proguard.classfile.attribute.annotation.*;
 import proguard.classfile.attribute.annotation.target.*;
 
 /**
- * This interface specifies the methods for a visitor of {@link TargetInfo}
- * instances.
+ * This interface specifies the methods for a visitor of {@link TargetInfo} instances.
  *
  * @author Eric Lafortune
  */
-public interface TargetInfoVisitor
-{
-    /**
-     * Visits any TargetInfo instance. The more specific default implementations of
-     * this interface delegate to this method.
-     */
-    default void visitAnyTargetInfo(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfo targetInfo)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+targetInfo.getClass().getName());
-    }
+public interface TargetInfoVisitor {
+  /**
+   * Visits any TargetInfo instance. The more specific default implementations of this interface
+   * delegate to this method.
+   */
+  default void visitAnyTargetInfo(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfo targetInfo) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + targetInfo.getClass().getName());
+  }
 
+  default void visitTypeParameterTargetInfo(
+      Clazz clazz, TypeAnnotation typeAnnotation, TypeParameterTargetInfo typeParameterTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, typeParameterTargetInfo);
+  }
 
-    default void visitTypeParameterTargetInfo(Clazz clazz, TypeAnnotation typeAnnotation, TypeParameterTargetInfo typeParameterTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, typeParameterTargetInfo);
-    }
+  default void visitTypeParameterTargetInfo(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      TypeParameterTargetInfo typeParameterTargetInfo) {
+    visitTypeParameterTargetInfo(clazz, typeAnnotation, typeParameterTargetInfo);
+  }
 
+  default void visitSuperTypeTargetInfo(
+      Clazz clazz, TypeAnnotation typeAnnotation, SuperTypeTargetInfo superTypeTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, superTypeTargetInfo);
+  }
 
-    default void visitTypeParameterTargetInfo(Clazz clazz, Method method, TypeAnnotation typeAnnotation, TypeParameterTargetInfo typeParameterTargetInfo)
-    {
-        visitTypeParameterTargetInfo(clazz, typeAnnotation, typeParameterTargetInfo);
-    }
+  default void visitTypeParameterBoundTargetInfo(
+      Clazz clazz,
+      TypeAnnotation typeAnnotation,
+      TypeParameterBoundTargetInfo typeParameterBoundTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, typeParameterBoundTargetInfo);
+  }
 
+  default void visitTypeParameterBoundTargetInfo(
+      Clazz clazz,
+      Member member,
+      TypeAnnotation typeAnnotation,
+      TypeParameterBoundTargetInfo typeParameterBoundTargetInfo) {
+    visitTypeParameterBoundTargetInfo(clazz, typeAnnotation, typeParameterBoundTargetInfo);
+  }
 
-    default void visitSuperTypeTargetInfo(Clazz clazz, TypeAnnotation typeAnnotation, SuperTypeTargetInfo superTypeTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, superTypeTargetInfo);
-    }
+  default void visitTypeParameterBoundTargetInfo(
+      Clazz clazz,
+      Field field,
+      TypeAnnotation typeAnnotation,
+      TypeParameterBoundTargetInfo typeParameterBoundTargetInfo) {
+    visitTypeParameterBoundTargetInfo(
+        clazz, (Member) field, typeAnnotation, typeParameterBoundTargetInfo);
+  }
 
+  default void visitTypeParameterBoundTargetInfo(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      TypeParameterBoundTargetInfo typeParameterBoundTargetInfo) {
+    visitTypeParameterBoundTargetInfo(
+        clazz, (Member) method, typeAnnotation, typeParameterBoundTargetInfo);
+  }
 
-    default void visitTypeParameterBoundTargetInfo(Clazz clazz, TypeAnnotation typeAnnotation, TypeParameterBoundTargetInfo typeParameterBoundTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, typeParameterBoundTargetInfo);
-    }
+  default void visitEmptyTargetInfo(
+      Clazz clazz, Member member, TypeAnnotation typeAnnotation, EmptyTargetInfo emptyTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, emptyTargetInfo);
+  }
 
+  default void visitEmptyTargetInfo(
+      Clazz clazz, Field field, TypeAnnotation typeAnnotation, EmptyTargetInfo emptyTargetInfo) {
+    visitEmptyTargetInfo(clazz, (Member) field, typeAnnotation, emptyTargetInfo);
+  }
 
-    default void visitTypeParameterBoundTargetInfo(Clazz clazz, Member member, TypeAnnotation typeAnnotation, TypeParameterBoundTargetInfo typeParameterBoundTargetInfo)
-    {
-        visitTypeParameterBoundTargetInfo(clazz, typeAnnotation, typeParameterBoundTargetInfo);
-    }
+  default void visitEmptyTargetInfo(
+      Clazz clazz, Method method, TypeAnnotation typeAnnotation, EmptyTargetInfo emptyTargetInfo) {
+    visitEmptyTargetInfo(clazz, (Member) method, typeAnnotation, emptyTargetInfo);
+  }
 
+  default void visitFormalParameterTargetInfo(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      FormalParameterTargetInfo formalParameterTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, formalParameterTargetInfo);
+  }
 
-    default void visitTypeParameterBoundTargetInfo(Clazz clazz, Field field, TypeAnnotation typeAnnotation, TypeParameterBoundTargetInfo typeParameterBoundTargetInfo)
-    {
-        visitTypeParameterBoundTargetInfo(clazz, (Member)field, typeAnnotation, typeParameterBoundTargetInfo);
-    }
+  default void visitThrowsTargetInfo(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      ThrowsTargetInfo throwsTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, throwsTargetInfo);
+  }
 
+  default void visitLocalVariableTargetInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      LocalVariableTargetInfo localVariableTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, localVariableTargetInfo);
+  }
 
-    default void visitTypeParameterBoundTargetInfo(Clazz clazz, Method method, TypeAnnotation typeAnnotation, TypeParameterBoundTargetInfo typeParameterBoundTargetInfo)
-    {
-        visitTypeParameterBoundTargetInfo(clazz, (Member)method, typeAnnotation, typeParameterBoundTargetInfo);
-    }
+  default void visitCatchTargetInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      CatchTargetInfo catchTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, catchTargetInfo);
+  }
 
+  default void visitOffsetTargetInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      OffsetTargetInfo offsetTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, offsetTargetInfo);
+  }
 
-    default void visitEmptyTargetInfo(Clazz clazz, Member member, TypeAnnotation typeAnnotation, EmptyTargetInfo emptyTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, emptyTargetInfo);
-    }
-
-
-    default void visitEmptyTargetInfo(Clazz clazz, Field field, TypeAnnotation typeAnnotation, EmptyTargetInfo emptyTargetInfo)
-    {
-        visitEmptyTargetInfo(clazz, (Member)field, typeAnnotation, emptyTargetInfo);
-    }
-
-
-    default void visitEmptyTargetInfo(Clazz clazz, Method method, TypeAnnotation typeAnnotation, EmptyTargetInfo emptyTargetInfo)
-    {
-        visitEmptyTargetInfo(clazz, (Member)method, typeAnnotation, emptyTargetInfo);
-    }
-
-
-    default void visitFormalParameterTargetInfo(Clazz clazz, Method method, TypeAnnotation typeAnnotation, FormalParameterTargetInfo formalParameterTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, formalParameterTargetInfo);
-    }
-
-
-    default void visitThrowsTargetInfo(Clazz clazz, Method method, TypeAnnotation typeAnnotation, ThrowsTargetInfo throwsTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, throwsTargetInfo);
-    }
-
-
-    default void visitLocalVariableTargetInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, LocalVariableTargetInfo localVariableTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, localVariableTargetInfo);
-    }
-
-
-    default void visitCatchTargetInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, CatchTargetInfo catchTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, catchTargetInfo);
-    }
-
-
-    default void visitOffsetTargetInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, OffsetTargetInfo offsetTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, offsetTargetInfo);
-    }
-
-
-    default void visitTypeArgumentTargetInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TypeArgumentTargetInfo typeArgumentTargetInfo)
-    {
-        visitAnyTargetInfo(clazz, typeAnnotation, typeArgumentTargetInfo);
-    }
+  default void visitTypeArgumentTargetInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TypeArgumentTargetInfo typeArgumentTargetInfo) {
+    visitAnyTargetInfo(clazz, typeAnnotation, typeArgumentTargetInfo);
+  }
 }

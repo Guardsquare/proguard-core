@@ -20,46 +20,43 @@ package proguard.analysis.cpa.defaults;
 import java.util.Map;
 
 public interface MapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
-    extends Map<KeyT, AbstractSpaceT>, LatticeAbstractState<MapAbstractState<KeyT, AbstractSpaceT>>
-{
+    extends Map<KeyT, AbstractSpaceT>,
+        LatticeAbstractState<MapAbstractState<KeyT, AbstractSpaceT>> {
 
-    // implementations for LatticeAbstractState
+  // implementations for LatticeAbstractState
 
-    @Override
-    default MapAbstractState<KeyT, AbstractSpaceT> join(MapAbstractState<KeyT, AbstractSpaceT> abstractState)
-    {
-        if (this == abstractState)
-        {
-            return this;
-        }
-        MapAbstractState<KeyT, AbstractSpaceT> joinResult = abstractState.copy();
-        // compute the join for the domain intersection
-        forEach((keyL, valueL) -> joinResult.compute(keyL, (keyR, valueR) -> valueR == null ? valueL : valueL.join(valueR)));
-        if (equals(joinResult))
-        {
-            return this;
-        }
-        if (abstractState.equals(joinResult))
-        {
-            return abstractState;
-        }
-        return joinResult;
+  @Override
+  default MapAbstractState<KeyT, AbstractSpaceT> join(
+      MapAbstractState<KeyT, AbstractSpaceT> abstractState) {
+    if (this == abstractState) {
+      return this;
     }
-
-    @Override
-    default boolean isLessOrEqual(MapAbstractState<KeyT, AbstractSpaceT> abstractState)
-    {
-        if (!abstractState.keySet().containsAll(keySet()))
-        {
-            return false;
-        }
-        return entrySet().stream()
-                         .allMatch(entry -> entry.getValue()
-                                                 .isLessOrEqual(abstractState.get(entry.getKey())));
+    MapAbstractState<KeyT, AbstractSpaceT> joinResult = abstractState.copy();
+    // compute the join for the domain intersection
+    forEach(
+        (keyL, valueL) ->
+            joinResult.compute(
+                keyL, (keyR, valueR) -> valueR == null ? valueL : valueL.join(valueR)));
+    if (equals(joinResult)) {
+      return this;
     }
+    if (abstractState.equals(joinResult)) {
+      return abstractState;
+    }
+    return joinResult;
+  }
 
-    // overloads for AbstractState
+  @Override
+  default boolean isLessOrEqual(MapAbstractState<KeyT, AbstractSpaceT> abstractState) {
+    if (!abstractState.keySet().containsAll(keySet())) {
+      return false;
+    }
+    return entrySet().stream()
+        .allMatch(entry -> entry.getValue().isLessOrEqual(abstractState.get(entry.getKey())));
+  }
 
-    @Override
-    MapAbstractState<KeyT, AbstractSpaceT> copy();
+  // overloads for AbstractState
+
+  @Override
+  MapAbstractState<KeyT, AbstractSpaceT> copy();
 }

@@ -24,54 +24,45 @@ import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
 
 /**
- * This {@link AbstractWrapperState} wraps a single {@link AbstractState}
- * and delegates the precision getter to it.
+ * This {@link AbstractWrapperState} wraps a single {@link AbstractState} and delegates the
+ * precision getter to it.
  *
  * @author Dmitry Ivanov
  */
-public class AbstractSingleWrapperState
-    extends AbstractWrapperState
-{
+public class AbstractSingleWrapperState extends AbstractWrapperState {
 
-    protected final AbstractState wrappedAbstractState;
+  protected final AbstractState wrappedAbstractState;
 
-    /**
-     * Create a single wrapper abstract state around the given state.
-     *
-     * @param wrappedAbstractState an inner abstract state
-     */
-    public AbstractSingleWrapperState(AbstractState wrappedAbstractState)
-    {
-        this.wrappedAbstractState = wrappedAbstractState;
-    }
+  /**
+   * Create a single wrapper abstract state around the given state.
+   *
+   * @param wrappedAbstractState an inner abstract state
+   */
+  public AbstractSingleWrapperState(AbstractState wrappedAbstractState) {
+    this.wrappedAbstractState = wrappedAbstractState;
+  }
 
-    /**
-     * Returns the wrapped abstract state.
-     */
-    public AbstractState getWrappedState()
-    {
-        return wrappedAbstractState;
-    }
+  /** Returns the wrapped abstract state. */
+  public AbstractState getWrappedState() {
+    return wrappedAbstractState;
+  }
 
-    // implementations for AbstractWrapperState
+  // implementations for AbstractWrapperState
 
-    @Override
-    public List<AbstractState> getWrappedStates()
-    {
-        return Arrays.asList(wrappedAbstractState);
-    }
+  @Override
+  public List<AbstractState> getWrappedStates() {
+    return Arrays.asList(wrappedAbstractState);
+  }
 
-    // implementations for AbstractState
+  // implementations for AbstractState
 
-    @Override
-    public Precision getPrecision()
-    {
-        return wrappedAbstractState.getPrecision();
-    }
+  @Override
+  public Precision getPrecision() {
+    return wrappedAbstractState.getPrecision();
+  }
 
-    @Override
-    public AbstractSingleWrapperState copy()
-    {
-        return new AbstractSingleWrapperState(wrappedAbstractState.copy());
-    }
+  @Override
+  public AbstractSingleWrapperState copy() {
+    return new AbstractSingleWrapperState(wrappedAbstractState.copy());
+  }
 }

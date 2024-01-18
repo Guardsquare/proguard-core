@@ -21,49 +21,42 @@ import proguard.classfile.Clazz;
 import proguard.classfile.attribute.annotation.*;
 
 /**
- * This interface specifies the methods for a visitor of {@link ElementValue}
- * instances.
+ * This interface specifies the methods for a visitor of {@link ElementValue} instances.
  *
  * @author Eric Lafortune
  */
-public interface ElementValueVisitor
-{
-    /**
-     * Visits any ElementValue instance. The more specific default implementations of
-     * this interface delegate to this method.
-     */
-    default void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+elementValue.getClass().getName());
-    }
+public interface ElementValueVisitor {
+  /**
+   * Visits any ElementValue instance. The more specific default implementations of this interface
+   * delegate to this method.
+   */
+  default void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + elementValue.getClass().getName());
+  }
 
+  default void visitConstantElementValue(
+      Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue) {
+    visitAnyElementValue(clazz, annotation, constantElementValue);
+  }
 
-    default void visitConstantElementValue(Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue)
-    {
-        visitAnyElementValue(clazz, annotation, constantElementValue);
-    }
+  default void visitEnumConstantElementValue(
+      Clazz clazz, Annotation annotation, EnumConstantElementValue enumConstantElementValue) {
+    visitAnyElementValue(clazz, annotation, enumConstantElementValue);
+  }
 
+  default void visitClassElementValue(
+      Clazz clazz, Annotation annotation, ClassElementValue classElementValue) {
+    visitAnyElementValue(clazz, annotation, classElementValue);
+  }
 
-    default void visitEnumConstantElementValue(Clazz clazz, Annotation annotation, EnumConstantElementValue enumConstantElementValue)
-    {
-        visitAnyElementValue(clazz, annotation, enumConstantElementValue);
-    }
+  default void visitAnnotationElementValue(
+      Clazz clazz, Annotation annotation, AnnotationElementValue annotationElementValue) {
+    visitAnyElementValue(clazz, annotation, annotationElementValue);
+  }
 
-
-    default void visitClassElementValue(Clazz clazz, Annotation annotation, ClassElementValue classElementValue)
-    {
-        visitAnyElementValue(clazz, annotation, classElementValue);
-    }
-
-
-    default void visitAnnotationElementValue(Clazz clazz, Annotation annotation, AnnotationElementValue annotationElementValue)
-    {
-        visitAnyElementValue(clazz, annotation, annotationElementValue);
-    }
-
-
-    default void visitArrayElementValue(Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue)
-    {
-        visitAnyElementValue(clazz, annotation, arrayElementValue);
-    }
+  default void visitArrayElementValue(
+      Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue) {
+    visitAnyElementValue(clazz, annotation, arrayElementValue);
+  }
 }

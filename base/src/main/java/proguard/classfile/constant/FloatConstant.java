@@ -25,99 +25,68 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Eric Lafortune
  */
-public class FloatConstant extends Constant
-{
-    public float f4value;
+public class FloatConstant extends Constant {
+  public float f4value;
 
+  /** Creates an uninitialized FloatConstant. */
+  public FloatConstant() {}
 
-    /**
-     * Creates an uninitialized FloatConstant.
-     */
-    public FloatConstant()
-    {
+  /** Creates a new FloatConstant with the given float value. */
+  public FloatConstant(float value) {
+    f4value = value;
+  }
+
+  /** Returns the float value of this FloatConstant. */
+  public float getValue() {
+    return f4value;
+  }
+
+  /** Sets the float value of this FloatConstant. */
+  public void setValue(float value) {
+    f4value = value;
+  }
+
+  // Implementations for Constant.
+
+  @Override
+  public int getTag() {
+    return Constant.FLOAT;
+  }
+
+  @Override
+  public boolean isCategory2() {
+    return false;
+  }
+
+  @Override
+  public void accept(Clazz clazz, ConstantVisitor constantVisitor) {
+    constantVisitor.visitFloatConstant(clazz, this);
+  }
+
+  // Implementations for Object.
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || !this.getClass().equals(object.getClass())) {
+      return false;
     }
 
-
-    /**
-     * Creates a new FloatConstant with the given float value.
-     */
-    public FloatConstant(float value)
-    {
-        f4value = value;
+    if (this == object) {
+      return true;
     }
 
+    FloatConstant other = (FloatConstant) object;
 
-    /**
-     * Returns the float value of this FloatConstant.
-     */
-    public float getValue()
-    {
-        return f4value;
-    }
+    return this.f4value == other.f4value;
+  }
 
+  @Override
+  public int hashCode() {
+    return Constant.FLOAT ^ Float.floatToIntBits(f4value);
+  }
 
-    /**
-     * Sets the float value of this FloatConstant.
-     */
-    public void setValue(float value)
-    {
-        f4value = value;
-    }
-
-
-    // Implementations for Constant.
-
-    @Override
-    public int getTag()
-    {
-        return Constant.FLOAT;
-    }
-
-    @Override
-    public boolean isCategory2()
-    {
-        return false;
-    }
-
-    @Override
-    public void accept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        constantVisitor.visitFloatConstant(clazz, this);
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public boolean equals(Object object)
-    {
-        if (object == null || !this.getClass().equals(object.getClass()))
-        {
-            return false;
-        }
-
-        if (this == object)
-        {
-            return true;
-        }
-
-        FloatConstant other = (FloatConstant)object;
-
-        return
-            this.f4value == other.f4value;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return
-            Constant.FLOAT ^
-            Float.floatToIntBits(f4value);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Float(" + f4value + ")";
-    }
+  @Override
+  public String toString() {
+    return "Float(" + f4value + ")";
+  }
 }

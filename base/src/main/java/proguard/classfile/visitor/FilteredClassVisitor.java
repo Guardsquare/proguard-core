@@ -22,54 +22,50 @@ import proguard.util.ClassNameParser;
 import proguard.util.ListParser;
 import proguard.util.StringMatcher;
 
-
 /**
  * This {@link ClassPoolVisitor} lets a given {@link ClassVisitor} visit all matching Clazz
  * instances of the class pools it visits.
  *
  * @author Joren Van Hecke
  */
-public class FilteredClassVisitor implements ClassPoolVisitor
-{
-    private final ClassVisitor classVisitor;
+public class FilteredClassVisitor implements ClassPoolVisitor {
+  private final ClassVisitor classVisitor;
 
-    private final StringMatcher classNameFilter;
+  private final StringMatcher classNameFilter;
 
+  /**
+   * Creates a new FilteredClassVisitor with the given class name filter and visitor.
+   *
+   * @param classNameFilter the regular expression that is used to filter the classes of a {@link
+   *     ClassPool} that must be visited. If the value of {@code classNameFilter} is null, then no
+   *     classes can possibly match, so this instance will never visit any {@link ClassPool}.
+   * @param classVisitor the visitor that is passed along when a {@link ClassPool} is visited.
+   */
+  public FilteredClassVisitor(String classNameFilter, ClassVisitor classVisitor) {
+    this(
+        classNameFilter == null
+            ? null
+            : new ListParser(new ClassNameParser()).parse(classNameFilter),
+        classVisitor);
+  }
 
-    /**
-     * Creates a new FilteredClassVisitor with the given class name filter and visitor.
-     * @param classNameFilter the regular expression that is used to filter the classes
-     *                        of a {@link ClassPool} that must be visited. If the value of
-     *                        {@code classNameFilter} is null, then no classes can possibly
-     *                        match, so this instance will never visit any {@link ClassPool}.
-     * @param classVisitor    the visitor that is passed along when a {@link ClassPool} is visited.
-     */
-    public FilteredClassVisitor(String classNameFilter, ClassVisitor classVisitor)
-    {
-        this(classNameFilter == null ? null : new ListParser(new ClassNameParser()).parse(classNameFilter), classVisitor);
+  /**
+   * Creates a new FilteredClassVisitor with the given class name filter and visitor.
+   *
+   * @param classNameFilter the filter that is used to filter the classes of a {@link ClassPool}
+   *     that must be visited. If the value of {@code classNameFilter} is null, then no classes can
+   *     possibly match, so this instance will never visit any {@link ClassPool}.
+   * @param classVisitor the visitor that is passed along when a {@link ClassPool} is visited.
+   */
+  public FilteredClassVisitor(StringMatcher classNameFilter, ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+    this.classNameFilter = classNameFilter;
+  }
+
+  @Override
+  public void visitClassPool(ClassPool classPool) {
+    if (classNameFilter != null) {
+      classPool.classesAccept(classNameFilter, classVisitor);
     }
-
-    /**
-     * Creates a new FilteredClassVisitor with the given class name filter and visitor.
-     * @param classNameFilter the filter that is used to filter the classes
-     *                        of a {@link ClassPool} that must be visited. If the value of
-     *                        {@code classNameFilter} is null, then no classes can possibly
-     *                        match, so this instance will never visit any {@link ClassPool}.
-     * @param classVisitor    the visitor that is passed along when a {@link ClassPool} is visited.
-     */
-    public FilteredClassVisitor(StringMatcher classNameFilter, ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-        this.classNameFilter = classNameFilter;
-    }
-
-
-    @Override
-    public void visitClassPool(ClassPool classPool)
-    {
-        if (classNameFilter != null)
-        {
-            classPool.classesAccept(classNameFilter, classVisitor);
-        }
-    }
+  }
 }

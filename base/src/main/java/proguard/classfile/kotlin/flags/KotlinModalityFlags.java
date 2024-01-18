@@ -17,28 +17,19 @@
  */
 package proguard.classfile.kotlin.flags;
 
+public class KotlinModalityFlags implements KotlinFlags {
+  // Valid for: class, constructor, function, synthetic function, property (including getter +
+  // setter)
 
-public class KotlinModalityFlags implements KotlinFlags
-{
-    // Valid for: class, constructor, function, synthetic function, property (including getter + setter)
+  /** Signifies the declaration is 'final' */
+  public boolean isFinal;
 
-    /**
-     * Signifies the declaration is 'final'
-     */
-    public boolean isFinal;
+  /** Signifies the declaration is 'open' */
+  public boolean isOpen;
 
-    /**
-     * Signifies the declaration is 'open'
-     */
-    public boolean isOpen;
+  /** Signifies the declaration is 'abstract' */
+  public boolean isAbstract;
 
-    /**
-     * Signifies the declaration is 'abstract'
-     */
-    public boolean isAbstract;
-
-    /**
-     * Signifies the declaration is 'sealed'
-     */
-    public boolean isSealed;
+  /** Signifies the declaration is 'sealed' */
+  public boolean isSealed;
 }

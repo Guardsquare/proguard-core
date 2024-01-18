@@ -21,18 +21,17 @@ package proguard.analysis;
 import proguard.analysis.datastructure.callgraph.Call;
 
 /**
- * This visitor is invoked by the {@link CallResolver}
- * whenever new method calls have been resolved in the code.
+ * This visitor is invoked by the {@link CallResolver} whenever new method calls have been resolved
+ * in the code.
  *
  * @author Samuel Hopstock
  */
-public interface CallVisitor
-{
+public interface CallVisitor {
 
-    /**
-     * Will be called for every newly discovered method call in the code.
-     *
-     * @param call The {@link Call} that was found
-     */
-    void visitCall(Call call);
+  /**
+   * Will be called for every newly discovered method call in the code.
+   *
+   * @param call The {@link Call} that was found
+   */
+  void visitCall(Call call);
 }

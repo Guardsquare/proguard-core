@@ -18,44 +18,30 @@
 package proguard.evaluation.value;
 
 /**
- * This {@link IntegerValue} represents a byte value that is converted from an
- * integer value.
+ * This {@link IntegerValue} represents a byte value that is converted from an integer value.
  *
  * @author Eric Lafortune
  */
-public final class ConvertedByteValue extends SpecificIntegerValue
-{
-    private final IntegerValue value;
+public final class ConvertedByteValue extends SpecificIntegerValue {
+  private final IntegerValue value;
 
+  /** Creates a new converted byte value of the given integer value. */
+  public ConvertedByteValue(IntegerValue value) {
+    this.value = value;
+  }
 
-    /**
-     * Creates a new converted byte value of the given integer value.
-     */
-    public ConvertedByteValue(IntegerValue value)
-    {
-        this.value = value;
-    }
+  // Implementations for Object.
 
+  public boolean equals(Object object) {
+    return this == object
+        || super.equals(object) && this.value.equals(((ConvertedByteValue) object).value);
+  }
 
-    // Implementations for Object.
+  public int hashCode() {
+    return super.hashCode() ^ value.hashCode();
+  }
 
-    public boolean equals(Object object)
-    {
-        return this == object ||
-               super.equals(object) &&
-               this.value.equals(((ConvertedByteValue)object).value);
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               value.hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "(byte)("+value+")";
-    }
+  public String toString() {
+    return "(byte)(" + value + ")";
+  }
 }

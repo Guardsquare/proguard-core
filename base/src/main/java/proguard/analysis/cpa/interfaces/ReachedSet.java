@@ -25,36 +25,23 @@ import java.util.Collection;
  *
  * @author Dmitry Ivanov
  */
-public interface ReachedSet
-{
+public interface ReachedSet {
 
-    /**
-     * Adds an abstract state.
-     */
-    boolean add(AbstractState abstractState);
+  /** Adds an abstract state. */
+  boolean add(AbstractState abstractState);
 
-    /**
-     * Adds multiple abstract states.
-     */
-    boolean addAll(Collection<? extends AbstractState> abstractStates);
+  /** Adds multiple abstract states. */
+  boolean addAll(Collection<? extends AbstractState> abstractStates);
 
-    /**
-     * Removes an abstract state.
-     */
-    boolean remove(AbstractState abstractState);
+  /** Removes an abstract state. */
+  boolean remove(AbstractState abstractState);
 
-    /**
-     * Removes multiple abstract states.
-     */
-    boolean removeAll(Collection<?> abstractStates);
+  /** Removes multiple abstract states. */
+  boolean removeAll(Collection<?> abstractStates);
 
-    /**
-     * Returns a collection representation of itself.
-     */
-    Collection<? extends AbstractState> asCollection();
+  /** Returns a collection representation of itself. */
+  Collection<? extends AbstractState> asCollection();
 
-    /**
-     * Returns a collection of abstract states mergeable with the {@code abstractState}.
-     */
-    Collection<? extends AbstractState> getReached(AbstractState abstractState);
+  /** Returns a collection of abstract states mergeable with the {@code abstractState}. */
+  Collection<? extends AbstractState> getReached(AbstractState abstractState);
 }

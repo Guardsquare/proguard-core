@@ -25,35 +25,22 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class SourceDirAttribute extends Attribute
-{
-    public int u2sourceDirIndex;
+public class SourceDirAttribute extends Attribute {
+  public int u2sourceDirIndex;
 
+  /** Creates an uninitialized SourceDirAttribute. */
+  public SourceDirAttribute() {}
 
-    /**
-     * Creates an uninitialized SourceDirAttribute.
-     */
-    public SourceDirAttribute()
-    {
-    }
+  /** Creates an initialized SourceDirAttribute. */
+  public SourceDirAttribute(int u2attributeNameIndex, int u2sourceDirIndex) {
+    super(u2attributeNameIndex);
 
+    this.u2sourceDirIndex = u2sourceDirIndex;
+  }
 
-    /**
-     * Creates an initialized SourceDirAttribute.
-     */
-    public SourceDirAttribute(int u2attributeNameIndex,
-                              int u2sourceDirIndex)
-    {
-        super(u2attributeNameIndex);
+  // Implementations for Attribute.
 
-        this.u2sourceDirIndex = u2sourceDirIndex;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSourceDirAttribute(clazz, this);
-    }
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSourceDirAttribute(clazz, this);
+  }
 }

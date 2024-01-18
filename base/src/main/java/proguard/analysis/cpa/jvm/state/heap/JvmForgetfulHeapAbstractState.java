@@ -23,93 +23,79 @@ import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 
 /**
- * This is a forgetful stub heap implementation. It does not change and always returns the default value.
+ * This is a forgetful stub heap implementation. It does not change and always returns the default
+ * value.
  *
  * @author Dmitry Ivanov
  */
 public class JvmForgetfulHeapAbstractState<StateT extends LatticeAbstractState<StateT>>
-    implements JvmHeapAbstractState<StateT>
-{
+    implements JvmHeapAbstractState<StateT> {
 
-    private final StateT defaultValue;
+  private final StateT defaultValue;
 
-    /**
-     * Create a forgetful heap abstract state returning the specified value for all queries.
-     *
-     * @param defaultValue the value to be returned by memory accesses
-     */
-    public JvmForgetfulHeapAbstractState(StateT defaultValue)
-    {
-        this.defaultValue = defaultValue;
-    }
+  /**
+   * Create a forgetful heap abstract state returning the specified value for all queries.
+   *
+   * @param defaultValue the value to be returned by memory accesses
+   */
+  public JvmForgetfulHeapAbstractState(StateT defaultValue) {
+    this.defaultValue = defaultValue;
+  }
 
-    // implementations for JvmHeapAbstractState
+  // implementations for JvmHeapAbstractState
 
-    @Override
-    public <T> StateT getFieldOrDefault(T object, String fqn, StateT defaultValue)
-    {
-        return defaultValue;
-    }
+  @Override
+  public <T> StateT getFieldOrDefault(T object, String fqn, StateT defaultValue) {
+    return defaultValue;
+  }
 
-    @Override
-    public <T> void setField(T object, String fqn, StateT value)
-    {
-    }
+  @Override
+  public <T> void setField(T object, String fqn, StateT value) {}
 
-    @Override
-    public <T> StateT getArrayElementOrDefault(T array, StateT index, StateT defaultValue)
-    {
-        return this.defaultValue;
-    }
+  @Override
+  public <T> StateT getArrayElementOrDefault(T array, StateT index, StateT defaultValue) {
+    return this.defaultValue;
+  }
 
-    @Override
-    public <T> void setArrayElement(T array, StateT index, StateT value)
-    {
-    }
+  @Override
+  public <T> void setArrayElement(T array, StateT index, StateT value) {}
 
-    @Override
-    public StateT newObject(String className, JvmCfaNode creationCite)
-    {
-        return defaultValue;
-    }
+  @Override
+  public StateT newObject(String className, JvmCfaNode creationCite) {
+    return defaultValue;
+  }
 
-    @Override
-    public StateT newArray(String type, List<StateT> dimensions, JvmCfaNode creationCite)
-    {
-        return defaultValue;
-    }
+  @Override
+  public StateT newArray(String type, List<StateT> dimensions, JvmCfaNode creationCite) {
+    return defaultValue;
+  }
 
-    // implementations for LatticeAbstractState
+  // implementations for LatticeAbstractState
 
-    @Override
-    public JvmForgetfulHeapAbstractState<StateT> join(JvmHeapAbstractState<StateT> abstractState)
-    {
-        return this;
-    }
+  @Override
+  public JvmForgetfulHeapAbstractState<StateT> join(JvmHeapAbstractState<StateT> abstractState) {
+    return this;
+  }
 
-    @Override
-    public boolean isLessOrEqual(JvmHeapAbstractState<StateT> abstractState)
-    {
-        return abstractState instanceof JvmForgetfulHeapAbstractState;
-    }
+  @Override
+  public boolean isLessOrEqual(JvmHeapAbstractState<StateT> abstractState) {
+    return abstractState instanceof JvmForgetfulHeapAbstractState;
+  }
 
-    // implementations for AbstractState
+  // implementations for AbstractState
 
-    @Override
-    public boolean equals(Object o)
-    {
-        return o instanceof JvmForgetfulHeapAbstractState;
-    }
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof JvmForgetfulHeapAbstractState;
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return 0;
-    }
+  @Override
+  public int hashCode() {
+    return 0;
+  }
 
-    @Override
-    public JvmForgetfulHeapAbstractState<StateT> copy()
-    {
-        return this;
-    }
+  @Override
+  public JvmForgetfulHeapAbstractState<StateT> copy() {
+    return this;
+  }
 }

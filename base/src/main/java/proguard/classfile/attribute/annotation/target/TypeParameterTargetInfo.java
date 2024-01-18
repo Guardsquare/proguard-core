@@ -26,50 +26,36 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class TypeParameterTargetInfo extends TargetInfo
-{
-    public int u1typeParameterIndex;
+public class TypeParameterTargetInfo extends TargetInfo {
+  public int u1typeParameterIndex;
 
+  /** Creates an uninitialized TypeParameterTargetInfo. */
+  public TypeParameterTargetInfo() {}
 
-    /**
-     * Creates an uninitialized TypeParameterTargetInfo.
-     */
-    public TypeParameterTargetInfo()
-    {
-    }
+  /** Creates a partially initialized TypeParameterTargetInfo. */
+  public TypeParameterTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
+  /** Creates an initialized TypeParameterTargetInfo. */
+  public TypeParameterTargetInfo(byte u1targetType, int u1typeParameterIndex) {
+    super(u1targetType);
 
-    /**
-     * Creates a partially initialized TypeParameterTargetInfo.
-     */
-    public TypeParameterTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+    this.u1typeParameterIndex = u1typeParameterIndex;
+  }
 
+  // Implementations for TargetInfo.
 
-    /**
-     * Creates an initialized TypeParameterTargetInfo.
-     */
-    public TypeParameterTargetInfo(byte u1targetType,
-                                   int  u1typeParameterIndex)
-    {
-        super(u1targetType);
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitTypeParameterTargetInfo(clazz, typeAnnotation, this);
+  }
 
-        this.u1typeParameterIndex = u1typeParameterIndex;
-    }
-
-
-    // Implementations for TargetInfo.
-
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitTypeParameterTargetInfo(clazz, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitTypeParameterTargetInfo(clazz, method, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitTypeParameterTargetInfo(clazz, method, typeAnnotation, this);
+  }
 }

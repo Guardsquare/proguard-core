@@ -25,39 +25,26 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class SyntheticAttribute extends Attribute
-{
-    /**
-     * Creates an uninitialized SyntheticAttribute.
-     */
-    public SyntheticAttribute()
-    {
-    }
+public class SyntheticAttribute extends Attribute {
+  /** Creates an uninitialized SyntheticAttribute. */
+  public SyntheticAttribute() {}
 
+  /** Creates an initialized SyntheticAttribute. */
+  public SyntheticAttribute(int u2attributeNameIndex) {
+    super(u2attributeNameIndex);
+  }
 
-    /**
-     * Creates an initialized SyntheticAttribute.
-     */
-    public SyntheticAttribute(int u2attributeNameIndex)
-    {
-        super(u2attributeNameIndex);
-    }
+  // Implementations for Attribute.
 
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSyntheticAttribute(clazz, this);
+  }
 
-    // Implementations for Attribute.
+  public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSyntheticAttribute(clazz, field, this);
+  }
 
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSyntheticAttribute(clazz, this);
-    }
-
-    public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSyntheticAttribute(clazz, field, this);
-    }
-
-    public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSyntheticAttribute(clazz, method, this);
-    }
+  public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSyntheticAttribute(clazz, method, this);
+  }
 }

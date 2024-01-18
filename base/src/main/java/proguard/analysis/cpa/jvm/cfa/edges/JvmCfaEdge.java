@@ -27,70 +27,55 @@ import proguard.classfile.MethodSignature;
  *
  * @author Carlo Alberto Pozzoli
  */
-public abstract class JvmCfaEdge
-    implements CfaEdge<JvmCfaNode>
-{
+public abstract class JvmCfaEdge implements CfaEdge<JvmCfaNode> {
 
-    private JvmCfaNode source;
-    private JvmCfaNode target;
+  private JvmCfaNode source;
+  private JvmCfaNode target;
 
-    /**
-     * Create a disconnected JVM CFA edge.
-     */
-    public JvmCfaEdge()
-    {
-    }
+  /** Create a disconnected JVM CFA edge. */
+  public JvmCfaEdge() {}
 
-    /**
-     * Create a JVM CFA edge. Also sets it as the entering and leaving edge of the source and target nodes.
-     *
-     * @param source the source node of the edge
-     * @param target the target node of the edge
-     */
-    public JvmCfaEdge(JvmCfaNode source, JvmCfaNode target)
-    {
-        setSource(source);
-        setTarget(target);
-    }
+  /**
+   * Create a JVM CFA edge. Also sets it as the entering and leaving edge of the source and target
+   * nodes.
+   *
+   * @param source the source node of the edge
+   * @param target the target node of the edge
+   */
+  public JvmCfaEdge(JvmCfaNode source, JvmCfaNode target) {
+    setSource(source);
+    setTarget(target);
+  }
 
-    // Implementations for CfaEdge
+  // Implementations for CfaEdge
 
-    @Override
-    public JvmCfaNode getSource()
-    {
-        return source;
-    }
+  @Override
+  public JvmCfaNode getSource() {
+    return source;
+  }
 
-    @Override
-    public JvmCfaNode getTarget()
-    {
-        return target;
-    }
+  @Override
+  public JvmCfaNode getTarget() {
+    return target;
+  }
 
-    /**
-     * Sets a node as the predecessor of the edge and adds the edge as leaving edge of the node.
-     */
-    public void setSource(JvmCfaNode source)
-    {
-        this.source = source;
-        source.addLeavingEdge(this);
-    }
+  /** Sets a node as the predecessor of the edge and adds the edge as leaving edge of the node. */
+  public void setSource(JvmCfaNode source) {
+    this.source = source;
+    source.addLeavingEdge(this);
+  }
 
-    /**
-     * Sets a node as the successor of the edge and adds the edge as entering edge of the node.
-     */
-    public void setTarget(JvmCfaNode target)
-    {
-        this.target = target;
-        target.addEnteringEdge(this);
-    }
+  /** Sets a node as the successor of the edge and adds the edge as entering edge of the node. */
+  public void setTarget(JvmCfaNode target) {
+    this.target = target;
+    target.addEnteringEdge(this);
+  }
 
-    /**
-     * Returns the signature of the target method. This is the current method or, for call edges,
-     * the target method of the call.
-     */
-    public MethodSignature targetSignature()
-    {
-        return target.getSignature();
-    }
+  /**
+   * Returns the signature of the target method. This is the current method or, for call edges, the
+   * target method of the call.
+   */
+  public MethodSignature targetSignature() {
+    return target.getSignature();
+  }
 }

@@ -18,59 +18,45 @@
 
 package proguard.evaluation.util.jsonprinter;
 
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+class BranchTargetRecord implements JsonSerializable {
+  /** Variables at the start of the block evaluation. */
+  @NotNull private final List<String> startVariables;
 
-class BranchTargetRecord implements JsonSerializable
-{
-    /**
-     * Variables at the start of the block evaluation.
-     */
-    @NotNull
-    private final List<String> startVariables;
+  /** Stack at the start of the block evaluation. */
+  @NotNull private final List<String> startStack;
 
-    /**
-     * Stack at the start of the block evaluation.
-     */
-    @NotNull
-    private final List<String> startStack;
+  /** Instruction offset of the first instruction of the block. */
+  private final int startOffset;
 
-    /**
-     * Instruction offset of the first instruction of the block.
-     */
-    private final int startOffset;
+  public BranchTargetRecord(
+      @NotNull List<String> variables, @NotNull List<String> stack, int startOffset) {
+    this.startVariables = variables;
+    this.startStack = stack;
+    this.startOffset = startOffset;
+  }
 
-    public BranchTargetRecord(@NotNull List<String> variables, @NotNull List<String> stack, int startOffset)
-    {
-        this.startVariables = variables;
-        this.startStack = stack;
-        this.startOffset = startOffset;
-    }
+  @Override
+  public StringBuilder toJson(StringBuilder builder) {
+    builder.append("{");
+    JsonPrinter.toJson("startOffset", startOffset, builder).append(",");
+    JsonPrinter.stringListToJson("startStack", startStack, builder).append(",");
+    return JsonPrinter.stringListToJson("startVariables", startVariables, builder).append("}");
+  }
 
-    @Override
-    public StringBuilder toJson(StringBuilder builder)
-    {
-        builder.append("{");
-        JsonPrinter.toJson("startOffset", startOffset, builder).append(",");
-        JsonPrinter.stringListToJson("startStack", startStack, builder).append(",");
-        return JsonPrinter.stringListToJson("startVariables", startVariables, builder).append("}");
-    }
+  @NotNull
+  public List<String> getStartVariables() {
+    return startVariables;
+  }
 
-    @NotNull
-    public List<String> getStartVariables()
-    {
-        return startVariables;
-    }
+  @NotNull
+  public List<String> getStartStack() {
+    return startStack;
+  }
 
-    @NotNull
-    public List<String> getStartStack()
-    {
-        return startStack;
-    }
-
-    public int getStartOffset()
-    {
-        return startOffset;
-    }
+  public int getStartOffset() {
+    return startOffset;
+  }
 }

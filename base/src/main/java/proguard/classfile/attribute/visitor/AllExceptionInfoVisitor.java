@@ -26,25 +26,18 @@ import proguard.classfile.attribute.*;
  *
  * @author Eric Lafortune
  */
-public class AllExceptionInfoVisitor
-implements   AttributeVisitor
-{
-    private final ExceptionInfoVisitor exceptionInfoVisitor;
+public class AllExceptionInfoVisitor implements AttributeVisitor {
+  private final ExceptionInfoVisitor exceptionInfoVisitor;
 
+  public AllExceptionInfoVisitor(ExceptionInfoVisitor exceptionInfoVisitor) {
+    this.exceptionInfoVisitor = exceptionInfoVisitor;
+  }
 
-    public AllExceptionInfoVisitor(ExceptionInfoVisitor exceptionInfoVisitor)
-    {
-        this.exceptionInfoVisitor = exceptionInfoVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        codeAttribute.exceptionsAccept(clazz, method, exceptionInfoVisitor);
-    }
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    codeAttribute.exceptionsAccept(clazz, method, exceptionInfoVisitor);
+  }
 }

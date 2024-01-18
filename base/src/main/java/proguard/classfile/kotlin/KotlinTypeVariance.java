@@ -18,20 +18,22 @@
 
 package proguard.classfile.kotlin;
 
-public enum KotlinTypeVariance
-{
-    /**
-     * The affected type parameter or type is *invariant*, which means it has no variance applied to it.
-     */
-    INVARIANT,
+public enum KotlinTypeVariance {
+  /**
+   * The affected type parameter or type is *invariant*, which means it has no variance applied to
+   * it.
+   */
+  INVARIANT,
 
-    /**
-     * The affected type parameter or type is *contravariant*. Denoted by the `in` modifier in the source code.
-     */
-    IN,
+  /**
+   * The affected type parameter or type is *contravariant*. Denoted by the `in` modifier in the
+   * source code.
+   */
+  IN,
 
-    /**
-     * The affected type parameter or type is *covariant*. Denoted by the `out` modifier in the source code.
-     */
-    OUT,
+  /**
+   * The affected type parameter or type is *covariant*. Denoted by the `out` modifier in the source
+   * code.
+   */
+  OUT,
 }

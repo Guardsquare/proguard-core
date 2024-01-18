@@ -18,15 +18,12 @@
 package proguard.util;
 
 /**
- * This interface provides a method to create a {@link StringMatcher} for a given
- * regular expression.
+ * This interface provides a method to create a {@link StringMatcher} for a given regular
+ * expression.
  *
  * @author Eric Lafortune
  */
-public interface StringParser
-{
-    /**
-     * Creates a StringMatcher for the given regular expression.
-     */
-    public StringMatcher parse(String regularExpression);
+public interface StringParser {
+  /** Creates a StringMatcher for the given regular expression. */
+  public StringMatcher parse(String regularExpression);
 }

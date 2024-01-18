@@ -20,30 +20,21 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link ClassVisitor} removes all the classes it visits from a given
- * class pool.
+ * This {@link ClassVisitor} removes all the classes it visits from a given class pool.
  *
  * @author Eric Lafortune
  */
-public class ClassPoolRemover
-implements   ClassVisitor
-{
-    private final ClassPool classPool;
+public class ClassPoolRemover implements ClassVisitor {
+  private final ClassPool classPool;
 
+  /** Creates a new ClassPoolFiller. */
+  public ClassPoolRemover(ClassPool classPool) {
+    this.classPool = classPool;
+  }
 
-    /**
-     * Creates a new ClassPoolFiller.
-     */
-    public ClassPoolRemover(ClassPool classPool)
-    {
-        this.classPool = classPool;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    public void visitAnyClass(Clazz clazz)
-    {
-        classPool.removeClass(clazz);
-    }
+  public void visitAnyClass(Clazz clazz) {
+    classPool.removeClass(clazz);
+  }
 }

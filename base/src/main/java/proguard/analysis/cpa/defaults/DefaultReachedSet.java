@@ -28,27 +28,22 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
  *
  * @author Dmitry Ivanov
  */
-public final class DefaultReachedSet extends LinkedHashSet<AbstractState>
-    implements ReachedSet
-{
+public final class DefaultReachedSet extends LinkedHashSet<AbstractState> implements ReachedSet {
 
-    // implementations for ReachedSet
+  // implementations for ReachedSet
 
-    @Override
-    public boolean remove(AbstractState state)
-    {
-        return super.remove(state);
-    }
+  @Override
+  public boolean remove(AbstractState state) {
+    return super.remove(state);
+  }
 
-    @Override
-    public Collection<AbstractState> asCollection()
-    {
-        return this;
-    }
+  @Override
+  public Collection<AbstractState> asCollection() {
+    return this;
+  }
 
-    @Override
-    public Collection<AbstractState> getReached(AbstractState abstractState)
-    {
-        return asCollection();
-    }
+  @Override
+  public Collection<AbstractState> getReached(AbstractState abstractState) {
+    return asCollection();
+  }
 }

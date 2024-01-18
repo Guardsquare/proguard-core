@@ -22,67 +22,52 @@ import java.util.List;
 import proguard.classfile.Signature;
 
 /**
- * A node for {@link proguard.analysis.cpa.defaults.Cfa} parametrized by its edges {@code CfaEdgeT}. A CFA node corresponds to a program point before the instruction at a specific offset.
+ * A node for {@link proguard.analysis.cpa.defaults.Cfa} parametrized by its edges {@code CfaEdgeT}.
+ * A CFA node corresponds to a program point before the instruction at a specific offset.
  *
  * @author Dmitry Ivanov
  */
-public interface CfaNode<CfaEdgeT extends CfaEdge, SignatureT extends Signature>
-{
+public interface CfaNode<CfaEdgeT extends CfaEdge, SignatureT extends Signature> {
 
-    int RETURN_EXIT_NODE_OFFSET    = -1;
-    int EXCEPTION_EXIT_NODE_OFFSET = -2;
+  int RETURN_EXIT_NODE_OFFSET = -1;
+  int EXCEPTION_EXIT_NODE_OFFSET = -2;
 
-    /**
-     * Returns a list of leaving edges.
-     */
-    List<CfaEdgeT> getLeavingEdges();
+  /** Returns a list of leaving edges. */
+  List<CfaEdgeT> getLeavingEdges();
 
-    /**
-     * Returns a list of entering edges.
-     */
-    List<CfaEdgeT> getEnteringEdges();
+  /** Returns a list of entering edges. */
+  List<CfaEdgeT> getEnteringEdges();
 
-    /**
-     * Checks whether the node is a function entry.
-     */
-    boolean isEntryNode();
+  /** Checks whether the node is a function entry. */
+  boolean isEntryNode();
 
-    /**
-     * Checks whether the node is a function exit.
-     */
-    boolean isExitNode();
+  /** Checks whether the node is a function exit. */
+  boolean isExitNode();
 
-    /**
-     * Returns the function signature it belongs to.
-     */
-    SignatureT getSignature();
+  /** Returns the function signature it belongs to. */
+  SignatureT getSignature();
 
-    /**
-     * Returns the instruction offset.
-     */
-    int getOffset();
+  /** Returns the instruction offset. */
+  int getOffset();
 
-    /**
-     * Returns true if the node is the return location of the function (offset == {@link CfaNode#RETURN_EXIT_NODE_OFFSET}).
-     */
-    default boolean isReturnExitNode()
-    {
-        return getOffset() == RETURN_EXIT_NODE_OFFSET;
-    }
+  /**
+   * Returns true if the node is the return location of the function (offset == {@link
+   * CfaNode#RETURN_EXIT_NODE_OFFSET}).
+   */
+  default boolean isReturnExitNode() {
+    return getOffset() == RETURN_EXIT_NODE_OFFSET;
+  }
 
-    /**
-     * Returns true if the node is the return location of the function (offset == {@link CfaNode#EXCEPTION_EXIT_NODE_OFFSET}).
-     */
-    default boolean isExceptionExitNode()
-    {
-        return getOffset() == EXCEPTION_EXIT_NODE_OFFSET;
-    }
+  /**
+   * Returns true if the node is the return location of the function (offset == {@link
+   * CfaNode#EXCEPTION_EXIT_NODE_OFFSET}).
+   */
+  default boolean isExceptionExitNode() {
+    return getOffset() == EXCEPTION_EXIT_NODE_OFFSET;
+  }
 
-    /**
-     * Returns true if the location of the node is unknown.
-     */
-    default boolean isUnknownNode()
-    {
-        return false;
-    }
+  /** Returns true if the location of the node is unknown. */
+  default boolean isUnknownNode() {
+    return false;
+  }
 }

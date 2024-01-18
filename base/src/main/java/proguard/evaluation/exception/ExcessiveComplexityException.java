@@ -22,17 +22,14 @@ import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
 /**
- * Represents an exception during partial evaluation when a single instruction would be visited more than {@link PartialEvaluator#stopAnalysisAfterNEvaluations(int)} times.
- * In this case, the analysis will forcibly stop by throwing this exception.
+ * Represents an exception during partial evaluation when a single instruction would be visited more
+ * than {@link PartialEvaluator#stopAnalysisAfterNEvaluations(int)} times. In this case, the
+ * analysis will forcibly stop by throwing this exception.
  *
  * @author Dennis Titze
  */
-public class ExcessiveComplexityException
-    extends ProguardCoreException
-{
-    public ExcessiveComplexityException(String message)
-    {
-        super(ErrorId.EXCESSIVE_COMPLEXITY, message);
-    }
+public class ExcessiveComplexityException extends ProguardCoreException {
+  public ExcessiveComplexityException(String message) {
+    super(ErrorId.EXCESSIVE_COMPLEXITY, message);
+  }
 }
-

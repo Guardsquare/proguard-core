@@ -17,40 +17,29 @@
  */
 package proguard.classfile.kotlin;
 
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE_CLASS_PART;
+
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 
-import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE_CLASS_PART;
+public class KotlinMultiFilePartKindMetadata extends KotlinDeclarationContainerMetadata {
+  public String facadeName;
+  public Clazz referencedFacadeClass;
 
-public class KotlinMultiFilePartKindMetadata
-extends KotlinDeclarationContainerMetadata
-{
-    public String facadeName;
-    public Clazz  referencedFacadeClass;
+  public KotlinMultiFilePartKindMetadata(int[] mv, int xi, String xs, String pn) {
+    super(METADATA_KIND_MULTI_FILE_CLASS_PART, mv, xi, xs, pn);
 
+    this.facadeName = xs;
+  }
 
-    public KotlinMultiFilePartKindMetadata(int[]  mv,
-                                           int    xi,
-                                           String xs,
-                                           String pn)
-    {
-        super(METADATA_KIND_MULTI_FILE_CLASS_PART, mv, xi, xs, pn);
+  @Override
+  public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor) {
+    kotlinMetadataVisitor.visitKotlinMultiFilePartMetadata(clazz, this);
+  }
 
-        this.facadeName = xs;
-    }
-
-
-    @Override
-    public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        kotlinMetadataVisitor.visitKotlinMultiFilePartMetadata(clazz, this);
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin file part";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin file part";
+  }
 }

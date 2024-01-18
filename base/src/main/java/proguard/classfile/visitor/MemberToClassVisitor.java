@@ -19,46 +19,34 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link MemberVisitor} delegates all visits to a given {@link ClassVisitor}.
- * The latter visits the class of each visited class member.
+ * This {@link MemberVisitor} delegates all visits to a given {@link ClassVisitor}. The latter
+ * visits the class of each visited class member.
  *
  * @author Eric Lafortune
  */
-public class MemberToClassVisitor implements MemberVisitor
-{
-    private final ClassVisitor classVisitor;
+public class MemberToClassVisitor implements MemberVisitor {
+  private final ClassVisitor classVisitor;
 
+  public MemberToClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    public MemberToClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
+  // Implementations for MemberVisitor.
 
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    classVisitor.visitProgramClass(programClass);
+  }
 
-    // Implementations for MemberVisitor.
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    classVisitor.visitProgramClass(programClass);
+  }
 
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        classVisitor.visitProgramClass(programClass);
-    }
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+    classVisitor.visitLibraryClass(libraryClass);
+  }
 
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        classVisitor.visitProgramClass(programClass);
-    }
-
-
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
-    {
-        classVisitor.visitLibraryClass(libraryClass);
-    }
-
-
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        classVisitor.visitLibraryClass(libraryClass);
-    }
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    classVisitor.visitLibraryClass(libraryClass);
+  }
 }

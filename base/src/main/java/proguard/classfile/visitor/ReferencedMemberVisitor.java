@@ -29,40 +29,28 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Eric Lafortune
  */
-public class ReferencedMemberVisitor
-implements   ConstantVisitor,
-             ElementValueVisitor
-{
-    protected final MemberVisitor memberVisitor;
+public class ReferencedMemberVisitor implements ConstantVisitor, ElementValueVisitor {
+  protected final MemberVisitor memberVisitor;
 
+  public ReferencedMemberVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    public ReferencedMemberVisitor(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
-    }
+  // Implementations for ConstantVisitor.
 
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-    // Implementations for ConstantVisitor.
+  public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
+    stringConstant.referencedMemberAccept(memberVisitor);
+  }
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+  public void visitAnyRefConstant(Clazz clazz, RefConstant refConstant) {
+    refConstant.referencedMemberAccept(memberVisitor);
+  }
 
+  // Implementations for ElementValueVisitor.
 
-    public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
-    {
-        stringConstant.referencedMemberAccept(memberVisitor);
-    }
-
-
-    public void visitAnyRefConstant(Clazz clazz, RefConstant refConstant)
-    {
-        refConstant.referencedMemberAccept(memberVisitor);
-    }
-
-
-    // Implementations for ElementValueVisitor.
-
-    public void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue)
-    {
-        elementValue.referencedMethodAccept(memberVisitor);
-    }
+  public void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue) {
+    elementValue.referencedMethodAccept(memberVisitor);
+  }
 }

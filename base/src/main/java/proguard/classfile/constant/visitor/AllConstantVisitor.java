@@ -20,33 +20,26 @@ package proguard.classfile.constant.visitor;
 import proguard.classfile.*;
 import proguard.classfile.visitor.ClassVisitor;
 
-
 /**
- * This {@link ClassVisitor} lets a given {@link ConstantVisitor} visit all constant pool
- * entries of the program classes it visits.
+ * This {@link ClassVisitor} lets a given {@link ConstantVisitor} visit all constant pool entries of
+ * the program classes it visits.
  *
  * @author Eric Lafortune
  */
-public class AllConstantVisitor implements ClassVisitor
-{
-    private final ConstantVisitor constantVisitor;
+public class AllConstantVisitor implements ClassVisitor {
+  private final ConstantVisitor constantVisitor;
 
+  public AllConstantVisitor(ConstantVisitor constantVisitor) {
+    this.constantVisitor = constantVisitor;
+  }
 
-    public AllConstantVisitor(ConstantVisitor constantVisitor)
-    {
-        this.constantVisitor = constantVisitor;
-    }
+  // Implementations for ClassVisitor.
 
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        programClass.constantPoolEntriesAccept(constantVisitor);
-    }
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    programClass.constantPoolEntriesAccept(constantVisitor);
+  }
 }

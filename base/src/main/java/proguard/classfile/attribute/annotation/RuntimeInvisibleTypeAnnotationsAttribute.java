@@ -26,55 +26,39 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class RuntimeInvisibleTypeAnnotationsAttribute extends TypeAnnotationsAttribute
-{
-    /**
-     * Creates an uninitialized RuntimeInvisibleTypeAnnotationsAttribute.
-     */
-    public RuntimeInvisibleTypeAnnotationsAttribute()
-    {
-    }
+public class RuntimeInvisibleTypeAnnotationsAttribute extends TypeAnnotationsAttribute {
+  /** Creates an uninitialized RuntimeInvisibleTypeAnnotationsAttribute. */
+  public RuntimeInvisibleTypeAnnotationsAttribute() {}
 
+  /** Creates an initialized RuntimeInvisibleTypeAnnotationsAttribute. */
+  public RuntimeInvisibleTypeAnnotationsAttribute(
+      int u2attributeNameIndex, int u2annotationsCount, TypeAnnotation[] annotations) {
+    super(u2attributeNameIndex, u2annotationsCount, annotations);
+  }
 
-    /**
-     * Creates an initialized RuntimeInvisibleTypeAnnotationsAttribute.
-     */
-    public RuntimeInvisibleTypeAnnotationsAttribute(int              u2attributeNameIndex,
-                                                    int              u2annotationsCount,
-                                                    TypeAnnotation[] annotations)
-    {
-        super(u2attributeNameIndex, u2annotationsCount, annotations);
-    }
+  // Implementations for Attribute.
 
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, this);
+  }
 
-    // Implementations for Attribute.
+  public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, field, this);
+  }
 
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, this);
-    }
+  public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, this);
+  }
 
+  public void accept(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+        clazz, method, codeAttribute, this);
+  }
 
-    public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, field, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, codeAttribute, this);
-    }
-
-
-    public void accept(Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, this);
-    }
+  public void accept(
+      Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+        clazz, recordComponentInfo, this);
+  }
 }

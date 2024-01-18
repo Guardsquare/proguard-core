@@ -21,66 +21,47 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 
 /**
- * This {@link LineNumberInfoVisitor} remembers the lowest and the highest line
- * numbers that it finds in all the line numbers that it visits. It
- * ignores the sources of the line numbers.
+ * This {@link LineNumberInfoVisitor} remembers the lowest and the highest line numbers that it
+ * finds in all the line numbers that it visits. It ignores the sources of the line numbers.
  */
-public class LineNumberRangeFinder
-implements   LineNumberInfoVisitor
-{
-    private int     lowestLineNumber  = Integer.MAX_VALUE;
-    private int     highestLineNumber = 0;
-    private boolean hasSource;
+public class LineNumberRangeFinder implements LineNumberInfoVisitor {
+  private int lowestLineNumber = Integer.MAX_VALUE;
+  private int highestLineNumber = 0;
+  private boolean hasSource;
 
+  /** Returns the lowest line number that has been visited so far. */
+  public int getLowestLineNumber() {
+    return lowestLineNumber;
+  }
 
-    /**
-     * Returns the lowest line number that has been visited so far.
-     */
-    public int getLowestLineNumber()
-    {
-        return lowestLineNumber;
+  /** Returns the highest line number that has been visited so far. */
+  public int getHighestLineNumber() {
+    return highestLineNumber;
+  }
+
+  /** Returns whether any of the visited line numbers has a non-null source. */
+  public boolean hasSource() {
+    return hasSource;
+  }
+
+  // Implementations for LineNumberInfoVisitor.
+
+  public void visitLineNumberInfo(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberInfo lineNumberInfo) {
+    int lineNumber = lineNumberInfo.u2lineNumber;
+
+    // Remember the lowest line number.
+    if (lowestLineNumber > lineNumber) {
+      lowestLineNumber = lineNumber;
     }
 
-
-    /**
-     * Returns the highest line number that has been visited so far.
-     */
-    public int getHighestLineNumber()
-    {
-        return highestLineNumber;
+    // Remember the highest line number.
+    if (highestLineNumber < lineNumber) {
+      highestLineNumber = lineNumber;
     }
 
-
-    /**
-     * Returns whether any of the visited line numbers has a non-null source.
-     */
-    public boolean hasSource()
-    {
-        return hasSource;
+    if (lineNumberInfo.getSource() != null) {
+      hasSource = true;
     }
-
-
-    // Implementations for LineNumberInfoVisitor.
-
-    public void visitLineNumberInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberInfo lineNumberInfo)
-    {
-        int lineNumber = lineNumberInfo.u2lineNumber;
-
-        // Remember the lowest line number.
-        if (lowestLineNumber > lineNumber)
-        {
-            lowestLineNumber = lineNumber;
-        }
-
-        // Remember the highest line number.
-        if (highestLineNumber < lineNumber)
-        {
-            highestLineNumber = lineNumber;
-        }
-
-        if (lineNumberInfo.getSource() != null)
-        {
-            hasSource = true;
-        }
-    }
+  }
 }

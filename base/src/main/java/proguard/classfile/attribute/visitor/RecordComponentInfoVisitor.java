@@ -20,16 +20,13 @@ package proguard.classfile.attribute.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.attribute.RecordComponentInfo;
 
-
 /**
- * This interface specifies the methods for a visitor of
- * {@link RecordComponentInfo} instances. Note that there is only a single
- * implementation of {@link RecordComponentInfo}, such that this interface
- * is not strictly necessary as a visitor.
+ * This interface specifies the methods for a visitor of {@link RecordComponentInfo} instances. Note
+ * that there is only a single implementation of {@link RecordComponentInfo}, such that this
+ * interface is not strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface RecordComponentInfoVisitor
-{
-    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo);
+public interface RecordComponentInfoVisitor {
+  public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo);
 }

@@ -22,28 +22,26 @@ import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * This delegator passes all the {@link AbstractDomain} operators to the {@link LatticeAbstractState}.
- * Thus, we can keep the CPA algorithm generic without having to cast types in the domain specific code.
- * Abstract domains defined with {@link LatticeAbstractState} should be passed as {@link DelegateAbstractDomain}s
- * to the CPA algorithm.
+ * This delegator passes all the {@link AbstractDomain} operators to the {@link
+ * LatticeAbstractState}. Thus, we can keep the CPA algorithm generic without having to cast types
+ * in the domain specific code. Abstract domains defined with {@link LatticeAbstractState} should be
+ * passed as {@link DelegateAbstractDomain}s to the CPA algorithm.
  *
  * @author Dmitry Ivanov
  */
 public class DelegateAbstractDomain<LatticeAbstractStateT extends LatticeAbstractState>
-    implements AbstractDomain
-{
+    implements AbstractDomain {
 
-    //implementations for AbstractDomain
+  // implementations for AbstractDomain
 
-    @Override
-    public AbstractState join(AbstractState abstractState1, AbstractState abstractState2)
-    {
-        return ((LatticeAbstractStateT) abstractState1).join((LatticeAbstractStateT) abstractState2);
-    }
+  @Override
+  public AbstractState join(AbstractState abstractState1, AbstractState abstractState2) {
+    return ((LatticeAbstractStateT) abstractState1).join((LatticeAbstractStateT) abstractState2);
+  }
 
-    @Override
-    public boolean isLessOrEqual(AbstractState abstractState1, AbstractState abstractState2)
-    {
-        return ((LatticeAbstractStateT) abstractState1).isLessOrEqual((LatticeAbstractStateT) abstractState2);
-    }
+  @Override
+  public boolean isLessOrEqual(AbstractState abstractState1, AbstractState abstractState2) {
+    return ((LatticeAbstractStateT) abstractState1)
+        .isLessOrEqual((LatticeAbstractStateT) abstractState2);
+  }
 }

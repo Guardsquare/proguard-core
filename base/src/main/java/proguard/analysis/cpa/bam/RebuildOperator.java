@@ -21,20 +21,20 @@ package proguard.analysis.cpa.bam;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * This operator is used to avoid collision of program identifiers when returning from a procedure call. This operator does not compute any abstraction, but just performs simple operations as renaming
- * variables, depending on the domain.
+ * This operator is used to avoid collision of program identifiers when returning from a procedure
+ * call. This operator does not compute any abstraction, but just performs simple operations as
+ * renaming variables, depending on the domain.
  *
  * @author Carlo Alberto Pozzoli
  */
-public interface RebuildOperator
-{
+public interface RebuildOperator {
 
-    /**
-     * Performs the rebuilding of the return state.
-     *
-     * @param predecessorCallState the state of the caller at the moment of the procedure call
-     * @param expandedOutputState  the output of {@link ExpandOperator}
-     * @return The state of the caller after the procedure call
-     */
-    AbstractState rebuild(AbstractState predecessorCallState, AbstractState expandedOutputState);
+  /**
+   * Performs the rebuilding of the return state.
+   *
+   * @param predecessorCallState the state of the caller at the moment of the procedure call
+   * @param expandedOutputState the output of {@link ExpandOperator}
+   * @return The state of the caller after the procedure call
+   */
+  AbstractState rebuild(AbstractState predecessorCallState, AbstractState expandedOutputState);
 }

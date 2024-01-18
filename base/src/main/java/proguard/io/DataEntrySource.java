@@ -20,20 +20,14 @@ package proguard.io;
 import java.io.IOException;
 
 /**
- * This interface provides a source for data entries. The implementation
- * determines the type of the data entries. Typical examples are files or
- * directories. The source can pump its data entries into a data entry reader
- * (a "push" model for the entries), which can then optionally read their
+ * This interface provides a source for data entries. The implementation determines the type of the
+ * data entries. Typical examples are files or directories. The source can pump its data entries
+ * into a data entry reader (a "push" model for the entries), which can then optionally read their
  * contents (a "pull" model for the contents).
  *
  * @author Eric Lafortune
  */
-public interface DataEntrySource
-{
-    /**
-     * Applies the given DataEntryReader to all data entries that the
-     * implementation can provide.
-     */
-    public void pumpDataEntries(DataEntryReader dataEntryReader)
-    throws IOException;
+public interface DataEntrySource {
+  /** Applies the given DataEntryReader to all data entries that the implementation can provide. */
+  public void pumpDataEntries(DataEntryReader dataEntryReader) throws IOException;
 }

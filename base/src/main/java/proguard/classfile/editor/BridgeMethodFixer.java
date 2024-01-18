@@ -27,86 +27,84 @@ import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
- * This {@link MemberVisitor} fixes all inappropriate bridge access flags of the
- * program methods that it visits, checking whether the methods to which they
- * bridge have the same name. Some compilers, like in Eclipse and in later
- * versions of JDK 1.6, complain if they can't find the method with the same
- * name.
+ * This {@link MemberVisitor} fixes all inappropriate bridge access flags of the program methods
+ * that it visits, checking whether the methods to which they bridge have the same name. Some
+ * compilers, like in Eclipse and in later versions of JDK 1.6, complain if they can't find the
+ * method with the same name.
  *
  * @author Eric Lafortune
  */
 public class BridgeMethodFixer
-implements   MemberVisitor,
-             AttributeVisitor,
-             InstructionVisitor,
-             ConstantVisitor
-{
-    private static final boolean DEBUG = false;
+    implements MemberVisitor, AttributeVisitor, InstructionVisitor, ConstantVisitor {
+  private static final boolean DEBUG = false;
 
+  // Return values for the visitor methods.
+  private String bridgedMethodName;
 
-    // Return values for the visitor methods.
-    private String bridgedMethodName;
+  // Implementations for MemberVisitor.
 
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    if ((programMethod.getAccessFlags() & AccessConstants.BRIDGE) != 0) {
+      programMethod.attributesAccept(programClass, this);
+    }
+  }
 
-    // Implementations for MemberVisitor.
+  // Implementations for AttributeVisitor.
 
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        if ((programMethod.getAccessFlags() & AccessConstants.BRIDGE) != 0)
-        {
-            programMethod.attributesAccept(programClass, this);
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    // Go over the instructions of the bridge method.
+    codeAttribute.instructionsAccept(clazz, method, this);
+  }
+
+  // Implementations for InstructionVisitor.
+
+  public void visitAnyInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      Instruction instruction) {}
+
+  public void visitConstantInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      ConstantInstruction constantInstruction) {
+    switch (constantInstruction.opcode) {
+      case Instruction.OP_INVOKEVIRTUAL:
+      case Instruction.OP_INVOKESPECIAL:
+      case Instruction.OP_INVOKESTATIC:
+      case Instruction.OP_INVOKEINTERFACE:
+        // Get the name of the bridged method.
+        clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
+
+        // Check if the name is different.
+        if (!method.getName(clazz).equals(bridgedMethodName)) {
+          if (DEBUG) {
+            System.out.println(
+                "BridgeMethodFixer: ["
+                    + clazz.getName()
+                    + "."
+                    + method.getName(clazz)
+                    + method.getDescriptor(clazz)
+                    + "] does not bridge to ["
+                    + bridgedMethodName
+                    + "]");
+          }
+
+          // Clear the bridge flag.
+          ((ProgramMethod) method).u2accessFlags &= ~AccessConstants.BRIDGE;
         }
+        break;
     }
+  }
 
+  // Implementations for ConstantVisitor.
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        // Go over the instructions of the bridge method.
-        codeAttribute.instructionsAccept(clazz, method, this);
-    }
-
-
-    // Implementations for InstructionVisitor.
-
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction) {}
-
-
-    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
-    {
-        switch (constantInstruction.opcode)
-        {
-            case Instruction.OP_INVOKEVIRTUAL:
-            case Instruction.OP_INVOKESPECIAL:
-            case Instruction.OP_INVOKESTATIC:
-            case Instruction.OP_INVOKEINTERFACE:
-                // Get the name of the bridged method.
-                clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
-
-                // Check if the name is different.
-                if (!method.getName(clazz).equals(bridgedMethodName))
-                {
-                    if (DEBUG)
-                    {
-                        System.out.println("BridgeMethodFixer: ["+clazz.getName()+"."+method.getName(clazz)+method.getDescriptor(clazz)+"] does not bridge to ["+bridgedMethodName+"]");
-                    }
-
-                    // Clear the bridge flag.
-                    ((ProgramMethod)method).u2accessFlags &= ~AccessConstants.BRIDGE;
-                }
-                break;
-        }
-    }
-
-
-    // Implementations for ConstantVisitor.
-
-    public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant)
-    {
-        bridgedMethodName = anyMethodrefConstant.getName(clazz);
-    }
+  public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant) {
+    bridgedMethodName = anyMethodrefConstant.getName(clazz);
+  }
 }

@@ -21,53 +21,44 @@ import proguard.classfile.*;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 
-
 /**
- * This {@link ConstantVisitor} delegates its visits to another given {@link ConstantVisitor},
- * but only when the visited constant has the proper processing flags.
+ * This {@link ConstantVisitor} delegates its visits to another given {@link ConstantVisitor}, but
+ * only when the visited constant has the proper processing flags.
  */
-public class ConstantProcessingFlagFilter
-implements   ConstantVisitor
-{
-    private final int             requiredSetProcessingFlags;
-    private final int             requiredUnsetProcessingFlags;
-    private final ConstantVisitor constantVisitor;
+public class ConstantProcessingFlagFilter implements ConstantVisitor {
+  private final int requiredSetProcessingFlags;
+  private final int requiredUnsetProcessingFlags;
+  private final ConstantVisitor constantVisitor;
 
+  /**
+   * Creates a new ConstantProcessingFlagFilter.
+   *
+   * @param requiredSetProcessingFlags the constant processing flags that should be set.
+   * @param requiredUnsetProcessingFlags the constant processing flags that should be unset.
+   * @param constantVisitor the <code>ConstantVisitor</code> to which visits will be delegated.
+   */
+  public ConstantProcessingFlagFilter(
+      int requiredSetProcessingFlags,
+      int requiredUnsetProcessingFlags,
+      ConstantVisitor constantVisitor) {
+    this.requiredSetProcessingFlags = requiredSetProcessingFlags;
+    this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new ConstantProcessingFlagFilter.
-     *
-     * @param requiredSetProcessingFlags   the constant processing flags that should be set.
-     * @param requiredUnsetProcessingFlags the constant processing flags that should be unset.
-     * @param constantVisitor              the <code>ConstantVisitor</code> to which visits will be delegated.
-     */
-    public ConstantProcessingFlagFilter(int             requiredSetProcessingFlags,
-                                        int             requiredUnsetProcessingFlags,
-                                        ConstantVisitor constantVisitor)
-    {
-        this.requiredSetProcessingFlags   = requiredSetProcessingFlags;
-        this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
-        this.constantVisitor              = constantVisitor;
+  // Implementations for ConstantVisitor.
+
+  @Override
+  public void visitAnyConstant(Clazz clazz, Constant constant) {
+    if (accepted(constant.getProcessingFlags())) {
+      constant.accept(clazz, constantVisitor);
     }
+  }
 
+  // Small utility methods.
 
-    // Implementations for ConstantVisitor.
-
-    @Override
-    public void visitAnyConstant(Clazz clazz, Constant constant)
-    {
-        if (accepted(constant.getProcessingFlags()))
-        {
-            constant.accept(clazz, constantVisitor);
-        }
-    }
-
-
-    // Small utility methods.
-
-    private boolean accepted(int processingFlags)
-    {
-        return (requiredSetProcessingFlags   & ~processingFlags) == 0 &&
-               (requiredUnsetProcessingFlags &  processingFlags) == 0;
-    }
+  private boolean accepted(int processingFlags) {
+    return (requiredSetProcessingFlags & ~processingFlags) == 0
+        && (requiredUnsetProcessingFlags & processingFlags) == 0;
+  }
 }

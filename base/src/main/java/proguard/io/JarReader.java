@@ -23,107 +23,84 @@ import java.util.Enumeration;
 import java.util.zip.*;
 
 /**
- * This {@link DataEntryReader} lets a given {@link DataEntryReader} read all data entries of
- * the read archive data entries.
+ * This {@link DataEntryReader} lets a given {@link DataEntryReader} read all data entries of the
+ * read archive data entries.
  *
  * @author Eric Lafortune
  */
-public class JarReader implements DataEntryReader
-{
-    private final boolean         jmod;
-    private final DataEntryReader dataEntryReader;
+public class JarReader implements DataEntryReader {
+  private final boolean jmod;
+  private final DataEntryReader dataEntryReader;
 
+  /**
+   * Creates a new JarReader.
+   *
+   * @param dataEntryReader the reader that can process the jar entries.
+   */
+  public JarReader(DataEntryReader dataEntryReader) {
+    this(false, dataEntryReader);
+  }
 
-    /**
-     * Creates a new JarReader.
-     * @param dataEntryReader the reader that can process the jar entries.
-     */
-    public JarReader(DataEntryReader dataEntryReader)
-    {
-        this(false, dataEntryReader);
-    }
+  /**
+   * Creates a new JarReader that optionally reads jmod files.
+   *
+   * @param jmod specifies whether the input jar is actually a jmod file.
+   * @param dataEntryReader the reader that can process the jar entries.
+   */
+  public JarReader(boolean jmod, DataEntryReader dataEntryReader) {
+    this.jmod = jmod;
+    this.dataEntryReader = dataEntryReader;
+  }
 
+  // Implementation for DataEntryReader.
 
-    /**
-     * Creates a new JarReader that optionally reads jmod files.
-     * @param jmod            specifies whether the input jar is actually a
-     *                        jmod file.
-     * @param dataEntryReader the reader that can process the jar entries.
-     */
-    public JarReader(boolean         jmod,
-                     DataEntryReader dataEntryReader)
-    {
-        this.jmod            = jmod;
-        this.dataEntryReader = dataEntryReader;
-    }
+  @Override
+  public void read(DataEntry dataEntry) throws IOException {
+    // Can we parse the jar entries more robustly from a file?
+    if (dataEntry instanceof FileDataEntry) {
+      // Read the data entry using its file.
+      FileDataEntry fileDataEntry = (FileDataEntry) dataEntry;
 
+      ZipFile zipFile = new ZipFile(fileDataEntry.getFile(), StandardCharsets.UTF_8);
 
-    // Implementation for DataEntryReader.
+      try {
+        Enumeration entries = zipFile.entries();
 
-    @Override
-    public void read(DataEntry dataEntry) throws IOException
-    {
-        // Can we parse the jar entries more robustly from a file?
-        if (dataEntry instanceof FileDataEntry)
-        {
-            // Read the data entry using its file.
-            FileDataEntry fileDataEntry = (FileDataEntry)dataEntry;
+        // Get all entries from the input jar.
+        while (entries.hasMoreElements()) {
+          ZipEntry zipEntry = (ZipEntry) entries.nextElement();
 
-            ZipFile zipFile = new ZipFile(fileDataEntry.getFile(), StandardCharsets.UTF_8);
-
-            try
-            {
-                Enumeration entries = zipFile.entries();
-
-                // Get all entries from the input jar.
-                while (entries.hasMoreElements())
-                {
-                    ZipEntry zipEntry = (ZipEntry)entries.nextElement();
-
-                    // Delegate the actual reading to the data entry reader.
-                    dataEntryReader.read(new ZipFileDataEntry(dataEntry,
-                                                              zipEntry,
-                                                              zipFile));
-                }
-            }
-            finally
-            {
-                zipFile.close();
-            }
+          // Delegate the actual reading to the data entry reader.
+          dataEntryReader.read(new ZipFileDataEntry(dataEntry, zipEntry, zipFile));
         }
-        else
-        {
-            if (jmod)
-            {
-                // Eat the magic bytes
-                dataEntry.getInputStream().read(new byte[4]);
-            }
+      } finally {
+        zipFile.close();
+      }
+    } else {
+      if (jmod) {
+        // Eat the magic bytes
+        dataEntry.getInputStream().read(new byte[4]);
+      }
 
-            // Read the data entry using its stream.
-            ZipInputStream zipInputStream = new ZipInputStream(dataEntry.getInputStream(), StandardCharsets.UTF_8);
+      // Read the data entry using its stream.
+      ZipInputStream zipInputStream =
+          new ZipInputStream(dataEntry.getInputStream(), StandardCharsets.UTF_8);
 
-            try
-            {
-                // Get all entries from the input jar.
-                while (true)
-                {
-                    // Can we get another entry?
-                    ZipEntry zipEntry = zipInputStream.getNextEntry();
-                    if (zipEntry == null)
-                    {
-                        break;
-                    }
+      try {
+        // Get all entries from the input jar.
+        while (true) {
+          // Can we get another entry?
+          ZipEntry zipEntry = zipInputStream.getNextEntry();
+          if (zipEntry == null) {
+            break;
+          }
 
-                    // Delegate the actual reading to the data entry reader.
-                    dataEntryReader.read(new ZipDataEntry(dataEntry,
-                                                          zipEntry,
-                                                          zipInputStream));
-                }
-            }
-            finally
-            {
-                dataEntry.closeInputStream();
-            }
+          // Delegate the actual reading to the data entry reader.
+          dataEntryReader.read(new ZipDataEntry(dataEntry, zipEntry, zipInputStream));
         }
+      } finally {
+        dataEntry.closeInputStream();
+      }
     }
+  }
 }

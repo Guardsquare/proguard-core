@@ -18,108 +18,85 @@
 
 package proguard.evaluation.util.jsonprinter;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Track the evaluation of a single code attribute (one call to visitCode attribute)
- */
-class CodeAttributeRecord implements JsonSerializable
-{
-    /**
-     * Clazz this code attribute is a part of.
-     */
-    @NotNull
-    private final String clazz;
+/** Track the evaluation of a single code attribute (one call to visitCode attribute) */
+class CodeAttributeRecord implements JsonSerializable {
+  /** Clazz this code attribute is a part of. */
+  @NotNull private final String clazz;
 
-    /**
-     * Method this code attribute is from.
-     */
-    @NotNull
-    private final String method;
+  /** Method this code attribute is from. */
+  @NotNull private final String method;
 
-    /**
-     * List of instruction from this code attribute.
-     */
-    @NotNull
-    private final List<InstructionRecord> instructions;
+  /** List of instruction from this code attribute. */
+  @NotNull private final List<InstructionRecord> instructions;
 
-    /**
-     * List of parameters given to the code attribute.
-     */
-    @NotNull
-    private final List<String> parameters;
+  /** List of parameters given to the code attribute. */
+  @NotNull private final List<String> parameters;
 
-    private ErrorRecord error;
+  private ErrorRecord error;
 
-    /**
-     * List of block evaluations that happened on this code attribute.
-     */
-    @NotNull
-    private final List<InstructionBlockEvaluationRecord> blockEvaluations = new ArrayList<>();
+  /** List of block evaluations that happened on this code attribute. */
+  @NotNull
+  private final List<InstructionBlockEvaluationRecord> blockEvaluations = new ArrayList<>();
 
-    public CodeAttributeRecord(@NotNull String clazz, @NotNull String method, @NotNull List<String> parameters,
-                               @NotNull List<InstructionRecord> instructions)
-    {
-        this.clazz = clazz;
-        this.method = method;
-        this.parameters = parameters;
-        this.instructions = instructions;
+  public CodeAttributeRecord(
+      @NotNull String clazz,
+      @NotNull String method,
+      @NotNull List<String> parameters,
+      @NotNull List<InstructionRecord> instructions) {
+    this.clazz = clazz;
+    this.method = method;
+    this.parameters = parameters;
+    this.instructions = instructions;
+  }
+
+  public StringBuilder toJson(StringBuilder builder) {
+    builder.append("{");
+    JsonPrinter.toJson("clazz", clazz, builder).append(",");
+    JsonPrinter.toJson("method", method, builder).append(",");
+    JsonPrinter.listToJson("instructions", instructions, builder).append(",");
+    JsonPrinter.stringListToJson("parameters", parameters, builder).append(",");
+    JsonPrinter.listToJson("blockEvaluations", blockEvaluations, builder);
+    if (error != null) {
+      builder.append(",");
+      JsonPrinter.serializeJsonSerializable("error", error, builder);
     }
+    return builder.append("}");
+  }
 
-    public StringBuilder toJson(StringBuilder builder) {
-        builder.append("{");
-        JsonPrinter.toJson("clazz", clazz, builder).append(",");
-        JsonPrinter.toJson("method", method, builder).append(",");
-        JsonPrinter.listToJson("instructions", instructions, builder).append(",");
-        JsonPrinter.stringListToJson("parameters", parameters, builder).append(",");
-        JsonPrinter.listToJson("blockEvaluations", blockEvaluations, builder);
-        if (error != null) {
-            builder.append(",");
-            JsonPrinter.serializeJsonSerializable("error", error, builder);
-        }
-        return builder.append("}");
-    }
+  @NotNull
+  public String getClazz() {
+    return clazz;
+  }
 
-    @NotNull
-    public String getClazz()
-    {
-        return clazz;
-    }
+  @NotNull
+  public String getMethod() {
+    return method;
+  }
 
-    @NotNull
-    public String getMethod()
-    {
-        return method;
-    }
+  @NotNull
+  public List<InstructionRecord> getInstructions() {
+    return instructions;
+  }
 
-    @NotNull
-    public List<InstructionRecord> getInstructions()
-    {
-        return instructions;
-    }
+  @NotNull
+  public List<String> getParameters() {
+    return parameters;
+  }
 
-    @NotNull
-    public List<String> getParameters()
-    {
-        return parameters;
-    }
+  public ErrorRecord getError() {
+    return error;
+  }
 
-    public ErrorRecord getError()
-    {
-        return error;
-    }
+  @NotNull
+  public List<InstructionBlockEvaluationRecord> getBlockEvaluations() {
+    return blockEvaluations;
+  }
 
-    @NotNull
-    public List<InstructionBlockEvaluationRecord> getBlockEvaluations()
-    {
-        return blockEvaluations;
-    }
-
-    public void setError(ErrorRecord error)
-    {
-        this.error = error;
-    }
+  public void setError(ErrorRecord error) {
+    this.error = error;
+  }
 }

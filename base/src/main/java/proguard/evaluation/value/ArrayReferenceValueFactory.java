@@ -20,25 +20,18 @@ package proguard.evaluation.value;
 import proguard.classfile.*;
 
 /**
- * This identified value factory creates array reference values that also
- * represent their elements, in as far as possible.
+ * This identified value factory creates array reference values that also represent their elements,
+ * in as far as possible.
  *
  * @author Eric Lafortune
  */
-public class ArrayReferenceValueFactory
-extends      TypedReferenceValueFactory
-{
-    // Implementations for ReferenceValue.
+public class ArrayReferenceValueFactory extends TypedReferenceValueFactory {
+  // Implementations for ReferenceValue.
 
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength)
-    {
-        return type == null ?
-            REFERENCE_VALUE_NULL :
-            new ArrayReferenceValue(TypeConstants.ARRAY + type,
-                                    referencedClass,
-                                    false,
-                                    arrayLength);
-    }
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength) {
+    return type == null
+        ? REFERENCE_VALUE_NULL
+        : new ArrayReferenceValue(TypeConstants.ARRAY + type, referencedClass, false, arrayLength);
+  }
 }

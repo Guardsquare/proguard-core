@@ -18,33 +18,27 @@
 package proguard.util;
 
 /**
- * This visitor sets the specified processing flags of the {@link Processable}
- * instances that it visits.
+ * This visitor sets the specified processing flags of the {@link Processable} instances that it
+ * visits.
  *
  * @author Johan Leys
  */
-public class ProcessingFlagSetter
-implements   ProcessableVisitor
-{
-    private final int processingFlags;
+public class ProcessingFlagSetter implements ProcessableVisitor {
+  private final int processingFlags;
 
+  /**
+   * Creates a new ProcessingFlagSetter.
+   *
+   * @param processingFlags the processing flags to be set.
+   */
+  public ProcessingFlagSetter(int processingFlags) {
+    this.processingFlags = processingFlags;
+  }
 
-    /**
-     * Creates a new ProcessingFlagSetter.
-     *
-     * @param processingFlags the processing flags to be set.
-     */
-    public ProcessingFlagSetter(int processingFlags)
-    {
-        this.processingFlags = processingFlags;
-    }
+  // Implementations for ProcessableVisitor.
 
-
-    // Implementations for ProcessableVisitor.
-
-    @Override
-    public void visitAnyProcessable(Processable processable)
-    {
-        processable.setProcessingFlags(processable.getProcessingFlags() | processingFlags);
-    }
+  @Override
+  public void visitAnyProcessable(Processable processable) {
+    processable.setProcessingFlags(processable.getProcessingFlags() | processingFlags);
+  }
 }

@@ -21,61 +21,54 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
 public class AllKotlinAnnotationVisitor
-implements   KotlinMetadataVisitor,
-             KotlinTypeAliasVisitor,
-             KotlinTypeParameterVisitor,
-             KotlinTypeVisitor
-{
-    private final KotlinAnnotationVisitor delegate;
+    implements KotlinMetadataVisitor,
+        KotlinTypeAliasVisitor,
+        KotlinTypeParameterVisitor,
+        KotlinTypeVisitor {
+  private final KotlinAnnotationVisitor delegate;
 
-    public AllKotlinAnnotationVisitor(KotlinAnnotationVisitor delegate)
-    {
-        this.delegate = delegate;
-    }
+  public AllKotlinAnnotationVisitor(KotlinAnnotationVisitor delegate) {
+    this.delegate = delegate;
+  }
 
+  // Implementations for KotlinMetadataVisitor.
 
-    // Implementations for KotlinMetadataVisitor.
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {
+    kotlinMetadata.accept(clazz, new AllTypeVisitor(this));
+    kotlinMetadata.accept(clazz, new AllTypeParameterVisitor(this));
+  }
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
-    {
-        kotlinMetadata.accept(clazz, new AllTypeVisitor(         this));
-        kotlinMetadata.accept(clazz, new AllTypeParameterVisitor(this));
-    }
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    kotlinDeclarationContainerMetadata.typeAliasesAccept(clazz, this);
 
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        kotlinDeclarationContainerMetadata.typeAliasesAccept(clazz, this);
+    visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);
+  }
 
-        visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);
-    }
+  // Implementations for KotlinTypeVisitor.
 
+  @Override
+  public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata) {
+    kotlinTypeMetadata.annotationsAccept(clazz, delegate);
+  }
 
-    // Implementations for KotlinTypeVisitor.
+  // Implementations for KotlinTypeAliasVisitor.
 
-    @Override
-    public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata)
-    {
-        kotlinTypeMetadata.annotationsAccept(clazz, delegate);
-    }
+  @Override
+  public void visitTypeAlias(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasMetadata kotlinTypeAliasMetadata) {
+    kotlinTypeAliasMetadata.annotationsAccept(clazz, delegate);
+  }
 
-    // Implementations for KotlinTypeAliasVisitor.
+  // Implementations for KotlinTypeParameterVisitor.
 
-    @Override
-    public void visitTypeAlias(Clazz                              clazz,
-                               KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                               KotlinTypeAliasMetadata            kotlinTypeAliasMetadata)
-    {
-        kotlinTypeAliasMetadata.annotationsAccept(clazz, delegate);
-    }
-
-
-    // Implementations for KotlinTypeParameterVisitor.
-
-    @Override
-    public void visitAnyTypeParameter(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
-    {
-        kotlinTypeParameterMetadata.annotationsAccept(clazz, delegate);
-    }
+  @Override
+  public void visitAnyTypeParameter(
+      Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
+    kotlinTypeParameterMetadata.annotationsAccept(clazz, delegate);
+  }
 }

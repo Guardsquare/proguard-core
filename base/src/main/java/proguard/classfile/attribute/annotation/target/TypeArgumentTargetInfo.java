@@ -27,56 +27,41 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class TypeArgumentTargetInfo extends TargetInfo
-{
-    public int u2offset;
-    public int u1typeArgumentIndex;
+public class TypeArgumentTargetInfo extends TargetInfo {
+  public int u2offset;
+  public int u1typeArgumentIndex;
 
+  /** Creates an uninitialized TypeArgumentTargetInfo. */
+  public TypeArgumentTargetInfo() {}
 
-    /**
-     * Creates an uninitialized TypeArgumentTargetInfo.
-     */
-    public TypeArgumentTargetInfo()
-    {
-    }
+  /** Creates a partially initialized TypeArgumentTargetInfo. */
+  public TypeArgumentTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
+  /** Creates an initialized TypeArgumentTargetInfo. */
+  public TypeArgumentTargetInfo(byte u1targetType, int u2offset, int u1typeArgumentIndex) {
+    super(u1targetType);
 
-    /**
-     * Creates a partially initialized TypeArgumentTargetInfo.
-     */
-    public TypeArgumentTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+    this.u2offset = u2offset;
+    this.u1typeArgumentIndex = u1typeArgumentIndex;
+  }
 
+  // Implementations for TargetInfo.
 
-    /**
-     * Creates an initialized TypeArgumentTargetInfo.
-     */
-    public TypeArgumentTargetInfo(byte u1targetType,
-                                  int  u2offset,
-                                  int  u1typeArgumentIndex)
-    {
-        super(u1targetType);
+  /** Lets the visitor visit, with Method and CodeAttribute null. */
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitTypeArgumentTargetInfo(clazz, null, null, typeAnnotation, this);
+  }
 
-        this.u2offset            = u2offset;
-        this.u1typeArgumentIndex = u1typeArgumentIndex;
-    }
-
-
-    // Implementations for TargetInfo.
-
-    /**
-     * Lets the visitor visit, with Method and CodeAttribute null.
-     */
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitTypeArgumentTargetInfo(clazz, null, null, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitTypeArgumentTargetInfo(clazz, method, codeAttribute, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitTypeArgumentTargetInfo(
+        clazz, method, codeAttribute, typeAnnotation, this);
+  }
 }

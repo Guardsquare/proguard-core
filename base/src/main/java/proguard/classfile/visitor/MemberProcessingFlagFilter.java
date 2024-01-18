@@ -20,82 +20,71 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link MemberVisitor} delegates its visits to another given
- * {@link MemberVisitor}, but only when the visited member has the proper
- * processing flags.
+ * This {@link MemberVisitor} delegates its visits to another given {@link MemberVisitor}, but only
+ * when the visited member has the proper processing flags.
  *
  * @author Johan Leys
  */
-public class MemberProcessingFlagFilter
-implements   MemberVisitor
-{
-    private final int           requiredSetProcessingFlags;
-    private final int           requiredUnsetProcessingFlags;
-    private final MemberVisitor acceptedMemberVisitor;
-    private final MemberVisitor rejectedMemberVisitor;
+public class MemberProcessingFlagFilter implements MemberVisitor {
+  private final int requiredSetProcessingFlags;
+  private final int requiredUnsetProcessingFlags;
+  private final MemberVisitor acceptedMemberVisitor;
+  private final MemberVisitor rejectedMemberVisitor;
 
+  /**
+   * Creates a new MemberProcessingFlagFilter.
+   *
+   * @param requiredSetProcessingFlags the member processing flags that should be set.
+   * @param requiredUnsetProcessingFlags the member processing flags that should be unset.
+   * @param acceptedMemberVisitor the <code>MemberVisitor</code> to which visits of members with the
+   *     proper processing flags will be delegated.
+   */
+  public MemberProcessingFlagFilter(
+      int requiredSetProcessingFlags,
+      int requiredUnsetProcessingFlags,
+      MemberVisitor acceptedMemberVisitor) {
+    this(requiredSetProcessingFlags, requiredUnsetProcessingFlags, acceptedMemberVisitor, null);
+  }
 
-    /**
-     * Creates a new MemberProcessingFlagFilter.
-     *
-     * @param requiredSetProcessingFlags   the member processing flags that should be set.
-     * @param requiredUnsetProcessingFlags the member processing flags that should be unset.
-     * @param acceptedMemberVisitor        the <code>MemberVisitor</code> to which visits of members with the proper
-     *                                     processing flags will be delegated.
-     */
-    public MemberProcessingFlagFilter(int           requiredSetProcessingFlags,
-                                      int           requiredUnsetProcessingFlags,
-                                      MemberVisitor acceptedMemberVisitor)
-    {
-        this(requiredSetProcessingFlags, requiredUnsetProcessingFlags, acceptedMemberVisitor, null);
+  /**
+   * Creates a new MemberProcessingFlagFilter.
+   *
+   * @param requiredSetProcessingFlags the member processing flags that should be set.
+   * @param requiredUnsetProcessingFlags the member processing flags that should be unset.
+   * @param acceptedMemberVisitor the <code>MemberVisitor</code> to which visits of members with the
+   *     proper processing flags will be delegated.
+   * @param rejectedMemberVisitor the <code>MemberVisitor</code> to which all other visits will be
+   *     delegated.
+   */
+  public MemberProcessingFlagFilter(
+      int requiredSetProcessingFlags,
+      int requiredUnsetProcessingFlags,
+      MemberVisitor acceptedMemberVisitor,
+      MemberVisitor rejectedMemberVisitor) {
+    this.requiredSetProcessingFlags = requiredSetProcessingFlags;
+    this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
+    this.acceptedMemberVisitor = acceptedMemberVisitor;
+    this.rejectedMemberVisitor = rejectedMemberVisitor;
+  }
+
+  // Implementations for MemberVisitor.
+
+  @Override
+  public void visitAnyMember(Clazz clazz, Member member) {
+    MemberVisitor delegate = getDelegate(member.getProcessingFlags());
+    if (delegate != null) {
+      member.accept(clazz, delegate);
     }
+  }
 
+  // Small utility methods.
 
-    /**
-     * Creates a new MemberProcessingFlagFilter.
-     *
-     * @param requiredSetProcessingFlags   the member processing flags that should be set.
-     * @param requiredUnsetProcessingFlags the member processing flags that should be unset.
-     * @param acceptedMemberVisitor        the <code>MemberVisitor</code> to which visits of members with the proper
-     *                                     processing flags will be delegated.
-     * @param rejectedMemberVisitor        the <code>MemberVisitor</code> to which all other visits will be delegated.
-     */
-    public MemberProcessingFlagFilter(int           requiredSetProcessingFlags,
-                                      int           requiredUnsetProcessingFlags,
-                                      MemberVisitor acceptedMemberVisitor,
-                                      MemberVisitor rejectedMemberVisitor)
-    {
-        this.requiredSetProcessingFlags   = requiredSetProcessingFlags;
-        this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
-        this.acceptedMemberVisitor        = acceptedMemberVisitor;
-        this.rejectedMemberVisitor        = rejectedMemberVisitor;
-    }
+  private MemberVisitor getDelegate(int processingFlags) {
+    return accepted(processingFlags) ? acceptedMemberVisitor : rejectedMemberVisitor;
+  }
 
-
-    // Implementations for MemberVisitor.
-
-    @Override
-    public void visitAnyMember(Clazz clazz, Member member)
-    {
-        MemberVisitor delegate = getDelegate(member.getProcessingFlags());
-        if (delegate != null)
-        {
-            member.accept(clazz, delegate);
-        }
-    }
-
-
-    // Small utility methods.
-
-    private MemberVisitor getDelegate(int processingFlags)
-    {
-        return accepted(processingFlags) ? acceptedMemberVisitor : rejectedMemberVisitor;
-    }
-
-
-    private boolean accepted(int processingFlags)
-    {
-        return (requiredSetProcessingFlags   & ~processingFlags) == 0 &&
-               (requiredUnsetProcessingFlags &  processingFlags) == 0;
-    }
+  private boolean accepted(int processingFlags) {
+    return (requiredSetProcessingFlags & ~processingFlags) == 0
+        && (requiredUnsetProcessingFlags & processingFlags) == 0;
+  }
 }

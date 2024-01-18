@@ -23,49 +23,47 @@ import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
 /**
- * This {@link InstructionVisitor} adds all instructions that it visits to the given
- * target code attribute.
+ * This {@link InstructionVisitor} adds all instructions that it visits to the given target code
+ * attribute.
  *
  * @author Eric Lafortune
  */
-public class InstructionAdder
-implements   InstructionVisitor
-{
-    private final ConstantAdder         constantAdder;
-    private final CodeAttributeComposer codeAttributeComposer;
+public class InstructionAdder implements InstructionVisitor {
+  private final ConstantAdder constantAdder;
+  private final CodeAttributeComposer codeAttributeComposer;
 
+  /** Creates a new InstructionAdder that will copy classes into the given target code attribute. */
+  public InstructionAdder(ProgramClass targetClass, CodeAttributeComposer targetComposer) {
+    constantAdder = new ConstantAdder(targetClass);
+    codeAttributeComposer = targetComposer;
+  }
 
-    /**
-     * Creates a new InstructionAdder that will copy classes into the given
-     * target code attribute.
-     */
-    public InstructionAdder(ProgramClass          targetClass,
-                            CodeAttributeComposer targetComposer)
-    {
-        constantAdder         = new ConstantAdder(targetClass);
-        codeAttributeComposer = targetComposer;
-    }
+  // Implementations for InstructionVisitor.
 
+  public void visitAnyInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      Instruction instruction) {
+    // Add the instruction.
+    codeAttributeComposer.appendInstruction(offset, instruction);
+  }
 
-    // Implementations for InstructionVisitor.
+  public void visitConstantInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      ConstantInstruction constantInstruction) {
+    // Create a copy of the instruction.
+    Instruction newConstantInstruction =
+        new ConstantInstruction(
+            constantInstruction.opcode,
+            constantAdder.addConstant(clazz, constantInstruction.constantIndex),
+            constantInstruction.constant);
 
-
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
-    {
-        // Add the instruction.
-        codeAttributeComposer.appendInstruction(offset, instruction);
-    }
-
-
-    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
-    {
-        // Create a copy of the instruction.
-        Instruction newConstantInstruction =
-            new ConstantInstruction(constantInstruction.opcode,
-                                    constantAdder.addConstant(clazz, constantInstruction.constantIndex),
-                                    constantInstruction.constant);
-
-        // Add the instruction.
-        codeAttributeComposer.appendInstruction(offset, newConstantInstruction);
-    }
+    // Add the instruction.
+    codeAttributeComposer.appendInstruction(offset, newConstantInstruction);
+  }
 }

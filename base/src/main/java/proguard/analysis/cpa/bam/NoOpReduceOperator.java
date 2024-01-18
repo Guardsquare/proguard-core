@@ -18,29 +18,33 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.Signature;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.Signature;
 
 /**
- * This {@link ReduceOperator} returns the original {@link AbstractState} without performing any reduction.
+ * This {@link ReduceOperator} returns the original {@link AbstractState} without performing any
+ * reduction.
  *
  * @author Carlo Alberto Pozzoli
  */
-public class NoOpReduceOperator<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT extends CfaEdge<CfaNodeT>, SignatureT extends Signature>
-    implements ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT>
-{
+public class NoOpReduceOperator<
+        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
+        CfaEdgeT extends CfaEdge<CfaNodeT>,
+        SignatureT extends Signature>
+    implements ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> {
 
-    // Implementations for ReduceOperator
+  // Implementations for ReduceOperator
 
-    @Override
-    public AbstractState reduce(AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call)
-    {
-        AbstractState result = expandedInitialState.copy();
-        ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) result).setProgramLocation(blockEntryNode);
-        return result;
-    }
+  @Override
+  public AbstractState reduce(
+      AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call) {
+    AbstractState result = expandedInitialState.copy();
+    ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) result)
+        .setProgramLocation(blockEntryNode);
+    return result;
+  }
 }

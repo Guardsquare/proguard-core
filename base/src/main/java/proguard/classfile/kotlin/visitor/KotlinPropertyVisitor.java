@@ -20,24 +20,23 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinPropertyVisitor
-{
-    void visitAnyProperty(Clazz                              clazz,
-                          KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                          KotlinPropertyMetadata             kotlinPropertyMetadata);
+public interface KotlinPropertyVisitor {
+  void visitAnyProperty(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata);
 
+  default void visitProperty(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata) {
+    visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
+  }
 
-    default void visitProperty(Clazz                              clazz,
-                               KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                               KotlinPropertyMetadata             kotlinPropertyMetadata)
-    {
-        visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
-    }
-
-    default void visitDelegatedProperty(Clazz                              clazz,
-                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                        KotlinPropertyMetadata             kotlinPropertyMetadata)
-    {
-        visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
-    }
+  default void visitDelegatedProperty(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata) {
+    visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
+  }
 }

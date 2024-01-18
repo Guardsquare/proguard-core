@@ -19,35 +19,28 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassVisitor} lets a given {@link ClassVisitor}
- * travel to direct subclasses of the visited class.
+ * This {@link ClassVisitor} lets a given {@link ClassVisitor} travel to direct subclasses of the
+ * visited class.
  *
  * @author Eric Lafortune
  */
-public class SubclassTraveler
-implements   ClassVisitor
-{
-    private final ClassVisitor classVisitor;
+public class SubclassTraveler implements ClassVisitor {
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new ClassHierarchyTraveler.
+   *
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public SubclassTraveler(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new ClassHierarchyTraveler.
-     * @param classVisitor    the <code>ClassVisitor</code> to
-     *                        which visits will be delegated.
-     */
-    public SubclassTraveler(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        clazz.subclassesAccept(classVisitor);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    clazz.subclassesAccept(classVisitor);
+  }
 }

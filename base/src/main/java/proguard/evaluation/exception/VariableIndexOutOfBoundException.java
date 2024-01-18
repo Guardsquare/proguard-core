@@ -20,26 +20,22 @@ package proguard.evaluation.exception;
 
 import proguard.exception.ErrorId;
 
-/**
- * Exception thrown when the variable index is out of bound of the current Variable count.
- */
-public class VariableIndexOutOfBoundException extends VariableEvaluationException
-{
-    /**
-     * The bound that has been invalidated.
-     */
-    private final int bound;
+/** Exception thrown when the variable index is out of bound of the current Variable count. */
+public class VariableIndexOutOfBoundException extends VariableEvaluationException {
+  /** The bound that has been invalidated. */
+  private final int bound;
 
-    public VariableIndexOutOfBoundException(int index, int bound)
-    {
-        super("Variable index [%s] out of bounds. There are %s variables in this code attribute.",
-                ErrorId.VARIABLE_INDEX_OUT_OF_BOUND,
-                new String[] {Integer.toString(index), Integer.toString(bound)}, index, null);
-        this.bound = bound;
-    }
+  public VariableIndexOutOfBoundException(int index, int bound) {
+    super(
+        "Variable index [%s] out of bounds. There are %s variables in this code attribute.",
+        ErrorId.VARIABLE_INDEX_OUT_OF_BOUND,
+        new String[] {Integer.toString(index), Integer.toString(bound)},
+        index,
+        null);
+    this.bound = bound;
+  }
 
-    public int getBound()
-    {
-        return bound;
-    }
+  public int getBound() {
+    return bound;
+  }
 }

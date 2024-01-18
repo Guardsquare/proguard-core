@@ -26,28 +26,19 @@ import proguard.util.Counter;
  *
  * @author Eric Lafortune
  */
-public class ConstantCounter
-implements   ConstantVisitor,
-             Counter
-{
-    private int count;
+public class ConstantCounter implements ConstantVisitor, Counter {
+  private int count;
 
+  // Implementations for Counter.
 
-    // Implementations for Counter.
+  /** Returns the number of class members that has been visited so far. */
+  public int getCount() {
+    return count;
+  }
 
-    /**
-     * Returns the number of class members that has been visited so far.
-     */
-    public int getCount()
-    {
-        return count;
-    }
+  // Implementations for ConstantVisitor.
 
-
-    // Implementations for ConstantVisitor.
-
-    public void visitAnyConstant(Clazz clazz, Constant constant)
-    {
-        count++;
-    }
+  public void visitAnyConstant(Clazz clazz, Constant constant) {
+    count++;
+  }
 }

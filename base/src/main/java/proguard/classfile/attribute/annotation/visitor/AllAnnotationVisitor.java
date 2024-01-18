@@ -28,129 +28,134 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class AllAnnotationVisitor
-implements   AttributeVisitor
-{
-    private final AnnotationVisitor annotationVisitor;
+public class AllAnnotationVisitor implements AttributeVisitor {
+  private final AnnotationVisitor annotationVisitor;
 
+  /**
+   * Creates a new AllAnnotationVisitor.
+   *
+   * @param annotationVisitor the AnnotationVisitor to which visits will be delegated.
+   */
+  public AllAnnotationVisitor(AnnotationVisitor annotationVisitor) {
+    this.annotationVisitor = annotationVisitor;
+  }
 
-    /**
-     * Creates a new AllAnnotationVisitor.
-     * @param annotationVisitor the AnnotationVisitor to which visits will be
-     *                          delegated.
-     */
-    public AllAnnotationVisitor(AnnotationVisitor annotationVisitor)
-    {
-        this.annotationVisitor = annotationVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeVisibleAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
+  }
 
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeVisibleAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
+  }
 
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeVisibleAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
+  }
 
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeVisibleAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
-    }
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeInvisibleAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
+  }
 
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeInvisibleAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
+  }
 
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeVisibleAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
-    }
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeInvisibleAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
+  }
 
+  public void visitAnyParameterAnnotationsAttribute(
+      Clazz clazz, Method method, ParameterAnnotationsAttribute parameterAnnotationsAttribute) {
+    // Visit the annotations.
+    parameterAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
+  }
 
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeVisibleAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
-    }
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
+  }
 
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
+  }
 
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeInvisibleAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
-    }
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
+  }
 
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(
+        clazz, method, codeAttribute, annotationVisitor);
+  }
 
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeInvisibleAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
-    }
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
+  }
 
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
+  }
 
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeInvisibleAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
-    }
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
+  }
 
-
-    public void visitAnyParameterAnnotationsAttribute(Clazz clazz, Method method, ParameterAnnotationsAttribute parameterAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        parameterAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeVisibleTypeAnnotationsAttribute.annotationsAccept(clazz, method, codeAttribute, annotationVisitor);
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(clazz, annotationVisitor);
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(clazz, field, annotationVisitor);
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(clazz, method, annotationVisitor);
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        // Visit the annotations.
-        runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(clazz, method, codeAttribute, annotationVisitor);
-    }
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    // Visit the annotations.
+    runtimeInvisibleTypeAnnotationsAttribute.annotationsAccept(
+        clazz, method, codeAttribute, annotationVisitor);
+  }
 }

@@ -17,24 +17,20 @@
  */
 package proguard.classfile.kotlin.flags;
 
+/** Flags for Kotlin types. */
+public class KotlinTypeFlags implements KotlinFlags {
+  /**
+   * Signifies that the corresponding type is marked as nullable, i.e. has a question mark at the
+   * end of its notation.
+   */
+  public boolean isNullable;
 
-/**
- * Flags for Kotlin types.
- */
-public class KotlinTypeFlags implements KotlinFlags
-{
-    /**
-     * Signifies that the corresponding type is marked as nullable, i.e. has a question mark at the end of its notation.
-     */
-    public boolean isNullable;
+  /**
+   * Signifies that the corresponding type is [definitely
+   * non-null](https://kotlinlang.org/docs/whatsnew17.html#stable-definitely-non-nullable-types).
+   */
+  public boolean isDefinitelyNonNull;
 
-    /**
-     * Signifies that the corresponding type is [definitely non-null](https://kotlinlang.org/docs/whatsnew17.html#stable-definitely-non-nullable-types).
-     */
-    public boolean isDefinitelyNonNull;
-
-    /**
-     * Signifies that the corresponding type is `suspend`.
-     */
-    public boolean isSuspend;
+  /** Signifies that the corresponding type is `suspend`. */
+  public boolean isSuspend;
 }

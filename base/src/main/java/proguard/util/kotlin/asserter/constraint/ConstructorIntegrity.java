@@ -25,28 +25,25 @@ import proguard.classfile.kotlin.visitor.AllConstructorVisitor;
 import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor;
 import proguard.util.kotlin.asserter.AssertUtil;
 
-public class ConstructorIntegrity
-extends      AbstractKotlinMetadataConstraint
-implements   KotlinConstructorVisitor
-{
+public class ConstructorIntegrity extends AbstractKotlinMetadataConstraint
+    implements KotlinConstructorVisitor {
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
-    {
-        kotlinMetadata.accept(clazz, new AllConstructorVisitor(this));
-    }
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {
+    kotlinMetadata.accept(clazz, new AllConstructorVisitor(this));
+  }
 
-    @Override
-    public void visitConstructor(Clazz                     clazz,
-                                 KotlinClassKindMetadata   kotlinClassKindMetadata,
-                                 KotlinConstructorMetadata kotlinConstructorMetadata)
-    {
-        if (!kotlinClassKindMetadata.flags.isAnnotationClass)
-        {
-            AssertUtil util = new AssertUtil("Constructor", reporter, programClassPool, libraryClassPool);
-            util.reportIfNullReference("constructor referencedMethod", kotlinConstructorMetadata.referencedMethod);
-            util.reportIfMethodDangling("constructor referencedMethod",
-                                        clazz, kotlinConstructorMetadata.referencedMethod);
-        }
+  @Override
+  public void visitConstructor(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata) {
+    if (!kotlinClassKindMetadata.flags.isAnnotationClass) {
+      AssertUtil util = new AssertUtil("Constructor", reporter, programClassPool, libraryClassPool);
+      util.reportIfNullReference(
+          "constructor referencedMethod", kotlinConstructorMetadata.referencedMethod);
+      util.reportIfMethodDangling(
+          "constructor referencedMethod", clazz, kotlinConstructorMetadata.referencedMethod);
     }
+  }
 }

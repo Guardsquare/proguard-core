@@ -26,59 +26,47 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class TypeParameterBoundTargetInfo extends TargetInfo
-{
-    public int u1typeParameterIndex;
-    public int u1boundIndex;
+public class TypeParameterBoundTargetInfo extends TargetInfo {
+  public int u1typeParameterIndex;
+  public int u1boundIndex;
 
+  /** Creates an uninitialized TypeParameterBoundTargetInfo. */
+  public TypeParameterBoundTargetInfo() {}
 
-    /**
-     * Creates an uninitialized TypeParameterBoundTargetInfo.
-     */
-    public TypeParameterBoundTargetInfo()
-    {
-    }
+  /** Creates a partially initialized TypeParameterBoundTargetInfo. */
+  public TypeParameterBoundTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
+  /** Creates an initialized TypeParameterBoundTargetInfo. */
+  public TypeParameterBoundTargetInfo(
+      byte u1targetType, int u1typeParameterIndex, int u1boundIndex) {
+    super(u1targetType);
 
-    /**
-     * Creates a partially initialized TypeParameterBoundTargetInfo.
-     */
-    public TypeParameterBoundTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+    this.u1typeParameterIndex = u1typeParameterIndex;
+    this.u1boundIndex = u1boundIndex;
+  }
 
+  // Implementations for TargetInfo.
 
-    /**
-     * Creates an initialized TypeParameterBoundTargetInfo.
-     */
-    public TypeParameterBoundTargetInfo(byte u1targetType,
-                                        int  u1typeParameterIndex,
-                                        int  u1boundIndex)
-    {
-        super(u1targetType);
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitTypeParameterBoundTargetInfo(clazz, typeAnnotation, this);
+  }
 
-        this.u1typeParameterIndex = u1typeParameterIndex;
-        this.u1boundIndex         = u1boundIndex;
-    }
+  public void accept(
+      Clazz clazz,
+      Field field,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitTypeParameterBoundTargetInfo(clazz, field, typeAnnotation, this);
+  }
 
-
-    // Implementations for TargetInfo.
-
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitTypeParameterBoundTargetInfo(clazz, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Field field, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitTypeParameterBoundTargetInfo(clazz, field, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitTypeParameterBoundTargetInfo(clazz, method, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitTypeParameterBoundTargetInfo(clazz, method, typeAnnotation, this);
+  }
 }

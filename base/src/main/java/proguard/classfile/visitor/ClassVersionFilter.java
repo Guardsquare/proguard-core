@@ -20,65 +20,53 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link ClassVisitor} delegates its visits to program classes to
- * another given {@link ClassVisitor}, but only when the class version
- * number of the visited program class lies in a given range.
+ * This {@link ClassVisitor} delegates its visits to program classes to another given {@link
+ * ClassVisitor}, but only when the class version number of the visited program class lies in a
+ * given range.
  *
  * @author Eric Lafortune
  */
-public class ClassVersionFilter
-implements   ClassVisitor
-{
-    private final int          minimumClassVersion;
-    private final int          maximumClassVersion;
-    private final ClassVisitor classVisitor;
+public class ClassVersionFilter implements ClassVisitor {
+  private final int minimumClassVersion;
+  private final int maximumClassVersion;
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new ClassVersionFilter.
+   *
+   * @param minimumClassVersion the minimum class version number.
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public ClassVersionFilter(int minimumClassVersion, ClassVisitor classVisitor) {
+    this(minimumClassVersion, Integer.MAX_VALUE, classVisitor);
+  }
 
-    /**
-     * Creates a new ClassVersionFilter.
-     * @param minimumClassVersion the minimum class version number.
-     * @param classVisitor        the <code>ClassVisitor</code> to which visits
-     *                            will be delegated.
-     */
-    public ClassVersionFilter(int          minimumClassVersion,
-                              ClassVisitor classVisitor)
-    {
-        this(minimumClassVersion, Integer.MAX_VALUE, classVisitor);
+  /**
+   * Creates a new ClassVersionFilter.
+   *
+   * @param minimumClassVersion the minimum class version number.
+   * @param maximumClassVersion the maximum class version number.
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public ClassVersionFilter(
+      int minimumClassVersion, int maximumClassVersion, ClassVisitor classVisitor) {
+    this.minimumClassVersion = minimumClassVersion;
+    this.maximumClassVersion = maximumClassVersion;
+    this.classVisitor = classVisitor;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    // Only ProgramClasses have version numbers.
+
+    if (programClass.u4version >= minimumClassVersion
+        && programClass.u4version <= maximumClassVersion) {
+      classVisitor.visitProgramClass(programClass);
     }
-
-
-    /**
-     * Creates a new ClassVersionFilter.
-     * @param minimumClassVersion the minimum class version number.
-     * @param maximumClassVersion the maximum class version number.
-     * @param classVisitor        the <code>ClassVisitor</code> to which visits
-     *                            will be delegated.
-     */
-    public ClassVersionFilter(int          minimumClassVersion,
-                              int          maximumClassVersion,
-                              ClassVisitor classVisitor)
-    {
-        this.minimumClassVersion = minimumClassVersion;
-        this.maximumClassVersion = maximumClassVersion;
-        this.classVisitor        = classVisitor;
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        // Only ProgramClasses have version numbers.
-
-        if (programClass.u4version >= minimumClassVersion &&
-            programClass.u4version <= maximumClassVersion)
-        {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
+  }
 }

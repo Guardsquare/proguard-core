@@ -21,41 +21,32 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
 /**
- * This KotlinMetadataVisitor lets a given KotlinFunctionVisitor visit all functions
- * of visited KotlinMetadata.
+ * This KotlinMetadataVisitor lets a given KotlinFunctionVisitor visit all functions of visited
+ * KotlinMetadata.
  */
-public class AllFunctionVisitor
-implements   KotlinMetadataVisitor
-{
-    private final KotlinFunctionVisitor[] delegateFunctionVisitors;
+public class AllFunctionVisitor implements KotlinMetadataVisitor {
+  private final KotlinFunctionVisitor[] delegateFunctionVisitors;
 
-    public AllFunctionVisitor(KotlinFunctionVisitor ... kotlinFunctionVisitor)
-    {
-        this.delegateFunctionVisitors = kotlinFunctionVisitor;
-    }
+  public AllFunctionVisitor(KotlinFunctionVisitor... kotlinFunctionVisitor) {
+    this.delegateFunctionVisitors = kotlinFunctionVisitor;
+  }
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata)
-    {
-    }
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
-                                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        for (KotlinFunctionVisitor functionVisitor : delegateFunctionVisitors)
-        {
-            kotlinDeclarationContainerMetadata.functionsAccept(clazz, functionVisitor);
-        }
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    for (KotlinFunctionVisitor functionVisitor : delegateFunctionVisitors) {
+      kotlinDeclarationContainerMetadata.functionsAccept(clazz, functionVisitor);
     }
+  }
 
-    @Override
-    public void visitKotlinSyntheticClassMetadata(Clazz                            clazz,
-                                                  KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        for (KotlinFunctionVisitor functionVisitor : delegateFunctionVisitors)
-        {
-            kotlinSyntheticClassKindMetadata.functionsAccept(clazz, functionVisitor);
-        }
+  @Override
+  public void visitKotlinSyntheticClassMetadata(
+      Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    for (KotlinFunctionVisitor functionVisitor : delegateFunctionVisitors) {
+      kotlinSyntheticClassKindMetadata.functionsAccept(clazz, functionVisitor);
     }
+  }
 }

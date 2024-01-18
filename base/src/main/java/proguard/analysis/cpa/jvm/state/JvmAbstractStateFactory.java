@@ -28,16 +28,13 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
  *
  * @author Dmitry Ivanov
  */
-public interface JvmAbstractStateFactory<StateT extends LatticeAbstractState<StateT>>
-{
-    /**
-     * Returns an instance of JvmAbstractState.
-     */
-    default JvmAbstractState<StateT> createJvmAbstractState(JvmCfaNode programLocation,
-                                                            JvmFrameAbstractState<StateT> frame,
-                                                            JvmHeapAbstractState<StateT> heap,
-                                                            MapAbstractState<String, StateT> staticFields)
-    {
-        return new JvmAbstractState<>(programLocation, frame, heap, staticFields);
-    }
+public interface JvmAbstractStateFactory<StateT extends LatticeAbstractState<StateT>> {
+  /** Returns an instance of JvmAbstractState. */
+  default JvmAbstractState<StateT> createJvmAbstractState(
+      JvmCfaNode programLocation,
+      JvmFrameAbstractState<StateT> frame,
+      JvmHeapAbstractState<StateT> heap,
+      MapAbstractState<String, StateT> staticFields) {
+    return new JvmAbstractState<>(programLocation, frame, heap, staticFields);
+  }
 }

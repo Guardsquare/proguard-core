@@ -25,36 +25,29 @@ import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
 
-/**
- * Returns the last referenced class of referencedClasses from the program-/ librarymethod.
- */
-public class ReturnClassExtractor
-    implements MemberVisitor
-{
+/** Returns the last referenced class of referencedClasses from the program-/ librarymethod. */
+public class ReturnClassExtractor implements MemberVisitor {
 
-    public Clazz returnClass;
+  public Clazz returnClass;
 
-    @Override
-    public void visitAnyMember(Clazz clazz, Member member)
-    {
-        // only interested in program and librarymethods
+  @Override
+  public void visitAnyMember(Clazz clazz, Member member) {
+    // only interested in program and librarymethods
+  }
+
+  @Override
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    if (programMethod.referencedClasses != null) {
+      this.returnClass =
+          programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
     }
+  }
 
-    @Override
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        if (programMethod.referencedClasses != null)
-        {
-            this.returnClass = programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
-        }
+  @Override
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    if (libraryMethod.referencedClasses != null) {
+      this.returnClass =
+          libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
     }
-
-    @Override
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        if (libraryMethod.referencedClasses != null)
-        {
-            this.returnClass = libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
-        }
-    }
+  }
 }

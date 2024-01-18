@@ -20,44 +20,35 @@ package proguard.classfile.kotlin.flags;
 /**
  * Flags for Kotlin constructors.
  *
- * Valid common flags:
- *   - hasAnnotations
- *   - isInternal
- *   - isPrivate
- *   - isProtected
- *   - isPublic
- *   - isPrivateToThis
- *   - isLocal
+ * <p>Valid common flags: - hasAnnotations - isInternal - isPrivate - isProtected - isPublic -
+ * isPrivateToThis - isLocal
  */
-public class KotlinConstructorFlags implements KotlinFlags
-{
+public class KotlinConstructorFlags implements KotlinFlags {
 
-    public final KotlinCommonFlags     common;
-    public final KotlinVisibilityFlags visibility;
+  public final KotlinCommonFlags common;
+  public final KotlinVisibilityFlags visibility;
 
-    /**
-     * Signifies that the corresponding constructor is the primary constructor.
-     * @deprecated Use {@link #isSecondary} instead.
-     */
-    @Deprecated
-    public boolean isPrimary;
+  /**
+   * Signifies that the corresponding constructor is the primary constructor.
+   *
+   * @deprecated Use {@link #isSecondary} instead.
+   */
+  @Deprecated public boolean isPrimary;
 
-    /**
-     * Signifies that the corresponding constructor is secondary,
-     * i.e. declared not in the class header, but in the class body.
-     */
-    public boolean isSecondary;
+  /**
+   * Signifies that the corresponding constructor is secondary, i.e. declared not in the class
+   * header, but in the class body.
+   */
+  public boolean isSecondary;
 
+  /**
+   * Signifies that the corresponding constructor has non-stable parameter names, i.e. cannot be
+   * called with named arguments.
+   */
+  public boolean hasNonStableParameterNames;
 
-    /**
-     * Signifies that the corresponding constructor has non-stable parameter names,
-     * i.e. cannot be called with named arguments.
-     */
-    public boolean hasNonStableParameterNames;
-
-    public KotlinConstructorFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility)
-    {
-        this.common     = common;
-        this.visibility = visibility;
-    }
+  public KotlinConstructorFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility) {
+    this.common = common;
+    this.visibility = visibility;
+  }
 }

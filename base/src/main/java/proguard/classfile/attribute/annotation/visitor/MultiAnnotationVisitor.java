@@ -23,83 +23,60 @@ import proguard.classfile.attribute.annotation.*;
 import proguard.util.ArrayUtil;
 
 /**
- * This {@link AnnotationVisitor} delegates all visits to each {@link AnnotationVisitor}
- * in a given list.
+ * This {@link AnnotationVisitor} delegates all visits to each {@link AnnotationVisitor} in a given
+ * list.
  *
  * @author Thomas Neidhart
  */
-public class MultiAnnotationVisitor implements AnnotationVisitor
-{
-    private AnnotationVisitor[] annotationVisitors;
-    private int                 annotationVisitorCount;
+public class MultiAnnotationVisitor implements AnnotationVisitor {
+  private AnnotationVisitor[] annotationVisitors;
+  private int annotationVisitorCount;
 
+  public MultiAnnotationVisitor() {
+    this.annotationVisitors = new AnnotationVisitor[16];
+  }
 
-    public MultiAnnotationVisitor()
-    {
-        this.annotationVisitors = new AnnotationVisitor[16];
+  public MultiAnnotationVisitor(AnnotationVisitor... annotationVisitors) {
+    this.annotationVisitors = annotationVisitors;
+    this.annotationVisitorCount = annotationVisitors.length;
+  }
+
+  public void addAnnotationVisitor(AnnotationVisitor annotationVisitor) {
+    annotationVisitors =
+        ArrayUtil.add(annotationVisitors, annotationVisitorCount++, annotationVisitor);
+  }
+
+  // Implementations for AnnotationVisitor.
+
+  public void visitAnnotation(Clazz clazz, Annotation annotation) {
+    for (int index = 0; index < annotationVisitorCount; index++) {
+      annotationVisitors[index].visitAnnotation(clazz, annotation);
     }
+  }
 
-
-    public MultiAnnotationVisitor(AnnotationVisitor... annotationVisitors)
-    {
-        this.annotationVisitors     = annotationVisitors;
-        this.annotationVisitorCount = annotationVisitors.length;
+  public void visitAnnotation(Clazz clazz, Field field, Annotation annotation) {
+    for (int index = 0; index < annotationVisitorCount; index++) {
+      annotationVisitors[index].visitAnnotation(clazz, field, annotation);
     }
+  }
 
-
-    public void addAnnotationVisitor(AnnotationVisitor annotationVisitor)
-    {
-        annotationVisitors =
-            ArrayUtil.add(annotationVisitors,
-                          annotationVisitorCount++,
-                          annotationVisitor);
+  public void visitAnnotation(Clazz clazz, Method method, Annotation annotation) {
+    for (int index = 0; index < annotationVisitorCount; index++) {
+      annotationVisitors[index].visitAnnotation(clazz, method, annotation);
     }
+  }
 
-
-    // Implementations for AnnotationVisitor.
-
-
-    public void visitAnnotation(Clazz clazz, Annotation annotation)
-    {
-        for (int index = 0; index < annotationVisitorCount; index++)
-        {
-            annotationVisitors[index].visitAnnotation(clazz, annotation);
-        }
+  public void visitAnnotation(
+      Clazz clazz, Method method, int parameterIndex, Annotation annotation) {
+    for (int index = 0; index < annotationVisitorCount; index++) {
+      annotationVisitors[index].visitAnnotation(clazz, method, parameterIndex, annotation);
     }
+  }
 
-
-    public void visitAnnotation(Clazz clazz, Field field, Annotation annotation)
-    {
-        for (int index = 0; index < annotationVisitorCount; index++)
-        {
-            annotationVisitors[index].visitAnnotation(clazz, field, annotation);
-        }
+  public void visitAnnotation(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, Annotation annotation) {
+    for (int index = 0; index < annotationVisitorCount; index++) {
+      annotationVisitors[index].visitAnnotation(clazz, method, codeAttribute, annotation);
     }
-
-
-    public void visitAnnotation(Clazz clazz, Method method, Annotation annotation)
-    {
-        for (int index = 0; index < annotationVisitorCount; index++)
-        {
-            annotationVisitors[index].visitAnnotation(clazz, method, annotation);
-        }
-    }
-
-
-    public void visitAnnotation(Clazz clazz, Method method, int parameterIndex, Annotation annotation)
-    {
-        for (int index = 0; index < annotationVisitorCount; index++)
-        {
-            annotationVisitors[index].visitAnnotation(clazz, method, parameterIndex, annotation);
-        }
-    }
-
-
-    public void visitAnnotation(Clazz clazz, Method method, CodeAttribute codeAttribute, Annotation annotation)
-    {
-        for (int index = 0; index < annotationVisitorCount; index++)
-        {
-            annotationVisitors[index].visitAnnotation(clazz, method, codeAttribute, annotation);
-        }
-    }
+  }
 }

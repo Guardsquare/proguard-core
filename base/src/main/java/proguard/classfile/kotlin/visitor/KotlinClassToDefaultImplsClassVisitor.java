@@ -21,25 +21,22 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.visitor.ClassVisitor;
 
-public class KotlinClassToDefaultImplsClassVisitor
-implements   KotlinMetadataVisitor
-{
+public class KotlinClassToDefaultImplsClassVisitor implements KotlinMetadataVisitor {
 
-    private final ClassVisitor classVisitor;
+  private final ClassVisitor classVisitor;
 
-    public KotlinClassToDefaultImplsClassVisitor(ClassVisitor classVisitor) {
-        this.classVisitor = classVisitor;
+  public KotlinClassToDefaultImplsClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
+
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+
+  @Override
+  public void visitKotlinClassMetadata(
+      Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata) {
+    if (kotlinClassKindMetadata.referencedDefaultImplsClass != null) {
+      kotlinClassKindMetadata.referencedDefaultImplsClass.accept(this.classVisitor);
     }
-
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
-
-    @Override
-    public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
-    {
-        if (kotlinClassKindMetadata.referencedDefaultImplsClass != null)
-        {
-            kotlinClassKindMetadata.referencedDefaultImplsClass.accept(this.classVisitor);
-        }
-    }
+  }
 }

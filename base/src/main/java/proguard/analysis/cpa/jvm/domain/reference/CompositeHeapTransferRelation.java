@@ -19,76 +19,82 @@
 package proguard.analysis.cpa.jvm.domain.reference;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Collection;
-
-import proguard.analysis.cpa.interfaces.*;
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.interfaces.*;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
+import proguard.classfile.MethodSignature;
 
 /**
- * A wrapper class around multiple {@link JvmTransferRelation}s applying them elementwise to {@link CompositeHeapJvmAbstractState}s.
- * The {@link CompositeHeapJvmAbstractState#REFERENCE_STATE_INDEX}th transfer relation must be {@link JvmReferenceTransferRelation} to match the structure of {@link CompositeHeapTransferRelation}.
+ * A wrapper class around multiple {@link JvmTransferRelation}s applying them elementwise to {@link
+ * CompositeHeapJvmAbstractState}s. The {@link
+ * CompositeHeapJvmAbstractState#REFERENCE_STATE_INDEX}th transfer relation must be {@link
+ * JvmReferenceTransferRelation} to match the structure of {@link CompositeHeapTransferRelation}.
  *
  * @author Dmitry Ivanov
  */
 public class CompositeHeapTransferRelation
     implements WrapperTransferRelation,
-               ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
-{
+        ProgramLocationDependentForwardTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature> {
 
-    private final List<JvmTransferRelation<? extends AbstractState>> jvmTransferRelations;
+  private final List<JvmTransferRelation<? extends AbstractState>> jvmTransferRelations;
 
-    /**
-     * Create a composite transfer relation from a list of transfer relations.
-     *
-     * @param jvmTransferRelations a list of {@link JvmTransferRelation}s, the {@code CompositeHeapJvmAbstractState.REFERENCE_INDEX}th transfer relation must be {@link JvmReferenceTransferRelation}
-     */
-    public CompositeHeapTransferRelation(List<JvmTransferRelation<? extends AbstractState>> jvmTransferRelations)
-    {
-        this.jvmTransferRelations = jvmTransferRelations;
+  /**
+   * Create a composite transfer relation from a list of transfer relations.
+   *
+   * @param jvmTransferRelations a list of {@link JvmTransferRelation}s, the {@code
+   *     CompositeHeapJvmAbstractState.REFERENCE_INDEX}th transfer relation must be {@link
+   *     JvmReferenceTransferRelation}
+   */
+  public CompositeHeapTransferRelation(
+      List<JvmTransferRelation<? extends AbstractState>> jvmTransferRelations) {
+    this.jvmTransferRelations = jvmTransferRelations;
+  }
+
+  // implementations for WrapperTransferRelation
+
+  @Override
+  public Iterable<? extends TransferRelation> getWrappedTransferRelations() {
+    return jvmTransferRelations;
+  }
+
+  // implementations for ProgramLocationDependentTransferRelation
+
+  public CompositeHeapJvmAbstractState generateEdgeAbstractSuccessor(
+      AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
+    if (!(abstractState instanceof CompositeHeapJvmAbstractState)) {
+      throw new IllegalArgumentException(
+          getClass().getName() + " does not support " + abstractState.getClass().getName());
     }
-
-    // implementations for WrapperTransferRelation
-
-    @Override
-    public Iterable<? extends TransferRelation> getWrappedTransferRelations()
-    {
-        return jvmTransferRelations;
+    CompositeHeapJvmAbstractState compositeState = (CompositeHeapJvmAbstractState) abstractState;
+    Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>>
+        stateIterator = compositeState.getWrappedStates().iterator();
+    List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>>
+        successorStates = new ArrayList<>(compositeState.getWrappedStates().size());
+    jvmTransferRelations.forEach(
+        tr ->
+            successorStates.add(
+                (JvmAbstractState<? extends AbstractState>)
+                    tr.generateEdgeAbstractSuccessor(stateIterator.next(), edge, precision)));
+    if (successorStates.stream().anyMatch(Objects::isNull)) {
+      return null;
+    } else {
+      CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(successorStates);
+      result.updateHeapDependence();
+      return result;
     }
+  }
 
-    // implementations for ProgramLocationDependentTransferRelation
-
-    public CompositeHeapJvmAbstractState generateEdgeAbstractSuccessor(AbstractState abstractState, JvmCfaEdge edge, Precision precision)
-    {
-        if (!(abstractState instanceof CompositeHeapJvmAbstractState))
-        {
-            throw new IllegalArgumentException(getClass().getName() + " does not support " + abstractState.getClass().getName());
-        }
-        CompositeHeapJvmAbstractState compositeState = (CompositeHeapJvmAbstractState) abstractState;
-        Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> stateIterator = compositeState.getWrappedStates().iterator();
-        List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> successorStates = new ArrayList<>(compositeState.getWrappedStates().size());
-        jvmTransferRelations.forEach(tr -> successorStates.add((JvmAbstractState<? extends AbstractState>) tr.generateEdgeAbstractSuccessor(stateIterator.next(), edge, precision)));
-        if (successorStates.stream().anyMatch(Objects::isNull))
-        {
-            return null;
-        }
-        else
-        {
-            CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(successorStates);
-            result.updateHeapDependence();
-            return result;
-        }
-    }
-
-    @Override
-    public Collection<? extends AbstractState> generateEdgeAbstractSuccessors(AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
-        return wrapAbstractSuccessorInCollection(generateEdgeAbstractSuccessor(abstractState,edge,precision));
-    }
+  @Override
+  public Collection<? extends AbstractState> generateEdgeAbstractSuccessors(
+      AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
+    return wrapAbstractSuccessorInCollection(
+        generateEdgeAbstractSuccessor(abstractState, edge, precision));
+  }
 }

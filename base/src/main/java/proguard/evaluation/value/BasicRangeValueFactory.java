@@ -18,51 +18,41 @@
 package proguard.evaluation.value;
 
 /**
- * This ValueFactory provides methods to create and reuse IntegerValue instances
- * that have known ranges.
+ * This ValueFactory provides methods to create and reuse IntegerValue instances that have known
+ * ranges.
  *
- * This basic implementation only creates RangeIntegerValue instances if they
- * start out with a known range. Otherwise, it still creates
- * ParticularIntegerValue instances or UnknownIntegerValue instances, which by
- * themselves never generalize to RangeIntegerValue instances.
+ * <p>This basic implementation only creates RangeIntegerValue instances if they start out with a
+ * known range. Otherwise, it still creates ParticularIntegerValue instances or UnknownIntegerValue
+ * instances, which by themselves never generalize to RangeIntegerValue instances.
  *
  * @author Eric Lafortune
  */
-public class BasicRangeValueFactory
-extends      ParticularValueFactory
-implements   ValueFactory
-{
-    // Shared copies of Value objects, to avoid creating a lot of objects.
-    static final IntegerValue INTEGER_VALUE_BYTE  = new RangeIntegerValue(Byte.MIN_VALUE,      Byte.MAX_VALUE);
-    static final IntegerValue INTEGER_VALUE_CHAR  = new RangeIntegerValue(Character.MIN_VALUE, Character.MAX_VALUE);
-    static final IntegerValue INTEGER_VALUE_SHORT = new RangeIntegerValue(Short.MIN_VALUE,     Short.MAX_VALUE);
+public class BasicRangeValueFactory extends ParticularValueFactory implements ValueFactory {
+  // Shared copies of Value objects, to avoid creating a lot of objects.
+  static final IntegerValue INTEGER_VALUE_BYTE =
+      new RangeIntegerValue(Byte.MIN_VALUE, Byte.MAX_VALUE);
+  static final IntegerValue INTEGER_VALUE_CHAR =
+      new RangeIntegerValue(Character.MIN_VALUE, Character.MAX_VALUE);
+  static final IntegerValue INTEGER_VALUE_SHORT =
+      new RangeIntegerValue(Short.MIN_VALUE, Short.MAX_VALUE);
 
+  /** Creates a new BasicRangeValueFactory. */
+  public BasicRangeValueFactory() {
+    super();
+  }
 
-    /**
-     * Creates a new BasicRangeValueFactory.
-     */
-    public BasicRangeValueFactory()
-    {
-        super();
-    }
+  /**
+   * Creates a new BasicRangeValueFactory that delegates to the given value factories for creating
+   * reference values.
+   */
+  public BasicRangeValueFactory(
+      ValueFactory arrayReferenceValueFactory, ValueFactory referenceValueFactory) {
+    super(arrayReferenceValueFactory, referenceValueFactory);
+  }
 
+  // Implementations for ValueFactory.
 
-    /**
-     * Creates a new BasicRangeValueFactory that delegates to the given
-     * value factories for creating reference values.
-     */
-    public BasicRangeValueFactory(ValueFactory arrayReferenceValueFactory, ValueFactory referenceValueFactory)
-    {
-        super(arrayReferenceValueFactory, referenceValueFactory);
-    }
-
-
-    // Implementations for ValueFactory.
-
-    public IntegerValue createIntegerValue(int min, int max)
-    {
-        return min == max ?
-            new ParticularIntegerValue(min) :
-            new RangeIntegerValue(min, max);
-    }
+  public IntegerValue createIntegerValue(int min, int max) {
+    return min == max ? new ParticularIntegerValue(min) : new RangeIntegerValue(min, max);
+  }
 }

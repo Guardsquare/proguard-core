@@ -22,47 +22,39 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This {@link HashMapAbstractState} represents a map to {@link LatticeAbstractState}s with the semilattice operators lifted to the map.
+ * This {@link HashMapAbstractState} represents a map to {@link LatticeAbstractState}s with the
+ * semilattice operators lifted to the map.
  *
  * @author Dmitry Ivanov
  */
 public class HashMapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
-    extends HashMap<KeyT, AbstractSpaceT>
-    implements MapAbstractState<KeyT, AbstractSpaceT>
-{
+    extends HashMap<KeyT, AbstractSpaceT> implements MapAbstractState<KeyT, AbstractSpaceT> {
 
-    /**
-     * Create an empty hash map abstract state.
-     */
-    public HashMapAbstractState()
-    {
-    }
+  /** Create an empty hash map abstract state. */
+  public HashMapAbstractState() {}
 
-    /**
-     * Create an empty hash map abstract state with reserved initial capacity.
-     *
-     * @param initialCapacity the initial capacity of the hash table
-     */
-    public HashMapAbstractState(int initialCapacity)
-    {
-        super(initialCapacity);
-    }
+  /**
+   * Create an empty hash map abstract state with reserved initial capacity.
+   *
+   * @param initialCapacity the initial capacity of the hash table
+   */
+  public HashMapAbstractState(int initialCapacity) {
+    super(initialCapacity);
+  }
 
-    /**
-     * Create a hash map abstract state from another map.
-     *
-     * @param m map which elements are used for initialization
-     */
-    public HashMapAbstractState(Map<? extends KeyT, ? extends AbstractSpaceT> m) {
-        super(m);
-    }
+  /**
+   * Create a hash map abstract state from another map.
+   *
+   * @param m map which elements are used for initialization
+   */
+  public HashMapAbstractState(Map<? extends KeyT, ? extends AbstractSpaceT> m) {
+    super(m);
+  }
 
-    // implementations for AbstractState
+  // implementations for AbstractState
 
-    @Override
-    public HashMapAbstractState<KeyT, AbstractSpaceT> copy()
-    {
-        return new HashMapAbstractState<>(this);
-    }
-
+  @Override
+  public HashMapAbstractState<KeyT, AbstractSpaceT> copy() {
+    return new HashMapAbstractState<>(this);
+  }
 }

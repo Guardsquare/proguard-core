@@ -17,103 +17,84 @@
  */
 package proguard.io;
 
+import java.io.*;
 import proguard.classfile.TypeConstants;
 import proguard.util.StringFunction;
 
-import java.io.*;
-
 /**
- * This {@link DataEntryWriter} delegates to another {@link DataEntryWriter}, renaming the
- * data entries with the given string function.
+ * This {@link DataEntryWriter} delegates to another {@link DataEntryWriter}, renaming the data
+ * entries with the given string function.
  *
  * @author Eric Lafortune
  */
-public class RenamedDataEntryWriter implements DataEntryWriter
-{
-    private final StringFunction  nameFunction;
-    private final DataEntryWriter dataEntryWriter;
+public class RenamedDataEntryWriter implements DataEntryWriter {
+  private final StringFunction nameFunction;
+  private final DataEntryWriter dataEntryWriter;
 
+  /**
+   * Creates a new RenamedDataEntryWriter.
+   *
+   * @param nameFunction the function from old names to new names.
+   * @param dataEntryWriter the DataEntryWriter to which renamed data entries will be passed.
+   */
+  public RenamedDataEntryWriter(StringFunction nameFunction, DataEntryWriter dataEntryWriter) {
+    this.nameFunction = nameFunction;
+    this.dataEntryWriter = dataEntryWriter;
+  }
 
-    /**
-     * Creates a new RenamedDataEntryWriter.
-     * @param nameFunction    the function from old names to new names.
-     * @param dataEntryWriter the DataEntryWriter to which renamed data
-     *                        entries will be passed.
-     */
-    public RenamedDataEntryWriter(StringFunction  nameFunction,
-                                  DataEntryWriter dataEntryWriter)
-    {
-        this.nameFunction    = nameFunction;
-        this.dataEntryWriter = dataEntryWriter;
+  // Implementations for DataEntryWriter.
+
+  @Override
+  public boolean createDirectory(DataEntry dataEntry) throws IOException {
+    // Add the directory separator.
+    String name = dataEntry.getName() + TypeConstants.PACKAGE_SEPARATOR;
+    String newName = nameFunction.transform(name);
+
+    boolean result = newName != null && newName.length() > 0;
+    if (result) {
+      // Remove the directory separator again.
+      dataEntryWriter.createDirectory(
+          new RenamedDataEntry(dataEntry, newName.substring(0, newName.length() - 1)));
     }
 
+    return result;
+  }
 
-    // Implementations for DataEntryWriter.
+  @Override
+  public boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2) throws IOException {
+    DataEntry renamedDataEntry1 = rename(dataEntry1);
+    DataEntry renamedDataEntry2 = rename(dataEntry2);
 
-    @Override
-    public boolean createDirectory(DataEntry dataEntry) throws IOException
-    {
-        // Add the directory separator.
-        String name    = dataEntry.getName() + TypeConstants.PACKAGE_SEPARATOR;
-        String newName = nameFunction.transform(name);
+    return renamedDataEntry1 != null
+        && renamedDataEntry2 != null
+        && dataEntryWriter.sameOutputStream(renamedDataEntry1, renamedDataEntry2);
+  }
 
-        boolean result = newName != null && newName.length() > 0;
-        if (result)
-        {
-            // Remove the directory separator again.
-            dataEntryWriter.createDirectory(new RenamedDataEntry(dataEntry, newName.substring(0, newName.length() - 1)));
-        }
+  @Override
+  public OutputStream createOutputStream(DataEntry dataEntry) throws IOException {
+    DataEntry renamedDataEntry = rename(dataEntry);
 
-        return result;
-    }
+    return renamedDataEntry == null ? null : dataEntryWriter.createOutputStream(renamedDataEntry);
+  }
 
+  @Override
+  public void close() throws IOException {
+    dataEntryWriter.close();
+  }
 
-    @Override
-    public boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2) throws IOException
-    {
-        DataEntry renamedDataEntry1 = rename(dataEntry1);
-        DataEntry renamedDataEntry2 = rename(dataEntry2);
+  @Override
+  public void println(PrintWriter pw, String prefix) {
+    pw.println(prefix + "RenamedDataEntryWriter");
+    dataEntryWriter.println(pw, prefix);
+  }
 
-        return renamedDataEntry1 != null &&
-               renamedDataEntry2 != null &&
-               dataEntryWriter.sameOutputStream(renamedDataEntry1, renamedDataEntry2);
-    }
+  // Small utility methods.
 
+  /** Returns the suitably renamed data entry, or null. */
+  private DataEntry rename(DataEntry dataEntry) {
+    String name = dataEntry.getName();
+    String newName = nameFunction.transform(name);
 
-    @Override
-    public OutputStream createOutputStream(DataEntry dataEntry) throws IOException
-    {
-        DataEntry renamedDataEntry = rename(dataEntry);
-
-        return renamedDataEntry == null ? null : dataEntryWriter.createOutputStream(renamedDataEntry);
-    }
-
-
-    @Override
-    public void close() throws IOException
-    {
-        dataEntryWriter.close();
-    }
-
-
-    @Override
-    public void println(PrintWriter pw, String prefix)
-    {
-        pw.println(prefix + "RenamedDataEntryWriter");
-        dataEntryWriter.println(pw, prefix);
-    }
-
-
-    // Small utility methods.
-
-    /**
-     * Returns the suitably renamed data entry, or null.
-     */
-    private DataEntry rename(DataEntry dataEntry)
-    {
-        String name    = dataEntry.getName();
-        String newName = nameFunction.transform(name);
-
-        return newName == null ? null : new RenamedDataEntry(dataEntry, newName);
-    }
+    return newName == null ? null : new RenamedDataEntry(dataEntry, newName);
+  }
 }

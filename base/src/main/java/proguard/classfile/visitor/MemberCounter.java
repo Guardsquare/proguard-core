@@ -25,50 +25,31 @@ import proguard.util.Counter;
  *
  * @author Eric Lafortune
  */
-public class MemberCounter
-implements   MemberVisitor,
-             Counter
-{
-    private int count;
+public class MemberCounter implements MemberVisitor, Counter {
+  private int count;
 
+  // Implementations for Counter.
 
-    // Implementations for Counter.
+  /** Returns the number of class members that has been visited so far. */
+  public int getCount() {
+    return count;
+  }
 
-    /**
-     * Returns the number of class members that has been visited so far.
-     */
-    public int getCount()
-    {
-        return count;
-    }
+  // Implementations for MemberVisitor.
 
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+    count++;
+  }
 
-    // Implementations for MemberVisitor.
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    count++;
+  }
 
-    public void visitLibraryField(LibraryClass libraryClass,
-                                  LibraryField libraryField)
-    {
-        count++;
-    }
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    count++;
+  }
 
-
-    public void visitLibraryMethod(LibraryClass libraryClass,
-                                   LibraryMethod libraryMethod)
-    {
-        count++;
-    }
-
-
-    public void visitProgramField(ProgramClass programClass,
-                                  ProgramField programField)
-    {
-        count++;
-    }
-
-
-    public void visitProgramMethod(ProgramClass programClass,
-                                   ProgramMethod programMethod)
-    {
-        count++;
-    }
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    count++;
+  }
 }

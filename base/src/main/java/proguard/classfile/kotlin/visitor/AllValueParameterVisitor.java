@@ -21,80 +21,71 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
 /**
- * This KotlinMetadataVisitor visits all ValueParameters that it finds down the tree of the visit Kotlin Metadata.
+ * This KotlinMetadataVisitor visits all ValueParameters that it finds down the tree of the visit
+ * Kotlin Metadata.
  *
  * @author Tim Van Den Broecke
  */
 public class AllValueParameterVisitor
-implements KotlinMetadataVisitor,
+    implements KotlinMetadataVisitor,
 
-           // Implementation interfaces.
-           KotlinConstructorVisitor,
-           KotlinPropertyVisitor,
-           KotlinFunctionVisitor
-{
-    private final KotlinValueParameterVisitor delegate;
+        // Implementation interfaces.
+        KotlinConstructorVisitor,
+        KotlinPropertyVisitor,
+        KotlinFunctionVisitor {
+  private final KotlinValueParameterVisitor delegate;
 
-    public AllValueParameterVisitor(KotlinValueParameterVisitor delegate)
-    {
-        this.delegate = delegate;
-    }
+  public AllValueParameterVisitor(KotlinValueParameterVisitor delegate) {
+    this.delegate = delegate;
+  }
 
+  // Implementations for KotlinMetadataVisitor.
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    // Implementations for KotlinMetadataVisitor.
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    kotlinDeclarationContainerMetadata.functionsAccept(clazz, this);
+    kotlinDeclarationContainerMetadata.accept(clazz, new AllPropertyVisitor(this));
+  }
 
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
-                                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        kotlinDeclarationContainerMetadata.functionsAccept(clazz, this);
-        kotlinDeclarationContainerMetadata.accept(clazz,
-                                                  new AllPropertyVisitor(this));
-    }
+  @Override
+  public void visitKotlinClassMetadata(
+      Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata) {
+    kotlinClassKindMetadata.constructorsAccept(clazz, this);
+    visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
+  }
 
-    @Override
-    public void visitKotlinClassMetadata(Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata)
-    {
-        kotlinClassKindMetadata.constructorsAccept(clazz, this);
-        visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
-    }
+  @Override
+  public void visitKotlinSyntheticClassMetadata(
+      Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    kotlinSyntheticClassKindMetadata.functionsAccept(clazz, this);
+  }
 
-    @Override
-    public void visitKotlinSyntheticClassMetadata(Clazz clazz,
-                                                  KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        kotlinSyntheticClassKindMetadata.functionsAccept(clazz, this);
-    }
+  // Implementations for KotlinConstructorVisitor.
+  @Override
+  public void visitConstructor(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata) {
+    kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, delegate);
+  }
 
+  // Implementations for KotlinPropertyVisitor.
+  @Override
+  public void visitAnyProperty(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata) {
+    kotlinPropertyMetadata.setterParametersAccept(
+        clazz, kotlinDeclarationContainerMetadata, delegate);
+  }
 
-    // Implementations for KotlinConstructorVisitor.
-    @Override
-    public void visitConstructor(Clazz                     clazz,
-                                 KotlinClassKindMetadata   kotlinClassKindMetadata,
-                                 KotlinConstructorMetadata kotlinConstructorMetadata)
-    {
-        kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, delegate);
-    }
-
-
-    // Implementations for KotlinPropertyVisitor.
-    @Override
-    public void visitAnyProperty(Clazz                              clazz,
-                                 KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                 KotlinPropertyMetadata             kotlinPropertyMetadata)
-    {
-        kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, delegate);
-    }
-
-
-    // Implementations for KotlinFunctionVisitor.
-    @Override
-    public void visitAnyFunction(Clazz                  clazz,
-                                 KotlinMetadata         kotlinMetadata,
-                                 KotlinFunctionMetadata kotlinFunctionMetadata)
-    {
-        kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, delegate);
-    }
+  // Implementations for KotlinFunctionVisitor.
+  @Override
+  public void visitAnyFunction(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata) {
+    kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, delegate);
+  }
 }

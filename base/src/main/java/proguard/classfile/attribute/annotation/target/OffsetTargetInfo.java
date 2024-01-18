@@ -27,53 +27,38 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class OffsetTargetInfo extends TargetInfo
-{
-    public int u2offset;
+public class OffsetTargetInfo extends TargetInfo {
+  public int u2offset;
 
+  /** Creates an uninitialized OffsetTargetInfo. */
+  public OffsetTargetInfo() {}
 
-    /**
-     * Creates an uninitialized OffsetTargetInfo.
-     */
-    public OffsetTargetInfo()
-    {
-    }
+  /** Creates a partially initialized OffsetTargetInfo. */
+  public OffsetTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
+  /** Creates an initialized OffsetTargetInfo. */
+  public OffsetTargetInfo(byte u1targetType, int u2offset) {
+    super(u1targetType);
 
-    /**
-     * Creates a partially initialized OffsetTargetInfo.
-     */
-    public OffsetTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+    this.u2offset = u2offset;
+  }
 
+  // Implementations for TargetInfo.
 
-    /**
-     * Creates an initialized OffsetTargetInfo.
-     */
-    public OffsetTargetInfo(byte u1targetType,
-                            int  u2offset)
-    {
-        super(u1targetType);
+  /** Lets the visitor visit, with Method and CodeAttribute null. */
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitOffsetTargetInfo(clazz, null, null, typeAnnotation, this);
+  }
 
-        this.u2offset = u2offset;
-    }
-
-
-    // Implementations for TargetInfo.
-
-    /**
-     * Lets the visitor visit, with Method and CodeAttribute null.
-     */
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitOffsetTargetInfo(clazz, null, null, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitOffsetTargetInfo(clazz, method, codeAttribute, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitOffsetTargetInfo(clazz, method, codeAttribute, typeAnnotation, this);
+  }
 }

@@ -23,43 +23,31 @@ package proguard.util;
  *
  * @author Tim Van Den Broecke
  */
-public class FilteredStringFunction
-implements StringFunction
-{
-    private final StringMatcher  nameFilter;
-    private final StringFunction acceptedFunction;
-    private final StringFunction rejectedFunction;
+public class FilteredStringFunction implements StringFunction {
+  private final StringMatcher nameFilter;
+  private final StringFunction acceptedFunction;
+  private final StringFunction rejectedFunction;
 
+  public FilteredStringFunction(
+      StringMatcher nameFilter, StringFunction acceptedFunction, StringFunction rejectedFunction) {
+    this.nameFilter = nameFilter;
+    this.acceptedFunction = acceptedFunction;
+    this.rejectedFunction = rejectedFunction;
+  }
 
-    public FilteredStringFunction(StringMatcher  nameFilter,
-                                  StringFunction acceptedFunction,
-                                  StringFunction rejectedFunction)
-    {
-        this.nameFilter       = nameFilter;
-        this.acceptedFunction = acceptedFunction;
-        this.rejectedFunction = rejectedFunction;
+  public FilteredStringFunction(
+      String nameFilter, StringFunction acceptedFunction, StringFunction rejectedFunction) {
+    this(new ListParser(new NameParser()).parse(nameFilter), acceptedFunction, rejectedFunction);
+  }
+
+  // Implementations for StringFunction.
+
+  @Override
+  public String transform(String fileName) {
+    if (nameFilter.matches(fileName)) {
+      return acceptedFunction.transform(fileName);
+    } else {
+      return rejectedFunction.transform(fileName);
     }
-
-    public FilteredStringFunction(String         nameFilter,
-                                  StringFunction acceptedFunction,
-                                  StringFunction rejectedFunction)
-    {
-        this(new ListParser(new NameParser()).parse(nameFilter), acceptedFunction, rejectedFunction);
-    }
-
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String fileName)
-    {
-        if (nameFilter.matches(fileName))
-        {
-            return acceptedFunction.transform(fileName);
-        }
-        else
-        {
-            return rejectedFunction.transform(fileName);
-        }
-    }
+  }
 }

@@ -25,62 +25,46 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Eric Lafortune
  */
-public class MethodrefConstant extends AnyMethodrefConstant
-{
-    /**
-     * Creates an uninitialized MethodrefConstant.
-     */
-    public MethodrefConstant()
-    {
-        super();
-    }
+public class MethodrefConstant extends AnyMethodrefConstant {
+  /** Creates an uninitialized MethodrefConstant. */
+  public MethodrefConstant() {
+    super();
+  }
 
+  /**
+   * Creates a new MethodrefConstant with the given name and type indices.
+   *
+   * @param u2classIndex the index of the class in the constant pool.
+   * @param u2nameAndTypeIndex the index of the name and type entry in the constant pool.
+   * @param referencedClass the referenced class.
+   * @param referencedMethod the referenced method.
+   */
+  public MethodrefConstant(
+      int u2classIndex, int u2nameAndTypeIndex, Clazz referencedClass, Method referencedMethod) {
+    super(u2classIndex, u2nameAndTypeIndex, referencedClass, referencedMethod);
+  }
 
-    /**
-     * Creates a new MethodrefConstant with the given name and type indices.
-     * @param u2classIndex       the index of the class in the constant pool.
-     * @param u2nameAndTypeIndex the index of the name and type entry in the constant pool.
-     * @param referencedClass    the referenced class.
-     * @param referencedMethod   the referenced method.
-     */
-    public MethodrefConstant(int    u2classIndex,
-                             int    u2nameAndTypeIndex,
-                             Clazz  referencedClass,
-                             Method referencedMethod)
-    {
-        super(u2classIndex,
-              u2nameAndTypeIndex,
-              referencedClass,
-              referencedMethod);
-    }
+  // Implementations for Constant.
 
+  @Override
+  public int getTag() {
+    return Constant.METHODREF;
+  }
 
-    // Implementations for Constant.
+  @Override
+  public boolean isCategory2() {
+    return false;
+  }
 
-    @Override
-    public int getTag()
-    {
-        return Constant.METHODREF;
-    }
+  @Override
+  public void accept(Clazz clazz, ConstantVisitor constantVisitor) {
+    constantVisitor.visitMethodrefConstant(clazz, this);
+  }
 
-    @Override
-    public boolean isCategory2()
-    {
-        return false;
-    }
+  // Implementations for Object.
 
-    @Override
-    public void accept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        constantVisitor.visitMethodrefConstant(clazz, this);
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return "Methodref(" + u2classIndex + "," + u2nameAndTypeIndex + ")";
-    }
+  @Override
+  public String toString() {
+    return "Methodref(" + u2classIndex + "," + u2nameAndTypeIndex + ")";
+  }
 }

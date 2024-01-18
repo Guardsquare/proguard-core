@@ -19,52 +19,39 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link MemberVisitor} delegates its visits to another given
- * {@link MemberVisitor}, but only when visiting members of library
- * classes.
+ * This {@link MemberVisitor} delegates its visits to another given {@link MemberVisitor}, but only
+ * when visiting members of library classes.
  *
  * @author Eric Lafortune
  */
-public class LibraryMemberFilter implements MemberVisitor
-{
-    private final MemberVisitor memberVisitor;
+public class LibraryMemberFilter implements MemberVisitor {
+  private final MemberVisitor memberVisitor;
 
+  /**
+   * Creates a new ProgramMemberFilter.
+   *
+   * @param memberVisitor the <code>MemberVisitor</code> to which visits will be delegated.
+   */
+  public LibraryMemberFilter(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    /**
-     * Creates a new ProgramMemberFilter.
-     * @param memberVisitor     the <code>MemberVisitor</code> to which
-     *                          visits will be delegated.
-     */
-    public LibraryMemberFilter(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
-    }
+  // Implementations for MemberVisitor.
 
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    // Don't delegate visits to program members.
+  }
 
-    // Implementations for MemberVisitor.
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    // Don't delegate visits to program members.
+  }
 
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        // Don't delegate visits to program members.
-    }
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+    memberVisitor.visitLibraryField(libraryClass, libraryField);
+  }
 
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        // Don't delegate visits to program members.
-    }
-
-
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
-    {
-        memberVisitor.visitLibraryField(libraryClass, libraryField);
-    }
-
-
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        memberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
-    }
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    memberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
+  }
 }

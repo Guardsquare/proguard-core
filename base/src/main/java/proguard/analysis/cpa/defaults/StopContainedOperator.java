@@ -24,19 +24,20 @@ import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.StopOperator;
 
 /**
- * This {@link StopOperator} returns true if the reached set contains the input {@link AbstractState}.
+ * This {@link StopOperator} returns true if the reached set contains the input {@link
+ * AbstractState}.
  *
  * @author Dmitry Ivanov
  */
-public final class StopContainedOperator
-    implements StopOperator
-{
+public final class StopContainedOperator implements StopOperator {
 
-    //implementations for StopOperator
+  // implementations for StopOperator
 
-    @Override
-    public boolean stop(AbstractState abstractState, Collection<? extends AbstractState> reachedAbstractStates, Precision precision)
-    {
-        return reachedAbstractStates.contains(abstractState);
-    }
+  @Override
+  public boolean stop(
+      AbstractState abstractState,
+      Collection<? extends AbstractState> reachedAbstractStates,
+      Precision precision) {
+    return reachedAbstractStates.contains(abstractState);
+  }
 }

@@ -18,44 +18,30 @@
 package proguard.evaluation.value;
 
 /**
- * This {@link LongValue} represents a long value that is converted from another
- * scalar value.
+ * This {@link LongValue} represents a long value that is converted from another scalar value.
  *
  * @author Eric Lafortune
  */
-public final class ConvertedLongValue extends SpecificLongValue
-{
-    private final Value value;
+public final class ConvertedLongValue extends SpecificLongValue {
+  private final Value value;
 
+  /** Creates a new converted long value of the given value. */
+  public ConvertedLongValue(Value value) {
+    this.value = value;
+  }
 
-    /**
-     * Creates a new converted long value of the given value.
-     */
-    public ConvertedLongValue(Value value)
-    {
-        this.value = value;
-    }
+  // Implementations for Object.
 
+  public boolean equals(Object object) {
+    return this == object
+        || super.equals(object) && this.value.equals(((ConvertedLongValue) object).value);
+  }
 
-    // Implementations for Object.
+  public int hashCode() {
+    return super.hashCode() ^ value.hashCode();
+  }
 
-    public boolean equals(Object object)
-    {
-        return this == object ||
-               super.equals(object) &&
-               this.value.equals(((ConvertedLongValue)object).value);
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               value.hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "(long)("+value+")";
-    }
+  public String toString() {
+    return "(long)(" + value + ")";
+  }
 }

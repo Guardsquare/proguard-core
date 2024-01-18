@@ -26,28 +26,19 @@ import proguard.util.Counter;
  *
  * @author Thomas Neidhart
  */
-public class AttributeCounter
-implements   AttributeVisitor,
-             Counter
-{
-    private int count;
+public class AttributeCounter implements AttributeVisitor, Counter {
+  private int count;
 
+  // Implementations for Counter.
 
-    // Implementations for Counter.
+  /** Returns the number of class members that has been visited so far. */
+  public int getCount() {
+    return count;
+  }
 
-    /**
-     * Returns the number of class members that has been visited so far.
-     */
-    public int getCount()
-    {
-        return count;
-    }
+  // Implementations for AttributeVisitor.
 
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute)
-    {
-        count++;
-    }
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {
+    count++;
+  }
 }

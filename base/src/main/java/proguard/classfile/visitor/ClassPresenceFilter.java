@@ -21,75 +21,59 @@ import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 
 /**
- * This {@link ClassVisitor} delegates its visits to one of two
- * {@link ClassVisitor} instances, depending on whether the name of
- * the visited class file is present in a given {@link ClassPool} or not.
+ * This {@link ClassVisitor} delegates its visits to one of two {@link ClassVisitor} instances,
+ * depending on whether the name of the visited class file is present in a given {@link ClassPool}
+ * or not.
  *
  * @author Eric Lafortune
  */
-public class ClassPresenceFilter
-implements   ClassVisitor
-{
-    private final ClassPool    classPool;
-    private final ClassVisitor presentClassVisitor;
-    private final ClassVisitor missingClassVisitor;
+public class ClassPresenceFilter implements ClassVisitor {
+  private final ClassPool classPool;
+  private final ClassVisitor presentClassVisitor;
+  private final ClassVisitor missingClassVisitor;
 
+  /**
+   * Creates a new ClassPresenceFilter.
+   *
+   * @param classPool the <code>ClassPool</code> in which the presence will be tested.
+   * @param presentClassVisitor the <code>ClassVisitor</code> to which visits of present class files
+   *     will be delegated.
+   * @param missingClassVisitor the <code>ClassVisitor</code> to which visits of missing class files
+   *     will be delegated.
+   */
+  public ClassPresenceFilter(
+      ClassPool classPool, ClassVisitor presentClassVisitor, ClassVisitor missingClassVisitor) {
+    this.classPool = classPool;
+    this.presentClassVisitor = presentClassVisitor;
+    this.missingClassVisitor = missingClassVisitor;
+  }
 
-    /**
-     * Creates a new ClassPresenceFilter.
-     * @param classPool           the <code>ClassPool</code> in which the
-     *                            presence will be tested.
-     * @param presentClassVisitor the <code>ClassVisitor</code> to which visits
-     *                            of present class files will be delegated.
-     * @param missingClassVisitor the <code>ClassVisitor</code> to which visits
-     *                            of missing class files will be delegated.
-     */
-    public ClassPresenceFilter(ClassPool    classPool,
-                               ClassVisitor presentClassVisitor,
-                               ClassVisitor missingClassVisitor)
-    {
-        this.classPool           = classPool;
-        this.presentClassVisitor = presentClassVisitor;
-        this.missingClassVisitor = missingClassVisitor;
+  /**
+   * Creates a new ClassPresenceFilter.
+   *
+   * @param classPool the <code>ClassPool</code> in which the presence will be tested.
+   * @param presentClassVisitor the <code>ClassVisitor</code> to which visits of present class files
+   *     will be delegated.
+   */
+  public ClassPresenceFilter(ClassPool classPool, ClassVisitor presentClassVisitor) {
+    this(classPool, presentClassVisitor, null);
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    ClassVisitor classFileVisitor = classFileVisitor(clazz);
+
+    if (classFileVisitor != null) {
+      clazz.accept(classFileVisitor);
     }
+  }
 
-    /**
-     * Creates a new ClassPresenceFilter.
-     * @param classPool           the <code>ClassPool</code> in which the
-     *                            presence will be tested.
-     * @param presentClassVisitor the <code>ClassVisitor</code> to which visits
-     *                            of present class files will be delegated.
-     */
-    public ClassPresenceFilter(ClassPool    classPool,
-                               ClassVisitor presentClassVisitor)
-    {
-        this(classPool, presentClassVisitor, null);
-    }
+  // Small utility methods.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        ClassVisitor classFileVisitor = classFileVisitor(clazz);
-
-        if (classFileVisitor != null)
-        {
-            clazz.accept(classFileVisitor);
-        }
-    }
-
-
-    // Small utility methods.
-
-    /**
-     * Returns the appropriate <code>ClassVisitor</code>.
-     */
-    private ClassVisitor classFileVisitor(Clazz clazz)
-    {
-        return classPool.getClass(clazz.getName()) != null ?
-            presentClassVisitor :
-            missingClassVisitor;
-    }
+  /** Returns the appropriate <code>ClassVisitor</code>. */
+  private ClassVisitor classFileVisitor(Clazz clazz) {
+    return classPool.getClass(clazz.getName()) != null ? presentClassVisitor : missingClassVisitor;
+  }
 }

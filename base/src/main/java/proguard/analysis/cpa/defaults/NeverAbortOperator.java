@@ -26,20 +26,16 @@ import proguard.analysis.cpa.interfaces.AbstractState;
  *
  * @author Dmitry Ivanov
  */
-public final class NeverAbortOperator implements AbortOperator
-{
+public final class NeverAbortOperator implements AbortOperator {
 
-    public static final NeverAbortOperator INSTANCE = new NeverAbortOperator();
+  public static final NeverAbortOperator INSTANCE = new NeverAbortOperator();
 
-    private NeverAbortOperator()
-    {
-    }
+  private NeverAbortOperator() {}
 
-    // implementations for AbortOperator
+  // implementations for AbortOperator
 
-    @Override
-    public boolean abort(AbstractState abstractState)
-    {
-        return false;
-    }
+  @Override
+  public boolean abort(AbstractState abstractState) {
+    return false;
+  }
 }

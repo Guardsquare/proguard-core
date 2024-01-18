@@ -26,16 +26,16 @@ import proguard.util.kotlin.asserter.Reporter;
 /**
  * Implementations of this class represent a conceptual constraint on KotlinMetadata.
  *
- * A KotlinMetadataConstraint is checked in the context of ClassPools and a specific KotlinMetadata
- * instance, and should report its findings to the passed Reporter.
+ * <p>A KotlinMetadataConstraint is checked in the context of ClassPools and a specific
+ * KotlinMetadata instance, and should report its findings to the passed Reporter.
  */
-public interface KotlinAsserterConstraint
-{
-    void check(Reporter       reporter,
-               ClassPool      programClassPool,
-               ClassPool      libraryClassPool,
-               Clazz          clazz,
-               KotlinMetadata kotlinMetadata);
+public interface KotlinAsserterConstraint {
+  void check(
+      Reporter reporter,
+      ClassPool programClassPool,
+      ClassPool libraryClassPool,
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata);
 
-    void check(Reporter reporter, KotlinModule kotlinModule);
+  void check(Reporter reporter, KotlinModule kotlinModule);
 }

@@ -20,57 +20,48 @@ package proguard.evaluation.value;
 import proguard.classfile.TypeConstants;
 
 /**
- * This value factory creates initial values for fields and array elements,
- * with the help of a given value factory. Note that this class itself doesn't
- * implement {@link ValueFactory}.
+ * This value factory creates initial values for fields and array elements, with the help of a given
+ * value factory. Note that this class itself doesn't implement {@link ValueFactory}.
  *
  * @author Eric Lafortune
  */
-public class InitialValueFactory
-{
-    private final ValueFactory valueFactory;
+public class InitialValueFactory {
+  private final ValueFactory valueFactory;
 
+  /**
+   * Creates a new InitialValueFactory.
+   *
+   * @param valueFactory the value factory that will actually create the values.
+   */
+  public InitialValueFactory(ValueFactory valueFactory) {
+    this.valueFactory = valueFactory;
+  }
 
-    /**
-     * Creates a new InitialValueFactory.
-     * @param valueFactory the value factory that will actually create the
-     *                     values.
-     */
-    public InitialValueFactory(ValueFactory valueFactory)
-    {
-        this.valueFactory = valueFactory;
+  /** Creates an initial value (0, 0L, 0.0f, 0.0, null) of the given type. */
+  public Value createValue(String type) {
+    switch (type.charAt(0)) {
+      case TypeConstants.BOOLEAN:
+      case TypeConstants.BYTE:
+      case TypeConstants.CHAR:
+      case TypeConstants.SHORT:
+      case TypeConstants.INT:
+        return valueFactory.createIntegerValue(0);
+
+      case TypeConstants.LONG:
+        return valueFactory.createLongValue(0L);
+
+      case TypeConstants.FLOAT:
+        return valueFactory.createFloatValue(0.0f);
+
+      case TypeConstants.DOUBLE:
+        return valueFactory.createDoubleValue(0.0);
+
+      case TypeConstants.CLASS_START:
+      case TypeConstants.ARRAY:
+        return valueFactory.createReferenceValueNull();
+
+      default:
+        throw new IllegalArgumentException("Invalid type [" + type + "]");
     }
-
-
-    /**
-     * Creates an initial value (0, 0L, 0.0f, 0.0, null) of the given type.
-     */
-    public Value createValue(String type)
-    {
-        switch (type.charAt(0))
-        {
-            case TypeConstants.BOOLEAN:
-            case TypeConstants.BYTE:
-            case TypeConstants.CHAR:
-            case TypeConstants.SHORT:
-            case TypeConstants.INT:
-                return valueFactory.createIntegerValue(0);
-
-            case TypeConstants.LONG:
-                return valueFactory.createLongValue(0L);
-
-            case TypeConstants.FLOAT:
-                return valueFactory.createFloatValue(0.0f);
-
-            case TypeConstants.DOUBLE:
-                return valueFactory.createDoubleValue(0.0);
-
-            case TypeConstants.CLASS_START:
-            case TypeConstants.ARRAY:
-                return valueFactory.createReferenceValueNull();
-
-            default:
-                throw new IllegalArgumentException("Invalid type ["+type+"]");
-        }
-    }
+  }
 }

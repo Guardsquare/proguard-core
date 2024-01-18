@@ -22,47 +22,33 @@ package proguard.evaluation.value;
  *
  * @author Eric Lafortune
  */
-public final class NegatedIntegerValue extends SpecificIntegerValue
-{
-    private final IntegerValue integerValue;
+public final class NegatedIntegerValue extends SpecificIntegerValue {
+  private final IntegerValue integerValue;
 
+  /** Creates a new negated integer value of the given integer value. */
+  public NegatedIntegerValue(IntegerValue integerValue) {
+    this.integerValue = integerValue;
+  }
 
-    /**
-     * Creates a new negated integer value of the given integer value.
-     */
-    public NegatedIntegerValue(IntegerValue integerValue)
-    {
-        this.integerValue = integerValue;
-    }
+  // Implementations of unary methods of IntegerValue.
 
+  public IntegerValue negate() {
+    return integerValue;
+  }
 
-    // Implementations of unary methods of IntegerValue.
+  // Implementations for Object.
 
-    public IntegerValue negate()
-    {
-        return integerValue;
-    }
+  public boolean equals(Object object) {
+    return this == object
+        || super.equals(object)
+            && this.integerValue.equals(((NegatedIntegerValue) object).integerValue);
+  }
 
+  public int hashCode() {
+    return super.hashCode() ^ integerValue.hashCode();
+  }
 
-    // Implementations for Object.
-
-    public boolean equals(Object object)
-    {
-        return this == object ||
-               super.equals(object) &&
-               this.integerValue.equals(((NegatedIntegerValue)object).integerValue);
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               integerValue.hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "-"+integerValue;
-    }
+  public String toString() {
+    return "-" + integerValue;
+  }
 }

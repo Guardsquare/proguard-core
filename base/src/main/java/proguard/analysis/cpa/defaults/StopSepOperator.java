@@ -25,31 +25,32 @@ import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.StopOperator;
 
 /**
- * This {@link StopOperator} returns true if there is a state in the reached set covering the input {@link AbstractState}.
+ * This {@link StopOperator} returns true if there is a state in the reached set covering the input
+ * {@link AbstractState}.
  *
  * @author Dmitry Ivanov
  */
-public final class StopSepOperator
-    implements StopOperator
-{
+public final class StopSepOperator implements StopOperator {
 
-    private final AbstractDomain abstractDomain;
+  private final AbstractDomain abstractDomain;
 
-    /**
-     * Create a join operator from the abstract domain defining the join operator.
-     *
-     * @param abstractDomain abstract domain
-     */
-    public StopSepOperator(AbstractDomain abstractDomain)
-    {
-        this.abstractDomain = abstractDomain;
-    }
+  /**
+   * Create a join operator from the abstract domain defining the join operator.
+   *
+   * @param abstractDomain abstract domain
+   */
+  public StopSepOperator(AbstractDomain abstractDomain) {
+    this.abstractDomain = abstractDomain;
+  }
 
-    //implementations for StopOperator
+  // implementations for StopOperator
 
-    @Override
-    public boolean stop(AbstractState abstractState, Collection<? extends AbstractState> reachedAbstractStates, Precision precision)
-    {
-        return reachedAbstractStates.stream().anyMatch(reachedState ->  abstractDomain.isLessOrEqual(abstractState, reachedState));
-    }
+  @Override
+  public boolean stop(
+      AbstractState abstractState,
+      Collection<? extends AbstractState> reachedAbstractStates,
+      Precision precision) {
+    return reachedAbstractStates.stream()
+        .anyMatch(reachedState -> abstractDomain.isLessOrEqual(abstractState, reachedState));
+  }
 }

@@ -18,53 +18,48 @@
 
 package proguard.analysis.cpa.jvm.cfa.edges;
 
-import proguard.classfile.attribute.CodeAttribute;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.classfile.attribute.CodeAttribute;
 
 /**
  * An edge representing an assumption that a case of a switch statement is taken.
  *
  * @author Carlo Alberto Pozzoli
  */
-public class JvmAssumeCaseCfaEdge
-    extends JvmInstructionCfaEdge
-{
+public class JvmAssumeCaseCfaEdge extends JvmInstructionCfaEdge {
 
-    private final int assumedCase;
+  private final int assumedCase;
 
-    /**
-     * Create a disconnected JVM CFA assume case edge.
-     *
-     * @param methodCode  the code attribute of the method the edge belongs to
-     * @param offset      the offset of the instruction represented by the edge
-     * @param assumedCase an assumed integer value of the switch variable
-     */
-    public JvmAssumeCaseCfaEdge(CodeAttribute methodCode, int offset, int assumedCase)
-    {
-        super(methodCode, offset);
-        this.assumedCase = assumedCase;
-    }
+  /**
+   * Create a disconnected JVM CFA assume case edge.
+   *
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   * @param assumedCase an assumed integer value of the switch variable
+   */
+  public JvmAssumeCaseCfaEdge(CodeAttribute methodCode, int offset, int assumedCase) {
+    super(methodCode, offset);
+    this.assumedCase = assumedCase;
+  }
 
-    /**
-     * Create a JVM CFA assume case edge. Also sets it as the entering and leaving edge of the source and target nodes.
-     *
-     * @param source      the source node of the edge
-     * @param target      the target node of the edge
-     * @param methodCode  the code attribute of the method the edge belongs to
-     * @param offset      the offset of the instruction represented by the edge
-     * @param assumedCase an assumed integer value of the switch variable
-     */
-    public JvmAssumeCaseCfaEdge(JvmCfaNode source, JvmCfaNode target, CodeAttribute methodCode, int offset, int assumedCase)
-    {
-        super(source, target, methodCode, offset);
-        this.assumedCase = assumedCase;
-    }
+  /**
+   * Create a JVM CFA assume case edge. Also sets it as the entering and leaving edge of the source
+   * and target nodes.
+   *
+   * @param source the source node of the edge
+   * @param target the target node of the edge
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   * @param assumedCase an assumed integer value of the switch variable
+   */
+  public JvmAssumeCaseCfaEdge(
+      JvmCfaNode source, JvmCfaNode target, CodeAttribute methodCode, int offset, int assumedCase) {
+    super(source, target, methodCode, offset);
+    this.assumedCase = assumedCase;
+  }
 
-    /**
-     * Returns the assumed integer value of the switch variable made on this edge.
-     */
-    public int getAssumedCase()
-    {
-        return assumedCase;
-    }
+  /** Returns the assumed integer value of the switch variable made on this edge. */
+  public int getAssumedCase() {
+    return assumedCase;
+  }
 }

@@ -25,52 +25,32 @@ import java.util.Collection;
  *
  * @author Dmitry Ivanov
  */
+public interface Waitlist extends Iterable<AbstractState> {
 
-public interface Waitlist extends Iterable<AbstractState>
-{
+  /** Adds an abstract state. */
+  void add(AbstractState state);
 
-    /**
-     * Adds an abstract state.
-     */
-    void add(AbstractState state);
+  /** Adds multiple abstract states. */
+  void addAll(Collection<? extends AbstractState> abstractStates);
 
-    /**
-     * Adds multiple abstract states.
-     */
-    void addAll(Collection<? extends AbstractState> abstractStates);
+  /** Empties the waitlist. */
+  void clear();
 
-    /**
-     * Empties the waitlist.
-     */
-    void clear();
+  /** Checks whether the abstract state is present. */
+  boolean contains(AbstractState abstractState);
 
-    /**
-     * Checks whether the abstract state is present.
-     */
-    boolean contains(AbstractState abstractState);
+  /** Checks whether the waitlist is empty. */
+  boolean isEmpty();
 
-    /**
-     * Checks whether the waitlist is empty.
-     */
-    boolean isEmpty();
+  /** Remove the next abstract state and return it. */
+  AbstractState pop();
 
-    /**
-     * Remove the next abstract state and return it.
-     */
-    AbstractState pop();
+  /** Removes an abstract state. */
+  boolean remove(AbstractState abstractState);
 
-    /**
-     * Removes an abstract state.
-     */
-    boolean remove(AbstractState abstractState);
+  /** Removes multiple abstract states. */
+  void removeAll(Collection<?> abstractStates);
 
-    /**
-     * Removes multiple abstract states.
-     */
-    void removeAll(Collection<?> abstractStates);
-
-    /**
-     * Returns the size of the waitlist.
-     */
-    int size();
+  /** Returns the size of the waitlist. */
+  int size();
 }

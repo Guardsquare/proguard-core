@@ -21,34 +21,24 @@ import proguard.classfile.Clazz;
 import proguard.classfile.constant.*;
 
 /**
- * This {@link ConstantVisitor} travels from any method handle constants that it visits
- * to their methodref constants, and applies a given constant visitor.
+ * This {@link ConstantVisitor} travels from any method handle constants that it visits to their
+ * methodref constants, and applies a given constant visitor.
  *
  * @author Eric Lafortune
  */
-public class MethodrefTraveler
-implements   ConstantVisitor
-{
-    private ConstantVisitor methodrefConstantVisitor;
+public class MethodrefTraveler implements ConstantVisitor {
+  private ConstantVisitor methodrefConstantVisitor;
 
+  /** Creates a new v that will delegate to the given constant visitor. */
+  public MethodrefTraveler(ConstantVisitor methodrefConstantVisitor) {
+    this.methodrefConstantVisitor = methodrefConstantVisitor;
+  }
 
-    /**
-     * Creates a new v that will delegate to the given constant visitor.
-     */
-    public MethodrefTraveler(ConstantVisitor methodrefConstantVisitor)
-    {
-        this.methodrefConstantVisitor = methodrefConstantVisitor;
-    }
+  // Implementations for ConstantVisitor.
 
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-    // Implementations for ConstantVisitor.
-
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
-
-
-    public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant)
-    {
-        clazz.constantPoolEntryAccept(methodHandleConstant.u2referenceIndex,
-                                      methodrefConstantVisitor);
-    }
+  public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant) {
+    clazz.constantPoolEntryAccept(methodHandleConstant.u2referenceIndex, methodrefConstantVisitor);
+  }
 }

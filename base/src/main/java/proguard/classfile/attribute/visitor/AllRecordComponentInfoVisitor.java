@@ -21,30 +21,23 @@ import proguard.classfile.Clazz;
 import proguard.classfile.attribute.*;
 
 /**
- * This {@link AttributeVisitor} lets a given {@link RecordComponentInfoVisitor} visit all
- * {@link RecordComponentInfo} instances of the {@link RecordAttribute} instances it visits.
+ * This {@link AttributeVisitor} lets a given {@link RecordComponentInfoVisitor} visit all {@link
+ * RecordComponentInfo} instances of the {@link RecordAttribute} instances it visits.
  *
  * @author Eric Lafortune
  */
-public class AllRecordComponentInfoVisitor
-implements   AttributeVisitor
-{
-    private final RecordComponentInfoVisitor recordComponentInfoVisitor;
+public class AllRecordComponentInfoVisitor implements AttributeVisitor {
+  private final RecordComponentInfoVisitor recordComponentInfoVisitor;
 
+  public AllRecordComponentInfoVisitor(RecordComponentInfoVisitor recordComponentInfoVisitor) {
+    this.recordComponentInfoVisitor = recordComponentInfoVisitor;
+  }
 
-    public AllRecordComponentInfoVisitor(RecordComponentInfoVisitor recordComponentInfoVisitor)
-    {
-        this.recordComponentInfoVisitor = recordComponentInfoVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
-    {
-        recordAttribute.componentsAccept(clazz, recordComponentInfoVisitor);
-    }
+  public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute) {
+    recordAttribute.componentsAccept(clazz, recordComponentInfoVisitor);
+  }
 }

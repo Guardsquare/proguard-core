@@ -26,88 +26,60 @@ import proguard.classfile.visitor.ClassVisitor;
  *
  * @author Eric Lafortune
  */
-public class SignatureAttribute extends Attribute
-{
-    public int u2signatureIndex;
+public class SignatureAttribute extends Attribute {
+  public int u2signatureIndex;
 
-    /**
-     * An extra field containing all the classes referenced in the
-     * signature string. This field is filled out by the {@link
-     * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}.
-     * The size of the array is the number of classes in the signature.
-     * Primitive types and arrays of primitive types are ignored.
-     * Unknown classes are represented as null values.
-     */
-    public Clazz[] referencedClasses;
+  /**
+   * An extra field containing all the classes referenced in the signature string. This field is
+   * filled out by the {@link proguard.classfile.util.ClassReferenceInitializer
+   * ClassReferenceInitializer}. The size of the array is the number of classes in the signature.
+   * Primitive types and arrays of primitive types are ignored. Unknown classes are represented as
+   * null values.
+   */
+  public Clazz[] referencedClasses;
 
+  /** Creates an uninitialized SignatureAttribute. */
+  public SignatureAttribute() {}
 
-    /**
-     * Creates an uninitialized SignatureAttribute.
-     */
-    public SignatureAttribute()
-    {
-    }
+  /** Creates an initialized SignatureAttribute. */
+  public SignatureAttribute(int u2attributeNameIndex, int u2signatureIndex) {
+    super(u2attributeNameIndex);
 
+    this.u2signatureIndex = u2signatureIndex;
+  }
 
-    /**
-     * Creates an initialized SignatureAttribute.
-     */
-    public SignatureAttribute(int u2attributeNameIndex,
-                              int u2signatureIndex)
-    {
-        super(u2attributeNameIndex);
+  /** Returns the signature. */
+  public String getSignature(Clazz clazz) {
+    return clazz.getString(u2signatureIndex);
+  }
 
-        this.u2signatureIndex = u2signatureIndex;
-    }
-
-
-    /**
-     * Returns the signature.
-     */
-    public String getSignature(Clazz clazz)
-    {
-        return clazz.getString(u2signatureIndex);
-    }
-
-
-    /**
-     * Lets the Clazz objects referenced in the signature string accept the
-     * given visitor.
-     */
-    public void referencedClassesAccept(ClassVisitor classVisitor)
-    {
-        if (referencedClasses != null)
-        {
-            for (int index = 0; index < referencedClasses.length; index++)
-            {
-                if (referencedClasses[index] != null)
-                {
-                    referencedClasses[index].accept(classVisitor);
-                }
-            }
+  /** Lets the Clazz objects referenced in the signature string accept the given visitor. */
+  public void referencedClassesAccept(ClassVisitor classVisitor) {
+    if (referencedClasses != null) {
+      for (int index = 0; index < referencedClasses.length; index++) {
+        if (referencedClasses[index] != null) {
+          referencedClasses[index].accept(classVisitor);
         }
+      }
     }
+  }
 
+  // Implementations for Attribute.
 
-    // Implementations for Attribute.
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSignatureAttribute(clazz, this);
+  }
 
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, this);
-    }
+  public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSignatureAttribute(clazz, field, this);
+  }
 
-    public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, field, this);
-    }
+  public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSignatureAttribute(clazz, method, this);
+  }
 
-    public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, method, this);
-    }
-
-    public void accept(Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, this);
-    }
+  public void accept(
+      Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, this);
+  }
 }

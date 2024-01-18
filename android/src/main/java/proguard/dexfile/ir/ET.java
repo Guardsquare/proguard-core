@@ -28,20 +28,12 @@ import proguard.dexfile.ir.stmt.Stmt;
  */
 public enum ET {
 
-    /**
-     * no argument
-     */
-    E0,
-    /**
-     * 1 argument
-     */
-    E1,
-    /**
-     * 2 argument
-     */
-    E2,
-    /**
-     * 3+ argument
-     */
-    En
+  /** no argument */
+  E0,
+  /** 1 argument */
+  E1,
+  /** 2 argument */
+  E2,
+  /** 3+ argument */
+  En
 }

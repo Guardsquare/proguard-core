@@ -20,9 +20,9 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinTypeAliasVisitor
-{
-    void visitTypeAlias(Clazz                              clazz,
-                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                        KotlinTypeAliasMetadata            kotlinTypeAliasMetadata);
+public interface KotlinTypeAliasVisitor {
+  void visitTypeAlias(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasMetadata kotlinTypeAliasMetadata);
 }

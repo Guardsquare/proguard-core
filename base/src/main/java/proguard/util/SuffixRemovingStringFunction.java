@@ -18,35 +18,28 @@
 package proguard.util;
 
 /**
- * This {@link StringFunction} removes a given suffix from each transformed String,
- * if present.
+ * This {@link StringFunction} removes a given suffix from each transformed String, if present.
  *
  * @author Johan Leys
  * @author Eric Lafortune
  */
-public class SuffixRemovingStringFunction
-implements   StringFunction
-{
-    private final String suffix;
+public class SuffixRemovingStringFunction implements StringFunction {
+  private final String suffix;
 
+  /**
+   * Creates a new SuffixRemovingStringFunction.
+   *
+   * @param suffix the suffix to remove from each string.
+   */
+  public SuffixRemovingStringFunction(String suffix) {
+    this.suffix = suffix;
+  }
 
-    /**
-     * Creates a new SuffixRemovingStringFunction.
-     *
-     * @param suffix the suffix to remove from each string.
-     */
-    public SuffixRemovingStringFunction(String suffix)
-    {
-        this.suffix = suffix;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    public String transform(String string)
-    {
-        return string.endsWith(suffix) ?
-            string.substring(0, string.length() - suffix.length()) :
-            string;
-    }
+  public String transform(String string) {
+    return string.endsWith(suffix)
+        ? string.substring(0, string.length() - suffix.length())
+        : string;
+  }
 }

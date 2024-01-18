@@ -23,27 +23,23 @@ import proguard.classfile.kotlin.reflect.*;
 /**
  * @author James Hamilton
  */
-public interface CallableReferenceInfoVisitor
-{
-    void visitAnyCallableReferenceInfo(CallableReferenceInfo callableReferenceInfo);
+public interface CallableReferenceInfoVisitor {
+  void visitAnyCallableReferenceInfo(CallableReferenceInfo callableReferenceInfo);
 
-    default void visitFunctionReferenceInfo(FunctionReferenceInfo functionReferenceInfo)
-    {
-        this.visitAnyCallableReferenceInfo(functionReferenceInfo);
-    }
+  default void visitFunctionReferenceInfo(FunctionReferenceInfo functionReferenceInfo) {
+    this.visitAnyCallableReferenceInfo(functionReferenceInfo);
+  }
 
-    default void visitJavaReferenceInfo(JavaReferenceInfo javaReferenceInfo)
-    {
-        this.visitAnyCallableReferenceInfo(javaReferenceInfo);
-    }
+  default void visitJavaReferenceInfo(JavaReferenceInfo javaReferenceInfo) {
+    this.visitAnyCallableReferenceInfo(javaReferenceInfo);
+  }
 
-    default void visitLocalVariableReferenceInfo(LocalVariableReferenceInfo localVariableReferenceInfo)
-    {
-        this.visitAnyCallableReferenceInfo(localVariableReferenceInfo);
-    }
+  default void visitLocalVariableReferenceInfo(
+      LocalVariableReferenceInfo localVariableReferenceInfo) {
+    this.visitAnyCallableReferenceInfo(localVariableReferenceInfo);
+  }
 
-    default void visitPropertyReferenceInfo(PropertyReferenceInfo propertyReferenceInfo)
-    {
-        this.visitAnyCallableReferenceInfo(propertyReferenceInfo);
-    }
+  default void visitPropertyReferenceInfo(PropertyReferenceInfo propertyReferenceInfo) {
+    this.visitAnyCallableReferenceInfo(propertyReferenceInfo);
+  }
 }

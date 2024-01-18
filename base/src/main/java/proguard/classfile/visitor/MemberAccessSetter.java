@@ -21,45 +21,37 @@ import proguard.classfile.*;
 import proguard.classfile.util.AccessUtil;
 
 /**
- * This {@link MemberVisitor} sets the access part of the access flags of
- * the program class members that its visits to a given value.
+ * This {@link MemberVisitor} sets the access part of the access flags of the program class members
+ * that its visits to a given value.
  *
  * @see ClassConstants
- *
  * @author Eric Lafortune
  */
-public class MemberAccessSetter
-implements   MemberVisitor
-{
-    private final int accessFlags;
+public class MemberAccessSetter implements MemberVisitor {
+  private final int accessFlags;
 
+  /**
+   * Creates a new MemberAccessSetter.
+   *
+   * @param accessFlags the member access flags to be set.
+   */
+  public MemberAccessSetter(int accessFlags) {
+    this.accessFlags = accessFlags;
+  }
 
-    /**
-     * Creates a new MemberAccessSetter.
-     * @param accessFlags the member access flags to be set.
-     */
-    public MemberAccessSetter(int accessFlags)
-    {
-        this.accessFlags = accessFlags;
-    }
+  // Implementations for MemberVisitor.
 
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
 
-    // Implementations for MemberVisitor.
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {}
 
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {}
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    programField.u2accessFlags =
+        AccessUtil.replaceAccessFlags(programField.u2accessFlags, accessFlags);
+  }
 
-
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        programField.u2accessFlags =
-            AccessUtil.replaceAccessFlags(programField.u2accessFlags, accessFlags);
-    }
-
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        programMethod.u2accessFlags =
-            AccessUtil.replaceAccessFlags(programMethod.u2accessFlags, accessFlags);
-    }
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    programMethod.u2accessFlags =
+        AccessUtil.replaceAccessFlags(programMethod.u2accessFlags, accessFlags);
+  }
 }

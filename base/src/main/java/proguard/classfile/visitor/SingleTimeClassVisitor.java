@@ -20,35 +20,28 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link ClassVisitor} delegates all visits to a given {@link ClassVisitor}, although
- * only once to the same class in a row.
+ * This {@link ClassVisitor} delegates all visits to a given {@link ClassVisitor}, although only
+ * once to the same class in a row.
  *
  * @author Eric Lafortune
  */
-public class SingleTimeClassVisitor
-implements   ClassVisitor
-{
-    private final ClassVisitor classVisitor;
+public class SingleTimeClassVisitor implements ClassVisitor {
+  private final ClassVisitor classVisitor;
 
-    private Clazz lastVisitedClass;
+  private Clazz lastVisitedClass;
 
+  public SingleTimeClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    public SingleTimeClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    if (!clazz.equals(lastVisitedClass)) {
+      clazz.accept(classVisitor);
+
+      lastVisitedClass = clazz;
     }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        if (!clazz.equals(lastVisitedClass))
-        {
-            clazz.accept(classVisitor);
-
-            lastVisitedClass = clazz;
-        }
-    }
+  }
 }

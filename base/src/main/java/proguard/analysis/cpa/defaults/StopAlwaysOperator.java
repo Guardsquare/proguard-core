@@ -24,19 +24,20 @@ import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.StopOperator;
 
 /**
- * This {@link StopOperator} always returns true, i.e., it can be used for a single pass of the analysis.
+ * This {@link StopOperator} always returns true, i.e., it can be used for a single pass of the
+ * analysis.
  *
  * @author Dmitry Ivanov
  */
-public final class StopAlwaysOperator
-    implements StopOperator
-{
+public final class StopAlwaysOperator implements StopOperator {
 
-    //implementations for StopOperator
+  // implementations for StopOperator
 
-    @Override
-    public boolean stop(AbstractState abstractState, Collection<? extends AbstractState> reachedAbstractStates, Precision precision)
-    {
-        return true;
-    }
+  @Override
+  public boolean stop(
+      AbstractState abstractState,
+      Collection<? extends AbstractState> reachedAbstractStates,
+      Precision precision) {
+    return true;
+  }
 }

@@ -25,93 +25,77 @@ import proguard.classfile.editor.ClassEstimates;
 import proguard.util.ArrayUtil;
 
 /**
- * This {@link AttributeVisitor} computes the stack sizes at all instruction offsets
- * of the code attributes that it visits.
- * <p/>
- * If only the maximum stack size is required, then prefer {@link MaxStackSizeComputer}
- * since this class uses more memory because it stores the sizes for each offset.
+ * This {@link AttributeVisitor} computes the stack sizes at all instruction offsets of the code
+ * attributes that it visits.
+ *
+ * <p>If only the maximum stack size is required, then prefer {@link MaxStackSizeComputer} since
+ * this class uses more memory because it stores the sizes for each offset.
  */
-public class StackSizeComputer
-implements   AttributeVisitor
-{
+public class StackSizeComputer implements AttributeVisitor {
 
-    private final MaxStackSizeComputer maxSackSizeComputer;
-    private int[] stackSizesBefore = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
-    private int[] stackSizesAfter = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
+  private final MaxStackSizeComputer maxSackSizeComputer;
+  private int[] stackSizesBefore = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
+  private int[] stackSizesAfter = new int[ClassEstimates.TYPICAL_CODE_LENGTH];
 
-    /**
-     * Construct a {@link StackSizeComputer} that keeps track of sizes
-     * at each offset.
-     */
-    public StackSizeComputer()
-    {
-        this.maxSackSizeComputer = new MaxStackSizeComputer((offset, stackSizeBefore, stackSizeAfter) -> {
-            stackSizesBefore[offset] = stackSizeBefore;
-            stackSizesAfter[offset] = stackSizeAfter;
-        });
+  /** Construct a {@link StackSizeComputer} that keeps track of sizes at each offset. */
+  public StackSizeComputer() {
+    this.maxSackSizeComputer =
+        new MaxStackSizeComputer(
+            (offset, stackSizeBefore, stackSizeAfter) -> {
+              stackSizesBefore[offset] = stackSizeBefore;
+              stackSizesAfter[offset] = stackSizeAfter;
+            });
+  }
+
+  /**
+   * Returns whether the instruction at the given offset is reachable in the most recently visited
+   * code attribute.
+   */
+  public boolean isReachable(int instructionOffset) {
+    return this.maxSackSizeComputer.isReachable(instructionOffset);
+  }
+
+  /**
+   * Returns the stack size before the given instruction offset of the most recently visited code
+   * attribute.
+   */
+  public int getStackSizeBefore(int instructionOffset) {
+    if (!this.maxSackSizeComputer.isReachable(instructionOffset)) {
+      throw new IllegalArgumentException(
+          "Unknown stack size before unreachable instruction offset [" + instructionOffset + "]");
     }
 
-    /**
-     * Returns whether the instruction at the given offset is reachable in the
-     * most recently visited code attribute.
-     */
-    public boolean isReachable(int instructionOffset)
-    {
-        return this.maxSackSizeComputer.isReachable(instructionOffset);
+    return stackSizesBefore[instructionOffset];
+  }
+
+  /**
+   * Returns the stack size after the given instruction offset of the most recently visited code
+   * attribute.
+   */
+  public int getStackSizeAfter(int instructionOffset) {
+    if (!this.maxSackSizeComputer.isReachable((instructionOffset))) {
+      throw new IllegalArgumentException(
+          "Unknown stack size after unreachable instruction offset [" + instructionOffset + "]");
     }
 
+    return stackSizesAfter[instructionOffset];
+  }
 
-    /**
-     * Returns the stack size before the given instruction offset of the most
-     * recently visited code attribute.
-     */
-    public int getStackSizeBefore(int instructionOffset)
-    {
-        if (!this.maxSackSizeComputer.isReachable(instructionOffset))
-        {
-            throw new IllegalArgumentException("Unknown stack size before unreachable instruction offset ["+instructionOffset+"]");
-        }
+  /** Returns the maximum stack size of the most recently visited code attribute. */
+  public int getMaxStackSize() {
+    return this.maxSackSizeComputer.getMaxStackSize();
+  }
 
-        return stackSizesBefore[instructionOffset];
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    /**
-     * Returns the stack size after the given instruction offset of the most
-     * recently visited code attribute.
-     */
-    public int getStackSizeAfter(int instructionOffset)
-    {
-        if (!this.maxSackSizeComputer.isReachable((instructionOffset)))
-        {
-            throw new IllegalArgumentException("Unknown stack size after unreachable instruction offset ["+instructionOffset+"]");
-        }
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    int codeLength = codeAttribute.u4codeLength;
 
-        return stackSizesAfter[instructionOffset];
-    }
+    stackSizesBefore = ArrayUtil.ensureArraySize(stackSizesBefore, codeLength, 0);
+    stackSizesAfter = ArrayUtil.ensureArraySize(stackSizesAfter, codeLength, 0);
 
-
-    /**
-     * Returns the maximum stack size of the most recently visited code attribute.
-     */
-    public int getMaxStackSize()
-    {
-        return this.maxSackSizeComputer.getMaxStackSize();
-    }
-
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        int codeLength = codeAttribute.u4codeLength;
-
-        stackSizesBefore = ArrayUtil.ensureArraySize(stackSizesBefore, codeLength, 0);
-        stackSizesAfter = ArrayUtil.ensureArraySize(stackSizesAfter, codeLength, 0);
-
-        codeAttribute.accept(clazz, method, maxSackSizeComputer);
-    }
+    codeAttribute.accept(clazz, method, maxSackSizeComputer);
+  }
 }

@@ -25,36 +25,40 @@ import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.StopOperator;
 
 /**
- * This {@link StopOperator} returns true if the input state is less or equal than join over the reached set.
+ * This {@link StopOperator} returns true if the input state is less or equal than join over the
+ * reached set.
  *
  * @author Dmitry Ivanov
  */
-public final class StopJoinOperator
-    implements StopOperator
-{
-    private final AbstractDomain abstractDomain;
+public final class StopJoinOperator implements StopOperator {
+  private final AbstractDomain abstractDomain;
 
-    /**
-     * Create a join operator from the abstract domain defining the join operator.
-     *
-     * @param abstractDomain abstract domain
-     */
-    public StopJoinOperator(AbstractDomain abstractDomain)
+  /**
+   * Create a join operator from the abstract domain defining the join operator.
+   *
+   * @param abstractDomain abstract domain
+   */
+  public StopJoinOperator(AbstractDomain abstractDomain) {
+    this.abstractDomain = abstractDomain;
+  }
+
+  // implementations for StopOperator
+
+  @Override
+  public boolean stop(
+      AbstractState abstractState,
+      Collection<? extends AbstractState> reachedAbstractStates,
+      Precision precision) {
+    if (reachedAbstractStates
+        .isEmpty()) // since we may have no bottom in the lattice, we have to process the case of an
+    // empty reached set separately
     {
-        this.abstractDomain = abstractDomain;
+      return false;
     }
-
-    //implementations for StopOperator
-
-    @Override
-    public boolean stop(AbstractState abstractState, Collection<? extends AbstractState> reachedAbstractStates, Precision precision)
-    {
-        if (reachedAbstractStates.isEmpty()) // since we may have no bottom in the lattice, we have to process the case of an empty reached set separately
-        {
-            return false;
-        }
-        return abstractDomain.isLessOrEqual(abstractState,
-                                            reachedAbstractStates.stream().map(state -> (AbstractState) state).reduce(reachedAbstractStates.iterator().next(),
-                                                                                                                      abstractDomain::join));
-    }
+    return abstractDomain.isLessOrEqual(
+        abstractState,
+        reachedAbstractStates.stream()
+            .map(state -> (AbstractState) state)
+            .reduce(reachedAbstractStates.iterator().next(), abstractDomain::join));
+  }
 }

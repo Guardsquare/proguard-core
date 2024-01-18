@@ -28,44 +28,43 @@ import proguard.dexfile.ir.LabelAndLocalMapper;
  */
 public class RefExpr extends Value.E0Expr {
 
-    public int parameterIndex;
+  public int parameterIndex;
 
-    public String type;
+  public String type;
 
-    @Override
-    protected void releaseMemory() {
-        type = null;
-        super.releaseMemory();
+  @Override
+  protected void releaseMemory() {
+    type = null;
+    super.releaseMemory();
+  }
+
+  public RefExpr(VT vt, String refType, int index) {
+    super(vt);
+    this.type = refType;
+    this.parameterIndex = index;
+  }
+
+  @Override
+  public Value clone() {
+    return new RefExpr(vt, type, parameterIndex);
+  }
+
+  @Override
+  public Value clone(LabelAndLocalMapper mapper) {
+    return new RefExpr(vt, type, parameterIndex);
+  }
+
+  @Override
+  public String toString0() {
+    switch (vt) {
+      case THIS_REF:
+        return "@this";
+      case PARAMETER_REF:
+        return "@parameter_" + parameterIndex;
+      case EXCEPTION_REF:
+        return "@Exception";
+      default:
     }
-
-    public RefExpr(VT vt, String refType, int index) {
-        super(vt);
-        this.type = refType;
-        this.parameterIndex = index;
-    }
-
-    @Override
-    public Value clone() {
-        return new RefExpr(vt, type, parameterIndex);
-    }
-
-    @Override
-    public Value clone(LabelAndLocalMapper mapper) {
-        return new RefExpr(vt, type, parameterIndex);
-    }
-
-    @Override
-    public String toString0() {
-        switch (vt) {
-            case THIS_REF:
-                return "@this";
-            case PARAMETER_REF:
-                return "@parameter_" + parameterIndex;
-            case EXCEPTION_REF:
-                return "@Exception";
-            default:
-        }
-        return super.toString();
-    }
-
+    return super.toString();
+  }
 }

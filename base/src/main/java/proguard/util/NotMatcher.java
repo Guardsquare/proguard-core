@@ -18,27 +18,21 @@
 package proguard.util;
 
 /**
- * This {@link StringMatcher} tests whether strings does not match the given
- * {@link StringMatcher}.
+ * This {@link StringMatcher} tests whether strings does not match the given {@link StringMatcher}.
  *
  * @author Eric Lafortune
  */
-public class NotMatcher extends StringMatcher
-{
-    private final StringMatcher matcher;
+public class NotMatcher extends StringMatcher {
+  private final StringMatcher matcher;
 
+  public NotMatcher(StringMatcher matcher) {
+    this.matcher = matcher;
+  }
 
-    public NotMatcher(StringMatcher matcher)
-    {
-        this.matcher = matcher;
-    }
+  // Implementations for StringMatcher.
 
-
-    // Implementations for StringMatcher.
-
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        return !matcher.matches(string, beginOffset, endOffset);
-    }
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    return !matcher.matches(string, beginOffset, endOffset);
+  }
 }

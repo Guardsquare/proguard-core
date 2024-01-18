@@ -16,27 +16,27 @@
 package proguard.dexfile.reader.node.insn;
 
 import proguard.dexfile.reader.Method;
-import proguard.dexfile.reader.Proto;
 import proguard.dexfile.reader.Op;
+import proguard.dexfile.reader.Proto;
 import proguard.dexfile.reader.visitors.DexCodeVisitor;
 
 public class MethodPolymorphicStmtNode extends AbstractMethodStmtNode {
-    public final Method method;
-    public final Proto proto;
+  public final Method method;
+  public final Proto proto;
 
-    public MethodPolymorphicStmtNode(Op op, int[] args, Method method, Proto proto) {
-        super(op, args);
-        this.method = method;
-        this.proto = proto;
-    }
+  public MethodPolymorphicStmtNode(Op op, int[] args, Method method, Proto proto) {
+    super(op, args);
+    this.method = method;
+    this.proto = proto;
+  }
 
-    @Override
-    public void accept(DexCodeVisitor cv) {
-        cv.visitMethodStmt(op, args, method, proto);
-    }
+  @Override
+  public void accept(DexCodeVisitor cv) {
+    cv.visitMethodStmt(op, args, method, proto);
+  }
 
-    @Override
-    public Proto getProto() {
-        return proto;
-    }
+  @Override
+  public Proto getProto() {
+    return proto;
+  }
 }

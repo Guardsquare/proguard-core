@@ -25,91 +25,67 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Joachim Vandersmissen
  */
-public class PackageConstant extends Constant
-{
-    public int u2nameIndex;
+public class PackageConstant extends Constant {
+  public int u2nameIndex;
 
+  /** Creates an uninitialized PackageConstant. */
+  public PackageConstant() {}
 
-    /**
-     * Creates an uninitialized PackageConstant.
-     */
-    public PackageConstant()
-    {
+  /**
+   * Creates a new PackageConstant with the given name index.
+   *
+   * @param u2nameIndex the index of the name in the constant pool.
+   */
+  public PackageConstant(int u2nameIndex) {
+    this.u2nameIndex = u2nameIndex;
+  }
+
+  /** Returns the name. */
+  public String getName(Clazz clazz) {
+    return clazz.getString(u2nameIndex);
+  }
+
+  // Implementations for Constant.
+
+  @Override
+  public int getTag() {
+    return Constant.PACKAGE;
+  }
+
+  @Override
+  public boolean isCategory2() {
+    return false;
+  }
+
+  @Override
+  public void accept(Clazz clazz, ConstantVisitor constantVisitor) {
+    constantVisitor.visitPackageConstant(clazz, this);
+  }
+
+  // Implementations for Object.
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || !this.getClass().equals(object.getClass())) {
+      return false;
     }
 
-
-    /**
-     * Creates a new PackageConstant with the given name index.
-     * @param u2nameIndex the index of the name in the constant pool.
-     */
-    public PackageConstant(int u2nameIndex)
-    {
-        this.u2nameIndex = u2nameIndex;
+    if (this == object) {
+      return true;
     }
 
+    PackageConstant other = (PackageConstant) object;
 
-    /**
-     * Returns the name.
-     */
-    public String getName(Clazz clazz)
-    {
-        return clazz.getString(u2nameIndex);
-    }
+    return this.u2nameIndex == other.u2nameIndex;
+  }
 
+  @Override
+  public int hashCode() {
+    return Constant.PACKAGE ^ (u2nameIndex << 5);
+  }
 
-    // Implementations for Constant.
-
-    @Override
-    public int getTag()
-    {
-        return Constant.PACKAGE;
-    }
-
-    @Override
-    public boolean isCategory2()
-    {
-        return false;
-    }
-
-    @Override
-    public void accept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        constantVisitor.visitPackageConstant(clazz, this);
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public boolean equals(Object object)
-    {
-        if (object == null || !this.getClass().equals(object.getClass()))
-        {
-            return false;
-        }
-
-        if (this == object)
-        {
-            return true;
-        }
-
-        PackageConstant other = (PackageConstant)object;
-
-        return
-            this.u2nameIndex == other.u2nameIndex;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return
-            Constant.PACKAGE ^
-            (u2nameIndex << 5);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Package(" + u2nameIndex + ")";
-    }
+  @Override
+  public String toString() {
+    return "Package(" + u2nameIndex + ")";
+  }
 }

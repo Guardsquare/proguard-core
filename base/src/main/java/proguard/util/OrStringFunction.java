@@ -23,31 +23,23 @@ package proguard.util;
  *
  * @author Eric Lafortune
  */
-public class OrStringFunction implements StringFunction
-{
-    private final StringFunction stringFunction1;
-    private final StringFunction stringFunction2;
+public class OrStringFunction implements StringFunction {
+  private final StringFunction stringFunction1;
+  private final StringFunction stringFunction2;
 
+  /** Creates a new AndStringFunction with the two given string functions. */
+  public OrStringFunction(StringFunction stringFunction1, StringFunction stringFunction2) {
+    this.stringFunction1 = stringFunction1;
+    this.stringFunction2 = stringFunction2;
+  }
 
-    /**
-     * Creates a new AndStringFunction with the two given string functions.
-     */
-    public OrStringFunction(StringFunction stringFunction1,
-                            StringFunction stringFunction2)
-    {
-        this.stringFunction1 = stringFunction1;
-        this.stringFunction2 = stringFunction2;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        String stringFunction1transform = stringFunction1.transform(string);
-        return stringFunction1transform != null ?
-            stringFunction1transform :
-            stringFunction2.transform(string);
-    }
+  @Override
+  public String transform(String string) {
+    String stringFunction1transform = stringFunction1.transform(string);
+    return stringFunction1transform != null
+        ? stringFunction1transform
+        : stringFunction2.transform(string);
+  }
 }

@@ -19,21 +19,16 @@
 package proguard.analysis.cpa.interfaces;
 
 /**
- * An edge for {@link proguard.analysis.cpa.defaults.Cfa} parametrized by its nodes {@code CfaNodeT}.
- * A CFA edge corresponds to instructions between the offsets of its target and source.
+ * An edge for {@link proguard.analysis.cpa.defaults.Cfa} parametrized by its nodes {@code
+ * CfaNodeT}. A CFA edge corresponds to instructions between the offsets of its target and source.
  *
  * @author Dmitry Ivanov
  */
-public interface CfaEdge<CfaNodeT extends CfaNode>
-{
+public interface CfaEdge<CfaNodeT extends CfaNode> {
 
-    /**
-     * Returns its source node.
-     */
-    CfaNodeT getSource();
+  /** Returns its source node. */
+  CfaNodeT getSource();
 
-    /**
-     * Returns its target node.
-     */
-    CfaNodeT getTarget();
+  /** Returns its target node. */
+  CfaNodeT getTarget();
 }

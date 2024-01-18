@@ -17,235 +17,190 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.List;
 import proguard.classfile.*;
 import proguard.util.*;
 
-import java.util.List;
-
 /**
- * This {@link ClassVisitor} delegates its visits to another given
- * {@link ClassVisitor}, but only when the visited class has a name that
- * matches a given regular expression.
+ * This {@link ClassVisitor} delegates its visits to another given {@link ClassVisitor}, but only
+ * when the visited class has a name that matches a given regular expression.
  *
  * @author Eric Lafortune
  */
-public class ClassNameFilter implements ClassVisitor
-{
-    private final StringMatcher regularExpressionMatcher;
-    private final ClassVisitor  acceptedClassVisitor;
-    private final ClassVisitor  rejectedClassVisitor;
+public class ClassNameFilter implements ClassVisitor {
+  private final StringMatcher regularExpressionMatcher;
+  private final ClassVisitor acceptedClassVisitor;
+  private final ClassVisitor rejectedClassVisitor;
 
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(String regularExpression, ClassVisitor acceptedClassVisitor) {
+    this(regularExpression, (WildcardManager) null, acceptedClassVisitor);
+  }
 
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     */
-    public ClassNameFilter(String       regularExpression,
-                           ClassVisitor acceptedClassVisitor)
-    {
-        this(regularExpression,
-             (WildcardManager)null,
-             acceptedClassVisitor);
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param wildcardManager an optional scope for StringMatcher instances that match wildcards.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      String regularExpression,
+      WildcardManager wildcardManager,
+      ClassVisitor acceptedClassVisitor) {
+    this(regularExpression, wildcardManager, acceptedClassVisitor, null);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(List regularExpression, ClassVisitor acceptedClassVisitor) {
+    this(regularExpression, (WildcardManager) null, acceptedClassVisitor);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param wildcardManager an optional scope for StringMatcher instances that match wildcards.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      List regularExpression, WildcardManager wildcardManager, ClassVisitor acceptedClassVisitor) {
+    this(regularExpression, wildcardManager, acceptedClassVisitor, null);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpressionMatcher the string matcher against which class names will be matched.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      StringMatcher regularExpressionMatcher, ClassVisitor acceptedClassVisitor) {
+    this(regularExpressionMatcher, acceptedClassVisitor, null);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   * @param rejectedClassVisitor the <code>ClassVisitor</code> to which rejected visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      String regularExpression,
+      ClassVisitor acceptedClassVisitor,
+      ClassVisitor rejectedClassVisitor) {
+    this(regularExpression, null, acceptedClassVisitor, rejectedClassVisitor);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param wildcardManager an optional scope for StringMatcher instances that match wildcards.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   * @param rejectedClassVisitor the <code>ClassVisitor</code> to which rejected visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      String regularExpression,
+      WildcardManager wildcardManager,
+      ClassVisitor acceptedClassVisitor,
+      ClassVisitor rejectedClassVisitor) {
+    this(
+        new ListParser(new ClassNameParser(wildcardManager)).parse(regularExpression),
+        acceptedClassVisitor,
+        rejectedClassVisitor);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   * @param rejectedClassVisitor the <code>ClassVisitor</code> to which rejected visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      List regularExpression,
+      ClassVisitor acceptedClassVisitor,
+      ClassVisitor rejectedClassVisitor) {
+    this(regularExpression, null, acceptedClassVisitor, rejectedClassVisitor);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpression the regular expression against which class names will be matched.
+   * @param wildcardManager an optional scope for StringMatcher instances that match wildcards.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   * @param rejectedClassVisitor the <code>ClassVisitor</code> to which rejected visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      List regularExpression,
+      WildcardManager wildcardManager,
+      ClassVisitor acceptedClassVisitor,
+      ClassVisitor rejectedClassVisitor) {
+    this(
+        new ListParser(new ClassNameParser(wildcardManager)).parse(regularExpression),
+        acceptedClassVisitor,
+        rejectedClassVisitor);
+  }
+
+  /**
+   * Creates a new ClassNameFilter.
+   *
+   * @param regularExpressionMatcher the string matcher against which class names will be matched.
+   * @param acceptedClassVisitor the <code>ClassVisitor</code> to which accepted visits will be
+   *     delegated.
+   * @param rejectedClassVisitor the <code>ClassVisitor</code> to which rejected visits will be
+   *     delegated.
+   */
+  public ClassNameFilter(
+      StringMatcher regularExpressionMatcher,
+      ClassVisitor acceptedClassVisitor,
+      ClassVisitor rejectedClassVisitor) {
+    this.regularExpressionMatcher = regularExpressionMatcher;
+    this.acceptedClassVisitor = acceptedClassVisitor;
+    this.rejectedClassVisitor = rejectedClassVisitor;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    ClassVisitor delegate = getDelegateVisitor(clazz);
+    if (delegate != null) {
+      clazz.accept(delegate);
     }
+  }
 
+  // Small utility methods.
 
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param wildcardManager      an optional scope for StringMatcher instances
-     *                             that match wildcards.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     */
-    public ClassNameFilter(String          regularExpression,
-                           WildcardManager wildcardManager,
-                           ClassVisitor    acceptedClassVisitor)
-    {
-        this(regularExpression,
-             wildcardManager,
-             acceptedClassVisitor,
-             null);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     */
-    public ClassNameFilter(List         regularExpression,
-                           ClassVisitor acceptedClassVisitor)
-    {
-        this(regularExpression,
-             (WildcardManager)null,
-             acceptedClassVisitor);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param wildcardManager      an optional scope for StringMatcher instances
-     *                             that match wildcards.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     */
-    public ClassNameFilter(List            regularExpression,
-                           WildcardManager wildcardManager,
-                           ClassVisitor    acceptedClassVisitor)
-    {
-        this(regularExpression,
-             wildcardManager,
-             acceptedClassVisitor,
-             null);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpressionMatcher the string matcher against which
-     *                                 class names will be matched.
-     * @param acceptedClassVisitor     the <code>ClassVisitor</code> to which
-     *                                 accepted visits will be delegated.
-     */
-    public ClassNameFilter(StringMatcher regularExpressionMatcher,
-                           ClassVisitor  acceptedClassVisitor)
-    {
-        this(regularExpressionMatcher,
-             acceptedClassVisitor,
-             null);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     * @param rejectedClassVisitor the <code>ClassVisitor</code> to which
-     *                             rejected visits will be delegated.
-     */
-    public ClassNameFilter(String       regularExpression,
-                           ClassVisitor acceptedClassVisitor,
-                           ClassVisitor rejectedClassVisitor)
-    {
-        this(regularExpression,
-             null,
-             acceptedClassVisitor,
-             rejectedClassVisitor);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param wildcardManager      an optional scope for StringMatcher instances
-     *                             that match wildcards.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     * @param rejectedClassVisitor the <code>ClassVisitor</code> to which
-     *                             rejected visits will be delegated.
-     */
-    public ClassNameFilter(String          regularExpression,
-                           WildcardManager wildcardManager,
-                           ClassVisitor    acceptedClassVisitor,
-                           ClassVisitor    rejectedClassVisitor)
-    {
-        this(new ListParser(new ClassNameParser(wildcardManager)).parse(regularExpression),
-             acceptedClassVisitor,
-             rejectedClassVisitor);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     * @param rejectedClassVisitor the <code>ClassVisitor</code> to which
-     *                             rejected visits will be delegated.
-     */
-    public ClassNameFilter(List         regularExpression,
-                           ClassVisitor acceptedClassVisitor,
-                           ClassVisitor rejectedClassVisitor)
-    {
-        this(regularExpression,
-             null,
-             acceptedClassVisitor,
-             rejectedClassVisitor);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpression    the regular expression against which class
-     *                             names will be matched.
-     * @param wildcardManager      an optional scope for StringMatcher instances
-     *                             that match wildcards.
-     * @param acceptedClassVisitor the <code>ClassVisitor</code> to which
-     *                             accepted visits will be delegated.
-     * @param rejectedClassVisitor the <code>ClassVisitor</code> to which
-     *                             rejected visits will be delegated.
-     */
-    public ClassNameFilter(List            regularExpression,
-                           WildcardManager wildcardManager,
-                           ClassVisitor    acceptedClassVisitor,
-                           ClassVisitor    rejectedClassVisitor)
-    {
-        this(new ListParser(new ClassNameParser(wildcardManager)).parse(regularExpression),
-             acceptedClassVisitor,
-             rejectedClassVisitor);
-    }
-
-
-    /**
-     * Creates a new ClassNameFilter.
-     * @param regularExpressionMatcher the string matcher against which
-     *                                 class names will be matched.
-     * @param acceptedClassVisitor     the <code>ClassVisitor</code> to which
-     *                                 accepted visits will be delegated.
-     * @param rejectedClassVisitor     the <code>ClassVisitor</code> to which
-     *                                 rejected visits will be delegated.
-     */
-    public ClassNameFilter(StringMatcher regularExpressionMatcher,
-                           ClassVisitor  acceptedClassVisitor,
-                           ClassVisitor  rejectedClassVisitor)
-    {
-        this.regularExpressionMatcher = regularExpressionMatcher;
-        this.acceptedClassVisitor     = acceptedClassVisitor;
-        this.rejectedClassVisitor     = rejectedClassVisitor;
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        ClassVisitor delegate = getDelegateVisitor(clazz);
-        if (delegate != null)
-        {
-            clazz.accept(delegate);
-        }
-    }
-
-
-    // Small utility methods.
-
-    private ClassVisitor getDelegateVisitor(Clazz clazz)
-    {
-        return regularExpressionMatcher.matches(clazz.getName()) ?
-            acceptedClassVisitor :
-            rejectedClassVisitor;
-    }
+  private ClassVisitor getDelegateVisitor(Clazz clazz) {
+    return regularExpressionMatcher.matches(clazz.getName())
+        ? acceptedClassVisitor
+        : rejectedClassVisitor;
+  }
 }

@@ -23,7 +23,6 @@ import proguard.resources.kotlinmodule.*;
 /**
  * @author James Hamilton
  */
-public interface KotlinModulePackageVisitor
-{
-    void visitKotlinModulePackage(KotlinModule kotlinModule, KotlinModulePackage kotlinModulePart);
+public interface KotlinModulePackageVisitor {
+  void visitKotlinModulePackage(KotlinModule kotlinModule, KotlinModulePackage kotlinModulePart);
 }

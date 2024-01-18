@@ -27,27 +27,22 @@ import proguard.classfile.instruction.visitor.InstructionVisitor;
  *
  * @author Johan Leys
  */
-public class InstructionToAttributeVisitor
-implements   InstructionVisitor
-{
-    private final AttributeVisitor attributeVisitor;
+public class InstructionToAttributeVisitor implements InstructionVisitor {
+  private final AttributeVisitor attributeVisitor;
 
+  /** Creates a new InstructionToAttributeVisitor. */
+  public InstructionToAttributeVisitor(AttributeVisitor attributeVisitor) {
+    this.attributeVisitor = attributeVisitor;
+  }
 
-    /**
-     * Creates a new InstructionToAttributeVisitor.
-     */
-    public InstructionToAttributeVisitor(AttributeVisitor attributeVisitor)
-    {
-        this.attributeVisitor = attributeVisitor;
-    }
+  // Implementations for InstructionVisitor.
 
-
-    // Implementations for InstructionVisitor.
-
-
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction)
-    {
-        codeAttribute.accept(clazz, method, attributeVisitor);
-    }
+  public void visitAnyInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      Instruction instruction) {
+    codeAttribute.accept(clazz, method, attributeVisitor);
+  }
 }
-

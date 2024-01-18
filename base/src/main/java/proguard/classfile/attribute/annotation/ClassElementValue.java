@@ -26,76 +26,51 @@ import proguard.classfile.visitor.ClassVisitor;
  *
  * @author Eric Lafortune
  */
-public class ClassElementValue extends ElementValue
-{
-    public int u2classInfoIndex;
+public class ClassElementValue extends ElementValue {
+  public int u2classInfoIndex;
 
-    /**
-     * An extra field pointing to the Clazz objects referenced in the
-     * type name string. This field is filled out by the <code>{@link
-     * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}</code>.
-     * References to primitive types are ignored.
-     */
-    public Clazz[] referencedClasses;
+  /**
+   * An extra field pointing to the Clazz objects referenced in the type name string. This field is
+   * filled out by the <code>{@link
+   * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}</code>. References
+   * to primitive types are ignored.
+   */
+  public Clazz[] referencedClasses;
 
+  /** Creates an uninitialized ClassElementValue. */
+  public ClassElementValue() {}
 
-    /**
-     * Creates an uninitialized ClassElementValue.
-     */
-    public ClassElementValue()
-    {
-    }
+  /** Creates an initialized ClassElementValue. */
+  public ClassElementValue(int u2elementNameIndex, int u2classInfoIndex) {
+    super(u2elementNameIndex);
 
+    this.u2classInfoIndex = u2classInfoIndex;
+  }
 
-    /**
-     * Creates an initialized ClassElementValue.
-     */
-    public ClassElementValue(int u2elementNameIndex,
-                             int u2classInfoIndex)
-    {
-        super(u2elementNameIndex);
+  /** Returns the class info name. */
+  public String getClassName(Clazz clazz) {
+    return clazz.getString(u2classInfoIndex);
+  }
 
-        this.u2classInfoIndex = u2classInfoIndex;
-    }
-
-
-    /**
-     * Returns the class info name.
-     */
-    public String getClassName(Clazz clazz)
-    {
-        return clazz.getString(u2classInfoIndex);
-    }
-
-
-    /**
-     * Applies the given visitor to all referenced classes.
-     */
-    public void referencedClassesAccept(ClassVisitor classVisitor)
-    {
-        if (referencedClasses != null)
-        {
-            for (int index = 0; index < referencedClasses.length; index++)
-            {
-                Clazz referencedClass = referencedClasses[index];
-                if (referencedClass != null)
-                {
-                    referencedClass.accept(classVisitor);
-                }
-            }
+  /** Applies the given visitor to all referenced classes. */
+  public void referencedClassesAccept(ClassVisitor classVisitor) {
+    if (referencedClasses != null) {
+      for (int index = 0; index < referencedClasses.length; index++) {
+        Clazz referencedClass = referencedClasses[index];
+        if (referencedClass != null) {
+          referencedClass.accept(classVisitor);
         }
+      }
     }
+  }
 
+  // Implementations for ElementValue.
 
-    // Implementations for ElementValue.
+  public char getTag() {
+    return ElementValue.TAG_CLASS;
+  }
 
-    public char getTag()
-    {
-        return ElementValue.TAG_CLASS;
-    }
-
-    public void accept(Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor)
-    {
-        elementValueVisitor.visitClassElementValue(clazz, annotation, this);
-    }
+  public void accept(Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor) {
+    elementValueVisitor.visitClassElementValue(clazz, annotation, this);
+  }
 }

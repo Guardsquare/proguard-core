@@ -27,28 +27,26 @@ import proguard.exception.ProguardCoreException;
  *
  * @see PartialEvaluator
  */
-public class ArrayIndexOutOfBounds extends ProguardCoreException
-{
-    private final int index;
+public class ArrayIndexOutOfBounds extends ProguardCoreException {
+  private final int index;
 
-    private final int bound;
+  private final int bound;
 
-    public ArrayIndexOutOfBounds(int index, int bound)
-    {
-        super(ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
-                  "Index [%s] out of bounds for array of length %s",
-                  Integer.toString(index), Integer.toString(bound));
-        this.index = index;
-        this.bound = bound;
-    }
+  public ArrayIndexOutOfBounds(int index, int bound) {
+    super(
+        ErrorId.ARRAY_INDEX_OUT_OF_BOUND,
+        "Index [%s] out of bounds for array of length %s",
+        Integer.toString(index),
+        Integer.toString(bound));
+    this.index = index;
+    this.bound = bound;
+  }
 
-    public int getIndex()
-    {
-        return index;
-    }
+  public int getIndex() {
+    return index;
+  }
 
-    public int getBound()
-    {
-        return bound;
-    }
+  public int getBound() {
+    return bound;
+  }
 }

@@ -18,35 +18,40 @@
 
 package proguard.analysis.cpa.defaults;
 
-import proguard.classfile.Signature;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
+import proguard.classfile.Signature;
 
 /**
- * A {@link MemoryLocation} points at a specific {@link AbstractState} in a compound {@link AbstractState}s for some {@link CfaNode}.
+ * A {@link MemoryLocation} points at a specific {@link AbstractState} in a compound {@link
+ * AbstractState}s for some {@link CfaNode}.
  *
  * @author Dmitry Ivanov
  */
-public abstract class MemoryLocation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-                                     CfaEdgeT extends CfaEdge<CfaNodeT>, SignatureT extends Signature,
-                                     ValueT extends AbstractState, AbstractStateT extends AbstractState>
-{
+public abstract class MemoryLocation<
+    CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
+    CfaEdgeT extends CfaEdge<CfaNodeT>,
+    SignatureT extends Signature,
+    ValueT extends AbstractState,
+    AbstractStateT extends AbstractState> {
 
-    /**
-     * Returns an {@link AbstractState} representing value stored at the {@link MemoryLocation} in the input {@link AbstractState}.
-     * If the {@link AbstractState} does not specify a {@link ValueT} at the {@link MemoryLocation}, the default value is returned.
-     */
-    public abstract <T extends ValueT> T extractValueOrDefault(AbstractStateT abstractState, T defaultValue);
+  /**
+   * Returns an {@link AbstractState} representing value stored at the {@link MemoryLocation} in the
+   * input {@link AbstractState}. If the {@link AbstractState} does not specify a {@link ValueT} at
+   * the {@link MemoryLocation}, the default value is returned.
+   */
+  public abstract <T extends ValueT> T extractValueOrDefault(
+      AbstractStateT abstractState, T defaultValue);
 
-    // implementations for Object
+  // implementations for Object
 
-    @Override
-    public abstract boolean equals(Object obj);
+  @Override
+  public abstract boolean equals(Object obj);
 
-    @Override
-    public abstract int hashCode();
+  @Override
+  public abstract int hashCode();
 
-    @Override
-    public abstract String toString();
+  @Override
+  public abstract String toString();
 }

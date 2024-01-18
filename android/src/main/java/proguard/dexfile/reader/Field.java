@@ -22,53 +22,47 @@ package proguard.dexfile.reader;
  * @version $Rev$
  */
 public class Field {
-    /**
-     * name of the field.
-     */
-    private String name;
-    /**
-     * owner class of the field, in TypeDescriptor format.
-     */
-    private String owner;
-    /**
-     * type of the field, in TypeDescriptor format.
-     */
-    private String type;
+  /** name of the field. */
+  private String name;
+  /** owner class of the field, in TypeDescriptor format. */
+  private String owner;
+  /** type of the field, in TypeDescriptor format. */
+  private String type;
 
-    public Field(String owner, String name, String type) {
-        this.owner = owner;
-        this.type = type;
-        this.name = name;
-    }
+  public Field(String owner, String name, String type) {
+    this.owner = owner;
+    this.type = type;
+    this.name = name;
+  }
 
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
+  /**
+   * @return the name
+   */
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * @return the owner
-     */
-    public String getOwner() {
-        return owner;
-    }
+  /**
+   * @return the owner
+   */
+  public String getOwner() {
+    return owner;
+  }
 
-    /**
-     * @return the type
-     */
-    public String getType() {
-        return type;
-    }
+  /**
+   * @return the type
+   */
+  public String getType() {
+    return type;
+  }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return this.getOwner() + "->" + this.getName() + ":" + this.getType();
-    }
+  /*
+   * (non-Javadoc)
+   *
+   * @see java.lang.Object#toString()
+   */
+  @Override
+  public String toString() {
+    return this.getOwner() + "->" + this.getName() + ":" + this.getType();
+  }
 }

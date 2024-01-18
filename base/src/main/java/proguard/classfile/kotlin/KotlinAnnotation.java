@@ -17,107 +17,90 @@
  */
 package proguard.classfile.kotlin;
 
+import static proguard.classfile.util.ClassUtil.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+public class KotlinAnnotation extends SimpleProcessable implements Processable {
+  public String className;
+  public Clazz referencedAnnotationClass;
 
-import static proguard.classfile.util.ClassUtil.*;
+  public List<KotlinAnnotationArgument> arguments;
 
-public class KotlinAnnotation
-extends      SimpleProcessable
-implements   Processable
-{
-    public String className;
-    public Clazz  referencedAnnotationClass;
+  public KotlinAnnotation(String className, List<KotlinAnnotationArgument> arguments) {
+    this.className = className;
+    this.arguments = arguments;
+  }
 
-    public List<KotlinAnnotationArgument> arguments;
+  public KotlinAnnotation(String className) {
+    this(className, new ArrayList<>());
+  }
 
+  public void accept(
+      Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    kotlinAnnotationVisitor.visitAnyAnnotation(clazz, annotatable, this);
+  }
 
-    public KotlinAnnotation(String className, List<KotlinAnnotationArgument> arguments)
-    {
-        this.className = className;
-        this.arguments = arguments;
+  public void accept(
+      Clazz clazz,
+      KotlinTypeMetadata kotlinTypeMetadata,
+      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    kotlinAnnotationVisitor.visitTypeAnnotation(clazz, kotlinTypeMetadata, this);
+  }
+
+  public void accept(
+      Clazz clazz,
+      KotlinTypeAliasMetadata kotlinTypeAliasMetadata,
+      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    kotlinAnnotationVisitor.visitTypeAliasAnnotation(clazz, kotlinTypeAliasMetadata, this);
+  }
+
+  public void accept(
+      Clazz clazz,
+      KotlinTypeParameterMetadata kotlinTypeParameterMetadata,
+      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, kotlinTypeParameterMetadata, this);
+  }
+
+  public void referencedClassAccept(ClassVisitor classVisitor) {
+    if (this.referencedAnnotationClass != null) {
+      this.referencedAnnotationClass.accept(classVisitor);
     }
+  }
 
+  public void argumentsAccept(
+      Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotationArgumentVisitor visitor) {
+    this.arguments.forEach(argument -> argument.accept(clazz, annotatable, this, visitor));
+  }
 
-    public KotlinAnnotation(String className)
-    {
-        this(className, new ArrayList<>());
-    }
+  // Implementations for Object.
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    KotlinAnnotation that = (KotlinAnnotation) o;
+    return className.equals(that.className) && arguments.equals(that.arguments);
+  }
 
-    public void accept(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotationVisitor kotlinAnnotationVisitor)
-    {
-        kotlinAnnotationVisitor.visitAnyAnnotation(clazz, annotatable, this);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(className, arguments);
+  }
 
-
-    public void accept(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata, KotlinAnnotationVisitor kotlinAnnotationVisitor)
-    {
-        kotlinAnnotationVisitor.visitTypeAnnotation(clazz, kotlinTypeMetadata, this);
-    }
-
-
-    public void accept(Clazz clazz, KotlinTypeAliasMetadata kotlinTypeAliasMetadata, KotlinAnnotationVisitor kotlinAnnotationVisitor)
-    {
-        kotlinAnnotationVisitor.visitTypeAliasAnnotation(clazz, kotlinTypeAliasMetadata, this);
-    }
-
-
-    public void accept(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata, KotlinAnnotationVisitor kotlinAnnotationVisitor)
-    {
-        kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, kotlinTypeParameterMetadata, this);
-    }
-
-
-    public void referencedClassAccept(ClassVisitor classVisitor)
-    {
-        if (this.referencedAnnotationClass != null)
-        {
-            this.referencedAnnotationClass.accept(classVisitor);
-        }
-    }
-
-
-    public void argumentsAccept(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotationArgumentVisitor visitor)
-    {
-        this.arguments.forEach(argument -> argument.accept(clazz, annotatable, this, visitor));
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        KotlinAnnotation that = (KotlinAnnotation) o;
-        return className.equals(that.className) && arguments.equals(that.arguments);
-    }
-
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(className, arguments);
-    }
-
-
-    @Override
-    public String toString()
-    {
-        return externalClassName(this.className) + "(" +
-               this.arguments.stream()
-                        .map(Objects::toString)
-                        .collect(Collectors.joining(", ")) +
-                ")";
-    }
+  @Override
+  public String toString() {
+    return externalClassName(this.className)
+        + "("
+        + this.arguments.stream().map(Objects::toString).collect(Collectors.joining(", "))
+        + ")";
+  }
 }

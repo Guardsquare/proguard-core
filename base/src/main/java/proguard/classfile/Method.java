@@ -17,13 +17,9 @@
  */
 package proguard.classfile;
 
-
-
 /**
  * Representation of a method in a class.
  *
  * @author Eric Lafortune
  */
-public interface Method extends Member
-{
-}
+public interface Method extends Member {}

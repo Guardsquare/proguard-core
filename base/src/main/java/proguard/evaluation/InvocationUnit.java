@@ -23,49 +23,37 @@ import proguard.classfile.instruction.ConstantInstruction;
 import proguard.evaluation.value.Value;
 
 /**
- * This interface sets up the variables for entering a method,
- * and it updates the stack for the invocation of a class member.
+ * This interface sets up the variables for entering a method, and it updates the stack for the
+ * invocation of a class member.
  *
  * @author Eric Lafortune
  */
-public interface InvocationUnit
-{
-    /**
-     * Sets up the given variables for entering the given method.
-     */
-    public void enterMethod(Clazz     clazz,
-                            Method    method,
-                            Variables variables);
+public interface InvocationUnit {
+  /** Sets up the given variables for entering the given method. */
+  public void enterMethod(Clazz clazz, Method method, Variables variables);
 
+  /** Exits the given method with the given return value. */
+  public void exitMethod(Clazz clazz, Method method, Value returnValue);
 
-    /**
-     * Exits the given method with the given return value.
-     */
-    public void exitMethod(Clazz  clazz,
-                           Method method,
-                           Value  returnValue);
+  /** Sets up the given stack for entering the given exception handler. */
+  public void enterExceptionHandler(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      int catchType,
+      Stack stack);
 
-
-    /**
-     * Sets up the given stack for entering the given exception handler.
-     */
-    public void enterExceptionHandler(Clazz         clazz,
-                                      Method        method,
-                                      CodeAttribute codeAttribute,
-                                      int           offset,
-                                      int           catchType,
-                                      Stack         stack);
-
-
-    /**
-     * Updates the given stack corresponding to the execution of the given
-     * field or method reference instruction.
-     */
-    public void invokeMember(Clazz               clazz,
-                             Method              method,
-                             CodeAttribute       codeAttribute,
-                             int                 offset,
-                             ConstantInstruction constantInstruction,
-                             Stack               stack,
-                             Variables           variables);
+  /**
+   * Updates the given stack corresponding to the execution of the given field or method reference
+   * instruction.
+   */
+  public void invokeMember(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      ConstantInstruction constantInstruction,
+      Stack stack,
+      Variables variables);
 }

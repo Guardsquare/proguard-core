@@ -27,15 +27,13 @@ import proguard.analysis.cpa.interfaces.Precision;
  *
  * @author Dmitry Ivanov
  */
-public final class MergeSepOperator
-    implements MergeOperator
-{
+public final class MergeSepOperator implements MergeOperator {
 
-    // implementations for MergeOperator
+  // implementations for MergeOperator
 
-    @Override
-    public AbstractState merge(AbstractState abstractState1, AbstractState abstractState2, Precision precision)
-    {
-        return abstractState2;
-    }
+  @Override
+  public AbstractState merge(
+      AbstractState abstractState1, AbstractState abstractState2, Precision precision) {
+    return abstractState2;
+  }
 }

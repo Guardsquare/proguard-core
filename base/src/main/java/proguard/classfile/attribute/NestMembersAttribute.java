@@ -26,50 +26,31 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Eric Lafortune
  */
-public class NestMembersAttribute extends Attribute
-{
-    public int   u2classesCount;
-    public int[] u2classes;
+public class NestMembersAttribute extends Attribute {
+  public int u2classesCount;
+  public int[] u2classes;
 
+  /** Creates an uninitialized NestMembersAttribute. */
+  public NestMembersAttribute() {}
 
-    /**
-     * Creates an uninitialized NestMembersAttribute.
-     */
-    public NestMembersAttribute()
-    {
+  /** Creates an initialized NestMembersAttribute. */
+  public NestMembersAttribute(int u2attributeNameIndex, int u2classesCount, int[] u2classes) {
+    super(u2attributeNameIndex);
+
+    this.u2classesCount = u2classesCount;
+    this.u2classes = u2classes;
+  }
+
+  // Implementations for Attribute.
+
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitNestMembersAttribute(clazz, this);
+  }
+
+  /** Applies the given visitor to all member class constants. */
+  public void memberClassConstantsAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    for (int index = 0; index < u2classesCount; index++) {
+      clazz.constantPoolEntryAccept(u2classes[index], constantVisitor);
     }
-
-
-    /**
-     * Creates an initialized NestMembersAttribute.
-     */
-    public NestMembersAttribute(int   u2attributeNameIndex,
-                                int   u2classesCount,
-                                int[] u2classes)
-    {
-        super(u2attributeNameIndex);
-
-        this.u2classesCount = u2classesCount;
-        this.u2classes      = u2classes;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitNestMembersAttribute(clazz, this);
-    }
-
-
-    /**
-     * Applies the given visitor to all member class constants.
-     */
-    public void memberClassConstantsAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        for (int index = 0; index < u2classesCount; index++)
-        {
-            clazz.constantPoolEntryAccept(u2classes[index], constantVisitor);
-        }
-    }
+  }
 }

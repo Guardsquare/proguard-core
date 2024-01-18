@@ -22,67 +22,59 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 /**
- * This interface provides methods for writing data entries, such as ZIP entries
- * or files. The implementation determines to which type of data entry the
- * data will be written.
+ * This interface provides methods for writing data entries, such as ZIP entries or files. The
+ * implementation determines to which type of data entry the data will be written.
  *
  * @author Eric Lafortune
  */
-public interface DataEntryWriter extends AutoCloseable
-{
-    /**
-     * Creates a directory.
-     * @param dataEntry the data entry for which the directory is to be created.
-     * @return whether the directory has been created.
-     */
-    boolean createDirectory(DataEntry dataEntry) throws IOException;
+public interface DataEntryWriter extends AutoCloseable {
+  /**
+   * Creates a directory.
+   *
+   * @param dataEntry the data entry for which the directory is to be created.
+   * @return whether the directory has been created.
+   */
+  boolean createDirectory(DataEntry dataEntry) throws IOException;
 
+  /**
+   * Returns whether the two given data entries would result in the same output stream.
+   *
+   * @param dataEntry1 the first data entry.
+   * @param dataEntry2 the second data entry.
+   */
+  boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2) throws IOException;
 
-    /**
-     * Returns whether the two given data entries would result in the same
-     * output stream.
-     * @param dataEntry1 the first data entry.
-     * @param dataEntry2 the second data entry.
-     */
-    boolean sameOutputStream(DataEntry dataEntry1,
-                             DataEntry dataEntry2) throws IOException;
+  /**
+   * Creates a new output stream for writing data. The caller is responsible for closing the stream.
+   *
+   * @param dataEntry the data entry for which the output stream is to be created.
+   * @return the output stream. The stream may be <code>null</code> to indicate that the data entry
+   *     should not be written.
+   */
+  OutputStream createOutputStream(DataEntry dataEntry) throws IOException;
 
+  /**
+   * Finishes writing all data entries.
+   *
+   * <p>Implementations typically create graphs of writers that can split and merge again, possibly
+   * even with cycles.
+   *
+   * <p>For splits and merges, implementations need to be idempotent; once closed, subsequent
+   * attempts to close a writer have no effect. If needed, the wrapper {@link
+   * NonClosingDataEntryWriter} can avoid closing a branch prematurely.
+   *
+   * <p>For cycles, implementations must perform any custom behavior, then delegate {@link #close()}
+   * invocations, and only finally clean up. It is possible that delegates call {@link
+   * #createOutputStream(DataEntry)} while {@link #close()} is in progress.
+   */
+  @Override
+  void close() throws IOException;
 
-    /**
-     * Creates a new output stream for writing data. The caller is responsible
-     * for closing the stream.
-     * @param dataEntry the data entry for which the output stream is to be
-     *                  created.
-     * @return the output stream. The stream may be <code>null</code> to
-     *         indicate that the data entry should not be written.
-     */
-    OutputStream createOutputStream(DataEntry dataEntry) throws IOException;
-
-
-    /**
-     * Finishes writing all data entries.
-     * <p/>
-     * Implementations typically create graphs of writers that can split and
-     * merge again, possibly even with cycles.
-     * <p/>
-     * For splits and merges, implementations need to be idempotent; once
-     * closed, subsequent attempts to close a writer have no effect. If
-     * needed, the wrapper {@link NonClosingDataEntryWriter} can avoid closing
-     * a branch prematurely.
-     * <p/>
-     * For cycles, implementations must perform any custom behavior, then
-     * delegate {@link #close()} invocations, and only finally clean up. It is
-     * possible that delegates call {@link #createOutputStream(DataEntry)}
-     * while {@link #close()} is in progress.
-     */
-    @Override
-    void close() throws IOException;
-
-
-    /**
-     * Prints out the structure of the data entry writer.
-     * @param pw     the print stream to which the structure should be printed.
-     * @param prefix a prefix for every printed line.
-     */
-    void println(PrintWriter pw, String prefix);
+  /**
+   * Prints out the structure of the data entry writer.
+   *
+   * @param pw the print stream to which the structure should be printed.
+   * @param prefix a prefix for every printed line.
+   */
+  void println(PrintWriter pw, String prefix);
 }

@@ -26,43 +26,40 @@ import proguard.classfile.util.ClassUtil;
 
 /**
  * This {@link ConstantVisitor} is used for field operations and the {@code instanceOf} predicate.
- * The {@link  #result} stores the fully qualified name for either a class or a field.
- * The {@link  #resultSize} is the size of the referenced type in bytes.
+ * The {@link #result} stores the fully qualified name for either a class or a field. The {@link
+ * #resultSize} is the size of the referenced type in bytes.
  *
  * @author Dmitry Ivanov
  */
-public class ConstantLookupVisitor implements ConstantVisitor
-{
-    public String  result      = null;
-    public Clazz   resultClazz = null;
-    public int     resultSize  = -1;
-    public boolean isStatic    = false;
+public class ConstantLookupVisitor implements ConstantVisitor {
+  public String result = null;
+  public Clazz resultClazz = null;
+  public int resultSize = -1;
+  public boolean isStatic = false;
 
-    public void resetResult()
-    {
-        result      = null;
-        resultClazz = null;
-        resultSize  = -1;
-    }
+  public void resetResult() {
+    result = null;
+    resultClazz = null;
+    resultSize = -1;
+  }
 
-    // implementations for ConstantVisitor
+  // implementations for ConstantVisitor
 
-    @Override
-    public void visitFieldrefConstant(Clazz clazz, FieldrefConstant fieldrefConstant)
-    {
-        resultSize = ClassUtil.internalTypeSize(fieldrefConstant.getType(clazz));
-        result = fieldrefConstant.getClassName(clazz)
-                 + (isStatic ? "." : "#")
-                 + fieldrefConstant.getName(clazz)
-                 + ":"
-                 + fieldrefConstant.getType(clazz);
-    }
+  @Override
+  public void visitFieldrefConstant(Clazz clazz, FieldrefConstant fieldrefConstant) {
+    resultSize = ClassUtil.internalTypeSize(fieldrefConstant.getType(clazz));
+    result =
+        fieldrefConstant.getClassName(clazz)
+            + (isStatic ? "." : "#")
+            + fieldrefConstant.getName(clazz)
+            + ":"
+            + fieldrefConstant.getType(clazz);
+  }
 
-    @Override
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        resultSize  = 1;
-        result      = classConstant.getName(clazz);
-        resultClazz = classConstant.referencedClass;
-    }
+  @Override
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    resultSize = 1;
+    result = classConstant.getName(clazz);
+    resultClazz = classConstant.referencedClass;
+  }
 }

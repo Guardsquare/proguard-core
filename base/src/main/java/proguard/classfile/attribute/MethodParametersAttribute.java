@@ -25,53 +25,36 @@ import proguard.classfile.attribute.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class MethodParametersAttribute extends Attribute
-{
-    public int             u1parametersCount;
-    public ParameterInfo[] parameters;
+public class MethodParametersAttribute extends Attribute {
+  public int u1parametersCount;
+  public ParameterInfo[] parameters;
 
+  /** Creates an uninitialized MethodParametersAttribute. */
+  public MethodParametersAttribute() {}
 
-    /**
-     * Creates an uninitialized MethodParametersAttribute.
-     */
-    public MethodParametersAttribute()
-    {
+  /** Creates an initialized MethodParametersAttribute. */
+  public MethodParametersAttribute(
+      int u2attributeNameIndex, int u1parametersCount, ParameterInfo[] parameters) {
+    super(u2attributeNameIndex);
+
+    this.u1parametersCount = u1parametersCount;
+    this.parameters = parameters;
+  }
+
+  // Implementations for Attribute.
+
+  public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitMethodParametersAttribute(clazz, method, this);
+  }
+
+  /** Applies the given visitor to all parameters. */
+  public void parametersAccept(
+      Clazz clazz, Method method, ParameterInfoVisitor parameterInfoVisitor) {
+    // Loop over all parameters.
+    for (int index = 0; index < u1parametersCount; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of ParameterInfo.
+      parameterInfoVisitor.visitParameterInfo(clazz, method, index, parameters[index]);
     }
-
-
-    /**
-     * Creates an initialized MethodParametersAttribute.
-     */
-    public MethodParametersAttribute(int             u2attributeNameIndex,
-                                     int             u1parametersCount,
-                                     ParameterInfo[] parameters)
-    {
-        super(u2attributeNameIndex);
-
-        this.u1parametersCount = u1parametersCount;
-        this.parameters        = parameters;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitMethodParametersAttribute(clazz, method, this);
-    }
-
-
-    /**
-     * Applies the given visitor to all parameters.
-     */
-    public void parametersAccept(Clazz clazz, Method method, ParameterInfoVisitor parameterInfoVisitor)
-    {
-        // Loop over all parameters.
-        for (int index = 0; index < u1parametersCount; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of ParameterInfo.
-            parameterInfoVisitor.visitParameterInfo(clazz, method, index, parameters[index]);
-        }
-    }
+  }
 }

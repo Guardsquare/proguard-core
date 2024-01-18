@@ -18,33 +18,27 @@
 package proguard.util;
 
 /**
- * This {@link StringMatcher} delegates to a another {@link StringMatcher} that can be set
- * after this {@link StringMatcher} has been constructed.
+ * This {@link StringMatcher} delegates to a another {@link StringMatcher} that can be set after
+ * this {@link StringMatcher} has been constructed.
  *
  * @author Eric Lafortune
  */
-public class SettableMatcher extends StringMatcher
-{
-    private StringMatcher matcher;
+public class SettableMatcher extends StringMatcher {
+  private StringMatcher matcher;
 
+  public void setMatcher(StringMatcher matcher) {
+    this.matcher = matcher;
+  }
 
-    public void setMatcher(StringMatcher matcher)
-    {
-        this.matcher = matcher;
-    }
+  // Implementations for StringMatcher.
 
+  @Override
+  public String prefix() {
+    return matcher.prefix();
+  }
 
-    // Implementations for StringMatcher.
-
-    @Override
-    public String prefix()
-    {
-        return matcher.prefix();
-    }
-
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        return matcher.matches(string, beginOffset, endOffset);
-    }
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    return matcher.matches(string, beginOffset, endOffset);
+  }
 }

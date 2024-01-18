@@ -24,45 +24,37 @@ import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
- * Apply the given function visitor to a referenced method's corresponding
- * {@link KotlinFunctionMetadata}.
+ * Apply the given function visitor to a referenced method's corresponding {@link
+ * KotlinFunctionMetadata}.
  *
  * @author James Hamilton
  */
-public class MethodToKotlinFunctionVisitor
-implements   MemberVisitor
-{
-    private final KotlinFunctionVisitor kotlinFunctionVisitor;
+public class MethodToKotlinFunctionVisitor implements MemberVisitor {
+  private final KotlinFunctionVisitor kotlinFunctionVisitor;
 
+  public MethodToKotlinFunctionVisitor(KotlinFunctionVisitor kotlinFunctionVisitor) {
+    this.kotlinFunctionVisitor = kotlinFunctionVisitor;
+  }
 
-    public MethodToKotlinFunctionVisitor(KotlinFunctionVisitor kotlinFunctionVisitor)
-    {
-        this.kotlinFunctionVisitor = kotlinFunctionVisitor;
-    }
-
-    @Override
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        programClass.kotlinMetadataAccept(
-            new AllFunctionVisitor(
+  @Override
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    programClass.kotlinMetadataAccept(
+        new AllFunctionVisitor(
             new KotlinFunctionFilter(
-                func -> programMethod.equals(func.referencedMethod),
-                kotlinFunctionVisitor)));
-    }
+                func -> programMethod.equals(func.referencedMethod), kotlinFunctionVisitor)));
+  }
 
-    @Override
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        libraryClass.kotlinMetadataAccept(
-            new AllFunctionVisitor(
+  @Override
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    libraryClass.kotlinMetadataAccept(
+        new AllFunctionVisitor(
             new KotlinFunctionFilter(
-                func -> libraryMethod.equals(func.referencedMethod),
-                kotlinFunctionVisitor)));
-    }
+                func -> libraryMethod.equals(func.referencedMethod), kotlinFunctionVisitor)));
+  }
 
-    @Override
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
+  @Override
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
 
-    @Override
-    public void visitProgramField(ProgramClass programClass, ProgramField programField) {}
+  @Override
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {}
 }

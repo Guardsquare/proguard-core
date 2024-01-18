@@ -24,50 +24,42 @@ import java.io.*;
  *
  * @author Eric Lafortune
  */
-public class FileSource implements DataEntrySource
-{
-    private final FileDataEntry fileDataEntry;
+public class FileSource implements DataEntrySource {
+  private final FileDataEntry fileDataEntry;
 
+  /**
+   * Creates a new FileSource.
+   *
+   * @param file the the absolute or relative location of the file.
+   */
+  public FileSource(File file) {
+    this(null, file);
+  }
 
-    /**
-     * Creates a new FileSource.
-     * @param file the the absolute or relative location of the file.
-     */
-    public FileSource(File file)
-    {
-        this(null, file);
-    }
+  /**
+   * Creates a new FileSource.
+   *
+   * @param directory the base directory for the file.
+   * @param file the the absolute or relative location of the file.
+   */
+  public FileSource(File directory, File file) {
+    this(new FileDataEntry(directory, file));
+  }
 
+  /**
+   * Creates a new FileSource.
+   *
+   * @param fileDataEntry the file data entry.
+   */
+  public FileSource(FileDataEntry fileDataEntry) {
+    this.fileDataEntry = fileDataEntry;
+  }
 
-    /**
-     * Creates a new FileSource.
-     * @param directory the base directory for the file.
-     * @param file      the the absolute or relative location of the file.
-     */
-    public FileSource(File directory,
-                      File file)
-    {
-        this(new FileDataEntry(directory, file));
-    }
+  // Implementations for DataEntrySource.
 
-
-    /**
-     * Creates a new FileSource.
-     * @param fileDataEntry the file data entry.
-     */
-    public FileSource(FileDataEntry fileDataEntry)
-    {
-        this.fileDataEntry = fileDataEntry;
-    }
-
-
-    // Implementations for DataEntrySource.
-
-    @Override
-    public void pumpDataEntries(DataEntryReader dataEntryReader)
-    throws IOException
-    {
-        // Pass the file data entry to the reader.
-        dataEntryReader.read(fileDataEntry);
-    }
+  @Override
+  public void pumpDataEntries(DataEntryReader dataEntryReader) throws IOException {
+    // Pass the file data entry to the reader.
+    dataEntryReader.read(fileDataEntry);
+  }
 }

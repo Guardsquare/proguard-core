@@ -26,141 +26,101 @@ import proguard.classfile.visitor.ClassVisitor;
  *
  * @author Eric Lafortune
  */
-public class MethodTypeConstant extends Constant
-{
-    public int u2descriptorIndex;
+public class MethodTypeConstant extends Constant {
+  public int u2descriptorIndex;
 
+  /**
+   * An extra field pointing to the java.lang.invoke.MethodType Clazz object. This field is
+   * typically filled out by the <code>{@link
+   * proguard.classfile.util.ClassReferenceInitializer
+   * ClassReferenceInitializer}</code>..
+   */
+  public Clazz javaLangInvokeMethodTypeClass;
 
-    /**
-     * An extra field pointing to the java.lang.invoke.MethodType Clazz object.
-     * This field is typically filled out by the <code>{@link
-     * proguard.classfile.util.ClassReferenceInitializer
-     * ClassReferenceInitializer}</code>..
-     */
-    public Clazz javaLangInvokeMethodTypeClass;
+  /**
+   * An extra field pointing to the Clazz objects referenced in the descriptor string. This field is
+   * filled out by the <code>{@link
+   * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}</code>. References
+   * to primitive types are ignored.
+   */
+  public Clazz[] referencedClasses;
 
+  /** Creates an uninitialized MethodTypeConstant. */
+  public MethodTypeConstant() {}
 
-    /**
-     * An extra field pointing to the Clazz objects referenced in the
-     * descriptor string. This field is filled out by the <code>{@link
-     * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}</code>.
-     * References to primitive types are ignored.
-     */
-    public Clazz[] referencedClasses;
+  /**
+   * Creates a new MethodTypeConstant with the given descriptor index.
+   *
+   * @param u2descriptorIndex the index of the descriptor in the constant pool.
+   * @param referencedClasses the classes referenced by the descriptor.
+   */
+  public MethodTypeConstant(int u2descriptorIndex, Clazz[] referencedClasses) {
+    this.u2descriptorIndex = u2descriptorIndex;
+    this.referencedClasses = referencedClasses;
+  }
 
+  /** Returns the descriptor index. */
+  public int getDescriptorIndex() {
+    return u2descriptorIndex;
+  }
 
-    /**
-     * Creates an uninitialized MethodTypeConstant.
-     */
-    public MethodTypeConstant()
-    {
-    }
+  /** Returns the type. */
+  public String getType(Clazz clazz) {
+    return clazz.getString(u2descriptorIndex);
+  }
 
-
-    /**
-     * Creates a new MethodTypeConstant with the given descriptor index.
-     * @param u2descriptorIndex the index of the descriptor in the constant
-     *                          pool.
-     * @param referencedClasses the classes referenced by the descriptor.
-     */
-    public MethodTypeConstant(int     u2descriptorIndex,
-                              Clazz[] referencedClasses)
-    {
-        this.u2descriptorIndex = u2descriptorIndex;
-        this.referencedClasses = referencedClasses;
-    }
-
-
-    /**
-     * Returns the descriptor index.
-     */
-    public int getDescriptorIndex()
-    {
-        return u2descriptorIndex;
-    }
-
-
-    /**
-     * Returns the type.
-     */
-    public String getType(Clazz clazz)
-    {
-        return clazz.getString(u2descriptorIndex);
-    }
-
-
-    /**
-     * Lets the Clazz objects referenced in the descriptor string
-     * accept the given visitor.
-     */
-    public void referencedClassesAccept(ClassVisitor classVisitor)
-    {
-        if (referencedClasses != null)
-        {
-            for (int index = 0; index < referencedClasses.length; index++)
-            {
-                if (referencedClasses[index] != null)
-                {
-                    referencedClasses[index].accept(classVisitor);
-                }
-            }
+  /** Lets the Clazz objects referenced in the descriptor string accept the given visitor. */
+  public void referencedClassesAccept(ClassVisitor classVisitor) {
+    if (referencedClasses != null) {
+      for (int index = 0; index < referencedClasses.length; index++) {
+        if (referencedClasses[index] != null) {
+          referencedClasses[index].accept(classVisitor);
         }
+      }
+    }
+  }
+
+  // Implementations for Constant.
+
+  @Override
+  public int getTag() {
+    return Constant.METHOD_TYPE;
+  }
+
+  @Override
+  public boolean isCategory2() {
+    return false;
+  }
+
+  @Override
+  public void accept(Clazz clazz, ConstantVisitor constantVisitor) {
+    constantVisitor.visitMethodTypeConstant(clazz, this);
+  }
+
+  // Implementations for Object.
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || !this.getClass().equals(object.getClass())) {
+      return false;
     }
 
-
-    // Implementations for Constant.
-
-    @Override
-    public int getTag()
-    {
-        return Constant.METHOD_TYPE;
+    if (this == object) {
+      return true;
     }
 
-    @Override
-    public boolean isCategory2()
-    {
-        return false;
-    }
+    MethodTypeConstant other = (MethodTypeConstant) object;
 
-    @Override
-    public void accept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        constantVisitor.visitMethodTypeConstant(clazz, this);
-    }
+    return this.u2descriptorIndex == other.u2descriptorIndex;
+  }
 
+  @Override
+  public int hashCode() {
+    return Constant.METHOD_TYPE ^ (u2descriptorIndex << 5);
+  }
 
-    // Implementations for Object.
-
-    @Override
-    public boolean equals(Object object)
-    {
-        if (object == null || !this.getClass().equals(object.getClass()))
-        {
-            return false;
-        }
-
-        if (this == object)
-        {
-            return true;
-        }
-
-        MethodTypeConstant other = (MethodTypeConstant)object;
-
-        return
-            this.u2descriptorIndex == other.u2descriptorIndex;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return
-            Constant.METHOD_TYPE ^
-            (u2descriptorIndex << 5);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "MethodType(" + u2descriptorIndex + ")";
-    }
+  @Override
+  public String toString() {
+    return "MethodType(" + u2descriptorIndex + ")";
+  }
 }

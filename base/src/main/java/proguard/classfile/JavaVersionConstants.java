@@ -21,36 +21,34 @@ package proguard.classfile;
  * Known external version numbers of class files.
  *
  * @see VersionConstants
- *
  * @author Eric Lafortune
  */
-public class JavaVersionConstants
-{
-    public static final String CLASS_VERSION_1_0       = "1.0";
-    public static final String CLASS_VERSION_1_1       = "1.1";
-    public static final String CLASS_VERSION_1_2       = "1.2";
-    public static final String CLASS_VERSION_1_3       = "1.3";
-    public static final String CLASS_VERSION_1_4       = "1.4";
-    public static final String CLASS_VERSION_1_5       = "1.5";
-    public static final String CLASS_VERSION_1_6       = "1.6";
-    public static final String CLASS_VERSION_1_7       = "1.7";
-    public static final String CLASS_VERSION_1_8       = "1.8";
-    public static final String CLASS_VERSION_1_9       = "1.9";
-    public static final String CLASS_VERSION_1_5_ALIAS = "5";
-    public static final String CLASS_VERSION_1_6_ALIAS = "6";
-    public static final String CLASS_VERSION_1_7_ALIAS = "7";
-    public static final String CLASS_VERSION_1_8_ALIAS = "8";
-    public static final String CLASS_VERSION_1_9_ALIAS = "9";
-    public static final String CLASS_VERSION_10        = "10";
-    public static final String CLASS_VERSION_11        = "11";
-    public static final String CLASS_VERSION_12        = "12";
-    public static final String CLASS_VERSION_13        = "13";
-    public static final String CLASS_VERSION_14        = "14";
-    public static final String CLASS_VERSION_15        = "15";
-    public static final String CLASS_VERSION_16        = "16";
-    public static final String CLASS_VERSION_17        = "17";
-    public static final String CLASS_VERSION_18        = "18";
-    public static final String CLASS_VERSION_19        = "19";
-    public static final String CLASS_VERSION_20        = "20";
-    public static final String CLASS_VERSION_21        = "21";
+public class JavaVersionConstants {
+  public static final String CLASS_VERSION_1_0 = "1.0";
+  public static final String CLASS_VERSION_1_1 = "1.1";
+  public static final String CLASS_VERSION_1_2 = "1.2";
+  public static final String CLASS_VERSION_1_3 = "1.3";
+  public static final String CLASS_VERSION_1_4 = "1.4";
+  public static final String CLASS_VERSION_1_5 = "1.5";
+  public static final String CLASS_VERSION_1_6 = "1.6";
+  public static final String CLASS_VERSION_1_7 = "1.7";
+  public static final String CLASS_VERSION_1_8 = "1.8";
+  public static final String CLASS_VERSION_1_9 = "1.9";
+  public static final String CLASS_VERSION_1_5_ALIAS = "5";
+  public static final String CLASS_VERSION_1_6_ALIAS = "6";
+  public static final String CLASS_VERSION_1_7_ALIAS = "7";
+  public static final String CLASS_VERSION_1_8_ALIAS = "8";
+  public static final String CLASS_VERSION_1_9_ALIAS = "9";
+  public static final String CLASS_VERSION_10 = "10";
+  public static final String CLASS_VERSION_11 = "11";
+  public static final String CLASS_VERSION_12 = "12";
+  public static final String CLASS_VERSION_13 = "13";
+  public static final String CLASS_VERSION_14 = "14";
+  public static final String CLASS_VERSION_15 = "15";
+  public static final String CLASS_VERSION_16 = "16";
+  public static final String CLASS_VERSION_17 = "17";
+  public static final String CLASS_VERSION_18 = "18";
+  public static final String CLASS_VERSION_19 = "19";
+  public static final String CLASS_VERSION_20 = "20";
+  public static final String CLASS_VERSION_21 = "21";
 }

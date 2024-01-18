@@ -20,11 +20,11 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinEffectVisitor
-{
-    void visitEffect(Clazz                  clazz,
-                     KotlinMetadata         kotlinMetadata,
-                     KotlinFunctionMetadata kotlinFunctionMetadata,
-                     KotlinContractMetadata kotlinContractMetadata,
-                     KotlinEffectMetadata   kotlinEffectMetadata);
+public interface KotlinEffectVisitor {
+  void visitEffect(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinContractMetadata kotlinContractMetadata,
+      KotlinEffectMetadata kotlinEffectMetadata);
 }

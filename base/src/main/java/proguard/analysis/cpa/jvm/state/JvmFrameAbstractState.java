@@ -25,158 +25,139 @@ import proguard.analysis.cpa.defaults.ListAbstractState;
 import proguard.analysis.cpa.defaults.StackAbstractState;
 
 /**
- * The {@link JvmFrameAbstractState} combines the operand stack as the {@link StackAbstractState} and the local variable array as the {@link ListAbstractState}.
- * This abstract state does not restrict the way one models values, i.e., one abstract state may correspond to a byte sequence of arbitrary length.
+ * The {@link JvmFrameAbstractState} combines the operand stack as the {@link StackAbstractState}
+ * and the local variable array as the {@link ListAbstractState}. This abstract state does not
+ * restrict the way one models values, i.e., one abstract state may correspond to a byte sequence of
+ * arbitrary length.
  *
  * @author Dmitry Ivanov
  */
 public class JvmFrameAbstractState<StateT extends LatticeAbstractState<StateT>>
-    implements LatticeAbstractState<JvmFrameAbstractState<StateT>>
-{
+    implements LatticeAbstractState<JvmFrameAbstractState<StateT>> {
 
-    protected final ListAbstractState<StateT>  localVariables;
-    protected final StackAbstractState<StateT> operandStack;
+  protected final ListAbstractState<StateT> localVariables;
+  protected final StackAbstractState<StateT> operandStack;
 
-    /**
-     * Create an empty frame.
-     */
-    public JvmFrameAbstractState()
-    {
-        this(new ListAbstractState<>(), new StackAbstractState<>());
+  /** Create an empty frame. */
+  public JvmFrameAbstractState() {
+    this(new ListAbstractState<>(), new StackAbstractState<>());
+  }
+
+  /**
+   * Create a frame from a local variable array and an operand stack.
+   *
+   * @param localVariables a local variable array
+   * @param operandStack an operand stack
+   */
+  public JvmFrameAbstractState(
+      ListAbstractState<StateT> localVariables, StackAbstractState<StateT> operandStack) {
+    this.localVariables = localVariables;
+    this.operandStack = operandStack;
+  }
+
+  // implementations for LatticeAbstractState
+
+  @Override
+  public JvmFrameAbstractState<StateT> join(JvmFrameAbstractState<StateT> abstractState) {
+    JvmFrameAbstractState<StateT> answer =
+        new JvmFrameAbstractState<>(
+            localVariables.join(abstractState.localVariables),
+            operandStack.join(abstractState.operandStack));
+    return equals(answer) ? this : answer;
+  }
+
+  @Override
+  public boolean isLessOrEqual(JvmFrameAbstractState<StateT> abstractState) {
+    return localVariables.isLessOrEqual(abstractState.localVariables)
+        && operandStack.isLessOrEqual(abstractState.operandStack);
+  }
+
+  // implementations for AbstractState
+
+  @Override
+  public JvmFrameAbstractState<StateT> copy() {
+    return new JvmFrameAbstractState<>(
+        (ListAbstractState<StateT>) localVariables.copy(),
+        (StackAbstractState<StateT>) operandStack.copy());
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof JvmFrameAbstractState)) {
+      return false;
     }
+    JvmFrameAbstractState<StateT> other = (JvmFrameAbstractState) obj;
+    return localVariables.equals(other.localVariables) && operandStack.equals(other.operandStack);
+  }
 
-    /**
-     * Create a frame from a local variable array and an operand stack.
-     *
-     * @param localVariables a local variable array
-     * @param operandStack   an operand stack
-     */
-    public JvmFrameAbstractState(ListAbstractState<StateT> localVariables, StackAbstractState<StateT> operandStack)
-    {
-        this.localVariables = localVariables;
-        this.operandStack = operandStack;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(localVariables, operandStack);
+  }
 
-    // implementations for LatticeAbstractState
+  /**
+   * Returns the {@code index}th element from the top of the operand stack or returns {@code
+   * defaultState} if the stack does not have enough elements.
+   */
+  public StateT peekOrDefault(int index, StateT defaultState) {
+    return operandStack.peekOrDefault(index, defaultState);
+  }
 
-    @Override
-    public JvmFrameAbstractState<StateT> join(JvmFrameAbstractState<StateT> abstractState)
-    {
-        JvmFrameAbstractState<StateT> answer = new JvmFrameAbstractState<>(localVariables.join(abstractState.localVariables),
-                                                                           operandStack.join(abstractState.operandStack));
-        return equals(answer) ? this : answer;
-    }
+  /** Returns the {@code index}th element from the top of the operand stack. */
+  public StateT peek(int index) {
+    return operandStack.peek(index);
+  }
 
-    @Override
-    public boolean isLessOrEqual(JvmFrameAbstractState<StateT> abstractState)
-    {
-        return localVariables.isLessOrEqual(abstractState.localVariables) && operandStack.isLessOrEqual(abstractState.operandStack);
-    }
+  /** Removes the top element of the operand stack end returns it. */
+  public StateT pop() {
+    return operandStack.pop();
+  }
 
-    // implementations for AbstractState
+  /**
+   * Removes the top element of the operand stack end returns it. Returns {@code defaultState} if
+   * the stack is empty.
+   */
+  public StateT popOrDefault(StateT defaultState) {
+    return operandStack.popOrDefault(defaultState);
+  }
 
-    @Override
-    public JvmFrameAbstractState<StateT> copy()
-    {
-        return new JvmFrameAbstractState<>((ListAbstractState<StateT>) localVariables.copy(), (StackAbstractState<StateT>) operandStack.copy());
-    }
+  /** Inserts {@code state} to the top of the operand stack and returns it. */
+  public StateT push(StateT state) {
+    return operandStack.push(state);
+  }
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (!(obj instanceof JvmFrameAbstractState))
-        {
-            return false;
-        }
-        JvmFrameAbstractState<StateT> other = (JvmFrameAbstractState) obj;
-        return localVariables.equals(other.localVariables) && operandStack.equals(other.operandStack);
-    }
+  /**
+   * Sequentially inserts elements of {@code states} to the top of the operand stack and returns
+   * {@code states}.
+   */
+  public List<StateT> pushAll(List<StateT> states) {
+    states.forEach(operandStack::push);
+    return states;
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(localVariables, operandStack);
-    }
+  /**
+   * Returns an abstract state at the {@code index}th position of the variable array or {@code
+   * defaultState} if there is no entry.
+   */
+  public StateT getVariableOrDefault(int index, StateT defaultState) {
+    return localVariables.getOrDefault(index, defaultState);
+  }
 
-    /**
-     * Returns the {@code index}th element from the top of the operand stack or returns {@code defaultState} if the stack does not have enough elements.
-     */
-    public StateT peekOrDefault(int index, StateT defaultState)
-    {
-        return operandStack.peekOrDefault(index, defaultState);
-    }
+  /**
+   * Sets the {@code index}th position of the variable array to {@code state} and returns {@code
+   * state}. If the array has to be extended, the added cells are padded with {@code defaultState}.
+   */
+  public StateT setVariable(int index, StateT state, StateT defaultState) {
+    return localVariables.set(index, state, defaultState);
+  }
 
-    /**
-     * Returns the {@code index}th element from the top of the operand stack.
-     */
-    public StateT peek(int index)
-    {
-        return operandStack.peek(index);
-    }
+  /** Returns the variable array. */
+  public ListAbstractState<StateT> getLocalVariables() {
+    return localVariables;
+  }
 
-    /**
-     * Removes the top element of the operand stack end returns it.
-     */
-    public StateT pop()
-    {
-        return operandStack.pop();
-    }
-
-    /**
-     * Removes the top element of the operand stack end returns it. Returns {@code defaultState} if the stack is empty.
-     */
-    public StateT popOrDefault(StateT defaultState)
-    {
-        return operandStack.popOrDefault(defaultState);
-    }
-
-    /**
-     * Inserts {@code state} to the top of the operand stack and returns it.
-     */
-    public StateT push(StateT state)
-    {
-        return operandStack.push(state);
-    }
-
-    /**
-     * Sequentially inserts elements of {@code states} to the top of the operand stack and returns {@code states}.
-     */
-    public List<StateT> pushAll(List<StateT> states)
-    {
-        states.forEach(operandStack::push);
-        return states;
-    }
-
-    /**
-     * Returns an abstract state at the {@code index}th position of the variable array or {@code defaultState} if there is no entry.
-     */
-    public StateT getVariableOrDefault(int index, StateT defaultState)
-    {
-        return localVariables.getOrDefault(index, defaultState);
-    }
-
-    /**
-     * Sets the {@code index}th position of the variable array to {@code state} and returns {@code state}.
-     * If the array has to be extended, the added cells are padded with {@code defaultState}.
-     */
-    public StateT setVariable(int index, StateT state, StateT defaultState)
-    {
-        return localVariables.set(index, state, defaultState);
-    }
-
-    /**
-     * Returns the variable array.
-     */
-    public ListAbstractState<StateT>  getLocalVariables()
-    {
-        return localVariables;
-    }
-
-    /**
-     * Returns the operand stack.
-     */
-    public StackAbstractState<StateT> getOperandStack()
-    {
-        return operandStack;
-    }
+  /** Returns the operand stack. */
+  public StackAbstractState<StateT> getOperandStack() {
+    return operandStack;
+  }
 }

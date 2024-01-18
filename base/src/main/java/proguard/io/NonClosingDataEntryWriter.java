@@ -20,10 +20,11 @@ package proguard.io;
 import java.io.*;
 
 /**
- * This {@link DataEntryWriter} delegates to another {@link DataEntryWriter}, except for
- * any {@link #close()} calls.
- * <p/>
- * For example:
+ * This {@link DataEntryWriter} delegates to another {@link DataEntryWriter}, except for any {@link
+ * #close()} calls.
+ *
+ * <p>For example:
+ *
  * <pre>
  *     DataEntryWriter writer = ...
  *
@@ -44,58 +45,43 @@ import java.io.*;
  *
  * @author Eric Lafortune
  */
-public class NonClosingDataEntryWriter implements DataEntryWriter
-{
-    private final DataEntryWriter dataEntryWriter;
+public class NonClosingDataEntryWriter implements DataEntryWriter {
+  private final DataEntryWriter dataEntryWriter;
 
+  /**
+   * Creates a new NonClosingDataEntryWriter that won't close its delegate.
+   *
+   * @param dataEntryWriter the DataEntryWriter to which the writing will be delegated.
+   */
+  public NonClosingDataEntryWriter(DataEntryWriter dataEntryWriter) {
+    this.dataEntryWriter = dataEntryWriter;
+  }
 
-    /**
-     * Creates a new NonClosingDataEntryWriter that won't close its delegate.
-     * @param dataEntryWriter the DataEntryWriter to which the writing will be
-     *                        delegated.
-     */
-    public NonClosingDataEntryWriter(DataEntryWriter dataEntryWriter)
-    {
-        this.dataEntryWriter = dataEntryWriter;
-    }
+  // Implementations for DataEntryWriter.
 
+  @Override
+  public boolean createDirectory(DataEntry dataEntry) throws IOException {
+    return dataEntryWriter.createDirectory(dataEntry);
+  }
 
-    // Implementations for DataEntryWriter.
+  @Override
+  public boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2) throws IOException {
+    return dataEntryWriter.sameOutputStream(dataEntry1, dataEntry2);
+  }
 
-    @Override
-    public boolean createDirectory(DataEntry dataEntry) throws IOException
-    {
-        return dataEntryWriter.createDirectory(dataEntry);
-    }
+  @Override
+  public OutputStream createOutputStream(DataEntry dataEntry) throws IOException {
+    return dataEntryWriter.createOutputStream(dataEntry);
+  }
 
+  @Override
+  public void close() throws IOException {
+    // Don't close.
+  }
 
-    @Override
-    public boolean sameOutputStream(DataEntry dataEntry1,
-                                    DataEntry dataEntry2)
-    throws IOException
-    {
-        return dataEntryWriter.sameOutputStream(dataEntry1, dataEntry2);
-    }
-
-
-    @Override
-    public OutputStream createOutputStream(DataEntry dataEntry) throws IOException
-    {
-        return dataEntryWriter.createOutputStream(dataEntry);
-    }
-
-
-    @Override
-    public void close() throws IOException
-    {
-        // Don't close.
-    }
-
-
-    @Override
-    public void println(PrintWriter pw, String prefix)
-    {
-        pw.println(prefix + "NonClosingDataEntryWriter");
-        dataEntryWriter.println(pw, prefix + "  ");
-    }
+  @Override
+  public void println(PrintWriter pw, String prefix) {
+    pw.println(prefix + "NonClosingDataEntryWriter");
+    dataEntryWriter.println(pw, prefix + "  ");
+  }
 }

@@ -19,26 +19,20 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.ClassPool;
 
-
 /**
- * This {@link ClassPoolVisitor} lets a given {@link ClassVisitor} visit all Clazz
- * instances of the class pools it visits.
+ * This {@link ClassPoolVisitor} lets a given {@link ClassVisitor} visit all Clazz instances of the
+ * class pools it visits.
  *
  * @author Eric Lafortune
  */
-public class AllClassVisitor implements ClassPoolVisitor
-{
-    private final ClassVisitor classVisitor;
+public class AllClassVisitor implements ClassPoolVisitor {
+  private final ClassVisitor classVisitor;
 
+  public AllClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    public AllClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
-
-
-    public void visitClassPool(ClassPool classPool)
-    {
-        classPool.classesAccept(classVisitor);
-    }
+  public void visitClassPool(ClassPool classPool) {
+    classPool.classesAccept(classVisitor);
+  }
 }

@@ -23,25 +23,18 @@ package proguard.util;
  *
  * @author Eric Lafortune
  */
-public class NotStringFunction implements StringFunction
-{
-    private final StringFunction stringFunction;
+public class NotStringFunction implements StringFunction {
+  private final StringFunction stringFunction;
 
+  /** Creates a new NotStringFunction with the two given string functions. */
+  public NotStringFunction(StringFunction stringFunction) {
+    this.stringFunction = stringFunction;
+  }
 
-    /**
-     * Creates a new NotStringFunction with the two given string functions.
-     */
-    public NotStringFunction(StringFunction stringFunction)
-    {
-        this.stringFunction = stringFunction;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        return stringFunction.transform(string) == null ? string : null;
-    }
+  @Override
+  public String transform(String string) {
+    return stringFunction.transform(string) == null ? string : null;
+  }
 }

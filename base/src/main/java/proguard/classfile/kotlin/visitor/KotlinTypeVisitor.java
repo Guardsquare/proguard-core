@@ -20,217 +20,192 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinTypeVisitor
-{
-    void visitAnyType(Clazz              clazz,
-                      KotlinTypeMetadata kotlinTypeMetadata);
+public interface KotlinTypeVisitor {
+  void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata);
 
+  // Type nest.
 
-    // Type nest.
+  default void visitTypeUpperBound(
+      Clazz clazz, KotlinTypeMetadata boundedType, KotlinTypeMetadata upperBound) {
+    visitAnyType(clazz, upperBound);
+  }
 
-    default void visitTypeUpperBound(Clazz              clazz,
-                                     KotlinTypeMetadata boundedType,
-                                     KotlinTypeMetadata upperBound)
-    {
-        visitAnyType(clazz, upperBound);
-    }
+  default void visitAbbreviation(
+      Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata, KotlinTypeMetadata abbreviation) {
+    visitAnyType(clazz, abbreviation);
+  }
 
-    default void visitAbbreviation(Clazz              clazz,
-                                   KotlinTypeMetadata kotlinTypeMetadata,
-                                   KotlinTypeMetadata abbreviation)
-    {
-        visitAnyType(clazz, abbreviation);
-    }
+  default void visitParameterUpperBound(
+      Clazz clazz,
+      KotlinTypeParameterMetadata boundedTypeParameter,
+      KotlinTypeMetadata upperBound) {
+    visitAnyType(clazz, upperBound);
+  }
 
-    default void visitParameterUpperBound(Clazz                       clazz,
-                                          KotlinTypeParameterMetadata boundedTypeParameter,
-                                          KotlinTypeMetadata          upperBound)
-    {
-        visitAnyType(clazz, upperBound);
-    }
+  default void visitTypeOfIsExpression(
+      Clazz clazz,
+      KotlinEffectExpressionMetadata kotlinEffectExprMetadata,
+      KotlinTypeMetadata typeOfIs) {
+    visitAnyType(clazz, typeOfIs);
+  }
 
-    default void visitTypeOfIsExpression(Clazz                          clazz,
-                                         KotlinEffectExpressionMetadata kotlinEffectExprMetadata,
-                                         KotlinTypeMetadata             typeOfIs)
-    {
-        visitAnyType(clazz, typeOfIs);
-    }
+  default void visitTypeArgument(
+      Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata, KotlinTypeMetadata typeArgument) {
+    visitAnyType(clazz, typeArgument);
+  }
 
-    default void visitTypeArgument(Clazz              clazz,
-                                   KotlinTypeMetadata kotlinTypeMetadata,
-                                   KotlinTypeMetadata typeArgument)
-    {
-        visitAnyType(clazz, typeArgument);
-    }
+  default void visitStarProjection(Clazz clazz, KotlinTypeMetadata typeWithStarArg) {
+    // By default, ignore star projection visits.
+  }
 
-    default void visitStarProjection(Clazz              clazz,
-                                     KotlinTypeMetadata typeWithStarArg)
-    {
-        // By default, ignore star projection visits.
-    }
+  default void visitOuterClass(
+      Clazz clazz, KotlinTypeMetadata innerClass, KotlinTypeMetadata outerClass) {
+    visitAnyType(clazz, outerClass);
+  }
 
-    default void visitOuterClass(Clazz              clazz,
-                                 KotlinTypeMetadata innerClass,
-                                 KotlinTypeMetadata outerClass)
-    {
-        visitAnyType(clazz, outerClass);
-    }
+  // Regular Kotlin class.
 
+  default void visitSuperType(
+      Clazz clazz, KotlinClassKindMetadata kotlinMetadata, KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    // Regular Kotlin class.
+  default void visitConstructorValParamType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitSuperType(Clazz                   clazz,
-                                KotlinClassKindMetadata kotlinMetadata,
-                                KotlinTypeMetadata      kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitConstructorValParamVarArgType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitConstructorValParamType(Clazz                              clazz,
-                                              KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                              KotlinConstructorMetadata          kotlinConstructorMetadata,
-                                              KotlinValueParameterMetadata       kotlinValueParameterMetadata,
-                                              KotlinTypeMetadata                 kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitInlineClassUnderlyingPropertyType(
+      Clazz clazz, KotlinClassKindMetadata kotlinMetadata, KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitConstructorValParamVarArgType(Clazz                              clazz,
-                                                    KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                                    KotlinConstructorMetadata          kotlinConstructorMetadata,
-                                                    KotlinValueParameterMetadata       kotlinValueParameterMetadata,
-                                                    KotlinTypeMetadata                 kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  // Property.
 
+  default void visitPropertyType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitInlineClassUnderlyingPropertyType(Clazz                   clazz,
-                                                        KotlinClassKindMetadata kotlinMetadata,
-                                                        KotlinTypeMetadata      kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitPropertyReceiverType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
+  default void visitPropertyValParamType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    // Property.
+  default void visitPropertyValParamVarArgType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitPropertyType(Clazz                             clazz,
-                                  KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                  KotlinPropertyMetadata             kotlinPropertyMetadata,
-                                  KotlinTypeMetadata                 kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  // Function.
 
-    default void visitPropertyReceiverType(Clazz                             clazz,
-                                          KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                          KotlinPropertyMetadata             kotlinPropertyMetadata,
-                                          KotlinTypeMetadata                 kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitFunctionReturnType(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitPropertyValParamType(Clazz                             clazz,
-                                          KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                          KotlinPropertyMetadata             kotlinPropertyMetadata,
-                                          KotlinValueParameterMetadata       kotlinValueParameterMetadata,
-                                          KotlinTypeMetadata                 kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitFunctionReceiverType(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitPropertyValParamVarArgType(Clazz                             clazz,
-                                                KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                                KotlinPropertyMetadata             kotlinPropertyMetadata,
-                                                KotlinValueParameterMetadata       kotlinValueParameterMetadata,
-                                                KotlinTypeMetadata                 kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitAnyContextReceiverType(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    // Function.
+  default void visitFunctionContextReceiverType(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
+  }
 
-    default void visitFunctionReturnType(Clazz                 clazz,
-                                        KotlinMetadata         kotlinMetadata,
-                                        KotlinFunctionMetadata kotlinFunctionMetadata,
-                                        KotlinTypeMetadata     kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitClassContextReceiverType(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
+  }
 
-    default void visitFunctionReceiverType(Clazz                 clazz,
-                                          KotlinMetadata         kotlinMetadata,
-                                          KotlinFunctionMetadata kotlinFunctionMetadata,
-                                          KotlinTypeMetadata     kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitPropertyContextReceiverType(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
+  }
 
-    default void visitAnyContextReceiverType(Clazz              clazz,
-                                             KotlinMetadata     kotlinMetadata,
-                                             KotlinTypeMetadata kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
+  default void visitFunctionValParamType(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitFunctionContextReceiverType(Clazz                  clazz,
-                                                  KotlinMetadata         kotlinMetadata,
-                                                  KotlinFunctionMetadata kotlinFunctionMetadata,
-                                                  KotlinTypeMetadata     kotlinTypeMetadata)
-    {
-        visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
-    }
+  default void visitFunctionValParamVarArgType(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata,
+      KotlinTypeMetadata kotlinTypeMetadata) {
+    visitAnyType(clazz, kotlinTypeMetadata);
+  }
 
-    default void visitClassContextReceiverType(Clazz              clazz,
-                                               KotlinMetadata     kotlinMetadata,
-                                               KotlinTypeMetadata kotlinTypeMetadata)
-    {
-        visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
-    }
+  // Type Alias.
 
-    default void visitPropertyContextReceiverType(Clazz                  clazz,
-                                                  KotlinMetadata         kotlinMetadata,
-                                                  KotlinPropertyMetadata kotlinPropertyMetadata,
-                                                  KotlinTypeMetadata     kotlinTypeMetadata)
-    {
-        visitAnyContextReceiverType(clazz, kotlinMetadata, kotlinTypeMetadata);
-    }
+  default void visitAliasUnderlyingType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasMetadata kotlinTypeAliasMetadata,
+      KotlinTypeMetadata underlyingType) {
+    visitAnyType(clazz, underlyingType);
+  }
 
-    default void visitFunctionValParamType(Clazz                       clazz,
-                                          KotlinMetadata               kotlinMetadata,
-                                          KotlinFunctionMetadata       kotlinFunctionMetadata,
-                                          KotlinValueParameterMetadata kotlinValueParameterMetadata,
-                                          KotlinTypeMetadata           kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
-
-    default void visitFunctionValParamVarArgType(Clazz                       clazz,
-                                                KotlinMetadata               kotlinMetadata,
-                                                KotlinFunctionMetadata       kotlinFunctionMetadata,
-                                                KotlinValueParameterMetadata kotlinValueParameterMetadata,
-                                                KotlinTypeMetadata           kotlinTypeMetadata)
-    {
-        visitAnyType(clazz, kotlinTypeMetadata);
-    }
-
-
-    // Type Alias.
-
-    default void visitAliasUnderlyingType(Clazz                             clazz,
-                                         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                         KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
-                                         KotlinTypeMetadata                 underlyingType)
-    {
-        visitAnyType(clazz, underlyingType);
-    }
-
-    default void visitAliasExpandedType(Clazz                             clazz,
-                                       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                       KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
-                                       KotlinTypeMetadata                 expandedType)
-    {
-        visitAnyType(clazz, expandedType);
-    }
+  default void visitAliasExpandedType(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasMetadata kotlinTypeAliasMetadata,
+      KotlinTypeMetadata expandedType) {
+    visitAnyType(clazz, expandedType);
+  }
 }

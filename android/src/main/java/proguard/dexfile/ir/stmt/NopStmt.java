@@ -26,17 +26,17 @@ import proguard.dexfile.ir.LabelAndLocalMapper;
  */
 public class NopStmt extends Stmt.E0Stmt {
 
-    public NopStmt() {
-        super(ST.NOP);
-    }
+  public NopStmt() {
+    super(ST.NOP);
+  }
 
-    @Override
-    public Stmt clone(LabelAndLocalMapper mapper) {
-        return new NopStmt();
-    }
+  @Override
+  public Stmt clone(LabelAndLocalMapper mapper) {
+    return new NopStmt();
+  }
 
-    @Override
-    public String toString() {
-        return "NOP";
-    }
+  @Override
+  public String toString() {
+    return "NOP";
+  }
 }

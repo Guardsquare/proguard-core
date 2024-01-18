@@ -18,37 +18,30 @@
 
 package proguard.classfile.visitor;
 
+import java.util.Collection;
 import proguard.classfile.Clazz;
 
-import java.util.Collection;
-
 /**
- * This <code>ClassVisitor</code> collects the feature names of the classes
- * that it visits in the given collection.
+ * This <code>ClassVisitor</code> collects the feature names of the classes that it visits in the
+ * given collection.
  *
  * @author Eric Lafortune
  */
-public class ClassFeatureNameCollector
-implements ClassVisitor
-{
-    private final Collection<String> collection;
+public class ClassFeatureNameCollector implements ClassVisitor {
+  private final Collection<String> collection;
 
+  /**
+   * Creates a new ClassNameCollector.
+   *
+   * @param collection the Collection in which all feature names will be collected.
+   */
+  public ClassFeatureNameCollector(Collection<String> collection) {
+    this.collection = collection;
+  }
 
-    /**
-     * Creates a new ClassNameCollector.
-     * @param collection the Collection in which all feature names will be
-     *                   collected.
-     */
-    public ClassFeatureNameCollector(Collection<String> collection)
-    {
-        this.collection = collection;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    public void visitAnyClass(Clazz clazz)
-    {
-        collection.addAll(clazz.getExtraFeatureNames());
-    }
+  public void visitAnyClass(Clazz clazz) {
+    collection.addAll(clazz.getExtraFeatureNames());
+  }
 }

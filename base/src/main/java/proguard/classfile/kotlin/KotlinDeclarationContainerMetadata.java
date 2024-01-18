@@ -17,6 +17,7 @@
  */
 package proguard.classfile.kotlin;
 
+import java.util.*;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
@@ -26,96 +27,69 @@ import proguard.classfile.visitor.ClassVisitor;
 import proguard.resources.kotlinmodule.KotlinModule;
 import proguard.resources.kotlinmodule.visitor.KotlinModuleVisitor;
 
-import java.util.*;
-
 /**
- * This class is named after Kotlin's own naming scheme. A declaration container is a type that
- * can define functions, properties and delegated properties, and that can also define type aliases.
+ * This class is named after Kotlin's own naming scheme. A declaration container is a type that can
+ * define functions, properties and delegated properties, and that can also define type aliases.
  */
-public abstract class KotlinDeclarationContainerMetadata
-extends KotlinMetadata
-{
-    public List<KotlinPropertyMetadata> properties;
+public abstract class KotlinDeclarationContainerMetadata extends KotlinMetadata {
+  public List<KotlinPropertyMetadata> properties;
 
-    public List<KotlinFunctionMetadata> functions;
+  public List<KotlinFunctionMetadata> functions;
 
-    public List<KotlinTypeAliasMetadata> typeAliases;
+  public List<KotlinTypeAliasMetadata> typeAliases;
 
-    public String ownerClassName;
-    public Clazz  ownerReferencedClass;
+  public String ownerClassName;
+  public Clazz ownerReferencedClass;
 
-    // Extensions.
-    public List<KotlinPropertyMetadata> localDelegatedProperties;
+  // Extensions.
+  public List<KotlinPropertyMetadata> localDelegatedProperties;
 
-    // A reference to the module that this declaration container was defined in.
-    public KotlinModule referencedModule;
+  // A reference to the module that this declaration container was defined in.
+  public KotlinModule referencedModule;
 
-    public KotlinDeclarationContainerMetadata(int    k,
-                                              int[]  mv,
-                                              int    xi,
-                                              String xs,
-                                              String pn)
-    {
-        super(k, mv, xi, xs, pn);
+  public KotlinDeclarationContainerMetadata(int k, int[] mv, int xi, String xs, String pn) {
+    super(k, mv, xi, xs, pn);
+  }
+
+  public void propertiesAccept(Clazz clazz, KotlinPropertyVisitor kotlinPropertyVisitor) {
+    for (KotlinPropertyMetadata property : properties) {
+      property.accept(clazz, this, kotlinPropertyVisitor);
     }
+  }
 
-
-    public void propertiesAccept(Clazz clazz, KotlinPropertyVisitor kotlinPropertyVisitor)
-    {
-        for (KotlinPropertyMetadata property : properties)
-        {
-            property.accept(clazz, this, kotlinPropertyVisitor);
-        }
+  public void delegatedPropertiesAccept(Clazz clazz, KotlinPropertyVisitor kotlinPropertyVisitor) {
+    for (KotlinPropertyMetadata localDelegatedProperty : localDelegatedProperties) {
+      localDelegatedProperty.acceptAsDelegated(clazz, this, kotlinPropertyVisitor);
     }
+  }
 
-
-    public void delegatedPropertiesAccept(Clazz clazz, KotlinPropertyVisitor kotlinPropertyVisitor)
-    {
-        for (KotlinPropertyMetadata localDelegatedProperty : localDelegatedProperties)
-        {
-            localDelegatedProperty.acceptAsDelegated(clazz, this, kotlinPropertyVisitor);
-        }
+  public void functionsAccept(Clazz clazz, KotlinFunctionVisitor kotlinFunctionVisitor) {
+    for (KotlinFunctionMetadata function : functions) {
+      function.accept(clazz, this, kotlinFunctionVisitor);
     }
+  }
 
-
-    public void functionsAccept(Clazz clazz, KotlinFunctionVisitor kotlinFunctionVisitor)
-    {
-        for (KotlinFunctionMetadata function : functions)
-        {
-            function.accept(clazz, this, kotlinFunctionVisitor);
-        }
+  public void typeAliasesAccept(Clazz clazz, KotlinTypeAliasVisitor kotlinTypeAliasVisitor) {
+    for (KotlinTypeAliasMetadata typeAlias : typeAliases) {
+      typeAlias.accept(clazz, this, kotlinTypeAliasVisitor);
     }
+  }
 
-
-    public void typeAliasesAccept(Clazz clazz, KotlinTypeAliasVisitor kotlinTypeAliasVisitor)
-    {
-        for (KotlinTypeAliasMetadata typeAlias : typeAliases)
-        {
-            typeAlias.accept(clazz, this, kotlinTypeAliasVisitor);
-        }
+  public void moduleAccept(KotlinModuleVisitor kotlinModuleVisitor) {
+    if (this.referencedModule != null) {
+      this.referencedModule.accept(kotlinModuleVisitor);
     }
+  }
 
-    public void moduleAccept(KotlinModuleVisitor kotlinModuleVisitor)
-    {
-        if (this.referencedModule != null)
-        {
-            this.referencedModule.accept(kotlinModuleVisitor);
-        }
+  public void referencedOwnerClassAccept(ClassVisitor classVisitor) {
+    if (this.ownerReferencedClass != null) {
+      this.ownerReferencedClass.accept(classVisitor);
     }
+  }
 
-    public void referencedOwnerClassAccept(ClassVisitor classVisitor)
-    {
-        if (this.ownerReferencedClass != null)
-        {
-            this.ownerReferencedClass.accept(classVisitor);
-        }
+  public void referencedOwnerClassAccept(KotlinMetadataVisitor kotlinMetadataVisitor) {
+    if (this.ownerReferencedClass != null) {
+      this.ownerReferencedClass.kotlinMetadataAccept(kotlinMetadataVisitor);
     }
-
-    public void referencedOwnerClassAccept(KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        if (this.ownerReferencedClass != null)
-        {
-            this.ownerReferencedClass.kotlinMetadataAccept(kotlinMetadataVisitor);
-        }
-    }
+  }
 }

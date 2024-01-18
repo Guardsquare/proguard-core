@@ -18,21 +18,14 @@
 package proguard.util;
 
 /**
- * This interface provides a method to transform a string into a new
- * string.
+ * This interface provides a method to transform a string into a new string.
  *
  * @author Eric Lafortune
  */
-public interface StringFunction
-{
-    /**
-      * A StringFunction that returns the given string.
-      */
-    StringFunction IDENTITY_FUNCTION = string -> string;
+public interface StringFunction {
+  /** A StringFunction that returns the given string. */
+  StringFunction IDENTITY_FUNCTION = string -> string;
 
-
-    /**
-     * Transforms the given string into a new string.
-     */
-    String transform(String string);
+  /** Transforms the given string into a new string. */
+  String transform(String string);
 }

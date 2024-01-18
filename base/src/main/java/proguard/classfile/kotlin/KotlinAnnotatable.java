@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package proguard.classfile.kotlin;
 
 import proguard.classfile.Clazz;
@@ -25,15 +24,12 @@ import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
 /**
  * Represents a Kotlin metadata entity that can contain annotations:
  *
- * - types
- * - type parameters
- * - type aliases
+ * <p>- types - type parameters - type aliases
  *
- * Other annotations are stored on the corresponding Java class entity.
+ * <p>Other annotations are stored on the corresponding Java class entity.
  *
  * @author James Hamilton
  */
-public interface KotlinAnnotatable
-{
-    void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor);
+public interface KotlinAnnotatable {
+  void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor);
 }

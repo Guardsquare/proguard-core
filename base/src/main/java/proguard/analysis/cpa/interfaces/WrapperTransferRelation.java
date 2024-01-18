@@ -23,11 +23,8 @@ package proguard.analysis.cpa.interfaces;
  *
  * @author Dmitry Ivanov
  */
-public interface WrapperTransferRelation extends TransferRelation
-{
+public interface WrapperTransferRelation extends TransferRelation {
 
-    /**
-     * Returns wrapped transfer relations.
-     */
-    Iterable<? extends TransferRelation> getWrappedTransferRelations();
+  /** Returns wrapped transfer relations. */
+  Iterable<? extends TransferRelation> getWrappedTransferRelations();
 }

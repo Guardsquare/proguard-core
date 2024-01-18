@@ -23,60 +23,61 @@ import proguard.classfile.attribute.preverification.visitor.VerificationTypeVisi
 import proguard.util.SimpleProcessable;
 
 /**
- * This abstract class represents a verification type of a local variable or
- * a stack element. Specific verification types are subclassed from it.
+ * This abstract class represents a verification type of a local variable or a stack element.
+ * Specific verification types are subclassed from it.
  *
  * @author Eric Lafortune
  */
-public abstract class VerificationType extends SimpleProcessable
-{
-    public static final int TOP_TYPE                = 0;
-    public static final int INTEGER_TYPE            = 1;
-    public static final int FLOAT_TYPE              = 2;
-    public static final int DOUBLE_TYPE             = 3;
-    public static final int LONG_TYPE               = 4;
-    public static final int NULL_TYPE               = 5;
-    public static final int UNINITIALIZED_THIS_TYPE = 6;
-    public static final int OBJECT_TYPE             = 7;
-    public static final int UNINITIALIZED_TYPE      = 8;
+public abstract class VerificationType extends SimpleProcessable {
+  public static final int TOP_TYPE = 0;
+  public static final int INTEGER_TYPE = 1;
+  public static final int FLOAT_TYPE = 2;
+  public static final int DOUBLE_TYPE = 3;
+  public static final int LONG_TYPE = 4;
+  public static final int NULL_TYPE = 5;
+  public static final int UNINITIALIZED_THIS_TYPE = 6;
+  public static final int OBJECT_TYPE = 7;
+  public static final int UNINITIALIZED_TYPE = 8;
 
+  /** Returns the tag of the verification type. */
+  public abstract int getTag();
 
-    /**
-     * Returns the tag of the verification type.
-     */
-    public abstract int getTag();
+  /**
+   * Accepts the given visitor in the context of a method's code, either on a stack or as a
+   * variable.
+   */
+  public abstract void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      VerificationTypeVisitor verificationTypeVisitor);
 
+  /** Accepts the given visitor in the context of a stack in a method's code . */
+  public abstract void stackAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      int stackIndex,
+      VerificationTypeVisitor verificationTypeVisitor);
 
-    /**
-     * Accepts the given visitor in the context of a method's code, either on
-     * a stack or as a variable.
-     */
-    public abstract void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, VerificationTypeVisitor verificationTypeVisitor);
+  /** Accepts the given visitor in the context of a variable in a method's code. */
+  public abstract void variablesAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      int variableIndex,
+      VerificationTypeVisitor verificationTypeVisitor);
 
+  // Implementations for Object.
 
-    /**
-     * Accepts the given visitor in the context of a stack in a method's code .
-     */
-    public abstract void stackAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, int stackIndex, VerificationTypeVisitor verificationTypeVisitor);
+  public boolean equals(Object object) {
+    return object != null && this.getClass() == object.getClass();
+  }
 
-
-    /**
-     * Accepts the given visitor in the context of a variable in a method's code.
-     */
-    public abstract void variablesAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, int variableIndex, VerificationTypeVisitor verificationTypeVisitor);
-
-
-    // Implementations for Object.
-
-    public boolean equals(Object object)
-    {
-        return object != null &&
-               this.getClass() == object.getClass();
-    }
-
-
-    public int hashCode()
-    {
-        return this.getClass().hashCode();
-    }
+  public int hashCode() {
+    return this.getClass().hashCode();
+  }
 }

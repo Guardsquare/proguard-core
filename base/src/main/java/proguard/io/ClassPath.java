@@ -21,78 +21,59 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 /**
  * This class represents a class path, as a list of ClassPathEntry objects.
  *
  * @author Eric Lafortune
  */
-public class ClassPath
-{
-    private final List<ClassPathEntry> classPathEntries;
+public class ClassPath {
+  private final List<ClassPathEntry> classPathEntries;
 
-    public ClassPath(ClassPathEntry...entries)
-    {
-        classPathEntries = new ArrayList<>(Arrays.asList(entries));
-    }
+  public ClassPath(ClassPathEntry... entries) {
+    classPathEntries = new ArrayList<>(Arrays.asList(entries));
+  }
 
-    /**
-     * Returns whether the class path contains any output entries.
-     */
-    public boolean hasOutput()
-    {
-        return classPathEntries.stream().anyMatch(ClassPathEntry::isOutput);
-    }
+  /** Returns whether the class path contains any output entries. */
+  public boolean hasOutput() {
+    return classPathEntries.stream().anyMatch(ClassPathEntry::isOutput);
+  }
 
+  /** Returns the list of class path entries for this class path. */
+  public List<ClassPathEntry> getClassPathEntries() {
+    return classPathEntries;
+  }
 
-    /**
-     * Returns the list of class path entries for this class path.
-     */
-    public List<ClassPathEntry> getClassPathEntries()
-    {
-        return classPathEntries;
-    }
+  // Delegates to List.
 
+  public void clear() {
+    classPathEntries.clear();
+  }
 
-    // Delegates to List.
+  public void add(int index, ClassPathEntry classPathEntry) {
+    classPathEntries.add(index, classPathEntry);
+  }
 
-    public void clear()
-    {
-        classPathEntries.clear();
-    }
+  public boolean add(ClassPathEntry classPathEntry) {
+    return classPathEntries.add(classPathEntry);
+  }
 
-    public void add(int index, ClassPathEntry classPathEntry)
-    {
-        classPathEntries.add(index, classPathEntry);
-    }
+  public boolean addAll(ClassPath classPath) {
+    return classPathEntries.addAll(classPath.classPathEntries);
+  }
 
-    public boolean add(ClassPathEntry classPathEntry)
-    {
-        return classPathEntries.add(classPathEntry);
-    }
+  public ClassPathEntry get(int index) {
+    return classPathEntries.get(index);
+  }
 
-    public boolean addAll(ClassPath classPath)
-    {
-        return classPathEntries.addAll(classPath.classPathEntries);
-    }
+  public ClassPathEntry remove(int index) {
+    return classPathEntries.remove(index);
+  }
 
-    public ClassPathEntry get(int index)
-    {
-        return classPathEntries.get(index);
-    }
+  public boolean isEmpty() {
+    return classPathEntries.isEmpty();
+  }
 
-    public ClassPathEntry remove(int index)
-    {
-        return classPathEntries.remove(index);
-    }
-
-    public boolean isEmpty()
-    {
-        return classPathEntries.isEmpty();
-    }
-
-    public int size()
-    {
-        return classPathEntries.size();
-    }
+  public int size() {
+    return classPathEntries.size();
+  }
 }

@@ -31,56 +31,51 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *
  * @author Dmitry Ivanov
  */
-public class JvmHeapLocation
-    extends JvmMemoryLocation
-{
+public class JvmHeapLocation extends JvmMemoryLocation {
 
-    public final SetAbstractState<Reference> reference;
-    public final String                      field;
+  public final SetAbstractState<Reference> reference;
+  public final String field;
 
-    /**
-     * Create a heap location.
-     *
-     * @param reference a reference to dynamic memory
-     */
-    public JvmHeapLocation(SetAbstractState<Reference> reference, String field)
-    {
-        this.reference = reference;
-        this.field = field;
+  /**
+   * Create a heap location.
+   *
+   * @param reference a reference to dynamic memory
+   */
+  public JvmHeapLocation(SetAbstractState<Reference> reference, String field) {
+    this.reference = reference;
+    this.field = field;
+  }
+
+  // implementations for MemoryLocation
+
+  @Override
+  public <T extends LatticeAbstractState> T extractValueOrDefault(
+      JvmAbstractState abstractState, T defaultValue) {
+    return (T) abstractState.getHeap().getFieldOrDefault(reference, field, defaultValue);
+  }
+
+  // implementations for Object
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof JvmHeapLocation)) {
+      return false;
     }
+    JvmHeapLocation other = (JvmHeapLocation) obj;
+    return reference.equals(other.reference);
+  }
 
-    // implementations for MemoryLocation
+  @Override
+  public int hashCode() {
+    return Objects.hash(reference.hashCode());
+  }
 
-    @Override
-    public <T extends LatticeAbstractState> T extractValueOrDefault(JvmAbstractState abstractState, T defaultValue)
-    {
-        return (T) abstractState.getHeap().getFieldOrDefault(reference, field, defaultValue);
-    }
-
-    // implementations for Object
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (!(obj instanceof JvmHeapLocation))
-        {
-            return false;
-        }
-        JvmHeapLocation other = (JvmHeapLocation) obj;
-        return reference.equals(other.reference);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(reference.hashCode());
-    }
-
-    @Override
-    public String toString()
-    {
-        return "JvmHeapLocation(" + reference.stream()
-                                             .sorted(Comparator.comparingInt(Reference::hashCode))
-                                             .collect(Collectors.toList()) + (field.length() > 0 ? ", " + field + ")" : "");
-    }
+  @Override
+  public String toString() {
+    return "JvmHeapLocation("
+        + reference.stream()
+            .sorted(Comparator.comparingInt(Reference::hashCode))
+            .collect(Collectors.toList())
+        + (field.length() > 0 ? ", " + field + ")" : "");
+  }
 }

@@ -22,16 +22,15 @@ import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
 /**
- * Represents an exception during partial evaluation when an incomplete class
- * hierarchy was encountered.
- * <p/>
- * Deprecated: use {@link proguard.evaluation.exception.IncompleteClassHierarchyException} instead.
+ * Represents an exception during partial evaluation when an incomplete class hierarchy was
+ * encountered.
+ *
+ * <p>Deprecated: use {@link proguard.evaluation.exception.IncompleteClassHierarchyException}
+ * instead.
  */
 @Deprecated
-public class IncompleteClassHierarchyException extends ProguardCoreException
-{
-    public IncompleteClassHierarchyException(String message)
-    {
-        super(ErrorId.INCOMPLETE_CLASS_HIERARCHY, message);
-    }
+public class IncompleteClassHierarchyException extends ProguardCoreException {
+  public IncompleteClassHierarchyException(String message) {
+    super(ErrorId.INCOMPLETE_CLASS_HIERARCHY, message);
+  }
 }

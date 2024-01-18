@@ -19,36 +19,27 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This class visits {@link ProgramMember} instances referring to methods, identified by
- * a name and descriptor pair.
+ * This class visits {@link ProgramMember} instances referring to methods, identified by a name and
+ * descriptor pair.
  *
  * @author Eric Lafortune
  */
-public class NamedMethodVisitor
-implements   ClassVisitor
-{
-    private final String        name;
-    private final String        descriptor;
-    private final MemberVisitor memberVisitor;
+public class NamedMethodVisitor implements ClassVisitor {
+  private final String name;
+  private final String descriptor;
+  private final MemberVisitor memberVisitor;
 
+  public NamedMethodVisitor(String name, String descriptor, MemberVisitor memberVisitor) {
+    this.name = name;
+    this.descriptor = descriptor;
+    this.memberVisitor = memberVisitor;
+  }
 
-    public NamedMethodVisitor(String        name,
-                              String        descriptor,
-                              MemberVisitor memberVisitor)
-    {
-        this.name          = name;
-        this.descriptor    = descriptor;
-        this.memberVisitor = memberVisitor;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        clazz.methodAccept(name, descriptor, memberVisitor);
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    clazz.methodAccept(name, descriptor, memberVisitor);
+  }
 }

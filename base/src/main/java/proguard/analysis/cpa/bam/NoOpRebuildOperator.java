@@ -21,19 +21,18 @@ package proguard.analysis.cpa.bam;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * This {@link RebuildOperator} returns the original {@link AbstractState} without performing any rebuilding.
+ * This {@link RebuildOperator} returns the original {@link AbstractState} without performing any
+ * rebuilding.
  *
  * @author Carlo Alberto Pozzoli
  */
-public class NoOpRebuildOperator
-    implements RebuildOperator
-{
+public class NoOpRebuildOperator implements RebuildOperator {
 
-    // Implementations for RebuildOperator
+  // Implementations for RebuildOperator
 
-    @Override
-    public AbstractState rebuild(AbstractState predecessorCallState, AbstractState expandedOutputState)
-    {
-        return expandedOutputState;
-    }
+  @Override
+  public AbstractState rebuild(
+      AbstractState predecessorCallState, AbstractState expandedOutputState) {
+    return expandedOutputState;
+  }
 }

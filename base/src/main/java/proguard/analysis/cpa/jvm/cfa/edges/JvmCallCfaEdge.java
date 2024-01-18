@@ -18,57 +18,52 @@
 
 package proguard.analysis.cpa.jvm.cfa.edges;
 
-import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 
 /**
- * A {@link JvmCfaEdge} representing a call to another method, linking to the first node of the called method.
+ * A {@link JvmCfaEdge} representing a call to another method, linking to the first node of the
+ * called method.
  *
  * @author Carlo Alberto Pozzoli
  */
-public class JvmCallCfaEdge
-    extends JvmCfaEdge
-    implements CallEdge
-{
+public class JvmCallCfaEdge extends JvmCfaEdge implements CallEdge {
 
-    private Call call;
+  private Call call;
 
-    /**
-     * Create a disconnected JVM CFA call edge.
-     *
-     * @param call the call to a method
-     */
-    public JvmCallCfaEdge(Call call)
-    {
-        this.call = call;
-    }
+  /**
+   * Create a disconnected JVM CFA call edge.
+   *
+   * @param call the call to a method
+   */
+  public JvmCallCfaEdge(Call call) {
+    this.call = call;
+  }
 
-    /**
-     * Create a JVM CFA call edge. Also sets it as the entering and leaving edge of the source and target nodes.
-     *
-     * @param source the source node of the edge
-     * @param target the target node of the edge
-     * @param call   the call to a method
-     */
-    public JvmCallCfaEdge(JvmCfaNode source, JvmCfaNode target, Call call)
-    {
-        super(source, target);
-        this.call = call;
-    }
+  /**
+   * Create a JVM CFA call edge. Also sets it as the entering and leaving edge of the source and
+   * target nodes.
+   *
+   * @param source the source node of the edge
+   * @param target the target node of the edge
+   * @param call the call to a method
+   */
+  public JvmCallCfaEdge(JvmCfaNode source, JvmCfaNode target, Call call) {
+    super(source, target);
+    this.call = call;
+  }
 
-    @Override
-    public MethodSignature targetSignature()
-    {
-        return call.getTarget();
-    }
+  @Override
+  public MethodSignature targetSignature() {
+    return call.getTarget();
+  }
 
-    // Implementations for CallEdge
+  // Implementations for CallEdge
 
-    @Override
-    public Call getCall()
-    {
-        return call;
-    }
+  @Override
+  public Call getCall() {
+    return call;
+  }
 }

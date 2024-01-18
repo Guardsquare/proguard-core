@@ -18,132 +18,103 @@
 
 package proguard.evaluation.util.jsonprinter;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Track the evaluation of a single instruction block, starting at some offset in the code.
- */
-class InstructionBlockEvaluationRecord implements JsonSerializable
-{
-    /**
-     * List of instruction evaluation trackers.
-     */
-    @NotNull
-    private final List<InstructionEvaluationRecord> evaluations;
+/** Track the evaluation of a single instruction block, starting at some offset in the code. */
+class InstructionBlockEvaluationRecord implements JsonSerializable {
+  /** List of instruction evaluation trackers. */
+  @NotNull private final List<InstructionEvaluationRecord> evaluations;
 
-    /**
-     * Exception handler info. If present, this instructionBlock regards an exception handler.
-     */
-    private final ExceptionHandlerRecord exceptionHandlerInfo;
+  /** Exception handler info. If present, this instructionBlock regards an exception handler. */
+  private final ExceptionHandlerRecord exceptionHandlerInfo;
 
-    /**
-     * Variables found at the start of the block evaluation.
-     */
-    private List<String> startVariables;
+  /** Variables found at the start of the block evaluation. */
+  private List<String> startVariables;
 
-    /**
-     * Stack found at the start of the block evaluation.
-     */
-    private List<String> startStack;
+  /** Stack found at the start of the block evaluation. */
+  private List<String> startStack;
 
-    /**
-     * Start instruction offset of this block evaluation.
-     */
-    private final int startOffset;
+  /** Start instruction offset of this block evaluation. */
+  private final int startOffset;
 
-    /**
-     * Current branch evaluation stack.
-     */
-    @NotNull
-    private final List<BranchTargetRecord> branchEvaluationStack;
+  /** Current branch evaluation stack. */
+  @NotNull private final List<BranchTargetRecord> branchEvaluationStack;
 
-    public InstructionBlockEvaluationRecord(List<String> startVariables, List<String> startStack, int startOffset,
-                                            ExceptionHandlerRecord exceptionHandlerInfo,
-                                            @NotNull List<BranchTargetRecord> branchEvaluationStack)
-    {
-        this.evaluations = new ArrayList<>();
-        this.startVariables = startVariables;
-        this.startStack = startStack;
-        this.startOffset = startOffset;
-        this.exceptionHandlerInfo = exceptionHandlerInfo;
-        this.branchEvaluationStack = branchEvaluationStack;
+  public InstructionBlockEvaluationRecord(
+      List<String> startVariables,
+      List<String> startStack,
+      int startOffset,
+      ExceptionHandlerRecord exceptionHandlerInfo,
+      @NotNull List<BranchTargetRecord> branchEvaluationStack) {
+    this.evaluations = new ArrayList<>();
+    this.startVariables = startVariables;
+    this.startStack = startStack;
+    this.startOffset = startOffset;
+    this.exceptionHandlerInfo = exceptionHandlerInfo;
+    this.branchEvaluationStack = branchEvaluationStack;
+  }
+
+  @Override
+  public StringBuilder toJson(StringBuilder builder) {
+    builder.append("{");
+    JsonPrinter.toJson("startOffset", startOffset, builder).append(",");
+    JsonPrinter.listToJson("evaluations", evaluations, builder).append(",");
+    JsonPrinter.listToJson("branchEvaluationStack", branchEvaluationStack, builder);
+    if (exceptionHandlerInfo != null) {
+      builder.append(",");
+      JsonPrinter.serializeJsonSerializable("exceptionHandlerInfo", exceptionHandlerInfo, builder);
     }
-
-    @Override
-    public StringBuilder toJson(StringBuilder builder)
-    {
-        builder.append("{");
-        JsonPrinter.toJson("startOffset", startOffset, builder).append(",");
-        JsonPrinter.listToJson("evaluations", evaluations, builder).append(",");
-        JsonPrinter.listToJson("branchEvaluationStack", branchEvaluationStack, builder);
-        if (exceptionHandlerInfo != null) {
-            builder.append(",");
-            JsonPrinter.serializeJsonSerializable("exceptionHandlerInfo", exceptionHandlerInfo, builder);
-        }
-        if (startVariables != null)
-        {
-            builder.append(",");
-            JsonPrinter.stringListToJson("startVariables", startVariables, builder);
-        }
-        if (startStack != null)
-        {
-            builder.append(",");
-            JsonPrinter.stringListToJson("startStack", startStack, builder);
-        }
-        return builder.append("}");
+    if (startVariables != null) {
+      builder.append(",");
+      JsonPrinter.stringListToJson("startVariables", startVariables, builder);
     }
-
-    public void setStartVariables(List<String> startVariables)
-    {
-        this.startVariables = startVariables;
+    if (startStack != null) {
+      builder.append(",");
+      JsonPrinter.stringListToJson("startStack", startStack, builder);
     }
+    return builder.append("}");
+  }
 
-    public void setStartStack(List<String> startStack)
-    {
-        this.startStack = startStack;
-    }
+  public void setStartVariables(List<String> startVariables) {
+    this.startVariables = startVariables;
+  }
 
-    public InstructionEvaluationRecord getLastInstructionEvaluation()
-    {
-        if (evaluations.isEmpty())
-        {
-            return null;
-        }
-        return evaluations.get(evaluations.size() - 1);
-    }
+  public void setStartStack(List<String> startStack) {
+    this.startStack = startStack;
+  }
 
-    @NotNull
-    public List<InstructionEvaluationRecord> getEvaluations()
-    {
-        return evaluations;
+  public InstructionEvaluationRecord getLastInstructionEvaluation() {
+    if (evaluations.isEmpty()) {
+      return null;
     }
+    return evaluations.get(evaluations.size() - 1);
+  }
 
-    public ExceptionHandlerRecord getExceptionHandlerInfo()
-    {
-        return exceptionHandlerInfo;
-    }
+  @NotNull
+  public List<InstructionEvaluationRecord> getEvaluations() {
+    return evaluations;
+  }
 
-    public List<String> getStartVariables()
-    {
-        return startVariables;
-    }
+  public ExceptionHandlerRecord getExceptionHandlerInfo() {
+    return exceptionHandlerInfo;
+  }
 
-    public List<String> getStartStack()
-    {
-        return startStack;
-    }
+  public List<String> getStartVariables() {
+    return startVariables;
+  }
 
-    public int getStartOffset()
-    {
-        return startOffset;
-    }
+  public List<String> getStartStack() {
+    return startStack;
+  }
 
-    @NotNull
-    public List<BranchTargetRecord> getBranchEvaluationStack()
-    {
-        return branchEvaluationStack;
-    }
+  public int getStartOffset() {
+    return startOffset;
+  }
+
+  @NotNull
+  public List<BranchTargetRecord> getBranchEvaluationStack() {
+    return branchEvaluationStack;
+  }
 }

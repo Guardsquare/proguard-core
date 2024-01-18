@@ -22,65 +22,56 @@ import static proguard.classfile.util.ClassUtil.externalClassName;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents the signature of a class without any member information.
  *
  * @author Samuel Hopstock
  */
-public class ClassSignature
-    extends Signature
-{
+public class ClassSignature extends Signature {
 
-    private static final transient Map<Clazz, ClassSignature> signatureCache = new IdentityHashMap<>();
+  private static final transient Map<Clazz, ClassSignature> signatureCache =
+      new IdentityHashMap<>();
 
-    public ClassSignature(String className)
-    {
-        super(className, className.hashCode());
-    }
+  public ClassSignature(String className) {
+    super(className, className.hashCode());
+  }
 
-    public ClassSignature(Clazz clazz)
-    {
-        this(clazz.getName());
-    }
+  public ClassSignature(Clazz clazz) {
+    this(clazz.getName());
+  }
 
-    @Override
-    public boolean isIncomplete()
-    {
-        return className == null;
-    }
+  @Override
+  public boolean isIncomplete() {
+    return className == null;
+  }
 
-    @Override
-    protected String calculateFqn()
-    {
-        return className;
-    }
+  @Override
+  protected String calculateFqn() {
+    return className;
+  }
 
-    @Override
-    protected String calculatePrettyFqn()
-    {
-        return externalClassName(className);
-    }
+  @Override
+  protected String calculatePrettyFqn() {
+    return externalClassName(className);
+  }
 
-    /**
-     * Remove all currently cached {@link ClassSignature} objects from the cache,
-     * allowing them to be removed by the garbage collector.
-     */
-    public static void clearCache()
-    {
-        signatureCache.clear();
-    }
+  /**
+   * Remove all currently cached {@link ClassSignature} objects from the cache, allowing them to be
+   * removed by the garbage collector.
+   */
+  public static void clearCache() {
+    signatureCache.clear();
+  }
 
-    /**
-     * Get the singleton {@link ClassSignature} object for this specific {@link Clazz}.
-     * If it is not yet available in the cache, it will be newly instantiated.
-     *
-     * @param clazz The class containing the target field
-     * @return The cached or newly generated {@link ClassSignature} object
-     */
-    public static ClassSignature computeIfAbsent(Clazz clazz)
-    {
-        return signatureCache.computeIfAbsent(clazz, c -> new ClassSignature(c.getName()));
-    }
+  /**
+   * Get the singleton {@link ClassSignature} object for this specific {@link Clazz}. If it is not
+   * yet available in the cache, it will be newly instantiated.
+   *
+   * @param clazz The class containing the target field
+   * @return The cached or newly generated {@link ClassSignature} object
+   */
+  public static ClassSignature computeIfAbsent(Clazz clazz) {
+    return signatureCache.computeIfAbsent(clazz, c -> new ClassSignature(c.getName()));
+  }
 }

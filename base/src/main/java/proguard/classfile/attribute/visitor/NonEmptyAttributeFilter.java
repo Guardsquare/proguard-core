@@ -24,455 +24,425 @@ import proguard.classfile.attribute.module.*;
 import proguard.classfile.attribute.preverification.*;
 
 /**
- * This {@link AttributeVisitor} delegates its visits another {@link AttributeVisitor}, but
- * only when the visited attribute is not empty. For instance, a local variable
- * table without variables is empty.
+ * This {@link AttributeVisitor} delegates its visits another {@link AttributeVisitor}, but only
+ * when the visited attribute is not empty. For instance, a local variable table without variables
+ * is empty.
  *
  * @author Eric Lafortune
  */
-public class NonEmptyAttributeFilter
-implements   AttributeVisitor
-{
-    private final AttributeVisitor attributeVisitor;
+public class NonEmptyAttributeFilter implements AttributeVisitor {
+  private final AttributeVisitor attributeVisitor;
 
+  /**
+   * Creates a new NonEmptyAttributeFilter.
+   *
+   * @param attributeVisitor the <code>AttributeVisitor</code> to which visits will be delegated.
+   */
+  public NonEmptyAttributeFilter(AttributeVisitor attributeVisitor) {
+    this.attributeVisitor = attributeVisitor;
+  }
 
-    /**
-     * Creates a new NonEmptyAttributeFilter.
-     * @param attributeVisitor the <code>AttributeVisitor</code> to which
-     *                         visits will be delegated.
-     */
-    public NonEmptyAttributeFilter(AttributeVisitor attributeVisitor)
-    {
-        this.attributeVisitor = attributeVisitor;
+  // Implementations for AttributeVisitor.
+
+  public void visitUnknownAttribute(Clazz clazz, UnknownAttribute unknownAttribute) {
+    attributeVisitor.visitUnknownAttribute(clazz, unknownAttribute);
+  }
+
+  public void visitBootstrapMethodsAttribute(
+      Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute) {
+    if (bootstrapMethodsAttribute.u2bootstrapMethodsCount > 0) {
+      attributeVisitor.visitBootstrapMethodsAttribute(clazz, bootstrapMethodsAttribute);
     }
+  }
 
+  public void visitSourceFileAttribute(Clazz clazz, SourceFileAttribute sourceFileAttribute) {
+    attributeVisitor.visitSourceFileAttribute(clazz, sourceFileAttribute);
+  }
 
-    // Implementations for AttributeVisitor.
+  public void visitSourceDirAttribute(Clazz clazz, SourceDirAttribute sourceDirAttribute) {
+    attributeVisitor.visitSourceDirAttribute(clazz, sourceDirAttribute);
+  }
 
-    public void visitUnknownAttribute(Clazz clazz, UnknownAttribute unknownAttribute)
-    {
-        attributeVisitor.visitUnknownAttribute(clazz, unknownAttribute);
+  public void visitSourceDebugExtensionAttribute(
+      Clazz clazz, SourceDebugExtensionAttribute sourceDebugExtensionAttribute) {
+    attributeVisitor.visitSourceDebugExtensionAttribute(clazz, sourceDebugExtensionAttribute);
+  }
+
+  public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute) {
+    attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+  }
+
+  public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute) {
+    if (innerClassesAttribute.u2classesCount > 0) {
+      attributeVisitor.visitInnerClassesAttribute(clazz, innerClassesAttribute);
     }
+  }
 
+  public void visitEnclosingMethodAttribute(
+      Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute) {
+    attributeVisitor.visitEnclosingMethodAttribute(clazz, enclosingMethodAttribute);
+  }
 
-    public void visitBootstrapMethodsAttribute(Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute)
-    {
-        if (bootstrapMethodsAttribute.u2bootstrapMethodsCount > 0)
-        {
-            attributeVisitor.visitBootstrapMethodsAttribute(clazz, bootstrapMethodsAttribute);
-        }
+  public void visitNestHostAttribute(Clazz clazz, NestHostAttribute nestHostAttribute) {
+    attributeVisitor.visitNestHostAttribute(clazz, nestHostAttribute);
+  }
+
+  public void visitNestMembersAttribute(Clazz clazz, NestMembersAttribute nestMembersAttribute) {
+    if (nestMembersAttribute.u2classesCount > 0) {
+      attributeVisitor.visitNestMembersAttribute(clazz, nestMembersAttribute);
     }
+  }
 
-
-    public void visitSourceFileAttribute(Clazz clazz, SourceFileAttribute sourceFileAttribute)
-    {
-        attributeVisitor.visitSourceFileAttribute(clazz, sourceFileAttribute);
+  public void visitPermittedSubclassesAttribute(
+      Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute) {
+    if (permittedSubclassesAttribute.u2classesCount > 0) {
+      attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
     }
+  }
 
-
-    public void visitSourceDirAttribute(Clazz clazz, SourceDirAttribute sourceDirAttribute)
-    {
-        attributeVisitor.visitSourceDirAttribute(clazz, sourceDirAttribute);
+  public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute) {
+    if (moduleAttribute.u2requiresCount > 0
+        || moduleAttribute.u2exportsCount > 0
+        || moduleAttribute.u2opensCount > 0
+        || moduleAttribute.u2usesCount > 0
+        || moduleAttribute.u2providesCount > 0) {
+      attributeVisitor.visitModuleAttribute(clazz, moduleAttribute);
     }
+  }
 
+  public void visitModuleMainClassAttribute(
+      Clazz clazz, ModuleMainClassAttribute moduleMainClassAttribute) {
+    attributeVisitor.visitModuleMainClassAttribute(clazz, moduleMainClassAttribute);
+  }
 
-    public void visitSourceDebugExtensionAttribute(Clazz                         clazz,
-                                                   SourceDebugExtensionAttribute sourceDebugExtensionAttribute)
-    {
-        attributeVisitor.visitSourceDebugExtensionAttribute(clazz, sourceDebugExtensionAttribute);
+  public void visitModulePackagesAttribute(
+      Clazz clazz, ModulePackagesAttribute modulePackagesAttribute) {
+    if (modulePackagesAttribute.u2packagesCount > 0) {
+      attributeVisitor.visitModulePackagesAttribute(clazz, modulePackagesAttribute);
     }
+  }
 
+  public void visitDeprecatedAttribute(Clazz clazz, DeprecatedAttribute deprecatedAttribute) {
+    attributeVisitor.visitDeprecatedAttribute(clazz, deprecatedAttribute);
+  }
 
-    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
-    {
-        attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+  public void visitDeprecatedAttribute(
+      Clazz clazz, Field field, DeprecatedAttribute deprecatedAttribute) {
+    attributeVisitor.visitDeprecatedAttribute(clazz, field, deprecatedAttribute);
+  }
+
+  public void visitDeprecatedAttribute(
+      Clazz clazz, Method method, DeprecatedAttribute deprecatedAttribute) {
+    attributeVisitor.visitDeprecatedAttribute(clazz, method, deprecatedAttribute);
+  }
+
+  public void visitSyntheticAttribute(Clazz clazz, SyntheticAttribute syntheticAttribute) {
+    attributeVisitor.visitSyntheticAttribute(clazz, syntheticAttribute);
+  }
+
+  public void visitSyntheticAttribute(
+      Clazz clazz, Field field, SyntheticAttribute syntheticAttribute) {
+    attributeVisitor.visitSyntheticAttribute(clazz, field, syntheticAttribute);
+  }
+
+  public void visitSyntheticAttribute(
+      Clazz clazz, Method method, SyntheticAttribute syntheticAttribute) {
+    attributeVisitor.visitSyntheticAttribute(clazz, method, syntheticAttribute);
+  }
+
+  public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute) {
+    attributeVisitor.visitSignatureAttribute(clazz, signatureAttribute);
+  }
+
+  public void visitSignatureAttribute(
+      Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute) {
+    attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+  }
+
+  public void visitSignatureAttribute(
+      Clazz clazz, Field field, SignatureAttribute signatureAttribute) {
+    attributeVisitor.visitSignatureAttribute(clazz, field, signatureAttribute);
+  }
+
+  public void visitSignatureAttribute(
+      Clazz clazz, Method method, SignatureAttribute signatureAttribute) {
+    attributeVisitor.visitSignatureAttribute(clazz, method, signatureAttribute);
+  }
+
+  public void visitConstantValueAttribute(
+      Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute) {
+    attributeVisitor.visitConstantValueAttribute(clazz, field, constantValueAttribute);
+  }
+
+  public void visitMethodParametersAttribute(
+      Clazz clazz, Method method, MethodParametersAttribute exceptionsAttribute) {
+    if (exceptionsAttribute.u1parametersCount > 0) {
+      attributeVisitor.visitMethodParametersAttribute(clazz, method, exceptionsAttribute);
     }
+  }
 
-
-    public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
-    {
-        if (innerClassesAttribute.u2classesCount > 0)
-        {
-            attributeVisitor.visitInnerClassesAttribute(clazz, innerClassesAttribute);
-        }
+  public void visitExceptionsAttribute(
+      Clazz clazz, Method method, ExceptionsAttribute exceptionsAttribute) {
+    if (exceptionsAttribute.u2exceptionIndexTableLength > 0) {
+      attributeVisitor.visitExceptionsAttribute(clazz, method, exceptionsAttribute);
     }
+  }
 
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    attributeVisitor.visitCodeAttribute(clazz, method, codeAttribute);
+  }
 
-    public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
-    {
-        attributeVisitor.visitEnclosingMethodAttribute(clazz, enclosingMethodAttribute);
+  public void visitStackMapAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      StackMapAttribute stackMapAttribute) {
+    if (stackMapAttribute.u2stackMapFramesCount > 0) {
+      attributeVisitor.visitStackMapAttribute(clazz, method, codeAttribute, stackMapAttribute);
     }
+  }
 
-
-    public void visitNestHostAttribute(Clazz clazz, NestHostAttribute nestHostAttribute)
-    {
-        attributeVisitor.visitNestHostAttribute(clazz, nestHostAttribute);
+  public void visitStackMapTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      StackMapTableAttribute stackMapTableAttribute) {
+    if (stackMapTableAttribute.u2stackMapFramesCount > 0) {
+      attributeVisitor.visitStackMapTableAttribute(
+          clazz, method, codeAttribute, stackMapTableAttribute);
     }
+  }
 
-
-    public void visitNestMembersAttribute(Clazz clazz, NestMembersAttribute nestMembersAttribute)
-    {
-        if (nestMembersAttribute.u2classesCount > 0)
-        {
-            attributeVisitor.visitNestMembersAttribute(clazz, nestMembersAttribute);
-        }
+  public void visitLineNumberTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LineNumberTableAttribute lineNumberTableAttribute) {
+    if (lineNumberTableAttribute.u2lineNumberTableLength > 0) {
+      attributeVisitor.visitLineNumberTableAttribute(
+          clazz, method, codeAttribute, lineNumberTableAttribute);
     }
+  }
 
-
-    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
-    {
-        if (permittedSubclassesAttribute.u2classesCount > 0)
-        {
-            attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
-        }
+  public void visitLocalVariableTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableTableAttribute localVariableTableAttribute) {
+    if (localVariableTableAttribute.u2localVariableTableLength > 0) {
+      attributeVisitor.visitLocalVariableTableAttribute(
+          clazz, method, codeAttribute, localVariableTableAttribute);
     }
+  }
 
-
-    public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
-    {
-        if (moduleAttribute.u2requiresCount > 0 ||
-            moduleAttribute.u2exportsCount  > 0 ||
-            moduleAttribute.u2opensCount    > 0 ||
-            moduleAttribute.u2usesCount     > 0 ||
-            moduleAttribute.u2providesCount > 0)
-        {
-            attributeVisitor.visitModuleAttribute(clazz, moduleAttribute);
-        }
+  public void visitLocalVariableTypeTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableTypeTableAttribute localVariableTypeTableAttribute) {
+    if (localVariableTypeTableAttribute.u2localVariableTypeTableLength > 0) {
+      attributeVisitor.visitLocalVariableTypeTableAttribute(
+          clazz, method, codeAttribute, localVariableTypeTableAttribute);
     }
+  }
 
-
-    public void visitModuleMainClassAttribute(Clazz clazz, ModuleMainClassAttribute moduleMainClassAttribute)
-    {
-        attributeVisitor.visitModuleMainClassAttribute(clazz, moduleMainClassAttribute);
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, runtimeVisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitModulePackagesAttribute(Clazz clazz, ModulePackagesAttribute modulePackagesAttribute)
-    {
-        if (modulePackagesAttribute.u2packagesCount > 0)
-        {
-            attributeVisitor.visitModulePackagesAttribute(clazz, modulePackagesAttribute);
-        }
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitDeprecatedAttribute(Clazz clazz, DeprecatedAttribute deprecatedAttribute)
-    {
-        attributeVisitor.visitDeprecatedAttribute(clazz, deprecatedAttribute);
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, field, runtimeVisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitDeprecatedAttribute(Clazz clazz, Field field, DeprecatedAttribute deprecatedAttribute)
-    {
-        attributeVisitor.visitDeprecatedAttribute(clazz, field, deprecatedAttribute);
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, method, runtimeVisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitDeprecatedAttribute(Clazz clazz, Method method, DeprecatedAttribute deprecatedAttribute)
-    {
-        attributeVisitor.visitDeprecatedAttribute(clazz, method, deprecatedAttribute);
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, runtimeInvisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitSyntheticAttribute(Clazz clazz, SyntheticAttribute syntheticAttribute)
-    {
-        attributeVisitor.visitSyntheticAttribute(clazz, syntheticAttribute);
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitSyntheticAttribute(Clazz clazz, Field field, SyntheticAttribute syntheticAttribute)
-    {
-        attributeVisitor.visitSyntheticAttribute(clazz, field, syntheticAttribute);
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, field, runtimeInvisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitSyntheticAttribute(Clazz clazz, Method method, SyntheticAttribute syntheticAttribute)
-    {
-        attributeVisitor.visitSyntheticAttribute(clazz, method, syntheticAttribute);
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, method, runtimeInvisibleAnnotationsAttribute);
     }
+  }
 
-
-    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, signatureAttribute);
+  public void visitRuntimeVisibleParameterAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleParameterAnnotationsAttribute runtimeVisibleParameterAnnotationsAttribute) {
+    if (runtimeVisibleParameterAnnotationsAttribute.u1parametersCount > 0) {
+      attributeVisitor.visitRuntimeVisibleParameterAnnotationsAttribute(
+          clazz, method, runtimeVisibleParameterAnnotationsAttribute);
     }
+  }
 
-
-    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+  public void visitRuntimeInvisibleParameterAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleParameterAnnotationsAttribute runtimeInvisibleParameterAnnotationsAttribute) {
+    if (runtimeInvisibleParameterAnnotationsAttribute.u1parametersCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleParameterAnnotationsAttribute(
+          clazz, method, runtimeInvisibleParameterAnnotationsAttribute);
     }
+  }
 
-
-    public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, field, signatureAttribute);
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, runtimeVisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitSignatureAttribute(Clazz clazz, Method method, SignatureAttribute signatureAttribute)
-    {
-        attributeVisitor.visitSignatureAttribute(clazz, method, signatureAttribute);
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitConstantValueAttribute(Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute)
-    {
-        attributeVisitor.visitConstantValueAttribute(clazz, field, constantValueAttribute);
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, field, runtimeVisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitMethodParametersAttribute(Clazz clazz, Method method, MethodParametersAttribute exceptionsAttribute)
-    {
-        if (exceptionsAttribute.u1parametersCount > 0)
-        {
-            attributeVisitor.visitMethodParametersAttribute(clazz, method, exceptionsAttribute);
-        }
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, method, runtimeVisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitExceptionsAttribute(Clazz clazz, Method method, ExceptionsAttribute exceptionsAttribute)
-    {
-        if (exceptionsAttribute.u2exceptionIndexTableLength > 0)
-        {
-            attributeVisitor.visitExceptionsAttribute(clazz, method, exceptionsAttribute);
-        }
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, method, codeAttribute, runtimeVisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        attributeVisitor.visitCodeAttribute(clazz, method, codeAttribute);
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, runtimeInvisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitStackMapAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapAttribute stackMapAttribute)
-    {
-        if (stackMapAttribute.u2stackMapFramesCount > 0)
-        {
-            attributeVisitor.visitStackMapAttribute(clazz, method, codeAttribute, stackMapAttribute);
-        }
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitStackMapTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapTableAttribute stackMapTableAttribute)
-    {
-        if (stackMapTableAttribute.u2stackMapFramesCount > 0)
-        {
-            attributeVisitor.visitStackMapTableAttribute(clazz, method, codeAttribute, stackMapTableAttribute);
-        }
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, field, runtimeInvisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitLineNumberTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute lineNumberTableAttribute)
-    {
-        if (lineNumberTableAttribute.u2lineNumberTableLength > 0)
-        {
-            attributeVisitor.visitLineNumberTableAttribute(clazz, method, codeAttribute, lineNumberTableAttribute);
-        }
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, method, runtimeInvisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitLocalVariableTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTableAttribute localVariableTableAttribute)
-    {
-        if (localVariableTableAttribute.u2localVariableTableLength > 0)
-        {
-            attributeVisitor.visitLocalVariableTableAttribute(clazz, method, codeAttribute, localVariableTableAttribute);
-        }
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, method, codeAttribute, runtimeInvisibleTypeAnnotationsAttribute);
     }
+  }
 
-
-    public void visitLocalVariableTypeTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeTableAttribute localVariableTypeTableAttribute)
-    {
-        if (localVariableTypeTableAttribute.u2localVariableTypeTableLength > 0)
-        {
-            attributeVisitor.visitLocalVariableTypeTableAttribute(clazz, method, codeAttribute, localVariableTypeTableAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, runtimeVisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, field, runtimeVisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (runtimeVisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, method, runtimeVisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, field, runtimeInvisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (runtimeInvisibleAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, method, runtimeInvisibleAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleParameterAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleParameterAnnotationsAttribute runtimeVisibleParameterAnnotationsAttribute)
-    {
-        if (runtimeVisibleParameterAnnotationsAttribute.u1parametersCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleParameterAnnotationsAttribute(clazz, method, runtimeVisibleParameterAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleParameterAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleParameterAnnotationsAttribute runtimeInvisibleParameterAnnotationsAttribute)
-    {
-        if (runtimeInvisibleParameterAnnotationsAttribute.u1parametersCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleParameterAnnotationsAttribute(clazz, method, runtimeInvisibleParameterAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, runtimeVisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, field, runtimeVisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, runtimeVisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeVisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, codeAttribute, runtimeVisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, field, runtimeInvisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, runtimeInvisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (runtimeInvisibleTypeAnnotationsAttribute.u2annotationsCount > 0)
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, codeAttribute, runtimeInvisibleTypeAnnotationsAttribute);
-        }
-    }
-
-
-    public void visitAnnotationDefaultAttribute(Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute)
-    {
-        attributeVisitor.visitAnnotationDefaultAttribute(clazz, method, annotationDefaultAttribute);
-    }
+  public void visitAnnotationDefaultAttribute(
+      Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute) {
+    attributeVisitor.visitAnnotationDefaultAttribute(clazz, method, annotationDefaultAttribute);
+  }
 }

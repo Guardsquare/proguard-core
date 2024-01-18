@@ -21,46 +21,34 @@ import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 
 /**
- * This class provides methods to create and reuse Value instances.
- * Its {@link ReferenceValue} instances have types if they represent primitive arrays.
+ * This class provides methods to create and reuse Value instances. Its {@link ReferenceValue}
+ * instances have types if they represent primitive arrays.
  *
  * @author Eric Lafortune
  */
-public class PrimitiveTypedReferenceValueFactory
-extends      BasicValueFactory
-{
-    static final ReferenceValue REFERENCE_VALUE_NULL = new TypedReferenceValue(null, null, false, true);
+public class PrimitiveTypedReferenceValueFactory extends BasicValueFactory {
+  static final ReferenceValue REFERENCE_VALUE_NULL =
+      new TypedReferenceValue(null, null, false, true);
 
-    // Implementations for BasicValueFactory.
+  // Implementations for BasicValueFactory.
 
+  public ReferenceValue createReferenceValueNull() {
+    return REFERENCE_VALUE_NULL;
+  }
 
-    public ReferenceValue createReferenceValueNull()
-    {
-        return REFERENCE_VALUE_NULL;
-    }
+  public ReferenceValue createReferenceValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
+    return type == null
+        ? REFERENCE_VALUE_NULL
+        : !ClassUtil.isInternalArrayType(type) || ClassUtil.isInternalClassType(type)
+            ? REFERENCE_VALUE
+            : new TypedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
 
-
-    public ReferenceValue createReferenceValue(String type,
-                                               Clazz referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull)
-    {
-        return type == null ? REFERENCE_VALUE_NULL :
-            !ClassUtil.isInternalArrayType(type) ||
-             ClassUtil.isInternalClassType(type) ? REFERENCE_VALUE :
-                                                   new TypedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
-
-
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength)
-    {
-        return type == null ?
-            REFERENCE_VALUE_NULL :
-            new ArrayReferenceValue(TypeConstants.ARRAY + type,
-                                    referencedClass,
-                                    false,
-                                    arrayLength);
-    }
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength) {
+    return type == null
+        ? REFERENCE_VALUE_NULL
+        : new ArrayReferenceValue(TypeConstants.ARRAY + type, referencedClass, false, arrayLength);
+  }
 }

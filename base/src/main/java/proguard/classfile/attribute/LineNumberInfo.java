@@ -22,37 +22,25 @@ package proguard.classfile.attribute;
  *
  * @author Eric Lafortune
  */
-public class LineNumberInfo
-{
-    public int u2startPC;
-    public int u2lineNumber;
+public class LineNumberInfo {
+  public int u2startPC;
+  public int u2lineNumber;
 
+  /** Creates an uninitialized LineNumberInfo. */
+  public LineNumberInfo() {}
 
-    /**
-     * Creates an uninitialized LineNumberInfo.
-     */
-    public LineNumberInfo()
-    {
-    }
+  /** Creates an initialized LineNumberInfo. */
+  public LineNumberInfo(int u2startPC, int u2lineNumber) {
+    this.u2startPC = u2startPC;
+    this.u2lineNumber = u2lineNumber;
+  }
 
-
-    /**
-     * Creates an initialized LineNumberInfo.
-     */
-    public LineNumberInfo(int u2startPC, int u2lineNumber)
-    {
-        this.u2startPC    = u2startPC;
-        this.u2lineNumber = u2lineNumber;
-    }
-
-
-    /**
-     * Returns a description of the source of the line, if known, or null
-     * otherwise. Standard line number entries don't contain information
-     * about their source; it is assumed to be the same source file.
-     */
-    public String getSource()
-    {
-        return null;
-    }
+  /**
+   * Returns a description of the source of the line, if known, or null otherwise. Standard line
+   * number entries don't contain information about their source; it is assumed to be the same
+   * source file.
+   */
+  public String getSource() {
+    return null;
+  }
 }

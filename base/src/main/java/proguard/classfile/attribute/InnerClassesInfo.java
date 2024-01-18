@@ -26,70 +26,45 @@ import proguard.util.SimpleProcessable;
  *
  * @author Eric Lafortune
  */
-public class InnerClassesInfo extends SimpleProcessable
-{
-    public int u2innerClassIndex;
-    public int u2outerClassIndex;
-    public int u2innerNameIndex;
-    public int u2innerClassAccessFlags;
+public class InnerClassesInfo extends SimpleProcessable {
+  public int u2innerClassIndex;
+  public int u2outerClassIndex;
+  public int u2innerNameIndex;
+  public int u2innerClassAccessFlags;
 
+  /** Creates an uninitialized InnerClassesInfo. */
+  public InnerClassesInfo() {}
 
-    /**
-     * Creates an uninitialized InnerClassesInfo.
-     */
-    public InnerClassesInfo() {}
+  /** Creates an InnerClassesInfo with the given properties. */
+  public InnerClassesInfo(
+      int u2innerClassIndex,
+      int u2outerClassIndex,
+      int u2innerNameIndex,
+      int u2innerClassAccessFlags) {
+    this.u2innerClassIndex = u2innerClassIndex;
+    this.u2outerClassIndex = u2outerClassIndex;
+    this.u2innerNameIndex = u2innerNameIndex;
+    this.u2innerClassAccessFlags = u2innerClassAccessFlags;
+  }
 
-
-    /**
-     * Creates an InnerClassesInfo with the given properties.
-     */
-    public InnerClassesInfo(int u2innerClassIndex,
-                            int u2outerClassIndex,
-                            int u2innerNameIndex,
-                            int u2innerClassAccessFlags)
-    {
-        this.u2innerClassIndex       = u2innerClassIndex;
-        this.u2outerClassIndex       = u2outerClassIndex;
-        this.u2innerNameIndex        = u2innerNameIndex;
-        this.u2innerClassAccessFlags = u2innerClassAccessFlags;
+  /** Applies the given constant pool visitor to the class constant of the inner class, if any. */
+  public void innerClassConstantAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    if (u2innerClassIndex != 0) {
+      clazz.constantPoolEntryAccept(u2innerClassIndex, constantVisitor);
     }
+  }
 
-
-    /**
-     * Applies the given constant pool visitor to the class constant of the
-     * inner class, if any.
-     */
-    public void innerClassConstantAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        if (u2innerClassIndex != 0)
-        {
-            clazz.constantPoolEntryAccept(u2innerClassIndex, constantVisitor);
-        }
+  /** Applies the given constant pool visitor to the class constant of the outer class, if any. */
+  public void outerClassConstantAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    if (u2outerClassIndex != 0) {
+      clazz.constantPoolEntryAccept(u2outerClassIndex, constantVisitor);
     }
+  }
 
-
-    /**
-     * Applies the given constant pool visitor to the class constant of the
-     * outer class, if any.
-     */
-    public void outerClassConstantAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        if (u2outerClassIndex != 0)
-        {
-            clazz.constantPoolEntryAccept(u2outerClassIndex, constantVisitor);
-        }
+  /** Applies the given constant pool visitor to the Utf8 constant of the inner name, if any. */
+  public void innerNameConstantAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    if (u2innerNameIndex != 0) {
+      clazz.constantPoolEntryAccept(u2innerNameIndex, constantVisitor);
     }
-
-
-    /**
-     * Applies the given constant pool visitor to the Utf8 constant of the
-     * inner name, if any.
-     */
-    public void innerNameConstantAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        if (u2innerNameIndex != 0)
-        {
-            clazz.constantPoolEntryAccept(u2innerNameIndex, constantVisitor);
-        }
-    }
+  }
 }

@@ -33,49 +33,52 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.classfile.Signature;
 
 /**
- * The {@link JvmTaintCpa} computes abstract states containing {@link JvmTaintSource}s which can reach the given code location.
+ * The {@link JvmTaintCpa} computes abstract states containing {@link JvmTaintSource}s which can
+ * reach the given code location.
  *
  * @author Dmitry Ivanov
  */
-public class JvmTaintCpa
-    extends SimpleCpa
-{
+public class JvmTaintCpa extends SimpleCpa {
 
-    /**
-     * Create a taint CPA.
-     *
-     * @param sources a set of taint sources
-     */
-    public JvmTaintCpa(Set<? extends JvmTaintSource> sources)
-    {
-        this(createSourcesMap(sources), new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>());
-    }
+  /**
+   * Create a taint CPA.
+   *
+   * @param sources a set of taint sources
+   */
+  public JvmTaintCpa(Set<? extends JvmTaintSource> sources) {
+    this(
+        createSourcesMap(sources),
+        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>());
+  }
 
-    /**
-     * Create a taint CPA.
-     *
-     * @param fqnToSources a mapping from fully qualified names to taint sources
-     */
-    public JvmTaintCpa(Map<Signature, Set<JvmTaintSource>> signaturesToSources)
-    {
-        this(signaturesToSources, new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>());
-    }
+  /**
+   * Create a taint CPA.
+   *
+   * @param fqnToSources a mapping from fully qualified names to taint sources
+   */
+  public JvmTaintCpa(Map<Signature, Set<JvmTaintSource>> signaturesToSources) {
+    this(
+        signaturesToSources,
+        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>());
+  }
 
-    private JvmTaintCpa(Map<Signature, Set<JvmTaintSource>> sources, AbstractDomain abstractDomain)
-    {
-        super(abstractDomain,
-              new JvmTaintTransferRelation(sources),
-              new MergeJoinOperator(abstractDomain),
-              new StopJoinOperator(abstractDomain));
-    }
+  private JvmTaintCpa(Map<Signature, Set<JvmTaintSource>> sources, AbstractDomain abstractDomain) {
+    super(
+        abstractDomain,
+        new JvmTaintTransferRelation(sources),
+        new MergeJoinOperator(abstractDomain),
+        new StopJoinOperator(abstractDomain));
+  }
 
-    /**
-     * Since the used data structure is a map that uses the fqn as key, which is a parameter of the {@link TaintSource}s, this method constructs the map correctly starting from a set of sources.
-     */
-    public static Map<Signature, Set<JvmTaintSource>> createSourcesMap(Set<? extends JvmTaintSource> sources)
-    {
-        Map<Signature, Set<JvmTaintSource>> taintSourcesMap = new HashMap<>();
-        sources.forEach(s -> taintSourcesMap.computeIfAbsent(s.signature, key -> new HashSet<>()).add(s));
-        return taintSourcesMap;
-    }
+  /**
+   * Since the used data structure is a map that uses the fqn as key, which is a parameter of the
+   * {@link TaintSource}s, this method constructs the map correctly starting from a set of sources.
+   */
+  public static Map<Signature, Set<JvmTaintSource>> createSourcesMap(
+      Set<? extends JvmTaintSource> sources) {
+    Map<Signature, Set<JvmTaintSource>> taintSourcesMap = new HashMap<>();
+    sources.forEach(
+        s -> taintSourcesMap.computeIfAbsent(s.signature, key -> new HashSet<>()).add(s));
+    return taintSourcesMap;
+  }
 }

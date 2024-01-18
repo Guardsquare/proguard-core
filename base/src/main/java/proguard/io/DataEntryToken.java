@@ -18,20 +18,17 @@
 package proguard.io;
 
 /**
- * Represents a character sequence that is part of a {@link DataEntry} and that
- * has a certain meaning denoted by its {@link DataEntryTokenType}.
+ * Represents a character sequence that is part of a {@link DataEntry} and that has a certain
+ * meaning denoted by its {@link DataEntryTokenType}.
  *
  * @author Lars Vandenbergh
  */
-public class DataEntryToken
-{
-    public String             string;
-    public DataEntryTokenType type;
+public class DataEntryToken {
+  public String string;
+  public DataEntryTokenType type;
 
-
-    public DataEntryToken(String string, DataEntryTokenType type)
-    {
-        this.string = string;
-        this.type = type;
-    }
+  public DataEntryToken(String string, DataEntryTokenType type) {
+    this.string = string;
+    this.type = type;
+  }
 }

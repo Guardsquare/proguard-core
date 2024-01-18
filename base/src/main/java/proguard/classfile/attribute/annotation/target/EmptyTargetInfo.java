@@ -26,44 +26,36 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class EmptyTargetInfo extends TargetInfo
-{
-    /**
-     * Creates an uninitialized EmptyTargetInfo.
-     */
-    public EmptyTargetInfo()
-    {
-    }
+public class EmptyTargetInfo extends TargetInfo {
+  /** Creates an uninitialized EmptyTargetInfo. */
+  public EmptyTargetInfo() {}
 
+  /** Creates an initialized EmptyTargetInfo. */
+  public EmptyTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
-    /**
-     * Creates an initialized EmptyTargetInfo.
-     */
-    public EmptyTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+  // Implementations for TargetInfo.
 
+  /** Lets the visitor visit, with Field null. */
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitEmptyTargetInfo(clazz, (Field) null, typeAnnotation, this);
+  }
 
-    // Implementations for TargetInfo.
+  public void accept(
+      Clazz clazz,
+      Field field,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitEmptyTargetInfo(clazz, field, typeAnnotation, this);
+  }
 
-    /**
-     * Lets the visitor visit, with Field null.
-     */
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitEmptyTargetInfo(clazz, (Field)null, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Field field, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitEmptyTargetInfo(clazz, field, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitEmptyTargetInfo(clazz, method, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitEmptyTargetInfo(clazz, method, typeAnnotation, this);
+  }
 }

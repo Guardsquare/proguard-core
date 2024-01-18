@@ -18,12 +18,12 @@
 
 package proguard.analysis.cpa.jvm.witness;
 
-import proguard.classfile.MethodSignature;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MemoryLocation;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.classfile.MethodSignature;
 
 /**
  * A {@link JvmMemoryLocation} is a {@link MemoryLocation} specific to JVM.
@@ -31,6 +31,5 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  * @author Dmitry Ivanov
  */
 public abstract class JvmMemoryLocation
-    extends MemoryLocation<JvmCfaNode, JvmCfaEdge, MethodSignature, LatticeAbstractState, JvmAbstractState>
-{
-}
+    extends MemoryLocation<
+        JvmCfaNode, JvmCfaEdge, MethodSignature, LatticeAbstractState, JvmAbstractState> {}

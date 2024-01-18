@@ -24,62 +24,55 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 
 /**
- * A reference points at an object or an array at the heap. It is identified by the program point when it was created and the memory location where it appears first.
+ * A reference points at an object or an array at the heap. It is identified by the program point
+ * when it was created and the memory location where it appears first.
  *
  * @author Dmitry Ivanov
  */
-public class Reference
-{
+public class Reference {
 
-    /**
-     * The program point at which the reference was created.
-     */
-    public final JvmCfaNode        creationTime;
-    /**
-     * The memory location where the reference was encountered for the first time.
-     */
-    public final JvmMemoryLocation creationSite;
+  /** The program point at which the reference was created. */
+  public final JvmCfaNode creationTime;
+  /** The memory location where the reference was encountered for the first time. */
+  public final JvmMemoryLocation creationSite;
 
-    /**
-     * Create a reference.
-     *
-     * @param creationTime the program point at which the reference was created
-     * @param creationSite the memory location where the reference was encountered for the first time
-     */
-    public Reference(JvmCfaNode creationTime, JvmMemoryLocation creationSite)
-    {
-        this.creationTime = creationTime;
-        this.creationSite = creationSite;
+  /**
+   * Create a reference.
+   *
+   * @param creationTime the program point at which the reference was created
+   * @param creationSite the memory location where the reference was encountered for the first time
+   */
+  public Reference(JvmCfaNode creationTime, JvmMemoryLocation creationSite) {
+    this.creationTime = creationTime;
+    this.creationSite = creationSite;
+  }
+
+  // implementations for Object
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(creationTime, creationSite);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
-
-    // implementations for Object
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(creationTime, creationSite);
+    if (!(obj instanceof Reference)) {
+      return false;
     }
+    Reference other = (Reference) obj;
+    return creationTime.equals(other.creationTime) && creationSite.equals(other.creationSite);
+  }
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj)
-        {
-            return true;
-        }
-        if (!(obj instanceof Reference))
-        {
-            return false;
-        }
-        Reference other = (Reference) obj;
-        return creationTime.equals(other.creationTime) && creationSite.equals(other.creationSite);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Reference(" + creationSite + "@" + (creationTime instanceof JvmUnknownCfaNode
-                                                    ? "unknown"
-                                                    : creationTime.getSignature() + ":" + creationTime.getOffset() + ")");
-    }
+  @Override
+  public String toString() {
+    return "Reference("
+        + creationSite
+        + "@"
+        + (creationTime instanceof JvmUnknownCfaNode
+            ? "unknown"
+            : creationTime.getSignature() + ":" + creationTime.getOffset() + ")");
+  }
 }

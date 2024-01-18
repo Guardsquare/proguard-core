@@ -22,58 +22,43 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.visitor.*;
 
-
 /**
- * This {@link ClassVisitor} deletes attributes with a given name in the program
- * classes, fields, methods, or code attributes that it visits.
+ * This {@link ClassVisitor} deletes attributes with a given name in the program classes, fields,
+ * methods, or code attributes that it visits.
  *
  * @author Eric Lafortune
  */
-public class NamedAttributeDeleter
-implements   ClassVisitor,
-             MemberVisitor,
-             AttributeVisitor
-{
-    private final String attributeName;
+public class NamedAttributeDeleter implements ClassVisitor, MemberVisitor, AttributeVisitor {
+  private final String attributeName;
 
+  public NamedAttributeDeleter(String attributeName) {
+    this.attributeName = attributeName;
+  }
 
-    public NamedAttributeDeleter(String attributeName)
-    {
-        this.attributeName = attributeName;
-    }
+  // Implementations for ClassVisitor.
 
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    // Implementations for ClassVisitor.
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    new AttributesEditor(programClass, false).deleteAttribute(attributeName);
+  }
 
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
+  // Implementations for MemberVisitor.
 
+  public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {}
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        new AttributesEditor(programClass, false).deleteAttribute(attributeName);
-    }
+  public void visitProgramMember(ProgramClass programClass, ProgramMember programMember) {
+    new AttributesEditor(programClass, programMember, false).deleteAttribute(attributeName);
+  }
 
+  // Implementations for AttributeVisitor.
 
-    // Implementations for MemberVisitor.
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {}
-
-
-    public void visitProgramMember(ProgramClass programClass, ProgramMember programMember)
-    {
-        new AttributesEditor(programClass, programMember, false).deleteAttribute(attributeName);
-    }
-
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        new AttributesEditor((ProgramClass)clazz, (ProgramMember)method, codeAttribute, false).deleteAttribute(attributeName);
-    }
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    new AttributesEditor((ProgramClass) clazz, (ProgramMember) method, codeAttribute, false)
+        .deleteAttribute(attributeName);
+  }
 }

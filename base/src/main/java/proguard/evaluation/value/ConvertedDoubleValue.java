@@ -18,44 +18,30 @@
 package proguard.evaluation.value;
 
 /**
- * This {@link DoubleValue} represents a double value that is converted from another
- * scalar value.
+ * This {@link DoubleValue} represents a double value that is converted from another scalar value.
  *
  * @author Eric Lafortune
  */
-public final class ConvertedDoubleValue extends SpecificDoubleValue
-{
-    private final Value value;
+public final class ConvertedDoubleValue extends SpecificDoubleValue {
+  private final Value value;
 
+  /** Creates a new converted double value of the given value. */
+  public ConvertedDoubleValue(Value value) {
+    this.value = value;
+  }
 
-    /**
-     * Creates a new converted double value of the given value.
-     */
-    public ConvertedDoubleValue(Value value)
-    {
-        this.value = value;
-    }
+  // Implementations for Object.
 
+  public boolean equals(Object object) {
+    return this == object
+        || super.equals(object) && this.value.equals(((ConvertedDoubleValue) object).value);
+  }
 
-    // Implementations for Object.
+  public int hashCode() {
+    return super.hashCode() ^ value.hashCode();
+  }
 
-    public boolean equals(Object object)
-    {
-        return this == object ||
-               super.equals(object) &&
-               this.value.equals(((ConvertedDoubleValue)object).value);
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               value.hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "(double)("+value+")";
-    }
+  public String toString() {
+    return "(double)(" + value + ")";
+  }
 }

@@ -26,59 +26,35 @@ import proguard.util.SimpleProcessable;
  *
  * @author Joachim Vandersmissen
  */
-public class OpensInfo extends SimpleProcessable
-{
-    public int   u2opensIndex;
-    public int   u2opensFlags;
-    public int   u2opensToCount;
-    public int[] u2opensToIndex;
+public class OpensInfo extends SimpleProcessable {
+  public int u2opensIndex;
+  public int u2opensFlags;
+  public int u2opensToCount;
+  public int[] u2opensToIndex;
 
+  /** Creates an uninitialized OpensInfo. */
+  public OpensInfo() {}
 
-    /**
-     * Creates an uninitialized OpensInfo.
-     */
-    public OpensInfo()
-    {
+  /** Creates an initialized OpensInfo. */
+  public OpensInfo(int u2opensIndex, int u2opensFlags, int u2opensToCount, int[] u2opensToIndex) {
+    this.u2opensIndex = u2opensIndex;
+    this.u2opensFlags = u2opensFlags;
+    this.u2opensToCount = u2opensToCount;
+    this.u2opensToIndex = u2opensToIndex;
+  }
+
+  /** Applies the given constant pool visitor to the package constant of the package, if any. */
+  public void packageAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    if (u2opensIndex != 0) {
+      clazz.constantPoolEntryAccept(u2opensIndex, constantVisitor);
     }
+  }
 
-
-    /**
-     * Creates an initialized OpensInfo.
-     */
-    public OpensInfo(int   u2opensIndex,
-                     int   u2opensFlags,
-                     int   u2opensToCount,
-                     int[] u2opensToIndex)
-    {
-        this.u2opensIndex   = u2opensIndex;
-        this.u2opensFlags   = u2opensFlags;
-        this.u2opensToCount = u2opensToCount;
-        this.u2opensToIndex = u2opensToIndex;
+  /** Applies the given constant pool visitor to all targets. */
+  public void targetsAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    // Loop over all targets.
+    for (int index = 0; index < u2opensToCount; index++) {
+      clazz.constantPoolEntryAccept(u2opensToIndex[index], constantVisitor);
     }
-
-
-    /**
-     * Applies the given constant pool visitor to the package constant of the
-     * package, if any.
-     */
-    public void packageAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        if (u2opensIndex != 0)
-        {
-            clazz.constantPoolEntryAccept(u2opensIndex, constantVisitor);
-        }
-    }
-
-
-    /**
-     * Applies the given constant pool visitor to all targets.
-     */
-    public void targetsAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        // Loop over all targets.
-        for (int index = 0; index < u2opensToCount; index++)
-        {
-            clazz.constantPoolEntryAccept(u2opensToIndex[index], constantVisitor);
-        }
-    }
+  }
 }

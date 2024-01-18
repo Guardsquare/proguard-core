@@ -28,69 +28,53 @@ import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.classfile.Signature;
 
-/**
- * A {@link JvmTaintSink} triggered if the return value of
- * the specified method is tainted.
- */
-public class JvmReturnTaintSink
-    extends JvmTaintSink
-{
+/** A {@link JvmTaintSink} triggered if the return value of the specified method is tainted. */
+public class JvmReturnTaintSink extends JvmTaintSink {
 
-    public JvmReturnTaintSink(Signature signature)
-    {
-        super(signature);
+  public JvmReturnTaintSink(Signature signature) {
+    super(signature);
+  }
+
+  public JvmReturnTaintSink(Signature signature, Predicate<TaintSource> isValidForSource) {
+    super(signature, isValidForSource);
+  }
+
+  // Implementations for JvmTaintSink
+
+  /**
+   * The location of values returned by a method is the top of the stack. Since in our convention
+   * just the top value is tainted for category 2 types just the top is enough.
+   */
+  @Override
+  public Set<JvmMemoryLocation> getMemoryLocations() {
+    return Collections.singleton(new JvmStackLocation(0));
+  }
+
+  /** Returns true on the return edge of the sink method. */
+  @Override
+  public boolean matchCfaEdge(JvmCfaEdge edge) {
+    return edge instanceof JvmInstructionCfaEdge && edge.getTarget().isReturnExitNode();
+  }
+
+  // Implementations for Object
+
+  @Override
+  public boolean equals(Object o) {
+    return super.equals(o);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder("[JvmReturnTaintSink] ").append(signature);
+    if (!IS_VALID_FOR_SOURCE_DEFAULT.equals(isValidForSource)) {
+      result.append(", filtered by source: ").append(isValidForSource);
     }
 
-    public JvmReturnTaintSink(Signature signature, Predicate<TaintSource> isValidForSource)
-    {
-        super(signature, isValidForSource);
-    }
-
-    // Implementations for JvmTaintSink
-
-    /**
-     * The location of values returned by a method is the top of the stack.
-     * Since in our convention just the top value is tainted for category 2
-     * types just the top is enough.
-     */
-    @Override
-    public Set<JvmMemoryLocation> getMemoryLocations()
-    {
-        return Collections.singleton(new JvmStackLocation(0));
-    }
-
-    /**
-     * Returns true on the return edge of the sink method.
-     */
-    @Override
-    public boolean matchCfaEdge(JvmCfaEdge edge)
-    {
-        return edge instanceof JvmInstructionCfaEdge && edge.getTarget().isReturnExitNode();
-    }
-
-    // Implementations for Object
-
-    @Override
-    public boolean equals(Object o)
-    {
-        return super.equals(o);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return super.hashCode();
-    }
-
-    @Override
-    public String toString()
-    {
-        StringBuilder result = new StringBuilder("[JvmReturnTaintSink] ").append(signature);
-        if (!IS_VALID_FOR_SOURCE_DEFAULT.equals(isValidForSource))
-        {
-            result.append(", filtered by source: ").append(isValidForSource);
-        }
-
-        return result.toString();
-    }
+    return result.toString();
+  }
 }

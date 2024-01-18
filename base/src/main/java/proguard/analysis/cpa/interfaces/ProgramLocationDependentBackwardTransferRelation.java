@@ -18,21 +18,23 @@
 
 package proguard.analysis.cpa.interfaces;
 
+import java.util.List;
 import proguard.classfile.Signature;
 
-import java.util.List;
-
 /**
- * An interface for {@link TransferRelation}s that depend on the {@link proguard.analysis.cpa.defaults.Cfa} location for which the successor can be defined for the entering edges of the current location.
+ * An interface for {@link TransferRelation}s that depend on the {@link
+ * proguard.analysis.cpa.defaults.Cfa} location for which the successor can be defined for the
+ * entering edges of the current location.
  *
  * @author James Hamilton
  */
-
-public interface ProgramLocationDependentBackwardTransferRelation<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT extends CfaEdge<CfaNodeT>, SignatureT extends Signature>
-        extends ProgramLocationDependentTransferRelation<CfaNodeT, CfaEdgeT, SignatureT>
-{
-    @Override
-    default List<CfaEdgeT> getEdges(ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state) {
-        return state.getProgramLocation().getEnteringEdges();
-    }
+public interface ProgramLocationDependentBackwardTransferRelation<
+        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
+        CfaEdgeT extends CfaEdge<CfaNodeT>,
+        SignatureT extends Signature>
+    extends ProgramLocationDependentTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> {
+  @Override
+  default List<CfaEdgeT> getEdges(ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state) {
+    return state.getProgramLocation().getEnteringEdges();
+  }
 }

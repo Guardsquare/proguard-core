@@ -25,52 +25,45 @@ import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.ArrayUtil;
 
 /**
- * This {@link ConstantVisitor} and {@link ClassVisitor} adds the class constants or the
- * classes that it visits to the given target permitted classes attribute.
+ * This {@link ConstantVisitor} and {@link ClassVisitor} adds the class constants or the classes
+ * that it visits to the given target permitted classes attribute.
  */
-public class PermittedSubclassAdder
-implements   ConstantVisitor,
-             ClassVisitor
+public class PermittedSubclassAdder implements ConstantVisitor, ClassVisitor {
 
-{
-    private final ConstantPoolEditor   constantPoolEditor;
-    private final PermittedSubclassesAttribute targetPermittedSubclassesAttribute;
+  private final ConstantPoolEditor constantPoolEditor;
+  private final PermittedSubclassesAttribute targetPermittedSubclassesAttribute;
 
+  /**
+   * Creates a new PermittedSubclassAdder that will add classes to the given target nest members
+   * attribute.
+   */
+  public PermittedSubclassAdder(
+      ProgramClass targetClass, PermittedSubclassesAttribute targetPermittedSubclassesAttribute) {
+    this.constantPoolEditor = new ConstantPoolEditor(targetClass);
+    this.targetPermittedSubclassesAttribute = targetPermittedSubclassesAttribute;
+  }
 
-    /**
-     * Creates a new PermittedSubclassAdder that will add classes to the
-     * given target nest members attribute.
-     */
-    public PermittedSubclassAdder(ProgramClass                 targetClass,
-                                  PermittedSubclassesAttribute targetPermittedSubclassesAttribute)
-    {
-        this.constantPoolEditor                 = new ConstantPoolEditor(targetClass);
-        this.targetPermittedSubclassesAttribute = targetPermittedSubclassesAttribute;
-    }
+  // Implementations for ConstantVisitor.
 
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-    // Implementations for ConstantVisitor.
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    targetPermittedSubclassesAttribute.u2classes =
+        ArrayUtil.add(
+            targetPermittedSubclassesAttribute.u2classes,
+            targetPermittedSubclassesAttribute.u2classesCount++,
+            constantPoolEditor.addClassConstant(
+                classConstant.getName(clazz), classConstant.referencedClass));
+  }
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+  // Implementations for ClassVisitor.
 
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        targetPermittedSubclassesAttribute.u2classes =
-            ArrayUtil.add(targetPermittedSubclassesAttribute.u2classes,
-                          targetPermittedSubclassesAttribute.u2classesCount++,
-                          constantPoolEditor.addClassConstant(classConstant.getName(clazz),
-                                                              classConstant.referencedClass));
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        targetPermittedSubclassesAttribute.u2classes =
-            ArrayUtil.add(targetPermittedSubclassesAttribute.u2classes,
-                          targetPermittedSubclassesAttribute.u2classesCount++,
-                          constantPoolEditor.addClassConstant(clazz));
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    targetPermittedSubclassesAttribute.u2classes =
+        ArrayUtil.add(
+            targetPermittedSubclassesAttribute.u2classes,
+            targetPermittedSubclassesAttribute.u2classesCount++,
+            constantPoolEditor.addClassConstant(clazz));
+  }
 }

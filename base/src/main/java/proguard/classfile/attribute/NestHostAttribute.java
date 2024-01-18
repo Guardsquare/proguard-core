@@ -25,44 +25,27 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class NestHostAttribute extends Attribute
-{
-    public int u2hostClassIndex;
+public class NestHostAttribute extends Attribute {
+  public int u2hostClassIndex;
 
+  /** Creates an uninitialized NestHostAttribute. */
+  public NestHostAttribute() {}
 
-    /**
-     * Creates an uninitialized NestHostAttribute.
-     */
-    public NestHostAttribute()
-    {
-    }
+  /** Creates an initialized NestHostAttribute. */
+  public NestHostAttribute(int u2attributeNameIndex, int u2hostClassIndex) {
+    super(u2attributeNameIndex);
 
+    this.u2hostClassIndex = u2hostClassIndex;
+  }
 
-    /**
-     * Creates an initialized NestHostAttribute.
-     */
-    public NestHostAttribute(int u2attributeNameIndex,
-                             int u2hostClassIndex)
-    {
-        super(u2attributeNameIndex);
+  /** Returns the host class name. */
+  public String getHostClassName(Clazz clazz) {
+    return clazz.getClassName(u2hostClassIndex);
+  }
 
-        this.u2hostClassIndex = u2hostClassIndex;
-    }
+  // Implementations for Attribute.
 
-
-    /**
-     * Returns the host class name.
-     */
-    public String getHostClassName(Clazz clazz)
-    {
-        return clazz.getClassName(u2hostClassIndex);
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitNestHostAttribute(clazz, this);
-    }
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitNestHostAttribute(clazz, this);
+  }
 }

@@ -16,30 +16,24 @@
  * limitations under the License.
  */
 
-
 package proguard.classfile.kotlin;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 
 /**
- * A Kotlin metadata type that corresponds to metadata that
- * could not be parsed correctly.
+ * A Kotlin metadata type that corresponds to metadata that could not be parsed correctly.
  *
  * @author James Hamilton
  */
-public class UnsupportedKotlinMetadata extends KotlinMetadata
-{
+public class UnsupportedKotlinMetadata extends KotlinMetadata {
 
-    public UnsupportedKotlinMetadata(int k, int[] mv, int xi, String xs, String pn)
-    {
-        super(k, mv, xi, xs, pn);
-    }
+  public UnsupportedKotlinMetadata(int k, int[] mv, int xi, String xs, String pn) {
+    super(k, mv, xi, xs, pn);
+  }
 
-
-    @Override
-    public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        kotlinMetadataVisitor.visitUnsupportedKotlinMetadata(clazz, this);
-    }
+  @Override
+  public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor) {
+    kotlinMetadataVisitor.visitUnsupportedKotlinMetadata(clazz, this);
+  }
 }

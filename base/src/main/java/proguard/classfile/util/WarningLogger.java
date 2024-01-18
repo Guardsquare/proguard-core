@@ -17,70 +17,56 @@
  */
 package proguard.classfile.util;
 
+import java.util.List;
 import org.apache.logging.log4j.Logger;
 
-import java.util.List;
+public class WarningLogger extends WarningPrinter {
 
-public class WarningLogger extends WarningPrinter
-{
+  private final Logger logger;
+  private int warningCount = 0;
 
-    private final Logger logger;
-    private int warningCount = 0;
+  public WarningLogger(Logger logger) {
+    super(null);
+    this.logger = logger;
+  }
 
-    public WarningLogger(Logger logger)
-    {
-        super(null);
-        this.logger = logger;
+  public WarningLogger(Logger logger, List<String> classFilter) {
+    super(null, classFilter);
+    this.logger = logger;
+  }
+
+  @Override
+  public int getWarningCount() {
+    return warningCount;
+  }
+
+  @Override
+  public void print(String className, String message) {
+    if (accepts(className)) {
+      logger.warn(message);
+      warningCount++;
     }
+  }
 
-    public WarningLogger(Logger logger, List<String> classFilter)
-    {
-        super(null, classFilter);
-        this.logger = logger;
+  @Override
+  public void print(String className, String className2, String message) {
+    if (accepts(className, className2)) {
+      logger.warn(message);
+      warningCount++;
     }
+  }
 
-    @Override
-    public int getWarningCount()
-    {
-        return warningCount;
+  @Override
+  public void note(String className, String message) {
+    if (accepts(className)) {
+      logger.info(message);
     }
+  }
 
-    @Override
-    public void print(String className, String message)
-    {
-        if (accepts(className))
-        {
-            logger.warn(message);
-            warningCount++;
-        }
+  @Override
+  public void note(String className, String className2, String message) {
+    if (accepts(className, className2)) {
+      logger.info(message);
     }
-
-    @Override
-    public void print(String className, String className2, String message)
-    {
-        if (accepts(className, className2))
-        {
-            logger.warn(message);
-            warningCount++;
-        }
-    }
-
-    @Override
-    public void note(String className, String message)
-    {
-        if (accepts(className))
-        {
-            logger.info(message);
-        }
-    }
-
-    @Override
-    public void note(String className, String className2, String message)
-    {
-        if (accepts(className, className2))
-        {
-            logger.info(message);
-        }
-    }
-
+  }
 }

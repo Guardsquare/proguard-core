@@ -22,13 +22,11 @@ package proguard.util;
  *
  * @author Eric Lafortune
  */
-public class IdentityStringFunction implements StringFunction
-{
-    // Implementations for StringFunction.
+public class IdentityStringFunction implements StringFunction {
+  // Implementations for StringFunction.
 
-    @Override
-    public String transform(String string)
-    {
-        return string;
-    }
+  @Override
+  public String transform(String string) {
+    return string;
+  }
 }

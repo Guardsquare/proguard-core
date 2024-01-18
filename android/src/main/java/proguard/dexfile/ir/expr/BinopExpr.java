@@ -47,31 +47,31 @@ import proguard.dexfile.ir.expr.Value.E2Expr;
  * @see VT#XOR
  */
 public class BinopExpr extends E2Expr {
-    public String type;
+  public String type;
 
-    public BinopExpr(VT vt, Value op1, Value op2, String type) {
-        super(vt, op1, op2);
-        this.type = type;
-    }
+  public BinopExpr(VT vt, Value op1, Value op2, String type) {
+    super(vt, op1, op2);
+    this.type = type;
+  }
 
-    @Override
-    protected void releaseMemory() {
-        type = null;
-        super.releaseMemory();
-    }
+  @Override
+  protected void releaseMemory() {
+    type = null;
+    super.releaseMemory();
+  }
 
-    @Override
-    public Value clone() {
-        return new BinopExpr(vt, op1.trim().clone(), op2.trim().clone(), type);
-    }
+  @Override
+  public Value clone() {
+    return new BinopExpr(vt, op1.trim().clone(), op2.trim().clone(), type);
+  }
 
-    @Override
-    public Value clone(LabelAndLocalMapper mapper) {
-        return new BinopExpr(vt, op1.clone(mapper), op2.clone(mapper), type);
-    }
+  @Override
+  public Value clone(LabelAndLocalMapper mapper) {
+    return new BinopExpr(vt, op1.clone(mapper), op2.clone(mapper), type);
+  }
 
-    @Override
-    public String toString0() {
-        return "(" + op1 + " " + super.vt + " " + op2 + ")";
-    }
+  @Override
+  public String toString0() {
+    return "(" + op1 + " " + super.vt + " " + op2 + ")";
+  }
 }

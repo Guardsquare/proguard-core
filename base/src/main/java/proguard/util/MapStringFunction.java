@@ -24,38 +24,29 @@ import java.util.Map;
  *
  * @author Eric Lafortune
  */
-public class MapStringFunction implements StringFunction
-{
-    private final Map    map;
-    private final String defaultString;
+public class MapStringFunction implements StringFunction {
+  private final Map map;
+  private final String defaultString;
 
+  /** Creates a new MapStringFunction based on the given map. */
+  public MapStringFunction(Map map) {
+    this(map, null);
+  }
 
-    /**
-     * Creates a new MapStringFunction based on the given map.
-     */
-    public MapStringFunction(Map map)
-    {
-        this(map, null);
-    }
+  /**
+   * Creates a new MapStringFunction based on the given map, with a default string for strings that
+   * are not in the map.
+   */
+  public MapStringFunction(Map map, String defaultString) {
+    this.map = map;
+    this.defaultString = defaultString;
+  }
 
+  // Implementations for StringFunction.
 
-    /**
-     * Creates a new MapStringFunction based on the given map,
-     * with a default string for strings that are not in the map.
-     */
-    public MapStringFunction(Map map, String defaultString)
-    {
-        this.map           = map;
-        this.defaultString = defaultString;
-    }
+  public String transform(String string) {
+    String mappedString = (String) map.get(string);
 
-
-    // Implementations for StringFunction.
-
-    public String transform(String string)
-    {
-        String mappedString = (String)map.get(string);
-
-        return mappedString != null ? mappedString : defaultString;
-    }
+    return mappedString != null ? mappedString : defaultString;
+  }
 }

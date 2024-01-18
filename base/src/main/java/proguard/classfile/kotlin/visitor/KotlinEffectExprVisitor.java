@@ -20,44 +20,43 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinEffectExprVisitor
-{
-    void visitAnyEffectExpression(Clazz                          clazz,
-                                  KotlinEffectMetadata           kotlinEffectMetadata,
-                                  KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata);
+public interface KotlinEffectExprVisitor {
+  void visitAnyEffectExpression(
+      Clazz clazz,
+      KotlinEffectMetadata kotlinEffectMetadata,
+      KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata);
 
+  // Nested.
 
-    // Nested.
+  default void visitAndRHSExpression(
+      Clazz clazz,
+      KotlinEffectMetadata kotlinEffectMetadata,
+      KotlinEffectExpressionMetadata lhs,
+      KotlinEffectExpressionMetadata rhs) {
+    visitAnyEffectExpression(clazz, kotlinEffectMetadata, rhs);
+  }
 
-    default void visitAndRHSExpression(Clazz                          clazz,
-                                       KotlinEffectMetadata           kotlinEffectMetadata,
-                                       KotlinEffectExpressionMetadata lhs,
-                                       KotlinEffectExpressionMetadata rhs)
-    {
-        visitAnyEffectExpression(clazz, kotlinEffectMetadata, rhs);
-    }
+  default void visitOrRHSExpression(
+      Clazz clazz,
+      KotlinEffectMetadata kotlinEffectMetadata,
+      KotlinEffectExpressionMetadata lhs,
+      KotlinEffectExpressionMetadata rhs) {
+    visitAnyEffectExpression(clazz, kotlinEffectMetadata, rhs);
+  }
 
-    default void visitOrRHSExpression(Clazz                          clazz,
-                                      KotlinEffectMetadata           kotlinEffectMetadata,
-                                      KotlinEffectExpressionMetadata lhs,
-                                      KotlinEffectExpressionMetadata rhs)
-    {
-        visitAnyEffectExpression(clazz, kotlinEffectMetadata, rhs);
-    }
+  // Effects.
 
-    // Effects.
+  default void visitConstructorArgExpression(
+      Clazz clazz,
+      KotlinEffectMetadata kotlinEffectMetadata,
+      KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata) {
+    visitAnyEffectExpression(clazz, kotlinEffectMetadata, kotlinEffectExpressionMetadata);
+  }
 
-    default void visitConstructorArgExpression(Clazz                          clazz,
-                                               KotlinEffectMetadata           kotlinEffectMetadata,
-                                               KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
-    {
-        visitAnyEffectExpression(clazz, kotlinEffectMetadata, kotlinEffectExpressionMetadata);
-    }
-
-    default void visitConclusionExpression(Clazz                          clazz,
-                                           KotlinEffectMetadata           kotlinEffectMetadata,
-                                           KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata)
-    {
-        visitAnyEffectExpression(clazz, kotlinEffectMetadata, kotlinEffectExpressionMetadata);
-    }
+  default void visitConclusionExpression(
+      Clazz clazz,
+      KotlinEffectMetadata kotlinEffectMetadata,
+      KotlinEffectExpressionMetadata kotlinEffectExpressionMetadata) {
+    visitAnyEffectExpression(clazz, kotlinEffectMetadata, kotlinEffectExpressionMetadata);
+  }
 }

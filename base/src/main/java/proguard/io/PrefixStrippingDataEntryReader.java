@@ -20,42 +20,32 @@ package proguard.io;
 import java.io.IOException;
 
 /**
- * This {@link DataEntryReader} delegates to a given {@link DataEntryReader}, each time
- * stripping a possible prefix from the read data entry name.
+ * This {@link DataEntryReader} delegates to a given {@link DataEntryReader}, each time stripping a
+ * possible prefix from the read data entry name.
  *
  * @author Eric Lafortune
  */
-public class PrefixStrippingDataEntryReader implements DataEntryReader
-{
-    private final String          prefix;
-    private final DataEntryReader dataEntryReader;
+public class PrefixStrippingDataEntryReader implements DataEntryReader {
+  private final String prefix;
+  private final DataEntryReader dataEntryReader;
 
+  /** Creates a new PrefixStrippingDataEntryReader. */
+  public PrefixStrippingDataEntryReader(String prefix, DataEntryReader dataEntryReader) {
+    this.prefix = prefix;
+    this.dataEntryReader = dataEntryReader;
+  }
 
-    /**
-     * Creates a new PrefixStrippingDataEntryReader.
-     */
-    public PrefixStrippingDataEntryReader(String          prefix,
-                                          DataEntryReader dataEntryReader)
-    {
-        this.prefix          = prefix;
-        this.dataEntryReader = dataEntryReader;
+  // Implementation for DataEntryReader.
+
+  @Override
+  public void read(DataEntry dataEntry) throws IOException {
+    // Strip the prefix if necessary.
+    String name = dataEntry.getName();
+    if (name.startsWith(prefix)) {
+      dataEntry = new RenamedDataEntry(dataEntry, name.substring(prefix.length()));
     }
 
-
-    // Implementation for DataEntryReader.
-
-    @Override
-    public void read(DataEntry dataEntry) throws IOException
-    {
-        // Strip the prefix if necessary.
-        String name = dataEntry.getName();
-        if (name.startsWith(prefix))
-        {
-            dataEntry = new RenamedDataEntry(dataEntry,
-                                             name.substring(prefix.length()));
-        }
-
-        // Read the data entry.
-        dataEntryReader.read(dataEntry);
-    }
+    // Read the data entry.
+    dataEntryReader.read(dataEntry);
+  }
 }

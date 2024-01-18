@@ -23,47 +23,43 @@ import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 
 /**
- * This {@link CpaRun} wraps another {@code InputCpaRunT} and allows a following {@code CpaT}
- * to be constructed using the output of the former run.
+ * This {@link CpaRun} wraps another {@code InputCpaRunT} and allows a following {@code CpaT} to be
+ * constructed using the output of the former run.
  *
  * @author Dmitry Ivanov
  */
-public abstract class SequentialCpaRun<CpaT extends ConfigurableProgramAnalysis,
-                                       AbstractStateT extends AbstractState,
-                                       InputCpaRunT extends CpaRun>
-    extends CpaRun<CpaT, AbstractStateT>
-{
+public abstract class SequentialCpaRun<
+        CpaT extends ConfigurableProgramAnalysis,
+        AbstractStateT extends AbstractState,
+        InputCpaRunT extends CpaRun>
+    extends CpaRun<CpaT, AbstractStateT> {
 
-    protected final InputCpaRunT inputCpaRun;
-    protected       ReachedSet   inputReachedSet;
-    protected       ReachedSet   outputReachedSet;
+  protected final InputCpaRunT inputCpaRun;
+  protected ReachedSet inputReachedSet;
+  protected ReachedSet outputReachedSet;
 
-    /**
-     * Create a CPA run which accepts the reached set of another CPA run.
-     *
-     * @param inputCpaRun the inner CPA run
-     */
-    public SequentialCpaRun(InputCpaRunT inputCpaRun)
-    {
-        this.inputCpaRun = inputCpaRun;
-    }
+  /**
+   * Create a CPA run which accepts the reached set of another CPA run.
+   *
+   * @param inputCpaRun the inner CPA run
+   */
+  public SequentialCpaRun(InputCpaRunT inputCpaRun) {
+    this.inputCpaRun = inputCpaRun;
+  }
 
-    // implementations for CpaRun
+  // implementations for CpaRun
 
-    @Override
-    public ReachedSet execute()
-    {
-        inputReachedSet = inputCpaRun.execute();
-        return outputReachedSet = super.execute();
-    }
+  @Override
+  public ReachedSet execute() {
+    inputReachedSet = inputCpaRun.execute();
+    return outputReachedSet = super.execute();
+  }
 
-    public ReachedSet getOutputReachedSet()
-    {
-        return outputReachedSet == null ? outputReachedSet = execute() : outputReachedSet;
-    }
+  public ReachedSet getOutputReachedSet() {
+    return outputReachedSet == null ? outputReachedSet = execute() : outputReachedSet;
+  }
 
-    public InputCpaRunT getInputCpaRun()
-    {
-        return inputCpaRun;
-    }
+  public InputCpaRunT getInputCpaRun() {
+    return inputCpaRun;
+  }
 }

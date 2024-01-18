@@ -22,113 +22,86 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.visitor.*;
 
 /**
- * This {@link ClassVisitor}, {@link MemberVisitor}, {@link
- * RecordComponentInfoVisitor} and {@link AttributeVisitor} lets a given
- * {@link AttributeVisitor} visit all Attribute instances of the program classes,
- * program class members, or code attributes, respectively, that it visits.
+ * This {@link ClassVisitor}, {@link MemberVisitor}, {@link RecordComponentInfoVisitor} and {@link
+ * AttributeVisitor} lets a given {@link AttributeVisitor} visit all Attribute instances of the
+ * program classes, program class members, or code attributes, respectively, that it visits.
  *
  * @author Eric Lafortune
  */
 public class AllAttributeVisitor
-implements   ClassVisitor,
-             MemberVisitor,
-             RecordComponentInfoVisitor,
-             AttributeVisitor
-{
-    private final boolean          deep;
-    private final AttributeVisitor attributeVisitor;
+    implements ClassVisitor, MemberVisitor, RecordComponentInfoVisitor, AttributeVisitor {
+  private final boolean deep;
+  private final AttributeVisitor attributeVisitor;
 
+  /**
+   * Creates a new shallow AllAttributeVisitor.
+   *
+   * @param attributeVisitor the AttributeVisitor to which visits will be delegated.
+   */
+  public AllAttributeVisitor(AttributeVisitor attributeVisitor) {
+    this(false, attributeVisitor);
+  }
 
-    /**
-     * Creates a new shallow AllAttributeVisitor.
-     * @param attributeVisitor the AttributeVisitor to which visits will be
-     *                         delegated.
-     */
-    public AllAttributeVisitor(AttributeVisitor attributeVisitor)
-    {
-        this(false, attributeVisitor);
+  /**
+   * Creates a new optionally deep AllAttributeVisitor.
+   *
+   * @param deep specifies whether the attributes contained further down the class structure should
+   *     be visited too.
+   * @param attributeVisitor the AttributeVisitor to which visits will be delegated.
+   */
+  public AllAttributeVisitor(boolean deep, AttributeVisitor attributeVisitor) {
+    this.deep = deep;
+    this.attributeVisitor = attributeVisitor;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    programClass.attributesAccept(attributeVisitor);
+
+    // Visit the attributes further down the class structure, if required.
+    if (deep) {
+      programClass.fieldsAccept(this);
+      programClass.methodsAccept(this);
+      programClass.attributesAccept(this);
     }
+  }
 
+  // Implementations for MemberVisitor.
 
-    /**
-     * Creates a new optionally deep AllAttributeVisitor.
-     * @param deep             specifies whether the attributes contained
-     *                         further down the class structure should be
-     *                         visited too.
-     * @param attributeVisitor the AttributeVisitor to which visits will be
-     *                         delegated.
-     */
-    public AllAttributeVisitor(boolean          deep,
-                               AttributeVisitor attributeVisitor)
-    {
-        this.deep             = deep;
-        this.attributeVisitor = attributeVisitor;
+  public void visitProgramMember(ProgramClass programClass, ProgramMember programMember) {
+    programMember.attributesAccept(programClass, attributeVisitor);
+
+    // Visit the attributes further down the member structure, if required.
+    if (deep) {
+      programMember.attributesAccept(programClass, this);
     }
+  }
 
+  public void visitLibraryMember(LibraryClass programClass, LibraryMember programMember) {}
 
-    // Implementations for ClassVisitor.
+  // Implementations for AttributeVisitor.
 
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        programClass.attributesAccept(attributeVisitor);
-
-        // Visit the attributes further down the class structure, if required.
-        if (deep)
-        {
-            programClass.fieldsAccept(this);
-            programClass.methodsAccept(this);
-            programClass.attributesAccept(this);
-        }
+  public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute) {
+    // Visit the attributes further down the components, if required.
+    if (deep) {
+      recordAttribute.componentsAccept(clazz, this);
     }
+  }
 
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    codeAttribute.attributesAccept(clazz, method, attributeVisitor);
+  }
 
-    // Implementations for MemberVisitor.
+  // Implementations for RecordComponentInfoVisitor.
 
-    public void visitProgramMember(ProgramClass programClass, ProgramMember programMember)
-    {
-        programMember.attributesAccept(programClass, attributeVisitor);
-
-        // Visit the attributes further down the member structure, if required.
-        if (deep)
-        {
-            programMember.attributesAccept(programClass, this);
-        }
-    }
-
-
-    public void visitLibraryMember(LibraryClass programClass, LibraryMember programMember) {}
-
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
-    {
-        // Visit the attributes further down the components, if required.
-        if (deep)
-        {
-            recordAttribute.componentsAccept(clazz, this);
-        }
-    }
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        codeAttribute.attributesAccept(clazz, method, attributeVisitor);
-    }
-
-
-    // Implementations for RecordComponentInfoVisitor.
-
-    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
-    {
-        recordComponentInfo.attributesAccept(clazz, attributeVisitor);
-    }
+  public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo) {
+    recordComponentInfo.attributesAccept(clazz, attributeVisitor);
+  }
 }

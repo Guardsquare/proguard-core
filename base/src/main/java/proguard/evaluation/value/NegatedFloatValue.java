@@ -22,47 +22,32 @@ package proguard.evaluation.value;
  *
  * @author Eric Lafortune
  */
-public final class NegatedFloatValue extends SpecificFloatValue
-{
-    private final FloatValue floatValue;
+public final class NegatedFloatValue extends SpecificFloatValue {
+  private final FloatValue floatValue;
 
+  /** Creates a new negated float value of the given float value. */
+  public NegatedFloatValue(FloatValue floatValue) {
+    this.floatValue = floatValue;
+  }
 
-    /**
-     * Creates a new negated float value of the given float value.
-     */
-    public NegatedFloatValue(FloatValue floatValue)
-    {
-        this.floatValue = floatValue;
-    }
+  // Implementations of unary methods of FloatValue.
 
+  public FloatValue negate() {
+    return floatValue;
+  }
 
-    // Implementations of unary methods of FloatValue.
+  // Implementations for Object.
 
-    public FloatValue negate()
-    {
-        return floatValue;
-    }
+  public boolean equals(Object object) {
+    return this == object
+        || super.equals(object) && this.floatValue.equals(((NegatedFloatValue) object).floatValue);
+  }
 
+  public int hashCode() {
+    return super.hashCode() ^ floatValue.hashCode();
+  }
 
-    // Implementations for Object.
-
-    public boolean equals(Object object)
-    {
-        return this == object ||
-               super.equals(object) &&
-               this.floatValue.equals(((NegatedFloatValue)object).floatValue);
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               floatValue.hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "-"+floatValue;
-    }
+  public String toString() {
+    return "-" + floatValue;
+  }
 }

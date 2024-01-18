@@ -18,5 +18,5 @@ package proguard.dexfile.ir.ts.an;
 
 public interface AnalyzeValue {
 
-    public char toRsp();
+  public char toRsp();
 }

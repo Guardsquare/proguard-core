@@ -18,72 +18,66 @@
 
 package proguard.resources.kotlinmodule.io;
 
-import kotlinx.metadata.jvm.KmModule;
-import kotlinx.metadata.jvm.KmPackageParts;
-import kotlinx.metadata.jvm.KotlinModuleMetadata;
-import proguard.resources.file.visitor.ResourceFileVisitor;
-import proguard.resources.kotlinmodule.KotlinModule;
-import proguard.classfile.util.ClassUtil;
+import static kotlinx.metadata.jvm.KotlinClassMetadata.COMPATIBLE_METADATA_VERSION;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.function.BiConsumer;
-
-import static kotlinx.metadata.jvm.KotlinClassMetadata.COMPATIBLE_METADATA_VERSION;
-
+import kotlinx.metadata.jvm.KmModule;
+import kotlinx.metadata.jvm.KmPackageParts;
+import kotlinx.metadata.jvm.KotlinModuleMetadata;
+import proguard.classfile.util.ClassUtil;
+import proguard.resources.file.visitor.ResourceFileVisitor;
+import proguard.resources.kotlinmodule.KotlinModule;
 
 /**
  * @author James Hamilton
  */
-public class KotlinModuleWriter
-implements   ResourceFileVisitor
-{
-    private final OutputStream                     outputStream;
-    private final BiConsumer<KotlinModule, String> errorHandler;
+public class KotlinModuleWriter implements ResourceFileVisitor {
+  private final OutputStream outputStream;
+  private final BiConsumer<KotlinModule, String> errorHandler;
 
-    public KotlinModuleWriter(OutputStream outputStream)
-    {
-        this(null, outputStream);
+  public KotlinModuleWriter(OutputStream outputStream) {
+    this(null, outputStream);
+  }
+
+  public KotlinModuleWriter(
+      BiConsumer<KotlinModule, String> errorHandler, OutputStream outputStream) {
+    this.errorHandler = errorHandler;
+    this.outputStream = outputStream;
+  }
+
+  @Override
+  public void visitKotlinModule(KotlinModule kotlinModule) {
+    try {
+      KmModule kmModule = new KmModule();
+
+      kotlinModule.modulePackagesAccept(
+          (module, modulePackage) ->
+              kmModule
+                  .getPackageParts()
+                  .put(
+                      ClassUtil.externalClassName(modulePackage.fqName),
+                      new KmPackageParts(
+                          modulePackage.fileFacadeNames, modulePackage.multiFileClassParts)));
+
+      // TODO: Support module optional annotations in our model.
+      // kmModule.getOptionalAnnotationClasses();
+
+      byte[] transformedBytes =
+          KotlinModuleMetadata.Companion.write(
+                  kmModule,
+                  kotlinModule.version.canBeWritten()
+                      ? kotlinModule.version.toArray()
+                      : COMPATIBLE_METADATA_VERSION)
+              .getBytes();
+      outputStream.write(transformedBytes);
+    } catch (IOException e) {
+      if (this.errorHandler != null) {
+        this.errorHandler.accept(kotlinModule, e.getMessage());
+      } else {
+        throw new RuntimeException("Error while writing module file", e);
+      }
     }
-
-    public KotlinModuleWriter(BiConsumer<KotlinModule, String> errorHandler, OutputStream outputStream)
-    {
-        this.errorHandler = errorHandler;
-        this.outputStream = outputStream;
-    }
-
-    @Override
-    public void visitKotlinModule(KotlinModule kotlinModule)
-    {
-        try
-        {
-            KmModule kmModule = new KmModule();
-
-            kotlinModule.modulePackagesAccept(
-                (module, modulePackage) ->
-                    kmModule.getPackageParts().put(
-                        ClassUtil.externalClassName(modulePackage.fqName),
-                        new KmPackageParts(modulePackage.fileFacadeNames, modulePackage.multiFileClassParts)
-                    )
-            );
-
-            // TODO: Support module optional annotations in our model.
-            // kmModule.getOptionalAnnotationClasses();
-
-            byte[] transformedBytes = KotlinModuleMetadata.Companion.write(kmModule,
-                kotlinModule.version.canBeWritten() ? kotlinModule.version.toArray() : COMPATIBLE_METADATA_VERSION).getBytes();
-            outputStream.write(transformedBytes);
-        }
-        catch (IOException e)
-        {
-            if (this.errorHandler != null)
-            {
-                this.errorHandler.accept(kotlinModule, e.getMessage());
-            }
-            else
-            {
-                throw new RuntimeException("Error while writing module file", e);
-            }
-        }
-    }
+  }
 }

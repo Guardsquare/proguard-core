@@ -20,24 +20,20 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.*;
 import proguard.classfile.visitor.ClassVisitor;
 
-public class KotlinMetadataRemover
-implements   ClassVisitor
-{
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
-    }
+public class KotlinMetadataRemover implements ClassVisitor {
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + clazz.getClass().getName());
+  }
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        programClass.kotlinMetadata = null;
-    }
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    programClass.kotlinMetadata = null;
+  }
 
-    @Override
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.kotlinMetadata = null;
-    }
+  @Override
+  public void visitLibraryClass(LibraryClass libraryClass) {
+    libraryClass.kotlinMetadata = null;
+  }
 }

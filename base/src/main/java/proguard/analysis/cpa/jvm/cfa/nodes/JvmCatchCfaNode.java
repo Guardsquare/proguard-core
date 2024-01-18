@@ -19,9 +19,9 @@
 package proguard.analysis.cpa.jvm.cfa.nodes;
 
 import java.util.List;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 
 /**
  * A {@link JvmCfaNode} representing the beginning of a catch or finally block.
@@ -30,55 +30,57 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
  *
  * @author Carlo Alberto Pozzoli
  */
-public class JvmCatchCfaNode
-    extends JvmCfaNode
-{
+public class JvmCatchCfaNode extends JvmCfaNode {
 
-    private final int catchType;
+  private final int catchType;
 
-    /**
-     * Create a JVM CFA catch node without edges. Since in most cases we expect to have just one element in the lists of leaving and entering edges the lists are initialized with size 1.
-     *
-     * @param signature the signature of the method the node belongs to
-     * @param offset    a number indicating the program location offset of the node
-     * @param catchType an integer representing the exception type caught by  the handler in the node's method exception table
-     * @param clazz     the class of the method the node belongs to
-     */
-    public JvmCatchCfaNode(MethodSignature signature, int offset, int catchType, Clazz clazz)
-    {
-        super(signature, offset, clazz);
-        this.catchType = catchType;
-    }
+  /**
+   * Create a JVM CFA catch node without edges. Since in most cases we expect to have just one
+   * element in the lists of leaving and entering edges the lists are initialized with size 1.
+   *
+   * @param signature the signature of the method the node belongs to
+   * @param offset a number indicating the program location offset of the node
+   * @param catchType an integer representing the exception type caught by the handler in the node's
+   *     method exception table
+   * @param clazz the class of the method the node belongs to
+   */
+  public JvmCatchCfaNode(MethodSignature signature, int offset, int catchType, Clazz clazz) {
+    super(signature, offset, clazz);
+    this.catchType = catchType;
+  }
 
-    /**
-     * Create JVM CFA catch node with the specified entering and exiting edges.
-     *
-     * @param leavingEdges  a list of edges leaving the node
-     * @param enteringEdges a list of edges entering the node
-     * @param signature     the signature of the method the node belongs to
-     * @param offset        a number indicating the program location offset of the node
-     * @param catchType     an integer representing the exception type caught by  the handler in the node's method exception table
-     * @param clazz         the class of the method the node belongs to
-     */
-    public JvmCatchCfaNode(List<JvmCfaEdge> leavingEdges, List<JvmCfaEdge> enteringEdges, MethodSignature signature, int offset, int catchType, Clazz clazz)
-    {
-        super(leavingEdges, enteringEdges, signature, offset, clazz);
-        this.catchType = catchType;
-    }
+  /**
+   * Create JVM CFA catch node with the specified entering and exiting edges.
+   *
+   * @param leavingEdges a list of edges leaving the node
+   * @param enteringEdges a list of edges entering the node
+   * @param signature the signature of the method the node belongs to
+   * @param offset a number indicating the program location offset of the node
+   * @param catchType an integer representing the exception type caught by the handler in the node's
+   *     method exception table
+   * @param clazz the class of the method the node belongs to
+   */
+  public JvmCatchCfaNode(
+      List<JvmCfaEdge> leavingEdges,
+      List<JvmCfaEdge> enteringEdges,
+      MethodSignature signature,
+      int offset,
+      int catchType,
+      Clazz clazz) {
+    super(leavingEdges, enteringEdges, signature, offset, clazz);
+    this.catchType = catchType;
+  }
 
-    /**
-     * Returns the integer representing the exception type in the exception table of the method the node belongs to.
-     */
-    public int getCatchType()
-    {
-        return catchType;
-    }
+  /**
+   * Returns the integer representing the exception type in the exception table of the method the
+   * node belongs to.
+   */
+  public int getCatchType() {
+    return catchType;
+  }
 
-    /**
-     * Returns true if the catch node represents the beginning of a finally block.
-     */
-    public boolean isFinallyNode()
-    {
-        return catchType == 0;
-    }
+  /** Returns true if the catch node represents the beginning of a finally block. */
+  public boolean isFinallyNode() {
+    return catchType == 0;
+  }
 }

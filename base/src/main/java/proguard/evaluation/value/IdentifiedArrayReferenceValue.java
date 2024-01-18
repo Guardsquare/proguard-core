@@ -21,212 +21,183 @@ import java.util.Objects;
 import proguard.classfile.Clazz;
 
 /**
- * This {@link ArrayReferenceValue} represents an array reference value that is
- * identified by a unique ID.
+ * This {@link ArrayReferenceValue} represents an array reference value that is identified by a
+ * unique ID.
  *
  * @author Eric Lafortune
  */
-public class IdentifiedArrayReferenceValue extends ArrayReferenceValue
-{
-    protected final ValueFactory valuefactory;
-    public    final int          id;
+public class IdentifiedArrayReferenceValue extends ArrayReferenceValue {
+  protected final ValueFactory valuefactory;
+  public final int id;
 
+  /** Creates a new array reference value with the given ID. */
+  public IdentifiedArrayReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      IntegerValue arrayLength,
+      ValueFactory valuefactory,
+      int id) {
+    super(type, referencedClass, mayBeExtension, arrayLength);
 
-    /**
-     * Creates a new array reference value with the given ID.
-     */
-    public IdentifiedArrayReferenceValue(String       type,
-                                         Clazz        referencedClass,
-                                         boolean      mayBeExtension,
-                                         IntegerValue arrayLength,
-                                         ValueFactory valuefactory,
-                                         int          id)
-    {
-        super(type, referencedClass, mayBeExtension, arrayLength);
+    this.valuefactory = valuefactory;
+    this.id = id;
+  }
 
-        this.valuefactory = valuefactory;
-        this.id           = id;
+  // Implementations of binary methods of ReferenceValue.
+
+  public ReferenceValue generalize(ReferenceValue other) {
+    return other.generalize(this);
+  }
+
+  public int equal(ReferenceValue other) {
+    return other.equal(this);
+  }
+
+  //    // Implementations of binary ReferenceValue methods with
+  //    // UnknownReferenceValue arguments.
+  //
+  //    public ReferenceValue generalize(UnknownReferenceValue other)
+  //    {
+  //        return other;
+  //    }
+  //
+  //
+  //    public int equal(UnknownReferenceValue other)
+  //    {
+  //        return MAYBE;
+  //    }
+  //
+  //
+  //    // Implementations of binary ReferenceValue methods with
+  //    // TypedReferenceValue arguments.
+  //
+  //    public ReferenceValue generalize(TypedReferenceValue other)
+  //    {
+  //    }
+  //
+  //
+  //    public int equal(TypedReferenceValue other)
+  //    {
+  //    }
+  //
+  //
+  //    // Implementations of binary ReferenceValue methods with
+  //    // IdentifiedReferenceValue arguments.
+  //
+  //    public ReferenceValue generalize(IdentifiedReferenceValue other)
+  //    {
+  //        return generalize((TypedReferenceValue)other);
+  //    }
+  //
+  //
+  //    public int equal(IdentifiedReferenceValue other)
+  //    {
+  //        return equal((TypedReferenceValue)other);
+  //    }
+  //
+  //
+  //    // Implementations of binary ReferenceValue methods with
+  //    // ArrayReferenceValue arguments.
+  //
+  //    public ReferenceValue generalize(ArrayReferenceValue other)
+  //    {
+  //        return generalize((TypedReferenceValue)other);
+  //    }
+  //
+  //
+  //    public int equal(ArrayReferenceValue other)
+  //    {
+  //        return equal((TypedReferenceValue)other);
+  //    }
+  //
+  //
+  // Implementations of binary ReferenceValue methods with
+  // IdentifiedArrayReferenceValue arguments.
+
+  //    public ReferenceValue generalize(IdentifiedArrayReferenceValue other)
+  //    {
+  //        return generalize((ArrayReferenceValue)other);
+  //    }
+
+  public ReferenceValue generalize(IdentifiedArrayReferenceValue other) {
+    if (this.equals(other)) return this;
+
+    if (Objects.equals(this.type, other.type)
+        && Objects.equals(this.id, other.id)
+        && this.referencedClass == other.referencedClass
+        && this.valuefactory == other.valuefactory) {
+      return new IdentifiedArrayReferenceValue(
+          this.type,
+          this.referencedClass,
+          this.mayBeExtension || other.mayBeExtension,
+          this.arrayLength.generalize(other.arrayLength),
+          this.valuefactory,
+          this.id);
+    }
+    return generalize((ArrayReferenceValue) other);
+  }
+
+  public int equal(IdentifiedArrayReferenceValue other) {
+    return this.equals(other) ? ALWAYS : this.equal((TypedReferenceValue) other);
+  }
+
+  //    // Implementations of binary ReferenceValue methods with
+  //    // DetailedArrayReferenceValue arguments.
+  //
+  //    public ReferenceValue generalize(DetailedArrayReferenceValue other)
+  //    {
+  //        return generalize((IdentifiedArrayReferenceValue)other);
+  //    }
+  //
+  //
+  //    public int equal(DetailedArrayReferenceValue other)
+  //    {
+  //        return equal((IdentifiedArrayReferenceValue)other);
+  //    }
+  //
+  //
+  //    // Implementations of binary ReferenceValue methods with
+  //    // TracedReferenceValue arguments.
+  //
+  //    public ReferenceValue generalize(TracedReferenceValue other)
+  //    {
+  //        return other.generalize(this);
+  //    }
+  //
+  //
+  //    public int equal(TracedReferenceValue other)
+  //    {
+  //        return other.equal(this);
+  //    }
+
+  // Implementations for Value.
+
+  public boolean isSpecific() {
+    return true;
+  }
+
+  // Implementations for Object.
+
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
     }
 
-
-     // Implementations of binary methods of ReferenceValue.
-
-    public ReferenceValue generalize(ReferenceValue other)
-    {
-        return other.generalize(this);
+    if (!super.equals(object)) {
+      return false;
     }
 
+    IdentifiedArrayReferenceValue other = (IdentifiedArrayReferenceValue) object;
 
-    public int equal(ReferenceValue other)
-    {
-        return other.equal(this);
-    }
+    return this.valuefactory.equals(other.valuefactory) && this.id == other.id;
+  }
 
+  public int hashCode() {
+    return super.hashCode() ^ valuefactory.hashCode() ^ id;
+  }
 
-//    // Implementations of binary ReferenceValue methods with
-//    // UnknownReferenceValue arguments.
-//
-//    public ReferenceValue generalize(UnknownReferenceValue other)
-//    {
-//        return other;
-//    }
-//
-//
-//    public int equal(UnknownReferenceValue other)
-//    {
-//        return MAYBE;
-//    }
-//
-//
-//    // Implementations of binary ReferenceValue methods with
-//    // TypedReferenceValue arguments.
-//
-//    public ReferenceValue generalize(TypedReferenceValue other)
-//    {
-//    }
-//
-//
-//    public int equal(TypedReferenceValue other)
-//    {
-//    }
-//
-//
-//    // Implementations of binary ReferenceValue methods with
-//    // IdentifiedReferenceValue arguments.
-//
-//    public ReferenceValue generalize(IdentifiedReferenceValue other)
-//    {
-//        return generalize((TypedReferenceValue)other);
-//    }
-//
-//
-//    public int equal(IdentifiedReferenceValue other)
-//    {
-//        return equal((TypedReferenceValue)other);
-//    }
-//
-//
-//    // Implementations of binary ReferenceValue methods with
-//    // ArrayReferenceValue arguments.
-//
-//    public ReferenceValue generalize(ArrayReferenceValue other)
-//    {
-//        return generalize((TypedReferenceValue)other);
-//    }
-//
-//
-//    public int equal(ArrayReferenceValue other)
-//    {
-//        return equal((TypedReferenceValue)other);
-//    }
-//
-//
-    // Implementations of binary ReferenceValue methods with
-    // IdentifiedArrayReferenceValue arguments.
-
-//    public ReferenceValue generalize(IdentifiedArrayReferenceValue other)
-//    {
-//        return generalize((ArrayReferenceValue)other);
-//    }
-
-    public ReferenceValue generalize(IdentifiedArrayReferenceValue other)
-    {
-        if (this.equals(other)) return this;
-
-        if (Objects.equals(this.type, other.type)         &&
-            Objects.equals(this.id, other.id)             &&
-            this.referencedClass == other.referencedClass &&
-            this.valuefactory    == other.valuefactory)
-        {
-            return new IdentifiedArrayReferenceValue(
-                this.type,
-                this.referencedClass,
-                this.mayBeExtension || other.mayBeExtension,
-                this.arrayLength.generalize(other.arrayLength),
-                this.valuefactory,
-                this.id
-            );
-        }
-        return generalize((ArrayReferenceValue)other);
-    }
-
-    public int equal(IdentifiedArrayReferenceValue other)
-    {
-        return this.equals(other) ? ALWAYS :
-                                    this.equal((TypedReferenceValue)other);
-    }
-
-
-//    // Implementations of binary ReferenceValue methods with
-//    // DetailedArrayReferenceValue arguments.
-//
-//    public ReferenceValue generalize(DetailedArrayReferenceValue other)
-//    {
-//        return generalize((IdentifiedArrayReferenceValue)other);
-//    }
-//
-//
-//    public int equal(DetailedArrayReferenceValue other)
-//    {
-//        return equal((IdentifiedArrayReferenceValue)other);
-//    }
-//
-//
-//    // Implementations of binary ReferenceValue methods with
-//    // TracedReferenceValue arguments.
-//
-//    public ReferenceValue generalize(TracedReferenceValue other)
-//    {
-//        return other.generalize(this);
-//    }
-//
-//
-//    public int equal(TracedReferenceValue other)
-//    {
-//        return other.equal(this);
-//    }
-
-
-    // Implementations for Value.
-
-    public boolean isSpecific()
-    {
-        return true;
-    }
-
-
-    // Implementations for Object.
-
-    public boolean equals(Object object)
-    {
-        if (this == object)
-        {
-            return true;
-        }
-
-        if (!super.equals(object))
-        {
-            return false;
-        }
-
-        IdentifiedArrayReferenceValue other =
-            (IdentifiedArrayReferenceValue)object;
-
-        return this.valuefactory.equals(other.valuefactory) &&
-               this.id == other.id;
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               valuefactory.hashCode() ^
-               id;
-    }
-
-
-    public String toString()
-    {
-        return super.toString() + '#' + id;
-    }
+  public String toString() {
+    return super.toString() + '#' + id;
+  }
 }

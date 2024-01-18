@@ -15,16 +15,16 @@
  */
 package proguard.dexfile.reader.node.insn;
 
-import proguard.dexfile.reader.Proto;
 import proguard.dexfile.reader.Op;
+import proguard.dexfile.reader.Proto;
 
 public abstract class AbstractMethodStmtNode extends DexStmtNode {
-    public final int[] args;
+  public final int[] args;
 
-    public AbstractMethodStmtNode(Op op, int[] args) {
-        super(op);
-        this.args = args;
-    }
+  public AbstractMethodStmtNode(Op op, int[] args) {
+    super(op);
+    this.args = args;
+  }
 
-    public abstract Proto getProto();
+  public abstract Proto getProto();
 }

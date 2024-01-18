@@ -22,28 +22,23 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
 
 /**
- * This {@link AttributeVisitor} computes and updates the maximum stack size of the
- * code attributes that it visits.
+ * This {@link AttributeVisitor} computes and updates the maximum stack size of the code attributes
+ * that it visits.
  *
  * @author Eric Lafortune
  */
-public class StackSizeUpdater
-implements   AttributeVisitor
-{
-    private final MaxStackSizeComputer stackSizeComputer = new MaxStackSizeComputer();
+public class StackSizeUpdater implements AttributeVisitor {
+  private final MaxStackSizeComputer stackSizeComputer = new MaxStackSizeComputer();
 
+  // Implementations for AttributeVisitor.
 
-    // Implementations for AttributeVisitor.
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    // Compute the stack sizes.
+    stackSizeComputer.visitCodeAttribute(clazz, method, codeAttribute);
 
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        // Compute the stack sizes.
-        stackSizeComputer.visitCodeAttribute(clazz, method, codeAttribute);
-
-        // Update the maximum stack size.
-        codeAttribute.u2maxStack = stackSizeComputer.getMaxStackSize();
-    }
+    // Update the maximum stack size.
+    codeAttribute.u2maxStack = stackSizeComputer.getMaxStackSize();
+  }
 }

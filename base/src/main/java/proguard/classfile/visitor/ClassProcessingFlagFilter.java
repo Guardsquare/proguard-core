@@ -19,56 +19,44 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassVisitor} delegates its visits to another given
- * {@link ClassVisitor}, but only when the visited class
- * has the proper processing flags.
+ * This {@link ClassVisitor} delegates its visits to another given {@link ClassVisitor}, but only
+ * when the visited class has the proper processing flags.
  *
  * @author Johan Leys
  */
-public class ClassProcessingFlagFilter
-implements   ClassVisitor
-{
-    private final int          requiredSetProcessingFlags;
-    private final int          requiredUnsetProcessingFlags;
-    private final ClassVisitor classVisitor;
+public class ClassProcessingFlagFilter implements ClassVisitor {
+  private final int requiredSetProcessingFlags;
+  private final int requiredUnsetProcessingFlags;
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new ClassProcessingFlagFilter.
+   *
+   * @param requiredSetProcessingFlags the class processing flags that should be set.
+   * @param requiredUnsetProcessingFlags the class processing flags that should be unset.
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public ClassProcessingFlagFilter(
+      int requiredSetProcessingFlags, int requiredUnsetProcessingFlags, ClassVisitor classVisitor) {
+    this.requiredSetProcessingFlags = requiredSetProcessingFlags;
+    this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new ClassProcessingFlagFilter.
-     *
-     * @param requiredSetProcessingFlags   the class processing flags that should be set.
-     * @param requiredUnsetProcessingFlags the class processing flags that should be unset.
-     * @param classVisitor                 the <code>ClassVisitor</code> to which visits will be delegated.
-     */
-    public ClassProcessingFlagFilter(int          requiredSetProcessingFlags,
-                                     int          requiredUnsetProcessingFlags,
-                                     ClassVisitor classVisitor)
-    {
-        this.requiredSetProcessingFlags   = requiredSetProcessingFlags;
-        this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
-        this.classVisitor                 = classVisitor;
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    if (accepted(clazz.getProcessingFlags())) {
+      clazz.accept(classVisitor);
     }
+  }
 
+  // Small utility methods.
 
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        if (accepted(clazz.getProcessingFlags()))
-        {
-            clazz.accept(classVisitor);
-        }
-    }
-
-
-    // Small utility methods.
-
-    private boolean accepted(int processingFlags)
-    {
-        return (requiredSetProcessingFlags & ~processingFlags) == 0 &&
-               (requiredUnsetProcessingFlags &  processingFlags) == 0;
-    }
+  private boolean accepted(int processingFlags) {
+    return (requiredSetProcessingFlags & ~processingFlags) == 0
+        && (requiredUnsetProcessingFlags & processingFlags) == 0;
+  }
 }

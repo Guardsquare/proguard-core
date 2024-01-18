@@ -19,81 +19,66 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassVisitor} delegates its visits to one of two other given
- * {@link ClassVisitor} instances, depending on whether they have any
- * subclasses or not.
+ * This {@link ClassVisitor} delegates its visits to one of two other given {@link ClassVisitor}
+ * instances, depending on whether they have any subclasses or not.
  *
  * @author Eric Lafortune
  */
-public class BottomClassFilter
-implements   ClassVisitor
-{
-    private final ClassVisitor bottomClassVisitor;
-    private final ClassVisitor otherClassVisitor;
+public class BottomClassFilter implements ClassVisitor {
+  private final ClassVisitor bottomClassVisitor;
+  private final ClassVisitor otherClassVisitor;
 
-    /**
-     * Creates a new BottomClassFilter.
-     * @param bottomClassVisitor the <code>ClassVisitor</code> to which visits
-     *                           to bottom classes will be delegated.
-     */
-    public BottomClassFilter(ClassVisitor bottomClassVisitor)
-    {
-        this(bottomClassVisitor, null);
+  /**
+   * Creates a new BottomClassFilter.
+   *
+   * @param bottomClassVisitor the <code>ClassVisitor</code> to which visits to bottom classes will
+   *     be delegated.
+   */
+  public BottomClassFilter(ClassVisitor bottomClassVisitor) {
+    this(bottomClassVisitor, null);
+  }
+
+  /**
+   * Creates a new BottomClassFilter.
+   *
+   * @param bottomClassVisitor the <code>ClassVisitor</code> to which visits to bottom classes will
+   *     be delegated.
+   * @param otherClassVisitor the <code>ClassVisitor</code> to which visits to non-bottom classes
+   *     will be delegated.
+   */
+  public BottomClassFilter(ClassVisitor bottomClassVisitor, ClassVisitor otherClassVisitor) {
+    this.bottomClassVisitor = bottomClassVisitor;
+    this.otherClassVisitor = otherClassVisitor;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + clazz.getClass().getName());
+  }
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    // Is this a bottom class in the class hierarchy?
+    ClassVisitor classVisitor =
+        programClass.subClassCount == 0 ? bottomClassVisitor : otherClassVisitor;
+
+    if (classVisitor != null) {
+      classVisitor.visitProgramClass(programClass);
     }
+  }
 
+  @Override
+  public void visitLibraryClass(LibraryClass libraryClass) {
+    // Is this a bottom class in the class hierarchy?
+    ClassVisitor classVisitor =
+        libraryClass.subClassCount == 0 ? bottomClassVisitor : otherClassVisitor;
 
-    /**
-     * Creates a new BottomClassFilter.
-     * @param bottomClassVisitor the <code>ClassVisitor</code> to which visits
-     *                           to bottom classes will be delegated.
-     * @param otherClassVisitor  the <code>ClassVisitor</code> to which visits
-     *                           to non-bottom classes will be delegated.
-     */
-    public BottomClassFilter(ClassVisitor bottomClassVisitor,
-                             ClassVisitor otherClassVisitor)
-    {
-        this.bottomClassVisitor = bottomClassVisitor;
-        this.otherClassVisitor  = otherClassVisitor;
+    if (classVisitor != null) {
+      classVisitor.visitLibraryClass(libraryClass);
     }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
-    }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        // Is this a bottom class in the class hierarchy?
-        ClassVisitor classVisitor = programClass.subClassCount == 0 ?
-            bottomClassVisitor :
-            otherClassVisitor;
-
-        if (classVisitor != null)
-        {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    @Override
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        // Is this a bottom class in the class hierarchy?
-        ClassVisitor classVisitor = libraryClass.subClassCount == 0 ?
-            bottomClassVisitor :
-            otherClassVisitor;
-
-        if (classVisitor != null)
-        {
-            classVisitor.visitLibraryClass(libraryClass);
-        }
-    }
+  }
 }

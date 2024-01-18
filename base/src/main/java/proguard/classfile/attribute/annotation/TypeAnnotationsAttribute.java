@@ -26,87 +26,63 @@ import proguard.classfile.attribute.annotation.visitor.*;
  *
  * @author Eric Lafortune
  */
-public abstract class TypeAnnotationsAttribute extends AnnotationsAttribute
-{
-    /**
-     * Creates an uninitialized TypeAnnotationsAttribute.
-     */
-    protected TypeAnnotationsAttribute()
-    {
+public abstract class TypeAnnotationsAttribute extends AnnotationsAttribute {
+  /** Creates an uninitialized TypeAnnotationsAttribute. */
+  protected TypeAnnotationsAttribute() {}
+
+  /** Creates an initialized TypeAnnotationsAttribute. */
+  protected TypeAnnotationsAttribute(
+      int u2attributeNameIndex, int u2annotationsCount, TypeAnnotation[] annotations) {
+    super(u2attributeNameIndex, u2annotationsCount, annotations);
+  }
+
+  /** Applies the given visitor to all class annotations. */
+  public void typeAnnotationsAccept(Clazz clazz, TypeAnnotationVisitor typeAnnotationVisitor) {
+    TypeAnnotation[] annotations = (TypeAnnotation[]) this.annotations;
+
+    for (int index = 0; index < u2annotationsCount; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of Annotation.
+      typeAnnotationVisitor.visitTypeAnnotation(clazz, annotations[index]);
     }
+  }
 
+  /** Applies the given visitor to all field annotations. */
+  public void typeAnnotationsAccept(
+      Clazz clazz, Field field, TypeAnnotationVisitor typeAnnotationVisitor) {
+    TypeAnnotation[] annotations = (TypeAnnotation[]) this.annotations;
 
-    /**
-     * Creates an initialized TypeAnnotationsAttribute.
-     */
-    protected TypeAnnotationsAttribute(int              u2attributeNameIndex,
-                                       int              u2annotationsCount,
-                                       TypeAnnotation[] annotations)
-    {
-        super(u2attributeNameIndex, u2annotationsCount, annotations);
+    for (int index = 0; index < u2annotationsCount; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of Annotation.
+      typeAnnotationVisitor.visitTypeAnnotation(clazz, field, annotations[index]);
     }
+  }
 
+  /** Applies the given visitor to all method annotations. */
+  public void typeAnnotationsAccept(
+      Clazz clazz, Method method, TypeAnnotationVisitor typeAnnotationVisitor) {
+    TypeAnnotation[] annotations = (TypeAnnotation[]) this.annotations;
 
-    /**
-     * Applies the given visitor to all class annotations.
-     */
-    public void typeAnnotationsAccept(Clazz clazz, TypeAnnotationVisitor typeAnnotationVisitor)
-    {
-        TypeAnnotation[] annotations = (TypeAnnotation[])this.annotations;
-
-        for (int index = 0; index < u2annotationsCount; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of Annotation.
-            typeAnnotationVisitor.visitTypeAnnotation(clazz, annotations[index]);
-        }
+    for (int index = 0; index < u2annotationsCount; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of Annotation.
+      typeAnnotationVisitor.visitTypeAnnotation(clazz, method, annotations[index]);
     }
+  }
 
+  /** Applies the given visitor to all code attribute annotations. */
+  public void typeAnnotationsAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotationVisitor typeAnnotationVisitor) {
+    TypeAnnotation[] annotations = (TypeAnnotation[]) this.annotations;
 
-    /**
-     * Applies the given visitor to all field annotations.
-     */
-    public void typeAnnotationsAccept(Clazz clazz, Field field, TypeAnnotationVisitor typeAnnotationVisitor)
-    {
-        TypeAnnotation[] annotations = (TypeAnnotation[])this.annotations;
-
-        for (int index = 0; index < u2annotationsCount; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of Annotation.
-            typeAnnotationVisitor.visitTypeAnnotation(clazz, field, annotations[index]);
-        }
+    for (int index = 0; index < u2annotationsCount; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of Annotation.
+      typeAnnotationVisitor.visitTypeAnnotation(clazz, method, codeAttribute, annotations[index]);
     }
-
-
-    /**
-     * Applies the given visitor to all method annotations.
-     */
-    public void typeAnnotationsAccept(Clazz clazz, Method method, TypeAnnotationVisitor typeAnnotationVisitor)
-    {
-        TypeAnnotation[] annotations = (TypeAnnotation[])this.annotations;
-
-        for (int index = 0; index < u2annotationsCount; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of Annotation.
-            typeAnnotationVisitor.visitTypeAnnotation(clazz, method, annotations[index]);
-        }
-    }
-
-
-    /**
-     * Applies the given visitor to all code attribute annotations.
-     */
-    public void typeAnnotationsAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotationVisitor typeAnnotationVisitor)
-    {
-        TypeAnnotation[] annotations = (TypeAnnotation[])this.annotations;
-
-        for (int index = 0; index < u2annotationsCount; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of Annotation.
-            typeAnnotationVisitor.visitTypeAnnotation(clazz, method, codeAttribute, annotations[index]);
-        }
-    }
+  }
 }

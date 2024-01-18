@@ -23,37 +23,29 @@ package proguard.analysis.cpa.jvm.cfa.nodes;
  *
  * @author Carlo Alberto Pozzoli
  */
-public class JvmUnknownCfaNode
-    extends JvmCfaNode
-{
+public class JvmUnknownCfaNode extends JvmCfaNode {
 
-    public static final JvmUnknownCfaNode INSTANCE = new JvmUnknownCfaNode();
+  public static final JvmUnknownCfaNode INSTANCE = new JvmUnknownCfaNode();
 
-    /**
-     * Create the unknown node.
-     */
-    private JvmUnknownCfaNode()
-    {
-        super(null, -1, null);
-    }
+  /** Create the unknown node. */
+  private JvmUnknownCfaNode() {
+    super(null, -1, null);
+  }
 
-    // Implementations for CfaNode
+  // Implementations for CfaNode
 
-    @Override
-    public boolean isReturnExitNode()
-    {
-        return false;
-    }
+  @Override
+  public boolean isReturnExitNode() {
+    return false;
+  }
 
-    @Override
-    public boolean isUnknownNode()
-    {
-        return true;
-    }
+  @Override
+  public boolean isUnknownNode() {
+    return true;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "JvmUnknownCfaNode{}";
-    }
+  @Override
+  public String toString() {
+    return "JvmUnknownCfaNode{}";
+  }
 }

@@ -19,98 +19,77 @@ package proguard.util;
 
 /**
  * This {@link StringFunctionParser} creates {@link StringFunction} instances for regular
- * expressions with optional "->" transformations. It parses the first
- * part with a given {@link StringParser} and the second part with an optional
- * {@link WildcardManager}.
+ * expressions with optional "->" transformations. It parses the first part with a given {@link
+ * StringParser} and the second part with an optional {@link WildcardManager}.
  *
  * @author Eric Lafortune
  */
-public class SingleFunctionParser implements StringFunctionParser
-{
-    private final StringParser    stringParser;
-    private final WildcardManager wildcardManager;
+public class SingleFunctionParser implements StringFunctionParser {
+  private final StringParser stringParser;
+  private final WildcardManager wildcardManager;
 
+  /** Creates a new SingleFunctionParser. */
+  public SingleFunctionParser(StringParser stringParser, WildcardManager wildcardManager) {
+    this.stringParser = stringParser;
+    this.wildcardManager = wildcardManager;
+  }
 
-    /**
-     * Creates a new SingleFunctionParser.
-     */
-    public SingleFunctionParser(StringParser    stringParser,
-                                WildcardManager wildcardManager)
-    {
-        this.stringParser    = stringParser;
-        this.wildcardManager = wildcardManager;
+  // Implementations for StringFunctionParser.
+
+  public StringFunction parse(String regularExpression) {
+    // Reset the string matchers, since all wildcards have to be local
+    // inside this regular expression.
+    if (wildcardManager != null) {
+      wildcardManager.reset();
     }
 
-
-    // Implementations for StringFunctionParser.
-
-    public StringFunction parse(String regularExpression)
-    {
-        // Reset the string matchers, since all wildcards have to be local
-        // inside this regular expression.
-        if (wildcardManager != null)
-        {
-            wildcardManager.reset();
-        }
-
-        // Does the regular expression specify a transformation?
-        int arrowIndex = regularExpression.indexOf("->");
-        if (arrowIndex < 0)
-        {
-            // Otherwise just pass any matched strings.
-            return new MatchingStringFunction(stringParser.parse(regularExpression));
-        }
-
-        // Split the regular expression into its two parts.
-        String patternExpression     = regularExpression.substring(0, arrowIndex);
-        String replacementExpression = regularExpression.substring(arrowIndex + 2);
-
-        // First parse the pattern, possibly with wildcards.
-        StringFunction patternStringFunction =
-            new MatchingStringFunction(stringParser.parse(patternExpression));
-
-        // Then parse the replacement, possibly with references to
-        // these wildcards.
-        StringFunction replacementStringFunction = wildcardManager == null ?
-            new ConstantStringFunction(replacementExpression) :
-            wildcardManager.createMatchedStringFunction(replacementExpression);
-
-        // Finally combine the two.
-        return new AndStringFunction(patternStringFunction,
-                                     replacementStringFunction);
+    // Does the regular expression specify a transformation?
+    int arrowIndex = regularExpression.indexOf("->");
+    if (arrowIndex < 0) {
+      // Otherwise just pass any matched strings.
+      return new MatchingStringFunction(stringParser.parse(regularExpression));
     }
 
+    // Split the regular expression into its two parts.
+    String patternExpression = regularExpression.substring(0, arrowIndex);
+    String replacementExpression = regularExpression.substring(arrowIndex + 2);
 
-    /**
-     * A main method for testing name matching and replacement.
-     */
-    public static void main(String[] args)
-    {
-        try
-        {
-            System.out.println("Regular expression ["+args[0]+"]");
+    // First parse the pattern, possibly with wildcards.
+    StringFunction patternStringFunction =
+        new MatchingStringFunction(stringParser.parse(patternExpression));
 
-            WildcardManager wildcardManager = new WildcardManager();
+    // Then parse the replacement, possibly with references to
+    // these wildcards.
+    StringFunction replacementStringFunction =
+        wildcardManager == null
+            ? new ConstantStringFunction(replacementExpression)
+            : wildcardManager.createMatchedStringFunction(replacementExpression);
 
-            NameParser stringParser =
-                new NameParser(wildcardManager);
+    // Finally combine the two.
+    return new AndStringFunction(patternStringFunction, replacementStringFunction);
+  }
 
-            StringFunctionParser stringFunctionParser =
-                new SingleFunctionParser(stringParser, wildcardManager);
+  /** A main method for testing name matching and replacement. */
+  public static void main(String[] args) {
+    try {
+      System.out.println("Regular expression [" + args[0] + "]");
 
-            StringFunction function =
-                stringFunctionParser.parse(args[0]);
+      WildcardManager wildcardManager = new WildcardManager();
 
-            for (int index = 1; index < args.length; index++)
-            {
-                String string = args[index];
-                System.out.print("String              ["+string+"]");
-                System.out.println(" -> transformed = "+function.transform(args[index]));
-            }
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-        }
+      NameParser stringParser = new NameParser(wildcardManager);
+
+      StringFunctionParser stringFunctionParser =
+          new SingleFunctionParser(stringParser, wildcardManager);
+
+      StringFunction function = stringFunctionParser.parse(args[0]);
+
+      for (int index = 1; index < args.length; index++) {
+        String string = args[index];
+        System.out.print("String              [" + string + "]");
+        System.out.println(" -> transformed = " + function.transform(args[index]));
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
     }
+  }
 }

@@ -21,13 +21,13 @@ package proguard.analysis.cpa.util;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * Names of abstract states used for state extraction with {@link AbstractState#getStateByName(String)}.
+ * Names of abstract states used for state extraction with {@link
+ * AbstractState#getStateByName(String)}.
  *
  * @author Dmitry Ivanov
  */
-public interface StateNames
-{
+public interface StateNames {
 
-    String Jvm       = "Jvm";
-    String Reference = "Reference";
+  String Jvm = "Jvm";
+  String Reference = "Reference";
 }

@@ -27,46 +27,45 @@ import proguard.dexfile.ir.LabelAndLocalMapper;
  * @see Value.VT#NOT
  */
 public class UnopExpr extends Value.E1Expr {
-    public String type;
+  public String type;
 
-    @Override
-    protected void releaseMemory() {
-        type = null;
-        super.releaseMemory();
+  @Override
+  protected void releaseMemory() {
+    type = null;
+    super.releaseMemory();
+  }
+
+  /**
+   * @param vt
+   * @param value
+   * @param type
+   */
+  public UnopExpr(VT vt, Value value, String type) {
+    super(vt, value);
+    this.type = type;
+  }
+
+  @Override
+  public Value clone() {
+    return new UnopExpr(vt, op.trim().clone(), type);
+  }
+
+  @Override
+  public Value clone(LabelAndLocalMapper mapper) {
+    return new UnopExpr(vt, op.clone(mapper), type);
+  }
+
+  @Override
+  public String toString0() {
+    switch (vt) {
+      case LENGTH:
+        return op + ".length";
+      case NEG:
+        return "(-" + op + ")";
+      case NOT:
+        return "(!" + op + ")";
+      default:
     }
-
-    /**
-     * @param vt
-     * @param value
-     * @param type
-     */
-    public UnopExpr(VT vt, Value value, String type) {
-        super(vt, value);
-        this.type = type;
-    }
-
-    @Override
-    public Value clone() {
-        return new UnopExpr(vt, op.trim().clone(), type);
-    }
-
-    @Override
-    public Value clone(LabelAndLocalMapper mapper) {
-        return new UnopExpr(vt, op.clone(mapper), type);
-    }
-
-    @Override
-    public String toString0() {
-        switch (vt) {
-            case LENGTH:
-                return op + ".length";
-            case NEG:
-                return "(-" + op + ")";
-            case NOT:
-                return "(!" + op + ")";
-            default:
-        }
-        return super.toString();
-    }
-
+    return super.toString();
+  }
 }

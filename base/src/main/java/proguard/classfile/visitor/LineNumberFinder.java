@@ -19,33 +19,30 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author James Hamilton
  */
-public class LineNumberFinder
-    implements AttributeVisitor
-{
-    private final int offset;
-    public int lineNumber = -1; // -1 == not found
+public class LineNumberFinder implements AttributeVisitor {
+  private final int offset;
+  public int lineNumber = -1; // -1 == not found
 
-    public LineNumberFinder(int offset)
-    {
-        this.offset = offset;
-    }
+  public LineNumberFinder(int offset) {
+    this.offset = offset;
+  }
 
-    @Override
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute)
-    {
-        // not interested in Attributes except LineNumberTableAttributes and CodeAttributes
-    }
+  @Override
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {
+    // not interested in Attributes except LineNumberTableAttributes and CodeAttributes
+  }
 
-    @Override
-    public void visitLineNumberTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute lineNumberTableAttribute)
-    {
-        lineNumber = lineNumberTableAttribute.getLineNumber(offset);
-    }
+  @Override
+  public void visitLineNumberTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LineNumberTableAttribute lineNumberTableAttribute) {
+    lineNumber = lineNumberTableAttribute.getLineNumber(offset);
+  }
 
-    @Override
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        codeAttribute.attributesAccept(clazz, method, this);
-    }
-
+  @Override
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    codeAttribute.attributesAccept(clazz, method, this);
+  }
 }

@@ -22,48 +22,34 @@ import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.util.ArrayUtil;
 
-
 /**
- * This {@link ConstantVisitor} delegates all visits to each {@link ConstantVisitor} in a given list.
+ * This {@link ConstantVisitor} delegates all visits to each {@link ConstantVisitor} in a given
+ * list.
  *
  * @author Johan Leys
  */
-public class MultiConstantVisitor
-implements   ConstantVisitor
-{
-    private ConstantVisitor[] constantVisitors;
-    private int               constantVisitorCount;
+public class MultiConstantVisitor implements ConstantVisitor {
+  private ConstantVisitor[] constantVisitors;
+  private int constantVisitorCount;
 
+  public MultiConstantVisitor() {
+    this.constantVisitors = new ConstantVisitor[16];
+  }
 
-    public MultiConstantVisitor()
-    {
-        this.constantVisitors = new ConstantVisitor[16];
+  public MultiConstantVisitor(ConstantVisitor... constantVisitors) {
+    this.constantVisitors = constantVisitors;
+    this.constantVisitorCount = this.constantVisitors.length;
+  }
+
+  public void addClassVisitor(ConstantVisitor constantVisitor) {
+    constantVisitors = ArrayUtil.add(constantVisitors, constantVisitorCount++, constantVisitor);
+  }
+
+  // Implementations for ConstantVisitor.
+
+  public void visitAnyConstant(Clazz clazz, Constant constant) {
+    for (int index = 0; index < constantVisitorCount; index++) {
+      constant.accept(clazz, constantVisitors[index]);
     }
-
-
-    public MultiConstantVisitor(ConstantVisitor... constantVisitors)
-    {
-        this.constantVisitors     = constantVisitors;
-        this.constantVisitorCount = this.constantVisitors.length;
-    }
-
-
-    public void addClassVisitor(ConstantVisitor constantVisitor)
-    {
-        constantVisitors =
-            ArrayUtil.add(constantVisitors,
-                          constantVisitorCount++,
-                          constantVisitor);
-    }
-
-
-    // Implementations for ConstantVisitor.
-
-    public void visitAnyConstant(Clazz clazz, Constant constant)
-    {
-        for (int index = 0; index < constantVisitorCount; index++)
-        {
-            constant.accept(clazz, constantVisitors[index]);
-        }
-    }
+  }
 }

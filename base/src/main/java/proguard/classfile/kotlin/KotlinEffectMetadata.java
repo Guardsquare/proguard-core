@@ -17,70 +17,53 @@
  */
 package proguard.classfile.kotlin;
 
+import java.util.List;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
 
-import java.util.List;
+public class KotlinEffectMetadata extends SimpleProcessable implements Processable {
+  public KotlinEffectType effectType;
 
+  public KotlinEffectInvocationKind invocationKind;
 
-public class KotlinEffectMetadata
-extends      SimpleProcessable
-implements   Processable
-{
-    public KotlinEffectType effectType;
+  public KotlinEffectExpressionMetadata conclusionOfConditionalEffect;
 
-    public KotlinEffectInvocationKind invocationKind;
+  public List<KotlinEffectExpressionMetadata> constructorArguments;
 
-    public KotlinEffectExpressionMetadata conclusionOfConditionalEffect;
+  public KotlinEffectMetadata(
+      KotlinEffectType effectType, KotlinEffectInvocationKind invocationKind) {
+    this.effectType = effectType;
+    this.invocationKind = invocationKind;
+  }
 
-    public List<KotlinEffectExpressionMetadata> constructorArguments;
+  public void accept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinContractMetadata kotlinContractMetadata,
+      KotlinEffectVisitor kotlinEffectVisitor) {
+    kotlinEffectVisitor.visitEffect(
+        clazz, kotlinMetadata, kotlinFunctionMetadata, kotlinContractMetadata, this);
+  }
 
-
-    public KotlinEffectMetadata(KotlinEffectType           effectType,
-                                KotlinEffectInvocationKind invocationKind)
-    {
-        this.effectType = effectType;
-        this.invocationKind = invocationKind;
+  public void constructorArgumentAccept(
+      Clazz clazz, KotlinEffectExprVisitor kotlinEffectExprVisitor) {
+    for (KotlinEffectExpressionMetadata constructorArgument : constructorArguments) {
+      kotlinEffectExprVisitor.visitConstructorArgExpression(clazz, this, constructorArgument);
     }
+  }
 
-
-    public void accept(Clazz                  clazz,
-                       KotlinMetadata         kotlinMetadata,
-                       KotlinFunctionMetadata kotlinFunctionMetadata,
-                       KotlinContractMetadata kotlinContractMetadata,
-                       KotlinEffectVisitor    kotlinEffectVisitor)
-    {
-        kotlinEffectVisitor.visitEffect(clazz,
-                                        kotlinMetadata,
-                                        kotlinFunctionMetadata,
-                                        kotlinContractMetadata,
-                                        this);
+  public void conclusionOfConditionalEffectAccept(
+      Clazz clazz, KotlinEffectExprVisitor kotlinEffectExprVisitor) {
+    if (conclusionOfConditionalEffect != null) {
+      kotlinEffectExprVisitor.visitConclusionExpression(clazz, this, conclusionOfConditionalEffect);
     }
+  }
 
-    public void constructorArgumentAccept(Clazz                   clazz,
-                                          KotlinEffectExprVisitor kotlinEffectExprVisitor)
-    {
-        for (KotlinEffectExpressionMetadata constructorArgument : constructorArguments)
-        {
-            kotlinEffectExprVisitor.visitConstructorArgExpression(clazz, this, constructorArgument);
-        }
-    }
-
-    public void conclusionOfConditionalEffectAccept(Clazz                   clazz,
-                                                    KotlinEffectExprVisitor kotlinEffectExprVisitor)
-    {
-        if (conclusionOfConditionalEffect != null)
-        {
-            kotlinEffectExprVisitor.visitConclusionExpression(clazz, this, conclusionOfConditionalEffect);
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin contract effect";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin contract effect";
+  }
 }

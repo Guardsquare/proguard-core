@@ -15,6 +15,8 @@
  */
 package proguard.dexfile.ir.ts.an;
 
+import java.util.ArrayList;
+import java.util.List;
 import proguard.dexfile.ir.IrMethod;
 import proguard.dexfile.ir.expr.Local;
 import proguard.dexfile.ir.expr.Value;
@@ -25,168 +27,162 @@ import proguard.dexfile.ir.ts.Cfg;
 import proguard.dexfile.ir.ts.Cfg.FrameVisitor;
 import proguard.dexfile.ir.ts.Cfg.TravelCallBack;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @SuppressWarnings({"unchecked"})
-public abstract class BaseAnalyze<T extends AnalyzeValue> implements FrameVisitor<T[]>, TravelCallBack {
-    protected static final boolean DEBUG = false;
+public abstract class BaseAnalyze<T extends AnalyzeValue>
+    implements FrameVisitor<T[]>, TravelCallBack {
+  protected static final boolean DEBUG = false;
 
-    public List<T> aValues = new ArrayList<T>();
-    private boolean reindexLocal;
-    private T[] currentFrame;
+  public List<T> aValues = new ArrayList<T>();
+  private boolean reindexLocal;
+  private T[] currentFrame;
 
-    protected int localSize;
+  protected int localSize;
 
-    protected IrMethod method;
+  protected IrMethod method;
 
-    private T[] tmpFrame;
+  private T[] tmpFrame;
 
-    public BaseAnalyze(IrMethod method) {
-        this(method, true);
-    }
+  public BaseAnalyze(IrMethod method) {
+    this(method, true);
+  }
 
-    public BaseAnalyze(IrMethod method, boolean reindexLocal) {
-        super();
-        this.method = method;
-        if (!reindexLocal) {
-            // override the localSize value to the max local index+1
-            int maxReg = -1;
-            for (Local local : method.locals) {
-                if (local._ls_index > maxReg) {
-                    maxReg = local._ls_index;
-                }
-            }
-            this.localSize = maxReg + 1;
-        } else {
-            this.localSize = method.locals.size();
+  public BaseAnalyze(IrMethod method, boolean reindexLocal) {
+    super();
+    this.method = method;
+    if (!reindexLocal) {
+      // override the localSize value to the max local index+1
+      int maxReg = -1;
+      for (Local local : method.locals) {
+        if (local._ls_index > maxReg) {
+          maxReg = local._ls_index;
         }
-        this.reindexLocal = reindexLocal;
+      }
+      this.localSize = maxReg + 1;
+    } else {
+      this.localSize = method.locals.size();
     }
+    this.reindexLocal = reindexLocal;
+  }
 
-    public void analyze() {
-        init();
-        analyze0();
-        analyzeValue();
+  public void analyze() {
+    init();
+    analyze0();
+    analyzeValue();
+  }
+
+  protected void analyze0() {
+    tmpFrame = newFrame(localSize);
+    Cfg.dfs(method.stmts, this);
+    tmpFrame = null;
+  }
+
+  protected void analyzeValue() {}
+
+  protected void afterExec(T[] frame, Stmt stmt) {}
+
+  @Override
+  public T[] exec(T[] frame, Stmt stmt) {
+    this.currentFrame = frame;
+    try {
+      Cfg.travel(stmt, this, false);
+    } catch (Exception ex) {
+      throw new RuntimeException("fail exe " + stmt, ex);
     }
+    frame = this.currentFrame;
+    this.currentFrame = null;
+    afterExec(frame, stmt);
+    return frame;
+  }
 
-    protected void analyze0() {
-        tmpFrame = newFrame(localSize);
-        Cfg.dfs(method.stmts, this);
-        tmpFrame = null;
+  protected T getFromFrame(int idx) {
+    return (T) currentFrame[idx];
+  }
+
+  protected T[] getFrame(Stmt stmt) {
+    return (T[]) stmt.frame;
+  }
+
+  protected void setFrame(Stmt stmt, T[] frame) {
+    stmt.frame = frame;
+  }
+
+  protected void init() {
+    if (reindexLocal) {
+      int index = 0;
+      for (Local local : method.locals) {
+        local._ls_index = index;
+        index++;
+      }
     }
-
-    protected void analyzeValue() {
-    }
-
-    protected void afterExec(T[] frame, Stmt stmt) {
-
-    }
-
-    @Override
-    public T[] exec(T[] frame, Stmt stmt) {
-        this.currentFrame = frame;
-        try {
-            Cfg.travel(stmt, this, false);
-        } catch (Exception ex) {
-            throw new RuntimeException("fail exe " + stmt, ex);
+    if (DEBUG) {
+      int idx = 0;
+      for (Stmt s : method.stmts) {
+        if (s.st == Stmt.ST.LABEL) {
+          LabelStmt label = (LabelStmt) s;
+          label.displayName = "L" + idx++;
         }
-        frame = this.currentFrame;
-        this.currentFrame = null;
-        afterExec(frame, stmt);
-        return frame;
+      }
     }
+    initCFG();
+  }
 
-    protected T getFromFrame(int idx) {
-        return (T) currentFrame[idx];
-    }
+  protected void initCFG() {
+    Cfg.createCFG(method);
+  }
 
-    protected T[] getFrame(Stmt stmt) {
-        return (T[]) stmt.frame;
-    }
+  protected T[] newFrame() {
+    return newFrame(localSize);
+  }
 
-    protected void setFrame(Stmt stmt, T[] frame) {
-        stmt.frame = frame;
-    }
+  @Override
+  public T[] initFirstFrame(Stmt first) {
+    return newFrame(localSize);
+  }
 
-    protected void init() {
-        if (reindexLocal) {
-            int index = 0;
-            for (Local local : method.locals) {
-                local._ls_index = index;
-                index++;
-            }
+  protected abstract T[] newFrame(int size);
+
+  protected abstract T newValue();
+
+  @Override
+  public Local onAssign(Local local, AssignStmt as) {
+    System.arraycopy(currentFrame, 0, tmpFrame, 0, localSize);
+    currentFrame = tmpFrame;
+    T aValue = onAssignLocal(local, as.op2);
+    aValues.add(aValue);
+    currentFrame[local._ls_index] = aValue;
+    return local;
+  }
+
+  protected T onAssignLocal(Local local, Value value) {
+    return newValue();
+  }
+
+  @Override
+  public Local onUse(Local local) {
+    T aValue = (T) currentFrame[local._ls_index];
+    onUseLocal(aValue, local);
+    return local;
+  }
+
+  protected void onUseLocal(T aValue, Local local) {}
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (Stmt stmt = method.stmts.getFirst(); stmt != null; stmt = stmt.getNext()) {
+      T[] frame = (T[]) stmt.frame;
+      if (frame != null) {
+        for (T p : frame) {
+          if (p == null) {
+            sb.append('.');
+          } else {
+            sb.append(p.toRsp());
+          }
         }
-        if (DEBUG) {
-            int idx = 0;
-            for (Stmt s : method.stmts) {
-                if (s.st == Stmt.ST.LABEL) {
-                    LabelStmt label = (LabelStmt) s;
-                    label.displayName = "L" + idx++;
-                }
-            }
-        }
-        initCFG();
+        sb.append(" | ");
+      }
+      sb.append(stmt.toString()).append('\n');
     }
-
-    protected void initCFG() {
-        Cfg.createCFG(method);
-    }
-
-    protected T[] newFrame() {
-        return newFrame(localSize);
-    }
-
-    @Override
-    public T[] initFirstFrame(Stmt first) {
-        return newFrame(localSize);
-    }
-
-    protected abstract T[] newFrame(int size);
-
-    protected abstract T newValue();
-
-    @Override
-    public Local onAssign(Local local, AssignStmt as) {
-        System.arraycopy(currentFrame, 0, tmpFrame, 0, localSize);
-        currentFrame = tmpFrame;
-        T aValue = onAssignLocal(local, as.op2);
-        aValues.add(aValue);
-        currentFrame[local._ls_index] = aValue;
-        return local;
-    }
-
-    protected T onAssignLocal(Local local, Value value) {
-        return newValue();
-    }
-
-    @Override
-    public Local onUse(Local local) {
-        T aValue = (T) currentFrame[local._ls_index];
-        onUseLocal(aValue, local);
-        return local;
-    }
-
-    protected void onUseLocal(T aValue, Local local) {
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (Stmt stmt = method.stmts.getFirst(); stmt != null; stmt = stmt.getNext()) {
-            T[] frame = (T[]) stmt.frame;
-            if (frame != null) {
-                for (T p : frame) {
-                    if (p == null) {
-                        sb.append('.');
-                    } else {
-                        sb.append(p.toRsp());
-                    }
-                }
-                sb.append(" | ");
-            }
-            sb.append(stmt.toString()).append('\n');
-        }
-        return sb.toString();
-    }
+    return sb.toString();
+  }
 }

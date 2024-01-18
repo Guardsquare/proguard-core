@@ -26,34 +26,26 @@ import java.util.Set;
  *
  * @author Johan Leys
  */
-public class CollectionMatcher extends StringMatcher
-{
-    private final Set<String> set;
+public class CollectionMatcher extends StringMatcher {
+  private final Set<String> set;
 
+  public CollectionMatcher(Set<String> set) {
+    this.set = set;
+  }
 
-    public CollectionMatcher(Set<String> set)
-    {
-        this.set = set;
-    }
+  public CollectionMatcher(String... strings) {
+    this(new HashSet<>(Arrays.asList(strings)));
+  }
 
-    public CollectionMatcher(String...strings)
-    {
-        this(new HashSet<>(Arrays.asList(strings)));
-    }
+  // Implementations for StringMatcher.
 
+  @Override
+  public boolean matches(String string) {
+    return set.contains(string);
+  }
 
-    // Implementations for StringMatcher.
-
-    @Override
-    public boolean matches(String string)
-    {
-        return set.contains(string);
-    }
-
-
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        return set.contains(string.substring(beginOffset, endOffset));
-    }
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    return set.contains(string.substring(beginOffset, endOffset));
+  }
 }

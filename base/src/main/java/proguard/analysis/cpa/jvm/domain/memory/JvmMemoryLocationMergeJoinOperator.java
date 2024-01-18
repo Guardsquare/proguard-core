@@ -24,34 +24,35 @@ import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.Precision;
 
 /**
- * This {@link MergeOperator} applies the join operator to its arguments sharing the same memory location.
+ * This {@link MergeOperator} applies the join operator to its arguments sharing the same memory
+ * location.
  *
  * @author Dmitry Ivanov
  */
-public final class JvmMemoryLocationMergeJoinOperator
-    implements MergeOperator
-{
-    private final AbstractDomain abstractDomain;
+public final class JvmMemoryLocationMergeJoinOperator implements MergeOperator {
+  private final AbstractDomain abstractDomain;
 
-    /**
-     * Create a merge operator from an abstract domain defining the join operator.
-     *
-     * @param abstractDomain abstract domain
-     */
-    public JvmMemoryLocationMergeJoinOperator(AbstractDomain abstractDomain)
-    {
-        this.abstractDomain = abstractDomain;
+  /**
+   * Create a merge operator from an abstract domain defining the join operator.
+   *
+   * @param abstractDomain abstract domain
+   */
+  public JvmMemoryLocationMergeJoinOperator(AbstractDomain abstractDomain) {
+    this.abstractDomain = abstractDomain;
+  }
+
+  // implementations for MergeOperator
+
+  @Override
+  public AbstractState merge(
+      AbstractState abstractState1, AbstractState abstractState2, Precision precision) {
+    if (!((JvmMemoryLocationAbstractState) abstractState1)
+        .getLocationDependentMemoryLocation()
+        .equals(
+            ((JvmMemoryLocationAbstractState) abstractState2)
+                .getLocationDependentMemoryLocation())) {
+      return abstractState2;
     }
-
-    // implementations for MergeOperator
-
-    @Override
-    public AbstractState merge(AbstractState abstractState1, AbstractState abstractState2, Precision precision)
-    {
-        if (!((JvmMemoryLocationAbstractState) abstractState1).getLocationDependentMemoryLocation().equals(((JvmMemoryLocationAbstractState) abstractState2).getLocationDependentMemoryLocation()))
-        {
-            return abstractState2;
-        }
-        return abstractDomain.join(abstractState1, abstractState2);
-    }
+    return abstractDomain.join(abstractState1, abstractState2);
+  }
 }

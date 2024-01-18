@@ -25,78 +25,56 @@ import java.io.*;
  * @see DirectoryWriter
  * @author Eric Lafortune
  */
-public class FixedFileWriter implements DataEntryWriter
-{
-    private final File         file;
-    private       OutputStream outputStream;
+public class FixedFileWriter implements DataEntryWriter {
+  private final File file;
+  private OutputStream outputStream;
 
+  /**
+   * Creates a new FixedFileWriter.
+   *
+   * @param file the file to which all data entries will be written.
+   */
+  public FixedFileWriter(File file) {
+    this.file = file;
+  }
 
-    /**
-     * Creates a new FixedFileWriter.
-     * @param file the file to which all data entries will be written.
-     */
-    public FixedFileWriter(File file)
-    {
-        this.file = file;
+  // Implementations for DataEntryWriter.
+
+  public boolean createDirectory(DataEntry dataEntry) throws IOException {
+    File directory = file;
+    if (!directory.exists() && !directory.mkdirs()) {
+      throw new IOException("Can't create directory [" + directory.getPath() + "]");
     }
 
+    return true;
+  }
 
-    // Implementations for DataEntryWriter.
+  public boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2) throws IOException {
+    return true;
+  }
 
-    public boolean createDirectory(DataEntry dataEntry) throws IOException
-    {
-        File directory = file;
-        if (!directory.exists() &&
-            !directory.mkdirs())
-        {
-            throw new IOException("Can't create directory [" + directory.getPath() + "]");
-        }
+  public OutputStream createOutputStream(DataEntry dataEntry) throws IOException {
+    File file = this.file;
 
-        return true;
+    // Make sure the parent directories exist.
+    File parentDirectory = file.getParentFile();
+    if (parentDirectory != null && !parentDirectory.exists() && !parentDirectory.mkdirs()) {
+      throw new IOException("Can't create directory [" + parentDirectory.getPath() + "]");
     }
 
+    outputStream = new BufferedOutputStream(new FileOutputStream(file));
 
-    public boolean sameOutputStream(DataEntry dataEntry1,
-                                    DataEntry dataEntry2)
-    throws IOException
-    {
-        return true;
+    return outputStream;
+  }
+
+  public void close() throws IOException {
+    if (outputStream != null) {
+      outputStream.close();
+      outputStream = null;
     }
+  }
 
-
-    public OutputStream createOutputStream(DataEntry dataEntry) throws IOException
-    {
-        File file = this.file;
-
-        // Make sure the parent directories exist.
-        File parentDirectory = file.getParentFile();
-        if (parentDirectory != null   &&
-            !parentDirectory.exists() &&
-            !parentDirectory.mkdirs())
-        {
-            throw new IOException("Can't create directory [" + parentDirectory.getPath() + "]");
-        }
-
-        outputStream =
-            new BufferedOutputStream(
-            new FileOutputStream(file));
-
-        return outputStream;
-    }
-
-
-    public void close() throws IOException
-    {
-        if (outputStream != null)
-        {
-            outputStream.close();
-            outputStream = null;
-        }
-    }
-
-
-    public void println(PrintWriter pw, String prefix)
-    {
-        pw.println(prefix + "FixedFileWriter (file [" + file + "])");
-    }
+  public void println(PrintWriter pw, String prefix) {
+    pw.println(prefix + "FixedFileWriter (file [" + file + "])");
+  }
 }

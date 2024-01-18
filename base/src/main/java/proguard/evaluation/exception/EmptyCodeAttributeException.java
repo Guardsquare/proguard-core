@@ -21,12 +21,9 @@ package proguard.evaluation.exception;
 import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-public class EmptyCodeAttributeException
-    extends ProguardCoreException
-{
+public class EmptyCodeAttributeException extends ProguardCoreException {
 
-    public EmptyCodeAttributeException(String message)
-    {
-        super(ErrorId.EMPTY_CODE_ATTRIBUTE, message);
-    }
+  public EmptyCodeAttributeException(String message) {
+    super(ErrorId.EMPTY_CODE_ATTRIBUTE, message);
+  }
 }

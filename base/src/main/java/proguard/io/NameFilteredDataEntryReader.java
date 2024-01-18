@@ -17,9 +17,8 @@
  */
 package proguard.io;
 
-import proguard.util.*;
-
 import java.util.List;
+import proguard.util.*;
 
 /**
  * This {@link DataEntryReader} delegates to one of two other {@link DataEntryReader} instances,
@@ -27,79 +26,70 @@ import java.util.List;
  *
  * @author Eric Lafortune
  */
-public class NameFilteredDataEntryReader extends FilteredDataEntryReader
-{
-    /**
-     * Creates a new NameFilteredDataEntryReader that delegates to the given
-     * reader, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryReader(String          regularExpression,
-                                       DataEntryReader acceptedDataEntryReader)
-    {
-        this(regularExpression, acceptedDataEntryReader, null);
-    }
+public class NameFilteredDataEntryReader extends FilteredDataEntryReader {
+  /**
+   * Creates a new NameFilteredDataEntryReader that delegates to the given reader, depending on the
+   * given list of filters.
+   */
+  public NameFilteredDataEntryReader(
+      String regularExpression, DataEntryReader acceptedDataEntryReader) {
+    this(regularExpression, acceptedDataEntryReader, null);
+  }
 
+  /**
+   * Creates a new NameFilteredDataEntryReader that delegates to either of the two given readers,
+   * depending on the given list of filters.
+   */
+  public NameFilteredDataEntryReader(
+      String regularExpression,
+      DataEntryReader acceptedDataEntryReader,
+      DataEntryReader rejectedDataEntryReader) {
+    this(
+        new ListParser(new FileNameParser()).parse(regularExpression),
+        acceptedDataEntryReader,
+        rejectedDataEntryReader);
+  }
 
-    /**
-     * Creates a new NameFilteredDataEntryReader that delegates to either of
-     * the two given readers, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryReader(String          regularExpression,
-                                       DataEntryReader acceptedDataEntryReader,
-                                       DataEntryReader rejectedDataEntryReader)
-    {
-        this(new ListParser(new FileNameParser()).parse(regularExpression),
-              acceptedDataEntryReader,
-              rejectedDataEntryReader);
-    }
+  /**
+   * Creates a new NameFilteredDataEntryReader that delegates to the given reader, depending on the
+   * given list of filters.
+   */
+  public NameFilteredDataEntryReader(
+      List regularExpressions, DataEntryReader acceptedDataEntryReader) {
+    this(regularExpressions, acceptedDataEntryReader, null);
+  }
 
+  /**
+   * Creates a new NameFilteredDataEntryReader that delegates to either of the two given readers,
+   * depending on the given list of filters.
+   */
+  public NameFilteredDataEntryReader(
+      List regularExpressions,
+      DataEntryReader acceptedDataEntryReader,
+      DataEntryReader rejectedDataEntryReader) {
+    this(
+        new ListParser(new FileNameParser()).parse(regularExpressions),
+        acceptedDataEntryReader,
+        rejectedDataEntryReader);
+  }
 
-    /**
-     * Creates a new NameFilteredDataEntryReader that delegates to the given
-     * reader, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryReader(List            regularExpressions,
-                                       DataEntryReader acceptedDataEntryReader)
-    {
-        this(regularExpressions, acceptedDataEntryReader, null);
-    }
+  /**
+   * Creates a new NameFilteredDataEntryReader that delegates to the given reader, depending on the
+   * given string matcher.
+   */
+  public NameFilteredDataEntryReader(
+      StringMatcher stringMatcher, DataEntryReader acceptedDataEntryReader) {
+    this(stringMatcher, acceptedDataEntryReader, null);
+  }
 
-
-    /**
-     * Creates a new NameFilteredDataEntryReader that delegates to either of
-     * the two given readers, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryReader(List            regularExpressions,
-                                       DataEntryReader acceptedDataEntryReader,
-                                       DataEntryReader rejectedDataEntryReader)
-    {
-        this(new ListParser(new FileNameParser()).parse(regularExpressions),
-              acceptedDataEntryReader,
-              rejectedDataEntryReader);
-    }
-
-
-    /**
-     * Creates a new NameFilteredDataEntryReader that delegates to the given
-     * reader, depending on the given string matcher.
-     */
-    public NameFilteredDataEntryReader(StringMatcher   stringMatcher,
-                                       DataEntryReader acceptedDataEntryReader)
-    {
-        this(stringMatcher, acceptedDataEntryReader, null);
-    }
-
-
-    /**
-     * Creates a new NameFilteredDataEntryReader that delegates to either of
-     * the two given readers, depending on the given string matcher.
-     */
-    public NameFilteredDataEntryReader(StringMatcher   stringMatcher,
-                                       DataEntryReader acceptedDataEntryReader,
-                                       DataEntryReader rejectedDataEntryReader)
-    {
-        super(new DataEntryNameFilter(stringMatcher),
-              acceptedDataEntryReader,
-              rejectedDataEntryReader);
-    }
+  /**
+   * Creates a new NameFilteredDataEntryReader that delegates to either of the two given readers,
+   * depending on the given string matcher.
+   */
+  public NameFilteredDataEntryReader(
+      StringMatcher stringMatcher,
+      DataEntryReader acceptedDataEntryReader,
+      DataEntryReader rejectedDataEntryReader) {
+    super(new DataEntryNameFilter(stringMatcher), acceptedDataEntryReader, rejectedDataEntryReader);
+  }
 }

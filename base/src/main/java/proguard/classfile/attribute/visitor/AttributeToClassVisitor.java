@@ -26,25 +26,17 @@ import proguard.classfile.visitor.ClassVisitor;
  *
  * @author Eric Lafortune
  */
-public class AttributeToClassVisitor
-implements   AttributeVisitor
-{
-    private final ClassVisitor classVisitor;
+public class AttributeToClassVisitor implements AttributeVisitor {
+  private final ClassVisitor classVisitor;
 
+  /** Creates a new AttributeToClassVisitor. */
+  public AttributeToClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new AttributeToClassVisitor.
-     */
-    public AttributeToClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute)
-    {
-        clazz.accept(classVisitor);
-    }
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {
+    clazz.accept(classVisitor);
+  }
 }

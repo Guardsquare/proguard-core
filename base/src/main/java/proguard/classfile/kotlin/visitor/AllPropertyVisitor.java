@@ -21,28 +21,24 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
 /**
- * This KotlinMetadataVisitor lets a given KotlinPropertyVisitor visit all properties
- * (regular and delegated) of visited KotlinDeclarationContainerMetadata.
+ * This KotlinMetadataVisitor lets a given KotlinPropertyVisitor visit all properties (regular and
+ * delegated) of visited KotlinDeclarationContainerMetadata.
  */
-public class AllPropertyVisitor
-implements KotlinMetadataVisitor
-{
-    private final KotlinPropertyVisitor delegatePropertyVisitor;
+public class AllPropertyVisitor implements KotlinMetadataVisitor {
+  private final KotlinPropertyVisitor delegatePropertyVisitor;
 
-    public AllPropertyVisitor(KotlinPropertyVisitor kotlinPropertyVisitor)
-    {
-        this.delegatePropertyVisitor = kotlinPropertyVisitor;
-    }
+  public AllPropertyVisitor(KotlinPropertyVisitor kotlinPropertyVisitor) {
+    this.delegatePropertyVisitor = kotlinPropertyVisitor;
+  }
 
-    // Implementations for KotlinMetadataVisitor.
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+  // Implementations for KotlinMetadataVisitor.
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz clazz,
-                                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        kotlinDeclarationContainerMetadata.propertiesAccept(         clazz, delegatePropertyVisitor);
-        kotlinDeclarationContainerMetadata.delegatedPropertiesAccept(clazz, delegatePropertyVisitor);
-    }
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    kotlinDeclarationContainerMetadata.propertiesAccept(clazz, delegatePropertyVisitor);
+    kotlinDeclarationContainerMetadata.delegatedPropertiesAccept(clazz, delegatePropertyVisitor);
+  }
 }

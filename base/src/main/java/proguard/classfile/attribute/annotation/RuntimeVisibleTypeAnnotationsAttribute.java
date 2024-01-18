@@ -26,55 +26,38 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class RuntimeVisibleTypeAnnotationsAttribute extends TypeAnnotationsAttribute
-{
-    /**
-     * Creates an uninitialized RuntimeVisibleTypeAnnotationsAttribute.
-     */
-    public RuntimeVisibleTypeAnnotationsAttribute()
-    {
-    }
+public class RuntimeVisibleTypeAnnotationsAttribute extends TypeAnnotationsAttribute {
+  /** Creates an uninitialized RuntimeVisibleTypeAnnotationsAttribute. */
+  public RuntimeVisibleTypeAnnotationsAttribute() {}
 
+  /** Creates an initialized RuntimeVisibleTypeAnnotationsAttribute. */
+  public RuntimeVisibleTypeAnnotationsAttribute(
+      int u2attributeNameIndex, int u2annotationsCount, TypeAnnotation[] annotations) {
+    super(u2attributeNameIndex, u2annotationsCount, annotations);
+  }
 
-    /**
-     * Creates an initialized RuntimeVisibleTypeAnnotationsAttribute.
-     */
-    public RuntimeVisibleTypeAnnotationsAttribute(int              u2attributeNameIndex,
-                                                  int              u2annotationsCount,
-                                                  TypeAnnotation[] annotations)
-    {
-        super(u2attributeNameIndex, u2annotationsCount, annotations);
-    }
+  // Implementations for Attribute.
 
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, this);
+  }
 
-    // Implementations for Attribute.
+  public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, field, this);
+  }
 
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, this);
-    }
+  public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, this);
+  }
 
+  public void accept(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+        clazz, method, codeAttribute, this);
+  }
 
-    public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, field, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, codeAttribute, this);
-    }
-
-
-    public void accept(Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, this);
-    }
+  public void accept(
+      Clazz clazz, RecordComponentInfo recordComponentInfo, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, this);
+  }
 }

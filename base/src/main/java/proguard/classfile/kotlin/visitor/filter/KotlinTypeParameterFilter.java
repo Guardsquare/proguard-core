@@ -17,108 +17,98 @@
  */
 package proguard.classfile.kotlin.visitor.filter;
 
+import java.util.function.Predicate;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.visitor.*;
 
-import java.util.function.Predicate;
-
 /**
- * This {@link KotlinTypeParameterFilter} delegates to another KotlinTypeVisitor if the
- * predicate succeeds.
+ * This {@link KotlinTypeParameterFilter} delegates to another KotlinTypeVisitor if the predicate
+ * succeeds.
  *
  * @author James Hamilton
  */
-public class KotlinTypeParameterFilter
-implements   KotlinTypeParameterVisitor
-{
-    private final Predicate<KotlinTypeParameterMetadata> predicate;
-    private final KotlinTypeParameterVisitor             acceptedVisitor;
-    private final KotlinTypeParameterVisitor             rejectedVisitor;
+public class KotlinTypeParameterFilter implements KotlinTypeParameterVisitor {
+  private final Predicate<KotlinTypeParameterMetadata> predicate;
+  private final KotlinTypeParameterVisitor acceptedVisitor;
+  private final KotlinTypeParameterVisitor rejectedVisitor;
 
-    public KotlinTypeParameterFilter(Predicate<KotlinTypeParameterMetadata> predicate,
-                                     KotlinTypeParameterVisitor             acceptedVisitor,
-                                     KotlinTypeParameterVisitor             rejectedVisitor)
-    {
-        this.predicate       = predicate;
-        this.acceptedVisitor = acceptedVisitor;
-        this.rejectedVisitor = rejectedVisitor;
+  public KotlinTypeParameterFilter(
+      Predicate<KotlinTypeParameterMetadata> predicate,
+      KotlinTypeParameterVisitor acceptedVisitor,
+      KotlinTypeParameterVisitor rejectedVisitor) {
+    this.predicate = predicate;
+    this.acceptedVisitor = acceptedVisitor;
+    this.rejectedVisitor = rejectedVisitor;
+  }
+
+  public KotlinTypeParameterFilter(
+      Predicate<KotlinTypeParameterMetadata> predicate,
+      KotlinTypeParameterVisitor acceptedVisitor) {
+    this(predicate, acceptedVisitor, null);
+  }
+
+  @Override
+  public void visitAnyTypeParameter(
+      Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {}
+
+  @Override
+  public void visitClassTypeParameter(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinMetadata,
+      KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
+    KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
+
+    if (delegate != null) {
+      kotlinTypeParameterMetadata.accept(clazz, kotlinMetadata, delegate);
     }
+  }
 
+  @Override
+  public void visitPropertyTypeParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
+    KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
 
-    public KotlinTypeParameterFilter(Predicate<KotlinTypeParameterMetadata> predicate,
-                                     KotlinTypeParameterVisitor             acceptedVisitor)
-    {
-        this(predicate, acceptedVisitor, null);
+    if (delegate != null) {
+      kotlinTypeParameterMetadata.accept(
+          clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, delegate);
     }
+  }
 
+  @Override
+  public void visitFunctionTypeParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
+    KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
 
-    @Override
-    public void visitAnyTypeParameter(Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata) { }
-
-
-    @Override
-    public void visitClassTypeParameter(Clazz                       clazz,
-                                        KotlinClassKindMetadata     kotlinMetadata,
-                                        KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
-    {
-        KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
-
-        if (delegate != null)
-        {
-            kotlinTypeParameterMetadata.accept(clazz, kotlinMetadata, delegate);
-        }
+    if (delegate != null) {
+      kotlinTypeParameterMetadata.accept(clazz, kotlinMetadata, kotlinFunctionMetadata, delegate);
     }
+  }
 
+  @Override
+  public void visitAliasTypeParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasMetadata kotlinTypeAliasMetadata,
+      KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
+    KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
 
-    @Override
-    public void visitPropertyTypeParameter(Clazz                              clazz,
-                                           KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                           KotlinPropertyMetadata             kotlinPropertyMetadata,
-                                           KotlinTypeParameterMetadata        kotlinTypeParameterMetadata)
-    {
-        KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
-
-        if (delegate != null)
-        {
-            kotlinTypeParameterMetadata.accept(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, delegate);
-        }
+    if (delegate != null) {
+      kotlinTypeParameterMetadata.accept(
+          clazz, kotlinDeclarationContainerMetadata, kotlinTypeAliasMetadata, delegate);
     }
+  }
 
-
-    @Override
-    public void visitFunctionTypeParameter(Clazz                       clazz,
-                                           KotlinMetadata              kotlinMetadata,
-                                           KotlinFunctionMetadata      kotlinFunctionMetadata,
-                                           KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
-    {
-        KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
-
-        if (delegate != null)
-        {
-            kotlinTypeParameterMetadata.accept(clazz, kotlinMetadata, kotlinFunctionMetadata, delegate);
-        }
-    }
-
-
-    @Override
-    public void visitAliasTypeParameter(Clazz                              clazz,
-                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                        KotlinTypeAliasMetadata            kotlinTypeAliasMetadata,
-                                        KotlinTypeParameterMetadata        kotlinTypeParameterMetadata)
-    {
-        KotlinTypeParameterVisitor delegate = getDelegate(kotlinTypeParameterMetadata);
-
-        if (delegate != null)
-        {
-            kotlinTypeParameterMetadata.accept(clazz, kotlinDeclarationContainerMetadata, kotlinTypeAliasMetadata, delegate);
-        }
-    }
-
-
-    private KotlinTypeParameterVisitor getDelegate(KotlinTypeParameterMetadata kotlinTypeParameterMetadata)
-    {
-        return this.predicate.test(kotlinTypeParameterMetadata) ?
-                this.acceptedVisitor : this.rejectedVisitor;
-    }
+  private KotlinTypeParameterVisitor getDelegate(
+      KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
+    return this.predicate.test(kotlinTypeParameterMetadata)
+        ? this.acceptedVisitor
+        : this.rejectedVisitor;
+  }
 }

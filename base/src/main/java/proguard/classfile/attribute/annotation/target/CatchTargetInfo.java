@@ -27,53 +27,38 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class CatchTargetInfo extends TargetInfo
-{
-    public int u2exceptionTableIndex;
+public class CatchTargetInfo extends TargetInfo {
+  public int u2exceptionTableIndex;
 
+  /** Creates an uninitialized CatchTargetInfo. */
+  public CatchTargetInfo() {}
 
-    /**
-     * Creates an uninitialized CatchTargetInfo.
-     */
-    public CatchTargetInfo()
-    {
-    }
+  /** Creates a partially initialized CatchTargetInfo. */
+  public CatchTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
+  /** Creates an initialized CatchTargetInfo. */
+  public CatchTargetInfo(byte u1targetType, int u2exceptionTableIndex) {
+    super(u1targetType);
 
-    /**
-     * Creates a partially initialized CatchTargetInfo.
-     */
-    public CatchTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+    this.u2exceptionTableIndex = u2exceptionTableIndex;
+  }
 
+  // Implementations for TargetInfo.
 
-    /**
-     * Creates an initialized CatchTargetInfo.
-     */
-    public CatchTargetInfo(byte u1targetType,
-                           int  u2exceptionTableIndex)
-    {
-        super(u1targetType);
+  /** Lets the visitor visit, with Method and CodeAttribute null. */
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitCatchTargetInfo(clazz, null, null, typeAnnotation, this);
+  }
 
-        this.u2exceptionTableIndex = u2exceptionTableIndex;
-    }
-
-
-    // Implementations for TargetInfo.
-
-    /**
-     * Lets the visitor visit, with Method and CodeAttribute null.
-     */
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitCatchTargetInfo(clazz, null, null, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitCatchTargetInfo(clazz, method, codeAttribute, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitCatchTargetInfo(clazz, method, codeAttribute, typeAnnotation, this);
+  }
 }

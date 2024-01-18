@@ -20,42 +20,30 @@ package proguard.resources.file.visitor;
 import proguard.resources.file.ResourceFile;
 import proguard.util.ArrayUtil;
 
-
 /**
  * This {@link ResourceFileVisitor} delegates all visits to all {@link ResourceFileVisitor}
  * instances in the given list.
  *
  * @author Johan Leys
  */
-public class MultiResourceFileVisitor
-implements   ResourceFileVisitor
-{
-    private ResourceFileVisitor[] resourceFileVisitors;
+public class MultiResourceFileVisitor implements ResourceFileVisitor {
+  private ResourceFileVisitor[] resourceFileVisitors;
 
+  public MultiResourceFileVisitor(ResourceFileVisitor... resourceFileVisitors) {
+    this.resourceFileVisitors = resourceFileVisitors;
+  }
 
-    public MultiResourceFileVisitor(ResourceFileVisitor... resourceFileVisitors)
-    {
-        this.resourceFileVisitors = resourceFileVisitors;
+  public void addResourceFileVisitor(ResourceFileVisitor visitor) {
+    resourceFileVisitors =
+        ArrayUtil.add(resourceFileVisitors, resourceFileVisitors.length, visitor);
+  }
+
+  // Implementations for ResourceFileVisitor.
+
+  @Override
+  public void visitAnyResourceFile(ResourceFile resourceFile) {
+    for (int index = 0; index < resourceFileVisitors.length; index++) {
+      resourceFile.accept(resourceFileVisitors[index]);
     }
-
-
-
-    public void addResourceFileVisitor(ResourceFileVisitor visitor)
-    {
-        resourceFileVisitors = ArrayUtil.add(resourceFileVisitors,
-                                             resourceFileVisitors.length,
-                                             visitor);
-    }
-
-
-    // Implementations for ResourceFileVisitor.
-
-    @Override
-    public void visitAnyResourceFile(ResourceFile resourceFile)
-    {
-        for (int index = 0; index < resourceFileVisitors.length; index++)
-        {
-            resourceFile.accept(resourceFileVisitors[index]);
-        }
-    }
+  }
 }

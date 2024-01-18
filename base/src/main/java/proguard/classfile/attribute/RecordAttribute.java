@@ -25,52 +25,34 @@ import proguard.classfile.attribute.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class RecordAttribute extends Attribute
-{
-    public int                   u2componentsCount;
-    public RecordComponentInfo[] components;
+public class RecordAttribute extends Attribute {
+  public int u2componentsCount;
+  public RecordComponentInfo[] components;
 
+  /** Creates an uninitialized RecordAttribute. */
+  public RecordAttribute() {}
 
-    /**
-     * Creates an uninitialized RecordAttribute.
-     */
-    public RecordAttribute()
-    {
+  /** Creates an initialized RecordAttribute. */
+  public RecordAttribute(
+      int u2attributeNameIndex, int u2componentsCount, RecordComponentInfo[] components) {
+    super(u2attributeNameIndex);
+
+    this.u2componentsCount = u2componentsCount;
+    this.components = components;
+  }
+
+  // Implementations for Attribute.
+
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRecordAttribute(clazz, this);
+  }
+
+  /** Applies the given visitor to all components. */
+  public void componentsAccept(Clazz clazz, RecordComponentInfoVisitor recordComponentInfoVisitor) {
+    for (int index = 0; index < u2componentsCount; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of RecordComponentInfo.
+      recordComponentInfoVisitor.visitRecordComponentInfo(clazz, components[index]);
     }
-
-
-    /**
-     * Creates an initialized RecordAttribute.
-     */
-    public RecordAttribute(int                   u2attributeNameIndex,
-                           int                   u2componentsCount,
-                           RecordComponentInfo[] components)
-    {
-        super(u2attributeNameIndex);
-
-        this.u2componentsCount = u2componentsCount;
-        this.components        = components;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRecordAttribute(clazz, this);
-    }
-
-
-    /**
-     * Applies the given visitor to all components.
-     */
-    public void componentsAccept(Clazz clazz, RecordComponentInfoVisitor recordComponentInfoVisitor)
-    {
-        for (int index = 0; index < u2componentsCount; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of RecordComponentInfo.
-            recordComponentInfoVisitor.visitRecordComponentInfo(clazz, components[index]);
-        }
-    }
+  }
 }

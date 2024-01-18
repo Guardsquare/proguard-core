@@ -19,47 +19,42 @@
 package proguard.analysis.cpa.interfaces;
 
 /**
- * {@link ConfigurableProgramAnalysis} consists of {@link AbstractDomain}, {@link TransferRelation}, {@link MergeOperator}, {@link StopOperator}, and {@link PrecisionAdjustment}.
+ * {@link ConfigurableProgramAnalysis} consists of {@link AbstractDomain}, {@link TransferRelation},
+ * {@link MergeOperator}, {@link StopOperator}, and {@link PrecisionAdjustment}.
  *
- * <p>The {@link AbstractDomain} is a join-semilattice of {@link AbstractState}s. It defines the abstraction level of the analysis.</p>
+ * <p>The {@link AbstractDomain} is a join-semilattice of {@link AbstractState}s. It defines the
+ * abstraction level of the analysis.
  *
- * <p>The {@link TransferRelation} specifies how successor states are computed in the {@link proguard.analysis.cpa.algorithms.CpaAlgorithm}.</p>
+ * <p>The {@link TransferRelation} specifies how successor states are computed in the {@link
+ * proguard.analysis.cpa.algorithms.CpaAlgorithm}.
  *
- * <p>The {@link MergeOperator} defines how (and whether) the older {@link AbstractState} should be updated with the newly discovered {@link AbstractState}.</p>
+ * <p>The {@link MergeOperator} defines how (and whether) the older {@link AbstractState} should be
+ * updated with the newly discovered {@link AbstractState}.
  *
- * <p>The {@link StopOperator} decides whether the successor state should be added to the {@link ReachedSet} based on the content of the latter.</p>
+ * <p>The {@link StopOperator} decides whether the successor state should be added to the {@link
+ * ReachedSet} based on the content of the latter.
  *
- * <p>The {@link PrecisionAdjustment} selects the {@link Precision} for the currently processed {@link AbstractState} considering the {@link ReachedSet} content.</p>
+ * <p>The {@link PrecisionAdjustment} selects the {@link Precision} for the currently processed
+ * {@link AbstractState} considering the {@link ReachedSet} content.
  *
- * <p>All CPA components should be side effect free, i.e., not modify their arguments.</p>
+ * <p>All CPA components should be side effect free, i.e., not modify their arguments.
  *
  * @author Dmitry Ivanov
  */
-public interface ConfigurableProgramAnalysis
-{
+public interface ConfigurableProgramAnalysis {
 
-    /**
-     * Returns the abstract domain of this CPA.
-     */
-    AbstractDomain getAbstractDomain();
+  /** Returns the abstract domain of this CPA. */
+  AbstractDomain getAbstractDomain();
 
-    /**
-     * Returns the transfer relation of this CPA.
-     */
-    TransferRelation getTransferRelation();
+  /** Returns the transfer relation of this CPA. */
+  TransferRelation getTransferRelation();
 
-    /**
-     * Returns the merge operator of this CPA.
-     */
-    MergeOperator getMergeOperator();
+  /** Returns the merge operator of this CPA. */
+  MergeOperator getMergeOperator();
 
-    /**
-     * Returns the stop operator of this CPA.
-     */
-    StopOperator getStopOperator();
+  /** Returns the stop operator of this CPA. */
+  StopOperator getStopOperator();
 
-    /**
-     * Returns the precision adjustment of this CPA.
-     */
-    PrecisionAdjustment getPrecisionAdjustment();
+  /** Returns the precision adjustment of this CPA. */
+  PrecisionAdjustment getPrecisionAdjustment();
 }

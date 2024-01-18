@@ -19,17 +19,19 @@
 package proguard.analysis.cpa.interfaces;
 
 /**
- * The {@link MergeOperator} defines how (and whether) the older {@link AbstractState} should be updated with the newly discovered {@link AbstractState}.
+ * The {@link MergeOperator} defines how (and whether) the older {@link AbstractState} should be
+ * updated with the newly discovered {@link AbstractState}.
  *
  * @author Dmitry Ivanov
  */
-public interface MergeOperator
-{
+public interface MergeOperator {
 
-    /**
-     * The operator uses the {@code abstractState1} to weaken {@code abstractState2} depending on {@code precision}.
-     * Thus, it is asymmetric regarding its first two parameters. E.g., return {@code abstractState2} for no merging.
-     * To guarantee the correct behavior of the algorithm implementations must have no side effects.
-     */
-    AbstractState merge(AbstractState abstractState1, AbstractState abstractState2, Precision precision);
+  /**
+   * The operator uses the {@code abstractState1} to weaken {@code abstractState2} depending on
+   * {@code precision}. Thus, it is asymmetric regarding its first two parameters. E.g., return
+   * {@code abstractState2} for no merging. To guarantee the correct behavior of the algorithm
+   * implementations must have no side effects.
+   */
+  AbstractState merge(
+      AbstractState abstractState1, AbstractState abstractState2, Precision precision);
 }

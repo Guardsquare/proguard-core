@@ -17,15 +17,12 @@
  */
 package proguard.classfile.kotlin.flags;
 
-public class KotlinTypeAliasFlags implements KotlinFlags
-{
-    public final KotlinVisibilityFlags visibility;
-    public final KotlinCommonFlags     common;
+public class KotlinTypeAliasFlags implements KotlinFlags {
+  public final KotlinVisibilityFlags visibility;
+  public final KotlinCommonFlags common;
 
-
-    public KotlinTypeAliasFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility)
-    {
-        this.common     = common;
-        this.visibility = visibility;
-    }
+  public KotlinTypeAliasFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility) {
+    this.common = common;
+    this.visibility = visibility;
+  }
 }

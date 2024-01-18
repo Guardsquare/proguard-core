@@ -17,6 +17,9 @@
  */
 package proguard.classfile.kotlin;
 
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_CLASS;
+
+import java.util.List;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
 import proguard.classfile.kotlin.flags.KotlinClassFlags;
@@ -28,188 +31,143 @@ import proguard.classfile.kotlin.visitor.KotlinVersionRequirementVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
-import java.util.List;
+public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata {
 
-import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_CLASS;
+  public String className;
+  public Clazz referencedClass;
 
-public class KotlinClassKindMetadata
-extends KotlinDeclarationContainerMetadata
-{
+  public List<KotlinTypeMetadata> superTypes;
 
-    public String className;
-    public Clazz  referencedClass;
+  public String companionObjectName;
+  public Clazz referencedCompanionClass;
+  public Field referencedCompanionField;
 
-    public List<KotlinTypeMetadata> superTypes;
+  public List<KotlinConstructorMetadata> constructors;
 
-    public String companionObjectName;
-    public Clazz  referencedCompanionClass;
-    public Field  referencedCompanionField;
+  public List<String> enumEntryNames;
+  public List<Field> referencedEnumEntries;
+  public List<String> nestedClassNames;
+  public List<Clazz> referencedNestedClasses;
+  public List<String> sealedSubclassNames;
+  public List<Clazz> referencedSealedSubClasses;
 
-    public List<KotlinConstructorMetadata> constructors;
+  public Clazz referencedDefaultImplsClass;
 
-    public List<String> enumEntryNames;
-    public List<Field>  referencedEnumEntries;
-    public List<String> nestedClassNames;
-    public List<Clazz>  referencedNestedClasses;
-    public List<String> sealedSubclassNames;
-    public List<Clazz>  referencedSealedSubClasses;
+  public List<KotlinTypeParameterMetadata> typeParameters;
 
-    public Clazz referencedDefaultImplsClass;
+  public List<KotlinTypeMetadata> contextReceivers;
 
-    public List<KotlinTypeParameterMetadata> typeParameters;
+  public KotlinVersionRequirementMetadata versionRequirement;
 
-    public List<KotlinTypeMetadata> contextReceivers;
+  public KotlinClassFlags flags;
 
-    public KotlinVersionRequirementMetadata versionRequirement;
+  public String underlyingPropertyName;
+  public KotlinTypeMetadata underlyingPropertyType;
 
-    public KotlinClassFlags flags;
+  // Extensions.
 
-    public String             underlyingPropertyName;
-    public KotlinTypeMetadata underlyingPropertyType;
+  // The JVM internal name of the original class this anonymous object is copied from. Refers to the
+  // anonymous objects copied from bodies of inline functions to the use site by the Kotlin
+  // compiler.
+  public String anonymousObjectOriginName;
+  public Clazz anonymousObjectOriginClass;
 
+  public KotlinClassKindMetadata(int[] mv, int xi, String xs, String pn) {
+    super(METADATA_KIND_CLASS, mv, xi, xs, pn);
+  }
 
-    // Extensions.
+  @Override
+  public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor) {
+    kotlinMetadataVisitor.visitKotlinClassMetadata(clazz, this);
+  }
 
-    // The JVM internal name of the original class this anonymous object is copied from. Refers to the
-    // anonymous objects copied from bodies of inline functions to the use site by the Kotlin compiler.
-    public String anonymousObjectOriginName;
-    public Clazz  anonymousObjectOriginClass;
-
-
-    public KotlinClassKindMetadata(int[]  mv,
-                                   int    xi,
-                                   String xs,
-                                   String pn)
-    {
-        super(METADATA_KIND_CLASS, mv, xi, xs, pn);
+  public void companionAccept(KotlinMetadataVisitor kotlinMetadataVisitor) {
+    if (referencedCompanionClass != null) {
+      referencedCompanionClass.kotlinMetadataAccept(kotlinMetadataVisitor);
     }
+  }
 
-
-    @Override
-    public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        kotlinMetadataVisitor.visitKotlinClassMetadata(clazz, this);
+  public void referencedCompanionFieldAccept(MemberVisitor memberVisitor) {
+    if (referencedClass != null && referencedCompanionField != null) {
+      referencedCompanionField.accept(referencedClass, memberVisitor);
     }
+  }
 
+  public void nestedClassesAccept(boolean visitCompanion, ClassVisitor classVisitor) {
+    for (Clazz nestedClazz : referencedNestedClasses) {
+      if (!visitCompanion && nestedClazz == referencedCompanionClass) {
+        continue;
+      }
 
-    public void companionAccept(KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        if (referencedCompanionClass != null)
-        {
-            referencedCompanionClass.kotlinMetadataAccept(kotlinMetadataVisitor);
-        }
+      if (nestedClazz != null) {
+        nestedClazz.accept(classVisitor);
+      }
     }
+  }
 
-    public void referencedCompanionFieldAccept(MemberVisitor memberVisitor)
-    {
-        if (referencedClass          != null &&
-            referencedCompanionField != null)
-        {
-            referencedCompanionField.accept(referencedClass, memberVisitor);
-        }
+  public void sealedSubclassesAccept(ClassVisitor classVisitor) {
+    for (Clazz sealedSubclass : referencedSealedSubClasses) {
+      if (sealedSubclass != null) {
+        sealedSubclass.accept(classVisitor);
+      }
     }
+  }
 
-    public void nestedClassesAccept(boolean visitCompanion, ClassVisitor classVisitor)
-    {
-        for (Clazz nestedClazz : referencedNestedClasses) {
-            if (!visitCompanion && nestedClazz == referencedCompanionClass)
-            {
-                continue;
-            }
-
-            if (nestedClazz != null)
-            {
-                nestedClazz.accept(classVisitor);
-            }
-        }
+  public void superTypesAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor) {
+    for (KotlinTypeMetadata superType : superTypes) {
+      superType.accept(clazz, this, kotlinTypeVisitor);
     }
+  }
 
-
-    public void sealedSubclassesAccept(ClassVisitor classVisitor)
-    {
-        for (Clazz sealedSubclass : referencedSealedSubClasses)
-        {
-            if (sealedSubclass != null)
-            {
-                sealedSubclass.accept(classVisitor);
-            }
-        }
+  public void constructorsAccept(Clazz clazz, KotlinConstructorVisitor kotlinConstructorVisitor) {
+    for (KotlinConstructorMetadata constructor : constructors) {
+      constructor.accept(clazz, this, kotlinConstructorVisitor);
     }
+  }
 
-
-    public void superTypesAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        for (KotlinTypeMetadata superType : superTypes)
-        {
-            superType.accept(clazz, this, kotlinTypeVisitor);
-        }
+  public void typeParametersAccept(
+      Clazz clazz, KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    for (KotlinTypeParameterMetadata typeParameter : typeParameters) {
+      typeParameter.accept(clazz, this, kotlinTypeParameterVisitor);
     }
+  }
 
-
-    public void constructorsAccept(Clazz clazz, KotlinConstructorVisitor kotlinConstructorVisitor)
-    {
-        for (KotlinConstructorMetadata constructor : constructors)
-        {
-            constructor.accept(clazz, this, kotlinConstructorVisitor);
-        }
+  public void versionRequirementAccept(
+      Clazz clazz, KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor) {
+    if (versionRequirement != null) {
+      versionRequirement.accept(clazz, this, kotlinVersionRequirementVisitor);
     }
+  }
 
-
-    public void typeParametersAccept(Clazz clazz, KotlinTypeParameterVisitor kotlinTypeParameterVisitor)
-    {
-        for (KotlinTypeParameterMetadata typeParameter : typeParameters)
-        {
-            typeParameter.accept(clazz, this, kotlinTypeParameterVisitor);
-        }
+  public void inlineClassUnderlyingPropertyTypeAccept(
+      Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor) {
+    if (underlyingPropertyType != null) {
+      underlyingPropertyType.underlyingPropertyTypeAccept(clazz, this, kotlinTypeVisitor);
     }
+  }
 
-
-    public void versionRequirementAccept(Clazz                           clazz,
-                                         KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor)
-    {
-        if (versionRequirement != null)
-        {
-            versionRequirement.accept(clazz,
-                                      this,
-                                      kotlinVersionRequirementVisitor);
-        }
+  public void contextReceiverTypesAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor) {
+    if (contextReceivers != null) {
+      for (KotlinTypeMetadata contextReceiver : contextReceivers) {
+        kotlinTypeVisitor.visitClassContextReceiverType(clazz, this, contextReceiver);
+      }
     }
+  }
 
-
-    public void inlineClassUnderlyingPropertyTypeAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        if (underlyingPropertyType != null)
-        {
-            underlyingPropertyType.underlyingPropertyTypeAccept(clazz, this, kotlinTypeVisitor);
-        }
-    }
-
-    public void contextReceiverTypesAccept(Clazz             clazz,
-                                           KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        if (contextReceivers != null)
-        {
-            for (KotlinTypeMetadata contextReceiver : contextReceivers)
-            {
-                kotlinTypeVisitor.visitClassContextReceiverType(clazz, this, contextReceiver);
-            }
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin " +
-               (companionObjectName != null ? "accompanied " : "") +
-               (flags.isUsualClass      ? "usual "            : "") +
-               (flags.isInterface       ? "interface "        : "") +
-               (flags.isObject          ? "object "           : "") +
-               (flags.isData            ? "data "             : "") +
-               (flags.isData            ? "data "             : "") +
-               (flags.isCompanionObject ? "companion object " : "") +
-               (flags.isEnumEntry       ? "enum entry "       : "") +
-               "class(" + className + ")";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin "
+        + (companionObjectName != null ? "accompanied " : "")
+        + (flags.isUsualClass ? "usual " : "")
+        + (flags.isInterface ? "interface " : "")
+        + (flags.isObject ? "object " : "")
+        + (flags.isData ? "data " : "")
+        + (flags.isData ? "data " : "")
+        + (flags.isCompanionObject ? "companion object " : "")
+        + (flags.isEnumEntry ? "enum entry " : "")
+        + "class("
+        + className
+        + ")";
+  }
 }

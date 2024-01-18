@@ -22,67 +22,55 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.BootstrapMethodInfoVisitor;
 
 /**
- * This {@link BootstrapMethodInfoVisitor} adds all bootstrap methods that it visits to
- * the given target class, creating a bootstrap methods attribute if necessary.
+ * This {@link BootstrapMethodInfoVisitor} adds all bootstrap methods that it visits to the given
+ * target class, creating a bootstrap methods attribute if necessary.
  */
-public class BootstrapMethodsAttributeAdder
-implements   BootstrapMethodInfoVisitor
-{
-    private final ProgramClass             targetClass;
-    private final ConstantPoolEditor       constantPoolEditor;
-    private       BootstrapMethodInfoAdder bootstrapMethodInfoAdder;
+public class BootstrapMethodsAttributeAdder implements BootstrapMethodInfoVisitor {
+  private final ProgramClass targetClass;
+  private final ConstantPoolEditor constantPoolEditor;
+  private BootstrapMethodInfoAdder bootstrapMethodInfoAdder;
 
+  /**
+   * Creates a new BootstrapMethodsAttributeAdder that will copy bootstrap methods into the given
+   * target class/
+   */
+  public BootstrapMethodsAttributeAdder(ProgramClass targetClass) {
+    this.targetClass = targetClass;
+    this.constantPoolEditor = new ConstantPoolEditor(targetClass);
+  }
 
-    /**
-     * Creates a new BootstrapMethodsAttributeAdder that will copy bootstrap
-     * methods into the given target class/
-     */
-    public BootstrapMethodsAttributeAdder(ProgramClass targetClass)
-    {
-        this.targetClass        = targetClass;
-        this.constantPoolEditor = new ConstantPoolEditor(targetClass);
+  /** Returns the index of the most recently added bootstrap method. */
+  public int getBootstrapMethodIndex() {
+    return bootstrapMethodInfoAdder.getBootstrapMethodIndex();
+  }
+
+  // Implementations for BootstrapMethodInfoVisitor.
+
+  public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo) {
+    // Make sure we have a bootstrap methods attribute adder.
+    if (bootstrapMethodInfoAdder == null) {
+      // Make sure we have a target bootstrap methods attribute.
+      AttributesEditor attributesEditor = new AttributesEditor(targetClass, false);
+
+      BootstrapMethodsAttribute targetBootstrapMethodsAttribute =
+          (BootstrapMethodsAttribute) attributesEditor.findAttribute(Attribute.BOOTSTRAP_METHODS);
+
+      if (targetBootstrapMethodsAttribute == null) {
+        targetBootstrapMethodsAttribute =
+            new BootstrapMethodsAttribute(
+                constantPoolEditor.addUtf8Constant(Attribute.BOOTSTRAP_METHODS),
+                0,
+                new BootstrapMethodInfo[0]);
+
+        attributesEditor.addAttribute(targetBootstrapMethodsAttribute);
+      }
+
+      // Create a bootstrap method adder for it.
+      bootstrapMethodInfoAdder =
+          new BootstrapMethodInfoAdder(targetClass, targetBootstrapMethodsAttribute);
     }
 
-
-    /**
-     * Returns the index of the most recently added bootstrap method.
-     */
-    public int getBootstrapMethodIndex()
-    {
-        return bootstrapMethodInfoAdder.getBootstrapMethodIndex();
-    }
-
-
-    // Implementations for BootstrapMethodInfoVisitor.
-
-    public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo)
-    {
-        // Make sure we have a bootstrap methods attribute adder.
-        if (bootstrapMethodInfoAdder == null)
-        {
-            // Make sure we have a target bootstrap methods attribute.
-            AttributesEditor attributesEditor =
-                new AttributesEditor(targetClass, false);
-
-            BootstrapMethodsAttribute targetBootstrapMethodsAttribute =
-                (BootstrapMethodsAttribute)attributesEditor.findAttribute(Attribute.BOOTSTRAP_METHODS);
-
-            if (targetBootstrapMethodsAttribute == null)
-            {
-                targetBootstrapMethodsAttribute =
-                    new BootstrapMethodsAttribute(constantPoolEditor.addUtf8Constant(Attribute.BOOTSTRAP_METHODS),
-                                                  0,
-                                                  new BootstrapMethodInfo[0]);
-
-                attributesEditor.addAttribute(targetBootstrapMethodsAttribute);
-            }
-
-            // Create a bootstrap method adder for it.
-            bootstrapMethodInfoAdder = new BootstrapMethodInfoAdder(targetClass,
-                                                                    targetBootstrapMethodsAttribute);
-        }
-
-        // Delegate to the bootstrap method adder.
-        bootstrapMethodInfoAdder.visitBootstrapMethodInfo(clazz, bootstrapMethodInfo);
-    }
+    // Delegate to the bootstrap method adder.
+    bootstrapMethodInfoAdder.visitBootstrapMethodInfo(clazz, bootstrapMethodInfo);
+  }
 }

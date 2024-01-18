@@ -24,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
@@ -33,85 +32,80 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.classfile.Signature;
 
 /**
- * This {@link ReachedSet} stores {@link ProgramLocationDependent} {@link AbstractState}s.
- * It assumes the analysis does merge the {@link AbstractState}s belonging to different {@link CfaNode}s and stores them in separate bins.
+ * This {@link ReachedSet} stores {@link ProgramLocationDependent} {@link AbstractState}s. It
+ * assumes the analysis does merge the {@link AbstractState}s belonging to different {@link
+ * CfaNode}s and stores them in separate bins.
  *
  * @author Dmitry Ivanov
  */
-public final class ProgramLocationDependentReachedSet<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-                                                      CfaEdgeT extends CfaEdge<CfaNodeT>,
-                                                      AbstractStateT extends AbstractState & ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>,
-                                                      SignatureT extends Signature>
-    implements ReachedSet
-{
+public final class ProgramLocationDependentReachedSet<
+        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
+        CfaEdgeT extends CfaEdge<CfaNodeT>,
+        AbstractStateT extends
+            AbstractState & ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>,
+        SignatureT extends Signature>
+    implements ReachedSet {
 
-    private Map<CfaNodeT, Set<AbstractStateT>> locationToStates = new LinkedHashMap<>();
+  private Map<CfaNodeT, Set<AbstractStateT>> locationToStates = new LinkedHashMap<>();
 
-    // implementations for ReachedSet
+  // implementations for ReachedSet
 
-    @Override
-    public boolean add(AbstractState abstractState)
-    {
-        AbstractStateT state = (AbstractStateT) abstractState;
-        return locationToStates.computeIfAbsent(state.getProgramLocation(), x -> new LinkedHashSet<>()).add(state);
+  @Override
+  public boolean add(AbstractState abstractState) {
+    AbstractStateT state = (AbstractStateT) abstractState;
+    return locationToStates
+        .computeIfAbsent(state.getProgramLocation(), x -> new LinkedHashSet<>())
+        .add(state);
+  }
+
+  @Override
+  public boolean addAll(Collection<? extends AbstractState> abstractStates) {
+    boolean result = false;
+
+    for (AbstractState state : abstractStates) {
+      result |= add(state);
     }
 
-    @Override
-    public boolean addAll(Collection<? extends AbstractState> abstractStates)
-    {
-        boolean result = false;
+    return result;
+  }
 
-        for (AbstractState state: abstractStates)
-        {
-            result |= add(state);
-        }
+  @Override
+  public boolean remove(AbstractState abstractState) {
+    AbstractStateT state = (AbstractStateT) abstractState;
+    CfaNodeT location = state.getProgramLocation();
+    return locationToStates.containsKey(location) && locationToStates.get(location).remove(state);
+  }
 
-        return result;
+  @Override
+  public boolean removeAll(Collection<?> abstractStates) {
+    boolean result = false;
+
+    for (Object state : abstractStates) {
+      result |= remove((AbstractState) state);
     }
 
-    @Override
-    public boolean remove(AbstractState abstractState)
-    {
-        AbstractStateT state = (AbstractStateT) abstractState;
-        CfaNodeT location = state.getProgramLocation();
-        return locationToStates.containsKey(location) && locationToStates.get(location).remove(state);
-    }
+    return result;
+  }
 
-    @Override
-    public boolean removeAll(Collection<?> abstractStates)
-    {
-        boolean result = false;
+  @Override
+  public Collection<AbstractStateT> asCollection() {
+    int initialSize = locationToStates.values().size();
+    return locationToStates.values().stream()
+        .reduce(
+            new LinkedHashSet<>(initialSize),
+            (x, y) -> {
+              x.addAll(y);
+              return x;
+            });
+  }
 
-        for (Object state: abstractStates)
-        {
-            result |= remove((AbstractState) state);
-        }
+  @Override
+  public Collection<? extends AbstractState> getReached(AbstractState abstractState) {
+    return getReached(((AbstractStateT) abstractState).getProgramLocation());
+  }
 
-        return result;
-    }
-
-    @Override
-    public Collection<AbstractStateT> asCollection()
-    {
-        int initialSize = locationToStates.values().size();
-        return locationToStates.values().stream().reduce(new LinkedHashSet<>(initialSize), (x, y) ->
-        {
-            x.addAll(y);
-            return x;
-        });
-    }
-
-    @Override
-    public Collection<? extends AbstractState> getReached(AbstractState abstractState)
-    {
-        return getReached(((AbstractStateT) abstractState).getProgramLocation());
-    }
-
-    /**
-     * Returns a collection of abstract states belonging to the given {@code location}.
-     */
-    public Collection<? extends AbstractState> getReached(CfaNodeT location)
-    {
-        return locationToStates.getOrDefault(location, Collections.emptySet());
-    }
+  /** Returns a collection of abstract states belonging to the given {@code location}. */
+  public Collection<? extends AbstractState> getReached(CfaNodeT location) {
+    return locationToStates.getOrDefault(location, Collections.emptySet());
+  }
 }

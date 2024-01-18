@@ -26,32 +26,32 @@ import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 
 /**
- * This {@link proguard.analysis.cpa.bam.ReduceOperator} inherits all the functionalities of a {@link JvmDefaultReduceOperator} and adjusts the return type to be the {@link JvmTaintAbstractState}.
+ * This {@link proguard.analysis.cpa.bam.ReduceOperator} inherits all the functionalities of a
+ * {@link JvmDefaultReduceOperator} and adjusts the return type to be the {@link
+ * JvmTaintAbstractState}.
  *
  * @author Dmitry Ivanov
  */
 public class JvmTaintReduceOperator
-    extends JvmDefaultReduceOperator<SetAbstractState<JvmTaintSource>>
-{
+    extends JvmDefaultReduceOperator<SetAbstractState<JvmTaintSource>> {
 
-    /**
-     * Create the taint reduce operator for the JVM.
-     *
-     * @param reduceHeap whether reduction of the heap is performed
-     */
-    public JvmTaintReduceOperator(boolean reduceHeap)
-    {
-        super(reduceHeap);
-    }
+  /**
+   * Create the taint reduce operator for the JVM.
+   *
+   * @param reduceHeap whether reduction of the heap is performed
+   */
+  public JvmTaintReduceOperator(boolean reduceHeap) {
+    super(reduceHeap);
+  }
 
-    // implementations for JvmAbstractStateFactory
+  // implementations for JvmAbstractStateFactory
 
-    @Override
-    public JvmTaintAbstractState createJvmAbstractState(JvmCfaNode programLocation,
-                                                        JvmFrameAbstractState<SetAbstractState<JvmTaintSource>> frame,
-                                                        JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> heap,
-                                                        MapAbstractState<String, SetAbstractState<JvmTaintSource>> staticFields)
-    {
-        return new JvmTaintAbstractState(programLocation, frame, heap, staticFields);
-    }
+  @Override
+  public JvmTaintAbstractState createJvmAbstractState(
+      JvmCfaNode programLocation,
+      JvmFrameAbstractState<SetAbstractState<JvmTaintSource>> frame,
+      JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> heap,
+      MapAbstractState<String, SetAbstractState<JvmTaintSource>> staticFields) {
+    return new JvmTaintAbstractState(programLocation, frame, heap, staticFields);
+  }
 }

@@ -17,37 +17,30 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.Collection;
 import proguard.classfile.Clazz;
 
-import java.util.Collection;
-
 /**
- * This {@link ClassVisitor} collects the names of the classes that it
- * visits in the given collection.
+ * This {@link ClassVisitor} collects the names of the classes that it visits in the given
+ * collection.
  *
  * @author Eric Lafortune
  */
-public class ClassNameCollector
-implements   ClassVisitor
-{
-    private final Collection<String> collection;
+public class ClassNameCollector implements ClassVisitor {
+  private final Collection<String> collection;
 
+  /**
+   * Creates a new ClassNameCollector.
+   *
+   * @param collection the <code>Collection</code> in which all class names will be collected.
+   */
+  public ClassNameCollector(Collection<String> collection) {
+    this.collection = collection;
+  }
 
-    /**
-     * Creates a new ClassNameCollector.
-     * @param collection the <code>Collection</code> in which all class names will be
-     *                   collected.
-     */
-    public ClassNameCollector(Collection<String> collection)
-    {
-        this.collection = collection;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    public void visitAnyClass(Clazz clazz)
-    {
-        collection.add(clazz.getName());
-    }
+  public void visitAnyClass(Clazz clazz) {
+    collection.add(clazz.getName());
+  }
 }

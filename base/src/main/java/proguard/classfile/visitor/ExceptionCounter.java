@@ -27,28 +27,20 @@ import proguard.util.Counter;
  *
  * @author Eric Lafortune
  */
-public class ExceptionCounter
-implements   ExceptionInfoVisitor,
-             Counter
-{
-    private int count;
+public class ExceptionCounter implements ExceptionInfoVisitor, Counter {
+  private int count;
 
+  // Implementations for Counter.
 
-    // Implementations for Counter.
+  /** Returns the number of exceptions that has been visited so far. */
+  public int getCount() {
+    return count;
+  }
 
-    /**
-     * Returns the number of exceptions that has been visited so far.
-     */
-    public int getCount()
-    {
-        return count;
-    }
+  // Implementations for ExceptionInfoVisitor.
 
-
-    // Implementations for ExceptionInfoVisitor.
-
-    public void visitExceptionInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, ExceptionInfo exceptionInfo)
-    {
-        count++;
-    }
+  public void visitExceptionInfo(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, ExceptionInfo exceptionInfo) {
+    count++;
+  }
 }

@@ -22,13 +22,11 @@ package proguard.util;
  *
  * @author Eric Lafortune
  */
-public class EmptyStringMatcher extends StringMatcher
-{
-    // Implementations for StringMatcher.
+public class EmptyStringMatcher extends StringMatcher {
+  // Implementations for StringMatcher.
 
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        return endOffset <= beginOffset;
-    }
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    return endOffset <= beginOffset;
+  }
 }

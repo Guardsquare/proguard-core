@@ -17,7 +17,6 @@
  */
 package proguard.resources.file.visitor;
 
-
 import proguard.resources.file.*;
 
 /**
@@ -25,28 +24,22 @@ import proguard.resources.file.*;
  *
  * @author Johan Leys
  */
-public class ResourceFilePoolFiller
-implements   ResourceFileVisitor
-{
-    private final ResourceFilePool resourceFilePool;
+public class ResourceFilePoolFiller implements ResourceFileVisitor {
+  private final ResourceFilePool resourceFilePool;
 
+  /**
+   * Creates a new {@link ResourceFilePoolFiller}.
+   *
+   * @param resourceFilePool the file pool to which all visited resource files are added.
+   */
+  public ResourceFilePoolFiller(ResourceFilePool resourceFilePool) {
+    this.resourceFilePool = resourceFilePool;
+  }
 
-    /**
-     * Creates a new {@link ResourceFilePoolFiller}.
-     *
-     * @param resourceFilePool the file pool to which all visited resource files are added.
-     */
-    public ResourceFilePoolFiller(ResourceFilePool resourceFilePool)
-    {
-        this.resourceFilePool = resourceFilePool;
-    }
+  // Implementations for ResourceFileVisitor.
 
-
-    // Implementations for ResourceFileVisitor.
-
-    @Override
-    public void visitAnyResourceFile(ResourceFile resourceFile)
-    {
-        resourceFilePool.addResourceFile(resourceFile);
-    }
+  @Override
+  public void visitAnyResourceFile(ResourceFile resourceFile) {
+    resourceFilePool.addResourceFile(resourceFile);
+  }
 }

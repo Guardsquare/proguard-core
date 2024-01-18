@@ -22,32 +22,21 @@ package proguard.classfile.attribute.annotation;
  *
  * @author Eric Lafortune
  */
-public class TypePathInfo
-{
-    public static final int KIND_Array             = 0;
-    public static final int KIND_Nested            = 1;
-    public static final int KIND_TypeArgumentBound = 2;
-    public static final int KIND_TypeArgument      = 3;
+public class TypePathInfo {
+  public static final int KIND_Array = 0;
+  public static final int KIND_Nested = 1;
+  public static final int KIND_TypeArgumentBound = 2;
+  public static final int KIND_TypeArgument = 3;
 
+  public int u1typePathKind;
+  public int u1typeArgumentIndex;
 
-    public int u1typePathKind;
-    public int u1typeArgumentIndex;
+  /** Creates an uninitialized TypePathInfo. */
+  public TypePathInfo() {}
 
-
-    /**
-     * Creates an uninitialized TypePathInfo.
-     */
-    public TypePathInfo()
-    {
-    }
-
-
-    /**
-     * Creates an initialized TypePathInfo.
-     */
-    public TypePathInfo(int u1typePathKind, int u1typeArgumentIndex)
-    {
-        this.u1typePathKind      = u1typePathKind;
-        this.u1typeArgumentIndex = u1typeArgumentIndex;
-    }
+  /** Creates an initialized TypePathInfo. */
+  public TypePathInfo(int u1typePathKind, int u1typeArgumentIndex) {
+    this.u1typePathKind = u1typePathKind;
+    this.u1typeArgumentIndex = u1typeArgumentIndex;
+  }
 }

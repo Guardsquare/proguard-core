@@ -28,148 +28,135 @@ import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 
 /**
- * This visitor sets a fixed info object on all the {@link Processable}
- * instances that it visits.
+ * This visitor sets a fixed info object on all the {@link Processable} instances that it visits.
  *
  * @author Eric Lafortune
  */
 public class ProcessingInfoSetter
-implements   ClassVisitor,
-             ConstantVisitor,
-             MemberVisitor,
-             AttributeVisitor,
-             ExceptionInfoVisitor,
-             RecordComponentInfoVisitor,
-             InnerClassesInfoVisitor,
-             StackMapFrameVisitor,
-             VerificationTypeVisitor,
-             LocalVariableInfoVisitor,
-             LocalVariableTypeInfoVisitor,
-             AnnotationVisitor,
-             TypeAnnotationVisitor,
-             ElementValueVisitor
-{
-    private final Object processingInfo;
+    implements ClassVisitor,
+        ConstantVisitor,
+        MemberVisitor,
+        AttributeVisitor,
+        ExceptionInfoVisitor,
+        RecordComponentInfoVisitor,
+        InnerClassesInfoVisitor,
+        StackMapFrameVisitor,
+        VerificationTypeVisitor,
+        LocalVariableInfoVisitor,
+        LocalVariableTypeInfoVisitor,
+        AnnotationVisitor,
+        TypeAnnotationVisitor,
+        ElementValueVisitor {
+  private final Object processingInfo;
 
+  /**
+   * Creates a new ProcessingInfoSetter that sets the given info on all Processable instances that
+   * it visits.
+   */
+  public ProcessingInfoSetter(Object processingInfo) {
+    this.processingInfo = processingInfo;
+  }
 
-    /**
-     * Creates a new ProcessingInfoSetter that sets the given info on all
-     * Processable instances that it visits.
-     */
-    public ProcessingInfoSetter(Object processingInfo)
-    {
-        this.processingInfo = processingInfo;
-    }
+  // Implementations for ClassVisitor.
 
+  public void visitAnyClass(Clazz clazz) {
+    clazz.setProcessingInfo(processingInfo);
+  }
 
-    // Implementations for ClassVisitor.
+  // Implementations for ConstantVisitor.
 
-    public void visitAnyClass(Clazz clazz)
-    {
-        clazz.setProcessingInfo(processingInfo);
-    }
+  public void visitAnyConstant(Clazz clazz, Constant constant) {
+    constant.setProcessingInfo(processingInfo);
+  }
 
+  // Implementations for MemberVisitor.
 
-    // Implementations for ConstantVisitor.
+  public void visitAnyMember(Clazz clazz, Member member) {
+    member.setProcessingInfo(processingInfo);
+  }
 
-    public void visitAnyConstant(Clazz clazz, Constant constant)
-    {
-        constant.setProcessingInfo(processingInfo);
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {
+    attribute.setProcessingInfo(processingInfo);
+  }
 
-    // Implementations for MemberVisitor.
+  // Implementations for RecordComponentInfoVisitor.
 
-    public void visitAnyMember(Clazz clazz, Member member)
-    {
-        member.setProcessingInfo(processingInfo);
-    }
+  public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo) {
+    recordComponentInfo.setProcessingInfo(processingInfo);
+  }
 
+  // Implementations for InnerClassesInfoVisitor.
 
-    // Implementations for AttributeVisitor.
+  public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo) {
+    innerClassesInfo.setProcessingInfo(processingInfo);
+  }
 
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute)
-    {
-        attribute.setProcessingInfo(processingInfo);
-    }
+  // Implementations for ExceptionInfoVisitor.
 
+  public void visitExceptionInfo(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, ExceptionInfo exceptionInfo) {
+    exceptionInfo.setProcessingInfo(processingInfo);
+  }
 
-    // Implementations for RecordComponentInfoVisitor.
+  // Implementations for StackMapFrameVisitor.
 
-    public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo)
-    {
-        recordComponentInfo.setProcessingInfo(processingInfo);
-    }
+  public void visitAnyStackMapFrame(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      StackMapFrame stackMapFrame) {
+    stackMapFrame.setProcessingInfo(processingInfo);
+  }
 
+  // Implementations for VerificationTypeVisitor.
 
-    // Implementations for InnerClassesInfoVisitor.
+  public void visitAnyVerificationType(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      VerificationType verificationType) {
+    verificationType.setProcessingInfo(processingInfo);
+  }
 
-    public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo)
-    {
-        innerClassesInfo.setProcessingInfo(processingInfo);
-    }
+  // Implementations for LocalVariableInfoVisitor.
 
+  public void visitLocalVariableInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableInfo localVariableInfo) {
+    localVariableInfo.setProcessingInfo(processingInfo);
+  }
 
-    // Implementations for ExceptionInfoVisitor.
+  // Implementations for LocalVariableTypeInfoVisitor.
 
-    public void visitExceptionInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, ExceptionInfo exceptionInfo)
-    {
-        exceptionInfo.setProcessingInfo(processingInfo);
-    }
+  public void visitLocalVariableTypeInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableTypeInfo localVariableTypeInfo) {
+    localVariableTypeInfo.setProcessingInfo(processingInfo);
+  }
 
+  // Implementations for AnnotationVisitor.
 
-    // Implementations for StackMapFrameVisitor.
+  public void visitAnnotation(Clazz clazz, Annotation annotation) {
+    annotation.setProcessingInfo(processingInfo);
+  }
 
-    public void visitAnyStackMapFrame(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, StackMapFrame stackMapFrame)
-    {
-        stackMapFrame.setProcessingInfo(processingInfo);
-    }
+  // Implementations for TypeAnnotationVisitor.
 
+  public void visitTypeAnnotation(Clazz clazz, TypeAnnotation typeAnnotation) {
+    typeAnnotation.setProcessingInfo(processingInfo);
+  }
 
-    // Implementations for VerificationTypeVisitor.
+  // Implementations for ElementValueVisitor.
 
-    public void visitAnyVerificationType(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, VerificationType verificationType)
-    {
-        verificationType.setProcessingInfo(processingInfo);
-    }
-
-
-    // Implementations for LocalVariableInfoVisitor.
-
-    public void visitLocalVariableInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableInfo localVariableInfo)
-    {
-        localVariableInfo.setProcessingInfo(processingInfo);
-    }
-
-
-    // Implementations for LocalVariableTypeInfoVisitor.
-
-    public void visitLocalVariableTypeInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeInfo localVariableTypeInfo)
-    {
-        localVariableTypeInfo.setProcessingInfo(processingInfo);
-    }
-
-
-    // Implementations for AnnotationVisitor.
-
-    public void visitAnnotation(Clazz clazz, Annotation annotation)
-    {
-        annotation.setProcessingInfo(processingInfo);
-    }
-
-
-    // Implementations for TypeAnnotationVisitor.
-
-    public void visitTypeAnnotation(Clazz clazz, TypeAnnotation typeAnnotation)
-    {
-        typeAnnotation.setProcessingInfo(processingInfo);
-    }
-
-
-    // Implementations for ElementValueVisitor.
-
-    public void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue)
-    {
-        elementValue.setProcessingInfo(processingInfo);
-    }
+  public void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue) {
+    elementValue.setProcessingInfo(processingInfo);
+  }
 }

@@ -22,17 +22,15 @@ package proguard.dexfile.reader;
  * @version $Rev$
  */
 public class DexType {
-    public DexType(String desc) {
-        this.desc = desc;
-    }
+  public DexType(String desc) {
+    this.desc = desc;
+  }
 
-    /**
-     * type descriptor, in TypeDescriptor format
-     */
-    final public String desc;
+  /** type descriptor, in TypeDescriptor format */
+  public final String desc;
 
-    @Override
-    public String toString() {
-        return desc;
-    }
+  @Override
+  public String toString() {
+    return desc;
+  }
 }

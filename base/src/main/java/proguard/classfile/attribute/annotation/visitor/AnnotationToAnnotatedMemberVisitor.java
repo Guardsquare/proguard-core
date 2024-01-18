@@ -21,37 +21,29 @@ import proguard.classfile.*;
 import proguard.classfile.attribute.annotation.Annotation;
 import proguard.classfile.visitor.MemberVisitor;
 
-
 /**
- * This {@link AnnotationVisitor} delegates all visits to a given {@link MemberVisitor}.
- * The latter visits the class member of each visited class member annotation
- * or method parameter annotation, although never twice in a row.
+ * This {@link AnnotationVisitor} delegates all visits to a given {@link MemberVisitor}. The latter
+ * visits the class member of each visited class member annotation or method parameter annotation,
+ * although never twice in a row.
  *
  * @author Eric Lafortune
  */
-public class AnnotationToAnnotatedMemberVisitor
-implements   AnnotationVisitor
-{
-    private final MemberVisitor memberVisitor;
+public class AnnotationToAnnotatedMemberVisitor implements AnnotationVisitor {
+  private final MemberVisitor memberVisitor;
 
-    private Member lastVisitedMember;
+  private Member lastVisitedMember;
 
+  public AnnotationToAnnotatedMemberVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    public AnnotationToAnnotatedMemberVisitor(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
+  // Implementations for AnnotationVisitor.
+
+  public void visitAnnotation(Clazz clazz, Member member, Annotation annotation) {
+    if (!member.equals(lastVisitedMember)) {
+      member.accept(clazz, memberVisitor);
+
+      lastVisitedMember = member;
     }
-
-
-    // Implementations for AnnotationVisitor.
-
-    public void visitAnnotation(Clazz clazz, Member member, Annotation annotation)
-    {
-        if (!member.equals(lastVisitedMember))
-        {
-            member.accept(clazz, memberVisitor);
-
-            lastVisitedMember = member;
-        }
-    }
+  }
 }

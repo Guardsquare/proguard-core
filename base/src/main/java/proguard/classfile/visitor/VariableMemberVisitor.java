@@ -19,75 +19,54 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link MemberVisitor} delegates all method calls to a {@link MemberVisitor}
- * that can be changed at any time.
+ * This {@link MemberVisitor} delegates all method calls to a {@link MemberVisitor} that can be
+ * changed at any time.
  *
  * @author Eric Lafortune
  */
-public class VariableMemberVisitor implements MemberVisitor
-{
-    private MemberVisitor memberVisitor;
+public class VariableMemberVisitor implements MemberVisitor {
+  private MemberVisitor memberVisitor;
 
+  public VariableMemberVisitor() {
+    this(null);
+  }
 
-    public VariableMemberVisitor()
-    {
-        this(null);
+  public VariableMemberVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
+
+  public void setMemberVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
+
+  public MemberVisitor getMemberVisitor() {
+    return memberVisitor;
+  }
+
+  // Implementations for MemberVisitor.
+
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    if (memberVisitor != null) {
+      memberVisitor.visitProgramField(programClass, programField);
     }
+  }
 
-
-    public VariableMemberVisitor(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    if (memberVisitor != null) {
+      memberVisitor.visitProgramMethod(programClass, programMethod);
     }
+  }
 
-
-    public void setMemberVisitor(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+    if (memberVisitor != null) {
+      memberVisitor.visitLibraryField(libraryClass, libraryField);
     }
+  }
 
-    public MemberVisitor getMemberVisitor()
-    {
-        return memberVisitor;
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    if (memberVisitor != null) {
+      memberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
     }
-
-
-    // Implementations for MemberVisitor.
-
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        if (memberVisitor != null)
-        {
-            memberVisitor.visitProgramField(programClass, programField);
-        }
-    }
-
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        if (memberVisitor != null)
-        {
-            memberVisitor.visitProgramMethod(programClass, programMethod);
-        }
-    }
-
-
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
-    {
-        if (memberVisitor != null)
-        {
-            memberVisitor.visitLibraryField(libraryClass, libraryField);
-        }
-    }
-
-
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        if (memberVisitor != null)
-        {
-            memberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
-        }
-    }
+  }
 }

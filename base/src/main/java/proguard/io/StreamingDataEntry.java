@@ -25,77 +25,56 @@ import java.io.InputStream;
  *
  * @author Thomas Neidhart
  */
-public class StreamingDataEntry
-    implements DataEntry
-{
-    private final String      name;
-    private final InputStream inputStream;
+public class StreamingDataEntry implements DataEntry {
+  private final String name;
+  private final InputStream inputStream;
 
+  public StreamingDataEntry(String name, InputStream inputStream) {
+    this.name = name;
+    this.inputStream = inputStream;
+  }
 
-    public StreamingDataEntry(String      name,
-                              InputStream inputStream)
-    {
-        this.name        = name;
-        this.inputStream = inputStream;
-    }
+  // Implementations for DataEntry.
 
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    // Implementations for DataEntry.
+  @Override
+  public String getOriginalName() {
+    return getName();
+  }
 
-    @Override
-    public String getName()
-    {
-        return name;
-    }
+  @Override
+  public long getSize() {
+    return -1;
+  }
 
+  @Override
+  public boolean isDirectory() {
+    return false;
+  }
 
-    @Override
-    public String getOriginalName()
-    {
-        return getName();
-    }
+  @Override
+  public InputStream getInputStream() throws IOException {
+    return inputStream;
+  }
 
+  @Override
+  public void closeInputStream() throws IOException {
+    inputStream.close();
+  }
 
-    @Override
-    public long getSize()
-    {
-        return -1;
-    }
+  @Override
+  public DataEntry getParent() {
+    return null;
+  }
 
+  // Implementations for Object.
 
-    @Override
-    public boolean isDirectory()
-    {
-        return false;
-    }
-
-
-    @Override
-    public InputStream getInputStream() throws IOException
-    {
-        return inputStream;
-    }
-
-
-    @Override
-    public void closeInputStream() throws IOException
-    {
-        inputStream.close();
-    }
-
-
-    @Override
-    public DataEntry getParent()
-    {
-        return null;
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return getName();
-    }
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

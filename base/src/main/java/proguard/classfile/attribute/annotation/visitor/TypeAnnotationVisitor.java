@@ -22,51 +22,41 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.annotation.*;
 
 /**
- * This interface specifies the methods for a visitor of
- * {@link TypeAnnotation} instances. Note that there is only a single
- * implementation of {@link TypeAnnotation}, such that this interface
- * is not strictly necessary as a visitor.
+ * This interface specifies the methods for a visitor of {@link TypeAnnotation} instances. Note that
+ * there is only a single implementation of {@link TypeAnnotation}, such that this interface is not
+ * strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface TypeAnnotationVisitor
-{
-    /**
-     * Visits any TypeAnnotation instance. The more specific default implementations of
-     * this interface delegate to this method.
-     */
-    default void visitTypeAnnotation(Clazz clazz, TypeAnnotation typeAnnotation)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+typeAnnotation.getClass().getName());
-    }
+public interface TypeAnnotationVisitor {
+  /**
+   * Visits any TypeAnnotation instance. The more specific default implementations of this interface
+   * delegate to this method.
+   */
+  default void visitTypeAnnotation(Clazz clazz, TypeAnnotation typeAnnotation) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + typeAnnotation.getClass().getName());
+  }
 
+  default void visitTypeAnnotation(Clazz clazz, Member member, TypeAnnotation typeAnnotation) {
+    visitTypeAnnotation(clazz, typeAnnotation);
+  }
 
-    default void visitTypeAnnotation(Clazz clazz, Member member, TypeAnnotation typeAnnotation)
-    {
-        visitTypeAnnotation(clazz, typeAnnotation);
-    }
+  default void visitTypeAnnotation(Clazz clazz, Field field, TypeAnnotation typeAnnotation) {
+    visitTypeAnnotation(clazz, (Member) field, typeAnnotation);
+  }
 
+  default void visitTypeAnnotation(Clazz clazz, Method method, TypeAnnotation typeAnnotation) {
+    visitTypeAnnotation(clazz, (Member) method, typeAnnotation);
+  }
 
-    default void visitTypeAnnotation(Clazz clazz, Field field, TypeAnnotation typeAnnotation)
-    {
-        visitTypeAnnotation(clazz, (Member)field, typeAnnotation);
-    }
+  default void visitTypeAnnotation(
+      Clazz clazz, Method method, int parameterIndex, TypeAnnotation typeAnnotation) {
+    visitTypeAnnotation(clazz, method, typeAnnotation);
+  }
 
-
-    default void visitTypeAnnotation(Clazz clazz, Method method, TypeAnnotation typeAnnotation)
-    {
-        visitTypeAnnotation(clazz, (Member)method, typeAnnotation);
-    }
-
-
-    default void visitTypeAnnotation(Clazz clazz, Method method, int parameterIndex, TypeAnnotation typeAnnotation)
-    {
-        visitTypeAnnotation(clazz, method, typeAnnotation);
-    }
-
-
-    default void visitTypeAnnotation(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation)
-    {
-        visitTypeAnnotation(clazz, method, typeAnnotation);
-    }
+  default void visitTypeAnnotation(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation) {
+    visitTypeAnnotation(clazz, method, typeAnnotation);
+  }
 }

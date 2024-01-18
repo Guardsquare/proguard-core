@@ -17,25 +17,23 @@
  */
 package proguard.classfile.editor;
 
+import java.util.*;
 import proguard.classfile.*;
 import proguard.classfile.visitor.*;
 
-import java.util.*;
-
-
 /**
  * This visitor removes all members it visits in a {@link ProgramClass}.
- * <p/>
- * It should be used in two steps:
+ *
+ * <p>It should be used in two steps:
+ *
  * <ul>
- * <li>in the first step, the collection step, all program fields to be removed
- *     should be visited.
- * <li>in the second step, the removal step, the program class containing the
- *     program fields should be visited. This will actually delete all
- *     collected fields.
+ *   <li>in the first step, the collection step, all program fields to be removed should be visited.
+ *   <li>in the second step, the removal step, the program class containing the program fields
+ *       should be visited. This will actually delete all collected fields.
  * </ul>
- * <p/>
- * For example, to remove all fields in a program class:
+ *
+ * <p>For example, to remove all fields in a program class:
+ *
  * <pre>
  *     MemberRemover remover = new MemberRemover();
  *     programClass.fieldsAccept(remover);
@@ -44,54 +42,41 @@ import java.util.*;
  *
  * @author Johan Leys
  */
-public class MemberRemover
-implements   ClassVisitor,
-             MemberVisitor
-{
-    private Set<Method> methodsToRemove = new HashSet<>();
-    private Set<Field>  fieldsToRemove  = new HashSet<>();
+public class MemberRemover implements ClassVisitor, MemberVisitor {
+  private Set<Method> methodsToRemove = new HashSet<>();
+  private Set<Field> fieldsToRemove = new HashSet<>();
 
+  // Implementations for ClassVisitor.
 
-    // Implementations for ClassVisitor.
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    @Override
-    public void visitAnyClass(Clazz clazz) {}
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    ClassEditor classEditor = new ClassEditor(programClass);
 
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        ClassEditor classEditor = new ClassEditor(programClass);
-
-        // Remove all collected methods.
-        for (Method method : methodsToRemove)
-        {
-            classEditor.removeMethod(method);
-        }
-        methodsToRemove.clear();
-
-        // Remove all collected fields.
-        for (Field field : fieldsToRemove)
-        {
-            classEditor.removeField(field);
-        }
-        fieldsToRemove.clear();
+    // Remove all collected methods.
+    for (Method method : methodsToRemove) {
+      classEditor.removeMethod(method);
     }
+    methodsToRemove.clear();
 
-
-    // Implementations for MemberVisitor.
-
-    public void visitAnyMember(Clazz clazz, Member member) {}
-
-
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        fieldsToRemove.add(programField);
+    // Remove all collected fields.
+    for (Field field : fieldsToRemove) {
+      classEditor.removeField(field);
     }
+    fieldsToRemove.clear();
+  }
 
+  // Implementations for MemberVisitor.
 
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        methodsToRemove.add(programMethod);
-    }
+  public void visitAnyMember(Clazz clazz, Member member) {}
+
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    fieldsToRemove.add(programField);
+  }
+
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    methodsToRemove.add(programMethod);
+  }
 }

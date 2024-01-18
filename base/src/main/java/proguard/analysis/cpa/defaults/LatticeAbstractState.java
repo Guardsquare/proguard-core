@@ -22,29 +22,21 @@ import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * The {@link LatticeAbstractState} is an {@link AbstractDomain}
- * with concrete interfaces.
+ * The {@link LatticeAbstractState} is an {@link AbstractDomain} with concrete interfaces.
  *
  * @author Dmitry Ivanov
  */
-public interface LatticeAbstractState<AbstractStateT extends LatticeAbstractState<AbstractStateT>> extends AbstractState
-{
+public interface LatticeAbstractState<AbstractStateT extends LatticeAbstractState<AbstractStateT>>
+    extends AbstractState {
 
-    /**
-     * Computes a join over itself and the {@code abstractState}.
-     */
-    AbstractStateT join(AbstractStateT abstractState);
+  /** Computes a join over itself and the {@code abstractState}. */
+  AbstractStateT join(AbstractStateT abstractState);
 
-    /**
-     * Compares itself to the {@code abstractState}.
-     */
-    boolean isLessOrEqual(AbstractStateT abstractState);
+  /** Compares itself to the {@code abstractState}. */
+  boolean isLessOrEqual(AbstractStateT abstractState);
 
-    /**
-     * Strictly compares itself to the {@code abstractState}.
-     */
-    default boolean isLess(AbstractStateT abstractStateT)
-    {
-        return isLessOrEqual(abstractStateT) && !equals(abstractStateT);
-    }
+  /** Strictly compares itself to the {@code abstractState}. */
+  default boolean isLess(AbstractStateT abstractStateT) {
+    return isLessOrEqual(abstractStateT) && !equals(abstractStateT);
+  }
 }

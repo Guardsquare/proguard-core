@@ -18,64 +18,58 @@
 
 package proguard.classfile.kotlin.visitor.filter;
 
+import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
+
+import java.util.function.Predicate;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.KotlinAnnotatable;
 import proguard.classfile.kotlin.KotlinAnnotation;
 import proguard.classfile.kotlin.KotlinAnnotationArgument;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor;
 
-import java.util.function.Predicate;
-
-import static proguard.classfile.kotlin.KotlinAnnotationArgument.*;
-
 /**
- * Delegates to another {@link KotlinAnnotationArgumentVisitor} based on the
- * result of the given {@link Predicate<KotlinAnnotationArgument>}.
+ * Delegates to another {@link KotlinAnnotationArgumentVisitor} based on the result of the given
+ * {@link Predicate<KotlinAnnotationArgument>}.
  *
  * @author James Hamilton
  */
-public class KotlinAnnotationArgumentFilter implements KotlinAnnotationArgumentVisitor
-{
-    private final Predicate<KotlinAnnotationArgument> predicate;
-    private final KotlinAnnotationArgumentVisitor     acceptedKotlinAnnotationVisitor;
-    private final KotlinAnnotationArgumentVisitor     rejectedKotlinAnnotationVisitor;
+public class KotlinAnnotationArgumentFilter implements KotlinAnnotationArgumentVisitor {
+  private final Predicate<KotlinAnnotationArgument> predicate;
+  private final KotlinAnnotationArgumentVisitor acceptedKotlinAnnotationVisitor;
+  private final KotlinAnnotationArgumentVisitor rejectedKotlinAnnotationVisitor;
 
-    public KotlinAnnotationArgumentFilter(Predicate<KotlinAnnotationArgument> predicate,
-                                          KotlinAnnotationArgumentVisitor     acceptedKotlinAnnotationVisitor,
-                                          KotlinAnnotationArgumentVisitor     rejectedKotlinAnnotationVisitor)
-    {
-        this.predicate = predicate;
-        this.acceptedKotlinAnnotationVisitor = acceptedKotlinAnnotationVisitor;
-        this.rejectedKotlinAnnotationVisitor = rejectedKotlinAnnotationVisitor;
+  public KotlinAnnotationArgumentFilter(
+      Predicate<KotlinAnnotationArgument> predicate,
+      KotlinAnnotationArgumentVisitor acceptedKotlinAnnotationVisitor,
+      KotlinAnnotationArgumentVisitor rejectedKotlinAnnotationVisitor) {
+    this.predicate = predicate;
+    this.acceptedKotlinAnnotationVisitor = acceptedKotlinAnnotationVisitor;
+    this.rejectedKotlinAnnotationVisitor = rejectedKotlinAnnotationVisitor;
+  }
+
+  public KotlinAnnotationArgumentFilter(
+      Predicate<KotlinAnnotationArgument> predicate,
+      KotlinAnnotationArgumentVisitor acceptedKotlinAnnotationVisitor) {
+    this(predicate, acceptedKotlinAnnotationVisitor, null);
+  }
+
+  @Override
+  public void visitAnyArgument(
+      Clazz clazz,
+      KotlinAnnotatable annotatable,
+      KotlinAnnotation annotation,
+      KotlinAnnotationArgument argument,
+      Value value) {
+    KotlinAnnotationArgumentVisitor delegate = this.getDelegate(argument);
+
+    if (delegate != null) {
+      argument.accept(clazz, annotatable, annotation, delegate);
     }
+  }
 
-    public KotlinAnnotationArgumentFilter(Predicate<KotlinAnnotationArgument> predicate,
-                                          KotlinAnnotationArgumentVisitor     acceptedKotlinAnnotationVisitor)
-    {
-        this(predicate, acceptedKotlinAnnotationVisitor, null);
-    }
-
-
-    @Override
-    public void visitAnyArgument(Clazz                    clazz,
-                                 KotlinAnnotatable        annotatable,
-                                 KotlinAnnotation         annotation,
-                                 KotlinAnnotationArgument argument,
-                                 Value                    value)
-    {
-        KotlinAnnotationArgumentVisitor delegate = this.getDelegate(argument);
-
-        if (delegate != null)
-        {
-            argument.accept(clazz, annotatable, annotation, delegate);
-        }
-    }
-
-
-    private KotlinAnnotationArgumentVisitor getDelegate(KotlinAnnotationArgument argument)
-    {
-        return this.predicate.test(argument)
-                ? this.acceptedKotlinAnnotationVisitor
-                : this.rejectedKotlinAnnotationVisitor;
-    }
+  private KotlinAnnotationArgumentVisitor getDelegate(KotlinAnnotationArgument argument) {
+    return this.predicate.test(argument)
+        ? this.acceptedKotlinAnnotationVisitor
+        : this.rejectedKotlinAnnotationVisitor;
+  }
 }

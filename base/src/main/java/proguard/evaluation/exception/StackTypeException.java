@@ -18,42 +18,36 @@
 
 package proguard.evaluation.exception;
 
+import static proguard.classfile.util.ClassUtil.externalType;
+
 import proguard.evaluation.value.Value;
 import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-import static proguard.classfile.util.ClassUtil.externalType;
+/** Exception thrown when a type on the stack does not match the expected type. */
+public class StackTypeException extends ProguardCoreException {
+  /** The type that was expected but not given and caused this exception. */
+  private final String expectedType;
 
-/**
- * Exception thrown when a type on the stack does not match the expected type.
- */
-public class StackTypeException extends ProguardCoreException
-{
-    /**
-     * The type that was expected but not given and caused this exception.
-     */
-    private final String expectedType;
+  /** The value that was found to be of incorrect type. */
+  private final Value foundValue;
 
-    /**
-     * The value that was found to be of incorrect type.
-     */
-    private final Value foundValue;
+  public StackTypeException(Value foundValue, String expectedType, Throwable cause) {
+    super(
+        ErrorId.STACK_TYPE,
+        cause,
+        "Stack value of type %s expected, but found: %s.",
+        externalType(expectedType),
+        foundValue.toString());
+    this.expectedType = expectedType;
+    this.foundValue = foundValue;
+  }
 
-    public StackTypeException(Value foundValue, String expectedType, Throwable cause)
-    {
-        super(ErrorId.STACK_TYPE, cause, "Stack value of type %s expected, but found: %s.",
-                externalType(expectedType), foundValue.toString());
-        this.expectedType = expectedType;
-        this.foundValue = foundValue;
-    }
+  public String getExpectedType() {
+    return expectedType;
+  }
 
-    public String getExpectedType()
-    {
-        return expectedType;
-    }
-
-    public Value getFoundValue()
-    {
-        return foundValue;
-    }
+  public Value getFoundValue() {
+    return foundValue;
+  }
 }

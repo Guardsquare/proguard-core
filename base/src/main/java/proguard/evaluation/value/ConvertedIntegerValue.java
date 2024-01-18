@@ -18,44 +18,30 @@
 package proguard.evaluation.value;
 
 /**
- * This {@link IntegerValue} represents a integer value that is converted from another
- * scalar value.
+ * This {@link IntegerValue} represents a integer value that is converted from another scalar value.
  *
  * @author Eric Lafortune
  */
-public final class ConvertedIntegerValue extends SpecificIntegerValue
-{
-    private final Value value;
+public final class ConvertedIntegerValue extends SpecificIntegerValue {
+  private final Value value;
 
+  /** Creates a new converted integer value of the given value. */
+  public ConvertedIntegerValue(Value value) {
+    this.value = value;
+  }
 
-    /**
-     * Creates a new converted integer value of the given value.
-     */
-    public ConvertedIntegerValue(Value value)
-    {
-        this.value = value;
-    }
+  // Implementations for Object.
 
+  public boolean equals(Object object) {
+    return this == object
+        || super.equals(object) && this.value.equals(((ConvertedIntegerValue) object).value);
+  }
 
-    // Implementations for Object.
+  public int hashCode() {
+    return super.hashCode() ^ value.hashCode();
+  }
 
-    public boolean equals(Object object)
-    {
-        return this == object ||
-               super.equals(object) &&
-               this.value.equals(((ConvertedIntegerValue)object).value);
-    }
-
-
-    public int hashCode()
-    {
-        return super.hashCode() ^
-               value.hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "(int)("+value+")";
-    }
+  public String toString() {
+    return "(int)(" + value + ")";
+  }
 }

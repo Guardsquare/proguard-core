@@ -27,55 +27,33 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Joachim Vandersmissen
  */
-public class ModuleMainClassAttribute extends Attribute
-{
-    public int u2mainClass;
+public class ModuleMainClassAttribute extends Attribute {
+  public int u2mainClass;
 
+  /** Creates an uninitialized ModuleMainClassAttribute. */
+  public ModuleMainClassAttribute() {}
 
-    /**
-     * Creates an uninitialized ModuleMainClassAttribute.
-     */
-    public ModuleMainClassAttribute()
-    {
+  /** Creates an initialized ModuleMainClassAttribute. */
+  public ModuleMainClassAttribute(int u2attributeNameIndex, int u2mainClass) {
+    super(u2attributeNameIndex);
+    this.u2mainClass = u2mainClass;
+  }
+
+  /** Returns the main class name. */
+  public String getMainClassName(Clazz clazz) {
+    return clazz.getClassName(u2mainClass);
+  }
+
+  // Implementations for Attribute.
+
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitModuleMainClassAttribute(clazz, this);
+  }
+
+  /** Applies the given constant pool visitor to the class constant of the main class, if any. */
+  public void mainClassAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    if (u2mainClass != 0) {
+      clazz.constantPoolEntryAccept(u2mainClass, constantVisitor);
     }
-
-
-    /**
-     * Creates an initialized ModuleMainClassAttribute.
-     */
-    public ModuleMainClassAttribute(int u2attributeNameIndex, int u2mainClass)
-    {
-        super(u2attributeNameIndex);
-        this.u2mainClass = u2mainClass;
-    }
-
-
-    /**
-     * Returns the main class name.
-     */
-    public String getMainClassName(Clazz clazz)
-    {
-        return clazz.getClassName(u2mainClass);
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitModuleMainClassAttribute(clazz, this);
-    }
-
-
-    /**
-     * Applies the given constant pool visitor to the class constant of the
-     * main class, if any.
-     */
-    public void mainClassAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        if (u2mainClass != 0)
-        {
-            clazz.constantPoolEntryAccept(u2mainClass, constantVisitor);
-        }
-    }
+  }
 }

@@ -16,31 +16,32 @@
 package proguard.dexfile.reader.node.insn;
 
 import proguard.dexfile.reader.MethodHandle;
-import proguard.dexfile.reader.Proto;
 import proguard.dexfile.reader.Op;
+import proguard.dexfile.reader.Proto;
 import proguard.dexfile.reader.visitors.DexCodeVisitor;
 
 public class MethodCustomStmtNode extends AbstractMethodStmtNode {
-    public final String name;
-    public final Proto proto;
-    public final MethodHandle bsm;
-    public final Object[] bsmArgs;
+  public final String name;
+  public final Proto proto;
+  public final MethodHandle bsm;
+  public final Object[] bsmArgs;
 
-    public MethodCustomStmtNode(Op op, int[] args, String name, Proto proto, MethodHandle bsm, Object[] bsmArgs) {
-        super(op, args);
-        this.proto = proto;
-        this.name = name;
-        this.bsm = bsm;
-        this.bsmArgs = bsmArgs;
-    }
+  public MethodCustomStmtNode(
+      Op op, int[] args, String name, Proto proto, MethodHandle bsm, Object[] bsmArgs) {
+    super(op, args);
+    this.proto = proto;
+    this.name = name;
+    this.bsm = bsm;
+    this.bsmArgs = bsmArgs;
+  }
 
-    @Override
-    public void accept(DexCodeVisitor cv) {
-        cv.visitMethodStmt(op, args, name, proto, bsm, bsmArgs);
-    }
+  @Override
+  public void accept(DexCodeVisitor cv) {
+    cv.visitMethodStmt(op, args, name, proto, bsm, bsmArgs);
+  }
 
-    @Override
-    public Proto getProto() {
-        return proto;
-    }
+  @Override
+  public Proto getProto() {
+    return proto;
+  }
 }

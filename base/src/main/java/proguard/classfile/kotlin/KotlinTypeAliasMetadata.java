@@ -17,106 +17,89 @@
  */
 package proguard.classfile.kotlin;
 
+import java.util.*;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.*;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
 
-import java.util.*;
+public class KotlinTypeAliasMetadata extends SimpleProcessable
+    implements Processable, KotlinAnnotatable {
+  public String name;
 
-public class KotlinTypeAliasMetadata
-extends      SimpleProcessable
-implements   Processable,
-             KotlinAnnotatable
-{
-    public String name;
+  public KotlinTypeAliasFlags flags;
 
-    public KotlinTypeAliasFlags flags;
+  public List<KotlinTypeParameterMetadata> typeParameters;
 
-    public List<KotlinTypeParameterMetadata> typeParameters;
+  // Right-hand side of alias declaration.
+  public KotlinTypeMetadata underlyingType;
 
-    // Right-hand side of alias declaration.
-    public KotlinTypeMetadata underlyingType;
+  // Core type.
+  public KotlinTypeMetadata expandedType;
 
-    // Core type.
-    public KotlinTypeMetadata expandedType;
+  public KotlinVersionRequirementMetadata versionRequirement;
 
-    public KotlinVersionRequirementMetadata versionRequirement;
+  // The container where the alias is declared.
+  public KotlinDeclarationContainerMetadata referencedDeclarationContainer;
 
-    // The container where the alias is declared.
-    public KotlinDeclarationContainerMetadata referencedDeclarationContainer;
+  public List<KotlinAnnotation> annotations;
 
-    public List<KotlinAnnotation> annotations;
+  public KotlinTypeAliasMetadata(KotlinTypeAliasFlags flags, String name) {
+    this.name = name;
+    this.flags = flags;
+  }
 
+  public void accept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasVisitor kotlinTypeAliasVisitor) {
+    kotlinTypeAliasVisitor.visitTypeAlias(clazz, kotlinDeclarationContainerMetadata, this);
+  }
 
-    public KotlinTypeAliasMetadata(KotlinTypeAliasFlags flags, String name)
-    {
-        this.name  = name;
-        this.flags = flags;
+  public void typeParametersAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    for (KotlinTypeParameterMetadata typeParameter : typeParameters) {
+      typeParameter.accept(
+          clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeParameterVisitor);
     }
+  }
 
+  public void underlyingTypeAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeVisitor kotlinTypeVisitor) {
+    kotlinTypeVisitor.visitAliasUnderlyingType(
+        clazz, kotlinDeclarationContainerMetadata, this, underlyingType);
+  }
 
-    public void accept(Clazz                              clazz,
-                       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                       KotlinTypeAliasVisitor             kotlinTypeAliasVisitor)
-    {
-        kotlinTypeAliasVisitor.visitTypeAlias(clazz,
-                                              kotlinDeclarationContainerMetadata,
-                                              this);
+  public void expandedTypeAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeVisitor kotlinTypeVisitor) {
+    kotlinTypeVisitor.visitAliasExpandedType(
+        clazz, kotlinDeclarationContainerMetadata, this, expandedType);
+  }
+
+  public void versionRequirementAccept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor) {
+    if (versionRequirement != null) {
+      versionRequirement.accept(clazz, kotlinMetadata, this, kotlinVersionRequirementVisitor);
     }
+  }
 
-
-    public void typeParametersAccept(Clazz                              clazz,
-                                     KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                     KotlinTypeParameterVisitor         kotlinTypeParameterVisitor)
-    {
-        for (KotlinTypeParameterMetadata typeParameter : typeParameters)
-        {
-            typeParameter.accept(clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeParameterVisitor);
-        }
+  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    for (KotlinAnnotation annotation : annotations) {
+      kotlinAnnotationVisitor.visitTypeAliasAnnotation(clazz, this, annotation);
     }
+  }
 
-
-    public void underlyingTypeAccept(Clazz                              clazz,
-                                     KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                     KotlinTypeVisitor                  kotlinTypeVisitor)
-    {
-            kotlinTypeVisitor.visitAliasUnderlyingType(clazz, kotlinDeclarationContainerMetadata, this, underlyingType);
-    }
-
-
-    public void expandedTypeAccept(Clazz                              clazz,
-                                   KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                                   KotlinTypeVisitor                  kotlinTypeVisitor)
-    {
-            kotlinTypeVisitor.visitAliasExpandedType(clazz, kotlinDeclarationContainerMetadata, this, expandedType);
-    }
-
-
-    public void versionRequirementAccept(Clazz                           clazz,
-                                         KotlinMetadata                  kotlinMetadata,
-                                         KotlinVersionRequirementVisitor kotlinVersionRequirementVisitor)
-    {
-        if (versionRequirement != null)
-        {
-            versionRequirement.accept(clazz, kotlinMetadata, this, kotlinVersionRequirementVisitor);
-        }
-    }
-
-    public void annotationsAccept(Clazz                   clazz,
-                                  KotlinAnnotationVisitor kotlinAnnotationVisitor)
-    {
-        for (KotlinAnnotation annotation : annotations)
-        {
-            kotlinAnnotationVisitor.visitTypeAliasAnnotation(clazz, this, annotation);
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin type alias (" + name + ")"; //TODO "(name -> underlying/exapanded)"
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin type alias (" + name + ")"; // TODO "(name -> underlying/exapanded)"
+  }
 }

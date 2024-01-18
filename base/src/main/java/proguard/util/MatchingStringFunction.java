@@ -18,31 +18,24 @@
 package proguard.util;
 
 /**
- * This {@link StringFunction} returns unchanged strings or null, depending on whether
- * a given string matcher matches the strings. It can be seen as an adapter
- * from {@link StringMatcher} or {@link StringFunction}.
+ * This {@link StringFunction} returns unchanged strings or null, depending on whether a given
+ * string matcher matches the strings. It can be seen as an adapter from {@link StringMatcher} or
+ * {@link StringFunction}.
  *
  * @author Eric Lafortune
  */
-public class MatchingStringFunction implements StringFunction
-{
-    private final StringMatcher stringMatcher;
+public class MatchingStringFunction implements StringFunction {
+  private final StringMatcher stringMatcher;
 
+  /** Creates a new MatchingStringFunction with the given string matcher. */
+  public MatchingStringFunction(StringMatcher stringMatcher) {
+    this.stringMatcher = stringMatcher;
+  }
 
-    /**
-     * Creates a new MatchingStringFunction with the given string matcher.
-     */
-    public MatchingStringFunction(StringMatcher stringMatcher)
-    {
-        this.stringMatcher = stringMatcher;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        return stringMatcher.matches(string) ? string : null;
-    }
+  @Override
+  public String transform(String string) {
+    return stringMatcher.matches(string) ? string : null;
+  }
 }

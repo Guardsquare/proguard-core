@@ -22,8 +22,7 @@ package proguard.io;
  *
  * @author Lars Vandenbergh
  */
-public enum DataEntryTokenType
-{
-    JAVA_IDENTIFIER,
-    OTHER
+public enum DataEntryTokenType {
+  JAVA_IDENTIFIER,
+  OTHER
 }

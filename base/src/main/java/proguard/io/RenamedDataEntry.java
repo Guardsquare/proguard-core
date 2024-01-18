@@ -18,38 +18,30 @@
 package proguard.io;
 
 /**
- * This {@link DataEntry} wraps another data entry, returning a different name instead
- * of the wrapped data entry's name.
+ * This {@link DataEntry} wraps another data entry, returning a different name instead of the
+ * wrapped data entry's name.
  *
  * @author Eric Lafortune
  */
-public class RenamedDataEntry extends WrappedDataEntry
-{
-    private final String    name;
+public class RenamedDataEntry extends WrappedDataEntry {
+  private final String name;
 
+  public RenamedDataEntry(DataEntry dataEntry, String name) {
+    super(dataEntry);
+    this.name = name;
+  }
 
-    public RenamedDataEntry(DataEntry dataEntry,
-                            String    name)
-    {
-        super(dataEntry);
-        this.name = name;
-    }
+  // Implementations for DataEntry.
 
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    // Implementations for DataEntry.
+  // Implementations for Object.
 
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return name + " == " + wrappedEntry;
-    }
+  @Override
+  public String toString() {
+    return name + " == " + wrappedEntry;
+  }
 }

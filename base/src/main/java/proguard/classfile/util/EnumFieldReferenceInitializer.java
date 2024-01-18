@@ -29,116 +29,107 @@ import proguard.classfile.instruction.visitor.*;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
- * This {@link ElementValueVisitor} initializes the field references of the
- * {@link EnumConstantElementValue} instances that it visits.
+ * This {@link ElementValueVisitor} initializes the field references of the {@link
+ * EnumConstantElementValue} instances that it visits.
  *
  * @author Eric Lafortune
  */
 public class EnumFieldReferenceInitializer
-implements   ElementValueVisitor,
-             InstructionVisitor,
-             ConstantVisitor
-{
-    //*
-    private static final boolean DEBUG = false;
-    /*/
-    private static       boolean DEBUG = System.getProperty("efri") != null;
-    //*/
+    implements ElementValueVisitor, InstructionVisitor, ConstantVisitor {
+  // *
+  private static final boolean DEBUG = false;
+  /*/
+  private static       boolean DEBUG = System.getProperty("efri") != null;
+  //*/
 
-    private MemberVisitor enumFieldFinder = new AllAttributeVisitor(
-                                            new AllInstructionVisitor(this));
+  private MemberVisitor enumFieldFinder = new AllAttributeVisitor(new AllInstructionVisitor(this));
 
-    // Fields acting as parameters and return values for the visitors.
-    private String  enumTypeName;
-    private String  enumConstantName;
-    private boolean enumConstantNameFound;
-    private Clazz   referencedEnumClass;
-    private Field   referencedEnumField;
+  // Fields acting as parameters and return values for the visitors.
+  private String enumTypeName;
+  private String enumConstantName;
+  private boolean enumConstantNameFound;
+  private Clazz referencedEnumClass;
+  private Field referencedEnumField;
 
+  // Implementations for ElementValueVisitor.
 
-    // Implementations for ElementValueVisitor.
+  public void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue) {}
 
-    public void visitAnyElementValue(Clazz clazz, Annotation annotation, ElementValue elementValue) {}
+  public void visitEnumConstantElementValue(
+      Clazz clazz, Annotation annotation, EnumConstantElementValue enumConstantElementValue) {
+    if (enumConstantElementValue.referencedClasses != null
+        && enumConstantElementValue.referencedClasses.length > 0) {
+      referencedEnumClass = enumConstantElementValue.referencedClasses[0];
+      if (referencedEnumClass != null) {
+        // Try to find the enum field through the static enum
+        // initialization code (at least for program classes).
+        enumTypeName = enumConstantElementValue.getTypeName(clazz);
+        enumConstantName = enumConstantElementValue.getConstantName(clazz);
+        referencedEnumField = null;
+        referencedEnumClass.methodAccept(
+            ClassConstants.METHOD_NAME_CLINIT, ClassConstants.METHOD_TYPE_CLINIT, enumFieldFinder);
 
-
-    public void visitEnumConstantElementValue(Clazz clazz, Annotation annotation, EnumConstantElementValue enumConstantElementValue)
-    {
-        if (enumConstantElementValue.referencedClasses != null    &&
-            enumConstantElementValue.referencedClasses.length > 0)
-        {
-            referencedEnumClass = enumConstantElementValue.referencedClasses[0];
-            if (referencedEnumClass != null)
-            {
-                // Try to find the enum field through the static enum
-                // initialization code (at least for program classes).
-                enumTypeName        = enumConstantElementValue.getTypeName(clazz);
-                enumConstantName    = enumConstantElementValue.getConstantName(clazz);
-                referencedEnumField = null;
-                referencedEnumClass.methodAccept(ClassConstants.METHOD_NAME_CLINIT,
-                                                 ClassConstants.METHOD_TYPE_CLINIT,
-                                                 enumFieldFinder);
-
-                // Otherwise try to find the enum field through its name.
-                // The constant name could be different from the field name, if
-                // the latter is already obfuscated.
-                if (referencedEnumField == null)
-                {
-                    referencedEnumField =
-                        referencedEnumClass.findField(enumConstantName,
-                                                      enumTypeName);
-                }
-
-                if (DEBUG)
-                {
-                    System.out.println("EnumFieldReferenceInitializer: ["+referencedEnumClass.getName()+"."+enumConstantName+"] -> "+referencedEnumField);
-                }
-
-                enumConstantElementValue.referencedField = referencedEnumField;
-            }
+        // Otherwise try to find the enum field through its name.
+        // The constant name could be different from the field name, if
+        // the latter is already obfuscated.
+        if (referencedEnumField == null) {
+          referencedEnumField = referencedEnumClass.findField(enumConstantName, enumTypeName);
         }
-    }
 
-
-    // Implementations for InstructionVisitor.
-
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction) {}
-
-
-    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
-    {
-        switch (constantInstruction.opcode)
-        {
-            case Instruction.OP_LDC:
-            case Instruction.OP_LDC_W:
-            case Instruction.OP_PUTSTATIC:
-                clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
-                break;
+        if (DEBUG) {
+          System.out.println(
+              "EnumFieldReferenceInitializer: ["
+                  + referencedEnumClass.getName()
+                  + "."
+                  + enumConstantName
+                  + "] -> "
+                  + referencedEnumField);
         }
+
+        enumConstantElementValue.referencedField = referencedEnumField;
+      }
     }
+  }
 
+  // Implementations for InstructionVisitor.
 
-    // Implementations for ConstantVisitor.
+  public void visitAnyInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      Instruction instruction) {}
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
-
-
-    public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
-    {
-        enumConstantNameFound =
-            enumConstantName.equals(stringConstant.getString(clazz));
+  public void visitConstantInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      ConstantInstruction constantInstruction) {
+    switch (constantInstruction.opcode) {
+      case Instruction.OP_LDC:
+      case Instruction.OP_LDC_W:
+      case Instruction.OP_PUTSTATIC:
+        clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
+        break;
     }
+  }
 
+  // Implementations for ConstantVisitor.
 
-    public void visitFieldrefConstant(Clazz clazz, FieldrefConstant fieldrefConstant)
-    {
-        if (enumConstantNameFound)
-        {
-            if (enumTypeName.equals(fieldrefConstant.getType(clazz)))
-            {
-                referencedEnumField = (Field)fieldrefConstant.referencedField;
-            }
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-            enumConstantNameFound = false;
-        }
+  public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
+    enumConstantNameFound = enumConstantName.equals(stringConstant.getString(clazz));
+  }
+
+  public void visitFieldrefConstant(Clazz clazz, FieldrefConstant fieldrefConstant) {
+    if (enumConstantNameFound) {
+      if (enumTypeName.equals(fieldrefConstant.getType(clazz))) {
+        referencedEnumField = (Field) fieldrefConstant.referencedField;
+      }
+
+      enumConstantNameFound = false;
     }
+  }
 }

@@ -25,41 +25,33 @@ import proguard.resources.kotlinmodule.KotlinModule;
 import proguard.util.kotlin.asserter.Reporter;
 
 public abstract class AbstractKotlinMetadataConstraint
-implements KotlinAsserterConstraint,
-           KotlinMetadataVisitor
-{
-    protected Reporter  reporter;
-    protected ClassPool programClassPool;
-    protected ClassPool libraryClassPool;
+    implements KotlinAsserterConstraint, KotlinMetadataVisitor {
+  protected Reporter reporter;
+  protected ClassPool programClassPool;
+  protected ClassPool libraryClassPool;
 
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+  @Override
+  public void check(
+      Reporter reporter,
+      ClassPool programClassPool,
+      ClassPool libraryClassPool,
+      Clazz clazz,
+      KotlinMetadata metadata) {
+    this.reporter = reporter;
+    this.programClassPool = programClassPool;
+    this.libraryClassPool = libraryClassPool;
 
-    @Override
-    public void check(Reporter       reporter,
-                      ClassPool      programClassPool,
-                      ClassPool      libraryClassPool,
-                      Clazz          clazz,
-                      KotlinMetadata metadata)
-    {
-        this.reporter         = reporter;
-        this.programClassPool = programClassPool;
-        this.libraryClassPool = libraryClassPool;
-
-        try
-        {
-            metadata.accept(clazz, this);
-        }
-        catch (Exception e)
-        {
-            reporter.report( "Encountered unexpected Exception when checking constraint: " + e.getMessage());
-        }
+    try {
+      metadata.accept(clazz, this);
+    } catch (Exception e) {
+      reporter.report(
+          "Encountered unexpected Exception when checking constraint: " + e.getMessage());
     }
+  }
 
-    @Override
-    public void check(Reporter reporter, KotlinModule kotlinModule)
-    {
-
-    }
+  @Override
+  public void check(Reporter reporter, KotlinModule kotlinModule) {}
 }

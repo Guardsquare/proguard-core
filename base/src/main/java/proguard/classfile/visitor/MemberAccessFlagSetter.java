@@ -20,44 +20,35 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link MemberVisitor} sets the specified access flags of the
- * program class members that it visits.
+ * This {@link MemberVisitor} sets the specified access flags of the program class members that it
+ * visits.
  *
  * @see ClassConstants
- *
  * @author Johan Leys
  */
-public class MemberAccessFlagSetter
-implements   MemberVisitor
-{
-    private final int accessFlags;
+public class MemberAccessFlagSetter implements MemberVisitor {
+  private final int accessFlags;
 
+  /**
+   * Creates a new MemberAccessFlagSetter.
+   *
+   * @param accessFlags the member access flags to be set.
+   */
+  public MemberAccessFlagSetter(int accessFlags) {
+    this.accessFlags = accessFlags;
+  }
 
-    /**
-     * Creates a new MemberAccessFlagSetter.
-     *
-     * @param accessFlags the member access flags to be set.
-     */
-    public MemberAccessFlagSetter(int accessFlags)
-    {
-        this.accessFlags = accessFlags;
-    }
+  // Implementations for MemberVisitor.
 
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
 
-    // Implementations for MemberVisitor.
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {}
 
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {}
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    programField.u2accessFlags |= accessFlags;
+  }
 
-
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        programField.u2accessFlags |= accessFlags;
-    }
-
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        programMethod.u2accessFlags |= accessFlags;
-    }
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    programMethod.u2accessFlags |= accessFlags;
+  }
 }

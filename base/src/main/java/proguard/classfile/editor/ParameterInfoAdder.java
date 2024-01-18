@@ -22,40 +22,36 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.ParameterInfoVisitor;
 
 /**
- * This {@link ParameterInfoVisitor} adds all parameter information that it visits to
- * the given target method parameters attribute.
+ * This {@link ParameterInfoVisitor} adds all parameter information that it visits to the given
+ * target method parameters attribute.
  */
-public class ParameterInfoAdder
-implements   ParameterInfoVisitor
-{
-    private final ConstantAdder             constantAdder;
-    private final MethodParametersAttribute targetMethodParametersAttribute;
+public class ParameterInfoAdder implements ParameterInfoVisitor {
+  private final ConstantAdder constantAdder;
+  private final MethodParametersAttribute targetMethodParametersAttribute;
 
+  /**
+   * Creates a new ParameterInfoAdder that will copy parameter information into the given target
+   * method parameters attribute.
+   */
+  public ParameterInfoAdder(
+      ProgramClass targetClass, MethodParametersAttribute targetMethodParametersAttribute) {
+    this.constantAdder = new ConstantAdder(targetClass);
+    this.targetMethodParametersAttribute = targetMethodParametersAttribute;
+  }
 
-    /**
-     * Creates a new ParameterInfoAdder that will copy parameter information
-     * into the given target method parameters attribute.
-     */
-    public ParameterInfoAdder(ProgramClass              targetClass,
-                              MethodParametersAttribute targetMethodParametersAttribute)
-    {
-        this.constantAdder                   = new ConstantAdder(targetClass);
-        this.targetMethodParametersAttribute = targetMethodParametersAttribute;
-    }
+  // Implementations for ParameterInfoVisitor.
 
+  public void visitParameterInfo(
+      Clazz clazz, Method method, int parameterIndex, ParameterInfo parameterInfo) {
+    // Create a new parameter.
+    int newNameIndex =
+        parameterInfo.u2nameIndex == 0
+            ? 0
+            : constantAdder.addConstant(clazz, parameterInfo.u2nameIndex);
 
-    // Implementations for ParameterInfoVisitor.
+    ParameterInfo newParameterInfo = new ParameterInfo(newNameIndex, parameterInfo.u2accessFlags);
 
-    public void visitParameterInfo(Clazz clazz, Method method, int parameterIndex, ParameterInfo parameterInfo)
-    {
-        // Create a new parameter.
-        int newNameIndex = parameterInfo.u2nameIndex == 0 ? 0 :
-            constantAdder.addConstant(clazz, parameterInfo.u2nameIndex);
-
-        ParameterInfo newParameterInfo =
-            new ParameterInfo(newNameIndex, parameterInfo.u2accessFlags);
-
-        // Add it to the target.
-        targetMethodParametersAttribute.parameters[parameterIndex] = newParameterInfo;
-    }
+    // Add it to the target.
+    targetMethodParametersAttribute.parameters[parameterIndex] = newParameterInfo;
+  }
 }

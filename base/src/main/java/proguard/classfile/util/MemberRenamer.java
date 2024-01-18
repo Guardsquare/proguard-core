@@ -17,88 +17,62 @@
  */
 package proguard.classfile.util;
 
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import proguard.classfile.Clazz;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryMember;
 import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMember;
-import proguard.classfile.constant.ClassConstant;
-import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.editor.ConstantPoolEditor;
-import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
+/** This <code>MemberVisitor</code> renames the class member names of the classes it visits. */
+public class MemberRenamer implements MemberVisitor {
+  private final BiFunction<Clazz, Member, String> memberNameFunction;
+  private final MemberVisitor extraMemberVisitor;
 
+  public MemberRenamer(BiFunction<Clazz, Member, String> memberNameFunction) {
+    this(memberNameFunction, null);
+  }
 
-/**
- * This <code>MemberVisitor</code> renames the class member
- * names of the classes it visits.
- */
-public class MemberRenamer
-implements MemberVisitor
-{
-    private final BiFunction<Clazz, Member, String> memberNameFunction;
-    private final MemberVisitor                     extraMemberVisitor;
+  public MemberRenamer(
+      Function<Clazz, String> classNameFunction, MemberVisitor extraMemberVisitor) {
+    this((clazz, member) -> member.getName(clazz), extraMemberVisitor);
+  }
 
+  public MemberRenamer(
+      BiFunction<Clazz, Member, String> memberNameFunction, MemberVisitor extraMemberVisitor) {
+    this.memberNameFunction = memberNameFunction;
+    this.extraMemberVisitor = extraMemberVisitor;
+  }
 
-    public MemberRenamer(BiFunction<Clazz, Member, String> memberNameFunction)
-    {
-        this(memberNameFunction, null);
+  // Implementations for MemberVisitor.
+
+  public void visitProgramMember(ProgramClass programClass, ProgramMember programMember) {
+    // Has the class member name changed?
+    String name = programMember.getName(programClass);
+    String newName = memberNameFunction.apply(programClass, programMember);
+    if (newName != null && !newName.equals(name)) {
+      programMember.u2nameIndex = new ConstantPoolEditor(programClass).addUtf8Constant(newName);
+
+      if (extraMemberVisitor != null) {
+        programMember.accept(programClass, extraMemberVisitor);
+      }
     }
+  }
 
+  public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {
+    // Has the library member name changed?
+    String name = libraryMember.getName(libraryClass);
+    String newName = memberNameFunction.apply(libraryClass, libraryMember);
+    if (newName != null && !newName.equals(name)) {
+      libraryMember.name = newName;
 
-    public MemberRenamer(Function<Clazz, String> classNameFunction,
-                         MemberVisitor           extraMemberVisitor)
-    {
-        this((clazz, member) -> member.getName(clazz),extraMemberVisitor);
+      if (extraMemberVisitor != null) {
+        libraryMember.accept(libraryClass, extraMemberVisitor);
+      }
     }
-
-
-    public MemberRenamer(BiFunction<Clazz, Member, String> memberNameFunction,
-                         MemberVisitor                     extraMemberVisitor)
-    {
-        this.memberNameFunction = memberNameFunction;
-        this.extraMemberVisitor = extraMemberVisitor;
-    }
-
-
-    // Implementations for MemberVisitor.
-
-    public void visitProgramMember(ProgramClass  programClass,
-                                   ProgramMember programMember)
-    {
-        // Has the class member name changed?
-        String name    = programMember.getName(programClass);
-        String newName = memberNameFunction.apply(programClass, programMember);
-        if (newName != null && !newName.equals(name))
-        {
-            programMember.u2nameIndex =
-                new ConstantPoolEditor(programClass).addUtf8Constant(newName);
-
-            if (extraMemberVisitor != null)
-            {
-                programMember.accept(programClass, extraMemberVisitor);
-            }
-        }
-    }
-
-    public void visitLibraryMember(LibraryClass  libraryClass,
-                                   LibraryMember libraryMember)
-    {
-        // Has the library member name changed?
-        String name    = libraryMember.getName(libraryClass);
-        String newName = memberNameFunction.apply(libraryClass, libraryMember);
-        if (newName != null && !newName.equals(name))
-        {
-            libraryMember.name = newName;
-
-            if (extraMemberVisitor != null)
-            {
-                libraryMember.accept(libraryClass, extraMemberVisitor);
-            }
-        }
-    }
+  }
 }

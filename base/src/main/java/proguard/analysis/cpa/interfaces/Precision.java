@@ -23,6 +23,4 @@ package proguard.analysis.cpa.interfaces;
  *
  * @author Dmitry Ivanov
  */
-public interface Precision
-{
-}
+public interface Precision {}

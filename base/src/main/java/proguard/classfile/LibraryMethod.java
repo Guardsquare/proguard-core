@@ -24,59 +24,39 @@ import proguard.classfile.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class LibraryMethod extends LibraryMember implements Method
-{
-    /**
-     * An extra field containing all the classes referenced in the
-     * descriptor string. This field is filled out by the {@link
-     * proguard.classfile.util.ClassReferenceInitializer ClassReferenceInitializer}.
-     * The size of the array is the number of classes in the descriptor.
-     * Primitive types and arrays of primitive types are ignored.
-     * Unknown classes are represented as null values.
-     */
-    public Clazz[] referencedClasses;
+public class LibraryMethod extends LibraryMember implements Method {
+  /**
+   * An extra field containing all the classes referenced in the descriptor string. This field is
+   * filled out by the {@link proguard.classfile.util.ClassReferenceInitializer
+   * ClassReferenceInitializer}. The size of the array is the number of classes in the descriptor.
+   * Primitive types and arrays of primitive types are ignored. Unknown classes are represented as
+   * null values.
+   */
+  public Clazz[] referencedClasses;
 
+  /** Creates an uninitialized LibraryMethod. */
+  public LibraryMethod() {}
 
-    /**
-     * Creates an uninitialized LibraryMethod.
-     */
-    public LibraryMethod()
-    {
-    }
+  /** Creates an initialized LibraryMethod. */
+  public LibraryMethod(int u2accessFlags, String name, String descriptor) {
+    super(u2accessFlags, name, descriptor);
+  }
 
+  // Implementations for LibraryMember.
 
-    /**
-     * Creates an initialized LibraryMethod.
-     */
-    public LibraryMethod(int    u2accessFlags,
-                         String name,
-                         String descriptor)
-    {
-        super(u2accessFlags, name, descriptor);
-    }
+  public void accept(LibraryClass libraryClass, MemberVisitor memberVisitor) {
+    memberVisitor.visitLibraryMethod(libraryClass, this);
+  }
 
+  // Implementations for Member.
 
-    // Implementations for LibraryMember.
-
-    public void accept(LibraryClass libraryClass, MemberVisitor memberVisitor)
-    {
-        memberVisitor.visitLibraryMethod(libraryClass, this);
-    }
-
-
-    // Implementations for Member.
-
-    public void referencedClassesAccept(ClassVisitor classVisitor)
-    {
-        if (referencedClasses != null)
-        {
-            for (int index = 0; index < referencedClasses.length; index++)
-            {
-                if (referencedClasses[index] != null)
-                {
-                    referencedClasses[index].accept(classVisitor);
-                }
-            }
+  public void referencedClassesAccept(ClassVisitor classVisitor) {
+    if (referencedClasses != null) {
+      for (int index = 0; index < referencedClasses.length; index++) {
+        if (referencedClasses[index] != null) {
+          referencedClasses[index].accept(classVisitor);
         }
+      }
     }
+  }
 }

@@ -18,33 +18,27 @@
 package proguard.util;
 
 /**
- * This visitor clears the specified processing flags of the {@link Processable}
- * instances that it visits.
+ * This visitor clears the specified processing flags of the {@link Processable} instances that it
+ * visits.
  *
  * @author Johan Leys
  */
-public class ProcessingFlagCleaner
-implements   ProcessableVisitor
-{
-    private final int processingFlags;
+public class ProcessingFlagCleaner implements ProcessableVisitor {
+  private final int processingFlags;
 
+  /**
+   * Creates a new ProcessingFlagCleaner.
+   *
+   * @param processingFlags the processing flags to be set.
+   */
+  public ProcessingFlagCleaner(int processingFlags) {
+    this.processingFlags = processingFlags;
+  }
 
-    /**
-     * Creates a new ProcessingFlagCleaner.
-     *
-     * @param processingFlags the processing flags to be set.
-     */
-    public ProcessingFlagCleaner(int processingFlags)
-    {
-        this.processingFlags = processingFlags;
-    }
+  // Implementations for ProcessableVisitor.
 
-
-    // Implementations for ProcessableVisitor.
-
-    @Override
-    public void visitAnyProcessable(Processable processable)
-    {
-        processable.setProcessingFlags(processable.getProcessingFlags() & ~processingFlags);
-    }
+  @Override
+  public void visitAnyProcessable(Processable processable) {
+    processable.setProcessingFlags(processable.getProcessingFlags() & ~processingFlags);
+  }
 }

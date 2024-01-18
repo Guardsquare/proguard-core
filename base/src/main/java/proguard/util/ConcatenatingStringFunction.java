@@ -18,35 +18,26 @@
 package proguard.util;
 
 /**
- * This {@link StringFunction} returns the concatenated transformed strings of two
- * given {@link StringFunction} instances.
+ * This {@link StringFunction} returns the concatenated transformed strings of two given {@link
+ * StringFunction} instances.
  *
  * @author Johan Leys
  */
-public class ConcatenatingStringFunction implements StringFunction
-{
-    private final StringFunction stringFunction1;
-    private final StringFunction stringFunction2;
+public class ConcatenatingStringFunction implements StringFunction {
+  private final StringFunction stringFunction1;
+  private final StringFunction stringFunction2;
 
+  /** Creates a new ConcatenatingStringFunction with the two given string functions. */
+  public ConcatenatingStringFunction(
+      StringFunction stringFunction1, StringFunction stringFunction2) {
+    this.stringFunction1 = stringFunction1;
+    this.stringFunction2 = stringFunction2;
+  }
 
-    /**
-     * Creates a new ConcatenatingStringFunction with the two given
-     * string functions.
-     */
-    public ConcatenatingStringFunction(StringFunction stringFunction1,
-                                       StringFunction stringFunction2)
-    {
-        this.stringFunction1 = stringFunction1;
-        this.stringFunction2 = stringFunction2;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        return stringFunction1.transform(string) +
-               stringFunction2.transform(string);
-    }
+  @Override
+  public String transform(String string) {
+    return stringFunction1.transform(string) + stringFunction2.transform(string);
+  }
 }

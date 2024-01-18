@@ -26,182 +26,139 @@ import proguard.classfile.TypeConstants;
  *
  * @author Eric Lafortune
  */
-public class BasicValueFactory
-implements   ValueFactory
-{
-    // Shared copies of Value objects, to avoid creating a lot of objects.
-    public static final UnknownValue   UNKNOWN_VALUE   = new UnknownValue();
-    public static final IntegerValue   INTEGER_VALUE   = new UnknownIntegerValue();
-    public static final LongValue      LONG_VALUE      = new UnknownLongValue();
-    public static final FloatValue     FLOAT_VALUE     = new UnknownFloatValue();
-    public static final DoubleValue    DOUBLE_VALUE    = new UnknownDoubleValue();
-    public static final ReferenceValue REFERENCE_VALUE = new UnknownReferenceValue();
+public class BasicValueFactory implements ValueFactory {
+  // Shared copies of Value objects, to avoid creating a lot of objects.
+  public static final UnknownValue UNKNOWN_VALUE = new UnknownValue();
+  public static final IntegerValue INTEGER_VALUE = new UnknownIntegerValue();
+  public static final LongValue LONG_VALUE = new UnknownLongValue();
+  public static final FloatValue FLOAT_VALUE = new UnknownFloatValue();
+  public static final DoubleValue DOUBLE_VALUE = new UnknownDoubleValue();
+  public static final ReferenceValue REFERENCE_VALUE = new UnknownReferenceValue();
 
+  // Implementations for BasicValueFactory.
 
-    // Implementations for BasicValueFactory.
-
-    public Value createValue(String  type,
-                             Clazz   referencedClass,
-                             boolean mayBeExtension,
-                             boolean mayBeNull)
-    {
-        switch (type.charAt(0))
-        {
-            case TypeConstants.VOID:    return null;
-            case TypeConstants.BOOLEAN:
-            case TypeConstants.BYTE:
-            case TypeConstants.CHAR:
-            case TypeConstants.SHORT:
-            case TypeConstants.INT:     return createIntegerValue();
-            case TypeConstants.LONG:    return createLongValue();
-            case TypeConstants.FLOAT:   return createFloatValue();
-            case TypeConstants.DOUBLE:  return createDoubleValue();
-            default:                    return createReferenceValue(type,
-                                                                    referencedClass,
-                                                                    mayBeExtension,
-                                                                    mayBeNull);
-        }
-    }
-
-
-    public IntegerValue createIntegerValue()
-    {
-        return INTEGER_VALUE;
-    }
-
-
-    public IntegerValue createIntegerValue(int value)
-    {
+  public Value createValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
+    switch (type.charAt(0)) {
+      case TypeConstants.VOID:
+        return null;
+      case TypeConstants.BOOLEAN:
+      case TypeConstants.BYTE:
+      case TypeConstants.CHAR:
+      case TypeConstants.SHORT:
+      case TypeConstants.INT:
         return createIntegerValue();
-    }
-
-
-    public IntegerValue createIntegerValue(int min, int max)
-    {
-        return createIntegerValue();
-    }
-
-
-    public LongValue createLongValue()
-    {
-        return LONG_VALUE;
-    }
-
-
-    public LongValue createLongValue(long value)
-    {
+      case TypeConstants.LONG:
         return createLongValue();
-    }
-
-
-    public FloatValue createFloatValue()
-    {
-        return FLOAT_VALUE;
-    }
-
-
-    public FloatValue createFloatValue(float value)
-    {
+      case TypeConstants.FLOAT:
         return createFloatValue();
-    }
-
-
-    public DoubleValue createDoubleValue()
-    {
-        return DOUBLE_VALUE;
-    }
-
-
-    public DoubleValue createDoubleValue(double value)
-    {
+      case TypeConstants.DOUBLE:
         return createDoubleValue();
-    }
-
-
-    public ReferenceValue createReferenceValue()
-    {
-        return REFERENCE_VALUE;
-    }
-
-
-    public ReferenceValue createReferenceValueNull()
-    {
-        return REFERENCE_VALUE;
-    }
-
-
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull)
-    {
-        return createReferenceValue();
-    }
-
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull,
-                                               Object  value)
-    {
+      default:
         return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
     }
+  }
 
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull,
-                                               Clazz   creationClass,
-                                               Method  creationMethod,
-                                               int     creationOffset)
-    {
-        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
+  public IntegerValue createIntegerValue() {
+    return INTEGER_VALUE;
+  }
 
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull,
-                                               Clazz   creationClass,
-                                               Method  creationMethod,
-                                               int     creationOffset,
-                                               Object  value)
-    {
-        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
+  public IntegerValue createIntegerValue(int value) {
+    return createIntegerValue();
+  }
 
-    public ReferenceValue createReferenceValueForId(String  type,
-                                                    Clazz   referencedClass,
-                                                    boolean mayBeExtension,
-                                                    boolean mayBeNull,
-                                                    Object  id)
-    {
-        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
+  public IntegerValue createIntegerValue(int min, int max) {
+    return createIntegerValue();
+  }
 
-    public ReferenceValue createReferenceValueForId(String  type,
-                                                    Clazz   referencedClass,
-                                                    boolean mayBeExtension,
-                                                    boolean mayBeNull,
-                                                    Object  id,
-                                                    Object  value)
-    {
-        return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
-    }
+  public LongValue createLongValue() {
+    return LONG_VALUE;
+  }
 
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength)
-    {
-        return createReferenceValue(type, referencedClass, false, false);
-    }
+  public LongValue createLongValue(long value) {
+    return createLongValue();
+  }
 
-    @Override
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength,
-                                                    Object       elementValues)
-    {
-        return createArrayReferenceValue(type, referencedClass, arrayLength);
-    }
+  public FloatValue createFloatValue() {
+    return FLOAT_VALUE;
+  }
+
+  public FloatValue createFloatValue(float value) {
+    return createFloatValue();
+  }
+
+  public DoubleValue createDoubleValue() {
+    return DOUBLE_VALUE;
+  }
+
+  public DoubleValue createDoubleValue(double value) {
+    return createDoubleValue();
+  }
+
+  public ReferenceValue createReferenceValue() {
+    return REFERENCE_VALUE;
+  }
+
+  public ReferenceValue createReferenceValueNull() {
+    return REFERENCE_VALUE;
+  }
+
+  public ReferenceValue createReferenceValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
+    return createReferenceValue();
+  }
+
+  public ReferenceValue createReferenceValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object value) {
+    return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
+
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Clazz creationClass,
+      Method creationMethod,
+      int creationOffset) {
+    return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
+
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Clazz creationClass,
+      Method creationMethod,
+      int creationOffset,
+      Object value) {
+    return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
+
+  public ReferenceValue createReferenceValueForId(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object id) {
+    return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
+
+  public ReferenceValue createReferenceValueForId(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Object id,
+      Object value) {
+    return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
+
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength) {
+    return createReferenceValue(type, referencedClass, false, false);
+  }
+
+  @Override
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues) {
+    return createArrayReferenceValue(type, referencedClass, arrayLength);
+  }
 }

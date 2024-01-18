@@ -17,14 +17,8 @@
  */
 package proguard.classfile.kotlin.flags;
 
-
-/**
- * Flags for Kotlin type parameters.
- */
-public class KotlinTypeParameterFlags implements KotlinFlags
-{
-    /**
-     * Signifies that the corresponding type parameter is `reified`.
-     */
-    public boolean isReified;
+/** Flags for Kotlin type parameters. */
+public class KotlinTypeParameterFlags implements KotlinFlags {
+  /** Signifies that the corresponding type parameter is `reified`. */
+  public boolean isReified;
 }

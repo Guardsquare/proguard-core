@@ -26,17 +26,17 @@ import proguard.dexfile.ir.LabelAndLocalMapper;
  */
 public class ReturnVoidStmt extends Stmt.E0Stmt {
 
-    public ReturnVoidStmt() {
-        super(ST.RETURN_VOID);
-    }
+  public ReturnVoidStmt() {
+    super(ST.RETURN_VOID);
+  }
 
-    @Override
-    public Stmt clone(LabelAndLocalMapper mapper) {
-        return new ReturnVoidStmt();
-    }
+  @Override
+  public Stmt clone(LabelAndLocalMapper mapper) {
+    return new ReturnVoidStmt();
+  }
 
-    @Override
-    public String toString() {
-        return "return";
-    }
+  @Override
+  public String toString() {
+    return "return";
+  }
 }

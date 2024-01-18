@@ -19,198 +19,151 @@ package proguard.evaluation.value;
 
 /**
  * {@link IntegerValue} that is unknown.
- * <p/>
- * This class handles interactions with:
- * - IntegerValue (in general)
+ *
+ * <p>This class handles interactions with: - IntegerValue (in general)
  *
  * @author Eric Lafortune
  */
-public class UnknownIntegerValue extends IntegerValue
-{
-    // Basic unary methods.
+public class UnknownIntegerValue extends IntegerValue {
+  // Basic unary methods.
 
-    public IntegerValue negate()
-    {
-        return this;
-    }
+  public IntegerValue negate() {
+    return this;
+  }
 
-    public IntegerValue convertToByte()
-    {
-        return this;
-    }
+  public IntegerValue convertToByte() {
+    return this;
+  }
 
-    public IntegerValue convertToCharacter()
-    {
-        return this;
-    }
+  public IntegerValue convertToCharacter() {
+    return this;
+  }
 
-    public IntegerValue convertToShort()
-    {
-        return this;
-    }
+  public IntegerValue convertToShort() {
+    return this;
+  }
 
-    public LongValue convertToLong()
-    {
-        return BasicValueFactory.LONG_VALUE;
-    }
+  public LongValue convertToLong() {
+    return BasicValueFactory.LONG_VALUE;
+  }
 
-    public FloatValue convertToFloat()
-    {
-        return BasicValueFactory.FLOAT_VALUE;
-    }
+  public FloatValue convertToFloat() {
+    return BasicValueFactory.FLOAT_VALUE;
+  }
 
-    public DoubleValue convertToDouble()
-    {
-        return BasicValueFactory.DOUBLE_VALUE;
-    }
+  public DoubleValue convertToDouble() {
+    return BasicValueFactory.DOUBLE_VALUE;
+  }
 
+  // Basic binary methods.
 
-    // Basic binary methods.
+  public IntegerValue generalize(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue generalize(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue add(IntegerValue other) {
+    return this;
+  }
 
+  public IntegerValue subtract(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue add(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue subtractFrom(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue subtract(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue multiply(IntegerValue other) throws ArithmeticException {
+    return this;
+  }
 
-    public IntegerValue subtractFrom(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue divide(IntegerValue other) throws ArithmeticException {
+    return this;
+  }
 
-    public IntegerValue multiply(IntegerValue other)
-    throws ArithmeticException
-    {
-        return this;
-    }
+  public IntegerValue divideOf(IntegerValue other) throws ArithmeticException {
+    return this;
+  }
 
-    public IntegerValue divide(IntegerValue other)
-    throws ArithmeticException
-    {
-        return this;
-    }
+  public IntegerValue remainder(IntegerValue other) throws ArithmeticException {
+    return this;
+  }
 
-    public IntegerValue divideOf(IntegerValue other)
-    throws ArithmeticException
-    {
-        return this;
-    }
+  public IntegerValue remainderOf(IntegerValue other) throws ArithmeticException {
+    return this;
+  }
 
-    public IntegerValue remainder(IntegerValue other)
-    throws ArithmeticException
-    {
-        return this;
-    }
+  public IntegerValue shiftLeft(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue remainderOf(IntegerValue other)
-    throws ArithmeticException
-    {
-        return this;
-    }
+  public IntegerValue shiftLeftOf(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue shiftLeft(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue shiftRight(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue shiftLeftOf(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue shiftRightOf(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue shiftRight(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue unsignedShiftRight(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue shiftRightOf(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue unsignedShiftRightOf(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue unsignedShiftRight(IntegerValue other)
-    {
-        return this;
-    }
+  public LongValue shiftLeftOf(LongValue other) {
+    return BasicValueFactory.LONG_VALUE;
+  }
 
-    public IntegerValue unsignedShiftRightOf(IntegerValue other)
-    {
-        return this;
-    }
+  public LongValue shiftRightOf(LongValue other) {
+    return BasicValueFactory.LONG_VALUE;
+  }
 
-    public LongValue shiftLeftOf(LongValue other)
-    {
-        return BasicValueFactory.LONG_VALUE;
-    }
+  public LongValue unsignedShiftRightOf(LongValue other) {
+    return BasicValueFactory.LONG_VALUE;
+  }
 
-    public LongValue shiftRightOf(LongValue other)
-    {
-        return BasicValueFactory.LONG_VALUE;
-    }
+  public IntegerValue and(IntegerValue other) {
+    return this;
+  }
 
-    public LongValue unsignedShiftRightOf(LongValue other)
-    {
-        return BasicValueFactory.LONG_VALUE;
-    }
+  public IntegerValue or(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue and(IntegerValue other)
-    {
-        return this;
-    }
+  public IntegerValue xor(IntegerValue other) {
+    return this;
+  }
 
-    public IntegerValue or(IntegerValue other)
-    {
-        return this;
-    }
+  public int equal(IntegerValue other) {
+    return MAYBE;
+  }
 
-    public IntegerValue xor(IntegerValue other)
-    {
-        return this;
-    }
+  public int lessThan(IntegerValue other) {
+    return MAYBE;
+  }
 
-    public int equal(IntegerValue other)
-    {
-        return MAYBE;
-    }
+  public int lessThanOrEqual(IntegerValue other) {
+    return MAYBE;
+  }
 
-    public int lessThan(IntegerValue other)
-    {
-        return MAYBE;
-    }
+  // Implementations for Object.
 
-    public int lessThanOrEqual(IntegerValue other)
-    {
-        return MAYBE;
-    }
+  public boolean equals(Object object) {
+    return object != null && this.getClass() == object.getClass();
+  }
 
+  public int hashCode() {
+    return this.getClass().hashCode();
+  }
 
-    // Implementations for Object.
-
-    public boolean equals(Object object)
-    {
-        return object != null &&
-               this.getClass() == object.getClass();
-    }
-
-
-    public int hashCode()
-    {
-        return this.getClass().hashCode();
-    }
-
-
-    public String toString()
-    {
-        return "i";
-    }
+  public String toString() {
+    return "i";
+  }
 }

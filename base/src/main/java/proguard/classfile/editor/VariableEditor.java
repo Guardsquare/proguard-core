@@ -17,109 +17,89 @@
  */
 package proguard.classfile.editor;
 
+import java.util.Arrays;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 
-import java.util.Arrays;
-
 /**
- * This {@link AttributeVisitor} accumulates specified changes to local variables, and
- * then applies these accumulated changes to the code attributes that it visits.
+ * This {@link AttributeVisitor} accumulates specified changes to local variables, and then applies
+ * these accumulated changes to the code attributes that it visits.
  *
- * @author Eric  Lafortune
+ * @author Eric Lafortune
  */
-public class VariableEditor
-implements   AttributeVisitor
-{
-    private boolean   modified;
+public class VariableEditor implements AttributeVisitor {
+  private boolean modified;
 
-    private boolean[] deleted     = new boolean[ClassEstimates.TYPICAL_VARIABLES_SIZE];
-    private int[]     variableMap = new int[ClassEstimates.TYPICAL_VARIABLES_SIZE];
+  private boolean[] deleted = new boolean[ClassEstimates.TYPICAL_VARIABLES_SIZE];
+  private int[] variableMap = new int[ClassEstimates.TYPICAL_VARIABLES_SIZE];
 
-    private final VariableRemapper variableRemapper = new VariableRemapper();
+  private final VariableRemapper variableRemapper = new VariableRemapper();
 
-
-    /**
-     * Resets the accumulated code changes.
-     * @param maxLocals the length of the local variable frame that will be
-     *                  edited next.
-     */
-    public void reset(int maxLocals)
-    {
-        // Try to reuse the previous array.
-        if (deleted.length < maxLocals)
-        {
-            // Create a new array.
-            deleted = new boolean[maxLocals];
-        }
-        else
-        {
-            // Reset the array.
-            Arrays.fill(deleted, 0, maxLocals, false);
-        }
-
-        modified = false;
+  /**
+   * Resets the accumulated code changes.
+   *
+   * @param maxLocals the length of the local variable frame that will be edited next.
+   */
+  public void reset(int maxLocals) {
+    // Try to reuse the previous array.
+    if (deleted.length < maxLocals) {
+      // Create a new array.
+      deleted = new boolean[maxLocals];
+    } else {
+      // Reset the array.
+      Arrays.fill(deleted, 0, maxLocals, false);
     }
 
+    modified = false;
+  }
 
-    /**
-     * Remembers to delete the given variable.
-     * @param variableIndex the index of the variable to be deleted.
-     */
-    public void deleteVariable(int variableIndex)
-    {
-        deleted[variableIndex] = true;
+  /**
+   * Remembers to delete the given variable.
+   *
+   * @param variableIndex the index of the variable to be deleted.
+   */
+  public void deleteVariable(int variableIndex) {
+    deleted[variableIndex] = true;
 
-        modified = true;
+    modified = true;
+  }
+
+  /** Returns whether the given variable at the given offset will be deleted. */
+  public boolean isDeleted(int instructionOffset) {
+    return deleted[instructionOffset];
+  }
+
+  // Implementations for AttributeVisitor.
+
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    // Avoid doing any work if nothing is changing anyway.
+    if (!modified) {
+      return;
     }
 
+    int oldMaxLocals = codeAttribute.u2maxLocals;
 
-    /**
-     * Returns whether the given variable at the given offset will be deleted.
-     */
-    public boolean isDeleted(int instructionOffset)
-    {
-        return deleted[instructionOffset];
+    // Make sure there is a sufficiently large variable map.
+    if (variableMap.length < oldMaxLocals) {
+      variableMap = new int[oldMaxLocals];
     }
 
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        // Avoid doing any work if nothing is changing anyway.
-        if (!modified)
-        {
-            return;
-        }
-
-        int oldMaxLocals = codeAttribute.u2maxLocals;
-
-        // Make sure there is a sufficiently large variable map.
-        if (variableMap.length < oldMaxLocals)
-        {
-            variableMap = new int[oldMaxLocals];
-        }
-
-        // Fill out the variable map.
-        int newVariableIndex = 0;
-        for (int oldVariableIndex = 0; oldVariableIndex < oldMaxLocals; oldVariableIndex++)
-        {
-            variableMap[oldVariableIndex] = deleted[oldVariableIndex] ?
-                -1 : newVariableIndex++;
-        }
-
-        // Set the map.
-        variableRemapper.setVariableMap(variableMap);
-
-        // Remap the variables.
-        variableRemapper.visitCodeAttribute(clazz, method, codeAttribute);
-
-        // Update the length of local variable frame.
-        codeAttribute.u2maxLocals = newVariableIndex;
+    // Fill out the variable map.
+    int newVariableIndex = 0;
+    for (int oldVariableIndex = 0; oldVariableIndex < oldMaxLocals; oldVariableIndex++) {
+      variableMap[oldVariableIndex] = deleted[oldVariableIndex] ? -1 : newVariableIndex++;
     }
+
+    // Set the map.
+    variableRemapper.setVariableMap(variableMap);
+
+    // Remap the variables.
+    variableRemapper.visitCodeAttribute(clazz, method, codeAttribute);
+
+    // Update the length of local variable frame.
+    codeAttribute.u2maxLocals = newVariableIndex;
+  }
 }

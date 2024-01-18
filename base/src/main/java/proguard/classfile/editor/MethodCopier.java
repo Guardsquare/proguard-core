@@ -36,156 +36,147 @@ import proguard.classfile.visitor.MultiMemberVisitor;
 import proguard.util.StringFunction;
 
 /**
- * This {@link ClassVisitor} copies a method into a target class. It first checks if a method with the same name
- * and descriptor as the method to be copied already exists in the target class. If that is indeed the case,
- * this visitor is a no-op.
- * This visitor optionally uses a name transformer function to apply to the original method's name before copying.
- * If no name transformer function is provided, the original method's name is used, instead.
- * If the method to be copied is indeed copied into the target class, this visitor passes the resulting method
- * to an extra member visitor, if provided.
+ * This {@link ClassVisitor} copies a method into a target class. It first checks if a method with
+ * the same name and descriptor as the method to be copied already exists in the target class. If
+ * that is indeed the case, this visitor is a no-op. This visitor optionally uses a name transformer
+ * function to apply to the original method's name before copying. If no name transformer function
+ * is provided, the original method's name is used, instead. If the method to be copied is indeed
+ * copied into the target class, this visitor passes the resulting method to an extra member
+ * visitor, if provided.
  */
-public class MethodCopier
-implements   ClassVisitor,
-             MemberVisitor,
-             AttributeVisitor
-{
-    private final ProgramClass   sourceClass;
-    private final ProgramMethod  sourceMethod;
-    private final StringFunction nameTransformer;
-    private final MemberVisitor  extraMemberVisitor;
+public class MethodCopier implements ClassVisitor, MemberVisitor, AttributeVisitor {
+  private final ProgramClass sourceClass;
+  private final ProgramMethod sourceMethod;
+  private final StringFunction nameTransformer;
+  private final MemberVisitor extraMemberVisitor;
 
-    public MethodCopier(ProgramClass sourceClass, ProgramMethod sourceMethod)
-    {
-        this(sourceClass, sourceMethod, null);
+  public MethodCopier(ProgramClass sourceClass, ProgramMethod sourceMethod) {
+    this(sourceClass, sourceMethod, null);
+  }
+
+  public MethodCopier(
+      ProgramClass sourceClass, ProgramMethod sourceMethod, StringFunction nameTransformer) {
+    this(sourceClass, sourceMethod, nameTransformer, null);
+  }
+
+  public MethodCopier(
+      ProgramClass sourceClass,
+      ProgramMethod sourceMethod,
+      StringFunction nameTransformer,
+      MemberVisitor extraMemberVisitor) {
+    this.sourceClass = sourceClass;
+    this.sourceMethod = sourceMethod;
+    this.nameTransformer = nameTransformer;
+    this.extraMemberVisitor = extraMemberVisitor;
+  }
+
+  // ClassVisitor
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    if (methodAlreadyExistsInClass(programClass)) {
+      return;
     }
 
-    public MethodCopier(ProgramClass sourceClass, ProgramMethod sourceMethod, StringFunction nameTransformer)
-    {
-        this(sourceClass, sourceMethod, nameTransformer, null);
+    MemberVisitor copiedMethodVisitor =
+        extraMemberVisitor == null ? this : new MultiMemberVisitor(this, extraMemberVisitor);
+
+    new MemberAdder(programClass, nameTransformer, copiedMethodVisitor)
+        .visitProgramMethod(sourceClass, sourceMethod);
+  }
+
+  private boolean methodAlreadyExistsInClass(ProgramClass programClass) {
+    String sourceMethodName = sourceMethod.getName(sourceClass);
+    String sourceMethodDescriptor = sourceMethod.getDescriptor(sourceClass);
+
+    String toCheckName =
+        nameTransformer == null ? sourceMethodName : nameTransformer.transform(sourceMethodName);
+
+    return programClass.findMethod(toCheckName, sourceMethodDescriptor) != null;
+  }
+
+  // MemberVisitor
+
+  @Override
+  public void visitAnyMember(Clazz clazz, Member member) {}
+
+  @Override
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    programMethod.accept(
+        programClass, new AllAttributeVisitor(new AttributeNameFilter(Attribute.CODE, this)));
+  }
+
+  // AttributeVisitor
+
+  @Override
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+  @Override
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    // The source values for the copied method's line numbers should refer to the original method.
+    LineNumberTableAttribute copiedMethodLineNumberTableAttribute =
+        (LineNumberTableAttribute) codeAttribute.getAttribute(clazz, Attribute.LINE_NUMBER_TABLE);
+
+    if (copiedMethodLineNumberTableAttribute == null
+        || copiedMethodLineNumberTableAttribute.u2lineNumberTableLength == 0) {
+      return;
     }
 
-    public MethodCopier(ProgramClass sourceClass,
-                        ProgramMethod sourceMethod,
-                        StringFunction nameTransformer,
-                        MemberVisitor extraMemberVisitor)
-    {
-        this.sourceClass        = sourceClass;
-        this.sourceMethod       = sourceMethod;
-        this.nameTransformer    = nameTransformer;
-        this.extraMemberVisitor = extraMemberVisitor;
+    sourceMethod.accept(
+        sourceClass,
+        new AllAttributeVisitor(
+            new AttributeNameFilter(
+                Attribute.CODE, new MyLineFixer(copiedMethodLineNumberTableAttribute))));
+  }
+
+  private static class MyLineFixer implements AttributeVisitor {
+    private final LineNumberTableAttribute copiedMethodLineNumberTableAttribute;
+
+    MyLineFixer(LineNumberTableAttribute copiedMethodLineNumberTableAttribute) {
+      this.copiedMethodLineNumberTableAttribute = copiedMethodLineNumberTableAttribute;
     }
 
-    // ClassVisitor
+    public void visitCodeAttribute(
+        Clazz sourceClass, Method sourceMethod, CodeAttribute sourceMethodCodeAttribute) {
+      LineNumberTableAttribute sourceMethodLineNumberTableAttribute =
+          (LineNumberTableAttribute)
+              sourceMethodCodeAttribute.getAttribute(sourceClass, Attribute.LINE_NUMBER_TABLE);
+      int lowestLineNumber =
+          sourceMethodLineNumberTableAttribute == null
+              ? 0
+              : sourceMethodLineNumberTableAttribute.getLowestLineNumber();
+      int highestLineNumber =
+          sourceMethodLineNumberTableAttribute == null
+              ? 0
+              : sourceMethodLineNumberTableAttribute.getHighestLineNumber();
 
-    @Override
-    public void visitAnyClass(Clazz clazz) {}
+      String newSource =
+          initializeLineNumberInfoSource(
+              sourceClass, sourceMethod, lowestLineNumber, highestLineNumber);
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        if (methodAlreadyExistsInClass(programClass))
-        {
-            return;
-        }
-
-        MemberVisitor copiedMethodVisitor = extraMemberVisitor == null ? this
-                                                                       : new MultiMemberVisitor(this,
-                                                                                                extraMemberVisitor);
-
-        new MemberAdder(programClass,
-                        nameTransformer,
-                        copiedMethodVisitor).visitProgramMethod(sourceClass, sourceMethod);
+      for (int i = 0; i < copiedMethodLineNumberTableAttribute.u2lineNumberTableLength; i++) {
+        LineNumberInfo currentLineNumberInfo =
+            copiedMethodLineNumberTableAttribute.lineNumberTable[i];
+        ExtendedLineNumberInfo newLineNumberInfo =
+            new ExtendedLineNumberInfo(
+                currentLineNumberInfo.u2startPC, currentLineNumberInfo.u2lineNumber, newSource);
+        copiedMethodLineNumberTableAttribute.lineNumberTable[i] = newLineNumberInfo;
+      }
     }
 
-    private boolean methodAlreadyExistsInClass(ProgramClass programClass)
-    {
-        String sourceMethodName        = sourceMethod.getName(sourceClass);
-        String sourceMethodDescriptor  = sourceMethod.getDescriptor(sourceClass);
-
-        String toCheckName             = nameTransformer == null ? sourceMethodName
-                                                                 : nameTransformer.transform(sourceMethodName);
-
-        return programClass.findMethod(toCheckName, sourceMethodDescriptor) != null;
+    private String initializeLineNumberInfoSource(
+        Clazz sourceClass, Method sourceMethod, int startLineNumber, int endLineNumber) {
+      return sourceClass.getName()
+          + "."
+          + sourceMethod.getName(sourceClass)
+          + sourceMethod.getDescriptor(sourceClass)
+          + ":"
+          + startLineNumber
+          + ":"
+          + endLineNumber;
     }
-
-    // MemberVisitor
-
-    @Override
-    public void visitAnyMember(Clazz clazz, Member member) {}
-
-    @Override
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        programMethod.accept(programClass,
-                             new AllAttributeVisitor(new AttributeNameFilter(Attribute.CODE, this)));
-    }
-
-    // AttributeVisitor
-
-    @Override
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-    @Override
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        // The source values for the copied method's line numbers should refer to the original method.
-        LineNumberTableAttribute copiedMethodLineNumberTableAttribute
-                = (LineNumberTableAttribute) codeAttribute.getAttribute(clazz, Attribute.LINE_NUMBER_TABLE);
-
-        if (copiedMethodLineNumberTableAttribute == null || copiedMethodLineNumberTableAttribute.u2lineNumberTableLength == 0)
-        {
-            return;
-        }
-
-        sourceMethod.accept(sourceClass,
-                            new AllAttributeVisitor(
-                            new AttributeNameFilter(Attribute.CODE,
-                            new MyLineFixer(copiedMethodLineNumberTableAttribute))));
-    }
-
-    private static class MyLineFixer implements AttributeVisitor
-    {
-        private final LineNumberTableAttribute copiedMethodLineNumberTableAttribute;
-
-        MyLineFixer(LineNumberTableAttribute copiedMethodLineNumberTableAttribute)
-        {
-            this.copiedMethodLineNumberTableAttribute = copiedMethodLineNumberTableAttribute;
-        }
-
-        public void visitCodeAttribute(Clazz sourceClass, Method sourceMethod, CodeAttribute sourceMethodCodeAttribute) {
-            LineNumberTableAttribute sourceMethodLineNumberTableAttribute = (LineNumberTableAttribute) sourceMethodCodeAttribute.getAttribute(sourceClass, Attribute.LINE_NUMBER_TABLE);
-            int                      lowestLineNumber                     = sourceMethodLineNumberTableAttribute == null
-                                                                                ? 0
-                                                                                : sourceMethodLineNumberTableAttribute.getLowestLineNumber();
-            int                      highestLineNumber                    = sourceMethodLineNumberTableAttribute == null
-                                                                                ? 0
-                                                                                : sourceMethodLineNumberTableAttribute.getHighestLineNumber();
-
-            String newSource = initializeLineNumberInfoSource(sourceClass,
-                                                              sourceMethod,
-                                                              lowestLineNumber,
-                                                              highestLineNumber);
-
-            for (int i = 0; i < copiedMethodLineNumberTableAttribute.u2lineNumberTableLength; i++)
-            {
-                LineNumberInfo         currentLineNumberInfo = copiedMethodLineNumberTableAttribute.lineNumberTable[i];
-                ExtendedLineNumberInfo newLineNumberInfo     = new ExtendedLineNumberInfo(currentLineNumberInfo.u2startPC,
-                                                                                          currentLineNumberInfo.u2lineNumber,
-                                                                                          newSource);
-                copiedMethodLineNumberTableAttribute.lineNumberTable[i] = newLineNumberInfo;
-            }
-        }
-
-        private String initializeLineNumberInfoSource(Clazz  sourceClass,
-                                                      Method sourceMethod,
-                                                      int    startLineNumber,
-                                                      int    endLineNumber)
-        {
-            return sourceClass.getName()                   + "." +
-                   sourceMethod.getName(sourceClass)       +
-                   sourceMethod.getDescriptor(sourceClass) + ":" +
-                   startLineNumber                         + ":" +
-                   endLineNumber;
-        }
-    }
+  }
 }

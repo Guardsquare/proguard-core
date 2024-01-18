@@ -22,34 +22,28 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 
 /**
- * This {@link AttributeVisitor} resets it {@link CodeAttributeEditor} whenever it visits a
- * code attribute.
+ * This {@link AttributeVisitor} resets it {@link CodeAttributeEditor} whenever it visits a code
+ * attribute.
  *
  * @author Eric Lafortune
  */
-public class CodeAttributeEditorResetter
-implements   AttributeVisitor
-{
-    private final CodeAttributeEditor codeAttributeEditor;
+public class CodeAttributeEditorResetter implements AttributeVisitor {
+  private final CodeAttributeEditor codeAttributeEditor;
 
+  /**
+   * Creates a new CodeAttributeEditorResetter.
+   *
+   * @param codeAttributeEditor the code attribute editor that will be reset.
+   */
+  public CodeAttributeEditorResetter(CodeAttributeEditor codeAttributeEditor) {
+    this.codeAttributeEditor = codeAttributeEditor;
+  }
 
-    /**
-     * Creates a new CodeAttributeEditorResetter.
-     * @param codeAttributeEditor the code attribute editor that will be reset.
-     */
-    public CodeAttributeEditorResetter(CodeAttributeEditor codeAttributeEditor)
-    {
-        this.codeAttributeEditor = codeAttributeEditor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        codeAttributeEditor.reset(codeAttribute.u4codeLength);
-    }
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    codeAttributeEditor.reset(codeAttribute.u4codeLength);
+  }
 }

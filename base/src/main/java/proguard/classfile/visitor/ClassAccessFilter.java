@@ -20,57 +20,44 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link ClassVisitor} delegates its visits to another given
- * {@link ClassVisitor}, but only when the visited class
- * has the proper access flags.
+ * This {@link ClassVisitor} delegates its visits to another given {@link ClassVisitor}, but only
+ * when the visited class has the proper access flags.
  *
  * @see ClassConstants
- *
  * @author Eric Lafortune
  */
-public class ClassAccessFilter
-implements   ClassVisitor
-{
-    private final int          requiredSetAccessFlags;
-    private final int          requiredUnsetAccessFlags;
-    private final ClassVisitor classVisitor;
+public class ClassAccessFilter implements ClassVisitor {
+  private final int requiredSetAccessFlags;
+  private final int requiredUnsetAccessFlags;
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new ClassAccessFilter.
+   *
+   * @param requiredSetAccessFlags the class access flags that should be set.
+   * @param requiredUnsetAccessFlags the class access flags that should be unset.
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public ClassAccessFilter(
+      int requiredSetAccessFlags, int requiredUnsetAccessFlags, ClassVisitor classVisitor) {
+    this.requiredSetAccessFlags = requiredSetAccessFlags;
+    this.requiredUnsetAccessFlags = requiredUnsetAccessFlags;
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new ClassAccessFilter.
-     * @param requiredSetAccessFlags   the class access flags that should be
-     *                                 set.
-     * @param requiredUnsetAccessFlags the class access flags that should be
-     *                                 unset.
-     * @param classVisitor             the <code>ClassVisitor</code> to
-     *                                 which visits will be delegated.
-     */
-    public ClassAccessFilter(int          requiredSetAccessFlags,
-                             int          requiredUnsetAccessFlags,
-                             ClassVisitor classVisitor)
-    {
-        this.requiredSetAccessFlags   = requiredSetAccessFlags;
-        this.requiredUnsetAccessFlags = requiredUnsetAccessFlags;
-        this.classVisitor             = classVisitor;
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    if (accepted(clazz.getAccessFlags())) {
+      clazz.accept(classVisitor);
     }
+  }
 
+  // Small utility methods.
 
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        if (accepted(clazz.getAccessFlags()))
-        {
-            clazz.accept(classVisitor);
-        }
-    }
-
-    // Small utility methods.
-
-    private boolean accepted(int accessFlags)
-    {
-        return (requiredSetAccessFlags   & ~accessFlags) == 0 &&
-               (requiredUnsetAccessFlags &  accessFlags) == 0;
-    }
+  private boolean accepted(int accessFlags) {
+    return (requiredSetAccessFlags & ~accessFlags) == 0
+        && (requiredUnsetAccessFlags & accessFlags) == 0;
+  }
 }

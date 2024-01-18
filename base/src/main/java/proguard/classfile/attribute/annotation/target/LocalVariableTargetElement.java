@@ -22,29 +22,18 @@ package proguard.classfile.attribute.annotation.target;
  *
  * @author Eric Lafortune
  */
-public class LocalVariableTargetElement
-{
-    public int u2startPC;
-    public int u2length;
-    public int u2index;
+public class LocalVariableTargetElement {
+  public int u2startPC;
+  public int u2length;
+  public int u2index;
 
-    /**
-     * Creates an uninitialized LocalVariableTargetElement.
-     */
-    public LocalVariableTargetElement()
-    {
-    }
+  /** Creates an uninitialized LocalVariableTargetElement. */
+  public LocalVariableTargetElement() {}
 
-
-    /**
-     * Creates an initialized LocalVariableTargetElement.
-     */
-    public LocalVariableTargetElement(int u2startPC,
-                                      int u2length,
-                                      int u2index)
-    {
-        this.u2startPC = u2startPC;
-        this.u2length  = u2length;
-        this.u2index   = u2index;
-    }
+  /** Creates an initialized LocalVariableTargetElement. */
+  public LocalVariableTargetElement(int u2startPC, int u2length, int u2index) {
+    this.u2startPC = u2startPC;
+    this.u2length = u2length;
+    this.u2index = u2index;
+  }
 }

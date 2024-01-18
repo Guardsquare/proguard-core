@@ -25,44 +25,30 @@ import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
  *
  * @author Eric Lafortune
  */
-public class ConstantElementValue extends ElementValue
-{
-    public final char u1tag;
-    public       int  u2constantValueIndex;
+public class ConstantElementValue extends ElementValue {
+  public final char u1tag;
+  public int u2constantValueIndex;
 
+  /** Creates an uninitialized ConstantElementValue. */
+  public ConstantElementValue(char u1tag) {
+    this.u1tag = u1tag;
+  }
 
-    /**
-     * Creates an uninitialized ConstantElementValue.
-     */
-    public ConstantElementValue(char u1tag)
-    {
-        this.u1tag = u1tag;
-    }
+  /** Creates an initialized ConstantElementValue. */
+  public ConstantElementValue(char u1tag, int u2elementNameIndex, int u2constantValueIndex) {
+    super(u2elementNameIndex);
 
+    this.u1tag = u1tag;
+    this.u2constantValueIndex = u2constantValueIndex;
+  }
 
-    /**
-     * Creates an initialized ConstantElementValue.
-     */
-    public ConstantElementValue(char u1tag,
-                                int  u2elementNameIndex,
-                                int  u2constantValueIndex)
-    {
-        super(u2elementNameIndex);
+  // Implementations for ElementValue.
 
-        this.u1tag                = u1tag;
-        this.u2constantValueIndex = u2constantValueIndex;
-    }
+  public char getTag() {
+    return u1tag;
+  }
 
-
-    // Implementations for ElementValue.
-
-    public char getTag()
-    {
-        return u1tag;
-    }
-
-    public void accept(Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor)
-    {
-        elementValueVisitor.visitConstantElementValue(clazz, annotation, this);
-    }
+  public void accept(Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor) {
+    elementValueVisitor.visitConstantElementValue(clazz, annotation, this);
+  }
 }

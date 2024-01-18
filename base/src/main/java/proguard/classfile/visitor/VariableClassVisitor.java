@@ -19,49 +19,37 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassVisitor} delegates all method calls to a {@link ClassVisitor}
- * that can be changed at any time.
+ * This {@link ClassVisitor} delegates all method calls to a {@link ClassVisitor} that can be
+ * changed at any time.
  *
  * @author Eric Lafortune
  */
-public class VariableClassVisitor implements ClassVisitor
-{
-    private ClassVisitor classVisitor;
+public class VariableClassVisitor implements ClassVisitor {
+  private ClassVisitor classVisitor;
 
+  public VariableClassVisitor() {
+    this(null);
+  }
 
-    public VariableClassVisitor()
-    {
-        this(null);
+  public VariableClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
+
+  public void setClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
+
+  public ClassVisitor getClassVisitor() {
+    return classVisitor;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    if (classVisitor != null) {
+      clazz.accept(classVisitor);
     }
-
-
-    public VariableClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
-
-
-    public void setClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
-    }
-
-    public ClassVisitor getClassVisitor()
-    {
-        return classVisitor;
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        if (classVisitor != null)
-        {
-            clazz.accept(classVisitor);
-        }
-    }
+  }
 }

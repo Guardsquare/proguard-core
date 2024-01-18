@@ -27,65 +27,52 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.Waitlist;
 
 /**
- * This abstract wrapper class runs the selected {@link ConfigurableProgramAnalysis} and returns the {@link ReachedSet}.
+ * This abstract wrapper class runs the selected {@link ConfigurableProgramAnalysis} and returns the
+ * {@link ReachedSet}.
  *
  * @author Dmitry Ivanov
  */
-public abstract class CpaRun<CpaT extends ConfigurableProgramAnalysis, AbstractStateT extends AbstractState>
-{
+public abstract class CpaRun<
+    CpaT extends ConfigurableProgramAnalysis, AbstractStateT extends AbstractState> {
 
-    protected CpaT           cpa;
-    protected AbortOperator  abortOperator = NeverAbortOperator.INSTANCE;
+  protected CpaT cpa;
+  protected AbortOperator abortOperator = NeverAbortOperator.INSTANCE;
 
-    /**
-     * Sets up the {@link CpaAlgorithm}, runs it, and returns the {@link ReachedSet} with the result of the analysis.
-     */
-    public ReachedSet execute()
-    {
-        CpaAlgorithm cpaAlgorithm = new CpaAlgorithm(getCpa());
-        Waitlist waitList         = createWaitlist();
-        ReachedSet reachedSet     = createReachedSet();
-        Collection<AbstractStateT> initialStates = getInitialStates();
-        waitList.addAll(initialStates);
-        reachedSet.addAll(initialStates);
-        cpaAlgorithm.run(reachedSet, waitList, getAbortOperator());
-        return reachedSet;
-    }
+  /**
+   * Sets up the {@link CpaAlgorithm}, runs it, and returns the {@link ReachedSet} with the result
+   * of the analysis.
+   */
+  public ReachedSet execute() {
+    CpaAlgorithm cpaAlgorithm = new CpaAlgorithm(getCpa());
+    Waitlist waitList = createWaitlist();
+    ReachedSet reachedSet = createReachedSet();
+    Collection<AbstractStateT> initialStates = getInitialStates();
+    waitList.addAll(initialStates);
+    reachedSet.addAll(initialStates);
+    cpaAlgorithm.run(reachedSet, waitList, getAbortOperator());
+    return reachedSet;
+  }
 
-    /**
-     * Returns an empty {@link ReachedSet}.
-     */
-    protected ReachedSet createReachedSet()
-    {
-        return new DefaultReachedSet();
-    }
+  /** Returns an empty {@link ReachedSet}. */
+  protected ReachedSet createReachedSet() {
+    return new DefaultReachedSet();
+  }
 
-    /**
-     * Returns an empty {@link Waitlist}.
-     */
-    protected Waitlist createWaitlist()
-    {
-        return new BreadthFirstWaitlist();
-    }
+  /** Returns an empty {@link Waitlist}. */
+  protected Waitlist createWaitlist() {
+    return new BreadthFirstWaitlist();
+  }
 
-    /**
-     * Returns a collection of initial {@link AbstractState}s.
-     */
-    public abstract Collection<AbstractStateT> getInitialStates();
+  /** Returns a collection of initial {@link AbstractState}s. */
+  public abstract Collection<AbstractStateT> getInitialStates();
 
-    /**
-     * Returns the CPA.
-     */
-    public CpaT getCpa()
-    {
-        return cpa;
-    }
+  /** Returns the CPA. */
+  public CpaT getCpa() {
+    return cpa;
+  }
 
-    /**
-     * Returns the abort operator.
-     */
-    public AbortOperator getAbortOperator()
-    {
-        return abortOperator;
-    }
+  /** Returns the abort operator. */
+  public AbortOperator getAbortOperator() {
+    return abortOperator;
+  }
 }

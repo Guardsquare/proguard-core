@@ -23,293 +23,317 @@ import proguard.dexfile.reader.Op;
  * @version $Rev$
  */
 public class DexCodeVisitor {
-    protected DexCodeVisitor visitor;
+  protected DexCodeVisitor visitor;
 
-    public DexCodeVisitor() {
-        super();
+  public DexCodeVisitor() {
+    super();
+  }
+
+  public DexCodeVisitor(DexCodeVisitor visitor) {
+    super();
+    this.visitor = visitor;
+  }
+
+  public void visitRegister(int total) {
+    if (visitor != null) {
+      visitor.visitRegister(total);
     }
+  }
 
-    public DexCodeVisitor(DexCodeVisitor visitor) {
-        super();
-        this.visitor = visitor;
+  /**
+   *
+   *
+   * <pre>
+   * OP_X_INT_LIT8
+   * </pre>
+   *
+   * @param op
+   * @param distReg
+   * @param srcReg
+   * @param content
+   */
+  public void visitStmt2R1N(Op op, int distReg, int srcReg, int content) {
+    if (visitor != null) {
+      visitor.visitStmt2R1N(op, distReg, srcReg, content);
     }
+  }
 
-    public void visitRegister(int total) {
-        if (visitor != null) {
-            visitor.visitRegister(total);
-        }
+  /**
+   *
+   *
+   * <pre>
+   *
+   * OP_ADD
+   * OP_SUB
+   * OP_MUL
+   * OP_DIV
+   * OP_REM
+   * OP_AND
+   * OP_OR
+   * OP_XOR
+   * OP_SHL
+   * OP_SHR
+   * OP_USHR
+   * OP_CMPL
+   * OP_CMPG
+   * OP_CMP
+   * OP_AGETX
+   * OP_APUTX
+   * </pre>
+   */
+  public void visitStmt3R(Op op, int a, int b, int c) {
+    if (visitor != null) {
+      visitor.visitStmt3R(op, a, b, c);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_X_INT_LIT8
-     * </pre>
-     *
-     * @param op
-     * @param distReg
-     * @param srcReg
-     * @param content
-     */
-    public void visitStmt2R1N(Op op, int distReg, int srcReg, int content) {
-        if (visitor != null) {
-            visitor.visitStmt2R1N(op, distReg, srcReg, content);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_INSTANCE_OF
+   * OP_NEW_ARRAY
+   * OP_CHECK_CAST
+   * OP_NEW_INSTANCE
+   * </pre>
+   *
+   * @param op
+   * @param a
+   * @param b
+   * @param type
+   */
+  public void visitTypeStmt(Op op, int a, int b, String type) {
+    if (visitor != null) {
+      visitor.visitTypeStmt(op, a, b, type);
     }
+  }
 
-    /**
-     * <pre>
-     *
-     * OP_ADD
-     * OP_SUB
-     * OP_MUL
-     * OP_DIV
-     * OP_REM
-     * OP_AND
-     * OP_OR
-     * OP_XOR
-     * OP_SHL
-     * OP_SHR
-     * OP_USHR
-     * OP_CMPL
-     * OP_CMPG
-     * OP_CMP
-     * OP_AGETX
-     * OP_APUTX
-     * </pre>
-     */
-    public void visitStmt3R(Op op, int a, int b, int c) {
-        if (visitor != null) {
-            visitor.visitStmt3R(op, a, b, c);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * CONST * CONST_WIDE * CONST_STRING * CONST_CLASS *
+   * </pre>
+   *
+   * @param op
+   * @param ra
+   * @param value int/long/type
+   */
+  public void visitConstStmt(Op op, int ra, Object value) {
+    if (visitor != null) {
+      visitor.visitConstStmt(op, ra, value);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_INSTANCE_OF
-     * OP_NEW_ARRAY
-     * OP_CHECK_CAST
-     * OP_NEW_INSTANCE
-     * </pre>
-     *
-     * @param op
-     * @param a
-     * @param b
-     * @param type
-     */
-    public void visitTypeStmt(Op op, int a, int b, String type) {
-        if (visitor != null) {
-            visitor.visitTypeStmt(op, a, b, type);
-        }
+  public void visitFillArrayDataStmt(Op op, int ra, Object array) {
+    if (visitor != null) {
+      visitor.visitFillArrayDataStmt(op, ra, array);
     }
+  }
 
-    /**
-     * <pre>
-     * CONST * CONST_WIDE * CONST_STRING * CONST_CLASS *
-     * </pre>
-     *
-     * @param op
-     * @param ra
-     * @param value int/long/type
-     */
-    public void visitConstStmt(Op op, int ra, Object value) {
-        if (visitor != null) {
-            visitor.visitConstStmt(op, ra, value);
-        }
+  public void visitEnd() {
+    if (visitor != null) {
+      visitor.visitEnd();
     }
+  }
 
-    public void visitFillArrayDataStmt(Op op, int ra, Object array) {
-        if (visitor != null) {
-            visitor.visitFillArrayDataStmt(op, ra, array);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_IGETX a,b field
+   * OP_IPUTX a,b field
+   * OP_SGETX a field
+   * OP_SPUTX a field
+   * </pre>
+   *
+   * @param op
+   * @param a
+   * @param b
+   * @param field
+   */
+  public void visitFieldStmt(Op op, int a, int b, Field field) {
+    if (visitor != null) {
+      visitor.visitFieldStmt(op, a, b, field);
     }
+  }
 
-    public void visitEnd() {
-        if (visitor != null) {
-            visitor.visitEnd();
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_FILLED_NEW_ARRAY
+   * </pre>
+   *
+   * @param op
+   * @param args
+   * @param type
+   */
+  public void visitFilledNewArrayStmt(Op op, int[] args, String type) {
+    if (visitor != null) {
+      visitor.visitFilledNewArrayStmt(op, args, type);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_IGETX a,b field
-     * OP_IPUTX a,b field
-     * OP_SGETX a field
-     * OP_SPUTX a field
-     * </pre>
-     *
-     * @param op
-     * @param a
-     * @param b
-     * @param field
-     */
-    public void visitFieldStmt(Op op, int a, int b, Field field) {
-        if (visitor != null) {
-            visitor.visitFieldStmt(op, a, b, field);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_IF_EQ
+   * OP_IF_NE
+   * OP_IF_LT
+   * OP_IF_GE
+   * OP_IF_GT
+   * OP_IF_LE
+   * OP_GOTO
+   * OP_IF_EQZ
+   * OP_IF_NEZ
+   * OP_IF_LTZ
+   * OP_IF_GEZ
+   * OP_IF_GTZ
+   * OP_IF_LEZ
+   * </pre>
+   *
+   * @param op
+   * @param a
+   * @param b
+   * @param label
+   */
+  public void visitJumpStmt(Op op, int a, int b, DexLabel label) {
+    if (visitor != null) {
+      visitor.visitJumpStmt(op, a, b, label);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_FILLED_NEW_ARRAY
-     * </pre>
-     *
-     * @param op
-     * @param args
-     * @param type
-     */
-    public void visitFilledNewArrayStmt(Op op, int[] args, String type) {
-        if (visitor != null) {
-            visitor.visitFilledNewArrayStmt(op, args, type);
-        }
+  public void visitLabel(DexLabel label) {
+    if (visitor != null) {
+      visitor.visitLabel(label);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_IF_EQ
-     * OP_IF_NE
-     * OP_IF_LT
-     * OP_IF_GE
-     * OP_IF_GT
-     * OP_IF_LE
-     * OP_GOTO
-     * OP_IF_EQZ
-     * OP_IF_NEZ
-     * OP_IF_LTZ
-     * OP_IF_GEZ
-     * OP_IF_GTZ
-     * OP_IF_LEZ
-     * </pre>
-     *
-     * @param op
-     * @param a
-     * @param b
-     * @param label
-     */
-    public void visitJumpStmt(Op op, int a, int b, DexLabel label) {
-        if (visitor != null) {
-            visitor.visitJumpStmt(op, a, b, label);
-        }
+  public void visitSparseSwitchStmt(Op op, int ra, int[] cases, DexLabel[] labels) {
+    if (visitor != null) {
+      visitor.visitSparseSwitchStmt(op, ra, cases, labels);
     }
+  }
 
-    public void visitLabel(DexLabel label) {
-        if (visitor != null) {
-            visitor.visitLabel(label);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_INVOKE_VIRTUAL
+   * OP_INVOKE_SUPER
+   * OP_INVOKE_DIRECT
+   * OP_INVOKE_STATIC
+   * OP_INVOKE_INTERFACE
+   * </pre>
+   *
+   * @param op
+   * @param args
+   * @param method
+   */
+  public void visitMethodStmt(Op op, int[] args, Method method) {
+    if (visitor != null) {
+      visitor.visitMethodStmt(op, args, method);
     }
+  }
 
-    public void visitSparseSwitchStmt(Op op, int ra, int[] cases, DexLabel[] labels) {
-        if (visitor != null) {
-            visitor.visitSparseSwitchStmt(op, ra, cases, labels);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_INVOKE_CUSTOM
+   * </pre>
+   */
+  public void visitMethodStmt(
+      Op op, int[] args, String name, Proto proto, MethodHandle bsm, Object... bsmArgs) {
+    if (visitor != null) {
+      visitor.visitMethodStmt(op, args, name, proto, bsm, bsmArgs);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_INVOKE_VIRTUAL
-     * OP_INVOKE_SUPER
-     * OP_INVOKE_DIRECT
-     * OP_INVOKE_STATIC
-     * OP_INVOKE_INTERFACE
-     * </pre>
-     *
-     * @param op
-     * @param args
-     * @param method
-     */
-    public void visitMethodStmt(Op op, int[] args, Method method) {
-        if (visitor != null) {
-            visitor.visitMethodStmt(op, args, method);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_INVOKE_POLYMORPHIC
+   * </pre>
+   */
+  public void visitMethodStmt(Op op, int[] args, Method bsm, Proto proto) {
+    if (visitor != null) {
+      visitor.visitMethodStmt(op, args, bsm, proto);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_INVOKE_CUSTOM
-     * </pre>
-     */
-    public void visitMethodStmt(Op op, int[] args, String name, Proto proto, MethodHandle bsm, Object... bsmArgs) {
-        if (visitor != null) {
-            visitor.visitMethodStmt(op, args, name, proto, bsm, bsmArgs);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_MOVE*
+   * a = a X b
+   * OP_ARRAY_LENGTH
+   * a=Xb
+   * X_TO_Y
+   * </pre>
+   *
+   * @param op
+   * @param a
+   * @param b
+   */
+  public void visitStmt2R(Op op, int a, int b) {
+    if (visitor != null) {
+      visitor.visitStmt2R(op, a, b);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_INVOKE_POLYMORPHIC
-     * </pre>
-     */
-    public void visitMethodStmt(Op op, int[] args, Method bsm, Proto proto) {
-        if (visitor != null) {
-            visitor.visitMethodStmt(op, args, bsm, proto);
-        }
+  /**
+   * {@link Op#RETURN_VOID} {@link Op#NOP} {@link Op#BAD_OP}
+   *
+   * @param op
+   */
+  public void visitStmt0R(Op op) {
+    if (visitor != null) {
+      visitor.visitStmt0R(op);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_MOVE*
-     * a = a X b
-     * OP_ARRAY_LENGTH
-     * a=Xb
-     * X_TO_Y
-     * </pre>
-     *
-     * @param op
-     * @param a
-     * @param b
-     */
-    public void visitStmt2R(Op op, int a, int b) {
-        if (visitor != null) {
-            visitor.visitStmt2R(op, a, b);
-        }
+  /**
+   *
+   *
+   * <pre>
+   * OP_RETURN_X
+   * OP_THROW_X
+   * OP_MONITOR_ENTER
+   * OP_MONITOR_EXIT
+   * OP_MOVE_RESULT_X
+   * OP_MOVE_EXCEPTION_X
+   * </pre>
+   *
+   * @param op
+   * @param reg
+   */
+  public void visitStmt1R(Op op, int reg) {
+    if (visitor != null) {
+      visitor.visitStmt1R(op, reg);
     }
+  }
 
-    /**
-     * {@link Op#RETURN_VOID} {@link Op#NOP} {@link Op#BAD_OP}
-     *
-     * @param op
-     */
-    public void visitStmt0R(Op op) {
-        if (visitor != null) {
-            visitor.visitStmt0R(op);
-        }
+  public void visitPackedSwitchStmt(Op op, int aA, int first_case, DexLabel[] labels) {
+    if (visitor != null) {
+      visitor.visitPackedSwitchStmt(op, aA, first_case, labels);
     }
+  }
 
-    /**
-     * <pre>
-     * OP_RETURN_X
-     * OP_THROW_X
-     * OP_MONITOR_ENTER
-     * OP_MONITOR_EXIT
-     * OP_MOVE_RESULT_X
-     * OP_MOVE_EXCEPTION_X
-     * </pre>
-     *
-     * @param op
-     * @param reg
-     */
-    public void visitStmt1R(Op op, int reg) {
-        if (visitor != null) {
-            visitor.visitStmt1R(op, reg);
-        }
+  public void visitTryCatch(DexLabel start, DexLabel end, DexLabel handler[], String type[]) {
+    if (visitor != null) {
+      visitor.visitTryCatch(start, end, handler, type);
     }
+  }
 
-    public void visitPackedSwitchStmt(Op op, int aA, int first_case, DexLabel[] labels) {
-        if (visitor != null) {
-            visitor.visitPackedSwitchStmt(op, aA, first_case, labels);
-        }
+  public DexDebugVisitor visitDebug() {
+    if (visitor != null) {
+      return visitor.visitDebug();
     }
-
-    public void visitTryCatch(DexLabel start, DexLabel end, DexLabel handler[], String type[]) {
-        if (visitor != null) {
-            visitor.visitTryCatch(start, end, handler, type);
-        }
-    }
-
-    public DexDebugVisitor visitDebug() {
-        if (visitor != null) {
-            return visitor.visitDebug();
-        }
-        return null;
-    }
-
+    return null;
+  }
 }

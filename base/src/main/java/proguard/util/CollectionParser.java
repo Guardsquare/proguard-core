@@ -21,38 +21,33 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * This {@link StringParser} can create a {@link CollectionMatcher} instance for regular expressions.
- * The regular expressions are either presented as a list, or they are interpreted as comma-separated lists.
- * These lists should contain strings that need to be literally matched meaning that wildcards, negations,... are
- * not interpreted by the {@link StringParser}.
+ * This {@link StringParser} can create a {@link CollectionMatcher} instance for regular
+ * expressions. The regular expressions are either presented as a list, or they are interpreted as
+ * comma-separated lists. These lists should contain strings that need to be literally matched
+ * meaning that wildcards, negations,... are not interpreted by the {@link StringParser}.
  */
-public class CollectionParser implements StringParser
-{
+public class CollectionParser implements StringParser {
 
-    /**
-     * Creates a new ListParser that parses individual elements in the
-     * comma-separated list with the given StringParser.
-     */
-    public CollectionParser() {}
+  /**
+   * Creates a new ListParser that parses individual elements in the comma-separated list with the
+   * given StringParser.
+   */
+  public CollectionParser() {}
 
+  // Implementations for StringParser.
 
-    // Implementations for StringParser.
+  public StringMatcher parse(String regularExpression) {
+    // Split the regular expression to a list and parse it.
+    return parse(ListUtil.commaSeparatedList(regularExpression));
+  }
 
-    public StringMatcher parse(String regularExpression)
-    {
-        // Split the regular expression to a list and parse it.
-        return parse(ListUtil.commaSeparatedList(regularExpression));
-    }
-
-
-    /**
-     * Creates a StringMatcher for the given regular expression, which can
-     * be a list of optionally negated simple entries.
-     * <p/>
-     * An empty list results in a StringMatcher that matches any string.
-     */
-    public StringMatcher parse(List<String> regularExpressions)
-    {
-        return new CollectionMatcher(new HashSet<>(regularExpressions));
-    }
+  /**
+   * Creates a StringMatcher for the given regular expression, which can be a list of optionally
+   * negated simple entries.
+   *
+   * <p>An empty list results in a StringMatcher that matches any string.
+   */
+  public StringMatcher parse(List<String> regularExpressions) {
+    return new CollectionMatcher(new HashSet<>(regularExpressions));
+  }
 }

@@ -33,66 +33,80 @@ import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 
 /**
- * A wrapper class around multiple {@link ReduceOperator}s applying them elementwise to {@link CompositeHeapJvmAbstractState}s.
+ * A wrapper class around multiple {@link ReduceOperator}s applying them elementwise to {@link
+ * CompositeHeapJvmAbstractState}s.
  *
- * Also discards from the heap state all nodes not in a subtree of references in method's call arguments or static variables.
+ * <p>Also discards from the heap state all nodes not in a subtree of references in method's call
+ * arguments or static variables.
  *
  * @author Dmitry Ivanov
  */
 public class JvmCompositeHeapReduceOperator
-    implements ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>
-{
+    implements ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> {
 
-    private final List<? extends ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>> wrappedReducedOperators;
+  private final List<? extends ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>>
+      wrappedReducedOperators;
 
-    /**
-     * Create a composite reduce operator from a list of reduce operators.
-     *
-     * @param wrappedReducedOperators a list of reduce operators with the order matching the structure of the target {@link JvmReferenceAbstractState}s
-     */
-    public JvmCompositeHeapReduceOperator(List<? extends ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>> wrappedReducedOperators)
-    {
-        this.wrappedReducedOperators = wrappedReducedOperators;
+  /**
+   * Create a composite reduce operator from a list of reduce operators.
+   *
+   * @param wrappedReducedOperators a list of reduce operators with the order matching the structure
+   *     of the target {@link JvmReferenceAbstractState}s
+   */
+  public JvmCompositeHeapReduceOperator(
+      List<? extends ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>>
+          wrappedReducedOperators) {
+    this.wrappedReducedOperators = wrappedReducedOperators;
+  }
+
+  // Implementations for ReduceOperator
+
+  @Override
+  public CompositeHeapJvmAbstractState reduce(
+      AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
+    if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState)) {
+      throw new IllegalArgumentException(
+          "The operator works on composite JVM states, states of type "
+              + expandedInitialState.getClass().getName()
+              + " are not supported");
     }
 
-    // Implementations for ReduceOperator
+    int stateSize =
+        ((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates().size();
+    List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> reducedStates =
+        new ArrayList<>(stateSize);
 
-    @Override
-    public CompositeHeapJvmAbstractState reduce(AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call)
-    {
-        if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState))
-        {
-            throw new IllegalArgumentException("The operator works on composite JVM states, states of type " + expandedInitialState.getClass().getName() + " are not supported");
-        }
+    // reduce reference state
+    JvmReferenceAbstractState reducedReferenceState =
+        (JvmReferenceAbstractState)
+            wrappedReducedOperators
+                .get(REFERENCE_STATE_INDEX)
+                .reduce(
+                    ((CompositeHeapJvmAbstractState) expandedInitialState)
+                        .getStateByIndex(REFERENCE_STATE_INDEX),
+                    blockEntryNode,
+                    call);
+    reducedStates.add(REFERENCE_STATE_INDEX, reducedReferenceState);
 
-        int stateSize = ((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates()
-                                                                              .size();
-        List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> reducedStates = new ArrayList<>(stateSize);
+    // assign principal state to followers and reduce them
+    // assigning the new reduced principal state is necessary to let the followers know what to
+    // discard
+    for (int i = 0; i < stateSize; i++) {
+      if (i == REFERENCE_STATE_INDEX) {
+        continue;
+      }
 
-        // reduce reference state
-        JvmReferenceAbstractState reducedReferenceState = (JvmReferenceAbstractState) wrappedReducedOperators
-            .get(REFERENCE_STATE_INDEX)
-            .reduce(((CompositeHeapJvmAbstractState) expandedInitialState).getStateByIndex(REFERENCE_STATE_INDEX), blockEntryNode, call);
-        reducedStates.add(REFERENCE_STATE_INDEX, reducedReferenceState);
-
-        // assign principal state to followers and reduce them
-        // assigning the new reduced principal state is necessary to let the followers know what to discard
-        for (int i = 0; i < stateSize; i++)
-        {
-            if (i == REFERENCE_STATE_INDEX)
-            {
-                continue;
-            }
-
-            JvmAbstractState<?> state = ((CompositeHeapJvmAbstractState) expandedInitialState).getStateByIndex(i).copy();
-            ((JvmTreeHeapFollowerAbstractState<?>) state.getHeap()).setPrincipalState(reducedReferenceState);
-            JvmAbstractState<?> reducedState = (JvmAbstractState<?>) wrappedReducedOperators.get(i)
-                                                                                            .reduce(state, blockEntryNode, call);
-            reducedStates.add(i, reducedState);
-        }
-
-        CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(reducedStates);
-        result.updateHeapDependence();
-        return result;
+      JvmAbstractState<?> state =
+          ((CompositeHeapJvmAbstractState) expandedInitialState).getStateByIndex(i).copy();
+      ((JvmTreeHeapFollowerAbstractState<?>) state.getHeap())
+          .setPrincipalState(reducedReferenceState);
+      JvmAbstractState<?> reducedState =
+          (JvmAbstractState<?>) wrappedReducedOperators.get(i).reduce(state, blockEntryNode, call);
+      reducedStates.add(i, reducedState);
     }
+
+    CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(reducedStates);
+    result.updateHeapDependence();
+    return result;
+  }
 }

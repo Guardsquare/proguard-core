@@ -23,42 +23,36 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.Waitlist;
 
 /**
- * A block abstraction is a summary of the analysis of a procedure call, represented by the set of reached abstract states and a waitlist of states that still need to be analyzed. The BAM CPA can save
- * these abstractions in a cache and retrieve them when the same procedure is called with the same entry {@link AbstractState}.
+ * A block abstraction is a summary of the analysis of a procedure call, represented by the set of
+ * reached abstract states and a waitlist of states that still need to be analyzed. The BAM CPA can
+ * save these abstractions in a cache and retrieve them when the same procedure is called with the
+ * same entry {@link AbstractState}.
  *
  * @author Carlo Alberto Pozzoli
  */
-public class BlockAbstraction
-{
+public class BlockAbstraction {
 
-    private final ReachedSet reachedSet;
-    private final Waitlist   waitlist;
+  private final ReachedSet reachedSet;
+  private final Waitlist waitlist;
 
-    /**
-     * Create a new block abstraction.
-     *
-     * @param reachedSet a collection of discovered states
-     * @param waitlist   a collection of states of the block that need to be analyzed
-     */
-    public BlockAbstraction(ReachedSet reachedSet, Waitlist waitlist)
-    {
-        this.reachedSet = reachedSet;
-        this.waitlist = waitlist;
-    }
+  /**
+   * Create a new block abstraction.
+   *
+   * @param reachedSet a collection of discovered states
+   * @param waitlist a collection of states of the block that need to be analyzed
+   */
+  public BlockAbstraction(ReachedSet reachedSet, Waitlist waitlist) {
+    this.reachedSet = reachedSet;
+    this.waitlist = waitlist;
+  }
 
-    /**
-     * Returns the {@link ReachedSet} of the block abstraction.
-     */
-    public ReachedSet getReachedSet()
-    {
-        return reachedSet;
-    }
+  /** Returns the {@link ReachedSet} of the block abstraction. */
+  public ReachedSet getReachedSet() {
+    return reachedSet;
+  }
 
-    /**
-     * Returns the {@link Waitlist} of the block abstraction.
-     */
-    public Waitlist getWaitlist()
-    {
-        return waitlist;
-    }
+  /** Returns the {@link Waitlist} of the block abstraction. */
+  public Waitlist getWaitlist() {
+    return waitlist;
+  }
 }

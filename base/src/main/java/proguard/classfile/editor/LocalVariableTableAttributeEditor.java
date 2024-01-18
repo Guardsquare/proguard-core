@@ -21,34 +21,29 @@ import proguard.classfile.attribute.*;
 import proguard.util.ArrayUtil;
 
 /**
- * This class can add local variables to a given local variable table attribute.
- * Local variables to be added must have been filled out beforehand.
+ * This class can add local variables to a given local variable table attribute. Local variables to
+ * be added must have been filled out beforehand.
  *
  * @author Eric Lafortune
  */
-public class LocalVariableTableAttributeEditor
-{
-    private final LocalVariableTableAttribute targetLocalVariableTableAttribute;
+public class LocalVariableTableAttributeEditor {
+  private final LocalVariableTableAttribute targetLocalVariableTableAttribute;
 
+  /**
+   * Creates a new LocalVariableTableAttributeEditor that will edit local variables in the given
+   * local variable table attribute.
+   */
+  public LocalVariableTableAttributeEditor(
+      LocalVariableTableAttribute targetLocalVariableTableAttribute) {
+    this.targetLocalVariableTableAttribute = targetLocalVariableTableAttribute;
+  }
 
-    /**
-     * Creates a new LocalVariableTableAttributeEditor that will edit local
-     * variables in the given local variable table attribute.
-     */
-    public LocalVariableTableAttributeEditor(LocalVariableTableAttribute targetLocalVariableTableAttribute)
-    {
-        this.targetLocalVariableTableAttribute = targetLocalVariableTableAttribute;
-    }
-
-
-    /**
-     * Adds a given line number to the line number table attribute.
-     */
-    public void addLocalVariableInfo(LocalVariableInfo localVariableInfo)
-    {
-        targetLocalVariableTableAttribute.localVariableTable =
-            ArrayUtil.add(targetLocalVariableTableAttribute.localVariableTable,
-                          targetLocalVariableTableAttribute.u2localVariableTableLength++,
-                          localVariableInfo);
-    }
+  /** Adds a given line number to the line number table attribute. */
+  public void addLocalVariableInfo(LocalVariableInfo localVariableInfo) {
+    targetLocalVariableTableAttribute.localVariableTable =
+        ArrayUtil.add(
+            targetLocalVariableTableAttribute.localVariableTable,
+            targetLocalVariableTableAttribute.u2localVariableTableLength++,
+            localVariableInfo);
+  }
 }

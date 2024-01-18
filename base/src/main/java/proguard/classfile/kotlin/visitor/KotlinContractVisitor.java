@@ -20,10 +20,10 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinContractVisitor
-{
-    void visitContract(Clazz                  clazz,
-                       KotlinMetadata         kotlinMetadata,
-                       KotlinFunctionMetadata kotlinFunctionMetadata,
-                       KotlinContractMetadata kotlinContractMetadata);
+public interface KotlinContractVisitor {
+  void visitContract(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinContractMetadata kotlinContractMetadata);
 }

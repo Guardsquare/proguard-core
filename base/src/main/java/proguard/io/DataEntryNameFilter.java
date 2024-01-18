@@ -20,33 +20,28 @@ package proguard.io;
 import proguard.util.StringMatcher;
 
 /**
- * This {@link DataEntryFilter} filters data entries based on whether their names match
- * a given {@link StringMatcher}.
+ * This {@link DataEntryFilter} filters data entries based on whether their names match a given
+ * {@link StringMatcher}.
  *
  * @author Eric Lafortune
  */
-public class DataEntryNameFilter
-implements   DataEntryFilter
-{
-    private final StringMatcher stringMatcher;
+public class DataEntryNameFilter implements DataEntryFilter {
+  private final StringMatcher stringMatcher;
 
+  /**
+   * Creates a new DataEntryNameFilter.
+   *
+   * @param stringMatcher the string matcher that will be applied to the names of the filtered data
+   *     entries.
+   */
+  public DataEntryNameFilter(StringMatcher stringMatcher) {
+    this.stringMatcher = stringMatcher;
+  }
 
-    /**
-     * Creates a new DataEntryNameFilter.
-     * @param stringMatcher the string matcher that will be applied to the names
-     *                      of the filtered data entries.
-     */
-    public DataEntryNameFilter(StringMatcher stringMatcher)
-    {
-        this.stringMatcher = stringMatcher;
-    }
+  // Implementations for DataEntryFilter.
 
-
-    // Implementations for DataEntryFilter.
-
-    @Override
-    public boolean accepts(DataEntry dataEntry)
-    {
-        return dataEntry != null && stringMatcher.matches(dataEntry.getName());
-    }
+  @Override
+  public boolean accepts(DataEntry dataEntry) {
+    return dataEntry != null && stringMatcher.matches(dataEntry.getName());
+  }
 }

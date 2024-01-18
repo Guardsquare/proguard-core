@@ -26,25 +26,22 @@ import proguard.classfile.attribute.*;
  *
  * @author Eric Lafortune
  */
-public class AllLineNumberInfoVisitor
-implements   AttributeVisitor
-{
-    private final LineNumberInfoVisitor lineNumberInfoVisitor;
+public class AllLineNumberInfoVisitor implements AttributeVisitor {
+  private final LineNumberInfoVisitor lineNumberInfoVisitor;
 
+  public AllLineNumberInfoVisitor(LineNumberInfoVisitor lineNumberInfoVisitor) {
+    this.lineNumberInfoVisitor = lineNumberInfoVisitor;
+  }
 
-    public AllLineNumberInfoVisitor(LineNumberInfoVisitor lineNumberInfoVisitor)
-    {
-        this.lineNumberInfoVisitor = lineNumberInfoVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitLineNumberTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute lineNumberTableAttribute)
-    {
-        lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, lineNumberInfoVisitor);
-    }
+  public void visitLineNumberTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LineNumberTableAttribute lineNumberTableAttribute) {
+    lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, lineNumberInfoVisitor);
+  }
 }

@@ -26,94 +26,79 @@ import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.kotlin.visitor.filter.KotlinClassKindFilter;
 
 /**
- * This {@link MemberVisitor} lets a given {@link ClassVisitor} visit all the classes
- * referenced by the descriptors of the class members that it visits.
+ * This {@link MemberVisitor} lets a given {@link ClassVisitor} visit all the classes referenced by
+ * the descriptors of the class members that it visits.
  *
- * It also takes into account functions with Kotlin inline class parameters, if
- * includeKotlinMetadata = true: in the case of inline classes, in the underlying JVM
- * method the actual class will not be referenced since the Kotlin compiler inlines uses.
+ * <p>It also takes into account functions with Kotlin inline class parameters, if
+ * includeKotlinMetadata = true: in the case of inline classes, in the underlying JVM method the
+ * actual class will not be referenced since the Kotlin compiler inlines uses.
  *
  * @author Eric Lafortune
  */
-public class MemberDescriptorReferencedClassVisitor
-implements   MemberVisitor
-{
-    private final ClassVisitor classVisitor;
-    private final KotlinFunctionDescriptorReferenceVisitor kotlinFunRefVisitor;
+public class MemberDescriptorReferencedClassVisitor implements MemberVisitor {
+  private final ClassVisitor classVisitor;
+  private final KotlinFunctionDescriptorReferenceVisitor kotlinFunRefVisitor;
 
-    public MemberDescriptorReferencedClassVisitor(ClassVisitor classVisitor)
-    {
-        this(false, classVisitor);
+  public MemberDescriptorReferencedClassVisitor(ClassVisitor classVisitor) {
+    this(false, classVisitor);
+  }
+
+  public MemberDescriptorReferencedClassVisitor(
+      boolean includeKotlinMetadata, ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+    this.kotlinFunRefVisitor =
+        includeKotlinMetadata ? new KotlinFunctionDescriptorReferenceVisitor() : null;
+  }
+
+  // Implementations for MemberVisitor.
+
+  public void visitProgramMember(ProgramClass programClass, ProgramMember programMember) {
+    // Let the visitor visit the classes referenced in the descriptor string.
+    programMember.referencedClassesAccept(classVisitor);
+    if (this.kotlinFunRefVisitor != null) {
+      programMember.accept(
+          programClass, new MethodToKotlinFunctionVisitor(this.kotlinFunRefVisitor));
+    }
+  }
+
+  public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {
+    // Let the visitor visit the classes referenced in the descriptor string.
+    libraryMember.referencedClassesAccept(classVisitor);
+    if (this.kotlinFunRefVisitor != null) {
+      libraryMember.accept(
+          libraryClass, new MethodToKotlinFunctionVisitor(this.kotlinFunRefVisitor));
+    }
+  }
+
+  private class KotlinFunctionDescriptorReferenceVisitor
+      implements KotlinFunctionVisitor, KotlinValueParameterVisitor, KotlinTypeVisitor {
+
+    @Override
+    public void visitAnyFunction(
+        Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata) {
+      kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
     }
 
-    public MemberDescriptorReferencedClassVisitor(boolean includeKotlinMetadata, ClassVisitor classVisitor)
-    {
-        this.classVisitor        = classVisitor;
-        this.kotlinFunRefVisitor = includeKotlinMetadata ? new KotlinFunctionDescriptorReferenceVisitor() : null;
+    @Override
+    public void visitAnyValueParameter(
+        Clazz clazz, KotlinValueParameterMetadata kotlinValueParameterMetadata) {}
+
+    @Override
+    public void visitFunctionValParameter(
+        Clazz clazz,
+        KotlinMetadata kotlinMetadata,
+        KotlinFunctionMetadata kotlinFunctionMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
     }
 
-
-    // Implementations for MemberVisitor.
-
-    public void visitProgramMember(ProgramClass programClass, ProgramMember programMember)
-    {
-        // Let the visitor visit the classes referenced in the descriptor string.
-        programMember.referencedClassesAccept(classVisitor);
-        if (this.kotlinFunRefVisitor != null)
-        {
-            programMember.accept(programClass, new MethodToKotlinFunctionVisitor(this.kotlinFunRefVisitor));
-        }
+    @Override
+    public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata) {
+      kotlinTypeMetadata.referencedClassAccept(
+          new ReferencedKotlinMetadataVisitor(
+              new KotlinClassKindFilter(
+                  metadata -> metadata.flags.isValue,
+                  new KotlinMetadataToClazzVisitor(classVisitor))));
     }
-
-
-    public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember)
-    {
-        // Let the visitor visit the classes referenced in the descriptor string.
-        libraryMember.referencedClassesAccept(classVisitor);
-        if (this.kotlinFunRefVisitor != null)
-        {
-            libraryMember.accept(libraryClass, new MethodToKotlinFunctionVisitor(this.kotlinFunRefVisitor));
-        }
-    }
-
-
-    private class KotlinFunctionDescriptorReferenceVisitor
-    implements KotlinFunctionVisitor,
-               KotlinValueParameterVisitor,
-               KotlinTypeVisitor
-    {
-
-        @Override
-        public void visitAnyFunction(Clazz                  clazz,
-                                     KotlinMetadata         kotlinMetadata,
-                                     KotlinFunctionMetadata kotlinFunctionMetadata)
-        {
-            kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
-        }
-
-        @Override
-        public void visitAnyValueParameter(Clazz clazz, KotlinValueParameterMetadata kotlinValueParameterMetadata) { }
-
-        @Override
-        public void visitFunctionValParameter(Clazz                        clazz,
-                                              KotlinMetadata               kotlinMetadata,
-                                              KotlinFunctionMetadata       kotlinFunctionMetadata,
-                                              KotlinValueParameterMetadata kotlinValueParameterMetadata)
-        {
-            kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
-        }
-
-        @Override
-        public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata)
-        {
-            kotlinTypeMetadata.referencedClassAccept(
-                new ReferencedKotlinMetadataVisitor(
-                    new KotlinClassKindFilter(
-                        metadata -> metadata.flags.isValue,
-                        new KotlinMetadataToClazzVisitor(classVisitor)
-                    )
-                )
-            );
-        }
-    }
+  }
 }

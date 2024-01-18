@@ -27,70 +27,57 @@ import proguard.classfile.attribute.annotation.target.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class LocalVariableTargetInfo extends TargetInfo
-{
-    public int                          u2tableLength;
-    public LocalVariableTargetElement[] table;
+public class LocalVariableTargetInfo extends TargetInfo {
+  public int u2tableLength;
+  public LocalVariableTargetElement[] table;
 
+  /** Creates an uninitialized LocalVariableTargetInfo. */
+  public LocalVariableTargetInfo() {}
 
-    /**
-     * Creates an uninitialized LocalVariableTargetInfo.
-     */
-    public LocalVariableTargetInfo()
-    {
+  /** Creates a partially initialized LocalVariableTargetInfo. */
+  public LocalVariableTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
+
+  /** Creates an initialized LocalVariableTargetInfo. */
+  public LocalVariableTargetInfo(
+      byte u1targetType, int u2tableLength, LocalVariableTargetElement[] table) {
+    super(u1targetType);
+
+    this.u2tableLength = u2tableLength;
+    this.table = table;
+  }
+
+  /** Applies the given visitor to all target elements. */
+  public void targetElementsAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      LocalVariableTargetElementVisitor localVariableTargetElementVisitor) {
+    for (int index = 0; index < u2tableLength; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of TypePathInfo.
+      localVariableTargetElementVisitor.visitLocalVariableTargetElement(
+          clazz, method, codeAttribute, typeAnnotation, this, table[index]);
     }
+  }
 
+  // Implementations for TargetInfo.
 
-    /**
-     * Creates a partially initialized LocalVariableTargetInfo.
-     */
-    public LocalVariableTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+  /** Lets the visitor visit, with Method and CodeAttribute null. */
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitLocalVariableTargetInfo(clazz, null, null, typeAnnotation, this);
+  }
 
-
-    /**
-     * Creates an initialized LocalVariableTargetInfo.
-     */
-    public LocalVariableTargetInfo(byte                         u1targetType,
-                                   int                          u2tableLength,
-                                   LocalVariableTargetElement[] table)
-    {
-        super(u1targetType);
-
-        this.u2tableLength = u2tableLength;
-        this.table         = table;
-    }
-
-
-    /**
-     * Applies the given visitor to all target elements.
-     */
-    public void targetElementsAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, LocalVariableTargetElementVisitor localVariableTargetElementVisitor)
-    {
-        for (int index = 0; index < u2tableLength; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of TypePathInfo.
-            localVariableTargetElementVisitor.visitLocalVariableTargetElement(clazz, method, codeAttribute, typeAnnotation, this, table[index]);
-        }
-    }
-
-
-    // Implementations for TargetInfo.
-
-    /**
-     * Lets the visitor visit, with Method and CodeAttribute null.
-     */
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitLocalVariableTargetInfo(clazz, null, null, typeAnnotation, this);
-    }
-
-
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitLocalVariableTargetInfo(clazz, method, codeAttribute, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitLocalVariableTargetInfo(
+        clazz, method, codeAttribute, typeAnnotation, this);
+  }
 }

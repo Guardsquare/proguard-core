@@ -18,35 +18,25 @@
 package proguard.util;
 
 /**
- * This {@link StringFunction} tests whether the first given {@link StringFunction}
- * returns not null, returning the result of the latter function if so,
- * or null otherwise.
+ * This {@link StringFunction} tests whether the first given {@link StringFunction} returns not
+ * null, returning the result of the latter function if so, or null otherwise.
  *
  * @author Eric Lafortune
  */
-public class AndStringFunction implements StringFunction
-{
-    private final StringFunction stringFunction1;
-    private final StringFunction stringFunction2;
+public class AndStringFunction implements StringFunction {
+  private final StringFunction stringFunction1;
+  private final StringFunction stringFunction2;
 
+  /** Creates a new AndStringFunction with the two given string functions. */
+  public AndStringFunction(StringFunction stringFunction1, StringFunction stringFunction2) {
+    this.stringFunction1 = stringFunction1;
+    this.stringFunction2 = stringFunction2;
+  }
 
-    /**
-     * Creates a new AndStringFunction with the two given string functions.
-     */
-    public AndStringFunction(StringFunction stringFunction1,
-                             StringFunction stringFunction2)
-    {
-        this.stringFunction1 = stringFunction1;
-        this.stringFunction2 = stringFunction2;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        return stringFunction1.transform(string) == null ? null :
-               stringFunction2.transform(string);
-    }
+  @Override
+  public String transform(String string) {
+    return stringFunction1.transform(string) == null ? null : stringFunction2.transform(string);
+  }
 }

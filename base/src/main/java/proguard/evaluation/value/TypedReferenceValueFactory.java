@@ -20,62 +20,46 @@ package proguard.evaluation.value;
 import proguard.classfile.*;
 
 /**
- * This class provides methods to create and reuse Value instances.
- * Its {@link ReferenceValue} instances have types.
+ * This class provides methods to create and reuse Value instances. Its {@link ReferenceValue}
+ * instances have types.
  *
  * @author Eric Lafortune
  */
-public class TypedReferenceValueFactory
-extends      BasicValueFactory
-{
-    static final ReferenceValue REFERENCE_VALUE_NULL                        = new TypedReferenceValue(null, null, false, true);
-    static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_MAYBE_NULL = new TypedReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT, null, true, true);
-    static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL   = new TypedReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT, null, true, false);
+public class TypedReferenceValueFactory extends BasicValueFactory {
+  static final ReferenceValue REFERENCE_VALUE_NULL =
+      new TypedReferenceValue(null, null, false, true);
+  static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_MAYBE_NULL =
+      new TypedReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT, null, true, true);
+  static final ReferenceValue REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL =
+      new TypedReferenceValue(ClassConstants.TYPE_JAVA_LANG_OBJECT, null, true, false);
 
+  // Implementations for BasicValueFactory.
 
-    // Implementations for BasicValueFactory.
+  public ReferenceValue createReferenceValueNull() {
+    return REFERENCE_VALUE_NULL;
+  }
 
-    public ReferenceValue createReferenceValueNull()
-    {
-        return REFERENCE_VALUE_NULL;
-    }
+  public ReferenceValue createReferenceValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
+    return type == null
+        ? REFERENCE_VALUE_NULL
+        : !type.equals(ClassConstants.TYPE_JAVA_LANG_OBJECT) || !mayBeExtension
+            ? new TypedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull)
+            : mayBeNull
+                ? REFERENCE_VALUE_JAVA_LANG_OBJECT_MAYBE_NULL
+                : REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL;
+  }
 
+  @Override
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength) {
+    return createArrayReferenceValue(
+        type, referencedClass, arrayLength, createValue(type, referencedClass, true, true));
+  }
 
-    public ReferenceValue createReferenceValue(String  type,
-                                               Clazz   referencedClass,
-                                               boolean mayBeExtension,
-                                               boolean mayBeNull)
-    {
-        return type == null                                       ? REFERENCE_VALUE_NULL                                                      :
-               !type.equals(ClassConstants.TYPE_JAVA_LANG_OBJECT) ||
-               !mayBeExtension                                    ? new TypedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull) :
-               mayBeNull                                          ? REFERENCE_VALUE_JAVA_LANG_OBJECT_MAYBE_NULL                               :
-                                                                    REFERENCE_VALUE_JAVA_LANG_OBJECT_NOT_NULL;
-    }
-
-    @Override
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength)
-    {
-        return createArrayReferenceValue(type,
-                                         referencedClass,
-                                         arrayLength,
-                                         createValue(type,
-                                                     referencedClass,
-                                                     true,
-                                                     true));
-    }
-
-    @Override
-    public ReferenceValue createArrayReferenceValue(String       type,
-                                                    Clazz        referencedClass,
-                                                    IntegerValue arrayLength,
-                                                    Object       elementValues)
-    {
-        return createReferenceValue(TypeConstants.ARRAY + type,
-                                    referencedClass,
-                                    false,
-                                    false);
-    }
+  @Override
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues) {
+    return createReferenceValue(TypeConstants.ARRAY + type, referencedClass, false, false);
+  }
 }

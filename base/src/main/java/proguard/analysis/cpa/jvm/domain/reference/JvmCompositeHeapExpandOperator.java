@@ -31,56 +31,75 @@ import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 
 /**
- * A wrapper class around multiple {@link ExpandOperator}s applying them elementwise to {@link CompositeHeapJvmAbstractState}s.
+ * A wrapper class around multiple {@link ExpandOperator}s applying them elementwise to {@link
+ * CompositeHeapJvmAbstractState}s.
  *
- * Also recovers all the heap nodes that have been discarded at the call site.
+ * <p>Also recovers all the heap nodes that have been discarded at the call site.
  *
  * @author Dmitry Ivanov
  */
 public class JvmCompositeHeapExpandOperator
-    implements ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>
-{
+    implements ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> {
 
-    protected final List<? extends ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>> wrappedExpandOperators;
+  protected final List<? extends ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>>
+      wrappedExpandOperators;
 
-    /**
-     * Create a composite expand operator from a list of expand operators.
-     *
-     * @param wrappedExpandOperators a list of expand operators with the order matching the structure of the target {@link JvmReferenceAbstractState}s
-     */
-    public JvmCompositeHeapExpandOperator(List<? extends ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>> wrappedExpandOperators)
-    {
-        this.wrappedExpandOperators = wrappedExpandOperators;
+  /**
+   * Create a composite expand operator from a list of expand operators.
+   *
+   * @param wrappedExpandOperators a list of expand operators with the order matching the structure
+   *     of the target {@link JvmReferenceAbstractState}s
+   */
+  public JvmCompositeHeapExpandOperator(
+      List<? extends ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>>
+          wrappedExpandOperators) {
+    this.wrappedExpandOperators = wrappedExpandOperators;
+  }
+
+  // Implementations for ExpandOperator
+
+  @Override
+  public CompositeHeapJvmAbstractState expand(
+      AbstractState expandedInitialState,
+      AbstractState reducedExitState,
+      JvmCfaNode blockEntryNode,
+      Call call) {
+    if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState)) {
+      throw new IllegalArgumentException(
+          "The operator works on composite JVM states, states of type "
+              + expandedInitialState.getClass().getName()
+              + " are not supported");
     }
 
-    // Implementations for ExpandOperator
-
-    @Override
-    public CompositeHeapJvmAbstractState expand(AbstractState expandedInitialState, AbstractState reducedExitState, JvmCfaNode blockEntryNode, Call call)
-    {
-        if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState))
-        {
-            throw new IllegalArgumentException("The operator works on composite JVM states, states of type " + expandedInitialState.getClass().getName() + " are not supported");
-        }
-
-        if (!(reducedExitState instanceof CompositeHeapJvmAbstractState))
-        {
-            throw new IllegalArgumentException("The operator works on composite JVM states, states of type " + reducedExitState.getClass().getName() + " are not supported");
-        }
-
-        List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> expandedStates = new ArrayList<>(((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates()
-                                                                                                                                                                               .size());
-        Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> expandedStateIterator = ((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates()
-                                                                                                                                                                          .iterator();
-        Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> reducedStateIterator = ((CompositeHeapJvmAbstractState) reducedExitState).getWrappedStates().iterator();
-
-        wrappedExpandOperators.forEach(eo -> expandedStates.add((JvmAbstractState<? extends AbstractState>) eo.expand(expandedStateIterator.next(),
-                                                                                                                      reducedStateIterator.next(),
-                                                                                                                      blockEntryNode,
-                                                                                                                      call)));
-
-        CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(expandedStates);
-        result.updateHeapDependence();
-        return result;
+    if (!(reducedExitState instanceof CompositeHeapJvmAbstractState)) {
+      throw new IllegalArgumentException(
+          "The operator works on composite JVM states, states of type "
+              + reducedExitState.getClass().getName()
+              + " are not supported");
     }
+
+    List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> expandedStates =
+        new ArrayList<>(
+            ((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates().size());
+    Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>>
+        expandedStateIterator =
+            ((CompositeHeapJvmAbstractState) expandedInitialState).getWrappedStates().iterator();
+    Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>>
+        reducedStateIterator =
+            ((CompositeHeapJvmAbstractState) reducedExitState).getWrappedStates().iterator();
+
+    wrappedExpandOperators.forEach(
+        eo ->
+            expandedStates.add(
+                (JvmAbstractState<? extends AbstractState>)
+                    eo.expand(
+                        expandedStateIterator.next(),
+                        reducedStateIterator.next(),
+                        blockEntryNode,
+                        call)));
+
+    CompositeHeapJvmAbstractState result = new CompositeHeapJvmAbstractState(expandedStates);
+    result.updateHeapDependence();
+    return result;
+  }
 }

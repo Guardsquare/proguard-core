@@ -23,61 +23,49 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.util.*;
 
 /**
- * This {@link ConstantVisitor} lets a given {@link ClassVisitor} visit all the referenced
- * classes that are returned by the dynamic constants and invoke dynamic
- * constants that it visits.
+ * This {@link ConstantVisitor} lets a given {@link ClassVisitor} visit all the referenced classes
+ * that are returned by the dynamic constants and invoke dynamic constants that it visits.
  *
  * @author Eric Lafortune
  */
-public class DynamicReturnedClassVisitor
-implements   ConstantVisitor
-{
-    protected final ClassVisitor classVisitor;
+public class DynamicReturnedClassVisitor implements ConstantVisitor {
+  protected final ClassVisitor classVisitor;
 
+  public DynamicReturnedClassVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
 
-    public DynamicReturnedClassVisitor(ClassVisitor classVisitor)
-    {
-        this.classVisitor = classVisitor;
+  // Implementations for ConstantVisitor.
+
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
+
+  public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant) {
+    // Is the method returning a class type?
+    Clazz[] referencedClasses = dynamicConstant.referencedClasses;
+    if (referencedClasses != null
+        && referencedClasses.length > 0
+        && ClassUtil.isInternalClassType(
+            ClassUtil.internalMethodReturnType(dynamicConstant.getType(clazz)))) {
+      // Let the visitor visit the return type class, if any.
+      Clazz referencedClass = referencedClasses[referencedClasses.length - 1];
+      if (referencedClass != null) {
+        referencedClass.accept(classVisitor);
+      }
     }
+  }
 
-
-    // Implementations for ConstantVisitor.
-
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
-
-
-    public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant)
-    {
-        // Is the method returning a class type?
-        Clazz[] referencedClasses = dynamicConstant.referencedClasses;
-        if (referencedClasses != null    &&
-            referencedClasses.length > 0 &&
-            ClassUtil.isInternalClassType(ClassUtil.internalMethodReturnType(dynamicConstant.getType(clazz))))
-        {
-            // Let the visitor visit the return type class, if any.
-            Clazz referencedClass = referencedClasses[referencedClasses.length - 1];
-            if (referencedClass != null)
-            {
-                referencedClass.accept(classVisitor);
-            }
-        }
+  public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
+    // Is the method returning a class type?
+    Clazz[] referencedClasses = invokeDynamicConstant.referencedClasses;
+    if (referencedClasses != null
+        && referencedClasses.length > 0
+        && ClassUtil.isInternalClassType(
+            ClassUtil.internalMethodReturnType(invokeDynamicConstant.getType(clazz)))) {
+      // Let the visitor visit the return type class, if any.
+      Clazz referencedClass = referencedClasses[referencedClasses.length - 1];
+      if (referencedClass != null) {
+        referencedClass.accept(classVisitor);
+      }
     }
-
-
-    public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant)
-    {
-        // Is the method returning a class type?
-        Clazz[] referencedClasses = invokeDynamicConstant.referencedClasses;
-        if (referencedClasses != null    &&
-            referencedClasses.length > 0 &&
-            ClassUtil.isInternalClassType(ClassUtil.internalMethodReturnType(invokeDynamicConstant.getType(clazz))))
-        {
-            // Let the visitor visit the return type class, if any.
-            Clazz referencedClass = referencedClasses[referencedClasses.length - 1];
-            if (referencedClass != null)
-            {
-                referencedClass.accept(classVisitor);
-            }
-        }
-    }
+  }
 }

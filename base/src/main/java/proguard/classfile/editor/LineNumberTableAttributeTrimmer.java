@@ -17,57 +17,50 @@
  */
 package proguard.classfile.editor;
 
+import java.util.Arrays;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
-
-import java.util.Arrays;
 
 /**
  * This {@link AttributeVisitor} trims the line number table attributes that it visits.
  *
  * @author Eric Lafortune
  */
-public class LineNumberTableAttributeTrimmer
-implements   AttributeVisitor
-{
-    // Implementations for AttributeVisitor.
+public class LineNumberTableAttributeTrimmer implements AttributeVisitor {
+  // Implementations for AttributeVisitor.
 
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
+  public void visitLineNumberTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LineNumberTableAttribute lineNumberTableAttribute) {
+    LineNumberInfo[] lineNumberTable = lineNumberTableAttribute.lineNumberTable;
+    int lineNumberTableLength = lineNumberTableAttribute.u2lineNumberTableLength;
 
-    public void visitLineNumberTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute lineNumberTableAttribute)
-    {
-        LineNumberInfo[] lineNumberTable       = lineNumberTableAttribute.lineNumberTable;
-        int              lineNumberTableLength = lineNumberTableAttribute.u2lineNumberTableLength;
+    // Overwrite all empty line number entries.
+    int newIndex = 0;
+    for (int index = 0; index < lineNumberTableLength; index++) {
+      LineNumberInfo lineNumberInfo = lineNumberTable[index];
 
-        // Overwrite all empty line number entries.
-        int newIndex = 0;
-        for (int index = 0; index < lineNumberTableLength; index++)
-        {
-            LineNumberInfo lineNumberInfo = lineNumberTable[index];
+      int startPC = lineNumberInfo.u2startPC;
+      int lineNumber = lineNumberInfo.u2lineNumber;
 
-            int startPC    = lineNumberInfo.u2startPC;
-            int lineNumber = lineNumberInfo.u2lineNumber;
-
-            // The offset must lie inside the code.
-            // The offset must be smaller than the next one.
-            // The line number should be different from the previous one.
-            if (startPC < codeAttribute.u4codeLength             &&
-
-                (index == lineNumberTableLength - 1 ||
-                 startPC < lineNumberTable[index + 1].u2startPC) &&
-
-                (index == 0 ||
-                 lineNumber != lineNumberTable[index - 1].u2lineNumber))
-            {
-                lineNumberTable[newIndex++] = lineNumberInfo;
-            }
-        }
-
-        // Clear the unused array entries.
-        Arrays.fill(lineNumberTable, newIndex, lineNumberTableAttribute.u2lineNumberTableLength, null);
-
-        lineNumberTableAttribute.u2lineNumberTableLength = newIndex;
+      // The offset must lie inside the code.
+      // The offset must be smaller than the next one.
+      // The line number should be different from the previous one.
+      if (startPC < codeAttribute.u4codeLength
+          && (index == lineNumberTableLength - 1 || startPC < lineNumberTable[index + 1].u2startPC)
+          && (index == 0 || lineNumber != lineNumberTable[index - 1].u2lineNumber)) {
+        lineNumberTable[newIndex++] = lineNumberInfo;
+      }
     }
+
+    // Clear the unused array entries.
+    Arrays.fill(lineNumberTable, newIndex, lineNumberTableAttribute.u2lineNumberTableLength, null);
+
+    lineNumberTableAttribute.u2lineNumberTableLength = newIndex;
+  }
 }

@@ -22,24 +22,17 @@ package proguard.util;
  *
  * @author Eric Lafortune
  */
-public class ConstantStringFunction implements StringFunction
-{
-    private final String string;
+public class ConstantStringFunction implements StringFunction {
+  private final String string;
 
+  /** Creates a new MapStringFunction based on the given map. */
+  public ConstantStringFunction(String string) {
+    this.string = string;
+  }
 
-    /**
-     * Creates a new MapStringFunction based on the given map.
-     */
-    public ConstantStringFunction(String string)
-    {
-        this.string = string;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    public String transform(String string)
-    {
-        return this.string;
-    }
+  public String transform(String string) {
+    return this.string;
+  }
 }

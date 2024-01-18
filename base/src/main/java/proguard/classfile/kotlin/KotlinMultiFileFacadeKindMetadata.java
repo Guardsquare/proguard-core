@@ -17,42 +17,30 @@
  */
 package proguard.classfile.kotlin;
 
+import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE_CLASS_FACADE;
+
+import java.util.*;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.visitor.*;
 
-import java.util.*;
+public class KotlinMultiFileFacadeKindMetadata extends KotlinMetadata {
+  public List<String> partClassNames;
+  public List<Clazz> referencedPartClasses;
 
-import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE_CLASS_FACADE;
+  public KotlinMultiFileFacadeKindMetadata(int[] mv, String[] d1, int xi, String xs, String pn) {
+    super(METADATA_KIND_MULTI_FILE_CLASS_FACADE, mv, xi, xs, pn);
 
-public class KotlinMultiFileFacadeKindMetadata
-extends KotlinMetadata
-{
-    public List<String> partClassNames;
-    public List<Clazz>  referencedPartClasses;
+    this.partClassNames = new ArrayList<>(Arrays.asList(d1));
+  }
 
-    public KotlinMultiFileFacadeKindMetadata(int[]    mv,
-                                             String[] d1,
-                                             int      xi,
-                                             String   xs,
-                                             String   pn)
-    {
-        super(METADATA_KIND_MULTI_FILE_CLASS_FACADE, mv, xi, xs, pn);
+  @Override
+  public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor) {
+    kotlinMetadataVisitor.visitKotlinMultiFileFacadeMetadata(clazz, this);
+  }
 
-        this.partClassNames = new ArrayList<>(Arrays.asList(d1));
-    }
-
-
-    @Override
-    public void accept(Clazz clazz, KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        kotlinMetadataVisitor.visitKotlinMultiFileFacadeMetadata(clazz, this);
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin multi-file facade";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin multi-file facade";
+  }
 }

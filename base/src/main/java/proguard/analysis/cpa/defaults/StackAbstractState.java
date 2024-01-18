@@ -21,110 +21,91 @@ package proguard.analysis.cpa.defaults;
 import java.util.Stack;
 
 /**
- * This {@link StackAbstractState} represents a stack of {@link LatticeAbstractState}s with the semilattice operators lifted to the stack.
+ * This {@link StackAbstractState} represents a stack of {@link LatticeAbstractState}s with the
+ * semilattice operators lifted to the stack.
  *
  * @author Dmitry Ivanov
  */
 public class StackAbstractState<AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
     extends Stack<AbstractSpaceT>
-    implements LatticeAbstractState<StackAbstractState<AbstractSpaceT>>
-{
+    implements LatticeAbstractState<StackAbstractState<AbstractSpaceT>> {
 
-    // implementations for LatticeAbstractState
+  // implementations for LatticeAbstractState
 
-    @Override
-    public StackAbstractState<AbstractSpaceT> join(StackAbstractState<AbstractSpaceT> abstractState)
-    {
-        if (this == abstractState)
-        {
-            return this;
-        }
-        StackAbstractState<AbstractSpaceT> joinResult = new StackAbstractState<>();
-        StackAbstractState<AbstractSpaceT> shorterState;
-        StackAbstractState<AbstractSpaceT> longerState;
-        if (size() > abstractState.size())
-        {
-            shorterState = abstractState;
-            longerState = this;
-        }
-        else
-        {
-            shorterState = this;
-            longerState = abstractState;
-        }
-        joinResult.addAll(longerState);
-        for (int shortIndex = 0; shortIndex < shorterState.size(); ++shortIndex)
-        {
-            int longIndex = shortIndex + longerState.size() - shorterState.size();
-            joinResult.set(longIndex,
-                           shorterState.get(shortIndex).join(longerState.get(longIndex)));
-        }
-        if (longerState.equals(joinResult))
-        {
-            return longerState;
-        }
-        return joinResult;
+  @Override
+  public StackAbstractState<AbstractSpaceT> join(StackAbstractState<AbstractSpaceT> abstractState) {
+    if (this == abstractState) {
+      return this;
     }
-
-    @Override
-    public boolean isLessOrEqual(StackAbstractState<AbstractSpaceT> abstractState)
-    {
-        int sizeDifference = abstractState.size() - size();
-        if (sizeDifference < 0)
-        {
-            return false;
-        }
-        for (int i = 0; i < size(); i++)
-        {
-            if (!get(i).isLessOrEqual(abstractState.get(i + sizeDifference)))
-            {
-                return false;
-            }
-        }
-        return true;
+    StackAbstractState<AbstractSpaceT> joinResult = new StackAbstractState<>();
+    StackAbstractState<AbstractSpaceT> shorterState;
+    StackAbstractState<AbstractSpaceT> longerState;
+    if (size() > abstractState.size()) {
+      shorterState = abstractState;
+      longerState = this;
+    } else {
+      shorterState = this;
+      longerState = abstractState;
     }
-
-    @Override
-    public StackAbstractState<AbstractSpaceT> copy()
-    {
-        StackAbstractState<AbstractSpaceT> copy = new StackAbstractState<>();
-        copy.addAll(this);
-        return copy;
+    joinResult.addAll(longerState);
+    for (int shortIndex = 0; shortIndex < shorterState.size(); ++shortIndex) {
+      int longIndex = shortIndex + longerState.size() - shorterState.size();
+      joinResult.set(longIndex, shorterState.get(shortIndex).join(longerState.get(longIndex)));
     }
-
-    /**
-     * Removes the top of the stack and returns it.
-     * If the stack is empty, it returns the {@code defaultState}.
-     */
-    public AbstractSpaceT popOrDefault(AbstractSpaceT defaultState)
-    {
-        return isEmpty() ? defaultState : pop();
+    if (longerState.equals(joinResult)) {
+      return longerState;
     }
+    return joinResult;
+  }
 
-    /**
-     * Returns the {@code index}th element from the top of the stack.
-     * If the stack does not have enough elements, it throws an exception.
-     */
-    public AbstractSpaceT peek(int index)
-    {
-        int elementIndex = size() - 1 - index;
-        if (elementIndex < 0)
-        {
-            throw new IllegalArgumentException("Operand stack index is out of bound (" + index + ")");
-        }
-        else
-        {
-            return get(elementIndex);
-        }
+  @Override
+  public boolean isLessOrEqual(StackAbstractState<AbstractSpaceT> abstractState) {
+    int sizeDifference = abstractState.size() - size();
+    if (sizeDifference < 0) {
+      return false;
     }
+    for (int i = 0; i < size(); i++) {
+      if (!get(i).isLessOrEqual(abstractState.get(i + sizeDifference))) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-    /**
-     * Returns the {@code index}th element from the top of the stack.
-     * If the stack does not have enough elements, it returns the {@code defaultState}.
-     */
-    public AbstractSpaceT peekOrDefault(int index, AbstractSpaceT defaultState)
-    {
-        int elementIndex = size() - 1 - index;
-        return elementIndex < 0 ? defaultState : get(elementIndex);
+  @Override
+  public StackAbstractState<AbstractSpaceT> copy() {
+    StackAbstractState<AbstractSpaceT> copy = new StackAbstractState<>();
+    copy.addAll(this);
+    return copy;
+  }
+
+  /**
+   * Removes the top of the stack and returns it. If the stack is empty, it returns the {@code
+   * defaultState}.
+   */
+  public AbstractSpaceT popOrDefault(AbstractSpaceT defaultState) {
+    return isEmpty() ? defaultState : pop();
+  }
+
+  /**
+   * Returns the {@code index}th element from the top of the stack. If the stack does not have
+   * enough elements, it throws an exception.
+   */
+  public AbstractSpaceT peek(int index) {
+    int elementIndex = size() - 1 - index;
+    if (elementIndex < 0) {
+      throw new IllegalArgumentException("Operand stack index is out of bound (" + index + ")");
+    } else {
+      return get(elementIndex);
     }
+  }
+
+  /**
+   * Returns the {@code index}th element from the top of the stack. If the stack does not have
+   * enough elements, it returns the {@code defaultState}.
+   */
+  public AbstractSpaceT peekOrDefault(int index, AbstractSpaceT defaultState) {
+    int elementIndex = size() - 1 - index;
+    return elementIndex < 0 ? defaultState : get(elementIndex);
+  }
 }

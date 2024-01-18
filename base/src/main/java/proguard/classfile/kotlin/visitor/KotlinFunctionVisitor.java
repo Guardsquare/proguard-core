@@ -20,24 +20,21 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinFunctionVisitor
-{
-    void visitAnyFunction(Clazz                  clazz,
-                          KotlinMetadata         kotlinMetadata,
-                          KotlinFunctionMetadata kotlinFunctionMetadata);
+public interface KotlinFunctionVisitor {
+  void visitAnyFunction(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata);
 
+  default void visitFunction(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata) {
+    visitAnyFunction(clazz, kotlinDeclarationContainerMetadata, kotlinFunctionMetadata);
+  }
 
-    default void visitFunction(Clazz                              clazz,
-                               KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                               KotlinFunctionMetadata             kotlinFunctionMetadata)
-    {
-        visitAnyFunction(clazz, kotlinDeclarationContainerMetadata, kotlinFunctionMetadata);
-    }
-
-    default void visitSyntheticFunction(Clazz                            clazz,
-                                        KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata,
-                                        KotlinFunctionMetadata           kotlinFunctionMetadata)
-    {
-        visitAnyFunction(clazz, kotlinSyntheticClassKindMetadata, kotlinFunctionMetadata);
-    }
+  default void visitSyntheticFunction(
+      Clazz clazz,
+      KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata) {
+    visitAnyFunction(clazz, kotlinSyntheticClassKindMetadata, kotlinFunctionMetadata);
+  }
 }

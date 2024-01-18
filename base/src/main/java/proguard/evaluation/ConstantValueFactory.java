@@ -24,118 +24,104 @@ import proguard.classfile.util.*;
 import proguard.evaluation.value.*;
 
 /**
- * This class creates {@link Value} instances that correspond to specified
- * constant pool entries.
+ * This class creates {@link Value} instances that correspond to specified constant pool entries.
  *
  * @author Eric Lafortune
  */
-public class ConstantValueFactory
-implements   ConstantVisitor
-{
-    protected final ValueFactory valueFactory;
+public class ConstantValueFactory implements ConstantVisitor {
+  protected final ValueFactory valueFactory;
 
-    // Field acting as a parameter for the ConstantVisitor methods.
-    protected Value value;
+  // Field acting as a parameter for the ConstantVisitor methods.
+  protected Value value;
 
+  public ConstantValueFactory(ValueFactory valueFactory) {
+    this.valueFactory = valueFactory;
+  }
 
-    public ConstantValueFactory(ValueFactory valueFactory)
-    {
-        this.valueFactory = valueFactory;
-    }
+  /** Returns the Value of the constant pool element at the given index. */
+  public Value constantValue(Clazz clazz, int constantIndex) {
+    // Visit the constant pool entry to get its return value.
+    clazz.constantPoolEntryAccept(constantIndex, this);
 
+    return value;
+  }
 
-    /**
-     * Returns the Value of the constant pool element at the given index.
-     */
-    public Value constantValue(Clazz clazz,
-                               int   constantIndex)
-    {
-        // Visit the constant pool entry to get its return value.
-        clazz.constantPoolEntryAccept(constantIndex, this);
+  // Implementations for ConstantVisitor.
 
-        return value;
-    }
+  public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant) {
+    value = valueFactory.createIntegerValue(integerConstant.getValue());
+  }
 
+  public void visitLongConstant(Clazz clazz, LongConstant longConstant) {
+    value = valueFactory.createLongValue(longConstant.getValue());
+  }
 
-    // Implementations for ConstantVisitor.
+  public void visitFloatConstant(Clazz clazz, FloatConstant floatConstant) {
+    value = valueFactory.createFloatValue(floatConstant.getValue());
+  }
 
-    public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant)
-    {
-        value = valueFactory.createIntegerValue(integerConstant.getValue());
-    }
+  public void visitDoubleConstant(Clazz clazz, DoubleConstant doubleConstant) {
+    value = valueFactory.createDoubleValue(doubleConstant.getValue());
+  }
 
-    public void visitLongConstant(Clazz clazz, LongConstant longConstant)
-    {
-        value = valueFactory.createLongValue(longConstant.getValue());
-    }
+  public void visitPrimitiveArrayConstant(
+      Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant) {
+    value =
+        valueFactory.createArrayReferenceValue(
+            "" + primitiveArrayConstant.getPrimitiveType(),
+            null,
+            valueFactory.createIntegerValue(primitiveArrayConstant.getLength()));
+  }
 
-    public void visitFloatConstant(Clazz clazz, FloatConstant floatConstant)
-    {
-        value = valueFactory.createFloatValue(floatConstant.getValue());
-    }
+  public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
+    value =
+        valueFactory.createReferenceValue(
+            ClassConstants.TYPE_JAVA_LANG_STRING,
+            stringConstant.javaLangStringClass,
+            false,
+            false,
+            stringConstant.getString(clazz));
+  }
 
-    public void visitDoubleConstant(Clazz clazz, DoubleConstant doubleConstant)
-    {
-        value = valueFactory.createDoubleValue(doubleConstant.getValue());
-    }
+  public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant) {
+    String type = ClassUtil.internalMethodReturnType(dynamicConstant.getType(clazz));
 
-    public void visitPrimitiveArrayConstant(Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant)
-    {
-        value = valueFactory.createArrayReferenceValue(""+primitiveArrayConstant.getPrimitiveType(),
-                                                       null,
-                                                       valueFactory.createIntegerValue(primitiveArrayConstant.getLength()));
-    }
+    // Is the method returning a class type?
+    Clazz[] referencedClasses = dynamicConstant.referencedClasses;
+    Clazz referencedClass =
+        referencedClasses != null
+                && referencedClasses.length > 0
+                && ClassUtil.isInternalClassType(type)
+            ? referencedClasses[referencedClasses.length - 1]
+            : null;
 
-    public void visitStringConstant(Clazz clazz, StringConstant stringConstant)
-    {
-        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_STRING,
-                                                  stringConstant.javaLangStringClass,
-                                                  false,
-                                                  false,
-                                                  stringConstant.getString(clazz));
-    }
+    value = valueFactory.createValue(type, referencedClass, true, true);
+  }
 
-    public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant)
-    {
-        String type = ClassUtil.internalMethodReturnType(dynamicConstant.getType(clazz));
+  public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant) {
+    value =
+        valueFactory.createReferenceValue(
+            ClassConstants.TYPE_JAVA_LANG_INVOKE_METHOD_HANDLE,
+            methodHandleConstant.javaLangInvokeMethodHandleClass,
+            false,
+            false);
+  }
 
-        // Is the method returning a class type?
-        Clazz[] referencedClasses = dynamicConstant.referencedClasses;
-        Clazz   referencedClass =
-            referencedClasses != null    &&
-            referencedClasses.length > 0 &&
-            ClassUtil.isInternalClassType(type) ?
-                referencedClasses[referencedClasses.length - 1] :
-                null;
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    value =
+        valueFactory.createReferenceValue(
+            ClassUtil.internalTypeFromClassType(classConstant.getName(clazz)),
+            classConstant.referencedClass,
+            false,
+            false);
+  }
 
-        value = valueFactory.createValue(type,
-                                         referencedClass,
-                                         true,
-                                         true);
-    }
-
-    public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant)
-    {
-        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_INVOKE_METHOD_HANDLE,
-                                                  methodHandleConstant.javaLangInvokeMethodHandleClass,
-                                                  false,
-                                                  false);
-    }
-
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        value = valueFactory.createReferenceValue(ClassUtil.internalTypeFromClassType(classConstant.getName(clazz)),
-                                                  classConstant.referencedClass,
-                                                  false,
-                                                  false);
-    }
-
-
-    public void visitMethodTypeConstant(Clazz clazz, MethodTypeConstant methodTypeConstant)
-    {
-        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_INVOKE_METHOD_TYPE,
-                                                  methodTypeConstant.javaLangInvokeMethodTypeClass,
-                                                  false,
-                                                  false);
-    }
+  public void visitMethodTypeConstant(Clazz clazz, MethodTypeConstant methodTypeConstant) {
+    value =
+        valueFactory.createReferenceValue(
+            ClassConstants.TYPE_JAVA_LANG_INVOKE_METHOD_TYPE,
+            methodTypeConstant.javaLangInvokeMethodTypeClass,
+            false,
+            false);
+  }
 }

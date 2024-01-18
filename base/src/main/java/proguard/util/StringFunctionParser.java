@@ -18,15 +18,12 @@
 package proguard.util;
 
 /**
- * This interface provides a method to create a {@link StringFunction} for a given
- * regular expression.
+ * This interface provides a method to create a {@link StringFunction} for a given regular
+ * expression.
  *
  * @author Eric Lafortune
  */
-public interface StringFunctionParser
-{
-    /**
-     * Creates a StringFunction for the given regular expression.
-     */
-    public StringFunction parse(String regularExpression);
+public interface StringFunctionParser {
+  /** Creates a StringFunction for the given regular expression. */
+  public StringFunction parse(String regularExpression);
 }

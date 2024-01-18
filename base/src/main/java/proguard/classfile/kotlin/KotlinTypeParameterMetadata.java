@@ -17,101 +17,84 @@
  */
 package proguard.classfile.kotlin;
 
+import java.util.*;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.KotlinTypeParameterFlags;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
 
-import java.util.*;
+public class KotlinTypeParameterMetadata extends SimpleProcessable
+    implements Processable, KotlinAnnotatable {
+  public String name;
 
-public class KotlinTypeParameterMetadata
-extends      SimpleProcessable
-implements   Processable,
-             KotlinAnnotatable
-{
-    public String name;
+  public int id;
 
-    public int id;
+  public KotlinTypeVariance variance;
 
-    public KotlinTypeVariance variance;
+  public List<KotlinTypeMetadata> upperBounds;
 
-    public List<KotlinTypeMetadata> upperBounds;
+  public KotlinTypeParameterFlags flags;
 
-    public KotlinTypeParameterFlags flags;
+  // Extensions.
+  public List<KotlinAnnotation> annotations;
 
-    // Extensions.
-    public List<KotlinAnnotation> annotations;
+  public KotlinTypeParameterMetadata(
+      KotlinTypeParameterFlags flags, String name, int id, KotlinTypeVariance variance) {
+    this.name = name;
+    this.id = id;
+    this.variance = variance;
+    this.flags = flags;
+  }
 
+  public void accept(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    kotlinTypeParameterVisitor.visitClassTypeParameter(clazz, kotlinClassKindMetadata, this);
+  }
 
-    public KotlinTypeParameterMetadata(KotlinTypeParameterFlags flags, String name, int id, KotlinTypeVariance variance)
-    {
-        this.name     = name;
-        this.id       = id;
-        this.variance = variance;
-        this.flags    = flags;
+  public void accept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    kotlinTypeParameterVisitor.visitPropertyTypeParameter(
+        clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+  }
+
+  public void accept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    kotlinTypeParameterVisitor.visitFunctionTypeParameter(
+        clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+  }
+
+  public void accept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinTypeAliasMetadata kotlinPropertyMetadata,
+      KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    kotlinTypeParameterVisitor.visitAliasTypeParameter(
+        clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+  }
+
+  public void upperBoundsAccept(Clazz clazz, KotlinTypeVisitor kotlinTypeVisitor) {
+    for (KotlinTypeMetadata upperBound : upperBounds) {
+      upperBound.accept(clazz, this, kotlinTypeVisitor);
     }
+  }
 
-
-    public void accept(Clazz                      clazz,
-                       KotlinClassKindMetadata    kotlinClassKindMetadata,
-                       KotlinTypeParameterVisitor kotlinTypeParameterVisitor)
-    {
-        kotlinTypeParameterVisitor.visitClassTypeParameter(clazz, kotlinClassKindMetadata, this);
+  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    for (KotlinAnnotation annotation : annotations) {
+      kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, this, annotation);
     }
+  }
 
-
-    public void accept(Clazz                              clazz,
-                       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                       KotlinPropertyMetadata             kotlinPropertyMetadata,
-                       KotlinTypeParameterVisitor         kotlinTypeParameterVisitor)
-    {
-        kotlinTypeParameterVisitor.visitPropertyTypeParameter(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
-    }
-
-
-    public void accept(Clazz                      clazz,
-                       KotlinMetadata             kotlinMetadata,
-                       KotlinFunctionMetadata     kotlinFunctionMetadata,
-                       KotlinTypeParameterVisitor kotlinTypeParameterVisitor)
-    {
-        kotlinTypeParameterVisitor.visitFunctionTypeParameter(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
-    }
-
-
-    public void accept(Clazz                              clazz,
-                       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
-                       KotlinTypeAliasMetadata            kotlinPropertyMetadata,
-                       KotlinTypeParameterVisitor         kotlinTypeParameterVisitor)
-    {
-        kotlinTypeParameterVisitor.visitAliasTypeParameter(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
-    }
-
-
-    public void upperBoundsAccept(Clazz             clazz,
-                                  KotlinTypeVisitor kotlinTypeVisitor)
-    {
-        for (KotlinTypeMetadata upperBound : upperBounds)
-        {
-            upperBound.accept(clazz, this, kotlinTypeVisitor);
-        }
-    }
-
-    public void annotationsAccept(Clazz                   clazz,
-                                  KotlinAnnotationVisitor kotlinAnnotationVisitor)
-    {
-        for (KotlinAnnotation annotation : annotations)
-        {
-            kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, this, annotation);
-        }
-    }
-
-
-    // Implementations for Object.
-    @Override
-    public String toString()
-    {
-        return "Kotlin " +
-               (flags.isReified ? "primary " : "") +
-               "constructor";
-    }
+  // Implementations for Object.
+  @Override
+  public String toString() {
+    return "Kotlin " + (flags.isReified ? "primary " : "") + "constructor";
+  }
 }

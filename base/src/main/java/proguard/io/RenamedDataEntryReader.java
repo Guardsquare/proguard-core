@@ -17,87 +17,70 @@
  */
 package proguard.io;
 
+import java.io.IOException;
 import proguard.classfile.*;
 import proguard.util.StringFunction;
 
-import java.io.IOException;
-
 /**
- * This {@link DataEntryReader} delegates to another {@link DataEntryReader}, renaming the
- * data entries based on the given string function. Entries whose name are
- * transformed to null or an empty string are passed to an optional
- * alternative {@link DataEntryReader}.
+ * This {@link DataEntryReader} delegates to another {@link DataEntryReader}, renaming the data
+ * entries based on the given string function. Entries whose name are transformed to null or an
+ * empty string are passed to an optional alternative {@link DataEntryReader}.
  *
  * @author Eric Lafortune
  */
-public class RenamedDataEntryReader implements DataEntryReader
-{
-    private final StringFunction  nameFunction;
-    private final DataEntryReader dataEntryReader;
-    private final DataEntryReader missingDataEntryReader;
+public class RenamedDataEntryReader implements DataEntryReader {
+  private final StringFunction nameFunction;
+  private final DataEntryReader dataEntryReader;
+  private final DataEntryReader missingDataEntryReader;
 
+  /**
+   * Creates a new RenamedDataEntryReader.
+   *
+   * @param nameFunction the function from old names to new names.
+   * @param dataEntryReader the DataEntryReader to which renamed data entries will be passed.
+   */
+  public RenamedDataEntryReader(StringFunction nameFunction, DataEntryReader dataEntryReader) {
+    this(nameFunction, dataEntryReader, null);
+  }
 
-    /**
-     * Creates a new RenamedDataEntryReader.
-     * @param nameFunction    the function from old names to new names.
-     * @param dataEntryReader the DataEntryReader to which renamed data
-     *                        entries will be passed.
-     */
-    public RenamedDataEntryReader(StringFunction  nameFunction,
-                                  DataEntryReader dataEntryReader)
-    {
-        this(nameFunction, dataEntryReader, null);
+  /**
+   * Creates a new RenamedDataEntryReader.
+   *
+   * @param nameFunction the function from old names to new names.
+   * @param dataEntryReader the DataEntryReader to which renamed data entries will be passed.
+   * @param missingDataEntryReader the optional DataEntryReader to which data entries that can't be
+   *     renamed will be passed.
+   */
+  public RenamedDataEntryReader(
+      StringFunction nameFunction,
+      DataEntryReader dataEntryReader,
+      DataEntryReader missingDataEntryReader) {
+    this.nameFunction = nameFunction;
+    this.dataEntryReader = dataEntryReader;
+    this.missingDataEntryReader = missingDataEntryReader;
+  }
+
+  // Implementations for DataEntryReader.
+
+  @Override
+  public void read(DataEntry dataEntry) throws IOException {
+    String name = dataEntry.getName();
+
+    // Add a directory separator if necessary.
+    if (dataEntry.isDirectory() && name.length() > 0) {
+      name += TypeConstants.PACKAGE_SEPARATOR;
     }
 
+    String newName = nameFunction.transform(name);
+    if (newName != null && newName.length() > 0) {
+      // Remove the directory separator if necessary.
+      if (dataEntry.isDirectory()) {
+        newName = newName.substring(0, newName.length() - 1);
+      }
 
-    /**
-     * Creates a new RenamedDataEntryReader.
-     * @param nameFunction           the function from old names to new names.
-     * @param dataEntryReader        the DataEntryReader to which renamed data
-     *                               entries will be passed.
-     * @param missingDataEntryReader the optional DataEntryReader to which data
-     *                               entries that can't be renamed will be
-     *                               passed.
-     */
-    public RenamedDataEntryReader(StringFunction  nameFunction,
-                                  DataEntryReader dataEntryReader,
-                                  DataEntryReader missingDataEntryReader)
-    {
-        this.nameFunction           = nameFunction;
-        this.dataEntryReader        = dataEntryReader;
-        this.missingDataEntryReader = missingDataEntryReader;
+      dataEntryReader.read(new RenamedDataEntry(dataEntry, newName));
+    } else if (missingDataEntryReader != null) {
+      missingDataEntryReader.read(dataEntry);
     }
-
-
-    // Implementations for DataEntryReader.
-
-    @Override
-    public void read(DataEntry dataEntry) throws IOException
-    {
-        String name = dataEntry.getName();
-
-        // Add a directory separator if necessary.
-        if (dataEntry.isDirectory() &&
-            name.length() > 0)
-        {
-            name += TypeConstants.PACKAGE_SEPARATOR;
-        }
-
-        String newName = nameFunction.transform(name);
-        if (newName != null &&
-            newName.length() > 0)
-        {
-            // Remove the directory separator if necessary.
-            if (dataEntry.isDirectory())
-            {
-                newName = newName.substring(0, newName.length() -  1);
-            }
-
-            dataEntryReader.read(new RenamedDataEntry(dataEntry, newName));
-        }
-        else if (missingDataEntryReader != null)
-        {
-            missingDataEntryReader.read(dataEntry);
-        }
-    }
+  }
 }

@@ -26,33 +26,33 @@ import proguard.dexfile.ir.expr.Value.E1Expr;
  * @version $Rev$
  */
 public class CastExpr extends E1Expr {
-    public String from;
-    public String to;
+  public String from;
+  public String to;
 
-    public CastExpr(Value value, String from, String to) {
-        super(VT.CAST, value);
-        this.from = from;
-        this.to = to;
-    }
+  public CastExpr(Value value, String from, String to) {
+    super(VT.CAST, value);
+    this.from = from;
+    this.to = to;
+  }
 
-    @Override
-    protected void releaseMemory() {
-        from = to = null;
-        super.releaseMemory();
-    }
+  @Override
+  protected void releaseMemory() {
+    from = to = null;
+    super.releaseMemory();
+  }
 
-    @Override
-    public Value clone() {
-        return new CastExpr(op.trim().clone(), from, to);
-    }
+  @Override
+  public Value clone() {
+    return new CastExpr(op.trim().clone(), from, to);
+  }
 
-    @Override
-    public Value clone(LabelAndLocalMapper mapper) {
-        return new CastExpr(op.clone(mapper), from, to);
-    }
+  @Override
+  public Value clone(LabelAndLocalMapper mapper) {
+    return new CastExpr(op.clone(mapper), from, to);
+  }
 
-    @Override
-    public String toString0() {
-        return "((" + Util.toShortClassName(to) + ")" + op + ")";
-    }
+  @Override
+  public String toString0() {
+    return "((" + Util.toShortClassName(to) + ")" + op + ")";
+  }
 }

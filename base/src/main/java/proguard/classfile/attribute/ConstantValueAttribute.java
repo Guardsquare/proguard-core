@@ -25,35 +25,22 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class ConstantValueAttribute extends Attribute
-{
-    public int u2constantValueIndex;
+public class ConstantValueAttribute extends Attribute {
+  public int u2constantValueIndex;
 
+  /** Creates an uninitialized ConstantValueAttribute. */
+  public ConstantValueAttribute() {}
 
-    /**
-     * Creates an uninitialized ConstantValueAttribute.
-     */
-    public ConstantValueAttribute()
-    {
-    }
+  /** Creates an initialized ConstantValueAttribute. */
+  public ConstantValueAttribute(int u2attributeNameIndex, int u2constantValueIndex) {
+    super(u2attributeNameIndex);
 
+    this.u2constantValueIndex = u2constantValueIndex;
+  }
 
-    /**
-     * Creates an initialized ConstantValueAttribute.
-     */
-    public ConstantValueAttribute(int u2attributeNameIndex,
-                                  int u2constantValueIndex)
-    {
-        super(u2attributeNameIndex);
+  // Implementations for Attribute.
 
-        this.u2constantValueIndex = u2constantValueIndex;
-    }
-
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitConstantValueAttribute(clazz, field, this);
-    }
+  public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitConstantValueAttribute(clazz, field, this);
+  }
 }

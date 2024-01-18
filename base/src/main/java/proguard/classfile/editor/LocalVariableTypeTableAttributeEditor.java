@@ -21,35 +21,29 @@ import proguard.classfile.attribute.*;
 import proguard.util.ArrayUtil;
 
 /**
- * This class can add local variables to a given local variable type table
- * attribute.
- * Local variable types to be added must have been filled out beforehand.
+ * This class can add local variables to a given local variable type table attribute. Local variable
+ * types to be added must have been filled out beforehand.
  *
  * @author Eric Lafortune
  */
-public class LocalVariableTypeTableAttributeEditor
-{
-    private final LocalVariableTypeTableAttribute targetLocalVariableTypeTableAttribute;
+public class LocalVariableTypeTableAttributeEditor {
+  private final LocalVariableTypeTableAttribute targetLocalVariableTypeTableAttribute;
 
+  /**
+   * Creates a new LocalVariableTypeTableAttributeEditor that will edit local variable types in the
+   * given local variable type table attribute.
+   */
+  public LocalVariableTypeTableAttributeEditor(
+      LocalVariableTypeTableAttribute targetLocalVariableTypeTableAttribute) {
+    this.targetLocalVariableTypeTableAttribute = targetLocalVariableTypeTableAttribute;
+  }
 
-    /**
-     * Creates a new LocalVariableTypeTableAttributeEditor that will edit local
-     * variable types in the given local variable type table attribute.
-     */
-    public LocalVariableTypeTableAttributeEditor(LocalVariableTypeTableAttribute targetLocalVariableTypeTableAttribute)
-    {
-        this.targetLocalVariableTypeTableAttribute = targetLocalVariableTypeTableAttribute;
-    }
-
-
-    /**
-     * Adds a given local variable type to the local variable type table attribute.
-     */
-    public void addLocalVariableTypeInfo(LocalVariableTypeInfo localVariableTypeInfo)
-    {
-        targetLocalVariableTypeTableAttribute.localVariableTypeTable =
-            ArrayUtil.add(targetLocalVariableTypeTableAttribute.localVariableTypeTable,
-                          targetLocalVariableTypeTableAttribute.u2localVariableTypeTableLength++,
-                          localVariableTypeInfo);
-    }
+  /** Adds a given local variable type to the local variable type table attribute. */
+  public void addLocalVariableTypeInfo(LocalVariableTypeInfo localVariableTypeInfo) {
+    targetLocalVariableTypeTableAttribute.localVariableTypeTable =
+        ArrayUtil.add(
+            targetLocalVariableTypeTableAttribute.localVariableTypeTable,
+            targetLocalVariableTypeTableAttribute.u2localVariableTypeTableLength++,
+            localVariableTypeInfo);
+  }
 }

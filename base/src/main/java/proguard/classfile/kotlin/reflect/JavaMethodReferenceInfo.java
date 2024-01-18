@@ -23,10 +23,8 @@ import proguard.classfile.*;
 /**
  * @author James Hamilton
  */
-public class JavaMethodReferenceInfo extends JavaReferenceInfo
-{
-    public JavaMethodReferenceInfo(Clazz ownerClass, Clazz clazz, Member member)
-    {
-        super(ownerClass, clazz, member);
-    }
+public class JavaMethodReferenceInfo extends JavaReferenceInfo {
+  public JavaMethodReferenceInfo(Clazz ownerClass, Clazz clazz, Member member) {
+    super(ownerClass, clazz, member);
+  }
 }

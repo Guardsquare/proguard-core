@@ -21,24 +21,17 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.visitor.MemberVisitor;
 
-/**
- * This class applies the given member visitor to the referenced method of a Kotlin function.
- */
-public class KotlinFunctionToMethodVisitor
-implements   KotlinFunctionVisitor
-{
-    private final MemberVisitor memberVisitor;
+/** This class applies the given member visitor to the referenced method of a Kotlin function. */
+public class KotlinFunctionToMethodVisitor implements KotlinFunctionVisitor {
+  private final MemberVisitor memberVisitor;
 
-    public KotlinFunctionToMethodVisitor(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
-    }
+  public KotlinFunctionToMethodVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    @Override
-    public void visitAnyFunction(Clazz                  clazz,
-                                 KotlinMetadata         kotlinMetadata,
-                                 KotlinFunctionMetadata kotlinFunctionMetadata)
-    {
-        kotlinFunctionMetadata.referencedMethodAccept(clazz, memberVisitor);
-    }
+  @Override
+  public void visitAnyFunction(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata) {
+    kotlinFunctionMetadata.referencedMethodAccept(clazz, memberVisitor);
+  }
 }

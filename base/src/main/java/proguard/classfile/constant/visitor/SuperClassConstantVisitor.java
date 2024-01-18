@@ -26,43 +26,34 @@ import proguard.classfile.visitor.ClassVisitor;
  *
  * @author Eric Lafortune
  */
-public class SuperClassConstantVisitor implements ClassVisitor
-{
-    private final boolean         visitSuperClassConstants;
-    private final boolean         visitInterfaceConstants;
-    private final ConstantVisitor constantVisitor;
+public class SuperClassConstantVisitor implements ClassVisitor {
+  private final boolean visitSuperClassConstants;
+  private final boolean visitInterfaceConstants;
+  private final ConstantVisitor constantVisitor;
 
+  /** Creates a new SuperClassConstantVisitor. */
+  public SuperClassConstantVisitor(
+      boolean visitSuperClassConstants,
+      boolean visitInterfaceConstants,
+      ConstantVisitor constantVisitor) {
+    this.visitSuperClassConstants = visitSuperClassConstants;
+    this.visitInterfaceConstants = visitInterfaceConstants;
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new SuperClassConstantVisitor.
-     */
-    public SuperClassConstantVisitor(boolean         visitSuperClassConstants,
-                                     boolean         visitInterfaceConstants,
-                                     ConstantVisitor constantVisitor)
-    {
-        this.visitSuperClassConstants = visitSuperClassConstants;
-        this.visitInterfaceConstants  = visitInterfaceConstants;
-        this.constantVisitor          = constantVisitor;
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    if (visitSuperClassConstants) {
+      programClass.superClassConstantAccept(constantVisitor);
     }
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        if (visitSuperClassConstants)
-        {
-            programClass.superClassConstantAccept(constantVisitor);
-        }
-
-        if (visitInterfaceConstants)
-        {
-            programClass.interfaceConstantsAccept(constantVisitor);
-        }
+    if (visitInterfaceConstants) {
+      programClass.interfaceConstantsAccept(constantVisitor);
     }
+  }
 }

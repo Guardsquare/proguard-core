@@ -19,48 +19,36 @@ package proguard.util;
 
 /**
  * This {@link StringMatcher} tests whether strings match a given list of {@link StringMatcher}
- * instances. The instances are considered sequentially. Each instance in the
- * list can optionally be negated, meaning that a match makes the entire
- * remaining match fail.
+ * instances. The instances are considered sequentially. Each instance in the list can optionally be
+ * negated, meaning that a match makes the entire remaining match fail.
  *
  * @author Eric Lafortune
  */
-public class ListMatcher extends StringMatcher
-{
-    private final StringMatcher[] matchers;
-    private final boolean[]       negate;
+public class ListMatcher extends StringMatcher {
+  private final StringMatcher[] matchers;
+  private final boolean[] negate;
 
+  public ListMatcher(StringMatcher... matchers) {
+    this(matchers, null);
+  }
 
-    public ListMatcher(StringMatcher... matchers)
-    {
-        this(matchers, null);
+  public ListMatcher(StringMatcher[] matchers, boolean[] negate) {
+    this.matchers = matchers;
+    this.negate = negate;
+  }
+
+  // Implementations for StringMatcher.
+
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    // Check the list of matchers.
+    for (int index = 0; index < matchers.length; index++) {
+      StringMatcher matcher = matchers[index];
+      if (matcher.matches(string, beginOffset, endOffset)) {
+        return negate == null || !negate[index];
+      }
     }
 
-
-    public ListMatcher(StringMatcher[] matchers, boolean[] negate)
-    {
-        this.matchers = matchers;
-        this.negate   = negate;
-    }
-
-
-    // Implementations for StringMatcher.
-
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        // Check the list of matchers.
-        for (int index = 0; index < matchers.length; index++)
-        {
-            StringMatcher matcher = matchers[index];
-            if (matcher.matches(string, beginOffset, endOffset))
-            {
-                return negate == null ||
-                       !negate[index];
-            }
-        }
-
-        return negate != null &&
-               negate[negate.length - 1];
-    }
+    return negate != null && negate[negate.length - 1];
+  }
 }

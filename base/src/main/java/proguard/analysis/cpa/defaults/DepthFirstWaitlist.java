@@ -23,26 +23,23 @@ import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Waitlist;
 
 /**
- * This {@link Waitlist} pops the last element,
- * i.e., performs a depth first traversal over the {@link Cfa}.
+ * This {@link Waitlist} pops the last element, i.e., performs a depth first traversal over the
+ * {@link Cfa}.
  *
  * @author Dmitry Ivanov
  */
-public class DepthFirstWaitlist extends AbstractWaitlist<LinkedHashSet<AbstractState>>
-{
+public class DepthFirstWaitlist extends AbstractWaitlist<LinkedHashSet<AbstractState>> {
 
-    public DepthFirstWaitlist()
-    {
-        super(new LinkedHashSet<>());
-    }
+  public DepthFirstWaitlist() {
+    super(new LinkedHashSet<>());
+  }
 
-    // implementations for AbstractWaitlist
+  // implementations for AbstractWaitlist
 
-    @Override
-    public AbstractState pop()
-    {
-        AbstractState result = waitlist.stream().skip(waitlist.size() - 1).findFirst().get();
-        waitlist.remove(result);
-        return result;
-    }
+  @Override
+  public AbstractState pop() {
+    AbstractState result = waitlist.stream().skip(waitlist.size() - 1).findFirst().get();
+    waitlist.remove(result);
+    return result;
+  }
 }

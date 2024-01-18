@@ -17,97 +17,81 @@
  */
 package proguard.util;
 
-/**
- * This class provides a straightforward implementation of the Processable
- * interface.
- */
-public class SimpleProcessable
-implements   Processable
-{
-    public int    processingFlags;
-    public Object processingInfo;
+/** This class provides a straightforward implementation of the Processable interface. */
+public class SimpleProcessable implements Processable {
+  public int processingFlags;
+  public Object processingInfo;
 
-    /**
-     * Creates an uninitialized SimpleProcessable.
-     */
-    public SimpleProcessable() {}
+  /** Creates an uninitialized SimpleProcessable. */
+  public SimpleProcessable() {}
 
-    /**
-     * Creates an initialized SimpleProcessable.
-     */
-    public SimpleProcessable(int    processingFlags,
-                             Object processingInfo)
-    {
-        this.processingFlags = processingFlags;
-        this.processingInfo  = processingInfo;
+  /** Creates an initialized SimpleProcessable. */
+  public SimpleProcessable(int processingFlags, Object processingInfo) {
+    this.processingFlags = processingFlags;
+    this.processingInfo = processingInfo;
+  }
+
+  // Implementations for Processable.
+
+  @Override
+  public int getProcessingFlags() {
+    return processingFlags;
+  }
+
+  @Override
+  public void setProcessingFlags(int processingFlags) {
+    this.processingFlags = processingFlags;
+  }
+
+  /** Adds all given flags to this processable. */
+  public void addProcessingFlags(int... flags) {
+    for (int flag : flags) {
+      processingFlags = processingFlags | flag;
     }
-    
-    // Implementations for Processable.
+  }
 
-    @Override
-    public int getProcessingFlags()
-    {
-        return processingFlags;
+  /** Removes all given flags from this processable. */
+  public void removeProcessingFlags(int... flags) {
+    for (int flag : flags) {
+      processingFlags = processingFlags & ~flag;
     }
+  }
 
-    @Override
-    public void setProcessingFlags(int processingFlags)
-    {
-        this.processingFlags = processingFlags;
+  /** Checks whether all the given flags are set on this processable. */
+  public boolean hasProcessingFlags(int... flags) {
+    int allFlags = 0;
+    for (int flag : flags) {
+      allFlags = allFlags | flag;
     }
+    return (~processingFlags & allFlags) == 0;
+  }
 
-    /**
-     * Adds all given flags to this processable.
-     */
-    public void addProcessingFlags(int... flags) {
-        for (int flag : flags) {
-            processingFlags = processingFlags | flag;
-        }
+  @Override
+  public Object getProcessingInfo() {
+    return processingInfo;
+  }
+
+  @Override
+  public void setProcessingInfo(Object processingInfo) {
+    if (System.getProperty("proguard.processinginfo.check_overriding") != null) {
+      if (this.processingInfo != null
+          && processingInfo != null
+          && !this.processingInfo
+              .getClass()
+              .getName()
+              .equals(processingInfo.getClass().getName())) {
+        // get the second (top down) element of the stack trace (the second is setProcessingInfo
+        // call)
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement stackTraceElement = stackTrace.length > 2 ? stackTrace[2] : null;
+
+        System.out.printf(
+            "Overriding processingInfo. Old:%s, New:%s. Stacktrace entry before last is:\n\t%s%n",
+            this.processingInfo.getClass().getName(),
+            processingInfo.getClass().getName(),
+            stackTraceElement);
+      }
     }
-
-    /**
-     * Removes all given flags from this processable.
-     */
-    public void removeProcessingFlags(int... flags) {
-        for (int flag : flags) {
-            processingFlags = processingFlags & ~flag;
-        }
-    }
-
-    /**
-     * Checks whether all the given flags are set on this processable.
-     */
-    public boolean hasProcessingFlags(int... flags) {
-        int allFlags = 0;
-        for (int flag : flags) {
-            allFlags = allFlags | flag;
-        }
-        return (~processingFlags & allFlags) == 0;
-    }
-
-    @Override
-    public Object getProcessingInfo()
-    {
-        return processingInfo;
-    }
-
-    @Override
-    public void setProcessingInfo(Object processingInfo) {
-        if (System.getProperty("proguard.processinginfo.check_overriding") != null)
-        {
-            if (this.processingInfo != null && processingInfo != null && !this.processingInfo.getClass().getName().equals(processingInfo.getClass().getName()))
-            {
-                // get the second (top down) element of the stack trace (the second is setProcessingInfo call)
-                StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                StackTraceElement stackTraceElement = stackTrace.length > 2 ? stackTrace[2] : null;
-
-                System.out.printf("Overriding processingInfo. Old:%s, New:%s. Stacktrace entry before last is:\n\t%s%n",
-                        this.processingInfo.getClass().getName(),
-                        processingInfo.getClass().getName(),
-                        stackTraceElement
-                );
-            }
-        }
-        this.processingInfo = processingInfo;
-    }
+    this.processingInfo = processingInfo;
+  }
 }

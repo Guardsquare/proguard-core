@@ -23,108 +23,82 @@ package proguard.classfile.util.kotlin;
  *
  * @author James Hamilton
  */
-public class KotlinStringUtil
-{
-    private KotlinStringUtil() {}
+public class KotlinStringUtil {
+  private KotlinStringUtil() {}
 
-    public static String capitializeFirstCharacterAsciiOnly(String s)
-    {
-        if (s.length() == 0)
-        {
-            return s;
-        }
-
-        char firstChar = s.charAt(0);
-
-        if (firstChar >= 'a' && firstChar <= 'z')
-        {
-            return Character.toUpperCase(firstChar) + s.substring(1);
-        }
-        else
-        {
-            return s;
-        }
+  public static String capitializeFirstCharacterAsciiOnly(String s) {
+    if (s.length() == 0) {
+      return s;
     }
 
-    public static String decapitializeFirstCharacterAsciiOnly(String s)
-    {
-        if (s.length() == 0)
-        {
-            return s;
-        }
+    char firstChar = s.charAt(0);
 
-        char firstChar = s.charAt(0);
+    if (firstChar >= 'a' && firstChar <= 'z') {
+      return Character.toUpperCase(firstChar) + s.substring(1);
+    } else {
+      return s;
+    }
+  }
 
-        if (firstChar >= 'A' && firstChar <= 'Z')
-        {
-            return Character.toLowerCase(firstChar) + s.substring(1);
-        }
-        else
-        {
-            return s;
-        }
+  public static String decapitializeFirstCharacterAsciiOnly(String s) {
+    if (s.length() == 0) {
+      return s;
     }
 
-    /**
-     *  Decaptialize according to the Kotlin compiler, basically first words
-     *  are decapitialized.
-     *
-     *  See capitializeDecapitialze.kt
-     *
-     * "FooBar"  -> "fooBar"
-     * "FOOBar"  -> "fooBar"
-     * "FOO"     -> "foo"
-     * "FOO_BAR" -> "foo_BAR"
-     */
-    public static String decapitializeForKotlinCompiler(String s)
-    {
-        if (s.length() == 0 || !isUpperCaseAsciiCharAt(s, 0))
-        {
-            return s;
-        }
+    char firstChar = s.charAt(0);
 
-        if (s.length() == 1 || !isUpperCaseAsciiCharAt(s, 1))
-        {
-            return decapitializeFirstCharacterAsciiOnly(s);
-        }
+    if (firstChar >= 'A' && firstChar <= 'Z') {
+      return Character.toLowerCase(firstChar) + s.substring(1);
+    } else {
+      return s;
+    }
+  }
 
-        int secondWordStart = -1;
-        for (int i = 0;  i < s.length(); i++)
-        {
-            if (!isUpperCaseAsciiCharAt(s, i))
-            {
-                secondWordStart = i;
-                break;
-            }
-        }
-
-        return secondWordStart == -1    ?
-                toLowerCaseAsciiOnly(s) :
-                toLowerCaseAsciiOnly(s.substring(0, secondWordStart)) + s.substring(secondWordStart);
+  /**
+   * Decaptialize according to the Kotlin compiler, basically first words are decapitialized.
+   *
+   * <p>See capitializeDecapitialze.kt
+   *
+   * <p>"FooBar" -> "fooBar" "FOOBar" -> "fooBar" "FOO" -> "foo" "FOO_BAR" -> "foo_BAR"
+   */
+  public static String decapitializeForKotlinCompiler(String s) {
+    if (s.length() == 0 || !isUpperCaseAsciiCharAt(s, 0)) {
+      return s;
     }
 
-    private static boolean isUpperCaseAsciiCharAt(String s, int index)
-    {
-        char charAtIndex = s.charAt(index);
-        return charAtIndex >= 'A' && charAtIndex <= 'Z';
+    if (s.length() == 1 || !isUpperCaseAsciiCharAt(s, 1)) {
+      return decapitializeFirstCharacterAsciiOnly(s);
     }
 
-    private static String toLowerCaseAsciiOnly(String s)
-    {
-        StringBuilder sb = new StringBuilder();
-
-        for (char c : s.toCharArray())
-        {
-            if (c >= 'A' && c <= 'Z')
-            {
-                sb.append(Character.toLowerCase(c));
-            }
-            else
-            {
-                sb.append(c);
-            }
-        }
-
-        return sb.toString();
+    int secondWordStart = -1;
+    for (int i = 0; i < s.length(); i++) {
+      if (!isUpperCaseAsciiCharAt(s, i)) {
+        secondWordStart = i;
+        break;
+      }
     }
+
+    return secondWordStart == -1
+        ? toLowerCaseAsciiOnly(s)
+        : toLowerCaseAsciiOnly(s.substring(0, secondWordStart)) + s.substring(secondWordStart);
+  }
+
+  private static boolean isUpperCaseAsciiCharAt(String s, int index) {
+    char charAtIndex = s.charAt(index);
+    return charAtIndex >= 'A' && charAtIndex <= 'Z';
+  }
+
+  private static String toLowerCaseAsciiOnly(String s) {
+    StringBuilder sb = new StringBuilder();
+
+    for (char c : s.toCharArray()) {
+      if (c >= 'A' && c <= 'Z') {
+        sb.append(Character.toLowerCase(c));
+      } else {
+        sb.append(c);
+      }
+    }
+
+    return sb.toString();
+  }
 }

@@ -21,16 +21,17 @@ package proguard.analysis.cpa.interfaces;
 import java.util.Collection;
 
 /**
- * The {@link TransferRelation} computes the successor {@link AbstractState}s for the {@link Algorithm}.
+ * The {@link TransferRelation} computes the successor {@link AbstractState}s for the {@link
+ * Algorithm}.
  *
  * @author Dmitry Ivanov
  */
+public interface TransferRelation {
 
-public interface TransferRelation
-{
-
-    /**
-     * Returns abstract successor states of the {@code abstractState} under the selected {@code precision}.
-     */
-    Collection<? extends AbstractState> generateAbstractSuccessors(AbstractState abstractState, Precision precision);
+  /**
+   * Returns abstract successor states of the {@code abstractState} under the selected {@code
+   * precision}.
+   */
+  Collection<? extends AbstractState> generateAbstractSuccessors(
+      AbstractState abstractState, Precision precision);
 }

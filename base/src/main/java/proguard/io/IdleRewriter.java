@@ -20,31 +20,25 @@ package proguard.io;
 import java.io.IOException;
 
 /**
- * This {@link DataEntryReader} reads data entries and requests their corresponding
- * output streams from a given {@link DataEntryWriter}, without actually using the
- * output stream. This approach correctly accounts for any filtering of the
- * classes to output archives.
+ * This {@link DataEntryReader} reads data entries and requests their corresponding output streams
+ * from a given {@link DataEntryWriter}, without actually using the output stream. This approach
+ * correctly accounts for any filtering of the classes to output archives.
  *
  * @author Eric Lafortune
  */
-public class IdleRewriter implements DataEntryReader
-{
-    private final DataEntryWriter dataEntryWriter;
+public class IdleRewriter implements DataEntryReader {
+  private final DataEntryWriter dataEntryWriter;
 
+  public IdleRewriter(DataEntryWriter dataEntryWriter) {
+    this.dataEntryWriter = dataEntryWriter;
+  }
 
-    public IdleRewriter(DataEntryWriter dataEntryWriter)
-    {
-        this.dataEntryWriter = dataEntryWriter;
-    }
+  // Implementations for DataEntryReader.
 
-
-    // Implementations for DataEntryReader.
-
-    @Override
-    public void read(DataEntry dataEntry) throws IOException
-    {
-        // Get the output entry corresponding to this input entry, but don't
-        // even try to close it.
-        dataEntryWriter.createOutputStream(dataEntry);
-    }
+  @Override
+  public void read(DataEntry dataEntry) throws IOException {
+    // Get the output entry corresponding to this input entry, but don't
+    // even try to close it.
+    dataEntryWriter.createOutputStream(dataEntry);
+  }
 }

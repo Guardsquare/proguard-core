@@ -20,64 +20,55 @@ package proguard.classfile.kotlin.reflect;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.kotlin.reflect.visitor.CallableReferenceInfoVisitor;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 
 /**
  * FunctionReference info.
  *
  * @author James Hamilton
  */
-public class FunctionReferenceInfo
-implements   CallableReferenceInfo
-{
-    private final Clazz                              ownerClass;
-    private final KotlinDeclarationContainerMetadata ownerMetadata;
-    private final KotlinFunctionMetadata             functionMetadata;
+public class FunctionReferenceInfo implements CallableReferenceInfo {
+  private final Clazz ownerClass;
+  private final KotlinDeclarationContainerMetadata ownerMetadata;
+  private final KotlinFunctionMetadata functionMetadata;
 
-    public FunctionReferenceInfo(Clazz                              ownerClass,
-                                 KotlinDeclarationContainerMetadata ownerMetadata,
-                                 KotlinFunctionMetadata             functionMetadata)
-    {
-        this.ownerClass       = ownerClass;
-        this.functionMetadata = functionMetadata;
-        this.ownerMetadata    = ownerMetadata;
-    }
+  public FunctionReferenceInfo(
+      Clazz ownerClass,
+      KotlinDeclarationContainerMetadata ownerMetadata,
+      KotlinFunctionMetadata functionMetadata) {
+    this.ownerClass = ownerClass;
+    this.functionMetadata = functionMetadata;
+    this.ownerMetadata = ownerMetadata;
+  }
 
-    @Override
-    public String getName()
-    {
-        return functionMetadata.name;
-    }
+  @Override
+  public String getName() {
+    return functionMetadata.name;
+  }
 
-    /**
-     * For functions this is just their name and descriptor.
-     *
-     * @return The JVM signature.
-     */
-    @Override
-    public String getSignature()
-    {
-        return functionMetadata.jvmSignature.method + functionMetadata.jvmSignature.descriptor;
-    }
+  /**
+   * For functions this is just their name and descriptor.
+   *
+   * @return The JVM signature.
+   */
+  @Override
+  public String getSignature() {
+    return functionMetadata.jvmSignature.method + functionMetadata.jvmSignature.descriptor;
+  }
 
+  @Override
+  public KotlinDeclarationContainerMetadata getOwner() {
+    return this.ownerMetadata;
+  }
 
-    @Override
-    public KotlinDeclarationContainerMetadata getOwner()
-    {
-        return this.ownerMetadata;
-    }
+  @Override
+  public void accept(CallableReferenceInfoVisitor callableReferenceInfoVisitor) {
+    callableReferenceInfoVisitor.visitFunctionReferenceInfo(this);
+  }
 
-
-    @Override
-    public void accept(CallableReferenceInfoVisitor callableReferenceInfoVisitor)
-    {
-        callableReferenceInfoVisitor.visitFunctionReferenceInfo(this);
-    }
-
-    @Override
-    public void ownerAccept(KotlinMetadataVisitor kotlinMetadataVisitor)
-    {
-        this.ownerMetadata.accept(this.ownerClass, kotlinMetadataVisitor);
-    }
+  @Override
+  public void ownerAccept(KotlinMetadataVisitor kotlinMetadataVisitor) {
+    this.ownerMetadata.accept(this.ownerClass, kotlinMetadataVisitor);
+  }
 }

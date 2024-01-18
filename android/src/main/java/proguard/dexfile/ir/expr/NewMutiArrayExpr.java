@@ -27,52 +27,49 @@ import proguard.dexfile.ir.Util;
  */
 public class NewMutiArrayExpr extends Value.EnExpr {
 
-    /**
-     * the basic type, ZBSCIFDJL, no [
-     */
-    public String baseType;
-    /**
-     * the dimension of the array,
-     * <p/>
-     * for baseType: I, dimension 4, the result type is int[][][][];
-     * <p/>
-     * NOTICE, not all dimension are init in ops, so ops.length <= dimension
-     */
-    public int dimension;
+  /** the basic type, ZBSCIFDJL, no [ */
+  public String baseType;
+  /**
+   * the dimension of the array,
+   *
+   * <p>for baseType: I, dimension 4, the result type is int[][][][];
+   *
+   * <p>NOTICE, not all dimension are init in ops, so ops.length <= dimension
+   */
+  public int dimension;
 
-    public NewMutiArrayExpr(String base, int dimension, Value[] sizes) {
-        super(VT.NEW_MULTI_ARRAY, sizes);
-        this.baseType = base;
-        this.dimension = dimension;
+  public NewMutiArrayExpr(String base, int dimension, Value[] sizes) {
+    super(VT.NEW_MULTI_ARRAY, sizes);
+    this.baseType = base;
+    this.dimension = dimension;
+  }
+
+  @Override
+  protected void releaseMemory() {
+    baseType = null;
+    super.releaseMemory();
+  }
+
+  @Override
+  public Value clone() {
+    return new NewMutiArrayExpr(baseType, dimension, cloneOps());
+  }
+
+  @Override
+  public Value clone(LabelAndLocalMapper mapper) {
+    return new NewMutiArrayExpr(baseType, dimension, cloneOps(mapper));
+  }
+
+  @Override
+  public String toString0() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("new ").append(Util.toShortClassName(baseType));
+    for (Value op : ops) {
+      sb.append('[').append(op).append(']');
     }
-
-    @Override
-    protected void releaseMemory() {
-        baseType = null;
-        super.releaseMemory();
+    for (int i = ops.length; i < dimension; i++) {
+      sb.append("[]");
     }
-
-    @Override
-    public Value clone() {
-        return new NewMutiArrayExpr(baseType, dimension, cloneOps());
-    }
-
-    @Override
-    public Value clone(LabelAndLocalMapper mapper) {
-        return new NewMutiArrayExpr(baseType, dimension, cloneOps(mapper));
-    }
-
-    @Override
-    public String toString0() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("new ").append(Util.toShortClassName(baseType));
-        for (Value op : ops) {
-            sb.append('[').append(op).append(']');
-        }
-        for (int i = ops.length; i < dimension; i++) {
-            sb.append("[]");
-        }
-        return sb.toString();
-    }
-
+    return sb.toString();
+  }
 }

@@ -28,7 +28,12 @@ import proguard.classfile.attribute.annotation.target.*;
  *
  * @author Eric Lafortune
  */
-public interface LocalVariableTargetElementVisitor
-{
-    public void visitLocalVariableTargetElement(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, LocalVariableTargetInfo localVariableTargetInfo, LocalVariableTargetElement localVariableTargetElement);
+public interface LocalVariableTargetElementVisitor {
+  public void visitLocalVariableTargetElement(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      LocalVariableTargetInfo localVariableTargetInfo,
+      LocalVariableTargetElement localVariableTargetElement);
 }

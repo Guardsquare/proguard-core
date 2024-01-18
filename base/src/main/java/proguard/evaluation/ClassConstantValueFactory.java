@@ -22,29 +22,22 @@ import proguard.classfile.constant.ClassConstant;
 import proguard.evaluation.value.ValueFactory;
 
 /**
- * This {@link ConstantValueFactory} creates <code>java.lang.Class</code>
- * {@link ReferenceValue} instances that correspond to specified constant
- * pool entries.
+ * This {@link ConstantValueFactory} creates <code>java.lang.Class</code> {@link ReferenceValue}
+ * instances that correspond to specified constant pool entries.
  *
  * @author Eric Lafortune
  */
-public class ClassConstantValueFactory
-extends      ConstantValueFactory
-{
-    public ClassConstantValueFactory(ValueFactory valueFactory)
-    {
-        super(valueFactory);
-    }
+public class ClassConstantValueFactory extends ConstantValueFactory {
+  public ClassConstantValueFactory(ValueFactory valueFactory) {
+    super(valueFactory);
+  }
 
+  // Implementations for ConstantVisitor.
 
-    // Implementations for ConstantVisitor.
-
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        // Create a Class reference instead of a reference to the class.
-        value = valueFactory.createReferenceValue(ClassConstants.TYPE_JAVA_LANG_CLASS,
-                                                  classConstant.javaLangClassClass,
-                                                  false,
-                                                  false);
-    }
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    // Create a Class reference instead of a reference to the class.
+    value =
+        valueFactory.createReferenceValue(
+            ClassConstants.TYPE_JAVA_LANG_CLASS, classConstant.javaLangClassClass, false, false);
+  }
 }

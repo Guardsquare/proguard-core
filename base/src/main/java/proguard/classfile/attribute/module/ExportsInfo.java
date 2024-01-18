@@ -26,59 +26,36 @@ import proguard.util.SimpleProcessable;
  *
  * @author Joachim Vandersmissen
  */
-public class ExportsInfo extends SimpleProcessable
-{
-    public int   u2exportsIndex;
-    public int   u2exportsFlags;
-    public int   u2exportsToCount;
-    public int[] u2exportsToIndex;
+public class ExportsInfo extends SimpleProcessable {
+  public int u2exportsIndex;
+  public int u2exportsFlags;
+  public int u2exportsToCount;
+  public int[] u2exportsToIndex;
 
+  /** Creates an uninitialized ExportsInfo. */
+  public ExportsInfo() {}
 
-    /**
-     * Creates an uninitialized ExportsInfo.
-     */
-    public ExportsInfo()
-    {
+  /** Creates an initialized ExportsInfo. */
+  public ExportsInfo(
+      int u2exportsIndex, int u2exportsFlags, int u2exportsToCount, int[] u2exportsToIndex) {
+    this.u2exportsIndex = u2exportsIndex;
+    this.u2exportsFlags = u2exportsFlags;
+    this.u2exportsToCount = u2exportsToCount;
+    this.u2exportsToIndex = u2exportsToIndex;
+  }
+
+  /** Applies the given constant pool visitor to the package constant of the package, if any. */
+  public void packageAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    if (u2exportsIndex != 0) {
+      clazz.constantPoolEntryAccept(u2exportsIndex, constantVisitor);
     }
+  }
 
-
-    /**
-     * Creates an initialized ExportsInfo.
-     */
-    public ExportsInfo(int   u2exportsIndex,
-                       int   u2exportsFlags,
-                       int   u2exportsToCount,
-                       int[] u2exportsToIndex)
-    {
-        this.u2exportsIndex   = u2exportsIndex;
-        this.u2exportsFlags   = u2exportsFlags;
-        this.u2exportsToCount = u2exportsToCount;
-        this.u2exportsToIndex = u2exportsToIndex;
+  /** Applies the given constant pool visitor to all exportsToIndex. */
+  public void exportsToIndexAccept(Clazz clazz, ConstantVisitor constantVisitor) {
+    // Loop over all exportsToIndex.
+    for (int index = 0; index < u2exportsToCount; index++) {
+      clazz.constantPoolEntryAccept(u2exportsToIndex[index], constantVisitor);
     }
-
-
-    /**
-     * Applies the given constant pool visitor to the package constant of the
-     * package, if any.
-     */
-    public void packageAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        if (u2exportsIndex != 0)
-        {
-            clazz.constantPoolEntryAccept(u2exportsIndex, constantVisitor);
-        }
-    }
-
-
-    /**
-     * Applies the given constant pool visitor to all exportsToIndex.
-     */
-    public void exportsToIndexAccept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        // Loop over all exportsToIndex.
-        for (int index = 0; index < u2exportsToCount; index++)
-        {
-            clazz.constantPoolEntryAccept(u2exportsToIndex[index], constantVisitor);
-        }
-    }
+  }
 }

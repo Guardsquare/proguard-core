@@ -20,31 +20,23 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinAnnotationVisitor
-{
-    void visitAnyAnnotation(Clazz             clazz,
-                            KotlinAnnotatable annotatable,
-                            KotlinAnnotation  annotation);
+public interface KotlinAnnotationVisitor {
+  void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation);
 
+  default void visitTypeAnnotation(
+      Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata, KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinTypeMetadata, annotation);
+  }
 
-    default void visitTypeAnnotation(Clazz              clazz,
-                                     KotlinTypeMetadata kotlinTypeMetadata,
-                                     KotlinAnnotation   annotation)
-    {
-        visitAnyAnnotation(clazz, kotlinTypeMetadata, annotation);
-    }
+  default void visitTypeParameterAnnotation(
+      Clazz clazz,
+      KotlinTypeParameterMetadata kotlinTypeParameterMetadata,
+      KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinTypeParameterMetadata, annotation);
+  }
 
-    default void visitTypeParameterAnnotation(Clazz                       clazz,
-                                              KotlinTypeParameterMetadata kotlinTypeParameterMetadata,
-                                              KotlinAnnotation            annotation)
-    {
-        visitAnyAnnotation(clazz, kotlinTypeParameterMetadata, annotation);
-    }
-
-    default void visitTypeAliasAnnotation(Clazz                    clazz,
-                                          KotlinTypeAliasMetadata  kotlinTypeAliasMetadata,
-                                          KotlinAnnotation         annotation)
-    {
-        visitAnyAnnotation(clazz, kotlinTypeAliasMetadata, annotation);
-    }
+  default void visitTypeAliasAnnotation(
+      Clazz clazz, KotlinTypeAliasMetadata kotlinTypeAliasMetadata, KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinTypeAliasMetadata, annotation);
+  }
 }

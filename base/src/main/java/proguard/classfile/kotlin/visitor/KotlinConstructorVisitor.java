@@ -20,9 +20,9 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public interface KotlinConstructorVisitor
-{
-    void visitConstructor(Clazz                     clazz,
-                          KotlinClassKindMetadata   kotlinClassKindMetadata,
-                          KotlinConstructorMetadata kotlinConstructorMetadata);
+public interface KotlinConstructorVisitor {
+  void visitConstructor(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata);
 }

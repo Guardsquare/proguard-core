@@ -19,60 +19,43 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This interface specifies the methods for a visitor of
- * {@link ProgramMember} instances and {@link LibraryMember}
- * instances.
+ * This interface specifies the methods for a visitor of {@link ProgramMember} instances and {@link
+ * LibraryMember} instances.
  *
  * @author Eric Lafortune
  */
-public interface MemberVisitor
-{
-    /**
-     * Visits any Member instance. The more specific default implementations of
-     * this interface delegate to this method.
-     */
-    default void visitAnyMember(Clazz clazz, Member member)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+member.getClass().getName());
-    }
+public interface MemberVisitor {
+  /**
+   * Visits any Member instance. The more specific default implementations of this interface
+   * delegate to this method.
+   */
+  default void visitAnyMember(Clazz clazz, Member member) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + member.getClass().getName());
+  }
 
+  default void visitProgramMember(ProgramClass programClass, ProgramMember programMember) {
+    visitAnyMember(programClass, programMember);
+  }
 
+  default void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    visitProgramMember(programClass, programField);
+  }
 
-    default void visitProgramMember(ProgramClass programClass, ProgramMember programMember)
-    {
-        visitAnyMember(programClass, programMember);
-    }
+  default void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    visitProgramMember(programClass, programMethod);
+  }
 
+  default void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {
+    visitAnyMember(libraryClass, libraryMember);
+  }
 
-    default void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        visitProgramMember(programClass, programField);
-    }
+  default void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+    visitLibraryMember(libraryClass, libraryField);
+  }
 
-
-    default void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        visitProgramMember(programClass, programMethod);
-    }
-
-
-
-    default void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember)
-    {
-        visitAnyMember(libraryClass, libraryMember);
-    }
-
-
-    default void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField)
-    {
-        visitLibraryMember(libraryClass, libraryField);
-    }
-
-
-    default void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        visitLibraryMember(libraryClass, libraryMethod);
-    }
+  default void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    visitLibraryMember(libraryClass, libraryMethod);
+  }
 }

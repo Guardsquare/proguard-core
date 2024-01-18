@@ -22,39 +22,31 @@ package proguard.util;
  *
  * @author Johan Leys
  */
-public class PrefixAddingStringFunction implements StringFunction
-{
-    private final String         prefix;
-    private final StringFunction delegateFunction;
+public class PrefixAddingStringFunction implements StringFunction {
+  private final String prefix;
+  private final StringFunction delegateFunction;
 
+  /**
+   * Creates a new PrefixAddingStringFunction.
+   *
+   * @param prefix the prefix to add in front of each string.
+   */
+  public PrefixAddingStringFunction(String prefix) {
+    this(prefix, null);
+  }
 
-    /**
-     * Creates a new PrefixAddingStringFunction.
-     *
-     * @param prefix the prefix to add in front of each string.
-     */
-    public PrefixAddingStringFunction(String prefix)
-    {
-        this(prefix, null);
+  public PrefixAddingStringFunction(String prefix, StringFunction delegateFunction) {
+    this.prefix = prefix;
+    this.delegateFunction = delegateFunction;
+  }
+
+  // Implementations for StringFunction.
+
+  @Override
+  public String transform(String string) {
+    if (delegateFunction != null) {
+      string = delegateFunction.transform(string);
     }
-
-
-    public PrefixAddingStringFunction(String prefix, StringFunction delegateFunction)
-    {
-        this.prefix = prefix;
-        this.delegateFunction = delegateFunction;
-    }
-
-
-    // Implementations for StringFunction.
-
-    @Override
-    public String transform(String string)
-    {
-        if (delegateFunction != null)
-        {
-            string = delegateFunction.transform(string);
-        }
-        return prefix + string;
-    }
+    return prefix + string;
+  }
 }

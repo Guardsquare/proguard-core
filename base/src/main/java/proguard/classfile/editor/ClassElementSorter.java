@@ -21,53 +21,45 @@ import proguard.classfile.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
- * This {@link ClassVisitor} sorts the various elements of the classes that it visits:
- * interfaces, constants, fields, methods, and attributes.
+ * This {@link ClassVisitor} sorts the various elements of the classes that it visits: interfaces,
+ * constants, fields, methods, and attributes.
  *
  * @author Eric Lafortune
  */
-public class ClassElementSorter
-implements   ClassVisitor
-{
-    private final ClassVisitor interfaceSorter    = new InterfaceSorter();
-    private final ClassVisitor constantPoolSorter = new ConstantPoolSorter();
-    private final ClassVisitor classMemberSorter  = new ClassMemberSorter();
-    private final ClassVisitor attributeSorter    = new AttributeSorter();
+public class ClassElementSorter implements ClassVisitor {
+  private final ClassVisitor interfaceSorter = new InterfaceSorter();
+  private final ClassVisitor constantPoolSorter = new ConstantPoolSorter();
+  private final ClassVisitor classMemberSorter = new ClassMemberSorter();
+  private final ClassVisitor attributeSorter = new AttributeSorter();
 
-    private boolean sortInterfaces;
-    private boolean sortConstants;
-    private boolean sortMembers;
-    private boolean sortAttributes;
+  private boolean sortInterfaces;
+  private boolean sortConstants;
+  private boolean sortMembers;
+  private boolean sortAttributes;
 
-    /**
-     * Creates a default `ClassElementSorter` that sorts interfaces, constants and attributes.
-     */
-    public ClassElementSorter()
-    {
-        this(true, true, false, true);
-    }
+  /** Creates a default `ClassElementSorter` that sorts interfaces, constants and attributes. */
+  public ClassElementSorter() {
+    this(true, true, false, true);
+  }
 
-    public ClassElementSorter(boolean sortInterfaces, boolean sortConstants, boolean sortMembers, boolean sortAttributes)
-    {
-        this.sortInterfaces = sortInterfaces;
-        this.sortConstants  = sortConstants;
-        this.sortMembers    = sortMembers;
-        this.sortAttributes = sortAttributes;
-    }
+  public ClassElementSorter(
+      boolean sortInterfaces, boolean sortConstants, boolean sortMembers, boolean sortAttributes) {
+    this.sortInterfaces = sortInterfaces;
+    this.sortConstants = sortConstants;
+    this.sortMembers = sortMembers;
+    this.sortAttributes = sortAttributes;
+  }
 
-    // Implementations for ClassVisitor.
+  // Implementations for ClassVisitor.
 
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        if (sortConstants)  programClass.accept(constantPoolSorter);
-        if (sortInterfaces) programClass.accept(interfaceSorter);
-        if (sortMembers)    programClass.accept(classMemberSorter);
-        if (sortAttributes) programClass.accept(attributeSorter);
-    }
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    if (sortConstants) programClass.accept(constantPoolSorter);
+    if (sortInterfaces) programClass.accept(interfaceSorter);
+    if (sortMembers) programClass.accept(classMemberSorter);
+    if (sortAttributes) programClass.accept(attributeSorter);
+  }
 }

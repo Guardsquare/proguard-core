@@ -20,46 +20,35 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link MemberVisitor} delegates its visits to methods to
- * another given {@link MemberVisitor}, but only when the visited
- * method may have implementations.
+ * This {@link MemberVisitor} delegates its visits to methods to another given {@link
+ * MemberVisitor}, but only when the visited method may have implementations.
  *
  * @see Clazz#mayHaveImplementations(Method)
  * @author Eric Lafortune
  */
-public class MethodImplementationFilter
-implements   MemberVisitor
-{
-    private final MemberVisitor memberVisitor;
+public class MethodImplementationFilter implements MemberVisitor {
+  private final MemberVisitor memberVisitor;
 
+  /**
+   * Creates a new MethodImplementationFilter.
+   *
+   * @param memberVisitor the <code>MemberVisitor</code> to which visits will be delegated.
+   */
+  public MethodImplementationFilter(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    /**
-     * Creates a new MethodImplementationFilter.
-     * @param memberVisitor     the <code>MemberVisitor</code> to which
-     *                          visits will be delegated.
-     */
-    public MethodImplementationFilter(MemberVisitor memberVisitor)
-    {
-        this.memberVisitor = memberVisitor;
+  // Implementations for MemberVisitor.
+
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    if (programClass.mayHaveImplementations(programMethod)) {
+      memberVisitor.visitProgramMethod(programClass, programMethod);
     }
+  }
 
-
-    // Implementations for MemberVisitor.
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        if (programClass.mayHaveImplementations(programMethod))
-        {
-            memberVisitor.visitProgramMethod(programClass, programMethod);
-        }
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    if (libraryClass.mayHaveImplementations(libraryMethod)) {
+      memberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
     }
-
-
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        if (libraryClass.mayHaveImplementations(libraryMethod))
-        {
-            memberVisitor.visitLibraryMethod(libraryClass, libraryMethod);
-        }
-    }
+  }
 }

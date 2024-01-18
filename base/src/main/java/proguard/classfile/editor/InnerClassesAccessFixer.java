@@ -26,56 +26,44 @@ import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
- * This {@link InnerClassesInfoVisitor} fixes the inner class access flags of the
- * inner classes information that it visits.
+ * This {@link InnerClassesInfoVisitor} fixes the inner class access flags of the inner classes
+ * information that it visits.
  *
  * @author Eric Lafortune
  */
 public class InnerClassesAccessFixer
-implements   InnerClassesInfoVisitor,
-             ConstantVisitor,
-             ClassVisitor
-{
-    private int innerClassAccessFlags;
+    implements InnerClassesInfoVisitor, ConstantVisitor, ClassVisitor {
+  private int innerClassAccessFlags;
 
+  // Implementations for InnerClassesInfoVisitor.
 
-    // Implementations for InnerClassesInfoVisitor.
+  public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo) {
+    // The current access flags are the default.
+    innerClassAccessFlags = innerClassesInfo.u2innerClassAccessFlags;
 
-    public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo)
-    {
-        // The current access flags are the default.
-        innerClassAccessFlags = innerClassesInfo.u2innerClassAccessFlags;
+    // See if we can find new access flags.
+    innerClassesInfo.innerClassConstantAccept(clazz, this);
 
-        // See if we can find new access flags.
-        innerClassesInfo.innerClassConstantAccept(clazz, this);
+    // Update the access flags.
+    innerClassesInfo.u2innerClassAccessFlags = innerClassAccessFlags;
+  }
 
-        // Update the access flags.
-        innerClassesInfo.u2innerClassAccessFlags = innerClassAccessFlags;
-    }
+  // Implementations for ConstantVisitor.
 
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-    // Implementations for ConstantVisitor.
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    classConstant.referencedClassAccept(this);
+  }
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+  // Implementations for ClassVisitor.
 
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        classConstant.referencedClassAccept(this);
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        innerClassAccessFlags =
-            AccessUtil.replaceAccessFlags(innerClassAccessFlags,
-                                          programClass.u2accessFlags);
-    }
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    innerClassAccessFlags =
+        AccessUtil.replaceAccessFlags(innerClassAccessFlags, programClass.u2accessFlags);
+  }
 }

@@ -25,23 +25,19 @@ import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 /**
  * @author James Hamilton
  */
-public class KotlinMetadataToModuleVisitor
-implements KotlinMetadataVisitor
-{
-    private final KotlinModuleVisitor kotlinModuleVisitor;
+public class KotlinMetadataToModuleVisitor implements KotlinMetadataVisitor {
+  private final KotlinModuleVisitor kotlinModuleVisitor;
 
-    public KotlinMetadataToModuleVisitor(KotlinModuleVisitor kotlinModuleVisitor)
-    {
-        this.kotlinModuleVisitor = kotlinModuleVisitor;
-    }
+  public KotlinMetadataToModuleVisitor(KotlinModuleVisitor kotlinModuleVisitor) {
+    this.kotlinModuleVisitor = kotlinModuleVisitor;
+  }
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
-                                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        kotlinDeclarationContainerMetadata.moduleAccept(kotlinModuleVisitor);
-    }
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    kotlinDeclarationContainerMetadata.moduleAccept(kotlinModuleVisitor);
+  }
 }

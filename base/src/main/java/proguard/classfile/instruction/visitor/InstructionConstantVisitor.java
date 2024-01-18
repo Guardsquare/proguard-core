@@ -23,36 +23,38 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.instruction.*;
 
 /**
- * This {@link InstructionVisitor} lets a given {@link ConstantVisitor} visit all constants
- * of the instructions it visits.
+ * This {@link InstructionVisitor} lets a given {@link ConstantVisitor} visit all constants of the
+ * instructions it visits.
  *
  * @author Eric Lafortune
  */
-public class InstructionConstantVisitor
-implements   InstructionVisitor
-{
-    private final ConstantVisitor constantVisitor;
+public class InstructionConstantVisitor implements InstructionVisitor {
+  private final ConstantVisitor constantVisitor;
 
+  /**
+   * Creates a new InstructionConstantVisitor.
+   *
+   * @param constantVisitor the ConstantVisitor to which visits will be delegated.
+   */
+  public InstructionConstantVisitor(ConstantVisitor constantVisitor) {
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new InstructionConstantVisitor.
-     * @param constantVisitor the ConstantVisitor to which visits will be
-     *                        delegated.
-     */
-    public InstructionConstantVisitor(ConstantVisitor constantVisitor)
-    {
-        this.constantVisitor = constantVisitor;
-    }
+  // Implementations for InstructionVisitor.
 
+  public void visitAnyInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      Instruction instruction) {}
 
-    // Implementations for InstructionVisitor.
-
-    public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction) {}
-
-
-    public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction)
-    {
-        clazz.constantPoolEntryAccept(constantInstruction.constantIndex,
-                                      constantVisitor);
-    }
+  public void visitConstantInstruction(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int offset,
+      ConstantInstruction constantInstruction) {
+    clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantVisitor);
+  }
 }

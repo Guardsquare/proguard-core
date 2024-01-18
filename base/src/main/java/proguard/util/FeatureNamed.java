@@ -20,48 +20,40 @@ package proguard.util;
 import java.util.Set;
 
 /**
- * Base interface for entities that are part of a feature, as indicated by a
- * feature name.
- * <p/>
- * The entities can for example be classes and resource files, and the feature
- * can be a dynamic feature in an Android app.
+ * Base interface for entities that are part of a feature, as indicated by a feature name.
+ *
+ * <p>The entities can for example be classes and resource files, and the feature can be a dynamic
+ * feature in an Android app.
+ *
  * <p>
+ *
  * @author Eric Lafortune
  */
-public interface FeatureNamed
-{
-    /**
-     * Returns the feature name for this entity.
-     */
-    String getFeatureName();
+public interface FeatureNamed {
+  /** Returns the feature name for this entity. */
+  String getFeatureName();
 
+  /**
+   * Sets the feature name for this entity.
+   *
+   * @param featureName the feature Name to be set.
+   */
+  void setFeatureName(String featureName);
 
-    /**
-     * Sets the feature name for this entity.
-     *
-     * @param featureName the feature Name to be set.
-     */
-    void setFeatureName(String featureName);
+  /**
+   * Adds the feature name to the set of features this entity is part of.
+   *
+   * @param featureName the feature name to add.
+   */
+  void addExtraFeatureName(String featureName);
 
+  /** Returns the set of feature names for this entity. */
+  Set<String> getExtraFeatureNames();
 
-    /**
-     * Adds the feature name to the set of features this entity is part of.
-     *
-     * @param featureName the feature name to add.
-     */
-    void addExtraFeatureName(String featureName);
-
-
-    /**
-     * Returns the set of feature names for this entity.
-     */
-    Set<String> getExtraFeatureNames();
-
-
-    /**
-     * Returns whether the entity is part of the given feature.
-     *
-     * @param featureName the name of the feature to check.
-     */
-    boolean isInFeature(String featureName);
+  /**
+   * Returns whether the entity is part of the given feature.
+   *
+   * @param featureName the name of the feature to check.
+   */
+  boolean isInFeature(String featureName);
 }

@@ -22,44 +22,33 @@ import proguard.classfile.constant.ClassConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 
 /**
- * This {@link ConstantVisitor} delegates its visits to class constants
- * to another given {@link ConstantVisitor}, except for classes that
- * are extended or implemented by a given class. This exception includes the
- * class itself.
+ * This {@link ConstantVisitor} delegates its visits to class constants to another given {@link
+ * ConstantVisitor}, except for classes that are extended or implemented by a given class. This
+ * exception includes the class itself.
  *
  * @author Eric Lafortune
  */
-public class ImplementingClassConstantFilter
-implements   ConstantVisitor
-{
-    private final Clazz           implementingClass;
-    private final ConstantVisitor constantVisitor;
+public class ImplementingClassConstantFilter implements ConstantVisitor {
+  private final Clazz implementingClass;
+  private final ConstantVisitor constantVisitor;
 
+  /**
+   * Creates a new ImplementingClassConstantFilter.
+   *
+   * @param implementingClass the class whose superclasses and interfaces will not be visited.
+   * @param constantVisitor the <code>ConstantVisitor</code> to which visits will be delegated.
+   */
+  public ImplementingClassConstantFilter(Clazz implementingClass, ConstantVisitor constantVisitor) {
+    this.implementingClass = implementingClass;
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new ImplementingClassConstantFilter.
-     * @param implementingClass the class whose superclasses and interfaces will
-     *                          not be visited.
-     * @param constantVisitor   the <code>ConstantVisitor</code> to which visits
-     *                          will be delegated.
-     */
-    public ImplementingClassConstantFilter(Clazz           implementingClass,
-                                           ConstantVisitor constantVisitor)
-    {
-        this.implementingClass = implementingClass;
-        this.constantVisitor   = constantVisitor;
+  // Implementations for ConstantVisitor.
+
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    Clazz referencedClass = classConstant.referencedClass;
+    if (referencedClass == null || !implementingClass.extendsOrImplements(referencedClass)) {
+      constantVisitor.visitClassConstant(clazz, classConstant);
     }
-
-
-    // Implementations for ConstantVisitor.
-
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        Clazz referencedClass = classConstant.referencedClass;
-        if (referencedClass == null ||
-            !implementingClass.extendsOrImplements(referencedClass))
-        {
-            constantVisitor.visitClassConstant(clazz, classConstant);
-        }
-    }
+  }
 }

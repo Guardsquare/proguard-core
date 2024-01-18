@@ -17,13 +17,9 @@
  */
 package proguard.classfile;
 
-
-
 /**
  * Representation of a field in a class.
  *
  * @author Eric Lafortune
  */
-public interface Field extends Member
-{
-}
+public interface Field extends Member {}

@@ -21,68 +21,51 @@ import proguard.classfile.*;
 import proguard.util.ArrayUtil;
 
 /**
- * This {@link ClassVisitor} delegates its visits to another given
- * {@link ClassVisitor}, except for classes that have a given class as
- * direct subclass.
+ * This {@link ClassVisitor} delegates its visits to another given {@link ClassVisitor}, except for
+ * classes that have a given class as direct subclass.
  *
  * @author Eric Lafortune
  */
-public class SubclassFilter implements ClassVisitor
-{
-    private final Clazz        subclass;
-    private final ClassVisitor classVisitor;
+public class SubclassFilter implements ClassVisitor {
+  private final Clazz subclass;
+  private final ClassVisitor classVisitor;
 
+  /**
+   * Creates a new SubclassFilter.
+   *
+   * @param subclass the class whose superclasses will not be visited.
+   * @param classVisitor the <code>ClassVisitor</code> to which visits will be delegated.
+   */
+  public SubclassFilter(Clazz subclass, ClassVisitor classVisitor) {
+    this.subclass = subclass;
+    this.classVisitor = classVisitor;
+  }
 
-    /**
-     * Creates a new SubclassFilter.
-     * @param subclass     the class whose superclasses will not be visited.
-     * @param classVisitor the <code>ClassVisitor</code> to which visits will
-     *                     be delegated.
-     */
-    public SubclassFilter(Clazz        subclass,
-                          ClassVisitor classVisitor)
-    {
-        this.subclass     = subclass;
-        this.classVisitor = classVisitor;
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + clazz.getClass().getName());
+  }
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    if (!present(programClass.subClasses, programClass.subClassCount)) {
+      classVisitor.visitProgramClass(programClass);
     }
+  }
 
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
+  @Override
+  public void visitLibraryClass(LibraryClass libraryClass) {
+    if (!present(libraryClass.subClasses, libraryClass.subClassCount)) {
+      classVisitor.visitLibraryClass(libraryClass);
     }
+  }
 
+  // Small utility methods.
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        if (!present(programClass.subClasses,
-                     programClass.subClassCount))
-        {
-            classVisitor.visitProgramClass(programClass);
-        }
-    }
-
-
-    @Override
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        if (!present(libraryClass.subClasses,
-                     libraryClass.subClassCount))
-        {
-            classVisitor.visitLibraryClass(libraryClass);
-        }
-    }
-
-
-    // Small utility methods.
-
-    private boolean present(Clazz[] subClasses,
-                            int     subClassCount)
-    {
-        return ArrayUtil.indexOf(subClasses, subClassCount, subclass) >= 0;
-    }
+  private boolean present(Clazz[] subClasses, int subClassCount) {
+    return ArrayUtil.indexOf(subClasses, subClassCount, subclass) >= 0;
+  }
 }

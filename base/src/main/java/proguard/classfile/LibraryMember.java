@@ -25,61 +25,39 @@ import proguard.util.SimpleProcessable;
  *
  * @author Eric Lafortune
  */
-public abstract class LibraryMember
-extends               SimpleProcessable
-implements            Member
-{
-    public int    u2accessFlags;
-    public String name;
-    public String descriptor;
+public abstract class LibraryMember extends SimpleProcessable implements Member {
+  public int u2accessFlags;
+  public String name;
+  public String descriptor;
 
-    /**
-     * Creates an uninitialized LibraryMember.
-     */
-    protected LibraryMember()
-    {
-    }
+  /** Creates an uninitialized LibraryMember. */
+  protected LibraryMember() {}
 
+  /** Creates an initialized LibraryMember. */
+  protected LibraryMember(int u2accessFlags, String name, String descriptor) {
+    this.u2accessFlags = u2accessFlags;
+    this.name = name;
+    this.descriptor = descriptor;
+  }
 
-    /**
-     * Creates an initialized LibraryMember.
-     */
-    protected LibraryMember(int    u2accessFlags,
-                            String name,
-                            String descriptor)
-    {
-        this.u2accessFlags = u2accessFlags;
-        this.name          = name;
-        this.descriptor    = descriptor;
-    }
+  /** Accepts the given member info visitor. */
+  public abstract void accept(LibraryClass libraryClass, MemberVisitor memberVisitor);
 
+  // Implementations for Member.
 
-    /**
-     * Accepts the given member info visitor.
-     */
-    public abstract void accept(LibraryClass  libraryClass,
-                                MemberVisitor memberVisitor);
+  public int getAccessFlags() {
+    return u2accessFlags;
+  }
 
+  public String getName(Clazz clazz) {
+    return name;
+  }
 
-    // Implementations for Member.
+  public String getDescriptor(Clazz clazz) {
+    return descriptor;
+  }
 
-    public int getAccessFlags()
-    {
-        return u2accessFlags;
-    }
-
-    public String getName(Clazz clazz)
-    {
-        return name;
-    }
-
-    public String getDescriptor(Clazz clazz)
-    {
-        return descriptor;
-    }
-
-    public void accept(Clazz clazz, MemberVisitor memberVisitor)
-    {
-        accept((LibraryClass)clazz, memberVisitor);
-    }
+  public void accept(Clazz clazz, MemberVisitor memberVisitor) {
+    accept((LibraryClass) clazz, memberVisitor);
+  }
 }

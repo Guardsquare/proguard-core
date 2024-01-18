@@ -22,27 +22,21 @@ package proguard.util;
  *
  * @author Johan Leys
  */
-public class SuffixAddingStringFunction
-implements   StringFunction
-{
-    private final String suffix;
+public class SuffixAddingStringFunction implements StringFunction {
+  private final String suffix;
 
+  /**
+   * Creates a new SuffixAddingStringFunction.
+   *
+   * @param suffix the suffix to add to each string.
+   */
+  public SuffixAddingStringFunction(String suffix) {
+    this.suffix = suffix;
+  }
 
-    /**
-     * Creates a new SuffixAddingStringFunction.
-     *
-     * @param suffix the suffix to add to each string.
-     */
-    public SuffixAddingStringFunction(String suffix)
-    {
-        this.suffix = suffix;
-    }
+  // Implementations for StringFunction.
 
-
-    // Implementations for StringFunction.
-
-    public String transform(String string)
-    {
-        return string + suffix;
-    }
+  public String transform(String string) {
+    return string + suffix;
+  }
 }

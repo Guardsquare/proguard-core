@@ -22,65 +22,61 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.*;
 
 /**
- * This {@link AttributeVisitor} adds the line numbers of all line number attributes
- * that it visits to the given target line number attribute. It ensures that
- * the sources of the line numbers are preserved or set.
+ * This {@link AttributeVisitor} adds the line numbers of all line number attributes that it visits
+ * to the given target line number attribute. It ensures that the sources of the line numbers are
+ * preserved or set.
  */
-public class LineNumberInfoAdder
-implements   AttributeVisitor,
-             LineNumberInfoVisitor
-{
-    private final LineNumberTableAttributeEditor lineNumberTableAttributeEditor;
+public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisitor {
+  private final LineNumberTableAttributeEditor lineNumberTableAttributeEditor;
 
-    private String source;
+  private String source;
 
+  /**
+   * Creates a new LineNumberInfoAdder that will copy line numbers into the given target line number
+   * table.
+   */
+  public LineNumberInfoAdder(LineNumberTableAttribute targetLineNumberTableAttribute) {
+    this.lineNumberTableAttributeEditor =
+        new LineNumberTableAttributeEditor(targetLineNumberTableAttribute);
+  }
 
-    /**
-     * Creates a new LineNumberInfoAdder that will copy line numbers into the
-     * given target line number table.
-     */
-    public LineNumberInfoAdder(LineNumberTableAttribute targetLineNumberTableAttribute)
-    {
-        this.lineNumberTableAttributeEditor = new LineNumberTableAttributeEditor(targetLineNumberTableAttribute);
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
+  public void visitLineNumberTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LineNumberTableAttribute lineNumberTableAttribute) {
+    // Remember the source.
+    source =
+        clazz.getName()
+            + '.'
+            + method.getName(clazz)
+            + method.getDescriptor(clazz)
+            + ':'
+            + lineNumberTableAttribute.getLowestLineNumber()
+            + ':'
+            + lineNumberTableAttribute.getHighestLineNumber();
 
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+    // Copy all line numbers.
+    lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, this);
+  }
 
+  // Implementations for LineNumberInfoVisitor.
 
-    public void visitLineNumberTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute lineNumberTableAttribute)
-    {
-        // Remember the source.
-        source =
-            clazz.getName()                                + '.' +
-            method.getName(clazz)                          +
-            method.getDescriptor(clazz)                    + ':' +
-            lineNumberTableAttribute.getLowestLineNumber() + ':' +
-            lineNumberTableAttribute.getHighestLineNumber();
+  public void visitLineNumberInfo(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberInfo lineNumberInfo) {
+    // Make sure we have a source.
+    String newSource = lineNumberInfo.getSource() != null ? lineNumberInfo.getSource() : source;
 
-        // Copy all line numbers.
-        lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, this);
-    }
+    // Create a new line number.
+    LineNumberInfo newLineNumberInfo =
+        new ExtendedLineNumberInfo(
+            lineNumberInfo.u2startPC, lineNumberInfo.u2lineNumber, newSource);
 
-
-    // Implementations for LineNumberInfoVisitor.
-
-    public void visitLineNumberInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberInfo lineNumberInfo)
-    {
-        // Make sure we have a source.
-        String newSource = lineNumberInfo.getSource() != null ?
-            lineNumberInfo.getSource() :
-            source;
-
-        // Create a new line number.
-        LineNumberInfo newLineNumberInfo =
-            new ExtendedLineNumberInfo(lineNumberInfo.u2startPC,
-                                       lineNumberInfo.u2lineNumber,
-                                       newSource);
-
-        // Add it to the target.
-        lineNumberTableAttributeEditor.addLineNumberInfo(newLineNumberInfo);
-    }
+    // Add it to the target.
+    lineNumberTableAttributeEditor.addLineNumberInfo(newLineNumberInfo);
+  }
 }

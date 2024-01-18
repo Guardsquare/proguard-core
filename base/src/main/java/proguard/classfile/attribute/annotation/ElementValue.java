@@ -23,90 +23,64 @@ import proguard.classfile.visitor.MemberVisitor;
 import proguard.util.SimpleProcessable;
 
 /**
- * This abstract class represents an element value that is attached to an
- * annotation or an annotation default. Specific types of element values are
- * subclassed from it.
+ * This abstract class represents an element value that is attached to an annotation or an
+ * annotation default. Specific types of element values are subclassed from it.
  *
  * @author Eric Lafortune
  */
-public abstract class ElementValue extends SimpleProcessable
-{
-    public static final char TAG_STRING_CONSTANT = 's';
-    public static final char TAG_ENUM_CONSTANT   = 'e';
-    public static final char TAG_CLASS           = 'c';
-    public static final char TAG_ANNOTATION      = '@';
-    public static final char TAG_ARRAY           = '[';
+public abstract class ElementValue extends SimpleProcessable {
+  public static final char TAG_STRING_CONSTANT = 's';
+  public static final char TAG_ENUM_CONSTANT = 'e';
+  public static final char TAG_CLASS = 'c';
+  public static final char TAG_ANNOTATION = '@';
+  public static final char TAG_ARRAY = '[';
 
+  /**
+   * An extra field for the optional element name. It is used in element value pairs of annotations.
+   * Otherwise, it is 0.
+   */
+  public int u2elementNameIndex;
 
-    /**
-     * An extra field for the optional element name. It is used in element value
-     * pairs of annotations. Otherwise, it is 0.
-     */
-    public int u2elementNameIndex;
+  /**
+   * An extra field pointing to the referenced <code>Clazz</code> object, if applicable. This field
+   * is typically filled out by the <code>{@link proguard.classfile.util.ClassReferenceInitializer}
+   * </code>.
+   */
+  public Clazz referencedClass;
 
-    /**
-     * An extra field pointing to the referenced <code>Clazz</code>
-     * object, if applicable. This field is typically filled out by the
-     * <code>{@link proguard.classfile.util.ClassReferenceInitializer}</code>.
-     */
-    public Clazz referencedClass;
+  /**
+   * An extra field pointing to the referenced <code>Method</code> object, if applicable. This field
+   * is typically filled out by the <code>{@link proguard.classfile.util.ClassReferenceInitializer}
+   * </code>.
+   */
+  public Method referencedMethod;
 
-    /**
-     * An extra field pointing to the referenced <code>Method</code>
-     * object, if applicable. This field is typically filled out by the
-     * <code>{@link proguard.classfile.util.ClassReferenceInitializer}</code>.
-     */
-    public Method referencedMethod;
+  /** Creates an uninitialized ElementValue. */
+  protected ElementValue() {}
 
-    /**
-     * Creates an uninitialized ElementValue.
-     */
-    protected ElementValue()
-    {
+  /** Creates an initialized ElementValue. */
+  protected ElementValue(int u2elementNameIndex) {
+    this.u2elementNameIndex = u2elementNameIndex;
+  }
+
+  /** Returns the element name. */
+  public String getMethodName(Clazz clazz) {
+    return clazz.getString(u2elementNameIndex);
+  }
+
+  // Abstract methods to be implemented by extensions.
+
+  /** Returns the tag of this element value. */
+  public abstract char getTag();
+
+  /** Accepts the given visitor. */
+  public abstract void accept(
+      Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor);
+
+  /** Applies the given visitor to the referenced method. */
+  public void referencedMethodAccept(MemberVisitor memberVisitor) {
+    if (referencedMethod != null) {
+      referencedMethod.accept(referencedClass, memberVisitor);
     }
-
-
-    /**
-     * Creates an initialized ElementValue.
-     */
-    protected ElementValue(int u2elementNameIndex)
-    {
-        this.u2elementNameIndex = u2elementNameIndex;
-    }
-
-
-    /**
-     * Returns the element name.
-     */
-    public String getMethodName(Clazz clazz)
-    {
-        return clazz.getString(u2elementNameIndex);
-    }
-
-
-    // Abstract methods to be implemented by extensions.
-
-    /**
-     * Returns the tag of this element value.
-     */
-    public abstract char getTag();
-
-
-    /**
-     * Accepts the given visitor.
-     */
-    public abstract void accept(Clazz clazz, Annotation annotation, ElementValueVisitor elementValueVisitor);
-
-
-
-    /**
-     * Applies the given visitor to the referenced method.
-     */
-    public void referencedMethodAccept(MemberVisitor memberVisitor)
-    {
-        if (referencedMethod != null)
-        {
-            referencedMethod.accept(referencedClass, memberVisitor);
-        }
-    }
+  }
 }

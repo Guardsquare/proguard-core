@@ -17,97 +17,73 @@
  */
 package proguard.io;
 
+import java.io.*;
 import proguard.util.StringMatcher;
 
-import java.io.*;
-
 /**
- * This {@link DataEntryWriter} delegates to another {@link DataEntryWriter}, renaming
- * parent data entries based on the given matcher.
+ * This {@link DataEntryWriter} delegates to another {@link DataEntryWriter}, renaming parent data
+ * entries based on the given matcher.
  *
  * @author Thomas Neidhart
  */
-public class RenamedParentDataEntryWriter implements DataEntryWriter
-{
-    private final StringMatcher   matcher;
-    private final String          newParentName;
-    private final DataEntryWriter dataEntryWriter;
+public class RenamedParentDataEntryWriter implements DataEntryWriter {
+  private final StringMatcher matcher;
+  private final String newParentName;
+  private final DataEntryWriter dataEntryWriter;
 
+  /**
+   * Creates a new RenamedParentDataEntryWriter.
+   *
+   * @param matcher the string matcher to match parent entries.
+   * @param newParentName the new parent name to use.
+   * @param dataEntryWriter the DataEntryWriter to which the writing will be delegated.
+   */
+  public RenamedParentDataEntryWriter(
+      StringMatcher matcher, String newParentName, DataEntryWriter dataEntryWriter) {
+    this.matcher = matcher;
+    this.newParentName = newParentName;
+    this.dataEntryWriter = dataEntryWriter;
+  }
 
-    /**
-     * Creates a new RenamedParentDataEntryWriter.
-     *
-     * @param matcher                the string matcher to match parent entries.
-     * @param newParentName          the new parent name to use.
-     * @param dataEntryWriter        the DataEntryWriter to which the writing will
-     *                               be delegated.
-     */
-    public RenamedParentDataEntryWriter(StringMatcher   matcher,
-                                        String          newParentName,
-                                        DataEntryWriter dataEntryWriter)
-    {
-        this.matcher         = matcher;
-        this.newParentName   = newParentName;
-        this.dataEntryWriter = dataEntryWriter;
+  // Implementations for DataEntryWriter.
+
+  public boolean createDirectory(DataEntry dataEntry) throws IOException {
+    return dataEntryWriter.createDirectory(getRedirectedEntry(dataEntry));
+  }
+
+  public boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2) throws IOException {
+    return dataEntryWriter.sameOutputStream(
+        getRedirectedEntry(dataEntry1), getRedirectedEntry(dataEntry2));
+  }
+
+  public OutputStream createOutputStream(DataEntry dataEntry) throws IOException {
+    return dataEntryWriter.createOutputStream(getRedirectedEntry(dataEntry));
+  }
+
+  public void close() throws IOException {
+    dataEntryWriter.close();
+  }
+
+  public void println(PrintWriter pw, String prefix) {
+    dataEntryWriter.println(pw, prefix);
+  }
+
+  private DataEntry getRedirectedEntry(DataEntry dataEntry) {
+    if (dataEntry == null) {
+      return null;
     }
 
+    final DataEntry parentEntry = dataEntry.getParent();
+    if (parentEntry != null && matcher.matches(parentEntry.getName())) {
+      final DataEntry renamedParentEntry = new RenamedDataEntry(parentEntry, newParentName);
 
-    // Implementations for DataEntryWriter.
-
-    public boolean createDirectory(DataEntry dataEntry) throws IOException
-    {
-        return dataEntryWriter.createDirectory(getRedirectedEntry(dataEntry));
-    }
-
-
-    public boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2)
-        throws IOException
-    {
-        return dataEntryWriter.sameOutputStream(getRedirectedEntry(dataEntry1),
-                                                getRedirectedEntry(dataEntry2));
-    }
-
-
-    public OutputStream createOutputStream(DataEntry dataEntry) throws IOException
-    {
-        return dataEntryWriter.createOutputStream(getRedirectedEntry(dataEntry));
-    }
-
-
-    public void close() throws IOException
-    {
-        dataEntryWriter.close();
-    }
-
-
-    public void println(PrintWriter pw, String prefix)
-    {
-        dataEntryWriter.println(pw, prefix);
-    }
-
-    private DataEntry getRedirectedEntry(DataEntry dataEntry)
-    {
-        if (dataEntry == null)
-        {
-            return null;
+      return new WrappedDataEntry(dataEntry) {
+        public DataEntry getParent() {
+          return renamedParentEntry;
         }
-
-        final DataEntry parentEntry = dataEntry.getParent();
-        if (parentEntry != null &&
-            matcher.matches(parentEntry.getName()))
-        {
-            final DataEntry renamedParentEntry =
-                new RenamedDataEntry(parentEntry, newParentName);
-
-            return new WrappedDataEntry(dataEntry) {
-                public DataEntry getParent()
-                {
-                    return renamedParentEntry;
-                }
-            };
-        }
-
-        return dataEntry;
+      };
     }
 
+    return dataEntry;
+  }
 }

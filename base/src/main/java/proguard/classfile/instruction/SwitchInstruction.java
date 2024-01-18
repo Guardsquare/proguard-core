@@ -24,81 +24,64 @@ import java.util.*;
  *
  * @author Eric Lafortune
  */
-public abstract class SwitchInstruction extends Instruction
-{
-    public int   defaultOffset;
-    public int[] jumpOffsets;
+public abstract class SwitchInstruction extends Instruction {
+  public int defaultOffset;
+  public int[] jumpOffsets;
 
+  /** Creates an uninitialized SwitchInstruction. */
+  public SwitchInstruction() {}
 
-    /**
-     * Creates an uninitialized SwitchInstruction.
-     */
-    public SwitchInstruction() {}
+  /**
+   * Creates a new SwitchInstruction with the given arguments. All offsets are relative to this
+   * instruction's offset.
+   */
+  public SwitchInstruction(byte opcode, int defaultOffset, int[] jumpOffsets) {
+    this.opcode = opcode;
+    this.defaultOffset = defaultOffset;
+    this.jumpOffsets = jumpOffsets;
+  }
 
+  /**
+   * Copies the given instruction into this instruction.
+   *
+   * @param switchInstruction the instruction to be copied.
+   * @return this instruction.
+   */
+  public SwitchInstruction copy(SwitchInstruction switchInstruction) {
+    this.opcode = switchInstruction.opcode;
+    this.defaultOffset = switchInstruction.defaultOffset;
+    this.jumpOffsets = switchInstruction.jumpOffsets;
 
-    /**
-     * Creates a new SwitchInstruction with the given arguments.
-     * All offsets are relative to this instruction's offset.
-     */
-    public SwitchInstruction(byte  opcode,
-                             int   defaultOffset,
-                             int[] jumpOffsets)
-    {
-        this.opcode        = opcode;
-        this.defaultOffset = defaultOffset;
-        this.jumpOffsets   = jumpOffsets;
-    }
+    return this;
+  }
 
+  // Implementations for Instruction.
 
-    /**
-     * Copies the given instruction into this instruction.
-     * @param switchInstruction the instruction to be copied.
-     * @return this instruction.
-     */
-    public SwitchInstruction copy(SwitchInstruction switchInstruction)
-    {
-        this.opcode        = switchInstruction.opcode;
-        this.defaultOffset = switchInstruction.defaultOffset;
-        this.jumpOffsets   = switchInstruction.jumpOffsets;
+  public String toString(int offset) {
+    return "[" + offset + "] " + toString() + " (target=" + (offset + defaultOffset) + ")";
+  }
 
-        return this;
-    }
+  // Implementations for Object.
 
+  @Override
+  public String toString() {
+    return getName() + " (" + jumpOffsets.length + " offsets, default=" + defaultOffset + ")";
+  }
 
-    // Implementations for Instruction.
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    SwitchInstruction that = (SwitchInstruction) o;
+    return opcode == that.opcode
+        && defaultOffset == that.defaultOffset
+        && Arrays.equals(jumpOffsets, that.jumpOffsets);
+  }
 
-    public String toString(int offset)
-    {
-        return "["+offset+"] "+toString()+" (target="+(offset+defaultOffset)+")";
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return getName()+" ("+jumpOffsets.length+" offsets, default="+defaultOffset+")";
-    }
-
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SwitchInstruction that = (SwitchInstruction)o;
-        return opcode == that.opcode &&
-               defaultOffset == that.defaultOffset &&
-               Arrays.equals(jumpOffsets, that.jumpOffsets);
-    }
-
-
-    @Override
-    public int hashCode()
-    {
-        int result = Objects.hash(opcode, defaultOffset);
-        result = 31 * result + Arrays.hashCode(jumpOffsets);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(opcode, defaultOffset);
+    result = 31 * result + Arrays.hashCode(jumpOffsets);
+    return result;
+  }
 }

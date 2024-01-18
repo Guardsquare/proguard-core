@@ -24,620 +24,623 @@ import proguard.classfile.attribute.module.*;
 import proguard.classfile.attribute.preverification.*;
 
 /**
- * This {@link AttributeVisitor} delegates all visits to a given {@link AttributeVisitor},
- * although only once to the same attribute in a row.
- * <p/>
- * It can for example be used to lazily apply a visitor in a place where it
- * would be called multiple times.
+ * This {@link AttributeVisitor} delegates all visits to a given {@link AttributeVisitor}, although
+ * only once to the same attribute in a row.
+ *
+ * <p>It can for example be used to lazily apply a visitor in a place where it would be called
+ * multiple times.
  *
  * @author Eric Lafortune
  */
-public class SingleTimeAttributeVisitor
-implements   AttributeVisitor
-{
-    private final AttributeVisitor attributeVisitor;
+public class SingleTimeAttributeVisitor implements AttributeVisitor {
+  private final AttributeVisitor attributeVisitor;
 
-    private Attribute lastVisitedAttribute;
+  private Attribute lastVisitedAttribute;
 
+  public SingleTimeAttributeVisitor(AttributeVisitor attributeVisitor) {
+    this.attributeVisitor = attributeVisitor;
+  }
 
-    public SingleTimeAttributeVisitor(AttributeVisitor attributeVisitor)
-    {
-        this.attributeVisitor = attributeVisitor;
+  // Implementations for AttributeVisitor.
+
+  @Override
+  public void visitUnknownAttribute(Clazz clazz, UnknownAttribute unknownAttribute) {
+    if (!unknownAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitUnknownAttribute(clazz, unknownAttribute);
+
+      lastVisitedAttribute = unknownAttribute;
     }
+  }
 
+  @Override
+  public void visitBootstrapMethodsAttribute(
+      Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute) {
+    if (!bootstrapMethodsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitBootstrapMethodsAttribute(clazz, bootstrapMethodsAttribute);
 
-    // Implementations for AttributeVisitor.
-
-    @Override
-    public void visitUnknownAttribute(Clazz clazz, UnknownAttribute unknownAttribute)
-    {
-        if (!unknownAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitUnknownAttribute(clazz, unknownAttribute);
-
-            lastVisitedAttribute = unknownAttribute;
-        }
+      lastVisitedAttribute = bootstrapMethodsAttribute;
     }
+  }
 
-    @Override
-    public void visitBootstrapMethodsAttribute(Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute)
-    {
-        if (!bootstrapMethodsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitBootstrapMethodsAttribute(clazz, bootstrapMethodsAttribute);
+  @Override
+  public void visitSourceFileAttribute(Clazz clazz, SourceFileAttribute sourceFileAttribute) {
+    if (!sourceFileAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSourceFileAttribute(clazz, sourceFileAttribute);
 
-            lastVisitedAttribute = bootstrapMethodsAttribute;
-        }
+      lastVisitedAttribute = sourceFileAttribute;
     }
+  }
 
-    @Override
-    public void visitSourceFileAttribute(Clazz clazz, SourceFileAttribute sourceFileAttribute)
-    {
-        if (!sourceFileAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSourceFileAttribute(clazz, sourceFileAttribute);
+  @Override
+  public void visitSourceDirAttribute(Clazz clazz, SourceDirAttribute sourceDirAttribute) {
+    if (!sourceDirAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSourceDirAttribute(clazz, sourceDirAttribute);
 
-            lastVisitedAttribute = sourceFileAttribute;
-        }
+      lastVisitedAttribute = sourceDirAttribute;
     }
+  }
 
-    @Override
-    public void visitSourceDirAttribute(Clazz clazz, SourceDirAttribute sourceDirAttribute)
-    {
-        if (!sourceDirAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSourceDirAttribute(clazz, sourceDirAttribute);
+  @Override
+  public void visitSourceDebugExtensionAttribute(
+      Clazz clazz, SourceDebugExtensionAttribute sourceDebugExtensionAttribute) {
+    if (!sourceDebugExtensionAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSourceDebugExtensionAttribute(clazz, sourceDebugExtensionAttribute);
 
-            lastVisitedAttribute = sourceDirAttribute;
-        }
+      lastVisitedAttribute = sourceDebugExtensionAttribute;
     }
+  }
 
-    @Override
-    public void visitSourceDebugExtensionAttribute(Clazz clazz, SourceDebugExtensionAttribute sourceDebugExtensionAttribute)
-    {
-        if (!sourceDebugExtensionAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSourceDebugExtensionAttribute(clazz, sourceDebugExtensionAttribute);
+  @Override
+  public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute) {
+    if (!recordAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
 
-            lastVisitedAttribute = sourceDebugExtensionAttribute;
-        }
+      lastVisitedAttribute = recordAttribute;
     }
+  }
 
-    @Override
-    public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute)
-    {
-        if (!recordAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRecordAttribute(clazz, recordAttribute);
+  @Override
+  public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute) {
+    if (!innerClassesAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitInnerClassesAttribute(clazz, innerClassesAttribute);
 
-            lastVisitedAttribute = recordAttribute;
-        }
+      lastVisitedAttribute = innerClassesAttribute;
     }
+  }
 
-    @Override
-    public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute)
-    {
-        if (!innerClassesAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitInnerClassesAttribute(clazz, innerClassesAttribute);
+  @Override
+  public void visitEnclosingMethodAttribute(
+      Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute) {
+    if (!enclosingMethodAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitEnclosingMethodAttribute(clazz, enclosingMethodAttribute);
 
-            lastVisitedAttribute = innerClassesAttribute;
-        }
+      lastVisitedAttribute = enclosingMethodAttribute;
     }
+  }
 
-    @Override
-    public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
-    {
-        if (!enclosingMethodAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitEnclosingMethodAttribute(clazz, enclosingMethodAttribute);
+  @Override
+  public void visitNestHostAttribute(Clazz clazz, NestHostAttribute nestHostAttribute) {
+    if (!nestHostAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitNestHostAttribute(clazz, nestHostAttribute);
 
-            lastVisitedAttribute = enclosingMethodAttribute;
-        }
+      lastVisitedAttribute = nestHostAttribute;
     }
+  }
 
-    @Override
-    public void visitNestHostAttribute(Clazz clazz, NestHostAttribute nestHostAttribute)
-    {
-        if (!nestHostAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitNestHostAttribute(clazz, nestHostAttribute);
+  @Override
+  public void visitNestMembersAttribute(Clazz clazz, NestMembersAttribute nestMembersAttribute) {
+    if (!nestMembersAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitNestMembersAttribute(clazz, nestMembersAttribute);
 
-            lastVisitedAttribute = nestHostAttribute;
-        }
+      lastVisitedAttribute = nestMembersAttribute;
     }
+  }
 
-    @Override
-    public void visitNestMembersAttribute(Clazz clazz, NestMembersAttribute nestMembersAttribute)
-    {
-        if (!nestMembersAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitNestMembersAttribute(clazz, nestMembersAttribute);
+  public void visitPermittedSubclassesAttribute(
+      Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute) {
+    if (!permittedSubclassesAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
 
-            lastVisitedAttribute = nestMembersAttribute;
-        }
+      lastVisitedAttribute = permittedSubclassesAttribute;
     }
+  }
 
-    public void visitPermittedSubclassesAttribute(Clazz clazz, PermittedSubclassesAttribute permittedSubclassesAttribute)
-    {
-        if (!permittedSubclassesAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitPermittedSubclassesAttribute(clazz, permittedSubclassesAttribute);
+  @Override
+  public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute) {
+    if (!moduleAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitModuleAttribute(clazz, moduleAttribute);
 
-            lastVisitedAttribute = permittedSubclassesAttribute;
-        }
+      lastVisitedAttribute = moduleAttribute;
     }
+  }
 
-    @Override
-    public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute)
-    {
-        if (!moduleAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitModuleAttribute(clazz, moduleAttribute);
+  @Override
+  public void visitModuleMainClassAttribute(
+      Clazz clazz, ModuleMainClassAttribute moduleMainClassAttribute) {
+    if (!moduleMainClassAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitModuleMainClassAttribute(clazz, moduleMainClassAttribute);
 
-            lastVisitedAttribute = moduleAttribute;
-        }
+      lastVisitedAttribute = moduleMainClassAttribute;
     }
+  }
 
-    @Override
-    public void visitModuleMainClassAttribute(Clazz clazz, ModuleMainClassAttribute moduleMainClassAttribute)
-    {
-        if (!moduleMainClassAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitModuleMainClassAttribute(clazz, moduleMainClassAttribute);
+  @Override
+  public void visitModulePackagesAttribute(
+      Clazz clazz, ModulePackagesAttribute modulePackagesAttribute) {
+    if (!modulePackagesAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitModulePackagesAttribute(clazz, modulePackagesAttribute);
 
-            lastVisitedAttribute = moduleMainClassAttribute;
-        }
+      lastVisitedAttribute = modulePackagesAttribute;
     }
+  }
 
-    @Override
-    public void visitModulePackagesAttribute(Clazz clazz, ModulePackagesAttribute modulePackagesAttribute)
-    {
-        if (!modulePackagesAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitModulePackagesAttribute(clazz, modulePackagesAttribute);
+  @Override
+  public void visitDeprecatedAttribute(Clazz clazz, DeprecatedAttribute deprecatedAttribute) {
+    if (!deprecatedAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitDeprecatedAttribute(clazz, deprecatedAttribute);
 
-            lastVisitedAttribute = modulePackagesAttribute;
-        }
+      lastVisitedAttribute = deprecatedAttribute;
     }
+  }
 
-    @Override
-    public void visitDeprecatedAttribute(Clazz clazz, DeprecatedAttribute deprecatedAttribute)
-    {
-        if (!deprecatedAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitDeprecatedAttribute(clazz, deprecatedAttribute);
+  @Override
+  public void visitDeprecatedAttribute(
+      Clazz clazz, Field field, DeprecatedAttribute deprecatedAttribute) {
+    if (!deprecatedAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitDeprecatedAttribute(clazz, field, deprecatedAttribute);
 
-            lastVisitedAttribute = deprecatedAttribute;
-        }
+      lastVisitedAttribute = deprecatedAttribute;
     }
+  }
 
-    @Override
-    public void visitDeprecatedAttribute(Clazz clazz, Field field, DeprecatedAttribute deprecatedAttribute)
-    {
-        if (!deprecatedAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitDeprecatedAttribute(clazz, field, deprecatedAttribute);
+  @Override
+  public void visitDeprecatedAttribute(
+      Clazz clazz, Method method, DeprecatedAttribute deprecatedAttribute) {
+    if (!deprecatedAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitDeprecatedAttribute(clazz, method, deprecatedAttribute);
 
-            lastVisitedAttribute = deprecatedAttribute;
-        }
+      lastVisitedAttribute = deprecatedAttribute;
     }
+  }
 
-    @Override
-    public void visitDeprecatedAttribute(Clazz clazz, Method method, DeprecatedAttribute deprecatedAttribute)
-    {
-        if (!deprecatedAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitDeprecatedAttribute(clazz, method, deprecatedAttribute);
+  @Override
+  public void visitSyntheticAttribute(Clazz clazz, SyntheticAttribute syntheticAttribute) {
+    if (!syntheticAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSyntheticAttribute(clazz, syntheticAttribute);
 
-            lastVisitedAttribute = deprecatedAttribute;
-        }
+      lastVisitedAttribute = syntheticAttribute;
     }
+  }
 
-    @Override
-    public void visitSyntheticAttribute(Clazz clazz, SyntheticAttribute syntheticAttribute)
-    {
-        if (!syntheticAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSyntheticAttribute(clazz, syntheticAttribute);
+  @Override
+  public void visitSyntheticAttribute(
+      Clazz clazz, Field field, SyntheticAttribute syntheticAttribute) {
+    if (!syntheticAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSyntheticAttribute(clazz, field, syntheticAttribute);
 
-            lastVisitedAttribute = syntheticAttribute;
-        }
+      lastVisitedAttribute = syntheticAttribute;
     }
+  }
 
-    @Override
-    public void visitSyntheticAttribute(Clazz clazz, Field field, SyntheticAttribute syntheticAttribute)
-    {
-        if (!syntheticAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSyntheticAttribute(clazz, field, syntheticAttribute);
+  @Override
+  public void visitSyntheticAttribute(
+      Clazz clazz, Method method, SyntheticAttribute syntheticAttribute) {
+    if (!syntheticAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSyntheticAttribute(clazz, method, syntheticAttribute);
 
-            lastVisitedAttribute = syntheticAttribute;
-        }
+      lastVisitedAttribute = syntheticAttribute;
     }
+  }
 
-    @Override
-    public void visitSyntheticAttribute(Clazz clazz, Method method, SyntheticAttribute syntheticAttribute)
-    {
-        if (!syntheticAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSyntheticAttribute(clazz, method, syntheticAttribute);
+  @Override
+  public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute) {
+    if (!signatureAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSignatureAttribute(clazz, signatureAttribute);
 
-            lastVisitedAttribute = syntheticAttribute;
-        }
+      lastVisitedAttribute = signatureAttribute;
     }
+  }
 
-    @Override
-    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute)
-    {
-        if (!signatureAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSignatureAttribute(clazz, signatureAttribute);
+  @Override
+  public void visitSignatureAttribute(
+      Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute) {
+    if (!signatureAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
 
-            lastVisitedAttribute = signatureAttribute;
-        }
+      lastVisitedAttribute = signatureAttribute;
     }
+  }
 
-    @Override
-    public void visitSignatureAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute)
-    {
-        if (!signatureAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSignatureAttribute(clazz, recordComponentInfo, signatureAttribute);
+  @Override
+  public void visitSignatureAttribute(
+      Clazz clazz, Field field, SignatureAttribute signatureAttribute) {
+    if (!signatureAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSignatureAttribute(clazz, field, signatureAttribute);
 
-            lastVisitedAttribute = signatureAttribute;
-        }
+      lastVisitedAttribute = signatureAttribute;
     }
+  }
 
-    @Override
-    public void visitSignatureAttribute(Clazz clazz, Field field, SignatureAttribute signatureAttribute)
-    {
-        if (!signatureAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSignatureAttribute(clazz, field, signatureAttribute);
+  @Override
+  public void visitSignatureAttribute(
+      Clazz clazz, Method method, SignatureAttribute signatureAttribute) {
+    if (!signatureAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitSignatureAttribute(clazz, method, signatureAttribute);
 
-            lastVisitedAttribute = signatureAttribute;
-        }
+      lastVisitedAttribute = signatureAttribute;
     }
+  }
 
-    @Override
-    public void visitSignatureAttribute(Clazz clazz, Method method, SignatureAttribute signatureAttribute)
-    {
-        if (!signatureAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitSignatureAttribute(clazz, method, signatureAttribute);
+  @Override
+  public void visitConstantValueAttribute(
+      Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute) {
+    if (!constantValueAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitConstantValueAttribute(clazz, field, constantValueAttribute);
 
-            lastVisitedAttribute = signatureAttribute;
-        }
+      lastVisitedAttribute = constantValueAttribute;
     }
+  }
 
-    @Override
-    public void visitConstantValueAttribute(Clazz clazz, Field field, ConstantValueAttribute constantValueAttribute)
-    {
-        if (!constantValueAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitConstantValueAttribute(clazz, field, constantValueAttribute);
+  @Override
+  public void visitMethodParametersAttribute(
+      Clazz clazz, Method method, MethodParametersAttribute methodParametersAttribute) {
+    if (!methodParametersAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitMethodParametersAttribute(clazz, method, methodParametersAttribute);
 
-            lastVisitedAttribute = constantValueAttribute;
-        }
+      lastVisitedAttribute = methodParametersAttribute;
     }
+  }
 
-    @Override
-    public void visitMethodParametersAttribute(Clazz clazz, Method method, MethodParametersAttribute methodParametersAttribute)
-    {
-        if (!methodParametersAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitMethodParametersAttribute(clazz, method, methodParametersAttribute);
+  @Override
+  public void visitExceptionsAttribute(
+      Clazz clazz, Method method, ExceptionsAttribute exceptionsAttribute) {
+    if (!exceptionsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitExceptionsAttribute(clazz, method, exceptionsAttribute);
 
-            lastVisitedAttribute = methodParametersAttribute;
-        }
+      lastVisitedAttribute = exceptionsAttribute;
     }
+  }
 
-    @Override
-    public void visitExceptionsAttribute(Clazz clazz, Method method, ExceptionsAttribute exceptionsAttribute)
-    {
-        if (!exceptionsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitExceptionsAttribute(clazz, method, exceptionsAttribute);
+  @Override
+  public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+    if (!codeAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitCodeAttribute(clazz, method, codeAttribute);
 
-            lastVisitedAttribute = exceptionsAttribute;
-        }
+      lastVisitedAttribute = codeAttribute;
     }
+  }
 
-    @Override
-    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute)
-    {
-        if (!codeAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitCodeAttribute(clazz, method, codeAttribute);
+  @Override
+  public void visitStackMapAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      StackMapAttribute stackMapAttribute) {
+    if (!stackMapAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitStackMapAttribute(clazz, method, codeAttribute, stackMapAttribute);
 
-            lastVisitedAttribute = codeAttribute;
-        }
+      lastVisitedAttribute = stackMapAttribute;
     }
+  }
 
-    @Override
-    public void visitStackMapAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapAttribute stackMapAttribute)
-    {
-        if (!stackMapAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitStackMapAttribute(clazz, method, codeAttribute, stackMapAttribute);
+  @Override
+  public void visitStackMapTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      StackMapTableAttribute stackMapTableAttribute) {
+    if (!stackMapTableAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitStackMapTableAttribute(
+          clazz, method, codeAttribute, stackMapTableAttribute);
 
-            lastVisitedAttribute = stackMapAttribute;
-        }
+      lastVisitedAttribute = stackMapTableAttribute;
     }
+  }
 
-    @Override
-    public void visitStackMapTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, StackMapTableAttribute stackMapTableAttribute)
-    {
-        if (!stackMapTableAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitStackMapTableAttribute(clazz, method, codeAttribute, stackMapTableAttribute);
+  @Override
+  public void visitLineNumberTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LineNumberTableAttribute lineNumberTableAttribute) {
+    if (!lineNumberTableAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitLineNumberTableAttribute(
+          clazz, method, codeAttribute, lineNumberTableAttribute);
 
-            lastVisitedAttribute = stackMapTableAttribute;
-        }
+      lastVisitedAttribute = lineNumberTableAttribute;
     }
+  }
 
-    @Override
-    public void visitLineNumberTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberTableAttribute lineNumberTableAttribute)
-    {
-        if (!lineNumberTableAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitLineNumberTableAttribute(clazz, method, codeAttribute, lineNumberTableAttribute);
+  @Override
+  public void visitLocalVariableTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableTableAttribute localVariableTableAttribute) {
+    if (!localVariableTableAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitLocalVariableTableAttribute(
+          clazz, method, codeAttribute, localVariableTableAttribute);
 
-            lastVisitedAttribute = lineNumberTableAttribute;
-        }
+      lastVisitedAttribute = localVariableTableAttribute;
     }
+  }
 
-    @Override
-    public void visitLocalVariableTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTableAttribute localVariableTableAttribute)
-    {
-        if (!localVariableTableAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitLocalVariableTableAttribute(clazz, method, codeAttribute, localVariableTableAttribute);
+  @Override
+  public void visitLocalVariableTypeTableAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableTypeTableAttribute localVariableTypeTableAttribute) {
+    if (!localVariableTypeTableAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitLocalVariableTypeTableAttribute(
+          clazz, method, codeAttribute, localVariableTypeTableAttribute);
 
-            lastVisitedAttribute = localVariableTableAttribute;
-        }
+      lastVisitedAttribute = localVariableTypeTableAttribute;
     }
+  }
 
-    @Override
-    public void visitLocalVariableTypeTableAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableTypeTableAttribute localVariableTypeTableAttribute)
-    {
-        if (!localVariableTypeTableAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitLocalVariableTypeTableAttribute(clazz, method, codeAttribute, localVariableTypeTableAttribute);
+  @Override
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, runtimeVisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = localVariableTypeTableAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, runtimeVisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, field, runtimeVisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, field, runtimeVisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute) {
+    if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(
+          clazz, method, runtimeVisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleAnnotationsAttribute runtimeVisibleAnnotationsAttribute)
-    {
-        if (!runtimeVisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleAnnotationsAttribute(clazz, method, runtimeVisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, runtimeInvisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, runtimeInvisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, field, runtimeInvisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, field, runtimeInvisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute) {
+    if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(
+          clazz, method, runtimeInvisibleAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleAnnotationsAttribute runtimeInvisibleAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleAnnotationsAttribute(clazz, method, runtimeInvisibleAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleParameterAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleParameterAnnotationsAttribute runtimeVisibleParameterAnnotationsAttribute) {
+    if (!runtimeVisibleParameterAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleParameterAnnotationsAttribute(
+          clazz, method, runtimeVisibleParameterAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleParameterAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleParameterAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleParameterAnnotationsAttribute runtimeVisibleParameterAnnotationsAttribute)
-    {
-        if (!runtimeVisibleParameterAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleParameterAnnotationsAttribute(clazz, method, runtimeVisibleParameterAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleParameterAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleParameterAnnotationsAttribute runtimeInvisibleParameterAnnotationsAttribute) {
+    if (!runtimeInvisibleParameterAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleParameterAnnotationsAttribute(
+          clazz, method, runtimeInvisibleParameterAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleParameterAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleParameterAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleParameterAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleParameterAnnotationsAttribute runtimeInvisibleParameterAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleParameterAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleParameterAnnotationsAttribute(clazz, method, runtimeInvisibleParameterAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, runtimeVisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleParameterAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, runtimeVisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, field, runtimeVisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, field, runtimeVisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, method, runtimeVisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, runtimeVisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeVisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
+    if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(
+          clazz, method, codeAttribute, runtimeVisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeVisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeVisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeVisibleTypeAnnotationsAttribute(clazz, method, codeAttribute, runtimeVisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, runtimeInvisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeVisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, runtimeInvisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      RecordComponentInfo recordComponentInfo,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, RecordComponentInfo recordComponentInfo, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Field field,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, field, runtimeInvisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Field field, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, field, runtimeInvisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, method, runtimeInvisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, runtimeInvisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitRuntimeInvisibleTypeAnnotationsAttribute(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
+    if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(
+          clazz, method, codeAttribute, runtimeInvisibleTypeAnnotationsAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
     }
+  }
 
-    @Override
-    public void visitRuntimeInvisibleTypeAnnotationsAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute, RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute)
-    {
-        if (!runtimeInvisibleTypeAnnotationsAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitRuntimeInvisibleTypeAnnotationsAttribute(clazz, method, codeAttribute, runtimeInvisibleTypeAnnotationsAttribute);
+  @Override
+  public void visitAnnotationDefaultAttribute(
+      Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute) {
+    if (!annotationDefaultAttribute.equals(lastVisitedAttribute)) {
+      attributeVisitor.visitAnnotationDefaultAttribute(clazz, method, annotationDefaultAttribute);
 
-            lastVisitedAttribute = runtimeInvisibleTypeAnnotationsAttribute;
-        }
+      lastVisitedAttribute = annotationDefaultAttribute;
     }
-
-    @Override
-    public void visitAnnotationDefaultAttribute(Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute)
-    {
-        if (!annotationDefaultAttribute.equals(lastVisitedAttribute))
-        {
-            attributeVisitor.visitAnnotationDefaultAttribute(clazz, method, annotationDefaultAttribute);
-
-            lastVisitedAttribute = annotationDefaultAttribute;
-        }
-    }
+  }
 }

@@ -17,12 +17,6 @@
  */
 package proguard.io.util;
 
-import proguard.io.ClassPath;
-import proguard.io.ClassPathEntry;
-import proguard.util.FileNameParser;
-import proguard.util.ListParser;
-import proguard.util.StringMatcher;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,105 +26,90 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import proguard.io.ClassPath;
+import proguard.io.ClassPathEntry;
+import proguard.util.FileNameParser;
+import proguard.util.ListParser;
+import proguard.util.StringMatcher;
 
-public final class ClassPathUtil
-{
-    private ClassPathUtil() {}
+public final class ClassPathUtil {
+  private ClassPathUtil() {}
 
-    /**
-     * Returns whether the class path contains any input app bundles.
-     */
-    public static boolean hasAabInput(ClassPath classPath)
-    {
-        return classPath != null &&
-               classPath.getClassPathEntries().stream()
-                   .filter(entry -> !entry.isOutput())
-                   .anyMatch(ClassPathEntry::isAab);
+  /** Returns whether the class path contains any input app bundles. */
+  public static boolean hasAabInput(ClassPath classPath) {
+    return classPath != null
+        && classPath.getClassPathEntries().stream()
+            .filter(entry -> !entry.isOutput())
+            .anyMatch(ClassPathEntry::isAab);
+  }
+
+  /** Returns whether the class path contains android target formats. */
+  public static boolean isAndroid(ClassPath classPath) {
+    return classPath != null
+        && classPath.getClassPathEntries().stream()
+            .anyMatch(entry -> entry.isDex() || entry.isApk() || entry.isAab() || entry.isAar());
+  }
+
+  /** Returns whether the class path contains dalvik target formats. */
+  public static boolean isDalvik(ClassPath classPath) {
+    return classPath != null
+        && classPath.getClassPathEntries().stream()
+            .anyMatch(entry -> entry.isDex() || entry.isApk());
+  }
+
+  /**
+   * Loop through all the input zip entries in {@link ClassPath} to determine the compression
+   * methods. For dex files, if one entry is uncompressed, a regex is added to match all dex files.
+   * That allows to keep a consistent compression method regardless of the number of dex files after
+   * processing (edge case if we add classes and a new dex file is needed).
+   *
+   * @param classPath the entry to scan.
+   */
+  public static StringMatcher determineCompressionMethod(ClassPath classPath) {
+    List<String> dontCompress = new ArrayList<>();
+    for (int index = 0; index < classPath.size(); index++) {
+      ClassPathEntry entry = classPath.get(index);
+      if (!entry.isOutput()) {
+        dontCompress.addAll(determineCompressionMethod(entry));
+      }
+    }
+    return dontCompress.isEmpty() ? null : new ListParser(new FileNameParser()).parse(dontCompress);
+  }
+
+  private static List<String> determineCompressionMethod(ClassPathEntry entry) {
+    File file = entry.getFile();
+    if (file == null || file.isDirectory()) {
+      return new ArrayList<>();
     }
 
-    /**
-     * Returns whether the class path contains android target formats.
-     */
-    public static boolean isAndroid(ClassPath classPath)
-    {
-        return classPath != null &&
-                classPath.getClassPathEntries().stream()
-                        .anyMatch(entry -> entry.isDex() || entry.isApk() || entry.isAab() || entry.isAar());
-    }
+    String regexDexClasses = "classes*.dex";
 
-    /**
-     * Returns whether the class path contains dalvik target formats.
-     */
-    public static boolean isDalvik(ClassPath classPath)
-    {
-        return classPath != null &&
-                classPath.getClassPathEntries().stream()
-                        .anyMatch(entry -> entry.isDex() || entry.isApk());
-    }
+    try (ZipFile zip = new ZipFile(file)) {
+      Enumeration<? extends ZipEntry> entries = zip.entries();
 
-    /**
-     * Loop through all the input zip entries in {@link ClassPath} to determine the compression methods.
-     * For dex files, if one entry is uncompressed, a regex is added to match all dex files.
-     * That allows to keep a consistent compression method regardless of the number of dex files
-     * after processing (edge case if we add classes and a new dex file is needed).
-     *
-     * @param classPath the entry to scan.
-     */
-    public static StringMatcher determineCompressionMethod(ClassPath classPath)
-    {
-        List<String> dontCompress = new ArrayList<>();
-        for (int index = 0; index < classPath.size(); index++)
-        {
-            ClassPathEntry entry = classPath.get(index);
-            if (!entry.isOutput())
-            {
-                dontCompress.addAll(determineCompressionMethod(entry));
-            }
+      Set<String> storedEntries = new TreeSet<>();
+
+      while (entries.hasMoreElements()) {
+        ZipEntry zipEntry = entries.nextElement();
+        if (zipEntry.getMethod() == ZipEntry.DEFLATED) {
+          continue;
         }
-        return dontCompress.isEmpty() ? null : new ListParser(new FileNameParser()).parse(dontCompress);
+
+        String name = zipEntry.getName();
+
+        // Special case for classes.dex: If we end up creating another dex file, we want all dex
+        // files compression to be consistent.
+        if (name.matches("classes\\d*.dex")) {
+          storedEntries.add(regexDexClasses);
+        } else {
+          storedEntries.add(name);
+        }
+      }
+
+      return new ArrayList<>(storedEntries);
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Could not determine compression method for " + entry.getName(), e);
     }
-
-    private static List<String> determineCompressionMethod(ClassPathEntry entry) {
-        File file = entry.getFile();
-        if (file == null || file.isDirectory())
-        {
-            return new ArrayList<>();
-        }
-
-        String regexDexClasses = "classes*.dex";
-
-        try (ZipFile zip = new ZipFile(file))
-        {
-            Enumeration<? extends ZipEntry> entries = zip.entries();
-
-            Set<String> storedEntries = new TreeSet<>();
-
-            while (entries.hasMoreElements())
-            {
-                ZipEntry zipEntry = entries.nextElement();
-                if (zipEntry.getMethod() == ZipEntry.DEFLATED)
-                {
-                    continue;
-                }
-
-                String name = zipEntry.getName();
-
-                // Special case for classes.dex: If we end up creating another dex file, we want all dex files compression to be consistent.
-                if (name.matches("classes\\d*.dex"))
-                {
-                    storedEntries.add(regexDexClasses);
-                }
-                else
-                {
-                    storedEntries.add(name);
-                }
-            }
-
-            return new ArrayList<>(storedEntries);
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException("Could not determine compression method for " + entry.getName(), e);
-        }
-    }
+  }
 }

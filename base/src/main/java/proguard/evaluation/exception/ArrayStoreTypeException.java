@@ -23,28 +23,26 @@ import proguard.evaluation.value.Value;
 import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 
-public class ArrayStoreTypeException extends ProguardCoreException
-{
-    private final TypedReferenceValue array;
+public class ArrayStoreTypeException extends ProguardCoreException {
+  private final TypedReferenceValue array;
 
-    private final Value value;
+  private final Value value;
 
-    public ArrayStoreTypeException(TypedReferenceValue array, Value value)
-    {
-        super(ErrorId.ARRAY_STORE_TYPE_EXCEPTION,
-                "Array of type [%s] can not store value [%s]",
-                array.getType(), value.toString());
-        this.array = array;
-        this.value = value;
-    }
+  public ArrayStoreTypeException(TypedReferenceValue array, Value value) {
+    super(
+        ErrorId.ARRAY_STORE_TYPE_EXCEPTION,
+        "Array of type [%s] can not store value [%s]",
+        array.getType(),
+        value.toString());
+    this.array = array;
+    this.value = value;
+  }
 
-    public TypedReferenceValue getArray()
-    {
-        return array;
-    }
+  public TypedReferenceValue getArray() {
+    return array;
+  }
 
-    public Value getValue()
-    {
-        return value;
-    }
+  public Value getValue() {
+    return value;
+  }
 }

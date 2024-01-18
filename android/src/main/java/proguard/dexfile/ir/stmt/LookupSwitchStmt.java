@@ -27,37 +27,42 @@ import proguard.dexfile.ir.expr.Value;
  */
 public class LookupSwitchStmt extends BaseSwitchStmt {
 
-    public int[] lookupValues;
+  public int[] lookupValues;
 
-    public LookupSwitchStmt(Value key, int[] lookupValues, LabelStmt[] targets, LabelStmt defaultTarget) {
-        super(ST.LOOKUP_SWITCH, key);
-        this.lookupValues = lookupValues;
-        this.targets = targets;
-        this.defaultTarget = defaultTarget;
+  public LookupSwitchStmt(
+      Value key, int[] lookupValues, LabelStmt[] targets, LabelStmt defaultTarget) {
+    super(ST.LOOKUP_SWITCH, key);
+    this.lookupValues = lookupValues;
+    this.targets = targets;
+    this.defaultTarget = defaultTarget;
+  }
+
+  @Override
+  public Stmt clone(LabelAndLocalMapper mapper) {
+    LabelStmt[] nTargets = new LabelStmt[targets.length];
+    for (int i = 0; i < nTargets.length; i++) {
+      nTargets[i] = mapper.map(targets[i]);
     }
+    int nLookupValues[] = new int[lookupValues.length];
+    System.arraycopy(lookupValues, 0, nLookupValues, 0, nLookupValues.length);
 
-    @Override
-    public Stmt clone(LabelAndLocalMapper mapper) {
-        LabelStmt[] nTargets = new LabelStmt[targets.length];
-        for (int i = 0; i < nTargets.length; i++) {
-            nTargets[i] = mapper.map(targets[i]);
-        }
-        int nLookupValues[] = new int[lookupValues.length];
-        System.arraycopy(lookupValues, 0, nLookupValues, 0, nLookupValues.length);
+    return new LookupSwitchStmt(
+        op.clone(mapper), nLookupValues, nTargets, mapper.map(defaultTarget));
+  }
 
-        return new LookupSwitchStmt(op.clone(mapper), nLookupValues, nTargets, mapper.map(defaultTarget));
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("switch(").append(op).append(") {");
+
+    for (int i = 0; i < lookupValues.length; i++) {
+      sb.append("\n case ")
+          .append(lookupValues[i])
+          .append(": GOTO ")
+          .append(targets[i].getDisplayName())
+          .append(";");
     }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("switch(").append(op).append(") {");
-
-        for (int i = 0; i < lookupValues.length; i++) {
-            sb.append("\n case ").append(lookupValues[i]).append(": GOTO ").append(targets[i].getDisplayName())
-                    .append(";");
-        }
-        sb.append("\n default : GOTO ").append(defaultTarget.getDisplayName()).append(";");
-        sb.append("\n}");
-        return sb.toString();
-    }
+    sb.append("\n default : GOTO ").append(defaultTarget.getDisplayName()).append(";");
+    sb.append("\n}");
+    return sb.toString();
+  }
 }

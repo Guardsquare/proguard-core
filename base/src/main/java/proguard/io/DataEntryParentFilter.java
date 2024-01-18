@@ -22,28 +22,22 @@ package proguard.io;
  *
  * @author Eric Lafortune
  */
-public class DataEntryParentFilter
-implements   DataEntryFilter
-{
-    private final DataEntryFilter dataEntryFilter;
+public class DataEntryParentFilter implements DataEntryFilter {
+  private final DataEntryFilter dataEntryFilter;
 
+  /**
+   * Creates a new ParentFilter.
+   *
+   * @param dataEntryFilter the filter that will be applied to the data entry's parent.
+   */
+  public DataEntryParentFilter(DataEntryFilter dataEntryFilter) {
+    this.dataEntryFilter = dataEntryFilter;
+  }
 
-    /**
-     * Creates a new ParentFilter.
-     * @param dataEntryFilter the filter that will be applied to the data
-     *                        entry's parent.
-     */
-    public DataEntryParentFilter(DataEntryFilter dataEntryFilter)
-    {
-        this.dataEntryFilter = dataEntryFilter;
-    }
+  // Implementations for DataEntryFilter.
 
-
-    // Implementations for DataEntryFilter.
-
-    @Override
-    public boolean accepts(DataEntry dataEntry)
-    {
-        return dataEntry != null && dataEntryFilter.accepts(dataEntry.getParent());
-    }
+  @Override
+  public boolean accepts(DataEntry dataEntry) {
+    return dataEntry != null && dataEntryFilter.accepts(dataEntry.getParent());
+  }
 }

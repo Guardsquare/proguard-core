@@ -23,17 +23,14 @@ package proguard.analysis.cpa.interfaces;
  *
  * @author Dmitry Ivanov
  */
-public interface AbstractDomain
-{
+public interface AbstractDomain {
 
-    /**
-     * Computes the join over two abstract states.
-     * To guarantee the correct behavior of the algorithm implementations must have no side effects.
-     */
-    AbstractState join(AbstractState abstractState1, AbstractState abstractState2);
+  /**
+   * Computes the join over two abstract states. To guarantee the correct behavior of the algorithm
+   * implementations must have no side effects.
+   */
+  AbstractState join(AbstractState abstractState1, AbstractState abstractState2);
 
-    /**
-     * Compares two abstract states.
-     */
-    boolean isLessOrEqual(AbstractState abstractState1, AbstractState abstractState2);
+  /** Compares two abstract states. */
+  boolean isLessOrEqual(AbstractState abstractState1, AbstractState abstractState2);
 }

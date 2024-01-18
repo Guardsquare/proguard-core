@@ -26,38 +26,47 @@ import proguard.classfile.attribute.preverification.visitor.VerificationTypeVisi
  *
  * @author Eric Lafortune
  */
-public class DoubleType extends VerificationType
-{
-    // Implementations for VerificationType.
+public class DoubleType extends VerificationType {
+  // Implementations for VerificationType.
 
-    public int getTag()
-    {
-        return DOUBLE_TYPE;
-    }
+  public int getTag() {
+    return DOUBLE_TYPE;
+  }
 
+  public void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      VerificationTypeVisitor verificationTypeVisitor) {
+    verificationTypeVisitor.visitDoubleType(clazz, method, codeAttribute, instructionOffset, this);
+  }
 
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, VerificationTypeVisitor verificationTypeVisitor)
-    {
-        verificationTypeVisitor.visitDoubleType(clazz, method, codeAttribute, instructionOffset, this);
-    }
+  public void stackAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      int stackIndex,
+      VerificationTypeVisitor verificationTypeVisitor) {
+    verificationTypeVisitor.visitStackDoubleType(
+        clazz, method, codeAttribute, instructionOffset, stackIndex, this);
+  }
 
+  public void variablesAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      int variableIndex,
+      VerificationTypeVisitor verificationTypeVisitor) {
+    verificationTypeVisitor.visitVariablesDoubleType(
+        clazz, method, codeAttribute, instructionOffset, variableIndex, this);
+  }
 
-    public void stackAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, int stackIndex, VerificationTypeVisitor verificationTypeVisitor)
-    {
-        verificationTypeVisitor.visitStackDoubleType(clazz, method, codeAttribute, instructionOffset, stackIndex, this);
-    }
+  // Implementations for Object.
 
-
-    public void variablesAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, int variableIndex, VerificationTypeVisitor verificationTypeVisitor)
-    {
-        verificationTypeVisitor.visitVariablesDoubleType(clazz, method, codeAttribute, instructionOffset, variableIndex, this);
-    }
-
-
-    // Implementations for Object.
-
-    public String toString()
-    {
-        return "d";
-    }
+  public String toString() {
+    return "d";
+  }
 }

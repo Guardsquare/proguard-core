@@ -10,37 +10,35 @@ import proguard.classfile.constant.Constant;
  *
  * @author Kymeng Tang
  */
-public abstract class MemberViewModel extends ProcessableViewModel
-{
-    protected Pair<Clazz, Member> model;
-    protected Object              processingInfo;
+public abstract class MemberViewModel extends ProcessableViewModel {
+  protected Pair<Clazz, Member> model;
+  protected Object processingInfo;
 
-    /**
-     * A utility class for keeping track of pairs, e.g.{@link Clazz} and {@link Member}
-     * @param <K>   A generic class.
-     * @param <V>   Another generic class.
-     */
-    public static class Pair<K, V>
-    {
-        public K key;
-        public V value;
-        public Pair(K key, V value)
-        {
-            this.key = key;
-            this.value = value;
-        }
+  /**
+   * A utility class for keeping track of pairs, e.g.{@link Clazz} and {@link Member}
+   *
+   * @param <K> A generic class.
+   * @param <V> Another generic class.
+   */
+  public static class Pair<K, V> {
+    public K key;
+    public V value;
+
+    public Pair(K key, V value) {
+      this.key = key;
+      this.value = value;
     }
-    /**
-     * A constructor to keep track of the {@link Member} object to be rendered and its associated
-     * {@link Clazz}
-     *
-     * @param clazz         The {@link Clazz} that the {@link Constant} entry belongs to.
-     * @param member        The {@link Member} object to be rendered.
-     */
-    protected MemberViewModel(Clazz clazz, Member member)
-    {
-        this.model = new Pair<>(clazz, member);
-        this.processingFlags = renderProcessingFlags(member.getProcessingFlags());
-        this.processingInfo = member.getProcessingInfo();
-    }
+  }
+  /**
+   * A constructor to keep track of the {@link Member} object to be rendered and its associated
+   * {@link Clazz}
+   *
+   * @param clazz The {@link Clazz} that the {@link Constant} entry belongs to.
+   * @param member The {@link Member} object to be rendered.
+   */
+  protected MemberViewModel(Clazz clazz, Member member) {
+    this.model = new Pair<>(clazz, member);
+    this.processingFlags = renderProcessingFlags(member.getProcessingFlags());
+    this.processingInfo = member.getProcessingInfo();
+  }
 }

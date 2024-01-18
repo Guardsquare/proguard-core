@@ -25,100 +25,68 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Eric Lafortune
  */
-public class LongConstant extends Constant
-{
-    public long u8value;
+public class LongConstant extends Constant {
+  public long u8value;
 
+  /** Creates an uninitialized LongConstant. */
+  public LongConstant() {}
 
-    /**
-     * Creates an uninitialized LongConstant.
-     */
-    public LongConstant()
-    {
+  /** Creates a new LongConstant with the given long value. */
+  public LongConstant(long value) {
+    u8value = value;
+  }
+
+  /** Returns the long value of this LongConstant. */
+  public long getValue() {
+    return u8value;
+  }
+
+  /** Sets the long value of this LongConstant. */
+  public void setValue(long value) {
+    u8value = value;
+  }
+
+  // Implementations for Constant.
+
+  @Override
+  public int getTag() {
+    return Constant.LONG;
+  }
+
+  @Override
+  public boolean isCategory2() {
+    return true;
+  }
+
+  @Override
+  public void accept(Clazz clazz, ConstantVisitor constantVisitor) {
+    constantVisitor.visitLongConstant(clazz, this);
+  }
+
+  // Implementations for Object.
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || !this.getClass().equals(object.getClass())) {
+      return false;
     }
 
-
-    /**
-     * Creates a new LongConstant with the given long value.
-     */
-    public LongConstant(long value)
-    {
-        u8value = value;
+    if (this == object) {
+      return true;
     }
 
+    LongConstant other = (LongConstant) object;
 
-    /**
-     * Returns the long value of this LongConstant.
-     */
-    public long getValue()
-    {
-        return u8value;
-    }
+    return this.u8value == other.u8value;
+  }
 
+  @Override
+  public int hashCode() {
+    return Constant.LONG ^ (int) (u8value >> 32) ^ (int) u8value;
+  }
 
-    /**
-     * Sets the long value of this LongConstant.
-     */
-    public void setValue(long value)
-    {
-        u8value = value;
-    }
-
-
-    // Implementations for Constant.
-
-    @Override
-    public int getTag()
-    {
-        return Constant.LONG;
-    }
-
-    @Override
-    public boolean isCategory2()
-    {
-        return true;
-    }
-
-    @Override
-    public void accept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        constantVisitor.visitLongConstant(clazz, this);
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public boolean equals(Object object)
-    {
-        if (object == null || !this.getClass().equals(object.getClass()))
-        {
-            return false;
-        }
-
-        if (this == object)
-        {
-            return true;
-        }
-
-        LongConstant other = (LongConstant)object;
-
-        return
-            this.u8value == other.u8value;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return
-            Constant.LONG        ^
-            (int)(u8value >> 32) ^
-            (int)u8value;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Long(" + u8value + ")";
-    }
+  @Override
+  public String toString() {
+    return "Long(" + u8value + ")";
+  }
 }

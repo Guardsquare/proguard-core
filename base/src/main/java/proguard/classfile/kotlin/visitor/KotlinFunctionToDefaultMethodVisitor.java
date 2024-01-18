@@ -23,22 +23,19 @@ import proguard.classfile.kotlin.KotlinMetadata;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
- * This class applies the given member visitor to the referenced default method of a Kotlin function.
+ * This class applies the given member visitor to the referenced default method of a Kotlin
+ * function.
  */
-public class KotlinFunctionToDefaultMethodVisitor
-implements   KotlinFunctionVisitor
-{
-    private final MemberVisitor memberVisitor;
+public class KotlinFunctionToDefaultMethodVisitor implements KotlinFunctionVisitor {
+  private final MemberVisitor memberVisitor;
 
-    public KotlinFunctionToDefaultMethodVisitor(MemberVisitor memberVisitor) {
-        this.memberVisitor = memberVisitor;
-    }
+  public KotlinFunctionToDefaultMethodVisitor(MemberVisitor memberVisitor) {
+    this.memberVisitor = memberVisitor;
+  }
 
-    @Override
-    public void visitAnyFunction(Clazz                  clazz,
-                                 KotlinMetadata         kotlinMetadata,
-                                 KotlinFunctionMetadata kotlinFunctionMetadata)
-    {
-        kotlinFunctionMetadata.referencedDefaultMethodAccept(memberVisitor);
-    }
+  @Override
+  public void visitAnyFunction(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata) {
+    kotlinFunctionMetadata.referencedDefaultMethodAccept(memberVisitor);
+  }
 }

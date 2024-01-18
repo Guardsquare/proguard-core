@@ -20,67 +20,52 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 
 /**
- * This {@link ClassVisitor} and {@link MemberVisitor} clears the specified
- * access flags of the classes and class members that its visits.
+ * This {@link ClassVisitor} and {@link MemberVisitor} clears the specified access flags of the
+ * classes and class members that its visits.
  *
  * @see ClassConstants
- *
  * @author Eric Lafortune
  */
-public class MemberAccessFlagCleaner
-implements   ClassVisitor,
-             MemberVisitor
-{
-    private final int accessFlags;
+public class MemberAccessFlagCleaner implements ClassVisitor, MemberVisitor {
+  private final int accessFlags;
 
+  /**
+   * Creates a new MemberAccessFlagCleaner.
+   *
+   * @param accessFlags the member access flags to be cleared.
+   */
+  public MemberAccessFlagCleaner(int accessFlags) {
+    this.accessFlags = accessFlags;
+  }
 
-    /**
-     * Creates a new MemberAccessFlagCleaner.
-     * @param accessFlags the member access flags to be cleared.
-     */
-    public MemberAccessFlagCleaner(int accessFlags)
-    {
-        this.accessFlags = accessFlags;
-    }
+  // Implementations for ClassVisitor.
 
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + clazz.getClass().getName());
+  }
 
-    // Implementations for ClassVisitor.
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    programClass.u2accessFlags &= ~accessFlags;
+  }
 
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName() + " does not support " + clazz.getClass().getName());
-    }
+  @Override
+  public void visitLibraryClass(LibraryClass libraryClass) {
+    libraryClass.u2accessFlags &= ~accessFlags;
+  }
 
+  // Implementations for MemberVisitor.
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        programClass.u2accessFlags &= ~accessFlags;
-    }
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {}
 
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {
+    programField.u2accessFlags &= ~accessFlags;
+  }
 
-    @Override
-    public void visitLibraryClass(LibraryClass libraryClass)
-    {
-        libraryClass.u2accessFlags &= ~accessFlags;
-    }
-
-
-    // Implementations for MemberVisitor.
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
-
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {}
-
-
-    public void visitProgramField(ProgramClass programClass, ProgramField programField)
-    {
-        programField.u2accessFlags &= ~accessFlags;
-    }
-
-
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        programMethod.u2accessFlags &= ~accessFlags;
-    }
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    programMethod.u2accessFlags &= ~accessFlags;
+  }
 }

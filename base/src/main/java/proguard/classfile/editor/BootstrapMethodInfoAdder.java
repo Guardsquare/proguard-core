@@ -22,62 +22,52 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.BootstrapMethodInfoVisitor;
 
 /**
- * This {@link BootstrapMethodInfoVisitor} adds all bootstrap methods that it visits to
- * the given target bootstrap methods attribute.
+ * This {@link BootstrapMethodInfoVisitor} adds all bootstrap methods that it visits to the given
+ * target bootstrap methods attribute.
  */
-public class BootstrapMethodInfoAdder
-implements   BootstrapMethodInfoVisitor
-{
-    private final ConstantAdder                   constantAdder;
-    private final BootstrapMethodsAttributeEditor bootstrapMethodsAttributeEditor;
+public class BootstrapMethodInfoAdder implements BootstrapMethodInfoVisitor {
+  private final ConstantAdder constantAdder;
+  private final BootstrapMethodsAttributeEditor bootstrapMethodsAttributeEditor;
 
-    private int bootstrapMethodIndex;
+  private int bootstrapMethodIndex;
 
+  /**
+   * Creates a new BootstrapMethodInfoAdder that will copy bootstrap methods into the given
+   * bootstrap methods attribute.
+   */
+  public BootstrapMethodInfoAdder(
+      ProgramClass targetClass, BootstrapMethodsAttribute targetBootstrapMethodsAttribute) {
+    this.constantAdder = new ConstantAdder(targetClass);
+    this.bootstrapMethodsAttributeEditor =
+        new BootstrapMethodsAttributeEditor(targetBootstrapMethodsAttribute);
+  }
 
-    /**
-     * Creates a new BootstrapMethodInfoAdder that will copy bootstrap methods
-     * into the given bootstrap methods attribute.
-     */
-    public BootstrapMethodInfoAdder(ProgramClass              targetClass,
-                                    BootstrapMethodsAttribute targetBootstrapMethodsAttribute)
-    {
-        this.constantAdder                   = new ConstantAdder(targetClass);
-        this.bootstrapMethodsAttributeEditor = new BootstrapMethodsAttributeEditor(targetBootstrapMethodsAttribute);
+  /** Returns the index of the most recently added bootstrap method. */
+  public int getBootstrapMethodIndex() {
+    return bootstrapMethodIndex;
+  }
+
+  // Implementations for BootstrapMethodInfoVisitor.
+
+  public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo) {
+    // Copy the method arguments.
+    int methodArgumentCount = bootstrapMethodInfo.u2methodArgumentCount;
+    int[] methodArguments = bootstrapMethodInfo.u2methodArguments;
+    int[] newMethodArguments = new int[methodArgumentCount];
+
+    for (int index = 0; index < methodArgumentCount; index++) {
+      newMethodArguments[index] = constantAdder.addConstant(clazz, methodArguments[index]);
     }
 
+    // Create a new bootstrap method.
+    BootstrapMethodInfo newBootstrapMethodInfo =
+        new BootstrapMethodInfo(
+            constantAdder.addConstant(clazz, bootstrapMethodInfo.u2methodHandleIndex),
+            methodArgumentCount,
+            newMethodArguments);
 
-    /**
-     * Returns the index of the most recently added bootstrap method.
-     */
-    public int getBootstrapMethodIndex()
-    {
-        return bootstrapMethodIndex;
-    }
-
-
-    // Implementations for BootstrapMethodInfoVisitor.
-
-    public void visitBootstrapMethodInfo(Clazz clazz, BootstrapMethodInfo bootstrapMethodInfo)
-    {
-        // Copy the method arguments.
-        int   methodArgumentCount = bootstrapMethodInfo.u2methodArgumentCount;
-        int[] methodArguments     = bootstrapMethodInfo.u2methodArguments;
-        int[] newMethodArguments  = new int[methodArgumentCount];
-
-        for (int index = 0; index < methodArgumentCount; index++)
-        {
-            newMethodArguments[index] =
-                constantAdder.addConstant(clazz, methodArguments[index]);
-        }
-
-        // Create a new bootstrap method.
-        BootstrapMethodInfo newBootstrapMethodInfo =
-            new BootstrapMethodInfo(constantAdder.addConstant(clazz, bootstrapMethodInfo.u2methodHandleIndex),
-                                    methodArgumentCount,
-                                    newMethodArguments);
-
-        // Add it to the target.
-        bootstrapMethodIndex =
-            bootstrapMethodsAttributeEditor.addBootstrapMethodInfo(newBootstrapMethodInfo);
-    }
+    // Add it to the target.
+    bootstrapMethodIndex =
+        bootstrapMethodsAttributeEditor.addBootstrapMethodInfo(newBootstrapMethodInfo);
+  }
 }

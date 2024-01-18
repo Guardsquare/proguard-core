@@ -25,91 +25,67 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
  *
  * @author Joachim Vandersmissen
  */
-public class ModuleConstant extends Constant
-{
-    public int u2nameIndex;
+public class ModuleConstant extends Constant {
+  public int u2nameIndex;
 
+  /** Creates an uninitialized ModuleConstant. */
+  public ModuleConstant() {}
 
-    /**
-     * Creates an uninitialized ModuleConstant.
-     */
-    public ModuleConstant()
-    {
+  /**
+   * Creates a new ModuleConstant with the given name index.
+   *
+   * @param u2nameIndex the index of the name in the constant pool.
+   */
+  public ModuleConstant(int u2nameIndex) {
+    this.u2nameIndex = u2nameIndex;
+  }
+
+  /** Returns the name. */
+  public String getName(Clazz clazz) {
+    return clazz.getString(u2nameIndex);
+  }
+
+  // Implementations for Constant.
+
+  @Override
+  public int getTag() {
+    return Constant.MODULE;
+  }
+
+  @Override
+  public boolean isCategory2() {
+    return false;
+  }
+
+  @Override
+  public void accept(Clazz clazz, ConstantVisitor constantVisitor) {
+    constantVisitor.visitModuleConstant(clazz, this);
+  }
+
+  // Implementations for Object.
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || !this.getClass().equals(object.getClass())) {
+      return false;
     }
 
-
-    /**
-     * Creates a new ModuleConstant with the given name index.
-     * @param u2nameIndex the index of the name in the constant pool.
-     */
-    public ModuleConstant(int u2nameIndex)
-    {
-        this.u2nameIndex = u2nameIndex;
+    if (this == object) {
+      return true;
     }
 
+    ModuleConstant other = (ModuleConstant) object;
 
-    /**
-     * Returns the name.
-     */
-    public String getName(Clazz clazz)
-    {
-        return clazz.getString(u2nameIndex);
-    }
+    return this.u2nameIndex == other.u2nameIndex;
+  }
 
+  @Override
+  public int hashCode() {
+    return Constant.MODULE ^ (u2nameIndex << 5);
+  }
 
-    // Implementations for Constant.
-
-    @Override
-    public int getTag()
-    {
-        return Constant.MODULE;
-    }
-
-    @Override
-    public boolean isCategory2()
-    {
-        return false;
-    }
-
-    @Override
-    public void accept(Clazz clazz, ConstantVisitor constantVisitor)
-    {
-        constantVisitor.visitModuleConstant(clazz, this);
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public boolean equals(Object object)
-    {
-        if (object == null || !this.getClass().equals(object.getClass()))
-        {
-            return false;
-        }
-
-        if (this == object)
-        {
-            return true;
-        }
-
-        ModuleConstant other = (ModuleConstant)object;
-
-        return
-            this.u2nameIndex == other.u2nameIndex;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return
-            Constant.MODULE ^
-            (u2nameIndex << 5);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Module(" + u2nameIndex + ")";
-    }
+  @Override
+  public String toString() {
+    return "Module(" + u2nameIndex + ")";
+  }
 }

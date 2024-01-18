@@ -26,52 +26,45 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *
  * @author Dmitry Ivanov
  */
-public class JvmStaticFieldLocation
-    extends JvmMemoryLocation
-{
+public class JvmStaticFieldLocation extends JvmMemoryLocation {
 
-    public final String fqn;
+  public final String fqn;
 
-    /**
-     * Create a static field location.
-     *
-     * @param fqn a fully qualified name
-     */
-    public JvmStaticFieldLocation(String fqn)
-    {
-        this.fqn = fqn;
+  /**
+   * Create a static field location.
+   *
+   * @param fqn a fully qualified name
+   */
+  public JvmStaticFieldLocation(String fqn) {
+    this.fqn = fqn;
+  }
+
+  // implementations for MemoryLocation
+
+  @Override
+  public <T extends LatticeAbstractState> T extractValueOrDefault(
+      JvmAbstractState abstractState, T defaultValue) {
+    return (T) abstractState.getStaticOrDefault(fqn, defaultValue);
+  }
+
+  // implementations for Object
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof JvmStaticFieldLocation)) {
+      return false;
     }
+    JvmStaticFieldLocation other = (JvmStaticFieldLocation) obj;
+    return fqn.equals(other.fqn);
+  }
 
-    // implementations for MemoryLocation
+  @Override
+  public int hashCode() {
+    return fqn.hashCode();
+  }
 
-    @Override
-    public <T extends LatticeAbstractState> T extractValueOrDefault(JvmAbstractState abstractState, T defaultValue)
-    {
-        return (T) abstractState.getStaticOrDefault(fqn, defaultValue);
-    }
-
-    // implementations for Object
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (!(obj instanceof JvmStaticFieldLocation))
-        {
-            return false;
-        }
-        JvmStaticFieldLocation other = (JvmStaticFieldLocation) obj;
-        return fqn.equals(other.fqn);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return fqn.hashCode();
-    }
-
-    @Override
-    public String toString()
-    {
-        return "JvmStaticFieldLocation(" + fqn + ")";
-    }
+  @Override
+  public String toString() {
+    return "JvmStaticFieldLocation(" + fqn + ")";
+  }
 }

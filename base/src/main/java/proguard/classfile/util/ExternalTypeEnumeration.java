@@ -20,83 +20,64 @@ package proguard.classfile.util;
 import proguard.classfile.JavaTypeConstants;
 
 /**
- * An {@link ExternalTypeEnumeration} provides an enumeration of all
- * types listed in a given external descriptor string. The method name can
- * be retrieved separately.
- * <p/>
- * An {@link ExternalTypeEnumeration} instance can be reused for processing
- * different subsequent descriptors, by means of the {@link #setDescriptor}
- * method.
+ * An {@link ExternalTypeEnumeration} provides an enumeration of all types listed in a given
+ * external descriptor string. The method name can be retrieved separately.
+ *
+ * <p>An {@link ExternalTypeEnumeration} instance can be reused for processing different subsequent
+ * descriptors, by means of the {@link #setDescriptor} method.
  *
  * @author Eric Lafortune
  */
-public class ExternalTypeEnumeration
-{
-    private String descriptor;
-    private int    index;
+public class ExternalTypeEnumeration {
+  private String descriptor;
+  private int index;
 
+  public ExternalTypeEnumeration(String descriptor) {
+    setDescriptor(descriptor);
+  }
 
-    public ExternalTypeEnumeration(String descriptor)
-    {
-        setDescriptor(descriptor);
+  ExternalTypeEnumeration() {}
+
+  void setDescriptor(String descriptor) {
+    this.descriptor = descriptor;
+
+    reset();
+  }
+
+  public void reset() {
+    index = descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_OPEN) + 1;
+
+    if (index < 1) {
+      throw new IllegalArgumentException(
+          "Missing opening parenthesis in descriptor [" + descriptor + "]");
+    }
+  }
+
+  public boolean hasMoreTypes() {
+    return index < descriptor.length() - 1;
+  }
+
+  public String nextType() {
+    int startIndex = index;
+
+    // Find the next separating comma.
+    index = descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_SEPARATOR, startIndex);
+
+    // Otherwise find the closing parenthesis.
+    if (index < 0) {
+      index = descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_CLOSE, startIndex);
+      if (index < 0) {
+        throw new IllegalArgumentException(
+            "Missing closing parenthesis in descriptor [" + descriptor + "]");
+      }
     }
 
+    return descriptor.substring(startIndex, index++).trim();
+  }
 
-    ExternalTypeEnumeration()
-    {
-    }
-
-
-    void setDescriptor(String descriptor)
-    {
-        this.descriptor = descriptor;
-
-        reset();
-    }
-
-
-    public void reset()
-    {
-        index = descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_OPEN) + 1;
-
-        if (index < 1)
-        {
-            throw new IllegalArgumentException("Missing opening parenthesis in descriptor ["+descriptor+"]");
-        }
-    }
-
-
-    public boolean hasMoreTypes()
-    {
-        return index < descriptor.length() - 1;
-    }
-
-
-    public String nextType()
-    {
-        int startIndex = index;
-
-        // Find the next separating comma.
-        index = descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_SEPARATOR,
-                                   startIndex);
-
-        // Otherwise find the closing parenthesis.
-        if (index < 0)
-        {
-            index = descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_CLOSE,
-                                       startIndex);
-            if (index < 0)
-            {
-                throw new IllegalArgumentException("Missing closing parenthesis in descriptor ["+descriptor+"]");
-            }
-        }
-
-        return descriptor.substring(startIndex, index++).trim();
-    }
-
-
-    public String methodName()
-    {
-        return descriptor.substring(0, descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_OPEN)).trim();
-    }
+  public String methodName() {
+    return descriptor
+        .substring(0, descriptor.indexOf(JavaTypeConstants.METHOD_ARGUMENTS_OPEN))
+        .trim();
+  }
 }

@@ -22,43 +22,43 @@ import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.LocalVariableInfoVisitor;
 
 /**
- * This {@link LocalVariableInfoVisitor} adds all local variables that it visits to the
- * given target local variable table attribute.
+ * This {@link LocalVariableInfoVisitor} adds all local variables that it visits to the given target
+ * local variable table attribute.
  */
-public class LocalVariableInfoAdder
-implements   LocalVariableInfoVisitor
-{
-    private final ConstantAdder                     constantAdder;
-    private final LocalVariableTableAttributeEditor localVariableTableAttributeEditor;
+public class LocalVariableInfoAdder implements LocalVariableInfoVisitor {
+  private final ConstantAdder constantAdder;
+  private final LocalVariableTableAttributeEditor localVariableTableAttributeEditor;
 
+  /**
+   * Creates a new LocalVariableInfoAdder that will copy local variables into the given target local
+   * variable table.
+   */
+  public LocalVariableInfoAdder(
+      ProgramClass targetClass, LocalVariableTableAttribute targetLocalVariableTableAttribute) {
+    this.constantAdder = new ConstantAdder(targetClass);
+    this.localVariableTableAttributeEditor =
+        new LocalVariableTableAttributeEditor(targetLocalVariableTableAttribute);
+  }
 
-    /**
-     * Creates a new LocalVariableInfoAdder that will copy local variables
-     * into the given target local variable table.
-     */
-    public LocalVariableInfoAdder(ProgramClass                targetClass,
-                                  LocalVariableTableAttribute targetLocalVariableTableAttribute)
-    {
-        this.constantAdder                     = new ConstantAdder(targetClass);
-        this.localVariableTableAttributeEditor = new LocalVariableTableAttributeEditor(targetLocalVariableTableAttribute);
-    }
+  // Implementations for LocalVariableInfoVisitor.
 
+  public void visitLocalVariableInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      LocalVariableInfo localVariableInfo) {
+    // Create a new local variable.
+    LocalVariableInfo newLocalVariableInfo =
+        new LocalVariableInfo(
+            localVariableInfo.u2startPC,
+            localVariableInfo.u2length,
+            constantAdder.addConstant(clazz, localVariableInfo.u2nameIndex),
+            constantAdder.addConstant(clazz, localVariableInfo.u2descriptorIndex),
+            localVariableInfo.u2index);
 
-    // Implementations for LocalVariableInfoVisitor.
+    newLocalVariableInfo.referencedClass = localVariableInfo.referencedClass;
 
-    public void visitLocalVariableInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableInfo localVariableInfo)
-    {
-        // Create a new local variable.
-        LocalVariableInfo newLocalVariableInfo =
-            new LocalVariableInfo(localVariableInfo.u2startPC,
-                                  localVariableInfo.u2length,
-                                  constantAdder.addConstant(clazz, localVariableInfo.u2nameIndex),
-                                  constantAdder.addConstant(clazz, localVariableInfo.u2descriptorIndex),
-                                  localVariableInfo.u2index);
-
-        newLocalVariableInfo.referencedClass = localVariableInfo.referencedClass;
-
-        // Add it to the target.
-        localVariableTableAttributeEditor.addLocalVariableInfo(newLocalVariableInfo);
-    }
+    // Add it to the target.
+    localVariableTableAttributeEditor.addLocalVariableInfo(newLocalVariableInfo);
+  }
 }

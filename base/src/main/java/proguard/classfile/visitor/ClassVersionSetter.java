@@ -17,66 +17,54 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.Set;
 import proguard.classfile.*;
 
-import java.util.Set;
-
 /**
- * This {@link ClassVisitor} sets the version number of the program classes
- * that it visits.
+ * This {@link ClassVisitor} sets the version number of the program classes that it visits.
  *
  * @author Eric Lafortune
  */
-public class ClassVersionSetter
-implements   ClassVisitor
-{
-    private final int classVersion;
+public class ClassVersionSetter implements ClassVisitor {
+  private final int classVersion;
 
-    private final Set<Integer> newerClassVersions;
+  private final Set<Integer> newerClassVersions;
 
+  /**
+   * Creates a new ClassVersionSetter.
+   *
+   * @param classVersion the class version number.
+   */
+  public ClassVersionSetter(int classVersion) {
+    this(classVersion, null);
+  }
 
-    /**
-     * Creates a new ClassVersionSetter.
-     * @param classVersion the class version number.
-     */
-    public ClassVersionSetter(int classVersion)
-    {
-        this(classVersion, null);
+  /**
+   * Creates a new ClassVersionSetter that also stores any newer class version numbers that it
+   * encounters while visiting program classes.
+   *
+   * @param classVersion the class version number.
+   * @param newerClassVersions the <code>Set</code> in which newer class version numbers can be
+   *     collected.
+   */
+  public ClassVersionSetter(int classVersion, Set<Integer> newerClassVersions) {
+    this.classVersion = classVersion;
+    this.newerClassVersions = newerClassVersions;
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
+
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    // Only ProgramClasses have version numbers.
+
+    if (programClass.u4version > classVersion && newerClassVersions != null) {
+      newerClassVersions.add(programClass.u4version);
     }
 
-
-    /**
-     * Creates a new ClassVersionSetter that also stores any newer class version
-     * numbers that it encounters while visiting program classes.
-     * @param classVersion       the class version number.
-     * @param newerClassVersions the <code>Set</code> in which newer class
-     *                           version numbers can be collected.
-     */
-    public ClassVersionSetter(int          classVersion,
-                              Set<Integer> newerClassVersions)
-    {
-        this.classVersion       = classVersion;
-        this.newerClassVersions = newerClassVersions;
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        // Only ProgramClasses have version numbers.
-
-        if (programClass.u4version > classVersion &&
-            newerClassVersions != null)
-        {
-            newerClassVersions.add(programClass.u4version);
-        }
-
-        programClass.u4version = classVersion;
-    }
+    programClass.u4version = classVersion;
+  }
 }

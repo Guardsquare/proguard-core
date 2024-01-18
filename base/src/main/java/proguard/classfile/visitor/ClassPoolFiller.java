@@ -19,32 +19,22 @@ package proguard.classfile.visitor;
 
 import proguard.classfile.*;
 
-
 /**
- * This {@link ClassVisitor} collects all the classes it visits in a given
- * class pool.
+ * This {@link ClassVisitor} collects all the classes it visits in a given class pool.
  *
  * @author Eric Lafortune
  */
-public class ClassPoolFiller
-implements   ClassVisitor
-{
-    private final ClassPool classPool;
+public class ClassPoolFiller implements ClassVisitor {
+  private final ClassPool classPool;
 
+  /** Creates a new ClassPoolFiller. */
+  public ClassPoolFiller(ClassPool classPool) {
+    this.classPool = classPool;
+  }
 
-    /**
-     * Creates a new ClassPoolFiller.
-     */
-    public ClassPoolFiller(ClassPool classPool)
-    {
-        this.classPool = classPool;
-    }
+  // Implementations for ClassVisitor.
 
-
-    // Implementations for ClassVisitor.
-
-    public void visitAnyClass(Clazz clazz)
-    {
-        classPool.addClass(clazz);
-    }
+  public void visitAnyClass(Clazz clazz) {
+    classPool.addClass(clazz);
+  }
 }

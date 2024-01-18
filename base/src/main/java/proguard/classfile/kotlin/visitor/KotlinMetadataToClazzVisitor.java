@@ -21,32 +21,27 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.visitor.ClassVisitor;
 
-public class KotlinMetadataToClazzVisitor
-implements   KotlinMetadataVisitor
-{
-    private final ClassVisitor classVisitor;
+public class KotlinMetadataToClazzVisitor implements KotlinMetadataVisitor {
+  private final ClassVisitor classVisitor;
 
-    public KotlinMetadataToClazzVisitor(ClassVisitor classVisitor) {
-        this.classVisitor = classVisitor;
+  public KotlinMetadataToClazzVisitor(ClassVisitor classVisitor) {
+    this.classVisitor = classVisitor;
+  }
+
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    if (kotlinDeclarationContainerMetadata.ownerReferencedClass != null) {
+      kotlinDeclarationContainerMetadata.ownerReferencedClass.accept(this.classVisitor);
     }
+  }
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
-
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
-                                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        if (kotlinDeclarationContainerMetadata.ownerReferencedClass != null)
-        {
-            kotlinDeclarationContainerMetadata.ownerReferencedClass.accept(this.classVisitor);
-        }
-    }
-
-    @Override
-    public void visitKotlinSyntheticClassMetadata(Clazz                            clazz,
-                                                  KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata)
-    {
-        clazz.accept(this.classVisitor);
-    }
+  @Override
+  public void visitKotlinSyntheticClassMetadata(
+      Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+    clazz.accept(this.classVisitor);
+  }
 }

@@ -17,6 +17,7 @@
  */
 package proguard.classfile.editor;
 
+import java.util.Arrays;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
@@ -25,172 +26,134 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.Processable;
 
-import java.util.Arrays;
-
-
 /**
- * This {@link ClassVisitor} removes <code>NameAndType</code> constant pool
- * entries that are not used.
+ * This {@link ClassVisitor} removes <code>NameAndType</code> constant pool entries that are not
+ * used.
  *
  * @author Eric Lafortune
  */
-public class NameAndTypeShrinker
-implements   ClassVisitor,
-             ConstantVisitor,
-             AttributeVisitor
-{
-    // A processing info flag to indicate the NameAndType constant pool entry is being used.
-    private static final Object USED = new Object();
+public class NameAndTypeShrinker implements ClassVisitor, ConstantVisitor, AttributeVisitor {
+  // A processing info flag to indicate the NameAndType constant pool entry is being used.
+  private static final Object USED = new Object();
 
-    private       int[]                constantIndexMap;
-    private final ConstantPoolRemapper constantPoolRemapper = new ConstantPoolRemapper();
+  private int[] constantIndexMap;
+  private final ConstantPoolRemapper constantPoolRemapper = new ConstantPoolRemapper();
 
+  // Implementations for ClassVisitor.
 
-    // Implementations for ClassVisitor.
+  @Override
+  public void visitAnyClass(Clazz clazz) {}
 
-    @Override
-    public void visitAnyClass(Clazz clazz) { }
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    // Mark the NameAndType entries referenced by all other constant pool
+    // entries.
+    programClass.constantPoolEntriesAccept(this);
 
+    // Mark the NameAndType entries referenced by all EnclosingMethod
+    // attributes.
+    programClass.attributesAccept(this);
 
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        // Mark the NameAndType entries referenced by all other constant pool
-        // entries.
-        programClass.constantPoolEntriesAccept(this);
+    // Shift the used constant pool entries together, filling out the
+    // index map.
+    int newConstantPoolCount =
+        shrinkConstantPool(programClass.constantPool, programClass.u2constantPoolCount);
 
-        // Mark the NameAndType entries referenced by all EnclosingMethod
-        // attributes.
-        programClass.attributesAccept(this);
+    // Remap the references to the constant pool if it has shrunk.
+    if (newConstantPoolCount < programClass.u2constantPoolCount) {
+      programClass.u2constantPoolCount = newConstantPoolCount;
 
-        // Shift the used constant pool entries together, filling out the
-        // index map.
-        int newConstantPoolCount =
-            shrinkConstantPool(programClass.constantPool,
-                               programClass.u2constantPoolCount);
+      // Remap all constant pool references.
+      constantPoolRemapper.setConstantIndexMap(constantIndexMap);
+      constantPoolRemapper.visitProgramClass(programClass);
+    }
+  }
 
-        // Remap the references to the constant pool if it has shrunk.
-        if (newConstantPoolCount < programClass.u2constantPoolCount)
-        {
-            programClass.u2constantPoolCount = newConstantPoolCount;
+  // Implementations for ConstantVisitor.
 
-            // Remap all constant pool references.
-            constantPoolRemapper.setConstantIndexMap(constantIndexMap);
-            constantPoolRemapper.visitProgramClass(programClass);
-        }
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
+
+  public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
+    markNameAndTypeConstant(clazz, invokeDynamicConstant.u2nameAndTypeIndex);
+  }
+
+  public void visitAnyRefConstant(Clazz clazz, RefConstant refConstant) {
+    markNameAndTypeConstant(clazz, refConstant.u2nameAndTypeIndex);
+  }
+
+  // Implementations for AttributeVisitor.
+
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+  public void visitEnclosingMethodAttribute(
+      Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute) {
+    if (enclosingMethodAttribute.u2nameAndTypeIndex != 0) {
+      markNameAndTypeConstant(clazz, enclosingMethodAttribute.u2nameAndTypeIndex);
+    }
+  }
+
+  // Small utility methods.
+
+  /** Marks the given UTF-8 constant pool entry of the given class. */
+  private void markNameAndTypeConstant(Clazz clazz, int index) {
+    markAsUsed(((ProgramClass) clazz).getConstant(index));
+  }
+
+  /**
+   * Marks the given Processable as being used. In this context, the Processable will be a
+   * NameAndTypeConstant object.
+   */
+  private void markAsUsed(Processable processable) {
+    processable.setProcessingInfo(USED);
+  }
+
+  /**
+   * Returns whether the given Processable has been marked as being used. In this context, the
+   * Processable will be a NameAndTypeConstant object.
+   */
+  private boolean isUsed(Processable processable) {
+    return processable.getProcessingInfo() == USED;
+  }
+
+  /**
+   * Removes all NameAndType entries that are not marked as being used from the given constant pool.
+   *
+   * @return the new number of entries.
+   */
+  private int shrinkConstantPool(Constant[] constantPool, int length) {
+    // Create a new index map, if necessary.
+    if (constantIndexMap == null || constantIndexMap.length < length) {
+      constantIndexMap = new int[length];
     }
 
+    int counter = 1;
+    boolean isUsed = false;
 
-    // Implementations for ConstantVisitor.
+    // Shift the used constant pool entries together.
+    for (int index = 1; index < length; index++) {
+      Constant constant = constantPool[index];
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+      // Is the constant being used? Don't update the flag if this is the
+      // second half of a long entry.
+      if (constant != null) {
+        isUsed = constant.getTag() != Constant.NAME_AND_TYPE || isUsed(constant);
+      }
 
+      if (isUsed) {
+        // Remember the new index.
+        constantIndexMap[index] = counter;
 
-    public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant)
-    {
-        markNameAndTypeConstant(clazz, invokeDynamicConstant.u2nameAndTypeIndex);
+        // Shift the constant pool entry.
+        constantPool[counter++] = constant;
+      } else {
+        // Remember an invalid index.
+        constantIndexMap[index] = -1;
+      }
     }
 
+    // Clear the remaining constant pool elements.
+    Arrays.fill(constantPool, counter, length, null);
 
-    public void visitAnyRefConstant(Clazz clazz, RefConstant refConstant)
-    {
-        markNameAndTypeConstant(clazz, refConstant.u2nameAndTypeIndex);
-    }
-
-
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitEnclosingMethodAttribute(Clazz clazz, EnclosingMethodAttribute enclosingMethodAttribute)
-    {
-        if (enclosingMethodAttribute.u2nameAndTypeIndex != 0)
-        {
-            markNameAndTypeConstant(clazz, enclosingMethodAttribute.u2nameAndTypeIndex);
-        }
-    }
-
-
-    // Small utility methods.
-
-    /**
-     * Marks the given UTF-8 constant pool entry of the given class.
-     */
-    private void markNameAndTypeConstant(Clazz clazz, int index)
-    {
-         markAsUsed(((ProgramClass)clazz).getConstant(index));
-    }
-
-
-    /**
-     * Marks the given Processable as being used.
-     * In this context, the Processable will be a NameAndTypeConstant object.
-     */
-    private void markAsUsed(Processable processable)
-    {
-        processable.setProcessingInfo(USED);
-    }
-
-
-    /**
-     * Returns whether the given Processable has been marked as being used.
-     * In this context, the Processable will be a NameAndTypeConstant object.
-     */
-    private boolean isUsed(Processable processable)
-    {
-        return processable.getProcessingInfo() == USED;
-    }
-
-
-    /**
-     * Removes all NameAndType entries that are not marked as being used
-     * from the given constant pool.
-     * @return the new number of entries.
-     */
-    private int shrinkConstantPool(Constant[] constantPool, int length)
-    {
-        // Create a new index map, if necessary.
-        if (constantIndexMap == null ||
-            constantIndexMap.length < length)
-        {
-            constantIndexMap = new int[length];
-        }
-
-        int     counter = 1;
-        boolean isUsed  = false;
-
-        // Shift the used constant pool entries together.
-        for (int index = 1; index < length; index++)
-        {
-            Constant constant = constantPool[index];
-
-            // Is the constant being used? Don't update the flag if this is the
-            // second half of a long entry.
-            if (constant != null)
-            {
-                isUsed = constant.getTag() != Constant.NAME_AND_TYPE ||
-                         isUsed(constant);
-            }
-
-            if (isUsed)
-            {
-                // Remember the new index.
-                constantIndexMap[index] = counter;
-
-                // Shift the constant pool entry.
-                constantPool[counter++] = constant;
-            }
-            else
-            {
-                // Remember an invalid index.
-                constantIndexMap[index] = -1;
-            }
-        }
-
-        // Clear the remaining constant pool elements.
-        Arrays.fill(constantPool, counter, length, null);
-
-        return counter;
-    }
+    return counter;
+  }
 }

@@ -15,20 +15,18 @@
  */
 package proguard.dexfile.ir.expr;
 
-
 import proguard.dexfile.ir.expr.Value.EnExpr;
 import proguard.dexfile.reader.Proto;
 
 public abstract class AbstractInvokeExpr extends EnExpr {
-    @Override
-    protected void releaseMemory() {
-        super.releaseMemory();
-    }
+  @Override
+  protected void releaseMemory() {
+    super.releaseMemory();
+  }
 
-    public abstract Proto getProto();
+  public abstract Proto getProto();
 
-    public AbstractInvokeExpr(VT type, Value[] args) {
-        super(type, args);
-    }
-
+  public AbstractInvokeExpr(VT type, Value[] args) {
+    super(type, args);
+  }
 }

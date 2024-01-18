@@ -16,15 +16,14 @@
  */
 package proguard.dexfile.ir.ts;
 
-import proguard.dexfile.ir.IrMethod;
-import proguard.dexfile.ir.LocalVar;
-import proguard.dexfile.ir.Trap;
-import proguard.dexfile.ir.stmt.*;
-
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import proguard.dexfile.ir.IrMethod;
+import proguard.dexfile.ir.LocalVar;
+import proguard.dexfile.ir.Trap;
+import proguard.dexfile.ir.stmt.*;
 
 /**
  * Clean unused {@link LabelStmt}
@@ -33,76 +32,75 @@ import java.util.Set;
  */
 public class CleanLabel implements Transformer {
 
-    @Override
-    public void transform(IrMethod irMethod) {
-        Set<LabelStmt> uselabels = new LinkedHashSet<>();
-        addTrap(irMethod.traps, uselabels);
-        addVars(irMethod.vars, uselabels);
-        addStmt(irMethod.stmts, uselabels);
-        if (irMethod.phiLabels != null) {
-            uselabels.addAll(irMethod.phiLabels);
-        }
-        addLineNumber(irMethod.stmts, uselabels);
-        rmUnused(irMethod.stmts, uselabels);
+  @Override
+  public void transform(IrMethod irMethod) {
+    Set<LabelStmt> uselabels = new LinkedHashSet<>();
+    addTrap(irMethod.traps, uselabels);
+    addVars(irMethod.vars, uselabels);
+    addStmt(irMethod.stmts, uselabels);
+    if (irMethod.phiLabels != null) {
+      uselabels.addAll(irMethod.phiLabels);
     }
+    addLineNumber(irMethod.stmts, uselabels);
+    rmUnused(irMethod.stmts, uselabels);
+  }
 
-    private void addVars(List<LocalVar> vars, Set<LabelStmt> uselabels) {
-        if (vars != null) {
-            for (LocalVar var : vars) {
-                uselabels.add(var.start);
-                uselabels.add(var.end);
-            }
-        }
-
+  private void addVars(List<LocalVar> vars, Set<LabelStmt> uselabels) {
+    if (vars != null) {
+      for (LocalVar var : vars) {
+        uselabels.add(var.start);
+        uselabels.add(var.end);
+      }
     }
+  }
 
-    private void rmUnused(StmtList stmts, Set<LabelStmt> uselabels) {
-        for (Stmt p = stmts.getFirst(); p != null; ) {
-            if (p.st == Stmt.ST.LABEL) {
-                if (!uselabels.contains(p)) {
-                    Stmt q = p.getNext();
-                    stmts.remove(p);
-                    p = q;
-                    continue;
-                }
-            }
-            p = p.getNext();
+  private void rmUnused(StmtList stmts, Set<LabelStmt> uselabels) {
+    for (Stmt p = stmts.getFirst(); p != null; ) {
+      if (p.st == Stmt.ST.LABEL) {
+        if (!uselabels.contains(p)) {
+          Stmt q = p.getNext();
+          stmts.remove(p);
+          p = q;
+          continue;
         }
+      }
+      p = p.getNext();
     }
+  }
 
-    private void addStmt(StmtList stmts, Set<LabelStmt> labels) {
-        for (Stmt p = stmts.getFirst(); p != null; p = p.getNext()) {
-            if (p instanceof JumpStmt) {
-                labels.add(((JumpStmt) p).getTarget());
-            } else if (p instanceof BaseSwitchStmt) {
-                BaseSwitchStmt stmt = (BaseSwitchStmt) p;
-                labels.add(stmt.defaultTarget);
-                labels.addAll(Arrays.asList(stmt.targets));
-            } else if (p instanceof LabelStmt) {
-                // Retain label statements that carry line number information.
-                if (((LabelStmt) p).lineNumber >= 0) {
-                    labels.add((LabelStmt) p);
-                }
-            }
+  private void addStmt(StmtList stmts, Set<LabelStmt> labels) {
+    for (Stmt p = stmts.getFirst(); p != null; p = p.getNext()) {
+      if (p instanceof JumpStmt) {
+        labels.add(((JumpStmt) p).getTarget());
+      } else if (p instanceof BaseSwitchStmt) {
+        BaseSwitchStmt stmt = (BaseSwitchStmt) p;
+        labels.add(stmt.defaultTarget);
+        labels.addAll(Arrays.asList(stmt.targets));
+      } else if (p instanceof LabelStmt) {
+        // Retain label statements that carry line number information.
+        if (((LabelStmt) p).lineNumber >= 0) {
+          labels.add((LabelStmt) p);
         }
+      }
     }
+  }
 
-    private void addTrap(List<Trap> traps, Set<LabelStmt> labels) {
-        if (traps != null) {
-            for (Trap trap : traps) {
-                labels.add(trap.start);
-                labels.add(trap.end);
-                labels.addAll(Arrays.asList(trap.handlers));
-            }
-        }
+  private void addTrap(List<Trap> traps, Set<LabelStmt> labels) {
+    if (traps != null) {
+      for (Trap trap : traps) {
+        labels.add(trap.start);
+        labels.add(trap.end);
+        labels.addAll(Arrays.asList(trap.handlers));
+      }
     }
+  }
 
-    // fix https://github.com/pxb1988/dex2jar/issues/165
-    private void addLineNumber(StmtList stmts, Set<LabelStmt> uselabels) {
-        for (Stmt p = stmts.getFirst(); p != null; p = p.getNext()) {
-            if (p instanceof LabelStmt && ((LabelStmt) p).lineNumber != -1) {
-                uselabels.add((LabelStmt) p);
-            }
-        }
+  // fix https://github.com/pxb1988/dex2jar/issues/165
+  private void addLineNumber(StmtList stmts, Set<LabelStmt> uselabels) {
+    for (Stmt p = stmts.getFirst(); p != null; p = p.getNext()) {
+      if (p instanceof LabelStmt && ((LabelStmt) p).lineNumber != -1) {
+        uselabels.add((LabelStmt) p);
+      }
     }
+  }
 }

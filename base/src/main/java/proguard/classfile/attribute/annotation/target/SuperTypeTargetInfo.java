@@ -26,47 +26,30 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public class SuperTypeTargetInfo extends TargetInfo
-{
-    public static final int EXTENDS_INDEX = 65535;
+public class SuperTypeTargetInfo extends TargetInfo {
+  public static final int EXTENDS_INDEX = 65535;
 
+  public int u2superTypeIndex;
 
-    public int u2superTypeIndex;
+  /** Creates an uninitialized SuperTypeTargetInfo. */
+  public SuperTypeTargetInfo() {}
 
+  /** Creates a partially initialized SuperTypeTargetInfo. */
+  public SuperTypeTargetInfo(byte u1targetType) {
+    super(u1targetType);
+  }
 
-    /**
-     * Creates an uninitialized SuperTypeTargetInfo.
-     */
-    public SuperTypeTargetInfo()
-    {
-    }
+  /** Creates an initialized SuperTypeTargetInfo. */
+  public SuperTypeTargetInfo(byte u1targetType, int u2superTypeIndex) {
+    super(u1targetType);
 
+    this.u2superTypeIndex = u2superTypeIndex;
+  }
 
-    /**
-     * Creates a partially initialized SuperTypeTargetInfo.
-     */
-    public SuperTypeTargetInfo(byte u1targetType)
-    {
-        super(u1targetType);
-    }
+  // Implementations for TargetInfo.
 
-
-    /**
-     * Creates an initialized SuperTypeTargetInfo.
-     */
-    public SuperTypeTargetInfo(byte u1targetType,
-                               int  u2superTypeIndex)
-    {
-        super(u1targetType);
-
-        this.u2superTypeIndex = u2superTypeIndex;
-    }
-
-
-    // Implementations for TargetInfo.
-
-    public void accept(Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        targetInfoVisitor.visitSuperTypeTargetInfo(clazz, typeAnnotation, this);
-    }
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    targetInfoVisitor.visitSuperTypeTargetInfo(clazz, typeAnnotation, this);
+  }
 }

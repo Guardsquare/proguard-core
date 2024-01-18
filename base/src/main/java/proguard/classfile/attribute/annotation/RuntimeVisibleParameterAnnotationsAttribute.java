@@ -25,35 +25,23 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class RuntimeVisibleParameterAnnotationsAttribute extends ParameterAnnotationsAttribute
-{
-    /**
-     * Creates an uninitialized RuntimeVisibleParameterAnnotationsAttribute.
-     */
-    public RuntimeVisibleParameterAnnotationsAttribute()
-    {
-    }
+public class RuntimeVisibleParameterAnnotationsAttribute extends ParameterAnnotationsAttribute {
+  /** Creates an uninitialized RuntimeVisibleParameterAnnotationsAttribute. */
+  public RuntimeVisibleParameterAnnotationsAttribute() {}
 
+  /** Creates an initialized RuntimeVisibleParameterAnnotationsAttribute. */
+  public RuntimeVisibleParameterAnnotationsAttribute(
+      int u2attributeNameIndex,
+      int u1parametersCount,
+      int[] u2parameterAnnotationsCount,
+      Annotation[][] parameterAnnotations) {
+    super(
+        u2attributeNameIndex, u1parametersCount, u2parameterAnnotationsCount, parameterAnnotations);
+  }
 
-    /**
-     * Creates an initialized RuntimeVisibleParameterAnnotationsAttribute.
-     */
-    public RuntimeVisibleParameterAnnotationsAttribute(int            u2attributeNameIndex,
-                                                       int            u1parametersCount,
-                                                       int[]          u2parameterAnnotationsCount,
-                                                       Annotation[][] parameterAnnotations)
-    {
-        super(u2attributeNameIndex,
-              u1parametersCount,
-              u2parameterAnnotationsCount,
-              parameterAnnotations);
-    }
+  // Implementations for Attribute.
 
-
-    // Implementations for Attribute.
-
-    public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitRuntimeVisibleParameterAnnotationsAttribute(clazz, method, this);
-    }
+  public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitRuntimeVisibleParameterAnnotationsAttribute(clazz, method, this);
+  }
 }

@@ -22,45 +22,44 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.annotation.*;
 
 /**
- * This interface specifies the methods for a visitor of
- * {@link TypePathInfo} instances. Note that there is only a single
- * implementation of {@link TypePathInfo}, such that this interface
- * is not strictly necessary as a visitor.
+ * This interface specifies the methods for a visitor of {@link TypePathInfo} instances. Note that
+ * there is only a single implementation of {@link TypePathInfo}, such that this interface is not
+ * strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface TypePathInfoVisitor
-{
-    /**
-     * Visits any TypePathInfo instance. The more specific default implementations of
-     * this interface delegate to this method.
-     */
-    default void visitTypePathInfo(Clazz clazz, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo)
-    {
-        throw new UnsupportedOperationException(this.getClass().getName()+" does not support "+typePathInfo.getClass().getName());
-    }
+public interface TypePathInfoVisitor {
+  /**
+   * Visits any TypePathInfo instance. The more specific default implementations of this interface
+   * delegate to this method.
+   */
+  default void visitTypePathInfo(
+      Clazz clazz, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo) {
+    throw new UnsupportedOperationException(
+        this.getClass().getName() + " does not support " + typePathInfo.getClass().getName());
+  }
 
+  default void visitTypePathInfo(
+      Clazz clazz, Member member, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo) {
+    visitTypePathInfo(clazz, typeAnnotation, typePathInfo);
+  }
 
-    default void visitTypePathInfo(Clazz clazz, Member member, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo)
-    {
-        visitTypePathInfo(clazz, typeAnnotation, typePathInfo);
-    }
+  default void visitTypePathInfo(
+      Clazz clazz, Field field, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo) {
+    visitTypePathInfo(clazz, (Member) field, typeAnnotation, typePathInfo);
+  }
 
+  default void visitTypePathInfo(
+      Clazz clazz, Method method, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo) {
+    visitTypePathInfo(clazz, (Member) method, typeAnnotation, typePathInfo);
+  }
 
-    default void visitTypePathInfo(Clazz clazz, Field field, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo)
-    {
-        visitTypePathInfo(clazz, (Member)field, typeAnnotation, typePathInfo);
-    }
-
-
-    default void visitTypePathInfo(Clazz clazz, Method method, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo)
-    {
-        visitTypePathInfo(clazz, (Member)method, typeAnnotation, typePathInfo);
-    }
-
-
-    default void visitTypePathInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TypePathInfo typePathInfo)
-    {
-        visitTypePathInfo(clazz, method, typeAnnotation, typePathInfo);
-    }
+  default void visitTypePathInfo(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TypePathInfo typePathInfo) {
+    visitTypePathInfo(clazz, method, typeAnnotation, typePathInfo);
+  }
 }

@@ -20,34 +20,30 @@ package proguard.classfile.kotlin.flags;
 /**
  * Flags for Kotlin value parameters.
  *
- * No valid visibility or modality flags.
+ * <p>No valid visibility or modality flags.
  *
- * hasAnnotations is valid.
+ * <p>hasAnnotations is valid.
  */
-public class KotlinValueParameterFlags implements KotlinFlags
-{
-    public final KotlinCommonFlags common;
+public class KotlinValueParameterFlags implements KotlinFlags {
+  public final KotlinCommonFlags common;
 
-    /**
-     * Signifies that the corresponding value parameter declares a default value. Note that the default value itself can be a complex
-     * expression and is not available via metadata. Also note that in case of an override of a parameter with default value, the
-     * parameter in the derived method does _not_ declare the default value ([DECLARES_DEFAULT_VALUE] == false), but the parameter is
-     * still optional at the call site because the default value from the base method is used.
-     */
-    public boolean hasDefaultValue;
+  /**
+   * Signifies that the corresponding value parameter declares a default value. Note that the
+   * default value itself can be a complex expression and is not available via metadata. Also note
+   * that in case of an override of a parameter with default value, the parameter in the derived
+   * method does _not_ declare the default value ([DECLARES_DEFAULT_VALUE] == false), but the
+   * parameter is still optional at the call site because the default value from the base method is
+   * used.
+   */
+  public boolean hasDefaultValue;
 
-    /**
-     * Signifies that the corresponding value parameter is `crossinline`.
-     */
-    public boolean isCrossInline;
+  /** Signifies that the corresponding value parameter is `crossinline`. */
+  public boolean isCrossInline;
 
-    /**
-     * Signifies that the corresponding value parameter is `noinline`.
-     */
-    public boolean isNoInline;
+  /** Signifies that the corresponding value parameter is `noinline`. */
+  public boolean isNoInline;
 
-    public KotlinValueParameterFlags(KotlinCommonFlags common)
-    {
-        this.common = common;
-    }
+  public KotlinValueParameterFlags(KotlinCommonFlags common) {
+    this.common = common;
+  }
 }

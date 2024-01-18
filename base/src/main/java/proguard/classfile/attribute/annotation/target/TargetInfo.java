@@ -27,92 +27,82 @@ import proguard.classfile.attribute.annotation.target.visitor.TargetInfoVisitor;
  *
  * @author Eric Lafortune
  */
-public abstract class TargetInfo
-{
-    public static final byte TARGET_TYPE_PARAMETER_GENERIC_CLASS             = 0x00;
-    public static final byte TARGET_TYPE_PARAMETER_GENERIC_METHOD            = 0x01;
-    public static final byte TARGET_TYPE_EXTENDS                             = 0x10;
-    public static final byte TARGET_TYPE_BOUND_GENERIC_CLASS                 = 0x11;
-    public static final byte TARGET_TYPE_BOUND_GENERIC_METHOD                = 0x12;
-    public static final byte TARGET_TYPE_FIELD                               = 0x13;
-    public static final byte TARGET_TYPE_RETURN                              = 0x14;
-    public static final byte TARGET_TYPE_RECEIVER                            = 0x15;
-    public static final byte TARGET_TYPE_PARAMETER                           = 0x16;
-    public static final byte TARGET_TYPE_THROWS                              = 0x17;
-    public static final byte TARGET_TYPE_LOCAL_VARIABLE                      = 0x40;
-    public static final byte TARGET_TYPE_RESOURCE_VARIABLE                   = 0x41;
-    public static final byte TARGET_TYPE_CATCH                               = 0x42;
-    public static final byte TARGET_TYPE_INSTANCE_OF                         = 0x43;
-    public static final byte TARGET_TYPE_NEW                                 = 0x44;
-    public static final byte TARGET_TYPE_METHOD_REFERENCE_NEW                = 0x45;
-    public static final byte TARGET_TYPE_METHOD_REFERENCE                    = 0x46;
-    public static final byte TARGET_TYPE_CAST                                = 0x47;
-    public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHODNew          = 0x48;
-    public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHOD             = 0x49;
-    public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHODReferenceNew = 0x4a;
-    public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHODReference    = 0x4b;
+public abstract class TargetInfo {
+  public static final byte TARGET_TYPE_PARAMETER_GENERIC_CLASS = 0x00;
+  public static final byte TARGET_TYPE_PARAMETER_GENERIC_METHOD = 0x01;
+  public static final byte TARGET_TYPE_EXTENDS = 0x10;
+  public static final byte TARGET_TYPE_BOUND_GENERIC_CLASS = 0x11;
+  public static final byte TARGET_TYPE_BOUND_GENERIC_METHOD = 0x12;
+  public static final byte TARGET_TYPE_FIELD = 0x13;
+  public static final byte TARGET_TYPE_RETURN = 0x14;
+  public static final byte TARGET_TYPE_RECEIVER = 0x15;
+  public static final byte TARGET_TYPE_PARAMETER = 0x16;
+  public static final byte TARGET_TYPE_THROWS = 0x17;
+  public static final byte TARGET_TYPE_LOCAL_VARIABLE = 0x40;
+  public static final byte TARGET_TYPE_RESOURCE_VARIABLE = 0x41;
+  public static final byte TARGET_TYPE_CATCH = 0x42;
+  public static final byte TARGET_TYPE_INSTANCE_OF = 0x43;
+  public static final byte TARGET_TYPE_NEW = 0x44;
+  public static final byte TARGET_TYPE_METHOD_REFERENCE_NEW = 0x45;
+  public static final byte TARGET_TYPE_METHOD_REFERENCE = 0x46;
+  public static final byte TARGET_TYPE_CAST = 0x47;
+  public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHODNew = 0x48;
+  public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHOD = 0x49;
+  public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHODReferenceNew = 0x4a;
+  public static final byte TARGET_TYPE_ARGUMENT_GENERIC_METHODReference = 0x4b;
 
+  public byte u1targetType;
 
-    public byte u1targetType;
+  /** Creates an uninitialized TargetInfo. */
+  protected TargetInfo() {}
 
+  /** Creates an initialized TargetInfo. */
+  protected TargetInfo(byte u1targetType) {
+    this.u1targetType = u1targetType;
+  }
 
-    /**
-     * Creates an uninitialized TargetInfo.
-     */
-    protected TargetInfo()
-    {
-    }
+  /** Returns the type of the target. */
+  public byte getTargetType() {
+    return u1targetType;
+  }
 
+  // Methods to be implemented by extensions.
 
-    /**
-     * Creates an initialized TargetInfo.
-     */
-    protected TargetInfo(byte u1targetType)
-    {
-        this.u1targetType = u1targetType;
-    }
+  /** Accepts the given visitor, in the context of a type annotation on a class. */
+  public void accept(
+      Clazz clazz, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor) {
+    throw new UnsupportedOperationException(
+        "Unsupported type annotation [0x" + Integer.toHexString(u1targetType) + "] on a class");
+  }
 
+  /** Accepts the given visitor, in the context of a type annotation on a field. */
+  public void accept(
+      Clazz clazz,
+      Field field,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    throw new UnsupportedOperationException(
+        "Unsupported type annotation [0x" + Integer.toHexString(u1targetType) + "] on a field");
+  }
 
-    /**
-     * Returns the type of the target.
-     */
-    public byte getTargetType()
-    {
-        return u1targetType;
-    }
+  /** Accepts the given visitor, in the context of a type annotation on a method. */
+  public void accept(
+      Clazz clazz,
+      Method method,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    throw new UnsupportedOperationException(
+        "Unsupported type annotation [0x" + Integer.toHexString(u1targetType) + "] on a method");
+  }
 
-
-    // Methods to be implemented by extensions.
-
-    /**
-     * Accepts the given visitor, in the context of a type annotation on a class.
-     */
-    public void accept(Clazz clazz,                                             TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        throw new UnsupportedOperationException("Unsupported type annotation [0x"+Integer.toHexString(u1targetType)+"] on a class");
-    }
-
-    /**
-     * Accepts the given visitor, in the context of a type annotation on a field.
-     */
-    public void accept(Clazz clazz, Field field,                                TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        throw new UnsupportedOperationException("Unsupported type annotation [0x"+Integer.toHexString(u1targetType)+"] on a field");
-    }
-
-    /**
-     * Accepts the given visitor, in the context of a type annotation on a method.
-     */
-    public void accept(Clazz clazz, Method method,                              TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        throw new UnsupportedOperationException("Unsupported type annotation [0x"+Integer.toHexString(u1targetType)+"] on a method");
-    }
-
-    /**
-     * Accepts the given visitor, in the context of a type annotation code.
-     */
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TargetInfoVisitor targetInfoVisitor)
-    {
-        throw new UnsupportedOperationException("Unsupported type annotation [0x"+Integer.toHexString(u1targetType)+"] on code");
-    }
+  /** Accepts the given visitor, in the context of a type annotation code. */
+  public void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TargetInfoVisitor targetInfoVisitor) {
+    throw new UnsupportedOperationException(
+        "Unsupported type annotation [0x" + Integer.toHexString(u1targetType) + "] on code");
+  }
 }

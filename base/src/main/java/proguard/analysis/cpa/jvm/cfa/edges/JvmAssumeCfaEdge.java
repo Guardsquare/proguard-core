@@ -18,53 +18,53 @@
 
 package proguard.analysis.cpa.jvm.cfa.edges;
 
-import proguard.classfile.attribute.CodeAttribute;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.classfile.attribute.CodeAttribute;
 
 /**
- * An edge representing an assumption on a JVM branch instruction that can be either taken or not taken.
+ * An edge representing an assumption on a JVM branch instruction that can be either taken or not
+ * taken.
  *
  * @author Carlo Alberto Pozzoli
  */
-public class JvmAssumeCfaEdge
-    extends JvmInstructionCfaEdge
-{
+public class JvmAssumeCfaEdge extends JvmInstructionCfaEdge {
 
-    private final boolean isSatisfied;
+  private final boolean isSatisfied;
 
-    /**
-     * Create a disconnected JVM CFA assume branch edge.
-     *
-     * @param methodCode  the code attribute of the method the edge belongs to
-     * @param offset      the offset of the instruction represented by the edge
-     * @param isSatisfied an assumption on the branch result
-     */
-    public JvmAssumeCfaEdge(CodeAttribute methodCode, int offset, boolean isSatisfied)
-    {
-        super(methodCode, offset);
-        this.isSatisfied = isSatisfied;
-    }
+  /**
+   * Create a disconnected JVM CFA assume branch edge.
+   *
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   * @param isSatisfied an assumption on the branch result
+   */
+  public JvmAssumeCfaEdge(CodeAttribute methodCode, int offset, boolean isSatisfied) {
+    super(methodCode, offset);
+    this.isSatisfied = isSatisfied;
+  }
 
-    /**
-     * Create a JVM CFA assume branch edge. Also sets it as the entering and leaving edge of the source and target nodes.
-     *
-     * @param source      the source node of the edge
-     * @param target      the target node of the edge
-     * @param methodCode  the code attribute of the method the edge belongs to
-     * @param offset      the offset of the instruction represented by the edge
-     * @param isSatisfied an assumption on hte branch result
-     */
-    public JvmAssumeCfaEdge(JvmCfaNode source, JvmCfaNode target, CodeAttribute methodCode, int offset, boolean isSatisfied)
-    {
-        super(source, target, methodCode, offset);
-        this.isSatisfied = isSatisfied;
-    }
+  /**
+   * Create a JVM CFA assume branch edge. Also sets it as the entering and leaving edge of the
+   * source and target nodes.
+   *
+   * @param source the source node of the edge
+   * @param target the target node of the edge
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   * @param isSatisfied an assumption on hte branch result
+   */
+  public JvmAssumeCfaEdge(
+      JvmCfaNode source,
+      JvmCfaNode target,
+      CodeAttribute methodCode,
+      int offset,
+      boolean isSatisfied) {
+    super(source, target, methodCode, offset);
+    this.isSatisfied = isSatisfied;
+  }
 
-    /**
-     * Returns the assumption on the branch statement result made on this edge.
-     */
-    public boolean isSatisfied()
-    {
-        return isSatisfied;
-    }
+  /** Returns the assumption on the branch statement result made on this edge. */
+  public boolean isSatisfied() {
+    return isSatisfied;
+  }
 }

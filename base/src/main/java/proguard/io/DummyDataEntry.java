@@ -21,90 +21,65 @@ package proguard.io;
 import java.io.*;
 
 /**
- * This {@link DataEntry} represents a named output entry that doesn't
- * return an input stream. It is mostly useful for testing data entry writers,
- * explicitly creating and using output streams.
+ * This {@link DataEntry} represents a named output entry that doesn't return an input stream. It is
+ * mostly useful for testing data entry writers, explicitly creating and using output streams.
  *
  * @author Eric Lafortune
  */
-public class DummyDataEntry implements DataEntry
-{
-    private final DataEntry parent;
-    private final String    name;
-    private final long      size;
-    private final boolean   isDirectory;
+public class DummyDataEntry implements DataEntry {
+  private final DataEntry parent;
+  private final String name;
+  private final long size;
+  private final boolean isDirectory;
 
+  /** Creates a new NamedDataEntry with the given name, parent, and size. */
+  public DummyDataEntry(DataEntry parent, String name, long size, boolean isDirectory) {
+    this.parent = parent;
+    this.name = name;
+    this.size = size;
+    this.isDirectory = isDirectory;
+  }
 
-    /**
-     * Creates a new NamedDataEntry with the given name, parent, and size.
-     */
-    public DummyDataEntry(DataEntry parent,
-                          String    name,
-                          long      size,
-                          boolean   isDirectory)
-    {
-        this.parent      = parent;
-        this.name        = name;
-        this.size        = size;
-        this.isDirectory = isDirectory;
-    }
+  // Implementations for DataEntry.
 
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    // Implementations for DataEntry.
+  @Override
+  public String getOriginalName() {
+    return getName();
+  }
 
-    @Override
-    public String getName()
-    {
-        return name;
-    }
+  @Override
+  public long getSize() {
+    return size;
+  }
 
+  @Override
+  public boolean isDirectory() {
+    return isDirectory;
+  }
 
-    @Override
-    public String getOriginalName()
-    {
-        return getName();
-    }
+  @Override
+  public InputStream getInputStream() throws IOException {
+    throw new UnsupportedOperationException(
+        "Can't retrieve input stream for output entry [" + name + "]");
+  }
 
+  @Override
+  public void closeInputStream() throws IOException {}
 
-    @Override
-    public long getSize()
-    {
-        return size;
-    }
+  @Override
+  public DataEntry getParent() {
+    return parent;
+  }
 
+  // Implementations for Object.
 
-    @Override
-    public boolean isDirectory()
-    {
-        return isDirectory;
-    }
-
-
-    @Override
-    public InputStream getInputStream() throws IOException
-    {
-        throw new UnsupportedOperationException("Can't retrieve input stream for output entry ["+name+"]");
-    }
-
-
-    @Override
-    public void closeInputStream() throws IOException
-    {
-    }
-
-
-    @Override
-    public DataEntry getParent()
-    {
-        return parent;
-    }
-
-
-    // Implementations for Object.
-
-    @Override
-    public String toString()
-    {
-        return String.valueOf(parent) + ':' + name;
-    }
+  @Override
+  public String toString() {
+    return String.valueOf(parent) + ':' + name;
+  }
 }

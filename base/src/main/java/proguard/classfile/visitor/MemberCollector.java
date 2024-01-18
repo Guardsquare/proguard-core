@@ -17,72 +17,62 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.Set;
 import proguard.classfile.Clazz;
 import proguard.classfile.Member;
 
-import java.util.Set;
-
 /**
- * This {@link MemberVisitor} collects dot-separated classname.membername.descriptor
- * strings of the class members that it visits.
+ * This {@link MemberVisitor} collects dot-separated classname.membername.descriptor strings of the
+ * class members that it visits.
  *
  * @author Eric Lafortune
  */
-public class MemberCollector
-implements   MemberVisitor
-{
-    private final boolean includeClassName;
-    private final boolean includeMemberName;
-    private final boolean includeMemberDescriptor;
+public class MemberCollector implements MemberVisitor {
+  private final boolean includeClassName;
+  private final boolean includeMemberName;
+  private final boolean includeMemberDescriptor;
 
-    private final Set<String> set;
+  private final Set<String> set;
 
+  /**
+   * Creates a new MemberCollector.
+   *
+   * @param includeClassName specifies whether to include the class name in each collected strings.
+   * @param includeMemberName specifies whether to include the member name in each collected
+   *     strings.
+   * @param includeMemberDescriptor specifies whether to include the member descriptor in each
+   *     collected strings.
+   * @param set the Set in which all strings will be collected.
+   */
+  public MemberCollector(
+      boolean includeClassName,
+      boolean includeMemberName,
+      boolean includeMemberDescriptor,
+      Set<String> set) {
+    this.includeClassName = includeClassName;
+    this.includeMemberName = includeMemberName;
+    this.includeMemberDescriptor = includeMemberDescriptor;
 
-    /**
-     * Creates a new MemberCollector.
-     * @param includeClassName        specifies whether to include the class
-     *                                name in each collected strings.
-     * @param includeMemberName       specifies whether to include the member
-     *                                name in each collected strings.
-     * @param includeMemberDescriptor specifies whether to include the member
-     *                                descriptor in each collected strings.
-     * @param set                     the Set in which all strings will be
-     *                                collected.
-     */
-    public MemberCollector(boolean     includeClassName,
-                           boolean     includeMemberName,
-                           boolean     includeMemberDescriptor,
-                           Set<String> set)
-    {
-        this.includeClassName        = includeClassName;
-        this.includeMemberName       = includeMemberName;
-        this.includeMemberDescriptor = includeMemberDescriptor;
+    this.set = set;
+  }
 
-        this.set = set;
+  // Implementations for MemberVisitor.
+
+  public void visitAnyMember(Clazz clazz, Member member) {
+    StringBuilder buffer = new StringBuilder();
+
+    if (includeClassName) {
+      buffer.append(clazz.getName()).append('.');
     }
 
-
-    // Implementations for MemberVisitor.
-
-    public void visitAnyMember(Clazz clazz, Member member)
-    {
-        StringBuilder buffer = new StringBuilder();
-
-        if (includeClassName)
-        {
-            buffer.append(clazz.getName()).append('.');
-        }
-
-        if (includeMemberName)
-        {
-            buffer.append(member.getName(clazz)).append('.');
-        }
-
-        if (includeMemberDescriptor)
-        {
-            buffer.append(member.getDescriptor(clazz));
-        }
-
-        set.add(buffer.toString());
+    if (includeMemberName) {
+      buffer.append(member.getName(clazz)).append('.');
     }
+
+    if (includeMemberDescriptor) {
+      buffer.append(member.getDescriptor(clazz));
+    }
+
+    set.add(buffer.toString());
+  }
 }

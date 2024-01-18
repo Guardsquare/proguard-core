@@ -21,39 +21,31 @@ import proguard.classfile.Clazz;
 import proguard.classfile.constant.ClassConstant;
 
 /**
- * This {@link ConstantVisitor} delegates its visits to class constants
- * to another given {@link ConstantVisitor}, except for one given class.
+ * This {@link ConstantVisitor} delegates its visits to class constants to another given {@link
+ * ConstantVisitor}, except for one given class.
  *
  * @author Eric Lafortune
  */
-public class ExceptClassConstantFilter
-implements   ConstantVisitor
-{
-    private final String           exceptClassName;
-    private final ConstantVisitor constantVisitor;
+public class ExceptClassConstantFilter implements ConstantVisitor {
+  private final String exceptClassName;
+  private final ConstantVisitor constantVisitor;
 
+  /**
+   * Creates a new ExceptClassConstantFilter.
+   *
+   * @param exceptClassName the name of the class that will not be visited.
+   * @param constantVisitor the <code>ConstantVisitor</code> to which visits will be delegated.
+   */
+  public ExceptClassConstantFilter(String exceptClassName, ConstantVisitor constantVisitor) {
+    this.exceptClassName = exceptClassName;
+    this.constantVisitor = constantVisitor;
+  }
 
-    /**
-     * Creates a new ExceptClassConstantFilter.
-     * @param exceptClassName the name of the class that will not be visited.
-     * @param constantVisitor the <code>ConstantVisitor</code> to which visits
-     *                        will be delegated.
-     */
-    public ExceptClassConstantFilter(String          exceptClassName,
-                                     ConstantVisitor constantVisitor)
-    {
-        this.exceptClassName = exceptClassName;
-        this.constantVisitor = constantVisitor;
+  // Implementations for ConstantVisitor.
+
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    if (!classConstant.getName(clazz).equals(exceptClassName)) {
+      constantVisitor.visitClassConstant(clazz, classConstant);
     }
-
-
-    // Implementations for ConstantVisitor.
-
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        if (!classConstant.getName(clazz).equals(exceptClassName))
-        {
-            constantVisitor.visitClassConstant(clazz, classConstant);
-        }
-    }
+  }
 }

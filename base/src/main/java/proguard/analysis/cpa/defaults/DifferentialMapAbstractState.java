@@ -23,33 +23,31 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * This {@link DifferentialMapAbstractState} represents a map to {@link LatticeAbstractState}s with the semilattice operators lifted to the map.
+ * This {@link DifferentialMapAbstractState} represents a map to {@link LatticeAbstractState}s with
+ * the semilattice operators lifted to the map.
  *
  * @author Dmitry Ivanov
  */
-public class DifferentialMapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
+public class DifferentialMapAbstractState<
+        KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
     extends DifferentialMap<KeyT, AbstractSpaceT>
-    implements MapAbstractState<KeyT, AbstractSpaceT>
-{
+    implements MapAbstractState<KeyT, AbstractSpaceT> {
 
-    public DifferentialMapAbstractState()
-    {
-    }
+  public DifferentialMapAbstractState() {}
 
-    public DifferentialMapAbstractState(Map<KeyT, AbstractSpaceT> m) {
-        super(m);
-    }
+  public DifferentialMapAbstractState(Map<KeyT, AbstractSpaceT> m) {
+    super(m);
+  }
 
-    public DifferentialMapAbstractState(Predicate<DifferentialMap<KeyT, AbstractSpaceT>> shouldCollapse) {
-        super(Collections.emptyMap(), shouldCollapse);
-    }
+  public DifferentialMapAbstractState(
+      Predicate<DifferentialMap<KeyT, AbstractSpaceT>> shouldCollapse) {
+    super(Collections.emptyMap(), shouldCollapse);
+  }
 
-    // implementations for AbstractState
+  // implementations for AbstractState
 
-    @Override
-    public DifferentialMapAbstractState<KeyT, AbstractSpaceT> copy()
-    {
-        return new DifferentialMapAbstractState<>(this);
-    }
-
+  @Override
+  public DifferentialMapAbstractState<KeyT, AbstractSpaceT> copy() {
+    return new DifferentialMapAbstractState<>(this);
+  }
 }

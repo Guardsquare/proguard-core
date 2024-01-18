@@ -17,48 +17,33 @@
  */
 package proguard.classfile.kotlin.flags;
 
-
 /**
  * Flags for Kotlin property accessors (getters/setters for properties).
  *
- * Valid common flags:
- *   - hasAnnotations
- *   - isInternal
- *   - isPrivate
- *   - isProtected
- *   - isPublic
- *   - isPrivateToThis
- *   - isLocal
- *   - isFinal
- *   - isOpen
- *   - isAbstract
- *   - isSealed
+ * <p>Valid common flags: - hasAnnotations - isInternal - isPrivate - isProtected - isPublic -
+ * isPrivateToThis - isLocal - isFinal - isOpen - isAbstract - isSealed
  */
-public class KotlinPropertyAccessorFlags implements KotlinFlags
-{
-    public KotlinCommonFlags     common;
-    public KotlinVisibilityFlags visibility;
-    public KotlinModalityFlags   modality;
+public class KotlinPropertyAccessorFlags implements KotlinFlags {
+  public KotlinCommonFlags common;
+  public KotlinVisibilityFlags visibility;
+  public KotlinModalityFlags modality;
 
-    /**
-     * Signifies that the corresponding property is not default, i.e. it has a body and/or annotations in the source code.
-     */
-    public boolean isDefault;
+  /**
+   * Signifies that the corresponding property is not default, i.e. it has a body and/or annotations
+   * in the source code.
+   */
+  public boolean isDefault;
 
-    /**
-     * Signifies that the corresponding property is `external`.
-     */
-    public boolean isExternal;
+  /** Signifies that the corresponding property is `external`. */
+  public boolean isExternal;
 
-    /**
-     * Signifies that the corresponding property is `inline`.
-     */
-    public boolean isInline;
+  /** Signifies that the corresponding property is `inline`. */
+  public boolean isInline;
 
-    public KotlinPropertyAccessorFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility, KotlinModalityFlags modality)
-    {
-        this.common     = common;
-        this.visibility = visibility;
-        this.modality   = modality;
-    }
+  public KotlinPropertyAccessorFlags(
+      KotlinCommonFlags common, KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
+    this.common = common;
+    this.visibility = visibility;
+    this.modality = modality;
+  }
 }

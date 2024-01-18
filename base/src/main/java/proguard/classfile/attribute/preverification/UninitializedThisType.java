@@ -26,38 +26,48 @@ import proguard.classfile.attribute.preverification.visitor.VerificationTypeVisi
  *
  * @author Eric Lafortune
  */
-public class UninitializedThisType extends VerificationType
-{
-    // Implementations for VerificationType.
+public class UninitializedThisType extends VerificationType {
+  // Implementations for VerificationType.
 
-    public int getTag()
-    {
-        return UNINITIALIZED_THIS_TYPE;
-    }
+  public int getTag() {
+    return UNINITIALIZED_THIS_TYPE;
+  }
 
+  public void accept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      VerificationTypeVisitor verificationTypeVisitor) {
+    verificationTypeVisitor.visitUninitializedThisType(
+        clazz, method, codeAttribute, instructionOffset, this);
+  }
 
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, VerificationTypeVisitor verificationTypeVisitor)
-    {
-        verificationTypeVisitor.visitUninitializedThisType(clazz, method, codeAttribute, instructionOffset, this);
-    }
+  public void stackAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      int stackIndex,
+      VerificationTypeVisitor verificationTypeVisitor) {
+    verificationTypeVisitor.visitStackUninitializedThisType(
+        clazz, method, codeAttribute, instructionOffset, stackIndex, this);
+  }
 
+  public void variablesAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      int instructionOffset,
+      int variableIndex,
+      VerificationTypeVisitor verificationTypeVisitor) {
+    verificationTypeVisitor.visitVariablesUninitializedThisType(
+        clazz, method, codeAttribute, instructionOffset, variableIndex, this);
+  }
 
-    public void stackAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, int stackIndex, VerificationTypeVisitor verificationTypeVisitor)
-    {
-        verificationTypeVisitor.visitStackUninitializedThisType(clazz, method, codeAttribute, instructionOffset, stackIndex, this);
-    }
+  // Implementations for Object.
 
-
-    public void variablesAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, int instructionOffset, int variableIndex, VerificationTypeVisitor verificationTypeVisitor)
-    {
-        verificationTypeVisitor.visitVariablesUninitializedThisType(clazz, method, codeAttribute, instructionOffset, variableIndex, this);
-    }
-
-
-    // Implementations for Object.
-
-    public String toString()
-    {
-        return "u:this";
-    }
+  public String toString() {
+    return "u:this";
+  }
 }

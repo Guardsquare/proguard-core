@@ -17,7 +17,6 @@
  */
 package proguard.classfile.attribute;
 
-
 import proguard.classfile.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 
@@ -26,56 +25,39 @@ import proguard.classfile.attribute.visitor.AttributeVisitor;
  *
  * @author Eric Lafortune
  */
-public class UnknownAttribute extends Attribute
-{
-    public final int    u4attributeLength;
-    public       byte[] info;
+public class UnknownAttribute extends Attribute {
+  public final int u4attributeLength;
+  public byte[] info;
 
+  /** Creates an uninitialized UnknownAttribute with the specified name and length. */
+  public UnknownAttribute(int u2attributeNameIndex, int attributeLength) {
+    this(u2attributeNameIndex, attributeLength, null);
+  }
 
-    /**
-     * Creates an uninitialized UnknownAttribute with the specified name and
-     * length.
-     */
-    public UnknownAttribute(int u2attributeNameIndex,
-                            int attributeLength)
-    {
-        this(u2attributeNameIndex, attributeLength, null);
-    }
+  /** Creates an initialized UnknownAttribute. */
+  public UnknownAttribute(int u2attributeNameIndex, int u4attributeLength, byte[] info) {
+    super(u2attributeNameIndex);
 
+    this.u4attributeLength = u4attributeLength;
+    this.info = info;
+  }
 
-    /**
-     * Creates an initialized UnknownAttribute.
-     */
-    public UnknownAttribute(int    u2attributeNameIndex,
-                            int    u4attributeLength,
-                            byte[] info)
-    {
-        super(u2attributeNameIndex);
+  // Implementations for Attribute.
 
-        this.u4attributeLength = u4attributeLength;
-        this.info              = info;
-    }
+  public void accept(Clazz clazz, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitUnknownAttribute(clazz, this);
+  }
 
+  public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitUnknownAttribute(clazz, this);
+  }
 
-    // Implementations for Attribute.
+  public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitUnknownAttribute(clazz, this);
+  }
 
-    public void accept(Clazz clazz, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitUnknownAttribute(clazz, this);
-    }
-
-    public void accept(Clazz clazz, Field field, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitUnknownAttribute(clazz, this);
-    }
-
-    public void accept(Clazz clazz, Method method, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitUnknownAttribute(clazz, this);
-    }
-
-    public void accept(Clazz clazz, Method method, CodeAttribute codeAttribute, AttributeVisitor attributeVisitor)
-    {
-        attributeVisitor.visitUnknownAttribute(clazz, this);
-    }
+  public void accept(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, AttributeVisitor attributeVisitor) {
+    attributeVisitor.visitUnknownAttribute(clazz, this);
+  }
 }

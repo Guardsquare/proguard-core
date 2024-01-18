@@ -27,52 +27,45 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *
  * @author Dmitry Ivanov
  */
-public class JvmLocalVariableLocation
-    extends JvmMemoryLocation
-{
+public class JvmLocalVariableLocation extends JvmMemoryLocation {
 
-    public final int index;
+  public final int index;
 
-    /**
-     * Create a local variable location.
-     *
-     * @param index a position at the local variable array
-     */
-    public JvmLocalVariableLocation(int index)
-    {
-        this.index = index;
+  /**
+   * Create a local variable location.
+   *
+   * @param index a position at the local variable array
+   */
+  public JvmLocalVariableLocation(int index) {
+    this.index = index;
+  }
+
+  // implementations for MemoryLocation
+
+  @Override
+  public <T extends LatticeAbstractState> T extractValueOrDefault(
+      JvmAbstractState abstractState, T defaultValue) {
+    return (T) abstractState.getVariableOrDefault(index, defaultValue);
+  }
+
+  // implementations for Object
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof JvmLocalVariableLocation)) {
+      return false;
     }
+    JvmLocalVariableLocation other = (JvmLocalVariableLocation) obj;
+    return index == other.index;
+  }
 
-    // implementations for MemoryLocation
+  @Override
+  public int hashCode() {
+    return Objects.hash(index);
+  }
 
-    @Override
-    public <T extends LatticeAbstractState> T extractValueOrDefault(JvmAbstractState abstractState, T defaultValue)
-    {
-        return (T) abstractState.getVariableOrDefault(index, defaultValue);
-    }
-
-    // implementations for Object
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (!(obj instanceof JvmLocalVariableLocation))
-        {
-            return false;
-        }
-        JvmLocalVariableLocation other = (JvmLocalVariableLocation) obj;
-        return index == other.index;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(index);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "JvmLocalVariableLocation(" + index + ")";
-    }
+  @Override
+  public String toString() {
+    return "JvmLocalVariableLocation(" + index + ")";
+  }
 }

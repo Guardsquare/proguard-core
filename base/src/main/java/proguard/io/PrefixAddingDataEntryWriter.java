@@ -20,78 +20,54 @@ package proguard.io;
 import java.io.*;
 
 /**
- * This {@link DataEntryWriter} delegates to a given {@link DataEntryWriter}, each time
- * adding a prefix of the written data entry name.
+ * This {@link DataEntryWriter} delegates to a given {@link DataEntryWriter}, each time adding a
+ * prefix of the written data entry name.
  *
  * @author Eric Lafortune
  */
-public class PrefixAddingDataEntryWriter implements DataEntryWriter
-{
-    private final String          prefix;
-    private final DataEntryWriter dataEntryWriter;
+public class PrefixAddingDataEntryWriter implements DataEntryWriter {
+  private final String prefix;
+  private final DataEntryWriter dataEntryWriter;
 
+  /** Creates a new PrefixAddingDataEntryWriter. */
+  public PrefixAddingDataEntryWriter(String prefix, DataEntryWriter dataEntryWriter) {
+    this.prefix = prefix;
+    this.dataEntryWriter = dataEntryWriter;
+  }
 
-    /**
-     * Creates a new PrefixAddingDataEntryWriter.
-     */
-    public PrefixAddingDataEntryWriter(String          prefix,
-                                       DataEntryWriter dataEntryWriter)
-    {
-        this.prefix          = prefix;
-        this.dataEntryWriter = dataEntryWriter;
-    }
+  // Implementations for DataEntryWriter.
 
+  @Override
+  public boolean createDirectory(DataEntry dataEntry) throws IOException {
+    return dataEntryWriter.createDirectory(renamedDataEntry(dataEntry));
+  }
 
-    // Implementations for DataEntryWriter.
+  @Override
+  public boolean sameOutputStream(DataEntry dataEntry1, DataEntry dataEntry2) throws IOException {
+    return dataEntryWriter.sameOutputStream(
+        renamedDataEntry(dataEntry1), renamedDataEntry(dataEntry2));
+  }
 
-    @Override
-    public boolean createDirectory(DataEntry dataEntry)
-    throws IOException
-    {
-        return dataEntryWriter.createDirectory(renamedDataEntry(dataEntry));
-    }
+  @Override
+  public OutputStream createOutputStream(DataEntry dataEntry) throws IOException {
+    return dataEntryWriter.createOutputStream(renamedDataEntry(dataEntry));
+  }
 
+  @Override
+  public void close() throws IOException {
+    dataEntryWriter.close();
+  }
 
-    @Override
-    public boolean sameOutputStream(DataEntry dataEntry1,
-                                    DataEntry dataEntry2)
-    throws IOException
-    {
-        return dataEntryWriter.sameOutputStream(renamedDataEntry(dataEntry1),
-                                                renamedDataEntry(dataEntry2));
-    }
+  @Override
+  public void println(PrintWriter pw, String prefix) {
+    pw.println(prefix + "PrefixAddingDataEntryWriter (prefix = " + prefix + ")");
+    dataEntryWriter.println(pw, prefix + "  ");
+  }
 
+  // Small utility methods.
 
-    @Override
-    public OutputStream createOutputStream(DataEntry dataEntry)
-    throws IOException
-    {
-        return dataEntryWriter.createOutputStream(renamedDataEntry(dataEntry));
-    }
-
-
-    @Override
-    public void close() throws IOException
-    {
-        dataEntryWriter.close();
-    }
-
-
-    @Override
-    public void println(PrintWriter pw, String prefix)
-    {
-        pw.println(prefix + "PrefixAddingDataEntryWriter (prefix = "+prefix+")");
-        dataEntryWriter.println(pw, prefix + "  ");
-    }
-
-
-    // Small utility methods.
-
-    /**
-     * Adds the prefix to the given data entry name.
-     */
-    private DataEntry renamedDataEntry(DataEntry dataEntry)
-    {
-        return new RenamedDataEntry(dataEntry, prefix + dataEntry.getName());
-    }
+  /** Adds the prefix to the given data entry name. */
+  private DataEntry renamedDataEntry(DataEntry dataEntry) {
+    return new RenamedDataEntry(dataEntry, prefix + dataEntry.getName());
+  }
 }

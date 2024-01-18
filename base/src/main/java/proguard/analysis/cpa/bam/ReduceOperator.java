@@ -18,27 +18,31 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.Signature;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
+import proguard.analysis.datastructure.callgraph.Call;
+import proguard.classfile.Signature;
 
 /**
- * This operator is used to discard unnecessary information when entering a procedure block depending on the domain-specific analysis (e.g. local variables, caller stack).
+ * This operator is used to discard unnecessary information when entering a procedure block
+ * depending on the domain-specific analysis (e.g. local variables, caller stack).
  *
  * @author Carlo Alberto Pozzoli
  */
-public interface ReduceOperator<CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>, CfaEdgeT extends CfaEdge<CfaNodeT>, SignatureT extends Signature>
-{
+public interface ReduceOperator<
+    CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
+    CfaEdgeT extends CfaEdge<CfaNodeT>,
+    SignatureT extends Signature> {
 
-    /**
-     * Creates the initial state of the called procedure discarding the useless information from the state of the caller.
-     *
-     * @param expandedInitialState the entry state of the called procedure before any reduction
-     * @param blockEntryNode       the entry node of the called procedure
-     * @param call                 the information of the call to the procedure
-     * @return The entry state of the called procedure
-     */
-    AbstractState reduce(AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call);
+  /**
+   * Creates the initial state of the called procedure discarding the useless information from the
+   * state of the caller.
+   *
+   * @param expandedInitialState the entry state of the called procedure before any reduction
+   * @param blockEntryNode the entry node of the called procedure
+   * @param call the information of the call to the procedure
+   * @return The entry state of the called procedure
+   */
+  AbstractState reduce(AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call);
 }

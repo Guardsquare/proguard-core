@@ -20,16 +20,13 @@ package proguard.classfile.attribute.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.attribute.InnerClassesInfo;
 
-
 /**
- * This interface specifies the methods for a visitor of
- * {@link InnerClassesInfo} instances. Note that there is only a single
- * implementation of {@link InnerClassesInfo}, such that this interface
+ * This interface specifies the methods for a visitor of {@link InnerClassesInfo} instances. Note
+ * that there is only a single implementation of {@link InnerClassesInfo}, such that this interface
  * is not strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface InnerClassesInfoVisitor
-{
-    public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo);
+public interface InnerClassesInfoVisitor {
+  public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo);
 }

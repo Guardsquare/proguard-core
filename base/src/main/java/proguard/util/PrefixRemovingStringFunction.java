@@ -22,64 +22,49 @@ package proguard.util;
  *
  * @author Johan Leys
  */
-public class PrefixRemovingStringFunction implements StringFunction
-{
-    private final String         prefix;
-    private final StringFunction successStringFunction;
-    private final StringFunction failStringFunction;
+public class PrefixRemovingStringFunction implements StringFunction {
+  private final String prefix;
+  private final StringFunction successStringFunction;
+  private final StringFunction failStringFunction;
 
+  /**
+   * Creates a new PrefixRemovingStringFunction.
+   *
+   * @param prefix the prefix to remove from each string.
+   */
+  public PrefixRemovingStringFunction(String prefix) {
+    this(prefix, StringFunction.IDENTITY_FUNCTION);
+  }
 
-    /**
-     * Creates a new PrefixRemovingStringFunction.
-     *
-     * @param prefix the prefix to remove from each string.
-     */
-    public PrefixRemovingStringFunction(String prefix)
-    {
-        this(prefix,
-             StringFunction.IDENTITY_FUNCTION);
-    }
+  /**
+   * Creates a new PrefixRemovingStringFunction.
+   *
+   * @param prefix the prefix to remove from each string.
+   * @param stringFunction the function to subsequently apply to all strings.
+   */
+  public PrefixRemovingStringFunction(String prefix, StringFunction stringFunction) {
+    this(prefix, stringFunction, stringFunction);
+  }
 
+  /**
+   * Creates a new PrefixRemovingStringFunction.
+   *
+   * @param prefix the prefix to remove from each string.
+   * @param successStringFunction the function to subsequently apply to prefixed strings.
+   * @param failStringFunction the function to subsequently apply to other strings.
+   */
+  public PrefixRemovingStringFunction(
+      String prefix, StringFunction successStringFunction, StringFunction failStringFunction) {
+    this.prefix = prefix;
+    this.successStringFunction = successStringFunction;
+    this.failStringFunction = failStringFunction;
+  }
 
-    /**
-     * Creates a new PrefixRemovingStringFunction.
-     *
-     * @param prefix         the prefix to remove from each string.
-     * @param stringFunction the function to subsequently apply to all strings.
-     */
-    public PrefixRemovingStringFunction(String         prefix,
-                                        StringFunction stringFunction)
-    {
-        this(prefix,
-             stringFunction,
-             stringFunction);
-    }
+  // Implementations for StringFunction.
 
-
-    /**
-     * Creates a new PrefixRemovingStringFunction.
-     *
-     * @param prefix                the prefix to remove from each string.
-     * @param successStringFunction the function to subsequently apply to
-     *                              prefixed strings.
-     * @param failStringFunction    the function to subsequently apply to
-     *                              other strings.
-     */
-    public PrefixRemovingStringFunction(String         prefix,
-                                        StringFunction successStringFunction,
-                                        StringFunction failStringFunction)
-    {
-        this.prefix                = prefix;
-        this.successStringFunction = successStringFunction;
-        this.failStringFunction    = failStringFunction;
-    }
-
-    // Implementations for StringFunction.
-
-    public String transform(String string)
-    {
-        return string.startsWith(prefix) ?
-            successStringFunction.transform(string.substring(prefix.length())) :
-            failStringFunction.transform(string);
-    }
+  public String transform(String string) {
+    return string.startsWith(prefix)
+        ? successStringFunction.transform(string.substring(prefix.length()))
+        : failStringFunction.transform(string);
+  }
 }

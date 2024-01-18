@@ -21,30 +21,24 @@ import proguard.classfile.Clazz;
 import proguard.classfile.attribute.*;
 
 /**
- * This {@link AttributeVisitor} lets a given {@link BootstrapMethodInfoVisitor} visit all
- * bootstrap method instances of the {@link BootstrapMethodsAttribute} instances it visits.
+ * This {@link AttributeVisitor} lets a given {@link BootstrapMethodInfoVisitor} visit all bootstrap
+ * method instances of the {@link BootstrapMethodsAttribute} instances it visits.
  *
  * @author Eric Lafortune
  */
-public class AllBootstrapMethodInfoVisitor
-implements   AttributeVisitor
-{
-    private final BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor;
+public class AllBootstrapMethodInfoVisitor implements AttributeVisitor {
+  private final BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor;
 
+  public AllBootstrapMethodInfoVisitor(BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor) {
+    this.bootstrapMethodInfoVisitor = bootstrapMethodInfoVisitor;
+  }
 
-    public AllBootstrapMethodInfoVisitor(BootstrapMethodInfoVisitor bootstrapMethodInfoVisitor)
-    {
-        this.bootstrapMethodInfoVisitor = bootstrapMethodInfoVisitor;
-    }
+  // Implementations for AttributeVisitor.
 
+  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-    // Implementations for AttributeVisitor.
-
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-
-    public void visitBootstrapMethodsAttribute(Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute)
-    {
-        bootstrapMethodsAttribute.bootstrapMethodEntriesAccept(clazz, bootstrapMethodInfoVisitor);
-    }
+  public void visitBootstrapMethodsAttribute(
+      Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute) {
+    bootstrapMethodsAttribute.bootstrapMethodEntriesAccept(clazz, bootstrapMethodInfoVisitor);
+  }
 }

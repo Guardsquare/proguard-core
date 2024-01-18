@@ -25,52 +25,44 @@ import proguard.classfile.visitor.ClassVisitor;
 import proguard.util.ArrayUtil;
 
 /**
- * This {@link ConstantVisitor} and {@link ClassVisitor} adds the class constants or the
- * classes that it visits to the given target nest member attribute.
+ * This {@link ConstantVisitor} and {@link ClassVisitor} adds the class constants or the classes
+ * that it visits to the given target nest member attribute.
  */
-public class NestMemberAdder
-implements   ConstantVisitor,
-             ClassVisitor
+public class NestMemberAdder implements ConstantVisitor, ClassVisitor {
 
-{
-    private final ConstantPoolEditor   constantPoolEditor;
-    private final NestMembersAttribute targetNestMembersAttribute;
+  private final ConstantPoolEditor constantPoolEditor;
+  private final NestMembersAttribute targetNestMembersAttribute;
 
+  /**
+   * Creates a new NestMemberAdder that will add classes to the given target nest members attribute.
+   */
+  public NestMemberAdder(
+      ProgramClass targetClass, NestMembersAttribute targetNestMembersAttribute) {
+    this.constantPoolEditor = new ConstantPoolEditor(targetClass);
+    this.targetNestMembersAttribute = targetNestMembersAttribute;
+  }
 
-    /**
-     * Creates a new NestMemberAdder that will add classes to the
-     * given target nest members attribute.
-     */
-    public NestMemberAdder(ProgramClass         targetClass,
-                           NestMembersAttribute targetNestMembersAttribute)
-    {
-        this.constantPoolEditor         = new ConstantPoolEditor(targetClass);
-        this.targetNestMembersAttribute = targetNestMembersAttribute;
-    }
+  // Implementations for ConstantVisitor.
 
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-    // Implementations for ConstantVisitor.
+  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    targetNestMembersAttribute.u2classes =
+        ArrayUtil.add(
+            targetNestMembersAttribute.u2classes,
+            targetNestMembersAttribute.u2classesCount++,
+            constantPoolEditor.addClassConstant(
+                classConstant.getName(clazz), classConstant.referencedClass));
+  }
 
-    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+  // Implementations for ClassVisitor.
 
-    public void visitClassConstant(Clazz clazz, ClassConstant classConstant)
-    {
-        targetNestMembersAttribute.u2classes =
-            ArrayUtil.add(targetNestMembersAttribute.u2classes,
-                          targetNestMembersAttribute.u2classesCount++,
-                          constantPoolEditor.addClassConstant(classConstant.getName(clazz),
-                                                              classConstant.referencedClass));
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        targetNestMembersAttribute.u2classes =
-            ArrayUtil.add(targetNestMembersAttribute.u2classes,
-                          targetNestMembersAttribute.u2classesCount++,
-                          constantPoolEditor.addClassConstant(clazz));
-    }
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    targetNestMembersAttribute.u2classes =
+        ArrayUtil.add(
+            targetNestMembersAttribute.u2classes,
+            targetNestMembersAttribute.u2classesCount++,
+            constantPoolEditor.addClassConstant(clazz));
+  }
 }

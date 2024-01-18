@@ -25,11 +25,8 @@ import proguard.analysis.cpa.defaults.SetAbstractState;
  *
  * @author Dmitry Ivanov
  */
-public interface JvmTaintHeapAbstractState
-{
+public interface JvmTaintHeapAbstractState {
 
-    /**
-     * Transitively applies the taint {@code value} to the {@code object}.
-     */
-    <T> void taintObject(T object, SetAbstractState<JvmTaintSource> value);
+  /** Transitively applies the taint {@code value} to the {@code object}. */
+  <T> void taintObject(T object, SetAbstractState<JvmTaintSource> value);
 }

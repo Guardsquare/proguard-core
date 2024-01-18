@@ -24,45 +24,37 @@ import proguard.classfile.kotlin.visitor.filter.KotlinConstructorFilter;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
- * Apply the given function visitor to a referenced constructors's corresponding
- * {@link KotlinConstructorMetadata}.
+ * Apply the given function visitor to a referenced constructors's corresponding {@link
+ * KotlinConstructorMetadata}.
  *
  * @author James Hamilton
  */
-public class MethodToKotlinConstructorVisitor
-implements   MemberVisitor
-{
-    private final KotlinConstructorVisitor kotlinConstructorVisitor;
+public class MethodToKotlinConstructorVisitor implements MemberVisitor {
+  private final KotlinConstructorVisitor kotlinConstructorVisitor;
 
+  public MethodToKotlinConstructorVisitor(KotlinConstructorVisitor kotlinConstructorVisitor) {
+    this.kotlinConstructorVisitor = kotlinConstructorVisitor;
+  }
 
-    public MethodToKotlinConstructorVisitor(KotlinConstructorVisitor kotlinConstructorVisitor)
-    {
-        this.kotlinConstructorVisitor = kotlinConstructorVisitor;
-    }
-
-    @Override
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        programClass.kotlinMetadataAccept(
-            new AllConstructorVisitor(
+  @Override
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    programClass.kotlinMetadataAccept(
+        new AllConstructorVisitor(
             new KotlinConstructorFilter(
-                func -> programMethod.equals(func.referencedMethod),
-                kotlinConstructorVisitor)));
-    }
+                func -> programMethod.equals(func.referencedMethod), kotlinConstructorVisitor)));
+  }
 
-    @Override
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        libraryClass.kotlinMetadataAccept(
-            new AllConstructorVisitor(
+  @Override
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    libraryClass.kotlinMetadataAccept(
+        new AllConstructorVisitor(
             new KotlinConstructorFilter(
-                func -> libraryMethod.equals(func.referencedMethod),
-                kotlinConstructorVisitor)));
-    }
+                func -> libraryMethod.equals(func.referencedMethod), kotlinConstructorVisitor)));
+  }
 
-    @Override
-    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
+  @Override
+  public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {}
 
-    @Override
-    public void visitProgramField(ProgramClass programClass, ProgramField programField) {}
+  @Override
+  public void visitProgramField(ProgramClass programClass, ProgramField programField) {}
 }

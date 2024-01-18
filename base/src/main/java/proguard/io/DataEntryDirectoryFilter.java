@@ -18,19 +18,15 @@
 package proguard.io;
 
 /**
- * This {@link DataEntryFilter} filters data entries based on whether they represent
- * directories.
+ * This {@link DataEntryFilter} filters data entries based on whether they represent directories.
  *
  * @author Eric Lafortune
  */
-public class DataEntryDirectoryFilter
-implements   DataEntryFilter
-{
-    // Implementations for DataEntryFilter.
+public class DataEntryDirectoryFilter implements DataEntryFilter {
+  // Implementations for DataEntryFilter.
 
-    @Override
-    public boolean accepts(DataEntry dataEntry)
-    {
-        return dataEntry != null && dataEntry.isDirectory();
-    }
+  @Override
+  public boolean accepts(DataEntry dataEntry) {
+    return dataEntry != null && dataEntry.isDirectory();
+  }
 }

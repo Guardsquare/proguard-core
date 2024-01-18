@@ -26,59 +26,58 @@ import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 
 /**
- * The {@link JvmTaintAbstractState} is a {@link JvmAbstractState} with features specific to taint analysis.
+ * The {@link JvmTaintAbstractState} is a {@link JvmAbstractState} with features specific to taint
+ * analysis.
  *
  * @author Dmitry Ivanov
  */
-public class JvmTaintAbstractState
-    extends JvmAbstractState<SetAbstractState<JvmTaintSource>>
-{
+public class JvmTaintAbstractState extends JvmAbstractState<SetAbstractState<JvmTaintSource>> {
 
-    /**
-     * Create a taint JVM abstract state.
-     *
-     * @param programLocation a CFA node
-     * @param frame           a frame abstract state
-     * @param heap            a heap abstract state
-     * @param staticFields    a static field table
-     */
-    public JvmTaintAbstractState(JvmCfaNode programLocation,
-                                 JvmFrameAbstractState<SetAbstractState<JvmTaintSource>> frame,
-                                 JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> heap,
-                                 MapAbstractState<String, SetAbstractState<JvmTaintSource>> staticFields)
-    {
-        super(programLocation, frame, heap, staticFields);
+  /**
+   * Create a taint JVM abstract state.
+   *
+   * @param programLocation a CFA node
+   * @param frame a frame abstract state
+   * @param heap a heap abstract state
+   * @param staticFields a static field table
+   */
+  public JvmTaintAbstractState(
+      JvmCfaNode programLocation,
+      JvmFrameAbstractState<SetAbstractState<JvmTaintSource>> frame,
+      JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> heap,
+      MapAbstractState<String, SetAbstractState<JvmTaintSource>> staticFields) {
+    super(programLocation, frame, heap, staticFields);
+  }
+
+  /** Adds transitively taints from {@code value} to all fields of {@code object}. */
+  public <T> void setObjectTaint(T object, SetAbstractState<JvmTaintSource> value) {
+    if (!(heap instanceof JvmTaintTreeHeapFollowerAbstractState)) {
+      return;
     }
+    ((JvmTaintTreeHeapFollowerAbstractState) heap).taintObject(object, value);
+  }
 
-    /**
-     * Adds transitively taints from {@code value} to all fields of {@code object}.
-     */
-    public <T> void setObjectTaint(T object, SetAbstractState<JvmTaintSource> value)
-    {
-        if (!(heap instanceof JvmTaintTreeHeapFollowerAbstractState))
-        {
-            return;
-        }
-        ((JvmTaintTreeHeapFollowerAbstractState) heap).taintObject(object, value);
-    }
+  // implementations for LatticeAbstractState
 
-    // implementations for LatticeAbstractState
+  @Override
+  public JvmTaintAbstractState join(
+      JvmAbstractState<SetAbstractState<JvmTaintSource>> abstractState) {
+    JvmTaintAbstractState answer =
+        new JvmTaintAbstractState(
+            programLocation.equals(abstractState.getProgramLocation())
+                ? programLocation
+                : topLocation,
+            frame.join(abstractState.getFrame()),
+            heap.join(abstractState.getHeap()),
+            staticFields.join(abstractState.getStaticFields()));
+    return equals(answer) ? this : answer;
+  }
 
-    @Override
-    public JvmTaintAbstractState join(JvmAbstractState<SetAbstractState<JvmTaintSource>> abstractState)
-    {
-        JvmTaintAbstractState answer = new JvmTaintAbstractState(programLocation.equals(abstractState.getProgramLocation()) ? programLocation : topLocation,
-                                                                 frame.join(abstractState.getFrame()),
-                                                                 heap.join(abstractState.getHeap()),
-                                                                 staticFields.join(abstractState.getStaticFields()));
-        return equals(answer) ? this : answer;
-    }
+  // implementations for AbstractState
 
-    // implementations for AbstractState
-
-    @Override
-    public JvmTaintAbstractState copy()
-    {
-        return new JvmTaintAbstractState(programLocation, frame.copy(), heap.copy(), staticFields.copy());
-    }
+  @Override
+  public JvmTaintAbstractState copy() {
+    return new JvmTaintAbstractState(
+        programLocation, frame.copy(), heap.copy(), staticFields.copy());
+  }
 }

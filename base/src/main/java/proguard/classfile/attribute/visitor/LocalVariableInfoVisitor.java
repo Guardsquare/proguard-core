@@ -20,16 +20,14 @@ package proguard.classfile.attribute.visitor;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 
-
 /**
- * This interface specifies the methods for a visitor of
- * {@link LocalVariableInfo} instances. Note that there is only a single
- * implementation of {@link LocalVariableInfo}, such that this interface
+ * This interface specifies the methods for a visitor of {@link LocalVariableInfo} instances. Note
+ * that there is only a single implementation of {@link LocalVariableInfo}, such that this interface
  * is not strictly necessary as a visitor.
  *
  * @author Eric Lafortune
  */
-public interface LocalVariableInfoVisitor
-{
-    public void visitLocalVariableInfo(Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableInfo localVariableInfo);
+public interface LocalVariableInfoVisitor {
+  public void visitLocalVariableInfo(
+      Clazz clazz, Method method, CodeAttribute codeAttribute, LocalVariableInfo localVariableInfo);
 }

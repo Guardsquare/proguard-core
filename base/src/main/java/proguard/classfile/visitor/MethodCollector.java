@@ -17,44 +17,35 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.Collection;
 import proguard.classfile.*;
 
-import java.util.Collection;
-
 /**
- * This {@link MemberVisitor} collects the methods that it visits in the
- * given collection.
+ * This {@link MemberVisitor} collects the methods that it visits in the given collection.
  *
  * @author Johan Leys
  */
-public class MethodCollector
-implements   MemberVisitor
-{
-    private final Collection<Method> collection;
+public class MethodCollector implements MemberVisitor {
+  private final Collection<Method> collection;
 
+  /**
+   * Creates a new MethodCollector.
+   *
+   * @param collection the <code>Collection</code> in which all methods will be collected.
+   */
+  public MethodCollector(Collection<Method> collection) {
+    this.collection = collection;
+  }
 
-    /**
-     * Creates a new MethodCollector.
-     * @param collection the <code>Collection</code> in which all methods will be collected.
-     */
-    public MethodCollector(Collection<Method> collection)
-    {
-        this.collection = collection;
-    }
+  // Implementations for MethodCollector.
 
+  @Override
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    collection.add(programMethod);
+  }
 
-    // Implementations for MethodCollector.
-
-    @Override
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod)
-    {
-        collection.add(programMethod);
-    }
-
-
-    @Override
-    public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod)
-    {
-        collection.add(libraryMethod);
-    }
+  @Override
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    collection.add(libraryMethod);
+  }
 }

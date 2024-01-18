@@ -28,132 +28,97 @@ import proguard.classfile.attribute.annotation.visitor.*;
  *
  * @author Eric Lafortune
  */
-public class TypeAnnotation extends Annotation
-{
-    public TargetInfo     targetInfo;
-    public TypePathInfo[] typePath;
+public class TypeAnnotation extends Annotation {
+  public TargetInfo targetInfo;
+  public TypePathInfo[] typePath;
 
+  /** Creates an uninitialized TypeAnnotation. */
+  public TypeAnnotation() {}
 
-    /**
-     * Creates an uninitialized TypeAnnotation.
-     */
-    public TypeAnnotation()
-    {
+  /** Creates an initialized TypeAnnotation. */
+  public TypeAnnotation(
+      int u2typeIndex,
+      int u2elementValuesCount,
+      ElementValue[] elementValues,
+      TargetInfo targetInfo,
+      TypePathInfo[] typePath) {
+    super(u2typeIndex, u2elementValuesCount, elementValues);
+
+    this.targetInfo = targetInfo;
+    this.typePath = typePath;
+  }
+
+  /** Applies the given visitor to the target info. */
+  public void targetInfoAccept(Clazz clazz, TargetInfoVisitor targetInfoVisitor) {
+    // We don't need double dispatching here, since there is only one
+    // type of TypePathInfo.
+    targetInfo.accept(clazz, this, targetInfoVisitor);
+  }
+
+  /** Applies the given visitor to the target info. */
+  public void targetInfoAccept(Clazz clazz, Field field, TargetInfoVisitor targetInfoVisitor) {
+    // We don't need double dispatching here, since there is only one
+    // type of TypePathInfo.
+    targetInfo.accept(clazz, field, this, targetInfoVisitor);
+  }
+
+  /** Applies the given visitor to the target info. */
+  public void targetInfoAccept(Clazz clazz, Method method, TargetInfoVisitor targetInfoVisitor) {
+    // We don't need double dispatching here, since there is only one
+    // type of TypePathInfo.
+    targetInfo.accept(clazz, method, this, targetInfoVisitor);
+  }
+
+  /** Applies the given visitor to the target info. */
+  public void targetInfoAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TargetInfoVisitor targetInfoVisitor) {
+    // We don't need double dispatching here, since there is only one
+    // type of TypePathInfo.
+    targetInfo.accept(clazz, method, codeAttribute, this, targetInfoVisitor);
+  }
+
+  /** Applies the given visitor to all type path elements. */
+  public void typePathInfosAccept(Clazz clazz, TypePathInfoVisitor typePathVisitor) {
+    for (int index = 0; index < typePath.length; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of TypePathInfo.
+      typePathVisitor.visitTypePathInfo(clazz, this, typePath[index]);
     }
+  }
 
-
-    /**
-     * Creates an initialized TypeAnnotation.
-     */
-    public TypeAnnotation(int            u2typeIndex,
-                          int            u2elementValuesCount,
-                          ElementValue[] elementValues,
-                          TargetInfo     targetInfo,
-                          TypePathInfo[] typePath)
-    {
-        super(u2typeIndex, u2elementValuesCount, elementValues);
-
-        this.targetInfo = targetInfo;
-        this.typePath   = typePath;
+  /** Applies the given visitor to all type path elements. */
+  public void typePathInfosAccept(Clazz clazz, Field field, TypePathInfoVisitor typePathVisitor) {
+    for (int index = 0; index < typePath.length; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of TypePathInfo.
+      typePathVisitor.visitTypePathInfo(clazz, field, this, typePath[index]);
     }
+  }
 
-
-    /**
-     * Applies the given visitor to the target info.
-     */
-    public void targetInfoAccept(Clazz clazz, TargetInfoVisitor targetInfoVisitor)
-    {
-        // We don't need double dispatching here, since there is only one
-        // type of TypePathInfo.
-        targetInfo.accept(clazz, this, targetInfoVisitor);
+  /** Applies the given visitor to all type path elements. */
+  public void typePathInfosAccept(Clazz clazz, Method method, TypePathInfoVisitor typePathVisitor) {
+    for (int index = 0; index < typePath.length; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of TypePathInfo.
+      typePathVisitor.visitTypePathInfo(clazz, method, this, typePath[index]);
     }
+  }
 
-
-    /**
-     * Applies the given visitor to the target info.
-     */
-    public void targetInfoAccept(Clazz clazz, Field field, TargetInfoVisitor targetInfoVisitor)
-    {
-        // We don't need double dispatching here, since there is only one
-        // type of TypePathInfo.
-        targetInfo.accept(clazz, field, this, targetInfoVisitor);
+  /** Applies the given visitor to all type path elements. */
+  public void typePathInfosAccept(
+      Clazz clazz,
+      Method method,
+      CodeAttribute codeAttribute,
+      TypeAnnotation typeAnnotation,
+      TypePathInfoVisitor typePathVisitor) {
+    for (int index = 0; index < typePath.length; index++) {
+      // We don't need double dispatching here, since there is only one
+      // type of TypePathInfo.
+      typePathVisitor.visitTypePathInfo(
+          clazz, method, codeAttribute, typeAnnotation, typePath[index]);
     }
-
-
-    /**
-     * Applies the given visitor to the target info.
-     */
-    public void targetInfoAccept(Clazz clazz, Method method, TargetInfoVisitor targetInfoVisitor)
-    {
-        // We don't need double dispatching here, since there is only one
-        // type of TypePathInfo.
-        targetInfo.accept(clazz, method, this, targetInfoVisitor);
-    }
-
-
-    /**
-     * Applies the given visitor to the target info.
-     */
-    public void targetInfoAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, TargetInfoVisitor targetInfoVisitor)
-    {
-        // We don't need double dispatching here, since there is only one
-        // type of TypePathInfo.
-        targetInfo.accept(clazz, method, codeAttribute, this, targetInfoVisitor);
-    }
-
-
-    /**
-     * Applies the given visitor to all type path elements.
-     */
-    public void typePathInfosAccept(Clazz clazz, TypePathInfoVisitor typePathVisitor)
-    {
-        for (int index = 0; index < typePath.length; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of TypePathInfo.
-            typePathVisitor.visitTypePathInfo(clazz, this, typePath[index]);
-        }
-    }
-
-
-    /**
-     * Applies the given visitor to all type path elements.
-     */
-    public void typePathInfosAccept(Clazz clazz, Field field, TypePathInfoVisitor typePathVisitor)
-    {
-        for (int index = 0; index < typePath.length; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of TypePathInfo.
-            typePathVisitor.visitTypePathInfo(clazz, field, this, typePath[index]);
-        }
-    }
-
-
-    /**
-     * Applies the given visitor to all type path elements.
-     */
-    public void typePathInfosAccept(Clazz clazz, Method method, TypePathInfoVisitor typePathVisitor)
-    {
-        for (int index = 0; index < typePath.length; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of TypePathInfo.
-            typePathVisitor.visitTypePathInfo(clazz, method, this, typePath[index]);
-        }
-    }
-
-
-    /**
-     * Applies the given visitor to all type path elements.
-     */
-    public void typePathInfosAccept(Clazz clazz, Method method, CodeAttribute codeAttribute, TypeAnnotation typeAnnotation, TypePathInfoVisitor typePathVisitor)
-    {
-        for (int index = 0; index < typePath.length; index++)
-        {
-            // We don't need double dispatching here, since there is only one
-            // type of TypePathInfo.
-            typePathVisitor.visitTypePathInfo(clazz, method, codeAttribute, typeAnnotation, typePath[index]);
-        }
-    }
+  }
 }

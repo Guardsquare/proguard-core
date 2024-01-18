@@ -18,127 +18,118 @@
 
 package proguard.evaluation.value;
 
+import java.util.*;
+import java.util.stream.*;
 import proguard.classfile.*;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ClassCollector;
 
-import java.util.*;
-import java.util.stream.*;
-
 /**
- * This class provides a wrapper around {@link TypedReferenceValueFactory}
- * that provides new {@link MultiTypedReferenceValue}s.
+ * This class provides a wrapper around {@link TypedReferenceValueFactory} that provides new {@link
+ * MultiTypedReferenceValue}s.
  *
  * @author Samuel Hopstock
  */
-public class MultiTypedReferenceValueFactory extends TypedReferenceValueFactory
-{
-    private boolean addSubClasses;
-    private final ClassPool programClassPool;
-    private final ClassPool libraryClassPool;
+public class MultiTypedReferenceValueFactory extends TypedReferenceValueFactory {
+  private boolean addSubClasses;
+  private final ClassPool programClassPool;
+  private final ClassPool libraryClassPool;
 
-    public MultiTypedReferenceValueFactory()
-    {
-        this(false, null, null);
+  public MultiTypedReferenceValueFactory() {
+    this(false, null, null);
+  }
+
+  /**
+   * See {@link #MultiTypedReferenceValueFactory()} Parameters, fields and return values have
+   * included in possible types all sub classes.S
+   *
+   * @param addSubClasses a flag indicating if possible types should be extended with subclasses
+   * @param programClassPool program {@link ClassPool} to search for reference class
+   * @param libraryClassPool library {@link ClassPool} to search for reference class
+   */
+  public MultiTypedReferenceValueFactory(
+      boolean addSubClasses, ClassPool programClassPool, ClassPool libraryClassPool) {
+    this.addSubClasses = addSubClasses;
+    this.programClassPool = programClassPool;
+    this.libraryClassPool = libraryClassPool;
+  }
+
+  private MultiTypedReferenceValue wrap(ReferenceValue base) {
+    if (base instanceof MultiTypedReferenceValue) {
+      return (MultiTypedReferenceValue) base;
+    } else if (base instanceof TypedReferenceValue) {
+      return new MultiTypedReferenceValue((TypedReferenceValue) base, false);
     }
+    throw new IllegalStateException(
+        "Can't handle value of type " + base.getClass().getSimpleName());
+  }
 
+  @Override
+  public ReferenceValue createReferenceValueNull() {
+    return wrap(super.createReferenceValueNull());
+  }
 
-    /**
-     * See {@link #MultiTypedReferenceValueFactory()}
-     * Parameters, fields and return values have included in possible types all sub classes.S
-     *
-     * @param addSubClasses a flag indicating if possible types should be extended with subclasses
-     * @param programClassPool program {@link ClassPool} to search for reference class
-     * @param libraryClassPool library {@link ClassPool} to search for reference class
-     */
-    public MultiTypedReferenceValueFactory(boolean addSubClasses, ClassPool programClassPool, ClassPool libraryClassPool)
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
+    return wrap(super.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull));
+  }
+
+  @Override
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength) {
+    return wrap(super.createArrayReferenceValue(type, referencedClass, arrayLength));
+  }
+
+  @Override
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues) {
+    return wrap(super.createArrayReferenceValue(type, referencedClass, arrayLength, elementValues));
+  }
+
+  @Override
+  public Value createValue(
+      String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
+    Value ret = super.createValue(type, referencedClass, mayBeExtension, mayBeNull);
+    if (!addSubClasses) // if the flag is not set use default method
     {
-        this.addSubClasses = addSubClasses;
-        this.programClassPool = programClassPool;
-        this.libraryClassPool = libraryClassPool;
+      return ret;
     }
-
-    private MultiTypedReferenceValue wrap(ReferenceValue base)
-    {
-        if (base instanceof MultiTypedReferenceValue)
-        {
-            return (MultiTypedReferenceValue) base;
+    if (ret instanceof MultiTypedReferenceValue) {
+      MultiTypedReferenceValue multiTypedRet = (MultiTypedReferenceValue) ret;
+      Set<Clazz> subClasses = new HashSet<>();
+      for (TypedReferenceValue t : multiTypedRet.getPotentialTypes()) {
+        // do not add subclasses as possible types if there is java/lang/Object in possible types
+        if (t.type.equals(ClassConstants.TYPE_JAVA_LANG_OBJECT)) {
+          return ret;
         }
-        else if (base instanceof TypedReferenceValue)
-        {
-            return new MultiTypedReferenceValue((TypedReferenceValue) base, false);
+        Clazz realReferencedClass =
+            programClassPool.getClass(ClassUtil.internalClassNameFromClassType(t.type));
+        if (realReferencedClass == null) {
+          realReferencedClass =
+              libraryClassPool.getClass(ClassUtil.internalClassNameFromClassType(t.type));
         }
-        throw new IllegalStateException("Can't handle value of type " + base.getClass().getSimpleName());
-    }
-
-    @Override
-    public ReferenceValue createReferenceValueNull()
-    {
-        return wrap(super.createReferenceValueNull());
-    }
-
-    @Override
-    public ReferenceValue createReferenceValue(String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull)
-    {
-        return wrap(super.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull));
-    }
-
-    @Override
-    public ReferenceValue createArrayReferenceValue(String type, Clazz referencedClass, IntegerValue arrayLength)
-    {
-        return wrap(super.createArrayReferenceValue(type, referencedClass, arrayLength));
-    }
-
-    @Override
-    public ReferenceValue createArrayReferenceValue(String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues)
-    {
-        return wrap(super.createArrayReferenceValue(type, referencedClass, arrayLength, elementValues));
-    }
-
-    @Override
-    public Value createValue(String  type,
-                             Clazz   referencedClass,
-                             boolean mayBeExtension,
-                             boolean mayBeNull)
-    {
-        Value ret = super.createValue(type, referencedClass, mayBeExtension, mayBeNull);
-        if (!addSubClasses) // if the flag is not set use default method
-        {
-            return ret;
+        if (realReferencedClass == null) {
+          return ret;
         }
-        if (ret instanceof MultiTypedReferenceValue)
-        {
-            MultiTypedReferenceValue multiTypedRet = (MultiTypedReferenceValue) ret;
-            Set<Clazz> subClasses = new HashSet<>();
-            for (TypedReferenceValue t : multiTypedRet.getPotentialTypes())
-            {
-                // do not add subclasses as possible types if there is java/lang/Object in possible types
-                if (t.type.equals(ClassConstants.TYPE_JAVA_LANG_OBJECT))
-                {
-                    return ret;
-                }
-                Clazz realReferencedClass = programClassPool.getClass(ClassUtil.internalClassNameFromClassType(t.type));
-                if (realReferencedClass == null)
-                {
-                    realReferencedClass = libraryClassPool.getClass(ClassUtil.internalClassNameFromClassType(t.type));
-                }
-                if (realReferencedClass == null)
-                {
-                    return ret;
-                }
-                realReferencedClass.hierarchyAccept(true, false, false, true, new ClassCollector(subClasses));
-            }
+        realReferencedClass.hierarchyAccept(
+            true, false, false, true, new ClassCollector(subClasses));
+      }
 
-            Set<TypedReferenceValue> possibleTypes = subClasses.stream()
-                                                               .map(cls -> new TypedReferenceValue(ClassUtil.internalTypeFromClassName(cls.getName()),
-                                                                                                   cls,
-                                                                                                   mayBeExtension,
-                                                                                                   mayBeNull))
-                                                               .collect(Collectors.toCollection(HashSet::new));
-            possibleTypes.addAll(multiTypedRet.getPotentialTypes());
+      Set<TypedReferenceValue> possibleTypes =
+          subClasses.stream()
+              .map(
+                  cls ->
+                      new TypedReferenceValue(
+                          ClassUtil.internalTypeFromClassName(cls.getName()),
+                          cls,
+                          mayBeExtension,
+                          mayBeNull))
+              .collect(Collectors.toCollection(HashSet::new));
+      possibleTypes.addAll(multiTypedRet.getPotentialTypes());
 
-            ret = new MultiTypedReferenceValue(possibleTypes, multiTypedRet.mayBeUnknown);
-        }
-        return ret;
+      ret = new MultiTypedReferenceValue(possibleTypes, multiTypedRet.mayBeUnknown);
     }
+    return ret;
+  }
 }

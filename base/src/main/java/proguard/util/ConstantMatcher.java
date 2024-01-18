@@ -22,33 +22,24 @@ package proguard.util;
  *
  * @author Eric Lafortune
  */
-public class ConstantMatcher extends StringMatcher
-{
-    private boolean matches;
+public class ConstantMatcher extends StringMatcher {
+  private boolean matches;
 
+  /** Creates a new ConstantMatcher that always returns the given result. */
+  public ConstantMatcher(boolean matches) {
+    this.matches = matches;
+  }
 
-    /**
-     * Creates a new ConstantMatcher that always returns the given result.
-     */
-    public ConstantMatcher(boolean matches)
-    {
-        this.matches = matches;
-    }
+  // Implementations for StringMatcher.
 
+  @Override
+  public String prefix() {
+    if (this.matches) return "";
+    return null;
+  }
 
-    // Implementations for StringMatcher.
-
-    @Override
-    public String prefix()
-    {
-        if (this.matches)
-            return "";
-        return null;
-    }
-
-    @Override
-    protected boolean matches(String string, int beginOffset, int endOffset)
-    {
-        return matches;
-    }
+  @Override
+  protected boolean matches(String string, int beginOffset, int endOffset) {
+    return matches;
+  }
 }

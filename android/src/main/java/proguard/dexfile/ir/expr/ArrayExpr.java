@@ -26,29 +26,29 @@ import proguard.dexfile.ir.LabelAndLocalMapper;
  */
 public class ArrayExpr extends Value.E2Expr {
 
-    public ArrayExpr() {
-        super(VT.ARRAY, null, null);
-    }
+  public ArrayExpr() {
+    super(VT.ARRAY, null, null);
+  }
 
-    public String elementType;
+  public String elementType;
 
-    public ArrayExpr(Value base, Value index, String elementType) {
-        super(VT.ARRAY, base, index);
-        this.elementType = elementType;
-    }
+  public ArrayExpr(Value base, Value index, String elementType) {
+    super(VT.ARRAY, base, index);
+    this.elementType = elementType;
+  }
 
-    @Override
-    public Value clone() {
-        return new ArrayExpr(op1.trim().clone(), op2.trim().clone(), this.elementType);
-    }
+  @Override
+  public Value clone() {
+    return new ArrayExpr(op1.trim().clone(), op2.trim().clone(), this.elementType);
+  }
 
-    @Override
-    public Value clone(LabelAndLocalMapper mapper) {
-        return new ArrayExpr(op1.clone(mapper), op2.clone(mapper), this.elementType);
-    }
+  @Override
+  public Value clone(LabelAndLocalMapper mapper) {
+    return new ArrayExpr(op1.clone(mapper), op2.clone(mapper), this.elementType);
+  }
 
-    @Override
-    public String toString0() {
-        return op1 + "[" + op2 + "]";
-    }
+  @Override
+  public String toString0() {
+    return op1 + "[" + op2 + "]";
+  }
 }

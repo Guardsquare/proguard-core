@@ -17,9 +17,8 @@
  */
 package proguard.io;
 
-import proguard.util.*;
-
 import java.util.List;
+import proguard.util.*;
 
 /**
  * This {@link DataEntryWriter} delegates to one of two other {@link DataEntryWriter} instances,
@@ -27,79 +26,70 @@ import java.util.List;
  *
  * @author Eric Lafortune
  */
-public class NameFilteredDataEntryWriter extends FilteredDataEntryWriter
-{
-    /**
-     * Creates a new NameFilteredDataEntryWriter that delegates to the given
-     * writer, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryWriter(String          regularExpression,
-                                       DataEntryWriter acceptedDataEntryWriter)
-    {
-        this(regularExpression, acceptedDataEntryWriter, null);
-    }
+public class NameFilteredDataEntryWriter extends FilteredDataEntryWriter {
+  /**
+   * Creates a new NameFilteredDataEntryWriter that delegates to the given writer, depending on the
+   * given list of filters.
+   */
+  public NameFilteredDataEntryWriter(
+      String regularExpression, DataEntryWriter acceptedDataEntryWriter) {
+    this(regularExpression, acceptedDataEntryWriter, null);
+  }
 
+  /**
+   * Creates a new NameFilteredDataEntryWriter that delegates to either of the two given writers,
+   * depending on the given list of filters.
+   */
+  public NameFilteredDataEntryWriter(
+      String regularExpression,
+      DataEntryWriter acceptedDataEntryWriter,
+      DataEntryWriter rejectedDataEntryWriter) {
+    this(
+        new ListParser(new FileNameParser()).parse(regularExpression),
+        acceptedDataEntryWriter,
+        rejectedDataEntryWriter);
+  }
 
-    /**
-     * Creates a new NameFilteredDataEntryWriter that delegates to either of
-     * the two given writers, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryWriter(String          regularExpression,
-                                       DataEntryWriter acceptedDataEntryWriter,
-                                       DataEntryWriter rejectedDataEntryWriter)
-    {
-        this(new ListParser(new FileNameParser()).parse(regularExpression),
-             acceptedDataEntryWriter,
-             rejectedDataEntryWriter);
-    }
+  /**
+   * Creates a new NameFilteredDataEntryWriter that delegates to the given writer, depending on the
+   * given list of filters.
+   */
+  public NameFilteredDataEntryWriter(
+      List regularExpressions, DataEntryWriter acceptedDataEntryWriter) {
+    this(regularExpressions, acceptedDataEntryWriter, null);
+  }
 
+  /**
+   * Creates a new NameFilteredDataEntryWriter that delegates to either of the two given writers,
+   * depending on the given list of filters.
+   */
+  public NameFilteredDataEntryWriter(
+      List regularExpressions,
+      DataEntryWriter acceptedDataEntryWriter,
+      DataEntryWriter rejectedDataEntryWriter) {
+    this(
+        new ListParser(new FileNameParser()).parse(regularExpressions),
+        acceptedDataEntryWriter,
+        rejectedDataEntryWriter);
+  }
 
-    /**
-     * Creates a new NameFilteredDataEntryWriter that delegates to the given
-     * writer, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryWriter(List            regularExpressions,
-                                       DataEntryWriter acceptedDataEntryWriter)
-    {
-        this(regularExpressions, acceptedDataEntryWriter, null);
-    }
+  /**
+   * Creates a new NameFilteredDataEntryWriter that delegates to the given writer, depending on the
+   * given string matcher.
+   */
+  public NameFilteredDataEntryWriter(
+      StringMatcher stringMatcher, DataEntryWriter acceptedDataEntryWriter) {
+    this(stringMatcher, acceptedDataEntryWriter, null);
+  }
 
-
-    /**
-     * Creates a new NameFilteredDataEntryWriter that delegates to either of
-     * the two given writers, depending on the given list of filters.
-     */
-    public NameFilteredDataEntryWriter(List            regularExpressions,
-                                       DataEntryWriter acceptedDataEntryWriter,
-                                       DataEntryWriter rejectedDataEntryWriter)
-    {
-        this(new ListParser(new FileNameParser()).parse(regularExpressions),
-             acceptedDataEntryWriter,
-             rejectedDataEntryWriter);
-    }
-
-
-    /**
-     * Creates a new NameFilteredDataEntryWriter that delegates to the given
-     * writer, depending on the given string matcher.
-     */
-    public NameFilteredDataEntryWriter(StringMatcher   stringMatcher,
-                                       DataEntryWriter acceptedDataEntryWriter)
-    {
-        this(stringMatcher, acceptedDataEntryWriter, null);
-    }
-
-
-    /**
-     * Creates a new NameFilteredDataEntryWriter that delegates to either of
-     * the two given writers, depending on the given string matcher.
-     */
-    public NameFilteredDataEntryWriter(StringMatcher   stringMatcher,
-                                       DataEntryWriter acceptedDataEntryWriter,
-                                       DataEntryWriter rejectedDataEntryWriter)
-    {
-        super(new DataEntryNameFilter(stringMatcher),
-              acceptedDataEntryWriter,
-              rejectedDataEntryWriter);
-    }
+  /**
+   * Creates a new NameFilteredDataEntryWriter that delegates to either of the two given writers,
+   * depending on the given string matcher.
+   */
+  public NameFilteredDataEntryWriter(
+      StringMatcher stringMatcher,
+      DataEntryWriter acceptedDataEntryWriter,
+      DataEntryWriter rejectedDataEntryWriter) {
+    super(new DataEntryNameFilter(stringMatcher), acceptedDataEntryWriter, rejectedDataEntryWriter);
+  }
 }

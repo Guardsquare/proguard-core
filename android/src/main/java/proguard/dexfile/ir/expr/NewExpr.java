@@ -24,31 +24,31 @@ import proguard.dexfile.ir.Util;
  */
 public class NewExpr extends Value.E0Expr {
 
-    public String type;
+  public String type;
 
-    public NewExpr(String type) {
-        super(VT.NEW);
-        this.type = type;
-    }
+  public NewExpr(String type) {
+    super(VT.NEW);
+    this.type = type;
+  }
 
-    @Override
-    public Value clone() {
-        return new NewExpr(type);
-    }
+  @Override
+  public Value clone() {
+    return new NewExpr(type);
+  }
 
-    @Override
-    public Value clone(LabelAndLocalMapper mapper) {
-        return new NewExpr(type);
-    }
+  @Override
+  public Value clone(LabelAndLocalMapper mapper) {
+    return new NewExpr(type);
+  }
 
-    @Override
-    protected void releaseMemory() {
-        type = null;
-        super.releaseMemory();
-    }
+  @Override
+  protected void releaseMemory() {
+    type = null;
+    super.releaseMemory();
+  }
 
-    @Override
-    public String toString0() {
-        return "NEW " + Util.toShortClassName(type);
-    }
+  @Override
+  public String toString0() {
+    return "NEW " + Util.toShortClassName(type);
+  }
 }

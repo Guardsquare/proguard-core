@@ -21,14 +21,12 @@ import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.KotlinMetadata;
 import proguard.classfile.kotlin.KotlinMultiFileFacadeKindMetadata;
 
-/**
- * A {@link KotlinMetadataVisitor} that visits {@link KotlinMultiFileFacadeKindMetadata}.
- */
-public interface KotlinMultiFileFacadeVisitor extends KotlinMetadataVisitor
-{
-    @Override
-    default void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) { }
+/** A {@link KotlinMetadataVisitor} that visits {@link KotlinMultiFileFacadeKindMetadata}. */
+public interface KotlinMultiFileFacadeVisitor extends KotlinMetadataVisitor {
+  @Override
+  default void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    @Override
-    void visitKotlinMultiFileFacadeMetadata(Clazz clazz, KotlinMultiFileFacadeKindMetadata kotlinMultiFileFacadeKindMetadata);
+  @Override
+  void visitKotlinMultiFileFacadeMetadata(
+      Clazz clazz, KotlinMultiFileFacadeKindMetadata kotlinMultiFileFacadeKindMetadata);
 }

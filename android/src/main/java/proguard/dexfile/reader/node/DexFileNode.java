@@ -16,39 +16,39 @@
  */
 package proguard.dexfile.reader.node;
 
-import proguard.dexfile.reader.visitors.DexClassVisitor;
-import proguard.dexfile.reader.visitors.DexFileVisitor;
-import proguard.dexfile.reader.DexConstants;
-
 import java.util.ArrayList;
 import java.util.List;
+import proguard.dexfile.reader.DexConstants;
+import proguard.dexfile.reader.visitors.DexClassVisitor;
+import proguard.dexfile.reader.visitors.DexFileVisitor;
 
 public class DexFileNode extends DexFileVisitor {
-    public List<DexClassNode> clzs = new ArrayList<>();
-    public int dexVersion = DexConstants.DEX_035;
+  public List<DexClassNode> clzs = new ArrayList<>();
+  public int dexVersion = DexConstants.DEX_035;
 
-    @Override
-    public void visitDexFileVersion(int version) {
-        this.dexVersion = version;
-        super.visitDexFileVersion(version);
-    }
+  @Override
+  public void visitDexFileVersion(int version) {
+    this.dexVersion = version;
+    super.visitDexFileVersion(version);
+  }
 
-    @Override
-    public DexClassVisitor visit(int access_flags, String className, String superClass, String[] interfaceNames) {
-        DexClassNode cn = new DexClassNode(access_flags, className, superClass, interfaceNames);
-        clzs.add(cn);
-        return cn;
-    }
+  @Override
+  public DexClassVisitor visit(
+      int access_flags, String className, String superClass, String[] interfaceNames) {
+    DexClassNode cn = new DexClassNode(access_flags, className, superClass, interfaceNames);
+    clzs.add(cn);
+    return cn;
+  }
 
-    public void accept(DexClassVisitor dcv) {
-        for (DexClassNode cn : clzs) {
-            cn.accept(dcv);
-        }
+  public void accept(DexClassVisitor dcv) {
+    for (DexClassNode cn : clzs) {
+      cn.accept(dcv);
     }
+  }
 
-    public void accept(DexFileVisitor dfv) {
-        for (DexClassNode cn : clzs) {
-            cn.accept(dfv);
-        }
+  public void accept(DexFileVisitor dfv) {
+    for (DexClassNode cn : clzs) {
+      cn.accept(dfv);
     }
+  }
 }

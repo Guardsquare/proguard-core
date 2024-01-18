@@ -17,11 +17,10 @@
  */
 package proguard.io;
 
+import java.io.*;
 import proguard.classfile.*;
 import proguard.classfile.io.ProgramClassWriter;
 import proguard.classfile.visitor.ClassVisitor;
-
-import java.io.*;
 
 /**
  * This {@link ClassVisitor} writes out the {@link ProgramClass} instances that it visits to the
@@ -29,70 +28,58 @@ import java.io.*;
  *
  * @author Eric Lafortune
  */
-public class DataEntryClassWriter
-implements   ClassVisitor
-{
-    private final DataEntry       templateDataEntry;
-    private final DataEntryWriter dataEntryWriter;
+public class DataEntryClassWriter implements ClassVisitor {
+  private final DataEntry templateDataEntry;
+  private final DataEntryWriter dataEntryWriter;
 
+  /** Creates a new DataEntryClassWriter for writing to the given DataEntryWriter. */
+  public DataEntryClassWriter(DataEntryWriter dataEntryWriter) {
+    this(new FileDataEntry(new File(""), new File("")), dataEntryWriter);
+  }
 
-    /**
-     * Creates a new DataEntryClassWriter for writing to the given
-     * DataEntryWriter.
-     */
-    public DataEntryClassWriter(DataEntryWriter dataEntryWriter)
-    {
-        this(new FileDataEntry(new File(""), new File("")), dataEntryWriter);
-    }
+  /**
+   * Creates a new DataEntryClassWriter for writing to the given DataEntryWriter, based on the given
+   * template DataEntry.
+   */
+  public DataEntryClassWriter(DataEntry templateDataEntry, DataEntryWriter dataEntryWriter) {
+    this.templateDataEntry = templateDataEntry;
+    this.dataEntryWriter = dataEntryWriter;
+  }
 
+  // Implementations for ClassVisitor.
 
-    /**
-     * Creates a new DataEntryClassWriter for writing to the given
-     * DataEntryWriter, based on the given template DataEntry.
-     */
-    public DataEntryClassWriter(DataEntry       templateDataEntry,
-                                DataEntryWriter dataEntryWriter)
-    {
-        this.templateDataEntry = templateDataEntry;
-        this.dataEntryWriter   = dataEntryWriter;
-    }
+  public void visitAnyClass(Clazz clazz) {}
 
+  @Override
+  public void visitProgramClass(ProgramClass programClass) {
+    // Rename the data entry if necessary.
+    String actualClassName = programClass.getName();
+    DataEntry actualDataEntry =
+        new RenamedDataEntry(
+            templateDataEntry, actualClassName + ClassConstants.CLASS_FILE_EXTENSION);
 
-    // Implementations for ClassVisitor.
-
-    public void visitAnyClass(Clazz clazz) { }
-
-
-    @Override
-    public void visitProgramClass(ProgramClass programClass)
-    {
-        // Rename the data entry if necessary.
-        String    actualClassName = programClass.getName();
-        DataEntry actualDataEntry =
-            new RenamedDataEntry(templateDataEntry,
-                                 actualClassName + ClassConstants.CLASS_FILE_EXTENSION);
-
-        try
-        {
-            // Get the output entry corresponding to this input entry.
-            OutputStream outputStream = dataEntryWriter.createOutputStream(actualDataEntry);
-            if (outputStream != null)
-            {
-                // Write the class to the output entry.
-                DataOutputStream classOutputStream = new DataOutputStream(outputStream);
-                try
-                {
-                    new ProgramClassWriter(classOutputStream).visitProgramClass(programClass);
-                }
-                finally
-                {
-                    classOutputStream.close();
-                }
-            }
+    try {
+      // Get the output entry corresponding to this input entry.
+      OutputStream outputStream = dataEntryWriter.createOutputStream(actualDataEntry);
+      if (outputStream != null) {
+        // Write the class to the output entry.
+        DataOutputStream classOutputStream = new DataOutputStream(outputStream);
+        try {
+          new ProgramClassWriter(classOutputStream).visitProgramClass(programClass);
+        } finally {
+          classOutputStream.close();
         }
-        catch (IOException e)
-        {
-            throw new RuntimeException("Can't write program class ["+actualClassName+"] to ["+actualDataEntry+"] ("+e.getMessage()+")", e);
-        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Can't write program class ["
+              + actualClassName
+              + "] to ["
+              + actualDataEntry
+              + "] ("
+              + e.getMessage()
+              + ")",
+          e);
     }
+  }
 }

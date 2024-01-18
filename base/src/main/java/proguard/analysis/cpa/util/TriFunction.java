@@ -24,11 +24,8 @@ package proguard.analysis.cpa.util;
  * @author Dmitry Ivanov
  */
 @FunctionalInterface
-public interface TriFunction<T, U, V, R>
-{
+public interface TriFunction<T, U, V, R> {
 
-    /**
-     * Returns the result of the function on given arguments
-     */
-    R apply(T t, U u, V v);
+  /** Returns the result of the function on given arguments */
+  R apply(T t, U u, V v);
 }

@@ -18,10 +18,10 @@
 
 package proguard.analysis.cpa.jvm.cfa.edges;
 
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 
 /**
  * A {@link JvmCfaEdge} the operation of which is defined by an instruction.
@@ -30,53 +30,45 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
  *
  * @author Carlo Alberto Pozzoli
  */
-public class JvmInstructionCfaEdge
-    extends JvmCfaEdge
-{
+public class JvmInstructionCfaEdge extends JvmCfaEdge {
 
-    private final CodeAttribute methodCode;
-    private final int           offset;
+  private final CodeAttribute methodCode;
+  private final int offset;
 
-    /**
-     * Create a disconnected JVM CFA instruction edge.
-     *
-     * @param methodCode the code attribute of the method the edge belongs to
-     * @param offset     the offset of the instruction represented by the edge
-     */
-    public JvmInstructionCfaEdge(CodeAttribute methodCode, int offset)
-    {
-        this.methodCode = methodCode;
-        this.offset = offset;
-    }
+  /**
+   * Create a disconnected JVM CFA instruction edge.
+   *
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   */
+  public JvmInstructionCfaEdge(CodeAttribute methodCode, int offset) {
+    this.methodCode = methodCode;
+    this.offset = offset;
+  }
 
-    /**
-     * Create a JVM CFA instruction edge. Also sets it as the entering and leaving edge of the source and target nodes.
-     *
-     * @param source     the source node of the edge
-     * @param target     the target node of the edge
-     * @param methodCode the code attribute of the method the edge belongs to
-     * @param offset     the offset of the instruction represented by the edge
-     */
-    public JvmInstructionCfaEdge(JvmCfaNode source, JvmCfaNode target, CodeAttribute methodCode, int offset)
-    {
-        super(source, target);
-        this.methodCode = methodCode;
-        this.offset = offset;
-    }
+  /**
+   * Create a JVM CFA instruction edge. Also sets it as the entering and leaving edge of the source
+   * and target nodes.
+   *
+   * @param source the source node of the edge
+   * @param target the target node of the edge
+   * @param methodCode the code attribute of the method the edge belongs to
+   * @param offset the offset of the instruction represented by the edge
+   */
+  public JvmInstructionCfaEdge(
+      JvmCfaNode source, JvmCfaNode target, CodeAttribute methodCode, int offset) {
+    super(source, target);
+    this.methodCode = methodCode;
+    this.offset = offset;
+  }
 
-    /**
-     * Generates and returns the JVM instruction represented by the edge.
-     */
-    public Instruction getInstruction()
-    {
-        return InstructionFactory.create(methodCode.code, offset);
-    }
+  /** Generates and returns the JVM instruction represented by the edge. */
+  public Instruction getInstruction() {
+    return InstructionFactory.create(methodCode.code, offset);
+  }
 
-    /**
-     * Returns the code attribute of the method the node belongs to.
-     */
-    public CodeAttribute getMethodCode()
-    {
-        return methodCode;
-    }
+  /** Returns the code attribute of the method the node belongs to. */
+  public CodeAttribute getMethodCode() {
+    return methodCode;
+  }
 }

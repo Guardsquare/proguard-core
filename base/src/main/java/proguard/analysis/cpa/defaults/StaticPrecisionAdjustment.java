@@ -28,15 +28,15 @@ import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
  *
  * @author Dmitry Ivanov
  */
-public final class StaticPrecisionAdjustment
-    implements PrecisionAdjustment
-{
+public final class StaticPrecisionAdjustment implements PrecisionAdjustment {
 
-    // implementations for PrecisionAdjustment
+  // implementations for PrecisionAdjustment
 
-    @Override
-    public PrecisionAdjustmentResult prec(AbstractState abstractState, Precision precision, Collection<? extends AbstractState> reachedAbstractStates)
-    {
-        return new PrecisionAdjustmentResult(abstractState, precision);
-    }
+  @Override
+  public PrecisionAdjustmentResult prec(
+      AbstractState abstractState,
+      Precision precision,
+      Collection<? extends AbstractState> reachedAbstractStates) {
+    return new PrecisionAdjustmentResult(abstractState, precision);
+  }
 }

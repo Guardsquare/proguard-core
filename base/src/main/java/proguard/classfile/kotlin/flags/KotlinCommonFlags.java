@@ -17,15 +17,11 @@
  */
 package proguard.classfile.kotlin.flags;
 
-
-/**
- * Common flags.
- */
-public final class KotlinCommonFlags implements KotlinFlags
-{
-    /**
-     * Valid for: class, constructor, function, synthetic function, property, property accessor, typeAlias, type, type
-     * parameter, value parameter
-     */
-    public boolean hasAnnotations;
+/** Common flags. */
+public final class KotlinCommonFlags implements KotlinFlags {
+  /**
+   * Valid for: class, constructor, function, synthetic function, property, property accessor,
+   * typeAlias, type, type parameter, value parameter
+   */
+  public boolean hasAnnotations;
 }

@@ -26,59 +26,39 @@ import proguard.evaluation.value.Value;
  *
  * @author Eric Lafortune
  */
-class   TracedBranchUnit
-extends BasicBranchUnit
-{
-    private boolean isFixed;
+class TracedBranchUnit extends BasicBranchUnit {
+  private boolean isFixed;
 
+  // Implementations for BasicBranchUnit.
 
-    // Implementations for BasicBranchUnit.
+  public void reset() {
+    super.reset();
 
-    public void reset()
-    {
-        super.reset();
+    isFixed = false;
+  }
 
-        isFixed = false;
+  // Implementations for BranchUnit.
+
+  public void branch(Clazz clazz, CodeAttribute codeAttribute, int offset, int branchTarget) {
+    super.branch(clazz, codeAttribute, offset, branchTarget);
+
+    isFixed = true;
+  }
+
+  public void branchConditionally(
+      Clazz clazz, CodeAttribute codeAttribute, int offset, int branchTarget, int conditional) {
+    if (conditional == Value.ALWAYS) {
+      // Always branch.
+      super.branch(clazz, codeAttribute, offset, branchTarget);
+
+      isFixed = true;
+    } else if (conditional == Value.MAYBE) {
+      if (!isFixed) {
+        // Maybe branch.
+        super.branchConditionally(clazz, codeAttribute, offset, branchTarget, conditional);
+      }
+    } else {
+      super.wasCalled = true;
     }
-
-
-    // Implementations for BranchUnit.
-
-    public void branch(Clazz         clazz,
-                       CodeAttribute codeAttribute,
-                       int           offset,
-                       int           branchTarget)
-    {
-        super.branch(clazz, codeAttribute, offset, branchTarget);
-
-        isFixed = true;
-    }
-
-
-    public void branchConditionally(Clazz         clazz,
-                                    CodeAttribute codeAttribute,
-                                    int           offset,
-                                    int           branchTarget,
-                                    int           conditional)
-    {
-        if      (conditional == Value.ALWAYS)
-        {
-            // Always branch.
-            super.branch(clazz, codeAttribute, offset, branchTarget);
-
-            isFixed = true;
-        }
-        else if (conditional == Value.MAYBE)
-        {
-            if (!isFixed)
-            {
-                // Maybe branch.
-                super.branchConditionally(clazz, codeAttribute, offset, branchTarget, conditional);
-            }
-        }
-        else
-        {
-            super.wasCalled = true;
-        }
-    }
+  }
 }

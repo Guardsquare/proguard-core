@@ -20,50 +20,34 @@ package proguard.classfile.visitor;
 import proguard.classfile.*;
 import proguard.util.ArrayUtil;
 
-
 /**
- * This {@link ClassVisitor} delegates all visits to each {@link ClassVisitor}
- * in a given list.
+ * This {@link ClassVisitor} delegates all visits to each {@link ClassVisitor} in a given list.
  *
  * @author Eric Lafortune
  */
-public class MultiClassVisitor
-implements   ClassVisitor
-{
-    private ClassVisitor[] classVisitors;
-    private int            classVisitorCount;
+public class MultiClassVisitor implements ClassVisitor {
+  private ClassVisitor[] classVisitors;
+  private int classVisitorCount;
 
+  public MultiClassVisitor() {
+    this.classVisitors = new ClassVisitor[16];
+  }
 
-    public MultiClassVisitor()
-    {
-        this.classVisitors = new ClassVisitor[16];
+  public MultiClassVisitor(ClassVisitor... classVisitors) {
+    this.classVisitors = classVisitors;
+    this.classVisitorCount = classVisitors.length;
+  }
+
+  public void addClassVisitor(ClassVisitor classVisitor) {
+    classVisitors = ArrayUtil.add(classVisitors, classVisitorCount++, classVisitor);
+  }
+
+  // Implementations for ClassVisitor.
+
+  @Override
+  public void visitAnyClass(Clazz clazz) {
+    for (int index = 0; index < classVisitorCount; index++) {
+      clazz.accept(classVisitors[index]);
     }
-
-
-    public MultiClassVisitor(ClassVisitor... classVisitors)
-    {
-        this.classVisitors     = classVisitors;
-        this.classVisitorCount = classVisitors.length;
-    }
-
-
-    public void addClassVisitor(ClassVisitor classVisitor)
-    {
-        classVisitors =
-            ArrayUtil.add(classVisitors,
-                          classVisitorCount++,
-                          classVisitor);
-    }
-
-
-    // Implementations for ClassVisitor.
-
-    @Override
-    public void visitAnyClass(Clazz clazz)
-    {
-        for (int index = 0; index < classVisitorCount; index++)
-        {
-            clazz.accept(classVisitors[index]);
-        }
-    }
+  }
 }

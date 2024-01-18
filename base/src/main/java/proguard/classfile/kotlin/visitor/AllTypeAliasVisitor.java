@@ -20,25 +20,21 @@ package proguard.classfile.kotlin.visitor;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
 
-public class AllTypeAliasVisitor
-implements   KotlinMetadataVisitor
-{
-    private final KotlinTypeAliasVisitor delegate;
+public class AllTypeAliasVisitor implements KotlinMetadataVisitor {
+  private final KotlinTypeAliasVisitor delegate;
 
-    public AllTypeAliasVisitor(KotlinTypeAliasVisitor delegate)
-    {
-        this.delegate = delegate;
-    }
+  public AllTypeAliasVisitor(KotlinTypeAliasVisitor delegate) {
+    this.delegate = delegate;
+  }
 
-    // Implementations for KotlinMetadataVisitor.
+  // Implementations for KotlinMetadataVisitor.
 
-    @Override
-    public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+  @Override
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
-    @Override
-    public void visitKotlinDeclarationContainerMetadata(Clazz                              clazz,
-                                                        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata)
-    {
-        kotlinDeclarationContainerMetadata.typeAliasesAccept(clazz,delegate);
-    }
+  @Override
+  public void visitKotlinDeclarationContainerMetadata(
+      Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    kotlinDeclarationContainerMetadata.typeAliasesAccept(clazz, delegate);
+  }
 }
