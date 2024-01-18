@@ -18,12 +18,6 @@
 package proguard.io;
 
 import proguard.util.*;
-
-/* JDK 9 modules no longer export the internal sun.security API.
-import sun.security.pkcs.*;
-import sun.security.x509.*;
-//*/
-
 import java.io.*;
 import java.security.*;
 import java.security.cert.X509Certificate;
