@@ -52,7 +52,8 @@ class KotlinMetadataVersionRequirementTest : FreeSpec({
                     override fun visitKotlinClassMetadata(clazz: Clazz, kotlinClassKindMetadata: KotlinClassKindMetadata) {
                         kotlinClassKindMetadata.versionRequirementAccept(clazz, versionRequirementVisitor)
                     }
-                })
+                }
+            )
         )
 
         "Then the version requirement should be visited" {

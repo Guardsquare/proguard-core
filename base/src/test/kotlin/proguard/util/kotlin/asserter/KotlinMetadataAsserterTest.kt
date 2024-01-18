@@ -155,7 +155,8 @@ class KotlinMetadataAsserterTest : FreeSpec({
                     ) {
                         kotlinClassKindMetadata?.referencedEnumEntries = listOf(null, null)
                     }
-                })
+                }
+            )
             programClassPool.classesAccept("Test") {
                 it.kotlinMetadataAccept(visitor)
             }

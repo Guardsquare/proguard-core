@@ -61,7 +61,8 @@ class ConstantInstructionTest : FreeSpec({
                             override fun visitConstantInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, constantInstruction: ConstantInstruction) {
                                 if (constantInstruction.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
                             }
-                        })
+                        }
+                    )
                 )
             )
 
@@ -95,7 +96,8 @@ class ConstantInstructionTest : FreeSpec({
                             override fun visitConstantInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, constantInstruction: ConstantInstruction) {
                                 if (constantInstruction.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
                             }
-                        })
+                        }
+                    )
                 )
             )
 
