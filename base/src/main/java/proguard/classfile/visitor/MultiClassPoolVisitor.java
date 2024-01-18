@@ -17,8 +17,9 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import proguard.classfile.ClassPool;
-import proguard.util.ArrayUtil;
 
 /**
  * This {@link ClassPoolVisitor} delegates all visits to each {@link ClassPoolVisitor} in a given
@@ -27,27 +28,29 @@ import proguard.util.ArrayUtil;
  * @author Eric Lafortune
  */
 public class MultiClassPoolVisitor implements ClassPoolVisitor {
-  private ClassPoolVisitor[] classPoolVisitors;
-  private int classPoolVisitorCount;
+  private final ArrayList<ClassPoolVisitor> classPoolVisitors;
 
   public MultiClassPoolVisitor() {
-    this.classPoolVisitors = new ClassPoolVisitor[16];
+    this.classPoolVisitors = new ArrayList<>();
   }
 
   public MultiClassPoolVisitor(ClassPoolVisitor... classPoolVisitors) {
+    this.classPoolVisitors = new ArrayList<>(Arrays.asList(classPoolVisitors));
+  }
+
+  public MultiClassPoolVisitor(ArrayList<ClassPoolVisitor> classPoolVisitors) {
     this.classPoolVisitors = classPoolVisitors;
-    this.classPoolVisitorCount = classPoolVisitors.length;
   }
 
   public void addClassPoolVisitor(ClassPoolVisitor classPoolVisitor) {
-    classPoolVisitors = ArrayUtil.add(classPoolVisitors, classPoolVisitorCount++, classPoolVisitor);
+    classPoolVisitors.add(classPoolVisitor);
   }
 
   // Implementations for ClassPoolVisitor.
 
   public void visitClassPool(ClassPool classPool) {
-    for (int index = 0; index < classPoolVisitorCount; index++) {
-      classPoolVisitors[index].visitClassPool(classPool);
+    for (ClassPoolVisitor classPoolVisitor : classPoolVisitors) {
+      classPoolVisitor.visitClassPool(classPool);
     }
   }
 }
