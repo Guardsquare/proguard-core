@@ -55,10 +55,11 @@ private class ClassBuilder {
         fun createClass(className: String, superClass: ProgramClass? = null): ProgramClass {
             val clazz = ProgramClass(
                 VersionConstants.CLASS_VERSION_1_7,
-                1, arrayOfNulls(1),
+                1,
+                arrayOfNulls(1),
                 AccessConstants.PUBLIC,
                 0,
-                0
+                0,
             )
             val constantPoolEditor = ConstantPoolEditor(clazz)
             clazz.u2thisClass = constantPoolEditor.addClassConstant(className, null)

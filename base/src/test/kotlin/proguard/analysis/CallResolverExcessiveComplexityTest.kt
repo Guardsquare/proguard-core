@@ -56,8 +56,8 @@ class CallResolverExcessiveComplexityTest : FunSpec({
                 return
               }
           }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callGraph = CallGraph()

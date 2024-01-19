@@ -16,14 +16,14 @@ class IntOrBooleanTest : FreeSpec({
         val (programClassPool, _) = ClassPoolBuilder.fromSmali(
             SmaliSource(
                 smali.name,
-                smali.readText()
-            )
+                smali.readText(),
+            ),
         )
 
         val testClass = programClassPool.getClass("i/or/Z")
         val testMethod = testClass.findMethod(
             "access\$376",
-            "(Lcom/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper;I)Z"
+            "(Lcom/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper;I)Z",
         )
 
         "Check if classPool is not null" {

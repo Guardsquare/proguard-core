@@ -20,7 +20,7 @@ class ClassUtilTest : FreeSpec({
             version19,
             PUBLIC,
             "Test",
-            "java/lang/Object"
+            "java/lang/Object",
         ).programClass
         "The internal version should be 19" {
             programClass.u4version shouldBe internalClassVersion("19")

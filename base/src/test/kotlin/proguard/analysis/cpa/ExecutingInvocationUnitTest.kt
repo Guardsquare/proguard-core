@@ -46,7 +46,7 @@ private fun Any?.toValue(id: Int? = null): Value = when (this) {
             true,
             true,
             id,
-            this
+            this,
         )
     }
 }
@@ -172,9 +172,9 @@ class ExecutingInvocationUnitTest : FreeSpec({
                         return String.valueOf(1);       
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "8", "-target", "8")
+            javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
         val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, true)

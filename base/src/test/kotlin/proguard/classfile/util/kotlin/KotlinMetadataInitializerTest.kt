@@ -49,8 +49,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
             val property: String = "FOO"
 
             class Foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "Then the file facade ownerClassName should be correct" {
@@ -59,8 +59,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
             programClassPool.classesAccept(
                 "TestKt",
                 ReferencedKotlinMetadataVisitor(
-                    KotlinDeclarationContainerFilter(declarationContainerVisitor)
-                )
+                    KotlinDeclarationContainerFilter(declarationContainerVisitor),
+                ),
             )
 
             verify(exactly = 1) {
@@ -68,7 +68,7 @@ class KotlinMetadataInitializerTest : FreeSpec({
                     programClassPool.getClass("TestKt"),
                     withArg {
                         it.ownerClassName = "TestKt"
-                    }
+                    },
                 )
             }
         }
@@ -79,8 +79,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
             programClassPool.classesAccept(
                 "Foo",
                 ReferencedKotlinMetadataVisitor(
-                    KotlinDeclarationContainerFilter(declarationContainerVisitor)
-                )
+                    KotlinDeclarationContainerFilter(declarationContainerVisitor),
+                ),
             )
 
             verify(exactly = 1) {
@@ -88,7 +88,7 @@ class KotlinMetadataInitializerTest : FreeSpec({
                     programClassPool.getClass("Foo"),
                     withArg {
                         it.ownerClassName = "Foo"
-                    }
+                    },
                 )
             }
         }
@@ -107,16 +107,16 @@ class KotlinMetadataInitializerTest : FreeSpec({
                         mv = {1, 4, 0}
                     )
                     public class TestKotlin1dot4Metadata { }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
         "Then the metadata should be parsed correctly" {
             val visitor = spyk<KotlinMetadataVisitor>()
             programClassPool.classesAccept(
                 MultiClassVisitor(
                     KotlinMetadataInitializer { _, _ -> },
-                    ReferencedKotlinMetadataVisitor(visitor)
-                )
+                    ReferencedKotlinMetadataVisitor(visitor),
+                ),
             )
 
             verify {
@@ -125,7 +125,7 @@ class KotlinMetadataInitializerTest : FreeSpec({
                     withArg {
                         it.className shouldBe "TestKotlin1dot4Metadata"
                         it.mv shouldBe arrayOf(1, 4, 0)
-                    }
+                    },
                 )
             }
         }
@@ -143,9 +143,9 @@ class KotlinMetadataInitializerTest : FreeSpec({
                         mv = {9999, 0, 0}
                     )
                     public class TestKotlin9999Metadata { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            initialize = false
+            initialize = false,
         )
         "Then the metadata initializer should print a warning" {
             val visitor = spyk<KotlinMetadataVisitor>()
@@ -153,8 +153,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
             programClassPool.classesAccept(
                 MultiClassVisitor(
                     KotlinMetadataInitializer { _, s -> message = s },
-                    ReferencedKotlinMetadataVisitor(visitor)
-                )
+                    ReferencedKotlinMetadataVisitor(visitor),
+                ),
             )
             message shouldBe "Encountered corrupt @kotlin/Metadata for class TestKotlin9999Metadata (version 9999.0.0)."
         }
@@ -171,9 +171,9 @@ class KotlinMetadataInitializerTest : FreeSpec({
                         k = 1
                     )
                     public class TestKotlinVersionMissingMetadata { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            initialize = false
+            initialize = false,
         )
         "Then the metadata initializer should print a warning" {
             val visitor = spyk<KotlinMetadataVisitor>()
@@ -181,8 +181,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
             programClassPool.classesAccept(
                 MultiClassVisitor(
                     KotlinMetadataInitializer { _, s -> message = s },
-                    ReferencedKotlinMetadataVisitor(visitor)
-                )
+                    ReferencedKotlinMetadataVisitor(visitor),
+                ),
             )
             message shouldBe "Encountered corrupt @kotlin/Metadata for class TestKotlinVersionMissingMetadata (version unknown)."
         }
@@ -201,16 +201,16 @@ class KotlinMetadataInitializerTest : FreeSpec({
                         mv = {1, 4, 0}
                     )
                     public class TestKotlin1dot4Metadata { }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         libraryClassPool.classAccept(
             "kotlin/Metadata",
             ClassRenamer(
                 { clazz -> clazz.name },
-                { clazz, member -> if (member.getName(clazz) == "k") "invalid" else member.getName(clazz) }
-            )
+                { clazz, member -> if (member.getName(clazz) == "k") "invalid" else member.getName(clazz) },
+            ),
         )
 
         programClassPool.classesAccept(MemberReferenceFixer(true))
@@ -221,8 +221,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
             programClassPool.classesAccept(
                 MultiClassVisitor(
                     KotlinMetadataInitializer { _, s -> message = s },
-                    ReferencedKotlinMetadataVisitor(visitor)
-                )
+                    ReferencedKotlinMetadataVisitor(visitor),
+                ),
             )
             message shouldBe "Encountered corrupt Kotlin metadata in class TestKotlin1dot4Metadata. The metadata for this class will not be processed (Unknown Kotlin metadata field 'invalid')"
         }
@@ -237,8 +237,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
                 fun main() {
                     foo { }
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the jvmSignature method name is <anonymous>" - {
@@ -247,8 +247,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
 
             clazz.kotlinMetadataAccept(
                 AllFunctionVisitor(
-                    { _, _, func -> func.jvmSignature = MethodSignature(func.jvmSignature.className, "<anonymous>", func.jvmSignature.descriptor) }
-                )
+                    { _, _, func -> func.jvmSignature = MethodSignature(func.jvmSignature.className, "<anonymous>", func.jvmSignature.descriptor) },
+                ),
             )
             val logger: BiConsumer<Clazz, String> = spyk()
             clazz.accept(ClassReferenceInitializer(programClassPool, libraryClassPool))
@@ -262,14 +262,14 @@ class KotlinMetadataInitializerTest : FreeSpec({
                         withArg {
                             it.name shouldBe "<anonymous>"
                             it.referencedMethod shouldBe clazz.findMethod("invoke", null)
-                        }
+                        },
                     )
                 }
 
                 verify(exactly = 0) {
                     logger.accept(
                         ofType<Clazz>(),
-                        ofType<String>()
+                        ofType<String>(),
                     )
                 }
             }
@@ -282,8 +282,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
                 "Test.java",
                 """
                 public class Test { }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
         "Then using the KotlinMetadataInitializer initialize function" - {
             val kotlinMetadataInitializer = KotlinMetadataInitializer { _, _ -> }
@@ -295,13 +295,13 @@ class KotlinMetadataInitializerTest : FreeSpec({
                 arrayOf("LTest;", "", "()V"),
                 0,
                 "",
-                ""
+                "",
             )
 
             "Then the metadata should be initialized correctly" {
                 val visitor = spyk<KotlinMetadataVisitor>()
                 programClassPool.classesAccept(
-                    ReferencedKotlinMetadataVisitor(visitor)
+                    ReferencedKotlinMetadataVisitor(visitor),
                 )
 
                 verify {
@@ -310,7 +310,7 @@ class KotlinMetadataInitializerTest : FreeSpec({
                         withArg {
                             it.className shouldBe "Test"
                             it.mv shouldBe arrayOf(1, 4, 0)
-                        }
+                        },
                     )
                 }
             }

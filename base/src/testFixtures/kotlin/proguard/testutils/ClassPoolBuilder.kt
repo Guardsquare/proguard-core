@@ -60,7 +60,7 @@ class ClassPoolBuilder private constructor() {
             javacArguments: List<String> = emptyList(),
             kotlincArguments: List<String> = emptyList(),
             jdkHome: File = getCurrentJavaHome(),
-            initialize: Boolean = true
+            initialize: Boolean = true,
         ): ClassPools =
             fromSource(
                 *Files.walk(dir.toPath())
@@ -71,7 +71,7 @@ class ClassPoolBuilder private constructor() {
                 javacArguments = javacArguments,
                 kotlincArguments = kotlincArguments,
                 jdkHome = jdkHome,
-                initialize = initialize
+                initialize = initialize,
             )
 
         fun fromFiles(vararg file: File): ClassPools =
@@ -82,9 +82,8 @@ class ClassPoolBuilder private constructor() {
             javacArguments: List<String> = emptyList(),
             kotlincArguments: List<String> = emptyList(),
             jdkHome: File = getCurrentJavaHome(),
-            initialize: Boolean = true
+            initialize: Boolean = true,
         ): ClassPools {
-
             compiler.apply {
                 this.sources = source.filterNot { it is AssemblerSource }.map { it.asSourceFile() }
                 this.inheritClassPath = false
@@ -112,8 +111,8 @@ class ClassPoolBuilder private constructor() {
                     false,
                     true,
                     WarningPrinter(PrintWriter(System.err)),
-                    ClassPoolFiller(programClassPool)
-                )
+                    ClassPoolFiller(programClassPool),
+                ),
             )
 
             result.compiledClassAndResourceFiles.filter { it.isClassFile() }.forEach {
@@ -147,14 +146,15 @@ class ClassPoolBuilder private constructor() {
             programClassPool.classesAccept(classSuperHierarchyInitializer)
             libraryClassPool.classesAccept(classSuperHierarchyInitializer)
 
-            if (containsKotlinCode)
+            if (containsKotlinCode) {
                 programClassPool.classesAccept(
                     KotlinMetadataInitializer { _, message ->
                         println(
-                            message
+                            message,
                         )
-                    }
+                    },
                 )
+            }
 
             programClassPool.classesAccept(classReferenceInitializer)
             libraryClassPool.classesAccept(classReferenceInitializer)
@@ -216,7 +216,7 @@ private class LibraryClassPoolBuilder(private val compiler: KotlinCompilation) {
             true,
             true,
             null,
-            ClassPoolFiller(this)
+            ClassPoolFiller(this),
         )
 
         JarReader(ClassFilter(classReader)).read(FileDataEntry(file))

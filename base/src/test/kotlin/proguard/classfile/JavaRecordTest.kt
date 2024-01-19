@@ -48,10 +48,13 @@ class JavaRecordTest : FreeSpec({
                 "Test.java",
                 """
                 public record Test (String firstname, String surname) { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = if (currentJavaVersion == 15)
-                listOf("--enable-preview", "--release", "15") else emptyList()
+            javacArguments = if (currentJavaVersion == 15) {
+                listOf("--enable-preview", "--release", "15")
+            } else {
+                emptyList()
+            },
         )
 
         val recordClazz = programClassPool.getClass("Test")
@@ -64,8 +67,8 @@ class JavaRecordTest : FreeSpec({
             val recordVisitor = spyk<RecordComponentInfoVisitor>()
             programClassPool.classesAccept(
                 AllAttributeVisitor(
-                    AllRecordComponentInfoVisitor(recordVisitor)
-                )
+                    AllRecordComponentInfoVisitor(recordVisitor),
+                ),
             )
 
             verifyOrder {
@@ -75,7 +78,7 @@ class JavaRecordTest : FreeSpec({
                         it.getName(recordClazz) shouldBe "firstname"
                         it.getDescriptor(recordClazz) shouldBe "Ljava/lang/String;"
                         it.referencedField shouldBe MemberFinder().findField(recordClazz, "firstname", "Ljava/lang/String;")
-                    }
+                    },
                 )
 
                 recordVisitor.visitRecordComponentInfo(
@@ -84,7 +87,7 @@ class JavaRecordTest : FreeSpec({
                         it.getName(recordClazz) shouldBe "surname"
                         it.getDescriptor(recordClazz) shouldBe "Ljava/lang/String;"
                         it.referencedField shouldBe MemberFinder().findField(recordClazz, "surname", "Ljava/lang/String;")
-                    }
+                    },
                 )
             }
         }
@@ -100,10 +103,13 @@ class JavaRecordTest : FreeSpec({
                 @Retention(value=RetentionPolicy.CLASS)
                 @Target(value=ElementType.TYPE_USE)
                 public @interface Annotation {}
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = if (currentJavaVersion == 15)
-                listOf("--enable-preview", "--release", "15") else emptyList()
+            javacArguments = if (currentJavaVersion == 15) {
+                listOf("--enable-preview", "--release", "15")
+            } else {
+                emptyList()
+            },
         )
         val visitor = spyk<AttributeVisitor>(object : AttributeVisitor {
             override fun visitAnyAttribute(clazz: Clazz, attribute: Attribute) {}
@@ -114,17 +120,17 @@ class JavaRecordTest : FreeSpec({
             AllMemberVisitor(
                 MethodFilter(
                     ConstructorMethodFilter(
-                        AllAttributeVisitor(false, visitor)
-                    )
-                )
-            )
+                        AllAttributeVisitor(false, visitor),
+                    ),
+                ),
+            ),
         )
 
         "Then the type annotation attribute should be visited" {
             verify(exactly = 1) {
                 visitor.visitAnyTypeAnnotationsAttribute(
                     programClassPool.getClass("Test"),
-                    ofType(RuntimeInvisibleTypeAnnotationsAttribute::class)
+                    ofType(RuntimeInvisibleTypeAnnotationsAttribute::class),
                 )
             }
         }

@@ -73,9 +73,9 @@ private fun KmAnnotation.toProGuardKotlinAnnotation(): ProGuardKotlinAnnotation 
     ProGuardKotlinAnnotation(
         className,
         arguments.map {
-            (key, value) ->
+                (key, value) ->
             ProGuardAnnotationArgument(key, value.toProGuardKotlinAnnotationArgumentValue())
-        }
+        },
     )
 
 @ExperimentalUnsignedTypes
@@ -108,7 +108,7 @@ class AnnotationConstructor(private val consumer: Consumer<KmAnnotation>) : Kotl
             annotation.argumentsAccept(
                 clazz,
                 annotatable,
-                AnnotationArgumentConstructor { key, value -> this[key] = value }
+                AnnotationArgumentConstructor { key, value -> this[key] = value },
             )
             // Create the KmAnnotation with the arguments
             consumer.accept(KmAnnotation(annotation.className, this))
@@ -123,7 +123,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardKotlinAnnotationArgumentValue
+        value: ProGuardKotlinAnnotationArgumentValue,
     ) { }
 
     override fun visitUByteArgument(
@@ -131,7 +131,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardUByteValue
+        value: ProGuardUByteValue,
     ) = consumer.accept(argument.name, UByteValue(value.value.toUByte()))
 
     override fun visitUIntArgument(
@@ -139,7 +139,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardUIntValue
+        value: ProGuardUIntValue,
     ) = consumer.accept(argument.name, UIntValue(value.value.toUInt()))
 
     override fun visitULongArgument(
@@ -147,7 +147,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardULongValue
+        value: ProGuardULongValue,
     ) = consumer.accept(argument.name, ULongValue(value.value.toULong()))
 
     override fun visitUShortArgument(
@@ -155,7 +155,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardUShortValue
+        value: ProGuardUShortValue,
     ) = consumer.accept(argument.name, UShortValue(value.value.toUShort()))
 
     override fun visitByteArgument(
@@ -163,7 +163,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardByteValue
+        value: ProGuardByteValue,
     ) = consumer.accept(argument.name, ByteValue(value.value))
 
     override fun visitCharArgument(
@@ -171,7 +171,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardCharValue
+        value: ProGuardCharValue,
     ) = consumer.accept(argument.name, CharValue(value.value))
 
     override fun visitShortArgument(
@@ -179,7 +179,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardShortValue
+        value: ProGuardShortValue,
     ) = consumer.accept(argument.name, ShortValue(value.value))
 
     override fun visitIntArgument(
@@ -187,7 +187,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardIntValue
+        value: ProGuardIntValue,
     ) = consumer.accept(argument.name, IntValue(value.value))
 
     override fun visitLongArgument(
@@ -195,7 +195,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardLongValue
+        value: ProGuardLongValue,
     ) = consumer.accept(argument.name, LongValue(value.value))
 
     override fun visitFloatArgument(
@@ -203,7 +203,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardFloatValue
+        value: ProGuardFloatValue,
     ) = consumer.accept(argument.name, FloatValue(value.value))
 
     override fun visitDoubleArgument(
@@ -211,7 +211,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardDoubleValue
+        value: ProGuardDoubleValue,
     ) = consumer.accept(argument.name, DoubleValue(value.value))
 
     override fun visitBooleanArgument(
@@ -219,7 +219,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardBooleanValue
+        value: ProGuardBooleanValue,
     ) = consumer.accept(argument.name, BooleanValue(value.value))
 
     override fun visitStringArgument(
@@ -227,7 +227,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardStringValue
+        value: ProGuardStringValue,
     ) = consumer.accept(argument.name, StringValue(value.value))
 
     override fun visitClassArgument(
@@ -235,7 +235,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardClassValue
+        value: ProGuardClassValue,
     ) = consumer.accept(argument.name, KClassValue(value.className, value.arrayDimensionsCount))
 
     override fun visitEnumArgument(
@@ -243,7 +243,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardEnumValue
+        value: ProGuardEnumValue,
     ) = consumer.accept(argument.name, EnumValue(value.className, value.enumEntryName))
 
     override fun visitAnnotationArgument(
@@ -251,11 +251,11 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardAnnotationValue
+        value: ProGuardAnnotationValue,
     ) = value.annotationAccept(
         clazz,
         annotatable,
-        AnnotationConstructor { consumer.accept(argument.name, AnnotationValue(it)) }
+        AnnotationConstructor { consumer.accept(argument.name, AnnotationValue(it)) },
     )
 
     override fun visitArrayArgument(
@@ -263,7 +263,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotatable: ProGuardKotlinAnnotatable,
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
-        value: ProGuardArrayValue
+        value: ProGuardArrayValue,
     ) = with(mutableListOf<KmAnnotationArgument>()) {
         // Collect the elements
         value.elementsAccept(
@@ -271,7 +271,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
             annotatable,
             annotation,
             argument,
-            AnnotationArgumentConstructor { _, element -> add(element) }
+            AnnotationArgumentConstructor { _, element -> add(element) },
         )
         // Create the ArrayValue with the elements
         consumer.accept(argument.name, ArrayValue(this))

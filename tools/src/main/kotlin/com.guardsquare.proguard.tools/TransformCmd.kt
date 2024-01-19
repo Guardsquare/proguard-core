@@ -74,7 +74,7 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input (ex
             .map { classVisitor ->
                 MultiClassVisitor(
                     // { clazz -> println("Applying ${classVisitor.javaClass.simpleName} to ${externalClassName(clazz.name)}") },
-                    classVisitor
+                    classVisitor,
                 )
             }
             .toList()
@@ -102,16 +102,16 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input (ex
                 programClassPool,
                 libraryClassPool,
                 null,
-                null
-            )
+                null,
+            ),
         )
         programClassPool.classesAccept(
             ClassSuperHierarchyInitializer(
                 programClassPool,
                 libraryClassPool,
                 warningPrinter,
-                warningPrinter
-            )
+                warningPrinter,
+            ),
         )
 
         // Initialize the other references from the program classes.
@@ -122,8 +122,8 @@ class TransformCmd : Subcommand("transform", "Apply transformations to input (ex
                 warningPrinter,
                 warningPrinter,
                 warningPrinter,
-                null
-            )
+                null,
+            ),
         )
 
         // Flush the warnings.

@@ -10,15 +10,15 @@ class MethodSignatureTest : FreeSpec({
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
-            "(ILjava/lang/Object;)V"
+            "(ILjava/lang/Object;)V",
         )
         val m2 = MethodSignature(
             "java/lang/String",
             "foo",
             MethodDescriptor(
                 "V",
-                listOf("I", "Ljava/lang/Object;")
-            )
+                listOf("I", "Ljava/lang/Object;"),
+            ),
         )
         m1 shouldBe m2
         m2 shouldBe m1
@@ -34,15 +34,15 @@ class MethodSignatureTest : FreeSpec({
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
-            "(ILjava/lang/Object;)V"
+            "(ILjava/lang/Object;)V",
         )
         val m2 = MethodSignature(
             "java/lang/Integer",
             "bar",
             MethodDescriptor(
                 "Ljava/lang/String;",
-                listOf("D", "Ljava/lang/String;")
-            )
+                listOf("D", "Ljava/lang/String;"),
+            ),
         )
         m1 shouldNotBe m2
         m2 shouldNotBe m1
@@ -58,12 +58,12 @@ class MethodSignatureTest : FreeSpec({
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
-            "(ILjava/lang/Object;)V"
+            "(ILjava/lang/Object;)V",
         )
         val m2 = MethodSignature(
             null,
             "foo",
-            "(ILjava/lang/Object;)V"
+            "(ILjava/lang/Object;)V",
         )
         MethodSignature.matchesIgnoreNull(m2, m1) shouldBe false
         MethodSignature.matchesIgnoreNull(m1, m2) shouldBe true
@@ -73,12 +73,12 @@ class MethodSignatureTest : FreeSpec({
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
-            "(ILjava/lang/Object;)V"
+            "(ILjava/lang/Object;)V",
         )
         val m2 = MethodSignature(
             "java/lang/String",
             null,
-            "(ILjava/lang/Object;)V"
+            "(ILjava/lang/Object;)V",
         )
         MethodSignature.matchesIgnoreNull(m2, m1) shouldBe false
         MethodSignature.matchesIgnoreNull(m1, m2) shouldBe true
@@ -88,12 +88,12 @@ class MethodSignatureTest : FreeSpec({
         val m1 = MethodSignature(
             "java/lang/String",
             "foo",
-            "(ILjava/lang/Object;)V"
+            "(ILjava/lang/Object;)V",
         )
         val m2 = MethodSignature(
             "java/lang/String",
             "foo",
-            null as MethodDescriptor?
+            null as MethodDescriptor?,
         )
         MethodSignature.matchesIgnoreNull(m2, m1) shouldBe false
         MethodSignature.matchesIgnoreNull(m1, m2) shouldBe true

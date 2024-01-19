@@ -143,9 +143,9 @@ class ClassReferenceFixerTest : FreeSpec({
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"),
         )
 
         with(programClassPool) {
@@ -165,11 +165,11 @@ class ClassReferenceFixerTest : FreeSpec({
                         AllMethodVisitor(
                             ClassRenamer(
                                 { it.name },
-                                { clazz, member -> "renamed${member.getName(clazz).replaceFirstChar(Char::uppercase)}" }
-                            )
-                        )
-                    )
-                )
+                                { clazz, member -> "renamed${member.getName(clazz).replaceFirstChar(Char::uppercase)}" },
+                            ),
+                        ),
+                    ),
+                ),
             )
 
             // The ClassReferenceFixer should rename everything correctly
@@ -199,10 +199,10 @@ class ClassReferenceFixerTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(
                     AllKotlinAnnotationVisitor(
                         AllKotlinAnnotationArgumentVisitor(
-                            annotationArgVisitor
-                        )
-                    )
-                )
+                            annotationArgVisitor,
+                        ),
+                    ),
+                ),
             )
 
             verify(exactly = 17) {
@@ -234,7 +234,7 @@ class ClassReferenceFixerTest : FreeSpec({
                             }
                         }
                     },
-                    ofType<KotlinAnnotationArgument.Value>()
+                    ofType<KotlinAnnotationArgument.Value>(),
                 )
             }
         }
@@ -248,7 +248,7 @@ class ClassReferenceFixerTest : FreeSpec({
                 interface Service {
                     fun `useCase-123`(): Result<Int>
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
         )
 
@@ -259,8 +259,8 @@ class ClassReferenceFixerTest : FreeSpec({
                 val functionVisitor = spyk<KotlinFunctionVisitor>()
                 programClassPool.classesAccept(
                     ReferencedKotlinMetadataVisitor(
-                        AllFunctionVisitor(functionVisitor)
-                    )
+                        AllFunctionVisitor(functionVisitor),
+                    ),
                 )
 
                 verify(exactly = 1) {
@@ -269,7 +269,7 @@ class ClassReferenceFixerTest : FreeSpec({
                         ofType<KotlinDeclarationContainerMetadata>(),
                         withArg {
                             it.name shouldBe "useCase-123"
-                        }
+                        },
                     )
                 }
             }
@@ -280,18 +280,18 @@ class ClassReferenceFixerTest : FreeSpec({
                 MultiClassVisitor(
                     ClassRenamer(
                         { it.name },
-                        { clazz, member -> if (member.getName(clazz).startsWith("useCase-123")) "useCaseRenamed" else member.getName(clazz) }
+                        { clazz, member -> if (member.getName(clazz).startsWith("useCase-123")) "useCaseRenamed" else member.getName(clazz) },
                     ),
-                    ClassReferenceFixer(false)
-                )
+                    ClassReferenceFixer(false),
+                ),
             )
 
             "Then the Kotlin function should be named correctly" {
                 val functionVisitor = spyk<KotlinFunctionVisitor>()
                 programClassPool.classesAccept(
                     ReferencedKotlinMetadataVisitor(
-                        AllFunctionVisitor(functionVisitor)
-                    )
+                        AllFunctionVisitor(functionVisitor),
+                    ),
                 )
 
                 verify(exactly = 1) {
@@ -300,7 +300,7 @@ class ClassReferenceFixerTest : FreeSpec({
                         ofType<KotlinDeclarationContainerMetadata>(),
                         withArg {
                             it.name shouldBe "useCaseRenamed"
-                        }
+                        },
                     )
                 }
             }
@@ -316,7 +316,7 @@ class ClassReferenceFixerTest : FreeSpec({
                     // This results in a mangled JVM method name like `useCase-IoAF18A`
                     suspend fun useCase(): Result<Int>
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
         )
 
@@ -328,9 +328,9 @@ class ClassReferenceFixerTest : FreeSpec({
                 programClassPool.classesAccept(
                     ReferencedKotlinMetadataVisitor(
                         AllFunctionVisitor(
-                            KotlinFunctionFilter({ it.flags.isSuspend }, functionVisitor)
-                        )
-                    )
+                            KotlinFunctionFilter({ it.flags.isSuspend }, functionVisitor),
+                        ),
+                    ),
                 )
 
                 verify(exactly = 1) {
@@ -339,7 +339,7 @@ class ClassReferenceFixerTest : FreeSpec({
                         ofType<KotlinDeclarationContainerMetadata>(),
                         withArg {
                             it.name shouldBe "useCase"
-                        }
+                        },
                     )
                 }
             }
@@ -354,8 +354,8 @@ class ClassReferenceFixerTest : FreeSpec({
                     class Foo {
                         inner class `${'$'}Bar`
                     }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When applying the ClassReferenceFixer" - {
@@ -366,8 +366,8 @@ class ClassReferenceFixerTest : FreeSpec({
                 AllAttributeVisitor(
                     AllInnerClassesInfoVisitor { clazz, innerClassesInfo ->
                         name = clazz.getString(innerClassesInfo.u2innerNameIndex)
-                    }
-                )
+                    },
+                ),
             )
 
             "Then the inner class' short name should remain unchanged" {
@@ -382,7 +382,7 @@ class ClassReferenceFixerTest : FreeSpec({
                 "Producer.java",
                 """
                             public class Producer {} 
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Consumer.java",
@@ -390,8 +390,8 @@ class ClassReferenceFixerTest : FreeSpec({
                             public class Consumer {
                                 private Producer producer = new Producer();
                             }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
@@ -415,7 +415,7 @@ class ClassReferenceFixerTest : FreeSpec({
                 "Producer.java",
                 """
                             public class Producer {} 
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Consumer.java",
@@ -423,8 +423,8 @@ class ClassReferenceFixerTest : FreeSpec({
                             public class Consumer {
                                 private Producer producer = new Producer();
                             }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
@@ -450,8 +450,8 @@ class ClassReferenceFixerTest : FreeSpec({
             val clashesCounter = MemberCounter()
             programClass.accept(
                 AllFieldVisitor(
-                    MemberNameFilter(name, clashesCounter)
-                )
+                    MemberNameFilter(name, clashesCounter),
+                ),
             )
             return@NameGenerationStrategy if (clashesCounter.count > 1) newUniqueName else name
         }
@@ -463,7 +463,7 @@ class ClassReferenceFixerTest : FreeSpec({
                 "Producer.java",
                 """
                             public class Producer {} 
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Consumer.java",
@@ -471,8 +471,8 @@ class ClassReferenceFixerTest : FreeSpec({
                             public class Consumer {
                                 private Producer producer = new Producer();
                             }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
@@ -498,7 +498,7 @@ class ClassReferenceFixerTest : FreeSpec({
                 "Producer.java",
                 """
                             public class Producer {} 
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Consumer.java",
@@ -506,8 +506,8 @@ class ClassReferenceFixerTest : FreeSpec({
                             public class Consumer {
                                 private Producer producer = new Producer();
                             }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
@@ -524,8 +524,8 @@ class ClassReferenceFixerTest : FreeSpec({
                     PUBLIC,
                     constantEditor.addUtf8Constant("producer"),
                     constantEditor.addUtf8Constant("LObfuscated;"),
-                    programClassPool.getClass("Producer")
-                )
+                    programClassPool.getClass("Producer"),
+                ),
             )
 
             "And apply the ClassReferenceFixer with rename member when there is a member signature clash" - {
@@ -544,7 +544,7 @@ class ClassReferenceFixerTest : FreeSpec({
                 "Producer.java",
                 """
                             public class Producer {} 
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Consumer.java",
@@ -555,8 +555,8 @@ class ClassReferenceFixerTest : FreeSpec({
                                     return producer;
                                 }
                             }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
@@ -574,8 +574,8 @@ class ClassReferenceFixerTest : FreeSpec({
                     PUBLIC,
                     constantEditor.addUtf8Constant("producer"),
                     constantEditor.addUtf8Constant("LObfuscated;"),
-                    programClassPool.getClass("Producer")
-                )
+                    programClassPool.getClass("Producer"),
+                ),
             )
 
             "And apply the ClassReferenceFixer with the RENAME_MEMBER strategy when there is a signature clash" - {

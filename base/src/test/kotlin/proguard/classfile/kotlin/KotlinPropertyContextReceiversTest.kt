@@ -50,9 +50,9 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
               fun main() {
                 with (Logger()) { println(foo) }
               }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xcontext-receivers")
+            kotlincArguments = listOf("-Xcontext-receivers"),
         )
 
         val loggerClass = programClassPool.getClass("Logger") as ProgramClass
@@ -61,7 +61,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
             val writer = StringWriter()
             programClassPool.classAccept(
                 "TestKt",
-                ReferencedKotlinMetadataVisitor(KotlinMetadataPrinter(PrintWriter(writer)))
+                ReferencedKotlinMetadataVisitor(KotlinMetadataPrinter(PrintWriter(writer))),
             )
             "Then the printed string should contain the context receiver" {
                 writer.toString() shouldContain "[CTRE] Logger"
@@ -76,9 +76,9 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                     MultiKotlinMetadataVisitor(
                         // Re-initialize the references after re-writing.
                         { clazz, _ -> clazz.accept(ClassReferenceInitializer(programClassPool, libraryClassPool)) },
-                        KotlinMetadataPrinter(PrintWriter(writer))
-                    )
-                )
+                        KotlinMetadataPrinter(PrintWriter(writer)),
+                    ),
+                ),
             )
 
             "Then the printed string should contain the context receiver" {
@@ -95,16 +95,16 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         kotlinPropertyMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata) { _, kotlinTypeMetadata ->
                             kotlinTypeMetadata.processingInfo = processingInfo
                         }
-                    }
-                )
+                    },
+                ),
             )
 
             "Then there should be processingInfo" {
                 val visitor = spyk<KotlinTypeVisitor>()
                 programClassPool.getClass("TestKt").kotlinMetadataAccept(
                     AllPropertyVisitor(
-                        KotlinPropertyFilter({ property -> property.name == "foo" }, AllTypeVisitor(visitor))
-                    )
+                        KotlinPropertyFilter({ property -> property.name == "foo" }, AllTypeVisitor(visitor)),
+                    ),
                 )
                 verify(exactly = 1) {
                     visitor.visitPropertyContextReceiverType(
@@ -113,7 +113,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         ofType<KotlinPropertyMetadata>(),
                         withArg {
                             it.processingInfo shouldBe processingInfo
-                        }
+                        },
                     )
                 }
             }
@@ -125,9 +125,9 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                     "TestKt",
                     ReferencedKotlinMetadataVisitor(
                         AllPropertyVisitor(
-                            KotlinPropertyFilter({ property -> property.name == "foo" }, AllTypeVisitor(visitor))
-                        )
-                    )
+                            KotlinPropertyFilter({ property -> property.name == "foo" }, AllTypeVisitor(visitor)),
+                        ),
+                    ),
                 )
                 verify(exactly = 1) {
                     visitor.visitPropertyContextReceiverType(
@@ -136,7 +136,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         ofType<KotlinPropertyMetadata>(),
                         withArg {
                             it.processingInfo shouldBe null
-                        }
+                        },
                     )
                 }
             }
@@ -155,7 +155,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         withArg {
                             it.className shouldBe "Logger"
                             it.referencedClass shouldBe loggerClass
-                        }
+                        },
                     )
                 }
             }
@@ -167,8 +167,8 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                 "TestKt",
                 ReferencedClassVisitor(
                     false,
-                    ClassNameFilter("Logger", classCounter)
-                )
+                    ClassNameFilter("Logger", classCounter),
+                ),
             )
             val numberOfReferencesWithoutKotlinMetadata = classCounter.count
             val visitor = spyk<ClassVisitor>()
@@ -176,8 +176,8 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                 "TestKt",
                 ReferencedClassVisitor(
                     true,
-                    ClassNameFilter("Logger", visitor)
-                )
+                    ClassNameFilter("Logger", visitor),
+                ),
             )
             "Then the context receiver class should be visited" {
                 // There should be at least one more visit when taking
@@ -194,8 +194,8 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
             programClassPool.classAccept(
                 "TestKt",
                 ReferencedKotlinMetadataVisitor(
-                    AllTypeVisitor(KotlinTypeFilter({ type -> type.className == "Logger" }, typeVisitor))
-                )
+                    AllTypeVisitor(KotlinTypeFilter({ type -> type.className == "Logger" }, typeVisitor)),
+                ),
             )
 
             "Then the context receiver type should be visited" {
@@ -207,7 +207,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         withArg {
                             it.className shouldBe "Logger"
                             it.referencedClass shouldBe loggerClass
-                        }
+                        },
                     )
                 }
             }
@@ -222,10 +222,10 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         kotlinPropertyMetadata.contextReceiverTypesAccept(
                             clazz,
                             kotlinDeclarationContainerMetadata,
-                            typeVisitor
+                            typeVisitor,
                         )
-                    }
-                )
+                    },
+                ),
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
@@ -236,7 +236,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         withArg {
                             it.className shouldBe "Logger"
                             it.referencedClass shouldBe loggerClass
-                        }
+                        },
                     )
                 }
             }
@@ -254,10 +254,10 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         kotlinPropertyMetadata.contextReceiverTypesAccept(
                             clazz,
                             kotlinDeclarationContainerMetadata,
-                            typeVisitor
+                            typeVisitor,
                         )
-                    }
-                )
+                    },
+                ),
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
@@ -268,7 +268,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                         withArg {
                             it.className shouldBe "ObfuscatedLogger"
                             it.referencedClass shouldBe loggerClass
-                        }
+                        },
                     )
                 }
             }

@@ -70,8 +70,8 @@ class TestTranslationDeterminism : FreeSpec({
                     
                         return-void
                     .end method
-                            """.trimIndent()
-                        )
+                            """.trimIndent(),
+                        ),
                     )
                     val testClass = pcp.getClass("TestTypeTransformerMergeIZArray")
                     val methodFoo = testClass.findMethod("foo", "()Z")

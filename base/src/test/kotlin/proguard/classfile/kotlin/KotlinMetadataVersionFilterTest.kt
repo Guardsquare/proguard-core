@@ -37,8 +37,8 @@ class KotlinMetadataVersionFilterTest : FreeSpec({
             "Test.kt",
             """
                     class Person
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     val supportedMetadataVisitor = mockk<ClassVisitor>(relaxed = true)
@@ -74,23 +74,25 @@ class KotlinMetadataVersionFilterTest : FreeSpec({
                                             override fun visitAnyElementValue(clazz: Clazz, annotation: Annotation, elementValue: ElementValue) {}
                                             override fun visitArrayElementValue(clazz: Clazz, annotation: Annotation, arrayElementValue: ArrayElementValue) {
                                                 arrayElementValue.elementValueAccept(
-                                                    clazz, annotation, 0,
+                                                    clazz,
+                                                    annotation,
+                                                    0,
                                                     object : ElementValueVisitor {
                                                         override fun visitConstantElementValue(clazz: Clazz, annotation: Annotation, constantElementValue: ConstantElementValue) {
                                                             val index = ConstantPoolEditor(clazz as ProgramClass).addIntegerConstant(9001)
                                                             constantElementValue.u2constantValueIndex = index
                                                         }
-                                                    }
+                                                    },
                                                 )
                                             }
-                                        }
+                                        },
                                     )
                                 }
-                            }
-                        )
-                    )
-                )
-            )
+                            },
+                        ),
+                    ),
+                ),
+            ),
         )
 
         "Then the KotlinMetadataVersionFilter rejects the class" {

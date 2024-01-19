@@ -85,8 +85,8 @@ class KotlinMetadataWriterTest : FreeSpec({
                 typealias fooAlias = String
 
                 val myFoo = "bar"
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val metadataVisitor = spyk<KotlinMetadataVisitor>()
@@ -95,8 +95,8 @@ class KotlinMetadataWriterTest : FreeSpec({
         programClassPool.classesAccept(
             ReWritingMetadataVisitor(
                 metadataVisitor,
-                AllFunctionVisitor(functionVisitor)
-            )
+                AllFunctionVisitor(functionVisitor),
+            ),
         )
 
         "Then the ownerClassName shouldBe correct" {
@@ -105,7 +105,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     programClassPool.getClass("TestKt"),
                     withArg {
                         it.ownerClassName shouldBe "TestKt"
-                    }
+                    },
                 )
             }
         }
@@ -118,7 +118,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     withArg {
                         it.name shouldBe "foo"
                         it.jvmSignature shouldBe MethodSignature(null, "foo", "()V")
-                    }
+                    },
                 )
             }
         }
@@ -175,9 +175,9 @@ class KotlinMetadataWriterTest : FreeSpec({
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"),
         )
 
         val annotationVisitor = spyk<KotlinAnnotationVisitor>()
@@ -185,8 +185,8 @@ class KotlinMetadataWriterTest : FreeSpec({
 
         programClassPool.classesAccept(
             ReWritingMetadataVisitor(
-                AllKotlinAnnotationVisitor(annotationVisitor)
-            )
+                AllKotlinAnnotationVisitor(annotationVisitor),
+            ),
         )
         val annotation = slot<KotlinAnnotation>()
 
@@ -195,7 +195,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                 annotationVisitor.visitTypeAnnotation(
                     fileFacadeClass,
                     ofType(KotlinTypeMetadata::class),
-                    capture(annotation)
+                    capture(annotation),
                 )
             }
         }
@@ -207,10 +207,10 @@ class KotlinMetadataWriterTest : FreeSpec({
                 ReWritingMetadataVisitor(
                     AllKotlinAnnotationVisitor(
                         AllKotlinAnnotationArgumentVisitor(
-                            annotationArgVisitor
-                        )
-                    )
-                )
+                            annotationArgVisitor,
+                        ),
+                    ),
+                ),
             )
 
             verifyAll {
@@ -219,7 +219,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     ofType<KotlinAnnotationArgument>(),
-                    ofType<KotlinAnnotationArgument.Value>()
+                    ofType<KotlinAnnotationArgument.Value>(),
                 )
 
                 annotationArgVisitor.visitAnyLiteralArgument(
@@ -227,7 +227,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     ofType<KotlinAnnotationArgument>(),
-                    ofType<KotlinAnnotationArgument.LiteralValue<*>>()
+                    ofType<KotlinAnnotationArgument.LiteralValue<*>>(),
                 )
 
                 annotationArgVisitor.visitStringArgument(
@@ -235,7 +235,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "string" },
-                    StringValue("foo")
+                    StringValue("foo"),
                 )
 
                 annotationArgVisitor.visitByteArgument(
@@ -243,7 +243,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "byte" },
-                    ByteValue(1)
+                    ByteValue(1),
                 )
 
                 annotationArgVisitor.visitCharArgument(
@@ -251,7 +251,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "char" },
-                    CharValue('a')
+                    CharValue('a'),
                 )
 
                 annotationArgVisitor.visitShortArgument(
@@ -259,7 +259,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "short" },
-                    ShortValue(1)
+                    ShortValue(1),
                 )
 
                 annotationArgVisitor.visitIntArgument(
@@ -267,7 +267,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "int" },
-                    IntValue(1)
+                    IntValue(1),
                 )
 
                 annotationArgVisitor.visitLongArgument(
@@ -275,7 +275,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "long" },
-                    LongValue(1L)
+                    LongValue(1L),
                 )
 
                 annotationArgVisitor.visitFloatArgument(
@@ -283,7 +283,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "float" },
-                    FloatValue(1f)
+                    FloatValue(1f),
                 )
 
                 annotationArgVisitor.visitDoubleArgument(
@@ -291,7 +291,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "double" },
-                    DoubleValue(1.0)
+                    DoubleValue(1.0),
                 )
 
                 annotationArgVisitor.visitBooleanArgument(
@@ -299,7 +299,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "boolean" },
-                    BooleanValue(true)
+                    BooleanValue(true),
                 )
 
                 annotationArgVisitor.visitUByteArgument(
@@ -307,7 +307,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "uByte" },
-                    UByteValue(1)
+                    UByteValue(1),
                 )
 
                 annotationArgVisitor.visitUShortArgument(
@@ -315,7 +315,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "uShort" },
-                    UShortValue(1)
+                    UShortValue(1),
                 )
 
                 annotationArgVisitor.visitUIntArgument(
@@ -323,7 +323,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "uInt" },
-                    UIntValue(1)
+                    UIntValue(1),
                 )
 
                 annotationArgVisitor.visitULongArgument(
@@ -331,7 +331,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "uLong" },
-                    ULongValue(1)
+                    ULongValue(1),
                 )
 
                 annotationArgVisitor.visitEnumArgument(
@@ -339,7 +339,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "enum" },
-                    EnumValue("MyEnum", "FOO")
+                    EnumValue("MyEnum", "FOO"),
                 )
 
                 annotationArgVisitor.visitArrayArgument(
@@ -347,7 +347,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "array" },
-                    ArrayValue(listOf(StringValue("foo"), StringValue("bar")))
+                    ArrayValue(listOf(StringValue("foo"), StringValue("bar"))),
                 )
 
                 annotationArgVisitor.visitAnnotationArgument(
@@ -357,7 +357,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     withArg { it.name shouldBe "annotation" },
                     withArg {
                         it.kotlinMetadataAnnotation.className shouldBe "Foo"
-                    }
+                    },
                 )
 
                 annotationArgVisitor.visitClassArgument(
@@ -365,7 +365,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     ofType<KotlinAnnotatable>(),
                     ofType<KotlinAnnotation>(),
                     withArg { it.name shouldBe "kClass" },
-                    ClassValue("kotlin/String")
+                    ClassValue("kotlin/String"),
                 )
             }
         }
@@ -378,8 +378,8 @@ class KotlinMetadataWriterTest : FreeSpec({
                 """
                 @JvmInline
                 value class Password(private val s : String)
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val clazz = programClassPool.getClass("Password")
@@ -387,8 +387,8 @@ class KotlinMetadataWriterTest : FreeSpec({
 
         clazz.accept(
             ReWritingMetadataVisitor(
-                AllTypeVisitor(kotlinTypeVisitor)
-            )
+                AllTypeVisitor(kotlinTypeVisitor),
+            ),
         )
 
         "Then the type and name should be correct" {
@@ -399,7 +399,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                         it.underlyingPropertyName shouldBe "s"
                         it.underlyingPropertyType.className shouldBe "kotlin/String"
                     },
-                    ofType<KotlinTypeMetadata>()
+                    ofType<KotlinTypeMetadata>(),
                 )
             }
         }
@@ -419,8 +419,8 @@ class KotlinMetadataWriterTest : FreeSpec({
                             mv = {${unsupportedVersion.major}, ${unsupportedVersion.minor}, ${unsupportedVersion.patch}}
                         )
                         public class TestCompatibleMetadata { }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
         programClassPool.classesAccept(KotlinMetadataInitializer { _, _ -> })
         val clazz = programClassPool.getClass("TestCompatibleMetadata")
@@ -435,7 +435,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     clazz,
                     withArg {
                         it.mv shouldBe JvmMetadataVersion.INSTANCE.toArray()
-                    }
+                    },
                 )
             }
         }
@@ -455,8 +455,8 @@ class KotlinMetadataWriterTest : FreeSpec({
                             mv = {${maxVersion.major}, ${maxVersion.minor}, ${maxVersion.patch}}
                         )
                         public class TestCompatibleMetadata { }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
         programClassPool.classesAccept(KotlinMetadataInitializer { _, _ -> })
         val clazz = programClassPool.getClass("TestCompatibleMetadata")
@@ -471,7 +471,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                     clazz,
                     withArg {
                         it.mv shouldBe maxVersion.toArray()
-                    }
+                    },
                 )
             }
         }

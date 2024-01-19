@@ -21,7 +21,7 @@ package proguard.testutils.cpa
 import proguard.analysis.cpa.defaults.LatticeAbstractState
 
 class ExpressionAbstractState(
-    var values: Set<JvmExpression>
+    var values: Set<JvmExpression>,
 ) : LatticeAbstractState<ExpressionAbstractState> {
 
     override fun join(abstractState: ExpressionAbstractState?): ExpressionAbstractState {
@@ -31,12 +31,13 @@ class ExpressionAbstractState(
         val result = HashSet<JvmExpression>()
         result.addAll(values)
         result.addAll(abstractState.values)
-        return if (values.containsAll(result))
+        return if (values.containsAll(result)) {
             this
-        else if (abstractState.values.containsAll(result))
+        } else if (abstractState.values.containsAll(result)) {
             abstractState
-        else
+        } else {
             ExpressionAbstractState(result)
+        }
     }
 
     override fun isLessOrEqual(abstractState: ExpressionAbstractState?): Boolean {

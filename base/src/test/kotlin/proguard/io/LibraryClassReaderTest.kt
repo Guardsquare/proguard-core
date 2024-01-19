@@ -36,7 +36,7 @@ class LibraryClassReaderTest : FreeSpec({
                         /* d2 = */ ofType<Array<String>>(),
                         /* xi = */ 48,
                         /* xs = */ null,
-                        /* pn = */ null
+                        /* pn = */ null,
                     )
                 }
             }
@@ -64,7 +64,7 @@ class LibraryClassReaderTest : FreeSpec({
                         /* d2 = */ ofType<Array<String>>(),
                         /* xi = */ 48,
                         /* xs = */ null,
-                        /* pn = */ null
+                        /* pn = */ null,
                     )
                 }
             }

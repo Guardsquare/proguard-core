@@ -18,8 +18,8 @@ class TestLambdaNameStartingWithHyphen : FreeSpec({
                     """
                         .class public final L-${'$'}${'$'}Lambda${'$'}RetrofitProvider${'$'}7UGyImjn5OERU8TG-W_Zn0fdFtY;
                         .super Ljava/lang/Object;
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
             )
 
             "Then the lambda class name should not be altered and still have the hyphens in the name" {

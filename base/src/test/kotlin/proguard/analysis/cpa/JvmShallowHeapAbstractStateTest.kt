@@ -64,10 +64,10 @@ class JvmShallowHeapAbstractStateTest : FreeSpec({
         val state2 = JvmShallowHeapAbstractState(HashMapAbstractState(mutableMapOf(Integer(2) to IntegerAbstractState(3))), referenceClass, defaultValue)
         val result = JvmShallowHeapAbstractState(
             HashMapAbstractState(
-                mutableMapOf(Integer(1) to IntegerAbstractState(2), Integer(2) to IntegerAbstractState(3))
+                mutableMapOf(Integer(1) to IntegerAbstractState(2), Integer(2) to IntegerAbstractState(3)),
             ),
             referenceClass,
-            defaultValue
+            defaultValue,
         )
         state1.join(state2) shouldBe result
     }
@@ -97,10 +97,10 @@ class JvmShallowHeapAbstractStateTest : FreeSpec({
         val state1 = JvmShallowHeapAbstractState(HashMapAbstractState(mutableMapOf(Integer(1) to IntegerAbstractState(2))), referenceClass, defaultValue)
         val state2 = JvmShallowHeapAbstractState(
             HashMapAbstractState(
-                mutableMapOf(Integer(1) to IntegerAbstractState(2), Integer(2) to IntegerAbstractState(1))
+                mutableMapOf(Integer(1) to IntegerAbstractState(2), Integer(2) to IntegerAbstractState(1)),
             ),
             referenceClass,
-            defaultValue
+            defaultValue,
         )
         state1.isLessOrEqual(state2) shouldBe true
         state2.isLessOrEqual(state1) shouldBe false
@@ -109,17 +109,17 @@ class JvmShallowHeapAbstractStateTest : FreeSpec({
     "Pointwise incomparable value sets are incomparable" {
         val state1 = JvmShallowHeapAbstractState(
             HashMapAbstractState(
-                mutableMapOf(Integer(1) to IntegerAbstractState(2), Integer(2) to IntegerAbstractState(1))
+                mutableMapOf(Integer(1) to IntegerAbstractState(2), Integer(2) to IntegerAbstractState(1)),
             ),
             referenceClass,
-            defaultValue
+            defaultValue,
         )
         val state2 = JvmShallowHeapAbstractState(
             HashMapAbstractState(
-                mutableMapOf(Integer(1) to IntegerAbstractState(1), Integer(2) to IntegerAbstractState(2))
+                mutableMapOf(Integer(1) to IntegerAbstractState(1), Integer(2) to IntegerAbstractState(2)),
             ),
             referenceClass,
-            defaultValue
+            defaultValue,
         )
         state1.isLessOrEqual(state2) shouldBe false
         state2.isLessOrEqual(state1) shouldBe false

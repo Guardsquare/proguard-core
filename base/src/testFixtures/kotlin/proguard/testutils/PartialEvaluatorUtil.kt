@@ -25,7 +25,7 @@ class PartialEvaluatorUtil {
             methodName: String,
             methodDescriptor: String,
             classPool: ClassPool,
-            partialEvaluator: PartialEvaluator
+            partialEvaluator: PartialEvaluator,
         ): Pair<ArrayList<Pair<Int, Instruction>>, HashMap<String, Int>> {
             val clazz = classPool.getClass(className) as ProgramClass
             val method = clazz.findMethod(methodName, methodDescriptor) as ProgramMethod
@@ -44,7 +44,7 @@ class PartialEvaluatorUtil {
                                 method: Method,
                                 codeAttribute: CodeAttribute,
                                 offset: Int,
-                                instruction: Instruction
+                                instruction: Instruction,
                             ) {
                                 instructions.add(Pair(offset, instruction))
                             }
@@ -56,19 +56,19 @@ class PartialEvaluatorUtil {
                                 clazz: Clazz,
                                 method: Method,
                                 codeAttribute: CodeAttribute,
-                                localVarTableAttribute: LocalVariableTableAttribute
+                                localVarTableAttribute: LocalVariableTableAttribute,
                             ) {
                                 localVarTableAttribute.localVariablesAccept(
                                     clazz,
                                     method,
-                                    codeAttribute
+                                    codeAttribute,
                                 ) { _, _, _, localVar ->
                                     variableTable[localVar.getName(clazz)] = localVar.u2index
                                 }
                             }
-                        })
-                    )
-                )
+                        }),
+                    ),
+                ),
             )
 
             return Pair(instructions, variableTable)

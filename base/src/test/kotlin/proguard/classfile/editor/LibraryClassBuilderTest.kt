@@ -53,49 +53,49 @@ class LibraryClassBuilderTest : FreeSpec({
 
     "Given access flags, a class name, a super class name, interface names, interface classes, sub class count, " +
         "sub classes, fields, methods, and kotlin meta data" - {
-        val accessFlags = PUBLIC
-        val className = "MyClass"
-        val superClassName = "MySuperClass"
-        val interfaceNames = emptyArray<String>()
-        val interfaceClasses = emptyArray<Clazz>()
-        val subClassCount = 0
-        val subClasses = emptyArray<Clazz>()
-        val fields = emptyArray<LibraryField>()
-        val methods = emptyArray<LibraryMethod>()
-        val metaData = KotlinClassKindMetadata(IntArray(0), 0, "", "")
-        "When initializing a new LibraryClassBuilder" - {
-            val builder = LibraryClassBuilder(
-                accessFlags,
-                className,
-                superClassName,
-                interfaceNames,
-                interfaceClasses,
-                subClassCount,
-                subClasses,
-                fields,
-                methods,
-                metaData
-            )
-            "Then the newly built LibraryClass has the given arguments as its properties" {
-                builder.libraryClass.accessFlags shouldBe accessFlags
-                builder.libraryClass.thisClassName shouldBe className
-                builder.libraryClass.superClassName shouldBe superClassName
-                builder.libraryClass.interfaceNames shouldBe interfaceNames
-                builder.libraryClass.interfaceClasses shouldBe interfaceClasses
-                builder.libraryClass.subClassCount shouldBe subClassCount
-                builder.libraryClass.subClasses shouldBe subClasses
-                builder.libraryClass.fields shouldBe fields
-                builder.libraryClass.methods shouldBe methods
-                builder.libraryClass.kotlinMetadata shouldBe metaData
+            val accessFlags = PUBLIC
+            val className = "MyClass"
+            val superClassName = "MySuperClass"
+            val interfaceNames = emptyArray<String>()
+            val interfaceClasses = emptyArray<Clazz>()
+            val subClassCount = 0
+            val subClasses = emptyArray<Clazz>()
+            val fields = emptyArray<LibraryField>()
+            val methods = emptyArray<LibraryMethod>()
+            val metaData = KotlinClassKindMetadata(IntArray(0), 0, "", "")
+            "When initializing a new LibraryClassBuilder" - {
+                val builder = LibraryClassBuilder(
+                    accessFlags,
+                    className,
+                    superClassName,
+                    interfaceNames,
+                    interfaceClasses,
+                    subClassCount,
+                    subClasses,
+                    fields,
+                    methods,
+                    metaData,
+                )
+                "Then the newly built LibraryClass has the given arguments as its properties" {
+                    builder.libraryClass.accessFlags shouldBe accessFlags
+                    builder.libraryClass.thisClassName shouldBe className
+                    builder.libraryClass.superClassName shouldBe superClassName
+                    builder.libraryClass.interfaceNames shouldBe interfaceNames
+                    builder.libraryClass.interfaceClasses shouldBe interfaceClasses
+                    builder.libraryClass.subClassCount shouldBe subClassCount
+                    builder.libraryClass.subClasses shouldBe subClasses
+                    builder.libraryClass.fields shouldBe fields
+                    builder.libraryClass.methods shouldBe methods
+                    builder.libraryClass.kotlinMetadata shouldBe metaData
+                }
             }
         }
-    }
 
     "Given a LibraryClassBuilder, initialized from a given LibraryClass" - {
         val libraryClass = LibraryClass(
             PUBLIC,
             "MyLibraryClass",
-            ClassConstants.NAME_JAVA_LANG_OBJECT
+            ClassConstants.NAME_JAVA_LANG_OBJECT,
         )
         val builder = LibraryClassBuilder(libraryClass)
 
@@ -186,7 +186,7 @@ class LibraryClassBuilderTest : FreeSpec({
                             it.u2accessFlags shouldBe PUBLIC
                             it.name shouldBe "myMethod"
                             it.descriptor shouldBe "()V"
-                        }
+                        },
                     )
                 }
             }
@@ -232,7 +232,7 @@ class LibraryClassBuilderTest : FreeSpec({
                             it.u2accessFlags shouldBe PUBLIC
                             it.name shouldBe "myField"
                             it.descriptor shouldBe "(Z)Ljava/lang/Boolean;"
-                        }
+                        },
                     )
                 }
             }

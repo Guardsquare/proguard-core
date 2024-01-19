@@ -41,9 +41,9 @@ class MethodCopierTest : FreeSpec({
                     }
                 }
             }
-            """.trimIndent()
+            """.trimIndent(),
         ),
-        javacArguments = listOf("-source", "1.8", "-target", "1.8")
+        javacArguments = listOf("-source", "1.8", "-target", "1.8"),
     )
 
     val sourceClass = programClassPool.getClass("Foo") as ProgramClass
@@ -71,9 +71,9 @@ class MethodCopierTest : FreeSpec({
                         System.out.println("Baz");
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
         val bazClass = otherProgramClassPool.getClass("Baz") as ProgramClass
@@ -84,8 +84,8 @@ class MethodCopierTest : FreeSpec({
                 sourceClass,
                 sourceMethod,
                 null,
-                copiedMethodAssigner
-            )
+                copiedMethodAssigner,
+            ),
         )
 
         "Then calling findMethod on the target class should return the copied method" {
@@ -166,9 +166,9 @@ class MethodCopierTest : FreeSpec({
                         System.out.println("Other bar");
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
         val bazClass = otherProgramClassPool.getClass("Baz") as ProgramClass
@@ -182,8 +182,8 @@ class MethodCopierTest : FreeSpec({
                     sourceClass,
                     sourceMethod,
                     null,
-                    copiedMethodAssigner
-                )
+                    copiedMethodAssigner,
+                ),
             )
 
             "Then copiedMethodAssigner must not have been called" {
@@ -205,8 +205,8 @@ class MethodCopierTest : FreeSpec({
                     sourceClass,
                     sourceMethod,
                     { it + "Copy" },
-                    copiedMethodAssigner
-                )
+                    copiedMethodAssigner,
+                ),
             )
 
             "Then calling findMethod on the target class should return the copied method" {

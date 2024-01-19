@@ -45,5 +45,8 @@ fun isJava9OrLater(): Boolean =
     SourceVersion.latestSupported() > SourceVersion.RELEASE_8
 
 fun getCurrentJavaHome(): File =
-    if (isJava9OrLater()) File(System.getProperty("java.home"))
-    else File(System.getProperty("java.home")).parentFile
+    if (isJava9OrLater()) {
+        File(System.getProperty("java.home"))
+    } else {
+        File(System.getProperty("java.home")).parentFile
+    }

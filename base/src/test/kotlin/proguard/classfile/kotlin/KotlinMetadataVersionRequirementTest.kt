@@ -39,8 +39,8 @@ class KotlinMetadataVersionRequirementTest : FreeSpec({
             // For inline classes, the compiler sets versionRequirement=1.3.0,
             // versionRequirementLevel = ERROR and versionRequirementKind = LANGUAGE_VERSION
             inline class T(val param:String)
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     "Given a class with a versionRequirement" - {
@@ -52,8 +52,8 @@ class KotlinMetadataVersionRequirementTest : FreeSpec({
                     override fun visitKotlinClassMetadata(clazz: Clazz, kotlinClassKindMetadata: KotlinClassKindMetadata) {
                         kotlinClassKindMetadata.versionRequirementAccept(clazz, versionRequirementVisitor)
                     }
-                }
-            )
+                },
+            ),
         )
 
         "Then the version requirement should be visited" {
@@ -66,7 +66,7 @@ class KotlinMetadataVersionRequirementTest : FreeSpec({
                         it.patch shouldBe 0
                         it.level shouldBe ERROR
                         it.kind shouldBe LANGUAGE_VERSION
-                    }
+                    },
                 )
             }
         }

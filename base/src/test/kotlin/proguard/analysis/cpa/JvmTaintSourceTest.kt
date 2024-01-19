@@ -52,16 +52,16 @@ class JvmTaintSourceTest : FreeSpec({
                         }
                     
                     }
-            """.trimIndent()
+            """.trimIndent(),
         ),
-        javacArguments = listOf("-source", "1.8", "-target", "1.8")
+        javacArguments = listOf("-source", "1.8", "-target", "1.8"),
     ).programClassPool
     val callGraph = CallGraph()
     val resolver = CallResolver
         .Builder(
             classPool,
             ClassPool(),
-            callGraph
+            callGraph,
         )
         .setEvaluateAllCode(true)
         .build()
@@ -76,7 +76,7 @@ class JvmTaintSourceTest : FreeSpec({
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
 
     val taintSinkArgumentSignature = MethodSignature("A", "sink", "(Ljava/lang/String;)V")
@@ -84,7 +84,7 @@ class JvmTaintSourceTest : FreeSpec({
         taintSinkArgumentSignature,
         false,
         setOf(1),
-        setOf()
+        setOf(),
     )
 
     val mainSignature = MethodSignature("A", "main", "()V")

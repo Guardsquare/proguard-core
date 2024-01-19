@@ -65,8 +65,8 @@ class ReferencedClassVisitorTest : FreeSpec({
                 val p5: Float = 1f
                 val p6: Double = 1.0
                 val p7: Boolean = true
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val classVisitor = spyk<ClassVisitor>()

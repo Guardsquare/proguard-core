@@ -53,7 +53,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
                     }
                 }
             }
-            """
+            """,
     )
 
     "Expected reference ids" - {
@@ -64,7 +64,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
             val partialEvaluator = PartialEvaluator(
                 valueFactory,
                 invocationUnit,
-                false
+                false,
             )
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -74,7 +74,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 "test",
                 "()V",
                 programClassPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (instruction, _) = instructions.last()
@@ -97,7 +97,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
             val partialEvaluator = PartialEvaluator(
                 valueFactory,
                 invocationUnit,
-                false
+                false,
             )
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -107,7 +107,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 "test",
                 "()V",
                 programClassPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (instruction, _) = instructions.last()

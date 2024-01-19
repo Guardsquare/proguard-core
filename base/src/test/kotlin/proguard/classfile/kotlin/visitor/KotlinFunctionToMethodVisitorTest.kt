@@ -36,7 +36,7 @@ class KotlinFunctionToMethodVisitorTest : FreeSpec({
 
     "Given a Kotlin function" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent())
+            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent()),
         )
 
         val memberVisitor = spyk<MemberVisitor>(object : MemberVisitor {
@@ -54,7 +54,7 @@ class KotlinFunctionToMethodVisitorTest : FreeSpec({
                     withArg {
                         it.getName(programClass) shouldBe "foo"
                         it.getDescriptor(programClass) shouldBe "()Ljava/lang/String;"
-                    }
+                    },
                 )
             }
         }
@@ -62,7 +62,7 @@ class KotlinFunctionToMethodVisitorTest : FreeSpec({
 
     "Given a Kotlin function with an uninitialized referenced method" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent())
+            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent()),
         )
 
         val programClass = programClassPool.getClass("TestKt") as ProgramClass
@@ -72,7 +72,7 @@ class KotlinFunctionToMethodVisitorTest : FreeSpec({
                 override fun visitAnyFunction(clazz: Clazz, metadata: KotlinMetadata, func: KotlinFunctionMetadata) {
                     func.referencedMethod = null
                 }
-            })
+            }),
         )
 
         "Then KotlinFunctionToMethodVisitor should not throw an exception" {
@@ -82,7 +82,7 @@ class KotlinFunctionToMethodVisitorTest : FreeSpec({
 
             shouldNotThrowAny {
                 programClass.kotlinMetadataAccept(
-                    AllFunctionVisitor(KotlinFunctionToMethodVisitor(memberVisitor))
+                    AllFunctionVisitor(KotlinFunctionToMethodVisitor(memberVisitor)),
                 )
             }
         }
@@ -98,7 +98,7 @@ class KotlinFunctionToMethodVisitorTest : FreeSpec({
                     withArg {
                         it.getName(programClass) shouldBe "foo"
                         it.getDescriptor(programClass) shouldBe "()Ljava/lang/String;"
-                    }
+                    },
                 )
             }
         }

@@ -70,7 +70,7 @@ class DominatorCalculatorTest : FreeSpec({
 
         override fun attributesAccept(
             programClass: ProgramClass?,
-            attributeVisitor: AttributeVisitor?
+            attributeVisitor: AttributeVisitor?,
         ) {
         }
     }
@@ -92,10 +92,13 @@ class DominatorCalculatorTest : FreeSpec({
 
     "Simple" {
         val code = byteArrayOf(
-            Instruction.OP_BIPUSH, 42, // 0  bipush 42
-            Instruction.OP_BIPUSH, 43, // 2  bipush 43
-            Instruction.OP_BIPUSH, 44, // 4  bipush 44
-            Instruction.OP_RETURN //      6  return
+            Instruction.OP_BIPUSH,
+            42, // 0  bipush 42
+            Instruction.OP_BIPUSH,
+            43, // 2  bipush 43
+            Instruction.OP_BIPUSH,
+            44, // 4  bipush 44
+            Instruction.OP_RETURN, //      6  return
         )
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
@@ -129,7 +132,7 @@ class DominatorCalculatorTest : FreeSpec({
             2,
             4,
             6,
-            EXIT_NODE_OFFSET
+            EXIT_NODE_OFFSET,
         )
     }
 
@@ -141,7 +144,7 @@ class DominatorCalculatorTest : FreeSpec({
             Instruction.OP_GOTO, 0, 5, //     7  goto 12 (+5)
             Instruction.OP_BIPUSH, 44, //     10 bipush 44
             Instruction.OP_BIPUSH, 45, //     12 bipush 45
-            Instruction.OP_RETURN //          14 return
+            Instruction.OP_RETURN, //          14 return
         )
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
@@ -182,7 +185,7 @@ class DominatorCalculatorTest : FreeSpec({
             2,
             12,
             14,
-            EXIT_NODE_OFFSET
+            EXIT_NODE_OFFSET,
         )
     }
 
@@ -193,7 +196,7 @@ class DominatorCalculatorTest : FreeSpec({
             Instruction.OP_BIPUSH, 43, //                        5  bipush 43
             Instruction.OP_GOTO, 0xff.toByte(), 251.toByte(), // 7  goto 2 (-5)
             Instruction.OP_BIPUSH, 44, //                        10 bipush 44
-            Instruction.OP_RETURN //                             12 return
+            Instruction.OP_RETURN, //                             12 return
         )
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
@@ -233,7 +236,7 @@ class DominatorCalculatorTest : FreeSpec({
             2,
             10,
             12,
-            EXIT_NODE_OFFSET
+            EXIT_NODE_OFFSET,
         )
     }
 
@@ -244,7 +247,7 @@ class DominatorCalculatorTest : FreeSpec({
             Instruction.OP_BIPUSH, 43, //                        5  bipush 43
             Instruction.OP_GOTO, 0xff.toByte(), 249.toByte(), // 7  goto 0 (-7)
             Instruction.OP_BIPUSH, 44, //                        10 bipush 44
-            Instruction.OP_RETURN //                             12 return
+            Instruction.OP_RETURN, //                             12 return
         )
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
@@ -284,7 +287,7 @@ class DominatorCalculatorTest : FreeSpec({
             2,
             10,
             12,
-            EXIT_NODE_OFFSET
+            EXIT_NODE_OFFSET,
         )
     }
 
@@ -294,7 +297,7 @@ class DominatorCalculatorTest : FreeSpec({
             Instruction.OP_IFICMPNE, 0, 6, // 2  if_icmpne 8 (+6)
             Instruction.OP_BIPUSH, 43, //     5  bipush 43
             Instruction.OP_RETURN, //         7  return
-            Instruction.OP_RETURN //          8  return
+            Instruction.OP_RETURN, //          8  return
         )
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
@@ -327,7 +330,7 @@ class DominatorCalculatorTest : FreeSpec({
             ENTRY_NODE_OFFSET,
             0,
             2,
-            EXIT_NODE_OFFSET
+            EXIT_NODE_OFFSET,
         )
     }
 
@@ -345,7 +348,7 @@ class DominatorCalculatorTest : FreeSpec({
             Instruction.OP_GOTO, 0, 7, //            36 goto 43 (+7)
             Instruction.OP_BIPUSH, 42, //            39 bipush 42
             Instruction.OP_BIPUSH, 43, //            41 bipush 43
-            Instruction.OP_RETURN //                 43 return
+            Instruction.OP_RETURN, //                 43 return
         )
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
@@ -378,7 +381,7 @@ class DominatorCalculatorTest : FreeSpec({
             ENTRY_NODE_OFFSET,
             0,
             43,
-            EXIT_NODE_OFFSET
+            EXIT_NODE_OFFSET,
         )
     }
 
@@ -393,14 +396,14 @@ class DominatorCalculatorTest : FreeSpec({
             Instruction.OP_BIPUSH, 44, // 7  bipush 44
             Instruction.OP_BIPUSH, 45, // 9  bipush 45
             Instruction.OP_BIPUSH, 46, // 11 bipush 46
-            Instruction.OP_RETURN //      13 return
+            Instruction.OP_RETURN, //      13 return
         )
         val exceptions = arrayOf(ExceptionInfo(0, 4, 7, 1))
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
         val codeAttribute = CodeAttribute(
             0, 1, 0, code.size, code,
-            exceptions.size, exceptions, 0, arrayOf()
+            exceptions.size, exceptions, 0, arrayOf(),
         )
 
         val calculator = DominatorCalculator(false)
@@ -444,14 +447,14 @@ class DominatorCalculatorTest : FreeSpec({
             Instruction.OP_BIPUSH, 44, // 7  bipush 44
             Instruction.OP_BIPUSH, 45, // 9  bipush 45
             Instruction.OP_BIPUSH, 46, // 11 bipush 46
-            Instruction.OP_RETURN //      13 return
+            Instruction.OP_RETURN, //      13 return
         )
         val exceptions = arrayOf(ExceptionInfo(2, 4, 7, 1))
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
         val codeAttribute = CodeAttribute(
             0, 1, 0, code.size, code,
-            exceptions.size, exceptions, 0, arrayOf()
+            exceptions.size, exceptions, 0, arrayOf(),
         )
 
         val calculator = DominatorCalculator(false)
@@ -509,7 +512,7 @@ class DominatorCalculatorTest : FreeSpec({
         val method = NamedMember("", "()V")
         val codeAttribute = CodeAttribute(
             0, 1, 0, code.size, code,
-            exceptions.size, exceptions, 0, arrayOf()
+            exceptions.size, exceptions, 0, arrayOf(),
         )
 
         val calculator = DominatorCalculator(false)
@@ -548,10 +551,13 @@ class DominatorCalculatorTest : FreeSpec({
 
     "Unknown offsets should not have dominators" {
         val code = byteArrayOf(
-            Instruction.OP_BIPUSH, 42, // 0  bipush 42
-            Instruction.OP_BIPUSH, 43, // 2  bipush 43
-            Instruction.OP_BIPUSH, 44, // 4  bipush 44
-            Instruction.OP_RETURN //      6  return
+            Instruction.OP_BIPUSH,
+            42, // 0  bipush 42
+            Instruction.OP_BIPUSH,
+            43, // 2  bipush 43
+            Instruction.OP_BIPUSH,
+            44, // 4  bipush 44
+            Instruction.OP_RETURN, //      6  return
         )
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")

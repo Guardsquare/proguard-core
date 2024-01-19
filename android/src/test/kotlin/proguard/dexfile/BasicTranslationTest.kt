@@ -32,8 +32,8 @@ class BasicTranslationTest : FreeSpec({
                     
                     return-void
                 .end method
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val helloWorldClass = programClassPool.getClass("HelloWorld")

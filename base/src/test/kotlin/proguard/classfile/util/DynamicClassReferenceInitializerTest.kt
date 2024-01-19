@@ -35,7 +35,7 @@ class DynamicClassReferenceInitializerTest : BehaviorSpec({
                         System.out.println("foo");
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
         )
 
@@ -46,7 +46,7 @@ class DynamicClassReferenceInitializerTest : BehaviorSpec({
         `when`("Initializing the constant references to classes in the program class pool") {
             // Initialize reflective class references.
             programClassPool.classesAccept(
-                DynamicClassReferenceInitializer(programClassPool, libraryClassPool, null, null, null, null)
+                DynamicClassReferenceInitializer(programClassPool, libraryClassPool, null, null, null, null),
             )
 
             then("The reference of the string constant referring to the program class is correctly initialized") {
@@ -65,7 +65,7 @@ class DynamicClassReferenceInitializerTest : BehaviorSpec({
                                 stringConstant.referencedClass shouldBe programClassPool.getClass("Bar")
                             }
                         }
-                    })
+                    }),
                 )
 
                 verify(exactly = 1) { constantVisitor.visitStringConstant(any(), any()) }
@@ -93,7 +93,7 @@ class DynamicClassReferenceInitializerTest : BehaviorSpec({
                         System.out.println("foo");
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
         )
 
@@ -104,7 +104,7 @@ class DynamicClassReferenceInitializerTest : BehaviorSpec({
         `when`("Initializing the constant references to classes in the program class pool") {
             // Initialize reflective class references.
             programClassPool.classesAccept(
-                DynamicClassReferenceInitializer(programClassPool, libraryClassPool, null, null, null, null)
+                DynamicClassReferenceInitializer(programClassPool, libraryClassPool, null, null, null, null),
             )
 
             then("The reference of the string constant referring to the program class is correctly initialized") {
@@ -123,7 +123,7 @@ class DynamicClassReferenceInitializerTest : BehaviorSpec({
                                 stringConstant.referencedClass shouldBe programClassPool.getClass("Bar")
                             }
                         }
-                    })
+                    }),
                 )
 
                 verify(exactly = 1) { constantVisitor.visitStringConstant(any(), any()) }

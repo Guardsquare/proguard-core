@@ -1,134 +1,136 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
-    id 'distribution'
-    id 'io.github.gradle-nexus.publish-plugin'
-    id 'signing'
-    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
-    id 'com.adarshr.test-logger' version '3.0.0' apply false
-    id "org.sonarqube" version "3.4.0.2513"
-    id "io.freefair.aggregate-javadoc" version "6.5.0.3"
-    id "com.diffplug.spotless" version "6.13.0" apply false
+	id 'distribution'
+	id 'io.github.gradle-nexus.publish-plugin'
+	id 'signing'
+	id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
+	id 'com.adarshr.test-logger' version '3.0.0' apply false
+	id "org.sonarqube" version "3.4.0.2513"
+	id "io.freefair.aggregate-javadoc" version "6.5.0.3"
+	id "com.diffplug.spotless" version "6.13.0" apply false
 }
 
 allprojects {
-    group = 'com.guardsquare'
-    version = proguardCoreVersion
+	group = 'com.guardsquare'
+	version = proguardCoreVersion
 
-    repositories {
-        mavenCentral()
-        google()
-    }
-    
-    pluginManager.withPlugin('java') {
-        java {
-            toolchain {
-                languageVersion.set(JavaLanguageVersion.of(8))
-            }
-            withJavadocJar()
-            withSourcesJar()
-        }
+	repositories {
+		mavenCentral()
+		google()
+	}
 
-        javadoc {
-            options.addStringOption('Xdoclint:none', '-quiet')
-        }
+	pluginManager.withPlugin('java') {
+		java {
+			toolchain {
+				languageVersion.set(JavaLanguageVersion.of(8))
+			}
+			withJavadocJar()
+			withSourcesJar()
+		}
 
-        spotless {
-            java {
-                importOrder()
-                googleJavaFormat()
-            }
-        }
-    }
+		javadoc {
+			options.addStringOption('Xdoclint:none', '-quiet')
+		}
 
-    pluginManager.withPlugin('kotlin') {
-        spotless {
-            kotlin {
-                ktlint()
-            }
-        }
-    }
+		spotless {
+			java {
+				importOrder()
+				googleJavaFormat()
+			}
+		}
+	}
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-        kotlinOptions {
-            jvmTarget = '1.8'
-            freeCompilerArgs = ["-opt-in=kotlin.RequiresOptIn"]
-        }
-    }
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
-        .configureEach {
-            compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_7
-        }
+	pluginManager.withPlugin('kotlin') {
+		spotless {
+			kotlin {
+				ktlint()
+			}
+		}
+	}
 
-    apply plugin: 'com.diffplug.spotless'
+	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+		kotlinOptions {
+			jvmTarget = '1.8'
+			freeCompilerArgs = [
+				"-opt-in=kotlin.RequiresOptIn"
+			]
+		}
+	}
+	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
+			.configureEach {
+				compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_7
+			}
 
-    spotless {
-        groovyGradle {
-            greclipse()
-            toggleOffOn('formatter:off', 'formatter:on')
-        }
-    }
+	apply plugin: 'com.diffplug.spotless'
+
+	spotless {
+		groovyGradle {
+			greclipse()
+			toggleOffOn('formatter:off', 'formatter:on')
+		}
+	}
 }
 
 aggregateJavadoc {
-    title          = 'ProGuardCORE'
-    destinationDir = file('docs/md/api')
-    options.addStringOption('Xdoclint:none', '-quiet')
+	title          = 'ProGuardCORE'
+	destinationDir = file('docs/md/api')
+	options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 task buildDocumentation(type: Exec) {
-    dependsOn aggregateJavadoc
-    inputs.dir 'docs/md'
-    inputs.file 'docs/mkdocs.yml'
-    outputs.dir 'docs/html'
-    executable 'sh'
-    args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:9.1.19 build"
+	dependsOn aggregateJavadoc
+	inputs.dir 'docs/md'
+	inputs.file 'docs/mkdocs.yml'
+	outputs.dir 'docs/html'
+	executable 'sh'
+	args '-c', "docker run --volume $rootDir/docs:/docs --rm squidfunk/mkdocs-material:9.1.19 build"
 }
 
 clean {
-    delete aggregateJavadoc.outputs
-    //delete buildDocumentation.outputs
+	delete aggregateJavadoc.outputs
+	//delete buildDocumentation.outputs
 }
 
 distributions {
-    main {
-        distributionBaseName.set('proguard-core')
-        contents {
-            into('lib') {
-                from tasks.getByPath(":proguard-core:jar").outputs
-            }
-            into('docs') {
-                from('docs/md') {
-                    includeEmptyDirs = false
-                    include '**/*.md'
-                }
-            }
-            from(rootDir) {
-                include 'examples/'
-                exclude 'examples/build'
-                exclude 'examples/.gradle'
-                exclude 'examples/.idea'
-                include 'LICENSE'
-            }
-        }
-    }
+	main {
+		distributionBaseName.set('proguard-core')
+		contents {
+			into('lib') {
+				from tasks.getByPath(":proguard-core:jar").outputs
+			}
+			into('docs') {
+				from('docs/md') {
+					includeEmptyDirs = false
+					include '**/*.md'
+				}
+			}
+			from(rootDir) {
+				include 'examples/'
+				exclude 'examples/build'
+				exclude 'examples/.gradle'
+				exclude 'examples/.idea'
+				include 'LICENSE'
+			}
+		}
+	}
 }
 
 distTar {
-    compression = Compression.GZIP
-    archiveExtension.set('tar.gz')
-    dependsOn('aggregateJavadoc')
+	compression = Compression.GZIP
+	archiveExtension.set('tar.gz')
+	dependsOn('aggregateJavadoc')
 }
 
 distZip {
-    dependsOn('aggregateJavadoc')
+	dependsOn('aggregateJavadoc')
 }
 
 nexusPublishing {
-    repositories {
-        sonatype {
-            username = findProperty('PROGUARD_STAGING_USERNAME')
-            password = findProperty('PROGUARD_STAGING_PASSWORD')
-        }
-    }
+	repositories {
+		sonatype {
+			username = findProperty('PROGUARD_STAGING_USERNAME')
+			password = findProperty('PROGUARD_STAGING_PASSWORD')
+		}
+	}
 }

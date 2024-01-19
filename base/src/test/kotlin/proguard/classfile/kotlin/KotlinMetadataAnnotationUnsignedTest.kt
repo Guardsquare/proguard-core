@@ -40,21 +40,21 @@ class KotlinMetadataAnnotationUnsignedTest : FreeSpec({
             uByte = "0u" expect 0,
             uShort = "0u" expect 0,
             uInt = "0u" expect 0,
-            uLong = "0u" expect 0L
+            uLong = "0u" expect 0L,
         ),
         UnsignedTestValues(
             name = "Unsigned MAX_VALUE should be converted to signed -1",
             uByte = "UByte.MAX_VALUE" expect -1,
             uShort = "UShort.MAX_VALUE" expect -1,
             uInt = "UInt.MAX_VALUE" expect -1,
-            uLong = "ULong.MAX_VALUE" expect -1L
+            uLong = "ULong.MAX_VALUE" expect -1L,
         ),
         UnsignedTestValues(
             name = "Unsigned MIN_VALUE should be converted to signed 0",
             uByte = "UByte.MIN_VALUE" expect 0,
             uShort = "UShort.MIN_VALUE" expect 0,
             uInt = "UInt.MIN_VALUE" expect 0,
-            uLong = "ULong.MIN_VALUE" expect 0L
+            uLong = "ULong.MIN_VALUE" expect 0L,
         ),
         UnsignedTestValues(
             name = "Unsigned (MAX_VALUE - 1) should be converted to signed -2",
@@ -90,9 +90,9 @@ class KotlinMetadataAnnotationUnsignedTest : FreeSpec({
                     uLong = ${uLong.first}
                 )
                 typealias myAliasWithUnsigned = String
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"),
         )
 
         val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
@@ -103,10 +103,10 @@ class KotlinMetadataAnnotationUnsignedTest : FreeSpec({
             ReWritingMetadataVisitor(
                 AllTypeAliasVisitor(
                     AllKotlinAnnotationVisitor(
-                        AllKotlinAnnotationArgumentVisitor(annotationArgVisitor)
-                    )
-                )
-            )
+                        AllKotlinAnnotationArgumentVisitor(annotationArgVisitor),
+                    ),
+                ),
+            ),
         )
 
         verify(exactly = 1) {
@@ -115,7 +115,7 @@ class KotlinMetadataAnnotationUnsignedTest : FreeSpec({
                 ofType<KotlinAnnotatable>(),
                 ofType<KotlinAnnotation>(),
                 withArg { it.name shouldBe "uByte" },
-                KotlinAnnotationArgument.UByteValue(uByte.second)
+                KotlinAnnotationArgument.UByteValue(uByte.second),
             )
 
             annotationArgVisitor.visitUShortArgument(
@@ -123,7 +123,7 @@ class KotlinMetadataAnnotationUnsignedTest : FreeSpec({
                 ofType<KotlinAnnotatable>(),
                 ofType<KotlinAnnotation>(),
                 withArg { it.name shouldBe "uShort" },
-                KotlinAnnotationArgument.UShortValue(uShort.second)
+                KotlinAnnotationArgument.UShortValue(uShort.second),
             )
 
             annotationArgVisitor.visitUIntArgument(
@@ -131,7 +131,7 @@ class KotlinMetadataAnnotationUnsignedTest : FreeSpec({
                 ofType<KotlinAnnotatable>(),
                 ofType<KotlinAnnotation>(),
                 withArg { it.name shouldBe "uInt" },
-                KotlinAnnotationArgument.UIntValue(uInt.second)
+                KotlinAnnotationArgument.UIntValue(uInt.second),
             )
 
             annotationArgVisitor.visitULongArgument(
@@ -139,7 +139,7 @@ class KotlinMetadataAnnotationUnsignedTest : FreeSpec({
                 ofType<KotlinAnnotatable>(),
                 ofType<KotlinAnnotation>(),
                 withArg { it.name shouldBe "uLong" },
-                KotlinAnnotationArgument.ULongValue(uLong.second)
+                KotlinAnnotationArgument.ULongValue(uLong.second),
             )
         }
     }
@@ -149,7 +149,7 @@ private data class UnsignedTestValues(
     val uByte: Pair<String, Byte>,
     val uShort: Pair<String, Short>,
     val uInt: Pair<String, Int>,
-    val uLong: Pair<String, Long>
+    val uLong: Pair<String, Long>,
 ) {
     override fun toString(): String = name
 }

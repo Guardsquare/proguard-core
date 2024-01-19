@@ -50,14 +50,14 @@ class TreeHeapTest : StringSpec({
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
 
     val taintSinkArgument = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(Ljava/lang/String;)V"),
         false,
         setOf(1),
-        setOf()
+        setOf(),
     )
 
     val jvmTaintMemoryLocationBamCpaRunBuilder = JvmTaintMemoryLocationBamCpaRun.Builder()
@@ -68,17 +68,17 @@ class TreeHeapTest : StringSpec({
     listOf(
         HashMapAbstractStateFactory.getInstance(),
         DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
-        LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
+        LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() },
     ).forEach { staticFieldMapAbstractStateFactory ->
         listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>>>(
             Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
             Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
-            Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
+            Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }),
         ).forEach { (principalHeapMapAbstractStateFactory, followerHeapMapAbstractStateFactory) ->
             listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>>>(
                 Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
                 Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
-                Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
+                Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }),
             ).forEach { (principalHeapNodeMapAbstractStateFactory, followerHeapNodeMapAbstractStateFactory) ->
                 listOf(false, true).forEach { reduceHeap ->
 
@@ -127,10 +127,10 @@ class TreeHeapTest : StringSpec({
                             public String s;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -174,10 +174,10 @@ class TreeHeapTest : StringSpec({
                             public String s;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -192,8 +192,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:11",
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:8",
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;callee(LA\$B;LA\$B;)V:7",
-                                "JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:4"
-                            )
+                                "JvmStackLocation(0)@LA;callee(LA\$B;LA\$B;)V:4",
+                            ),
                         )
                     }
 
@@ -221,10 +221,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -241,8 +241,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9",
-                                "JvmStackLocation(0)@LA;main()V:8"
-                            )
+                                "JvmStackLocation(0)@LA;main()V:8",
+                            ),
                         )
                     }
 
@@ -270,10 +270,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -291,8 +291,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9",
-                                "JvmStackLocation(0)@LA;main()V:8"
-                            )
+                                "JvmStackLocation(0)@LA;main()V:8",
+                            ),
                         )
                     }
 
@@ -321,10 +321,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -339,8 +339,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmStackLocation(0)@LA;main()V:14",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:11",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:10",
-                                "JvmStackLocation(0)@LA;main()V:7"
-                            )
+                                "JvmStackLocation(0)@LA;main()V:7",
+                            ),
                         )
                     }
 
@@ -368,10 +368,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -386,8 +386,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmStackLocation(0)@LA;main()V:11",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:8",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], A#s)@LA;main()V:7",
-                                "JvmStackLocation(0)@LA;main()V:4"
-                            )
+                                "JvmStackLocation(0)@LA;main()V:4",
+                            ),
                         )
                     }
 
@@ -418,10 +418,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -439,8 +439,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:1",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:0",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0)], A#s)@LA;main(Z)V:11",
-                                "JvmStackLocation(0)@LA;main(Z)V:8"
-                            )
+                                "JvmStackLocation(0)@LA;main(Z)V:8",
+                            ),
                         )
                     }
 
@@ -469,10 +469,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -515,10 +515,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -536,8 +536,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:23",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:22",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main(Z)V:0), Reference(JvmStackLocation(0)@LA;main(Z)V:9)], A#s)@LA;main(Z)V:21",
-                                "JvmStackLocation(0)@LA;main(Z)V:18"
-                            )
+                                "JvmStackLocation(0)@LA;main(Z)V:18",
+                            ),
                         )
                     }
 
@@ -566,10 +566,10 @@ class TreeHeapTest : StringSpec({
                             return null;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -591,8 +591,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:13",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:10",
                                 "JvmHeapLocation([Reference(JvmLocalVariableLocation(0)@LA;main()V:0)], [])@LA;main()V:9",
-                                "JvmStackLocation(0)@LA;main()V:8"
-                            )
+                                "JvmStackLocation(0)@LA;main()V:8",
+                            ),
                         )
                     }
 
@@ -646,10 +646,10 @@ class TreeHeapTest : StringSpec({
                             public String s;
                         }
                     }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -682,7 +682,7 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee3()V:0",
                                 "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13",
                                 "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee2()V:9",
-                                "JvmStackLocation(0)@LA;callee2()V:6"
+                                "JvmStackLocation(0)@LA;callee2()V:6",
                             ),
                             listOf(
                                 "JvmStackLocation(0)@LA;callee3()V:6",
@@ -691,8 +691,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:13",
                                 "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;main(Z)V:7",
                                 "JvmHeapLocation([Reference(JvmStaticFieldLocation(A.b)@unknown], A\$B#s)@LA;callee1()V:9",
-                                "JvmStackLocation(0)@LA;callee1()V:6"
-                            )
+                                "JvmStackLocation(0)@LA;callee1()V:6",
+                            ),
                         )
                     }
 
@@ -725,10 +725,10 @@ class TreeHeapTest : StringSpec({
                         public String s;
                     }                
                 }
-                                    """.trimIndent()
+                                    """.trimIndent(),
                                 ),
-                                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                            ).programClassPool
+                                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                            ).programClassPool,
                         )
                         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
                         val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -770,8 +770,8 @@ class TreeHeapTest : StringSpec({
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:28",
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:26",
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA;main()V:3)], A\$B#s)@LA;main()V:25",
-                                "JvmStackLocation(0)@LA;main()V:22"
-                            )
+                                "JvmStackLocation(0)@LA;main()V:22",
+                            ),
                         )
                     }
                 }

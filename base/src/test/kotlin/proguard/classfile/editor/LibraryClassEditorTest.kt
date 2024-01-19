@@ -37,7 +37,7 @@ class LibraryClassEditorTest : FreeSpec({
         val libraryClass = LibraryClass(
             AccessConstants.PUBLIC,
             "MyLibraryClass",
-            ClassConstants.NAME_JAVA_LANG_OBJECT
+            ClassConstants.NAME_JAVA_LANG_OBJECT,
         )
         val editor = LibraryClassEditor(libraryClass)
 

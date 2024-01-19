@@ -43,9 +43,9 @@ class ConstantInstructionTest : FreeSpec({
                         System.out.println(Foo.class);
                     }
                 }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = listOf("-source", "1.8", "-target", "1.8")
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             )
 
             val clazz = programClassPool.getClass("Foo")
@@ -61,9 +61,9 @@ class ConstantInstructionTest : FreeSpec({
                             override fun visitConstantInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, constantInstruction: ConstantInstruction) {
                                 if (constantInstruction.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
                             }
-                        }
-                    )
-                )
+                        },
+                    ),
+                ),
             )
 
             throwingLdcCount shouldBe 1
@@ -79,8 +79,8 @@ class ConstantInstructionTest : FreeSpec({
                         System.out.println("constant");
                     }
                 }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
             )
 
             val clazz = programClassPool.getClass("Foo")
@@ -96,9 +96,9 @@ class ConstantInstructionTest : FreeSpec({
                             override fun visitConstantInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, constantInstruction: ConstantInstruction) {
                                 if (constantInstruction.opcode == OP_LDC && constantInstruction.mayInstanceThrowExceptions(clazz)) throwingLdcCount++
                             }
-                        }
-                    )
-                )
+                        },
+                    ),
+                ),
             )
 
             throwingLdcCount shouldBe 0

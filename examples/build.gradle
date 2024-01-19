@@ -1,22 +1,22 @@
 plugins {
-    id 'java'
-    id 'application'
+	id 'java'
+	id 'application'
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    implementation project(':proguard-core')
-    implementation project(':proguard-core-android')
+	implementation project(':proguard-core')
+	implementation project(':proguard-core-android')
 }
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    }
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(11))
+	}
 
-    withSourcesJar()
-    withJavadocJar()
+	withSourcesJar()
+	withJavadocJar()
 }

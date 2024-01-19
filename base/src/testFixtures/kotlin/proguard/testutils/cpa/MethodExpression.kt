@@ -22,7 +22,7 @@ import java.util.Objects
 
 class MethodExpression(
     val name: String,
-    val operands: List<ExpressionAbstractState>
+    val operands: List<ExpressionAbstractState>,
 ) : JvmExpression {
     override fun equals(other: Any?): Boolean {
         return other is MethodExpression && name == other.name && operands == other.operands

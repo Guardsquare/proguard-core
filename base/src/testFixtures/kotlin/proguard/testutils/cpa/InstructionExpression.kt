@@ -23,7 +23,7 @@ import java.util.Objects
 
 class InstructionExpression(
     val instruction: Instruction,
-    val operands: List<ExpressionAbstractState>
+    val operands: List<ExpressionAbstractState>,
 ) : JvmExpression {
     override fun equals(other: Any?): Boolean {
         return other is InstructionExpression && instruction == other.instruction && operands == other.operands

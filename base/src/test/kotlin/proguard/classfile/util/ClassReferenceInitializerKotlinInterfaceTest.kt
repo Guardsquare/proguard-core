@@ -17,8 +17,8 @@ class ClassReferenceInitializerKotlinInterfaceTest : FreeSpec({
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the ClassReferenceInitializer is run" - {
@@ -32,7 +32,7 @@ class ClassReferenceInitializerKotlinInterfaceTest : FreeSpec({
                     missingClassPrinter.print(
                         "Test",
                         "Test${'$'}DefaultImpls",
-                        ofType<String>()
+                        ofType<String>(),
                     )
                 }
             }
@@ -49,9 +49,9 @@ class ClassReferenceInitializerKotlinInterfaceTest : FreeSpec({
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xjvm-default=all")
+            kotlincArguments = listOf("-Xjvm-default=all"),
         )
 
         "When the ClassReferenceInitializer is run" - {
@@ -65,7 +65,7 @@ class ClassReferenceInitializerKotlinInterfaceTest : FreeSpec({
                     missingClassPrinter.print(
                         "Test",
                         "Test${'$'}DefaultImpls",
-                        ofType<String>()
+                        ofType<String>(),
                     )
                 }
             }

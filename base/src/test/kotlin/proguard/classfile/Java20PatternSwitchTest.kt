@@ -21,8 +21,11 @@ import proguard.testutils.currentJavaVersion
 @RequiresJavaVersion(20, 20)
 class Java20PatternSwitchTest : FreeSpec({
 
-    val javacArguments = if (currentJavaVersion in 20..20)
-        listOf("--enable-preview", "--release", currentJavaVersion.toString()) else emptyList()
+    val javacArguments = if (currentJavaVersion in 20..20) {
+        listOf("--enable-preview", "--release", currentJavaVersion.toString())
+    } else {
+        emptyList()
+    }
 
     "Test PatternSwitch" - {
         "Instance of" - {
@@ -44,9 +47,9 @@ class Java20PatternSwitchTest : FreeSpec({
                             System.out.println(formatted);
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = javacArguments
+                javacArguments = javacArguments,
             )
 
             "$className class should be in program class pool" {
@@ -71,9 +74,9 @@ class Java20PatternSwitchTest : FreeSpec({
                             System.out.println(formatted);
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = javacArguments
+                javacArguments = javacArguments,
             )
             "$className class should be in program class pool" {
                 programClassPool.getClass(className) shouldNotBe null
@@ -95,9 +98,9 @@ class Java20PatternSwitchTest : FreeSpec({
                             System.out.println(formatted);
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = javacArguments
+                javacArguments = javacArguments,
             )
 
             "$className class should be in program class pool" {
@@ -119,9 +122,9 @@ class Java20PatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = javacArguments
+                javacArguments = javacArguments,
             )
 
             "$className class should be in program class pool" {
@@ -143,9 +146,9 @@ class Java20PatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = javacArguments
+                javacArguments = javacArguments,
             )
 
             "$className class should be in program class pool" {
@@ -173,9 +176,9 @@ class Java20PatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = javacArguments
+                javacArguments = javacArguments,
             )
 
             "$className class should be in program class pool" {
@@ -200,9 +203,9 @@ class Java20PatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = javacArguments
+                javacArguments = javacArguments,
             )
 
             "$className class should be in program class pool" {

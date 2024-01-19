@@ -94,8 +94,8 @@ class KotlinCommonFlagsTest : FreeSpec({
                 @MyAnnotation
                 typealias AnnotatedTypeAlias = String
             }
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     // Run the test twice, check a class where everything is annotated and another where nothing is annotated.
@@ -129,18 +129,18 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 AllFunctionVisitor(
                     kotlinFunctionVisitor,
                     AllValueParameterVisitor(kotlinValueParamVisitor),
-                    AllTypeParameterVisitor(kotlinTypeParamVisitor)
+                    AllTypeParameterVisitor(kotlinTypeParamVisitor),
                 ),
-                AllTypeAliasVisitor(kotlinTypeAliasVisitor)
-            )
-        )
+                AllTypeAliasVisitor(kotlinTypeAliasVisitor),
+            ),
+        ),
     )
 
     test("$prefix: $className's hasAnnotations flag should be $expected") {
         verify {
             kotlinClassVisitor.visitKotlinClassMetadata(
                 clazz,
-                withArg { it.flags.common.hasAnnotations shouldBe expected }
+                withArg { it.flags.common.hasAnnotations shouldBe expected },
             )
         }
     }
@@ -152,7 +152,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 ofType(KotlinClassKindMetadata::class),
                 withArg {
                     it.flags.common.hasAnnotations shouldBe expected
-                }
+                },
             )
         }
     }
@@ -164,7 +164,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 ofType(KotlinClassKindMetadata::class),
                 withArg {
                     it.flags.common.hasAnnotations shouldBe expected
-                }
+                },
             )
         }
     }
@@ -178,7 +178,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                     it.flags.common.hasAnnotations shouldBe expected
                     it.getterFlags.common.hasAnnotations shouldBe expected
                     it.setterFlags.common.hasAnnotations shouldBe expected
-                }
+                },
             )
         }
     }
@@ -189,7 +189,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 clazz,
                 withArg {
                     it.flags.common.hasAnnotations shouldBe expected
-                }
+                },
             )
         }
     }
@@ -199,7 +199,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
             kotlinTypeAliasVisitor.visitTypeAlias(
                 clazz,
                 ofType(KotlinDeclarationContainerMetadata::class),
-                withArg { it.flags.common.hasAnnotations shouldBe expected }
+                withArg { it.flags.common.hasAnnotations shouldBe expected },
             )
         }
     }

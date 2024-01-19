@@ -75,8 +75,8 @@ class KotlinEffectExpressionFlagsTest : FreeSpec({
                 }
                 return this !is String
             }
-            """
-        )
+            """,
+        ),
     )
 
     include(
@@ -84,7 +84,7 @@ class KotlinEffectExpressionFlagsTest : FreeSpec({
         testEffectExprFlags(programClassPool.getClass("TestKt"), "isNotNull") {
             withClue("isNegated") { it.isNegated shouldBe true }
             withClue("isNullCheckPredicate") { it.isNullCheckPredicate shouldBe true }
-        }
+        },
     )
 
     include(
@@ -92,7 +92,7 @@ class KotlinEffectExpressionFlagsTest : FreeSpec({
         testEffectExprFlags(programClassPool.getClass("TestKt"), "isNull") {
             withClue("isNegated") { it.isNegated shouldBe false }
             withClue("isNullCheckPredicate") { it.isNullCheckPredicate shouldBe true }
-        }
+        },
     )
 
     include(
@@ -100,7 +100,7 @@ class KotlinEffectExpressionFlagsTest : FreeSpec({
         testEffectExprFlags(programClassPool.getClass("TestKt"), "isString") {
             withClue("isNegated") { it.isNegated shouldBe false }
             withClue("isNullCheckPredicate") { it.isNullCheckPredicate shouldBe false }
-        }
+        },
     )
 
     include(
@@ -108,7 +108,7 @@ class KotlinEffectExpressionFlagsTest : FreeSpec({
         testEffectExprFlags(programClassPool.getClass("TestKt"), "isNotString") {
             withClue("isNegated") { it.isNegated shouldBe true }
             withClue("isNullCheckPredicate") { it.isNullCheckPredicate shouldBe false }
-        }
+        },
     )
 })
 
@@ -122,12 +122,11 @@ private fun createVisitor(funcName: String, effectExprVisitor: KotlinEffectExprV
                         effectMetadata.conclusionOfConditionalEffectAccept(clazz, effectExprVisitor)
                     }
                 }
-            }
-        )
+            },
+        ),
     )
 
 private fun testEffectExprFlags(clazz: Clazz, funcName: String, flags: (KotlinEffectExpressionFlags) -> Unit) = funSpec {
-
     test("Then $funcName flags should be initialized correctly") {
         val propertyVisitor = spyk<KotlinEffectExprVisitor>()
         clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(funcName, propertyVisitor)))
@@ -136,7 +135,7 @@ private fun testEffectExprFlags(clazz: Clazz, funcName: String, flags: (KotlinEf
             propertyVisitor.visitAnyEffectExpression(
                 clazz,
                 ofType(KotlinEffectMetadata::class),
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }
@@ -149,7 +148,7 @@ private fun testEffectExprFlags(clazz: Clazz, funcName: String, flags: (KotlinEf
             propertyVisitor.visitAnyEffectExpression(
                 clazz,
                 ofType(KotlinEffectMetadata::class),
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }

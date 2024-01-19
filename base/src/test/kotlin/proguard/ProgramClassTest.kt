@@ -22,7 +22,7 @@ class ProgramClassTest : StringSpec({
             CLASS_VERSION_1_6,
             PUBLIC,
             "Test",
-            "java/lang/Object"
+            "java/lang/Object",
         ).programClass
         val classList = mutableListOf<Clazz>()
         programClass.subclassesAccept(ClassCollector(classList))
@@ -34,13 +34,13 @@ class ProgramClassTest : StringSpec({
             CLASS_VERSION_1_6,
             PUBLIC,
             "Test",
-            "java/lang/Object"
+            "java/lang/Object",
         ).programClass
         val programClass2 = ClassBuilder(
             CLASS_VERSION_1_6,
             PUBLIC,
             "Test2",
-            "java/lang/Object"
+            "java/lang/Object",
         ).programClass
         val classList = mutableListOf<Clazz>()
 
@@ -54,13 +54,13 @@ class ProgramClassTest : StringSpec({
             CLASS_VERSION_1_6,
             PUBLIC,
             "Test",
-            "java/lang/Object"
+            "java/lang/Object",
         ).programClass
         val programClass2 = ClassBuilder(
             CLASS_VERSION_1_6,
             PUBLIC,
             "Test2",
-            "java/lang/Object"
+            "java/lang/Object",
         ).programClass
         val classList = mutableListOf<Clazz>()
 

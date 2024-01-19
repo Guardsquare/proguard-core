@@ -24,11 +24,11 @@ import proguard.analysis.cpa.interfaces.TransferRelation
 
 class BoundedAdditiveTransferRelation(
     private val step: Int,
-    private val cap: Int
+    private val cap: Int,
 ) : TransferRelation {
     override fun generateAbstractSuccessors(
         abstractState: AbstractState?,
-        precision: Precision?
+        precision: Precision?,
     ): MutableCollection<out AbstractState> {
         if (abstractState is IntegerAbstractState) {
             return mutableListOf(IntegerAbstractState(minOf(abstractState.v + step, cap)))

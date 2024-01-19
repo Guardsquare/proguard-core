@@ -36,9 +36,13 @@ object TestConfig : AbstractProjectConfig() {
 
 class RequiresJavaVersionAnnotationFilter : SpecFilter {
     override fun filter(kclass: KClass<*>): SpecFilterResult = if (with(kclass.findAnnotation<RequiresJavaVersion>()) {
-        (this == null || (currentJavaVersion >= this.from && currentJavaVersion <= this.to))
+            (this == null || (currentJavaVersion >= this.from && currentJavaVersion <= this.to))
+        }
+    ) {
+        Include
+    } else {
+        Exclude("Required Java version is not in range.")
     }
-    ) Include else Exclude("Required Java version is not in range.")
 }
 
 @Target(AnnotationTarget.CLASS)

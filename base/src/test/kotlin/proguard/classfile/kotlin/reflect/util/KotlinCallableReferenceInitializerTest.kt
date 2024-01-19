@@ -52,8 +52,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 fun foo() = "bar"
                 fun ref() = ::foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -69,14 +69,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "foo()Ljava/lang/String;"
                         it.owner shouldNotBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 1) {
                 ownerVisitor.visitKotlinFileFacadeMetadata(
                     programClassPool.getClass("TestKt"),
-                    ofType(KotlinFileFacadeKindMetadata::class)
+                    ofType(KotlinFileFacadeKindMetadata::class),
                 )
             }
         }
@@ -89,9 +89,9 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 fun foo() = "bar"
                 fun ref() = ::foo
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xno-optimized-callable-references")
+            kotlincArguments = listOf("-Xno-optimized-callable-references"),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -107,14 +107,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "foo()Ljava/lang/String;"
                         it.owner shouldNotBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 1) {
                 ownerVisitor.visitKotlinFileFacadeMetadata(
                     programClassPool.getClass("TestKt"),
-                    ofType(KotlinFileFacadeKindMetadata::class)
+                    ofType(KotlinFileFacadeKindMetadata::class),
                 )
             }
         }
@@ -127,9 +127,9 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 fun foo() = "bar"
                 fun ref() = ::foo
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            initialize = false
+            initialize = false,
         )
 
         programClassPool.getClass("TestKt\$ref\$1")!!.constantPoolEntriesAccept(object : ConstantVisitor {
@@ -156,8 +156,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 fun String.foo() = "bar"
                 fun ref() = "hello"::foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -173,14 +173,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "foo(Ljava/lang/String;)Ljava/lang/String;"
                         it.owner shouldNotBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 1) {
                 ownerVisitor.visitKotlinFileFacadeMetadata(
                     programClassPool.getClass("TestKt"),
-                    ofType(KotlinFileFacadeKindMetadata::class)
+                    ofType(KotlinFileFacadeKindMetadata::class),
                 )
             }
         }
@@ -193,8 +193,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 fun String.foo() = "bar"
                 fun ref() = String::foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -210,14 +210,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "foo(Ljava/lang/String;)Ljava/lang/String;"
                         it.owner shouldNotBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 1) {
                 ownerVisitor.visitKotlinFileFacadeMetadata(
                     programClassPool.getClass("TestKt"),
-                    ofType(KotlinFileFacadeKindMetadata::class)
+                    ofType(KotlinFileFacadeKindMetadata::class),
                 )
             }
         }
@@ -233,8 +233,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 }
 
                 fun ref() = Foo()::foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -250,14 +250,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "getFoo()Ljava/lang/String;"
                         it.owner shouldNotBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 1) {
                 ownerVisitor.visitKotlinClassMetadata(
                     programClassPool.getClass("Foo"),
-                    ofType(KotlinClassKindMetadata::class)
+                    ofType(KotlinClassKindMetadata::class),
                 )
             }
         }
@@ -274,8 +274,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                     set(value) {}
 
                 fun ref() = "hello"::foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -291,14 +291,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "getFoo(Ljava/lang/String;)Ljava/lang/String;"
                         it.owner shouldNotBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 1) {
                 ownerVisitor.visitKotlinFileFacadeMetadata(
                     programClassPool.getClass("TestKt"),
-                    ofType(KotlinFileFacadeKindMetadata::class)
+                    ofType(KotlinFileFacadeKindMetadata::class),
                 )
             }
         }
@@ -315,8 +315,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                     set(value) {}
 
                 fun ref() = String::foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -332,14 +332,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "getFoo(Ljava/lang/String;)Ljava/lang/String;"
                         it.owner shouldNotBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 1) {
                 ownerVisitor.visitKotlinFileFacadeMetadata(
                     programClassPool.getClass("TestKt"),
-                    ofType(KotlinFileFacadeKindMetadata::class)
+                    ofType(KotlinFileFacadeKindMetadata::class),
                 )
             }
         }
@@ -352,7 +352,7 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 val javaClassInstance = Foo()
                 fun ref() = javaClassInstance::foo
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Foo.java",
@@ -360,8 +360,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 public class Foo {
                     public String foo() { return "bar"; }
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -377,14 +377,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "foo()Ljava/lang/String;"
                         it.owner shouldBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 0) {
                 ownerVisitor.visitAnyKotlinMetadata(
                     ofType(Clazz::class),
-                    ofType(KotlinMetadata::class)
+                    ofType(KotlinMetadata::class),
                 )
             }
         }
@@ -397,7 +397,7 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 val javaClassInstance = Foo()
                 fun ref() = javaClassInstance::foo
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Foo.java",
@@ -405,8 +405,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 public class Foo {
                     public String foo = "bar";
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -422,14 +422,14 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                         it.name shouldBe "foo"
                         it.signature shouldBe "getFoo()Ljava/lang/String;"
                         it.owner shouldBe null
-                    }
+                    },
                 )
             }
 
             verify(exactly = 0) {
                 ownerVisitor.visitAnyKotlinMetadata(
                     ofType(Clazz::class),
-                    ofType(KotlinMetadata::class)
+                    ofType(KotlinMetadata::class),
                 )
             }
         }
@@ -442,8 +442,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                 """
                 fun foo() = "bar"
                 fun ref() = ::foo
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val callableRefInfoVisitor = spyk<CallableReferenceInfoVisitor>()
@@ -463,8 +463,8 @@ class KotlinCallableReferenceInitializerTest : FreeSpec({
                     override fun visitKotlinSyntheticClassMetadata(clazz: Clazz, kotlinSyntheticClassKindMetadata: KotlinSyntheticClassKindMetadata) {
                         kotlinSyntheticClassKindMetadata.callableReferenceInfo = null
                     }
-                }
-            )
+                },
+            ),
         )
 
         "Then the initializer should not throw an exception" {
@@ -488,10 +488,10 @@ private fun createVisitor(callableRefInfoVisitor: CallableReferenceInfoVisitor, 
         override fun visitAnyKotlinMetadata(clazz: Clazz, kotlinMetadata: KotlinMetadata) {}
         override fun visitKotlinSyntheticClassMetadata(
             clazz: Clazz,
-            syntheticClassMetadata: KotlinSyntheticClassKindMetadata
+            syntheticClassMetadata: KotlinSyntheticClassKindMetadata,
         ) {
             syntheticClassMetadata.callableReferenceInfoAccept(callableRefInfoVisitor)
             syntheticClassMetadata.callableReferenceInfoAccept { it.ownerAccept(ownerVisitor) }
         }
-    }
+    },
 )

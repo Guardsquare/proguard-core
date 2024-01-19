@@ -26,8 +26,8 @@ class KotlinUnderlyingPropertyTest : FreeSpec({
             """
             @JvmInline
             value class Password(private val s : String)
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     "Given an inline class" - {
@@ -44,7 +44,7 @@ class KotlinUnderlyingPropertyTest : FreeSpec({
                     clazz,
                     withArg {
                         it.underlyingPropertyName shouldBe "s"
-                    }
+                    },
                 )
             }
         }
@@ -58,7 +58,7 @@ class KotlinUnderlyingPropertyTest : FreeSpec({
                     clazz,
                     withArg {
                         it.underlyingPropertyType.className shouldBe "kotlin/String"
-                    }
+                    },
                 )
             }
         }
@@ -72,7 +72,7 @@ class KotlinUnderlyingPropertyTest : FreeSpec({
                     clazz,
                     withArg {
                         it.className shouldBe "kotlin/String"
-                    }
+                    },
                 )
             }
         }

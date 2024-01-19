@@ -16,8 +16,8 @@ class OptLockTest : FreeSpec({
         val (programClassPool, _) = ClassPoolBuilder.fromSmali(
             SmaliSource(
                 smali.name,
-                smali.readText()
-            )
+                smali.readText(),
+            ),
         )
 
         val testClass = programClassPool.getClass("opt/lock")

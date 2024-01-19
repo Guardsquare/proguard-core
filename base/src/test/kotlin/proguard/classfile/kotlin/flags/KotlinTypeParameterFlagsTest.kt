@@ -39,8 +39,8 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
             """
             fun <T> foo(): Int = 42
             inline fun <reified ReifiedT> bar(): Int = 42
-            """
-        )
+            """,
+        ),
     ).programClassPool.getClass("TestKt")
 
     "Given a non-reified type parameter" - {
@@ -55,7 +55,7 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -70,7 +70,7 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -88,7 +88,7 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -103,7 +103,7 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isReified shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -117,8 +117,8 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                 @Target(AnnotationTarget.TYPE_PARAMETER)
                 annotation class Ann
                 inline fun <@Ann T> bar(): Int = 42
-                """
-            )
+                """,
+            ),
         ).programClassPool.getClass("TestKt")
 
         "Then the flags should be initialized correctly" {
@@ -131,10 +131,10 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                             },
                             { _, kotlinTypeMetadata ->
                                 kotlinTypeMetadata.flags.isReified shouldBe false
-                            }
-                        )
-                    )
-                )
+                            },
+                        ),
+                    ),
+                ),
             )
         }
 
@@ -148,10 +148,10 @@ class KotlinTypeParameterFlagsTest : FreeSpec({
                             },
                             { _, kotlinTypeMetadata ->
                                 kotlinTypeMetadata.flags.isReified shouldBe false
-                            }
-                        )
-                    )
-                )
+                            },
+                        ),
+                    ),
+                ),
             )
         }
     }
@@ -161,6 +161,6 @@ private fun createVisitor(typeName: String, typeVisitor: KotlinTypeParameterVisi
     AllTypeParameterVisitor(
         KotlinTypeParameterFilter(
             Predicate { it.name == typeName },
-            typeVisitor
-        )
+            typeVisitor,
+        ),
     )

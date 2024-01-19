@@ -77,44 +77,53 @@ class JvmTransferRelationTest : FreeSpec({
             }
             when (constant) {
                 is IntegerConstant ->
-                    if (constant.value == (constantPool[i] as IntegerConstant).value)
+                    if (constant.value == (constantPool[i] as IntegerConstant).value) {
                         return i
+                    }
                 is FloatConstant ->
-                    if (constant.value == (constantPool[i] as FloatConstant).value)
+                    if (constant.value == (constantPool[i] as FloatConstant).value) {
                         return i
+                    }
                 is LongConstant ->
-                    if (constant.value == (constantPool[i] as LongConstant).value)
+                    if (constant.value == (constantPool[i] as LongConstant).value) {
                         return i
+                    }
                 is DoubleConstant ->
-                    if (constant.value == (constantPool[i] as DoubleConstant).value)
+                    if (constant.value == (constantPool[i] as DoubleConstant).value) {
                         return i
+                    }
                 is FieldrefConstant -> {
                     val fieldref = constantPool[i] as FieldrefConstant
                     if (constant.referencedClass == fieldref.referencedClass &&
                         constant.nameAndTypeIndex == fieldref.nameAndTypeIndex
-                    )
+                    ) {
                         return i
+                    }
                 }
                 is MethodrefConstant -> {
                     val methodref = constantPool[i] as MethodrefConstant
                     if (constant.u2classIndex == methodref.u2classIndex &&
                         constant.nameAndTypeIndex == methodref.nameAndTypeIndex
-                    )
+                    ) {
                         return i
+                    }
                 }
                 is ClassConstant ->
-                    if (constant.referencedClass == (constantPool[i] as ClassConstant).referencedClass)
+                    if (constant.referencedClass == (constantPool[i] as ClassConstant).referencedClass) {
                         return i
+                    }
                 is NameAndTypeConstant -> {
                     val nameAndType = constantPool[i] as NameAndTypeConstant
                     if (constant.u2nameIndex == nameAndType.u2nameIndex &&
                         constant.u2descriptorIndex == nameAndType.u2descriptorIndex
-                    )
+                    ) {
                         return i
+                    }
                 }
                 is Utf8Constant ->
-                    if (constant.string == (constantPool[i] as Utf8Constant).string)
+                    if (constant.string == (constantPool[i] as Utf8Constant).string) {
                         return i
+                    }
             }
         }
         return -1
@@ -124,7 +133,7 @@ class JvmTransferRelationTest : FreeSpec({
         constantPool: Array<Constant?>,
         clazz: Clazz,
         name: String,
-        type: String
+        type: String,
     ): Int {
         return inverseConstantLookup(
             constantPool,
@@ -133,25 +142,25 @@ class JvmTransferRelationTest : FreeSpec({
                     constantPool,
                     ClassConstant(
                         -1,
-                        clazz
-                    )
+                        clazz,
+                    ),
                 ),
                 inverseConstantLookup(
                     constantPool,
                     NameAndTypeConstant(
                         inverseConstantLookup(
                             constantPool,
-                            Utf8Constant(name)
+                            Utf8Constant(name),
                         ),
                         inverseConstantLookup(
                             constantPool,
-                            Utf8Constant(type)
-                        )
-                    )
+                            Utf8Constant(type),
+                        ),
+                    ),
                 ),
                 clazz,
-                null
-            )
+                null,
+            ),
         )
     }
 
@@ -159,7 +168,7 @@ class JvmTransferRelationTest : FreeSpec({
         constantPool: Array<Constant?>,
         clazz: Clazz,
         name: String,
-        type: String
+        type: String,
     ): Int {
         return inverseConstantLookup(
             constantPool,
@@ -168,25 +177,25 @@ class JvmTransferRelationTest : FreeSpec({
                     constantPool,
                     ClassConstant(
                         -1,
-                        clazz
-                    )
+                        clazz,
+                    ),
                 ),
                 inverseConstantLookup(
                     constantPool,
                     NameAndTypeConstant(
                         inverseConstantLookup(
                             constantPool,
-                            Utf8Constant(name)
+                            Utf8Constant(name),
                         ),
                         inverseConstantLookup(
                             constantPool,
-                            Utf8Constant(type)
-                        )
-                    )
+                            Utf8Constant(type),
+                        ),
+                    ),
                 ),
                 clazz,
-                null
-            )
+                null,
+            ),
         )
     }
 
@@ -242,8 +251,8 @@ class JvmTransferRelationTest : FreeSpec({
                 interface I {
                     boolean test(boolean x);
                 }
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     ).programClassPool
 
     /**
@@ -267,7 +276,7 @@ class JvmTransferRelationTest : FreeSpec({
         node,
         JvmFrameAbstractState<ExpressionAbstractState>(),
         JvmForgetfulHeapAbstractState<ExpressionAbstractState>(ExpressionAbstractState(setOf(ValueExpression(UNKNOWN_VALUE)))),
-        HashMapAbstractState<String, ExpressionAbstractState>()
+        HashMapAbstractState<String, ExpressionAbstractState>(),
     )
 
     /**
@@ -286,18 +295,18 @@ class JvmTransferRelationTest : FreeSpec({
                             SimpleInstruction(Instruction.OP_IADD),
                             listOf(
                                 ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2))))
-                            )
-                        )
-                    )
-                )
+                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2)))),
+                            ),
+                        ),
+                    ),
+                ),
             )
             getAbstractSuccessorForInstruction.call(
                 transferRelation,
                 state,
                 SimpleInstruction(Instruction.OP_IADD),
                 clazzA,
-                null
+                null,
             ) shouldBe result
         }
 
@@ -318,18 +327,18 @@ class JvmTransferRelationTest : FreeSpec({
                                 ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(1)))),
                                 transferRelation.abstractDefault,
                                 ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(2)))),
-                                transferRelation.abstractDefault
-                            )
-                        )
-                    )
-                )
+                                transferRelation.abstractDefault,
+                            ),
+                        ),
+                    ),
+                ),
             )
             getAbstractSuccessorForInstruction.call(
                 transferRelation,
                 state,
                 SimpleInstruction(Instruction.OP_DADD),
                 clazzA,
-                null
+                null,
             ) shouldBe result
         }
 
@@ -348,18 +357,18 @@ class JvmTransferRelationTest : FreeSpec({
                             listOf(
                                 ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(2)))),
                                 transferRelation.abstractDefault,
-                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1))))
-                            )
-                        )
-                    )
-                )
+                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
+                            ),
+                        ),
+                    ),
+                ),
             )
             getAbstractSuccessorForInstruction.call(
                 transferRelation,
                 state,
                 SimpleInstruction(Instruction.OP_LSHL),
                 clazzA,
-                null
+                null,
             ) shouldBe result
         }
     }
@@ -383,7 +392,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_DUP),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         /**
@@ -404,7 +413,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_DUP_X1),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         /**
@@ -428,7 +437,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_DUP_X2),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         /**
@@ -451,7 +460,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_DUP2),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         /**
@@ -477,7 +486,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_DUP2_X1),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         /**
@@ -506,7 +515,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_DUP2_X2),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         /**
@@ -525,7 +534,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_SWAP),
             clazzA,
-            null
+            null,
         ) shouldBe result
     }
 
@@ -546,13 +555,13 @@ class JvmTransferRelationTest : FreeSpec({
                 state.setVariable(
                     0,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 var result = emptyState.copy()
                 result.setVariable(
                     0,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))))
                 getAbstractSuccessorForInstruction.call(
@@ -560,20 +569,20 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     VariableInstruction(Instruction.OP_ILOAD_0),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
 
                 state = emptyState.copy()
                 state.setVariable(
                     5,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result = emptyState.copy()
                 result.setVariable(
                     5,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))))
                 getAbstractSuccessorForInstruction.call(
@@ -581,7 +590,7 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     VariableInstruction(Instruction.OP_ILOAD, 5),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
 
@@ -597,13 +606,13 @@ class JvmTransferRelationTest : FreeSpec({
                 state.setVariable(
                     0,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 var result = emptyState.copy()
                 result.setVariable(
                     0,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result.push(transferRelation.abstractDefault)
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))))
@@ -612,20 +621,20 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     VariableInstruction(Instruction.OP_DLOAD_0),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
 
                 state = emptyState.copy()
                 state.setVariable(
                     5,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result = emptyState.copy()
                 result.setVariable(
                     5,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result.push(transferRelation.abstractDefault)
                 result.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))))
@@ -634,7 +643,7 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     VariableInstruction(Instruction.OP_DLOAD, 5),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
         }
@@ -657,14 +666,14 @@ class JvmTransferRelationTest : FreeSpec({
                 result.setVariable(
                     0,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
                     VariableInstruction(Instruction.OP_ISTORE_0),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
 
                 state = emptyState.copy()
@@ -673,19 +682,19 @@ class JvmTransferRelationTest : FreeSpec({
                 result.setVariable(
                     5,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result.setVariable(
                     5,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
                     VariableInstruction(Instruction.OP_ISTORE, 5),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
 
@@ -704,19 +713,19 @@ class JvmTransferRelationTest : FreeSpec({
                 result.setVariable(
                     0,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 result.setVariable(
                     1,
                     ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2)))),
-                    transferRelation.abstractDefault
+                    transferRelation.abstractDefault,
                 )
                 getAbstractSuccessorForInstruction.call(
                     transferRelation,
                     state,
                     VariableInstruction(Instruction.OP_DSTORE_0),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
         }
@@ -726,7 +735,7 @@ class JvmTransferRelationTest : FreeSpec({
             state.setVariable(
                 0,
                 ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2)))),
-                transferRelation.abstractDefault
+                transferRelation.abstractDefault,
             )
             var result = emptyState.copy()
             result.setVariable(
@@ -736,19 +745,19 @@ class JvmTransferRelationTest : FreeSpec({
                         InstructionExpression(
                             VariableInstruction(Instruction.OP_IINC, 0, 1),
                             listOf(
-                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2))))
-                            )
-                        )
-                    )
+                                ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(2)))),
+                            ),
+                        ),
+                    ),
                 ),
-                transferRelation.abstractDefault
+                transferRelation.abstractDefault,
             )
             val res = getAbstractSuccessorForInstruction.call(
                 transferRelation,
                 state,
                 VariableInstruction(Instruction.OP_IINC, 0, 1),
                 clazzA,
-                null
+                null,
             )
             res shouldBe result
         }
@@ -771,10 +780,10 @@ class JvmTransferRelationTest : FreeSpec({
                 state,
                 ConstantInstruction(
                     Instruction.OP_LDC,
-                    inverseConstantLookup(clazzA.constantPool, IntegerConstant(1000000))
+                    inverseConstantLookup(clazzA.constantPool, IntegerConstant(1000000)),
                 ),
                 clazzA,
-                null
+                null,
             ) shouldBe result
         }
 
@@ -793,10 +802,10 @@ class JvmTransferRelationTest : FreeSpec({
                 state,
                 ConstantInstruction(
                     Instruction.OP_LDC2_W,
-                    inverseConstantLookup(clazzA.constantPool, DoubleConstant(3.14))
+                    inverseConstantLookup(clazzA.constantPool, DoubleConstant(3.14)),
                 ),
                 clazzA,
-                null
+                null,
             ) shouldBe result
         }
     }
@@ -825,10 +834,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_GETSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "i", "I")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "i", "I"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
 
                 state = emptyState.copy()
@@ -841,10 +850,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_GETSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "i", "I")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "i", "I"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
 
@@ -867,10 +876,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_GETSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "d", "D")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "d", "D"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
 
                 state = emptyState.copy()
@@ -884,10 +893,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_GETSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "d", "D")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "d", "D"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
         }
@@ -915,10 +924,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_PUTSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "i", "I")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "i", "I"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
 
                 state = emptyState.copy()
@@ -931,10 +940,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_PUTSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "i", "I")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "i", "I"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
 
@@ -957,10 +966,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_PUTSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "d", "D")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "d", "D"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
 
                 state = emptyState.copy()
@@ -974,10 +983,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_PUTSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "d", "D")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzB, "d", "D"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe result
             }
 
@@ -993,10 +1002,10 @@ class JvmTransferRelationTest : FreeSpec({
                     state,
                     ConstantInstruction(
                         Instruction.OP_PUTSTATIC,
-                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "i", "I")
+                        inverseFieldConstantLookup(clazzA.constantPool, clazzA, "i", "I"),
                     ),
                     clazzA,
-                    null
+                    null,
                 ) shouldBe emptyState
             }
         }
@@ -1021,10 +1030,10 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             ConstantInstruction(
                 Instruction.OP_PUTFIELD,
-                inverseFieldConstantLookup(clazzA.constantPool, clazzA, "f", "F")
+                inverseFieldConstantLookup(clazzA.constantPool, clazzA, "f", "F"),
             ),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
 
         state = emptyState.copy()
@@ -1037,10 +1046,10 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             ConstantInstruction(
                 Instruction.OP_PUTFIELD,
-                inverseFieldConstantLookup(clazzA.constantPool, clazzA, "l", "J")
+                inverseFieldConstantLookup(clazzA.constantPool, clazzA, "l", "J"),
             ),
             clazzA,
-            null
+            null,
         )
         succ shouldBe emptyState
     }
@@ -1060,10 +1069,10 @@ class JvmTransferRelationTest : FreeSpec({
                 setOf(
                     MethodExpression(
                         "LA;foo()B",
-                        listOf(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
-                    )
-                )
-            )
+                        listOf(ExpressionAbstractState(setOf(ValueExpression(referenceA)))),
+                    ),
+                ),
+            ),
         )
         var output = state.copy()
         processCall.call(
@@ -1074,13 +1083,13 @@ class JvmTransferRelationTest : FreeSpec({
                 MethodSignature(
                     "A",
                     "foo",
-                    MethodDescriptor("()B")
+                    MethodDescriptor("()B"),
                 ),
                 0,
                 InstructionFactory.create(Instruction.OP_INVOKEVIRTUAL),
                 false,
-                false
-            )
+                false,
+            ),
         )
         output shouldBe result
 
@@ -1093,10 +1102,10 @@ class JvmTransferRelationTest : FreeSpec({
                 setOf(
                     MethodExpression(
                         "LA;fun()D",
-                        listOf(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
-                    )
-                )
-            )
+                        listOf(ExpressionAbstractState(setOf(ValueExpression(referenceA)))),
+                    ),
+                ),
+            ),
         )
         output = state.copy()
         processCall.call(
@@ -1107,13 +1116,13 @@ class JvmTransferRelationTest : FreeSpec({
                 MethodSignature(
                     "A",
                     "fun",
-                    MethodDescriptor("()D")
+                    MethodDescriptor("()D"),
                 ),
                 0,
                 InstructionFactory.create(Instruction.OP_INVOKEVIRTUAL),
                 false,
-                false
-            )
+                false,
+            ),
         )
         output shouldBe result
 
@@ -1130,11 +1139,11 @@ class JvmTransferRelationTest : FreeSpec({
                         listOf(
                             ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(5)))),
                             ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(5.0)))),
-                            transferRelation.abstractDefault
-                        )
-                    )
-                )
-            )
+                            transferRelation.abstractDefault,
+                        ),
+                    ),
+                ),
+            ),
         )
         output = state.copy()
         processCall.call(
@@ -1145,13 +1154,13 @@ class JvmTransferRelationTest : FreeSpec({
                 MethodSignature(
                     "A",
                     "foo",
-                    MethodDescriptor("(ID)I")
+                    MethodDescriptor("(ID)I"),
                 ),
                 0,
                 InstructionFactory.create(Instruction.OP_INVOKESTATIC),
                 false,
-                false
-            )
+                false,
+            ),
         )
         output shouldBe result
 
@@ -1166,13 +1175,13 @@ class JvmTransferRelationTest : FreeSpec({
                 MethodSignature(
                     "A",
                     "<init>",
-                    MethodDescriptor("()V")
+                    MethodDescriptor("()V"),
                 ),
                 0,
                 InstructionFactory.create(Instruction.OP_INVOKESTATIC),
                 false,
-                false
-            )
+                false,
+            ),
         )
         output shouldBe state
     }
@@ -1190,7 +1199,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             ConstantInstruction(Instruction.OP_NEW, classAIndex),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         state = emptyState.copy()
@@ -1202,7 +1211,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             ConstantInstruction(Instruction.OP_NEWARRAY, 0, Instruction.ARRAY_T_INT.toInt()),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         state = emptyState.copy()
@@ -1214,7 +1223,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             ConstantInstruction(Instruction.OP_ANEWARRAY, classAIndex),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         state = emptyState.copy()
@@ -1228,7 +1237,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             ConstantInstruction(Instruction.OP_MULTIANEWARRAY, classAIndex, 3),
             clazzA,
-            null
+            null,
         ) shouldBe result
     }
 
@@ -1244,7 +1253,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_MONITOREXIT, 0),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
 
         state = emptyState.copy()
@@ -1254,7 +1263,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_MONITOREXIT, 0),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
     }
 
@@ -1271,7 +1280,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             BranchInstruction(Instruction.OP_IFICMPLE, 23),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         state = emptyState.copy()
@@ -1280,14 +1289,14 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             BranchInstruction(Instruction.OP_GOTO, 23),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
         getAbstractSuccessorForInstruction.call(
             transferRelation,
             state,
             BranchInstruction(Instruction.OP_GOTO_W, 23),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
 
         state = emptyState.copy()
@@ -1298,7 +1307,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             BranchInstruction(Instruction.OP_JSR, 23),
             clazzA,
-            null
+            null,
         ) shouldBe result
 
         state = emptyState.copy()
@@ -1308,7 +1317,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             BranchInstruction(Instruction.OP_IFNULL, 23),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
     }
 
@@ -1323,7 +1332,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             LookUpSwitchInstruction(Instruction.OP_LOOKUPSWITCH, 5, null, null),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
         state = emptyState.copy()
         state.push(ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(1)))))
@@ -1332,7 +1341,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             TableSwitchInstruction(Instruction.OP_TABLESWITCH, 5, 10, 20, null),
             clazzA,
-            null
+            null,
         ) shouldBe emptyState
     }
 
@@ -1350,7 +1359,7 @@ class JvmTransferRelationTest : FreeSpec({
             state,
             SimpleInstruction(Instruction.OP_ATHROW),
             clazzA,
-            null
+            null,
         ) shouldBe result
     }
 
@@ -1365,7 +1374,7 @@ class JvmTransferRelationTest : FreeSpec({
                 sourceNode,
                 targetNode,
                 mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute,
-                36
+                36,
             )
 
             val sourceState = JvmAbstractState(
@@ -1374,11 +1383,11 @@ class JvmTransferRelationTest : FreeSpec({
                 JvmForgetfulHeapAbstractState(
                     ExpressionAbstractState(
                         setOf(
-                            ValueExpression(UNKNOWN_VALUE)
-                        )
-                    )
+                            ValueExpression(UNKNOWN_VALUE),
+                        ),
+                    ),
                 ),
-                HashMapAbstractState()
+                HashMapAbstractState(),
             )
             val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
             sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
@@ -1396,7 +1405,7 @@ class JvmTransferRelationTest : FreeSpec({
                 sourceNode,
                 targetNode,
                 mainMethod.attributes.first { a -> a is CodeAttribute } as CodeAttribute,
-                76
+                76,
             )
 
             val sourceState = JvmAbstractState(
@@ -1405,11 +1414,11 @@ class JvmTransferRelationTest : FreeSpec({
                 JvmForgetfulHeapAbstractState(
                     ExpressionAbstractState(
                         setOf(
-                            ValueExpression(UNKNOWN_VALUE)
-                        )
-                    )
+                            ValueExpression(UNKNOWN_VALUE),
+                        ),
+                    ),
                 ),
-                HashMapAbstractState()
+                HashMapAbstractState(),
             )
             val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
             sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))

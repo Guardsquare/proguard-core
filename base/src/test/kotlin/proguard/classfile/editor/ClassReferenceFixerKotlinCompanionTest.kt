@@ -24,11 +24,11 @@ class ClassReferenceFixerKotlinCompanionTest : FunSpec({
                     class Foo {
                         companion object
                     }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
             ).programClassPool,
-            originalName = "Foo${'$'}Companion"
-        )
+            originalName = "Foo${'$'}Companion",
+        ),
     )
 
     include(
@@ -41,11 +41,11 @@ class ClassReferenceFixerKotlinCompanionTest : FunSpec({
                     class Foo {
                         companion object MyCompanion
                     }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
             ).programClassPool,
-            originalName = "Foo${'$'}MyCompanion"
-        )
+            originalName = "Foo${'$'}MyCompanion",
+        ),
     )
 
     include(
@@ -58,11 +58,11 @@ class ClassReferenceFixerKotlinCompanionTest : FunSpec({
                 class Foo {
                     companion object `${'$'}MyCompanion`
                 }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
             ).programClassPool,
-            originalName = "Foo${'$'}${'$'}MyCompanion"
-        )
+            originalName = "Foo${'$'}${'$'}MyCompanion",
+        ),
     )
 
     include(
@@ -75,11 +75,11 @@ class ClassReferenceFixerKotlinCompanionTest : FunSpec({
                 class Foo {
                     companion object `My${'$'}Companion`
                 }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
             ).programClassPool,
-            originalName = "Foo${'$'}My${'$'}Companion"
-        )
+            originalName = "Foo${'$'}My${'$'}Companion",
+        ),
     )
 })
 
@@ -92,7 +92,7 @@ private fun testCompanion(programClassPool: ClassPool, originalName: String) = f
             originalName,
             ClassRenamer {
                 newName
-            }
+            },
         )
 
         programClassPool.classesAccept(ClassReferenceFixer(false))
@@ -100,14 +100,14 @@ private fun testCompanion(programClassPool: ClassPool, originalName: String) = f
         val visitor = spyk<KotlinMetadataVisitor>()
         programClassPool.classAccept(
             "Foo",
-            ReferencedKotlinMetadataVisitor(visitor)
+            ReferencedKotlinMetadataVisitor(visitor),
         )
         verify {
             visitor.visitKotlinClassMetadata(
                 programClassPool.getClass("Foo"),
                 withArg {
                     it.companionObjectName shouldBe newShortName
-                }
+                },
             )
         }
     }

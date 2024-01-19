@@ -30,8 +30,8 @@ class AllFunctionVisitorTest : FreeSpec({
 
             fun foo() = "hello"
             fun bar() = 42
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     "Given a class with 2 functions" - {

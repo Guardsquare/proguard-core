@@ -47,8 +47,8 @@ class KotlinSyntheticDelegateTest : FreeSpec({
                 """
                 var x = 1
                 var y by ::x
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         val testKt = programClassPool.getClass("TestKt") as ProgramClass
@@ -63,8 +63,8 @@ class KotlinSyntheticDelegateTest : FreeSpec({
             val visitor = spyk<KotlinPropertyVisitor>()
             programClassPool.classesAccept(
                 ReferencedKotlinMetadataVisitor(
-                    AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor))
-                )
+                    AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor)),
+                ),
             )
 
             verify(exactly = 1) {
@@ -74,7 +74,7 @@ class KotlinSyntheticDelegateTest : FreeSpec({
                     withArg {
                         it.syntheticMethodForDelegate?.method shouldBe "getY\$delegate"
                         it.syntheticMethodForDelegate?.descriptor.toString() shouldBe "()Ljava/lang/Object;"
-                    }
+                    },
                 )
             }
         }
@@ -83,8 +83,8 @@ class KotlinSyntheticDelegateTest : FreeSpec({
             val visitor = spyk<KotlinPropertyVisitor>()
             programClassPool.classesAccept(
                 ReferencedKotlinMetadataVisitor(
-                    AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor))
-                )
+                    AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor)),
+                ),
             )
 
             verify(exactly = 1) {
@@ -94,7 +94,7 @@ class KotlinSyntheticDelegateTest : FreeSpec({
                     withArg {
                         it.referencedSyntheticMethodForDelegateClass shouldBe testKt
                         it.referencedSyntheticMethodForDelegateMethod shouldBe delegateMethod
-                    }
+                    },
                 )
             }
         }
@@ -104,10 +104,10 @@ class KotlinSyntheticDelegateTest : FreeSpec({
             programClassPool.classesAccept(
                 MultiClassVisitor(
                     ReWritingMetadataVisitor(
-                        AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor))
+                        AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor)),
                     ),
-                    ClassReferenceInitializer(programClassPool, libraryClassPool)
-                )
+                    ClassReferenceInitializer(programClassPool, libraryClassPool),
+                ),
             )
 
             verify(exactly = 1) {
@@ -117,7 +117,7 @@ class KotlinSyntheticDelegateTest : FreeSpec({
                     withArg {
                         it.syntheticMethodForDelegate?.method shouldBe "getY\$delegate"
                         it.syntheticMethodForDelegate?.descriptor.toString() shouldBe "()Ljava/lang/Object;"
-                    }
+                    },
                 )
             }
         }
@@ -132,14 +132,14 @@ class KotlinSyntheticDelegateTest : FreeSpec({
                             "getY\$delegate",
                             ClassRenamer({ it.name }) { _, _ ->
                                 "obfuscated"
-                            }
-                        )
+                            },
+                        ),
                     ),
                     ClassReferenceFixer(false),
                     ReWritingMetadataVisitor(
-                        AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor))
+                        AllPropertyVisitor(KotlinPropertyFilter({ prop -> prop.name == "y" }, visitor)),
                     ),
-                )
+                ),
             )
 
             memberFinder.findMethod(testKt, "obfuscated", null) shouldNotBe null
@@ -151,7 +151,7 @@ class KotlinSyntheticDelegateTest : FreeSpec({
                     withArg {
                         it.syntheticMethodForDelegate?.method shouldBe "obfuscated"
                         it.syntheticMethodForDelegate?.descriptor.toString() shouldBe "()Ljava/lang/Object;"
-                    }
+                    },
                 )
             }
         }

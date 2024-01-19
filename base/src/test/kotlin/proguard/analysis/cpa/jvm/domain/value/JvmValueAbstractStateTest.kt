@@ -21,7 +21,7 @@ class JvmValueAbstractStateTest : FreeSpec({
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),
-            HashMapAbstractState()
+            HashMapAbstractState(),
         )
         val b = JvmValueAbstractState(
             valueFactory,
@@ -29,7 +29,7 @@ class JvmValueAbstractStateTest : FreeSpec({
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),
-            HashMapAbstractState()
+            HashMapAbstractState(),
         )
 
         "They should be equal" {

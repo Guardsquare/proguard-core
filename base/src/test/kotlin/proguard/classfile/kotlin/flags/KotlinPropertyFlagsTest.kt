@@ -58,8 +58,8 @@ class KotlinPropertyFlagsTest : FreeSpec({
             class Bar {
                 lateinit var lateInitProperty: String
             }
-            """
-        )
+            """,
+        ),
     )
 
     include(
@@ -82,7 +82,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -105,7 +105,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -128,7 +128,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -151,7 +151,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe true }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe true }
-        }
+        },
     )
 
     include(
@@ -174,7 +174,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -197,7 +197,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     // TODO(T5480): more tests to cover isFakeOverride, isDelegation, isSynthesized, isExternal, isExpect
@@ -207,12 +207,11 @@ private fun createVisitor(typeName: String, typeVisitor: KotlinPropertyVisitor):
     AllPropertyVisitor(
         KotlinPropertyFilter(
             Predicate { it.name == typeName },
-            typeVisitor
-        )
+            typeVisitor,
+        ),
     )
 
 private fun testPropertyFlags(clazz: Clazz, propName: String, flags: (KotlinPropertyFlags) -> Unit) = funSpec {
-
     test("Then $propName flags should be initialized correctly") {
         val propertyVisitor = spyk<KotlinPropertyVisitor>()
         clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(propName, propertyVisitor)))
@@ -221,7 +220,7 @@ private fun testPropertyFlags(clazz: Clazz, propName: String, flags: (KotlinProp
             propertyVisitor.visitAnyProperty(
                 clazz,
                 ofType(KotlinDeclarationContainerMetadata::class),
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }
@@ -234,7 +233,7 @@ private fun testPropertyFlags(clazz: Clazz, propName: String, flags: (KotlinProp
             propertyVisitor.visitAnyProperty(
                 clazz,
                 ofType(KotlinDeclarationContainerMetadata::class),
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }

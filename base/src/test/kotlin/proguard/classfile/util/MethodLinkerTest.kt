@@ -33,7 +33,7 @@ class MethodLinkerTest : FreeSpec({
                     public class Super {
                         final void foo() { }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Foo.java",
@@ -41,9 +41,9 @@ class MethodLinkerTest : FreeSpec({
                     public class Foo extends a.Super {
                         public final void foo() { }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
         "When the subclass is repackaged" - {
@@ -65,7 +65,7 @@ class MethodLinkerTest : FreeSpec({
                     @file:JvmMultifileClass
 
                     fun foo() { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             KotlinSource(
                 "Bar.kt",
@@ -74,7 +74,7 @@ class MethodLinkerTest : FreeSpec({
                     @file:JvmMultifileClass
 
                     fun bar() { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
         )
 
@@ -107,7 +107,7 @@ class MethodLinkerTest : FreeSpec({
                     @file:JvmMultifileClass
 
                     fun foo() { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             KotlinSource(
                 "Bar.kt",
@@ -116,7 +116,7 @@ class MethodLinkerTest : FreeSpec({
                     @file:JvmMultifileClass
 
                     fun bar() { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
         )
 
@@ -131,7 +131,7 @@ class MethodLinkerTest : FreeSpec({
                     override fun visitAnyMethodrefConstant(clazz: Clazz, anyMethodrefConstant: AnyMethodrefConstant) {
                         anyMethodrefConstant.referencedMethod = null
                     }
-                })
+                }),
             )
 
             "Then there should be no NullPointerException" {
@@ -151,7 +151,7 @@ class MethodLinkerTest : FreeSpec({
                     @file:JvmMultifileClass
 
                     fun foo() { }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Baz.java",
@@ -159,8 +159,8 @@ class MethodLinkerTest : FreeSpec({
                     public class Baz {
                         public void baz() { }
                     }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the methods are linked" - {
@@ -180,7 +180,7 @@ class MethodLinkerTest : FreeSpec({
                     dup()
                     invokespecial("Bar", "<init>", "()V", Baz, Baz.findMethod("<init>", "()V"))
                     invokevirtual("Baz", "baz", "()V", Baz, baz)
-                }.instructions()
+                }.instructions(),
             )
 
             foo.accept(FooBar, AllAttributeVisitor(codeAttributeEditor))

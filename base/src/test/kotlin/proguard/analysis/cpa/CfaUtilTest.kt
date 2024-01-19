@@ -32,10 +32,10 @@ class CfaUtilTest : FreeSpec({
                             return null;
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-            ).programClassPool
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
         ) { false }
 
         cfa.isEmpty() shouldBe true

@@ -43,8 +43,8 @@ class AllTypeParameterVisitorTest : FreeSpec({
                     val <PropertyTP> List<PropertyTP>.property: Unit
                         get() = Unit
                 }
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     "Given a file facade containing entities with type parameters" - {

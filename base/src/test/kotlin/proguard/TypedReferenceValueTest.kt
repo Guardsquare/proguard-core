@@ -15,20 +15,20 @@ class TypedReferenceValueTest : StringSpec({
             "Ljava/lang/StringBuilder;",
             ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder"),
             false,
-            true
+            true,
         )
         val b = valueFactory.createReferenceValue(
             "Ljava/lang/String;",
             ClassPoolBuilder.libraryClassPool.getClass("java/lang/String"),
             false,
-            true
+            true,
         )
 
         a.generalize(b) shouldBe TypedReferenceValue(
             "Ljava/io/Serializable;",
             ClassPoolBuilder.libraryClassPool.getClass("java/io/Serializable"),
             true,
-            true
+            true,
         )
     }
 })

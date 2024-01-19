@@ -41,33 +41,33 @@ class JvmTaintCpaTest : FreeSpec({
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
     val taintSourceReturn2 = JvmTaintSource(
         MethodSignature("A", "source2", "()Ljava/lang/String;"),
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
     val taintSourceReturnDouble = JvmTaintSource(
         MethodSignature("A", "source", "()D"),
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
     val taintSourceStatic = JvmTaintSource(
         MethodSignature("A", "source", "()V"),
         false,
         false,
         setOf(),
-        setOf("A.s")
+        setOf("A.s"),
     )
 
     listOf(
         HashMapAbstractStateFactory.getInstance(),
-        DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false }
+        DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
     ).forEach { staticFieldMapAbstractStateFactory ->
 
         val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"
@@ -98,10 +98,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 5)
@@ -144,10 +144,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 8)
@@ -201,10 +201,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 16)
@@ -256,10 +256,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 9)
@@ -299,10 +299,10 @@ class JvmTaintCpaTest : FreeSpec({
                     {
                     }
                 }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 6)
@@ -349,10 +349,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 5)
@@ -399,10 +399,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 3)
@@ -456,10 +456,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 6)
@@ -518,10 +518,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 6)
@@ -577,10 +577,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 7)
@@ -616,10 +616,10 @@ class JvmTaintCpaTest : FreeSpec({
                             return 0.0;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val location = interproceduralCfa.getFunctionNode(mainSignature, 3)

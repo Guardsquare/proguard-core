@@ -19,7 +19,7 @@ class AccessFixerTest : FreeSpec({
                     public class Super {
                         final void foo() { }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Foo.java",
@@ -27,9 +27,9 @@ class AccessFixerTest : FreeSpec({
                     public class Foo extends a.Super {
                         public final void foo() { }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
         "Then the super method access flags should not be modified incorrectly" {
@@ -49,7 +49,7 @@ class AccessFixerTest : FreeSpec({
                     public class Super {
                         final void foo() { }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Bar.java",
@@ -60,7 +60,7 @@ class AccessFixerTest : FreeSpec({
                            new Super().foo();
                        }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Foo.java",
@@ -68,9 +68,9 @@ class AccessFixerTest : FreeSpec({
                     public class Foo extends a.Super {
                         public final void foo() { }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
         "When the referencing class is repackaged" - {

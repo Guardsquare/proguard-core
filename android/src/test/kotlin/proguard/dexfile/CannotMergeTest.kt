@@ -14,7 +14,7 @@ class CannotMergeTest : FreeSpec({
     "Can not merge z and i test" - {
         val smali = getSmaliResource("MultiSelectListPreference.smali")
         val (programClassPool, _) = ClassPoolBuilder.fromSmali(
-            SmaliSource(smali.name, smali.readText())
+            SmaliSource(smali.name, smali.readText()),
         )
         val testClass = programClassPool.getClass("android/preference/MultiSelectListPreference")
         val testMethod = testClass.findMethod("test", "(Ljava/util/Set;Ljava/lang/Object;)V")
@@ -39,8 +39,9 @@ class CannotMergeTest : FreeSpec({
                     aload(2)
                     invokeinterface("java/util/Set", "add", "(Ljava/lang/Object;)Z")
                     invokestatic(
-                        "android/preference/MultiSelectListPreference", "access$076",
-                        "(Landroid/preference/MultiSelectListPreference;I)Z"
+                        "android/preference/MultiSelectListPreference",
+                        "access$076",
+                        "(Landroid/preference/MultiSelectListPreference;I)Z",
                     )
                     pop()
                     return_()

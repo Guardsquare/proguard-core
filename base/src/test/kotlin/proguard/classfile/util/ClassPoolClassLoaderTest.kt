@@ -18,9 +18,9 @@ class ClassPoolClassLoaderTest : FreeSpec({
                         return "Hello World";
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
         "When loaded with the ClassPoolClassLoader" - {

@@ -21,7 +21,7 @@ package proguard.testutils.cpa
 import proguard.evaluation.value.Value
 
 class ValueExpression(
-    val value: Value
+    val value: Value,
 ) : JvmExpression {
     override fun equals(other: Any?): Boolean {
         return other is ValueExpression && value == other.value

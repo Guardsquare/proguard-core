@@ -98,9 +98,9 @@ class ClassReferenceInitializerTest : FreeSpec({
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"),
         )
 
         // Note: the `ClassReferenceInitializer` is called by `ClassPoolBuilder.fromSource`
@@ -131,10 +131,10 @@ class ClassReferenceInitializerTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(
                     AllKotlinAnnotationVisitor(
                         AllKotlinAnnotationArgumentVisitor(
-                            annotationArgVisitor
-                        )
-                    )
-                )
+                            annotationArgVisitor,
+                        ),
+                    ),
+                ),
             )
 
             verify(exactly = 17) {
@@ -166,7 +166,7 @@ class ClassReferenceInitializerTest : FreeSpec({
                             }
                         }
                     },
-                    ofType<Value>()
+                    ofType<Value>(),
                 )
             }
         }
@@ -180,11 +180,11 @@ class ClassReferenceInitializerTest : FreeSpec({
                         AllKotlinAnnotationArgumentVisitor(
                             KotlinAnnotationArgumentFilter(
                                 Predicate<KotlinAnnotationArgument> { it.name == "kClass" },
-                                annotationArgVisitor
-                            )
-                        )
-                    )
-                )
+                                annotationArgVisitor,
+                            ),
+                        ),
+                    ),
+                ),
             )
 
             verify(exactly = 1) {
@@ -196,7 +196,7 @@ class ClassReferenceInitializerTest : FreeSpec({
                     withArg {
                         it.className shouldBe "kotlin/String"
                         it.referencedClass shouldBe kotlinDummyClassPool.getClass("kotlin/String")
-                    }
+                    },
                 )
             }
         }
@@ -210,11 +210,11 @@ class ClassReferenceInitializerTest : FreeSpec({
                         AllKotlinAnnotationArgumentVisitor(
                             KotlinAnnotationArgumentFilter(
                                 Predicate<KotlinAnnotationArgument> { it.name == "enum" },
-                                annotationArgVisitor
-                            )
-                        )
-                    )
-                )
+                                annotationArgVisitor,
+                            ),
+                        ),
+                    ),
+                ),
             )
 
             verify(exactly = 1) {
@@ -226,7 +226,7 @@ class ClassReferenceInitializerTest : FreeSpec({
                     withArg {
                         it.className shouldBe "MyEnum"
                         it.referencedClass shouldBe programClassPool.getClass("MyEnum")
-                    }
+                    },
                 )
             }
         }
@@ -240,11 +240,11 @@ class ClassReferenceInitializerTest : FreeSpec({
                         AllKotlinAnnotationArgumentVisitor(
                             KotlinAnnotationArgumentFilter(
                                 Predicate<KotlinAnnotationArgument> { it.name == "annotation" },
-                                annotationArgVisitor
-                            )
-                        )
-                    )
-                )
+                                annotationArgVisitor,
+                            ),
+                        ),
+                    ),
+                ),
             )
 
             verify(exactly = 1) {
@@ -257,9 +257,9 @@ class ClassReferenceInitializerTest : FreeSpec({
                         it.kotlinMetadataAnnotation shouldBe
                             KotlinAnnotation(
                                 "Foo",
-                                listOf(KotlinAnnotationArgument("string", StringValue("foo")))
+                                listOf(KotlinAnnotationArgument("string", StringValue("foo"))),
                             )
-                    }
+                    },
                 )
             }
         }
@@ -274,8 +274,8 @@ class ClassReferenceInitializerTest : FreeSpec({
                 // the `ClassReferenceInitializer` should not crash when it cannot find
                 // library classes.
                 fun foo(p: (x: Int, y: Int) -> Unit) = p(1, 2)
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "Then an exception should not be thrown when library classes are missing" {
@@ -295,9 +295,9 @@ class ClassReferenceInitializerTest : FreeSpec({
                         val CONSTANT = "This does not need the base class"
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            initialize = false
+            initialize = false,
         )
 
         "Then an exception should not be thrown if the base class is missing" {
@@ -305,13 +305,13 @@ class ClassReferenceInitializerTest : FreeSpec({
             programClassPool.classesAccept(
                 KotlinMetadataInitializer { _, message ->
                     println(
-                        message
+                        message,
                     )
-                }
+                },
             )
             shouldNotThrow<Exception> {
                 programClassPool.classesAccept(
-                    ClassReferenceInitializer(programClassPool, ClassPool())
+                    ClassReferenceInitializer(programClassPool, ClassPool()),
                 )
             }
         }
@@ -328,8 +328,8 @@ class ClassReferenceInitializerTest : FreeSpec({
                         val foo: String = "foo",
                         val bar: String = "bar"
                    )
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "Then the annotation synthetic method should be initialized correctly" {
@@ -338,9 +338,9 @@ class ClassReferenceInitializerTest : FreeSpec({
                 "MyAnnotation",
                 ReferencedKotlinMetadataVisitor(
                     AllPropertyVisitor(
-                        KotlinPropertyFilter({ it.name == "foo" }, visitor)
-                    )
-                )
+                        KotlinPropertyFilter({ it.name == "foo" }, visitor),
+                    ),
+                ),
             )
 
             lateinit var syntheticAnnotationMethod: Method
@@ -354,9 +354,9 @@ class ClassReferenceInitializerTest : FreeSpec({
                             override fun visitProgramMethod(programClass: ProgramClass, programMethod: ProgramMethod) {
                                 syntheticAnnotationMethod = programMethod
                             }
-                        }
-                    )
-                )
+                        },
+                    ),
+                ),
             )
 
             syntheticAnnotationMethod shouldNotBe null
@@ -368,7 +368,7 @@ class ClassReferenceInitializerTest : FreeSpec({
                     withArg {
                         it.syntheticMethodForAnnotations shouldBe MethodSignature(null, "foo\$annotations", "()V")
                         it.referencedSyntheticMethodForAnnotations shouldBe syntheticAnnotationMethod
-                    }
+                    },
                 )
             }
         }

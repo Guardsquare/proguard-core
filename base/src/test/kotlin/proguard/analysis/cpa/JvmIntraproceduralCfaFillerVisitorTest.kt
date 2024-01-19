@@ -50,10 +50,14 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
     "Branch test" - {
 
         val code = byteArrayOf(
-            Instruction.OP_IFICMPNE, 0.toByte(), 5.toByte(), // if_icmpne (+5)
-            Instruction.OP_BIPUSH, 42.toByte(), //              bipush 42
-            Instruction.OP_BIPUSH, 43.toByte(), //              bipush 43
-            Instruction.OP_IRETURN //                           ireturn
+            Instruction.OP_IFICMPNE,
+            0.toByte(),
+            5.toByte(), // if_icmpne (+5)
+            Instruction.OP_BIPUSH,
+            42.toByte(), //              bipush 42
+            Instruction.OP_BIPUSH,
+            43.toByte(), //              bipush 43
+            Instruction.OP_IRETURN, //                           ireturn
         )
 
         val clazz = NamedClass("com/test/CfaTest")
@@ -63,7 +67,7 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
         val signature = MethodSignature(
             clazz.name,
             method.memberName,
-            method.descriptor
+            method.descriptor,
         )
 
         val codeAttribute = CodeAttribute(0, 1, 0, code.size, code)
@@ -117,9 +121,12 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
     "Goto test" - {
 
         val code = byteArrayOf(
-            Instruction.OP_GOTO, 0.toByte(), 5.toByte(), // goto (+5)
-            Instruction.OP_BIPUSH, 42.toByte(), //          bipush 42
-            Instruction.OP_IRETURN //                       ireturn
+            Instruction.OP_GOTO,
+            0.toByte(),
+            5.toByte(), // goto (+5)
+            Instruction.OP_BIPUSH,
+            42.toByte(), //          bipush 42
+            Instruction.OP_IRETURN, //                       ireturn
         )
 
         val clazz = NamedClass("com/test/CfaTest")
@@ -129,7 +136,7 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
         val signature = MethodSignature(
             clazz.name,
             method.memberName,
-            method.descriptor
+            method.descriptor,
         )
 
         val codeAttribute = CodeAttribute(0, 1, 0, code.size, code)
@@ -171,10 +178,12 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
     "Return test" - {
 
         val code = byteArrayOf(
-            Instruction.OP_BIPUSH, 42.toByte(), // bipush 42
+            Instruction.OP_BIPUSH,
+            42.toByte(), // bipush 42
             Instruction.OP_IRETURN, //             ireturn
-            Instruction.OP_BIPUSH, 43.toByte(), // bipush 43
-            Instruction.OP_IRETURN //              ireturn
+            Instruction.OP_BIPUSH,
+            43.toByte(), // bipush 43
+            Instruction.OP_IRETURN, //              ireturn
         )
 
         val clazz = NamedClass("com/test/CfaTest")
@@ -184,7 +193,7 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
         val signature = MethodSignature(
             clazz.name,
             method.memberName,
-            method.descriptor
+            method.descriptor,
         )
 
         val codeAttribute = CodeAttribute(0, 1, 0, code.size, code)
@@ -230,9 +239,11 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
     "Ret test" - {
 
         val code = byteArrayOf(
-            Instruction.OP_RET, 1.toByte(), //     ret 1
-            Instruction.OP_BIPUSH, 42.toByte(), // bipush 42
-            Instruction.OP_IRETURN //              ireturn
+            Instruction.OP_RET,
+            1.toByte(), //     ret 1
+            Instruction.OP_BIPUSH,
+            42.toByte(), // bipush 42
+            Instruction.OP_IRETURN, //              ireturn
         )
 
         val clazz = NamedClass("com/test/CfaTest")
@@ -242,7 +253,7 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
         val signature = MethodSignature(
             clazz.name,
             method.memberName,
-            method.descriptor
+            method.descriptor,
         )
 
         val codeAttribute = CodeAttribute(0, 1, 0, code.size, code)
@@ -296,7 +307,7 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
             Instruction.OP_GOTO, 0.toByte(), 7.toByte(), //                     goto (+7)
             Instruction.OP_BIPUSH, 42.toByte(), //                              bipush 42
             Instruction.OP_BIPUSH, 43.toByte(), //                              bipush 43
-            Instruction.OP_IRETURN //                                           ireturn
+            Instruction.OP_IRETURN, //                                           ireturn
         )
 
         val clazz = NamedClass("com/test/CfaTest")
@@ -306,7 +317,7 @@ class JvmIntraproceduralCfaFillerVisitorTest : FreeSpec({
         val signature = MethodSignature(
             clazz.name,
             method.memberName,
-            method.descriptor
+            method.descriptor,
         )
 
         val codeAttribute = CodeAttribute(0, 1, 0, code.size, code)

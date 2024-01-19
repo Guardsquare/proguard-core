@@ -39,15 +39,15 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
             interface FooInvariant<T>         
             interface FooIn<in T>
             interface FooOut<out T>
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     "Given an interface with an invariant type parameter" - {
         val typeParameterVisitor = spyk<KotlinTypeParameterVisitor>()
         programClassPool.classesAccept(
             "FooInvariant",
-            ReferencedKotlinMetadataVisitor(AllTypeParameterVisitor(typeParameterVisitor))
+            ReferencedKotlinMetadataVisitor(AllTypeParameterVisitor(typeParameterVisitor)),
         )
 
         "Then the variance should be INVARIANT" {
@@ -57,7 +57,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
                     withArg {
                         it.name shouldBe "T"
                         it.variance shouldBe INVARIANT
-                    }
+                    },
                 )
             }
         }
@@ -67,7 +67,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
         val typeParameterVisitor = spyk<KotlinTypeParameterVisitor>()
         programClassPool.classesAccept(
             "FooIn",
-            ReferencedKotlinMetadataVisitor(AllTypeParameterVisitor(typeParameterVisitor))
+            ReferencedKotlinMetadataVisitor(AllTypeParameterVisitor(typeParameterVisitor)),
         )
 
         "Then the variance should be IN" {
@@ -77,7 +77,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
                     withArg {
                         it.name shouldBe "T"
                         it.variance shouldBe IN
-                    }
+                    },
                 )
             }
         }
@@ -87,7 +87,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
         val typeParameterVisitor = spyk<KotlinTypeParameterVisitor>()
         programClassPool.classesAccept(
             "FooOut",
-            ReferencedKotlinMetadataVisitor(AllTypeParameterVisitor(typeParameterVisitor))
+            ReferencedKotlinMetadataVisitor(AllTypeParameterVisitor(typeParameterVisitor)),
         )
 
         "Then the invariance should be OUT" {
@@ -97,7 +97,7 @@ class KotlinMetadataTypeVarianceTest : FreeSpec({
                     withArg {
                         it.name shouldBe "T"
                         it.variance shouldBe OUT
-                    }
+                    },
                 )
             }
         }

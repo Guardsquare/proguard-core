@@ -39,15 +39,15 @@ class MemberDescriptorReferencedClassVisitorTest : FreeSpec({
                 fun login(password: Password) {
                     println(password);
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "Then visiting the referenced descriptor methods of login with includeKotlinMetadata true" - {
             val visitor = spyk<ClassVisitor>()
             programClassPool.classesAccept(
                 "TestKt",
-                AllMemberVisitor(MemberDescriptorReferencedClassVisitor(true, visitor))
+                AllMemberVisitor(MemberDescriptorReferencedClassVisitor(true, visitor)),
             )
 
             "Should visit the Password class" {
@@ -61,7 +61,7 @@ class MemberDescriptorReferencedClassVisitorTest : FreeSpec({
             val visitor = spyk<ClassVisitor>()
             programClassPool.classesAccept(
                 "TestKt",
-                AllMemberVisitor(MemberDescriptorReferencedClassVisitor(false, visitor))
+                AllMemberVisitor(MemberDescriptorReferencedClassVisitor(false, visitor)),
             )
 
             "Should not visit the Password class" {

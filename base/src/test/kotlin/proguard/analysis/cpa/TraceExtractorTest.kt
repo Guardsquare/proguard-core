@@ -41,58 +41,58 @@ class TraceExtractorTest : StringSpec({
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
     val taintSourceReturn2 = JvmTaintSource(
         MethodSignature("A", "source2", "()Ljava/lang/String;"),
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
     val taintSourceStatic = JvmTaintSource(
         MethodSignature("A", "source", "()V"),
         false,
         false,
         setOf(),
-        setOf("A.s:Ljava/lang/String;")
+        setOf("A.s:Ljava/lang/String;"),
     )
     val taintSourceReturnDouble = JvmTaintSource(
         MethodSignature("A", "source", "()D"),
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
     val taintSinkArgument = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(Ljava/lang/String;)V"),
         false,
         setOf(1),
-        setOf()
+        setOf(),
     )
     val taintSinkArgumentLong = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(J)V"),
         false,
         setOf(1),
-        setOf()
+        setOf(),
     )
     val taintSinkArgumentDouble = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(D)V"),
         false,
         setOf(1),
-        setOf()
+        setOf(),
     )
     val taintSinkArgumentMultiple = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(Ljava/lang/String;Ljava/lang/String;)V"),
         false,
         setOf(2),
-        setOf()
+        setOf(),
     )
     val taintSinkStatic = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "()V"),
         false,
         setOf(),
-        setOf("A.s:Ljava/lang/String;")
+        setOf("A.s:Ljava/lang/String;"),
     )
     val taintSinkReturn = JvmReturnTaintSink(MethodSignature("A", "sink", "(Ljava/lang/String;)Ljava/lang/String;"))
 
@@ -101,7 +101,7 @@ class TraceExtractorTest : StringSpec({
     listOf(
         HashMapAbstractStateFactory.getInstance(),
         DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
-        LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
+        LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() },
     ).forEach { staticFieldMapAbstractStateFactory ->
 
         val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"
@@ -133,10 +133,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -151,8 +151,8 @@ class TraceExtractorTest : StringSpec({
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStackLocation(0)@LA;main()V:3",
-                    "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3"
-                )
+                    "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3",
+                ),
             )
         }
 
@@ -187,10 +187,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -205,8 +205,8 @@ class TraceExtractorTest : StringSpec({
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStackLocation(0)@LA;callee1()V:3",
-                    "JvmStackLocation(0)@LA;callee2()Ljava/lang/String;:3"
-                )
+                    "JvmStackLocation(0)@LA;callee2()Ljava/lang/String;:3",
+                ),
             )
         }
 
@@ -242,10 +242,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -275,13 +275,13 @@ class TraceExtractorTest : StringSpec({
                 listOf(
                     "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
                     "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
-                    "JvmStackLocation(0)@LA;main()V:3"
+                    "JvmStackLocation(0)@LA;main()V:3",
                 ),
                 listOf(
                     "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)V:1",
                     "JvmLocalVariableLocation(0)@LA;callee(Ljava/lang/String;)V:0",
-                    "JvmStackLocation(0)@LA;main()V:9"
-                )
+                    "JvmStackLocation(0)@LA;main()V:9",
+                ),
             )
         }
 
@@ -315,10 +315,10 @@ class TraceExtractorTest : StringSpec({
                             return;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -333,8 +333,8 @@ class TraceExtractorTest : StringSpec({
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
-                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:3"
-                )
+                    "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:3",
+                ),
             )
         }
 
@@ -368,10 +368,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -388,8 +388,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmStackLocation(0)@LA;main()V:6",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
-                    "JvmStackLocation(0)@LA;callee()V:3"
-                )
+                    "JvmStackLocation(0)@LA;callee()V:3",
+                ),
             )
         }
 
@@ -416,10 +416,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -437,8 +437,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmLocalVariableLocation(1)@LA;main()V:10",
                     "JvmLocalVariableLocation(1)@LA;main()V:7",
                     "JvmLocalVariableLocation(1)@LA;main()V:4",
-                    "JvmStackLocation(0)@LA;main()V:3"
-                )
+                    "JvmStackLocation(0)@LA;main()V:3",
+                ),
             )
         }
 
@@ -469,10 +469,10 @@ class TraceExtractorTest : StringSpec({
                         {
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -489,8 +489,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmStackLocation(0)@LA;main()V:8",
                     "JvmLocalVariableLocation(1)@LA;main()V:7",
                     "JvmLocalVariableLocation(1)@LA;main()V:4",
-                    "JvmStackLocation(0)@LA;main()V:3"
-                )
+                    "JvmStackLocation(0)@LA;main()V:3",
+                ),
             )
         }
 
@@ -518,10 +518,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -539,8 +539,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmLocalVariableLocation(1)@LA;main()V:6",
                     "JvmLocalVariableLocation(1)@LA;main()V:5",
                     "JvmLocalVariableLocation(1)@LA;main()V:4",
-                    "JvmStackLocation(0)@LA;main()V:3"
-                )
+                    "JvmStackLocation(0)@LA;main()V:3",
+                ),
             )
         }
 
@@ -566,10 +566,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -587,8 +587,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmStackLocation(0)@LA;main()V:8",
                     "JvmStackLocation(0)@LA;main()V:5",
                     "JvmLocalVariableLocation(1)@LA;main()V:4",
-                    "JvmStackLocation(0)@LA;main()V:3"
-                )
+                    "JvmStackLocation(0)@LA;main()V:3",
+                ),
             )
         }
 
@@ -614,10 +614,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -634,8 +634,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmStackLocation(0)@LA;main()V:6",
                     "JvmLocalVariableLocation(1)@LA;main()V:5",
                     "JvmLocalVariableLocation(1)@LA;main()V:4",
-                    "JvmStackLocation(0)@LA;main()V:3"
-                )
+                    "JvmStackLocation(0)@LA;main()V:3",
+                ),
             )
         }
 
@@ -670,10 +670,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -699,13 +699,13 @@ class TraceExtractorTest : StringSpec({
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStackLocation(0)@LA;main(Z)V:13",
-                    "JvmStackLocation(0)@LA;getSource2()Ljava/lang/String;:3"
+                    "JvmStackLocation(0)@LA;getSource2()Ljava/lang/String;:3",
                 ),
                 listOf(
                     "JvmStackLocation(0)@LA;main(Z)V:13",
                     "JvmStackLocation(0)@LA;main(Z)V:7",
-                    "JvmStackLocation(0)@LA;getSource1()Ljava/lang/String;:3"
-                )
+                    "JvmStackLocation(0)@LA;getSource1()Ljava/lang/String;:3",
+                ),
             )
         }
 
@@ -746,10 +746,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -767,8 +767,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmLocalVariableLocation(1)@LA;main()V:13",
                     "JvmLocalVariableLocation(1)@LA;main()V:12",
                     "JvmLocalVariableLocation(1)@LA;main()V:4",
-                    "JvmStackLocation(0)@LA;main()V:3"
-                )
+                    "JvmStackLocation(0)@LA;main()V:3",
+                ),
             )
         }
 
@@ -799,10 +799,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -817,8 +817,8 @@ class TraceExtractorTest : StringSpec({
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
                     "JvmStackLocation(0)@LA;main()V:10",
-                    "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)Ljava/lang/String;:3"
-                )
+                    "JvmStackLocation(0)@LA;callee(Ljava/lang/String;)Ljava/lang/String;:3",
+                ),
             )
         }
 
@@ -850,10 +850,10 @@ class TraceExtractorTest : StringSpec({
                         {
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -886,7 +886,7 @@ class TraceExtractorTest : StringSpec({
                     "JvmLocalVariableLocation(3)@LA;main(Z)V:16",
                     "JvmLocalVariableLocation(3)@LA;main(Z)V:9",
                     "JvmLocalVariableLocation(3)@LA;main(Z)V:8",
-                    "JvmStackLocation(0)@LA;main(Z)V:7"
+                    "JvmStackLocation(0)@LA;main(Z)V:7",
                 ),
                 listOf(
                     "JvmStackLocation(0)@LA;main(Z)V:17",
@@ -896,8 +896,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmLocalVariableLocation(2)@LA;main(Z)V:8",
                     "JvmLocalVariableLocation(2)@LA;main(Z)V:7",
                     "JvmLocalVariableLocation(2)@LA;main(Z)V:4",
-                    "JvmStackLocation(0)@LA;main(Z)V:3"
-                )
+                    "JvmStackLocation(0)@LA;main(Z)V:3",
+                ),
             )
         }
 
@@ -944,10 +944,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -982,14 +982,14 @@ class TraceExtractorTest : StringSpec({
                     "JvmStackLocation(0)@LA;main(Z)V:19",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:16",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:10",
-                    "JvmStackLocation(0)@LA;main(Z)V:7"
+                    "JvmStackLocation(0)@LA;main(Z)V:7",
                 ),
                 listOf(
                     "JvmStackLocation(0)@LA;main(Z)V:19",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main(Z)V:16",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
-                    "JvmStackLocation(0)@LA;callee()V:3"
-                )
+                    "JvmStackLocation(0)@LA;callee()V:3",
+                ),
             )
         }
 
@@ -1025,10 +1025,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -1074,8 +1074,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:22",
                     "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:11",
                     "JvmLocalVariableLocation(2)@LA;callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;:0",
-                    "JvmStackLocation(1)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:5"
-                )
+                    "JvmStackLocation(1)@LA;main(Z)V:8, JvmStackLocation(0)@LA;main(Z)V:5",
+                ),
             )
         }
 
@@ -1111,10 +1111,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
             val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
@@ -1143,8 +1143,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:5",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;main()V:3",
                     "JvmStaticFieldLocation(A.s:Ljava/lang/String;)@LA;callee()V:6",
-                    "JvmStackLocation(0)@LA;callee()V:3"
-                )
+                    "JvmStackLocation(0)@LA;callee()V:3",
+                ),
             )
         }
 
@@ -1175,10 +1175,10 @@ class TraceExtractorTest : StringSpec({
                             return null;
                         }
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                ).programClassPool
+                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                ).programClassPool,
             )
             /*
             Bytecode of main:
@@ -1210,8 +1210,8 @@ class TraceExtractorTest : StringSpec({
                     "JvmStackLocation(0)@LA;sink(Ljava/lang/String;)Ljava/lang/String;:1",
                     "JvmLocalVariableLocation(0)@LA;sink(Ljava/lang/String;)Ljava/lang/String;:0",
                     "JvmStackLocation(0)@LA;main()V:3",
-                    "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3"
-                )
+                    "JvmStackLocation(0)@LA;callee()Ljava/lang/String;:3",
+                ),
             )
         }
 
@@ -1241,9 +1241,9 @@ class TraceExtractorTest : StringSpec({
                                 return;
                             }
                         }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = listOf("-source", "1.8", "-target", "1.8")
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             )
             val interproceduralCfa = CfaUtil.createInterproceduralCfa(programClassPool)
             /*
@@ -1275,8 +1275,8 @@ class TraceExtractorTest : StringSpec({
                 listOf(
                     "JvmStackLocation(0)@LA;foo(D)V:1",
                     "JvmLocalVariableLocation(0)@LA;foo(D)V:0",
-                    "JvmStackLocation(0)@LA;main()V:3"
-                )
+                    "JvmStackLocation(0)@LA;main()V:3",
+                ),
             )
         }
     }

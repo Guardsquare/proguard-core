@@ -36,8 +36,8 @@ class MultipleRuntimeInvisibleAnnotationsTest : FreeSpec({
                     val property: String
                     @JvmName("bar") get() = "foo"
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the getter method is renamed" - {
@@ -46,10 +46,10 @@ class MultipleRuntimeInvisibleAnnotationsTest : FreeSpec({
                 MultiClassVisitor(
                     ClassRenamer(
                         { clazz -> clazz.name },
-                        { clazz, member -> if (member.getName(clazz) == "bar") "ObfuscatedName" else "bar" }
+                        { clazz, member -> if (member.getName(clazz) == "bar") "ObfuscatedName" else "bar" },
                     ),
-                    ClassReferenceFixer(false)
-                )
+                    ClassReferenceFixer(false),
+                ),
             )
 
             "Then there should be exactly 1 RuntimeInvisibleAnnotations attribute" {
@@ -60,10 +60,10 @@ class MultipleRuntimeInvisibleAnnotationsTest : FreeSpec({
                         MemberNameFilter(
                             "ObfuscatedName",
                             AllAttributeVisitor(
-                                AttributeNameFilter(RUNTIME_INVISIBLE_ANNOTATIONS, counter)
-                            )
-                        )
-                    )
+                                AttributeNameFilter(RUNTIME_INVISIBLE_ANNOTATIONS, counter),
+                            ),
+                        ),
+                    ),
                 )
 
                 counter.count shouldBe 1
@@ -84,12 +84,12 @@ class MultipleRuntimeInvisibleAnnotationsTest : FreeSpec({
                                             override fun visitAnnotation(clazz: Clazz?, annotation: Annotation?) {
                                                 count++
                                             }
-                                        }
-                                    )
-                                )
-                            )
-                        )
-                    )
+                                        },
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
                 )
 
                 count shouldBe 1

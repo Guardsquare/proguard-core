@@ -51,8 +51,8 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     val <PropertyTP> List<PropertyTP>.property: Unit
                         get() = Unit
                 }
-            """
-        )
+            """,
+        ),
     )
 
     "Given a file facade containing entities with type parameters" - {
@@ -70,7 +70,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     ofType(KotlinPropertyMetadata::class),
                     withArg {
                         it.name shouldBe "PropertyTP"
-                    }
+                    },
                 )
             }
         }
@@ -87,7 +87,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     ofType(KotlinFunctionMetadata::class),
                     withArg {
                         it.name shouldBe "FunctionTP"
-                    }
+                    },
                 )
             }
         }
@@ -104,7 +104,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     ofType(KotlinTypeAliasMetadata::class),
                     withArg {
                         it.name shouldBe "AliasTP"
-                    }
+                    },
                 )
             }
         }
@@ -124,7 +124,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     ofType(KotlinClassKindMetadata::class),
                     withArg {
                         it.name shouldBe "ClassTP"
-                    }
+                    },
                 )
             }
         }
@@ -141,7 +141,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     ofType(KotlinPropertyMetadata::class),
                     withArg {
                         it.name shouldBe "PropertyTP"
-                    }
+                    },
                 )
             }
         }
@@ -158,7 +158,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     ofType(KotlinFunctionMetadata::class),
                     withArg {
                         it.name shouldBe "FunctionTP"
-                    }
+                    },
                 )
             }
         }
@@ -175,7 +175,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                     ofType(KotlinTypeAliasMetadata::class),
                     withArg {
                         it.name shouldBe "AliasTP"
-                    }
+                    },
                 )
             }
         }
@@ -186,6 +186,6 @@ private fun createVisitor(name: String, typeParameterVisitor: KotlinTypeParamete
     AllTypeParameterVisitor(
         KotlinTypeParameterFilter(
             Predicate { it.name == name },
-            typeParameterVisitor
-        )
+            typeParameterVisitor,
+        ),
     )

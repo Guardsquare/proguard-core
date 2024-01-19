@@ -89,7 +89,7 @@ class InstructionSequenceBuilderTest : FreeSpec({
                 CLASS_VERSION_1_6,
                 PUBLIC,
                 "TestClass",
-                "java/lang/Object"
+                "java/lang/Object",
             )
                 .programClass
             builder.ldc(clazz)
@@ -107,12 +107,12 @@ class InstructionSequenceBuilderTest : FreeSpec({
                 CLASS_VERSION_1_6,
                 PUBLIC,
                 "TestClass",
-                "java/lang/Object"
+                "java/lang/Object",
             )
             val method = classBuilder.addAndReturnMethod(
                 PUBLIC,
                 "testMethod",
-                "()V"
+                "()V",
             )
             val clazz = classBuilder.programClass
             builder.ldc(clazz, method)
@@ -196,7 +196,7 @@ class InstructionSequenceBuilderTest : FreeSpec({
                 CLASS_VERSION_1_6,
                 PUBLIC,
                 "TestClass",
-                "java/lang/Object"
+                "java/lang/Object",
             )
                 .programClass
             builder.ldc_w(clazz)
@@ -214,12 +214,12 @@ class InstructionSequenceBuilderTest : FreeSpec({
                 CLASS_VERSION_1_6,
                 PUBLIC,
                 "TestClass",
-                "java/lang/Object"
+                "java/lang/Object",
             )
             val method = classBuilder.addAndReturnMethod(
                 PUBLIC,
                 "testMethod",
-                "()V"
+                "()V",
             )
             val clazz = classBuilder.programClass
             builder.ldc_w(clazz, method)

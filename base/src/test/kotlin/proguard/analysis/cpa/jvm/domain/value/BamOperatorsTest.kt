@@ -49,7 +49,7 @@ class BamOperatorsTest : FreeSpec({
                 }
             """.trimIndent(),
         ),
-        javacArguments = mutableListOf("-source", "1.8", "-target", "1.8")
+        javacArguments = mutableListOf("-source", "1.8", "-target", "1.8"),
     )
 
     fun runBamCpa(className: String): BamCache<MethodSignature> {

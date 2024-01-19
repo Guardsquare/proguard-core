@@ -35,7 +35,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
 
     "Given a property with default getter and setter" - {
         val clazz = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", "val foo: Int = 1".trimIndent())
+            KotlinSource("Test.kt", "val foo: Int = 1".trimIndent()),
         ).programClassPool.getClass("TestKt")
 
         "Then the property accessor flags should be set accordingly" {
@@ -55,7 +55,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
                         withClue("isExternal") { it.setterFlags.isInline shouldBe false }
                         withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
-                    }
+                    },
                 )
             }
         }
@@ -77,7 +77,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
                         withClue("isExternal") { it.setterFlags.isInline shouldBe false }
                         withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
-                    }
+                    },
                 )
             }
         }
@@ -85,7 +85,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
 
     "Given a property with a non-default, inlined getter" - {
         val clazz = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", "val foo: Int inline get() = 1".trimIndent())
+            KotlinSource("Test.kt", "val foo: Int inline get() = 1".trimIndent()),
         ).programClassPool.getClass("TestKt")
 
         "Then the property accessor flags should be set accordingly" {
@@ -105,7 +105,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
                         withClue("isExternal") { it.setterFlags.isInline shouldBe false }
                         withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
-                    }
+                    },
                 )
             }
         }
@@ -127,7 +127,7 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
                         withClue("isExternal") { it.setterFlags.isInline shouldBe false }
                         withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
-                    }
+                    },
                 )
             }
         }

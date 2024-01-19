@@ -34,29 +34,29 @@ class ClassPoolTest : FreeSpec({
                 LibraryClass(
                     PUBLIC,
                     "proguard/Classfile",
-                    "java/lang/Object"
+                    "java/lang/Object",
                 ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/classfile/ClassMemberPair",
-                    "java/lang/Object"
+                    "java/lang/Object",
                 ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/classfile/visitor/InjectedClassFilter",
-                    "java/lang/Object"
+                    "java/lang/Object",
                 ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/DescriptorKeeper",
-                    "java/lang/Object"
+                    "java/lang/Object",
                 ),
                 LibraryClass(
                     PUBLIC,
                     "proguard/Targeter",
-                    "java/lang/Object"
-                )
-            )
+                    "java/lang/Object",
+                ),
+            ),
         )
 
         "When a ClassVisitor is applied to all matching classes in the class pool" - {

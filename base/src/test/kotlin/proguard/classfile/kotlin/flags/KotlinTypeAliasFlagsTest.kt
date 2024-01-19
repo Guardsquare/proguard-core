@@ -34,7 +34,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
 
     "Given a public type alias without annotation" - {
         val clazz = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", "typealias privateAlias = String")
+            KotlinSource("Test.kt", "typealias privateAlias = String"),
         ).programClassPool.getClass("TestKt")
 
         "Then the flags should be initialized correctly" {
@@ -54,7 +54,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isLocal shouldBe false
 
                         it.flags.common.hasAnnotations shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -76,7 +76,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isLocal shouldBe false
 
                         it.flags.common.hasAnnotations shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -84,7 +84,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
 
     "Given a private type alias without annotation" - {
         val clazz = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", "private typealias privateAlias = String")
+            KotlinSource("Test.kt", "private typealias privateAlias = String"),
         ).programClassPool.getClass("TestKt")
 
         "Then the flags should be initialized correctly" {
@@ -104,7 +104,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isLocal shouldBe false
 
                         it.flags.common.hasAnnotations shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -126,7 +126,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isLocal shouldBe false
 
                         it.flags.common.hasAnnotations shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -141,8 +141,8 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                 annotation class MyTypeAliasAnnotation
                 @MyTypeAliasAnnotation
                 typealias privateAlias = String
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         ).programClassPool.getClass("TestKt")
 
         "Then the hasAnnotation common flag should be initialized correctly" {
@@ -155,7 +155,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
                         it.flags.common.hasAnnotations shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -170,7 +170,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
                         it.flags.common.hasAnnotations shouldBe true
-                    }
+                    },
                 )
             }
         }

@@ -39,8 +39,8 @@ class CpaValueTest : FreeSpec({
                         return
                     }
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
 
         )
         var cfa: JvmCfa = CfaUtil.createInterproceduralCfa(programClassPool)

@@ -14,21 +14,21 @@ class SourceSinkTest : FreeSpec({
             true,
             true,
             setOf(1, 3),
-            setOf("Test.field", "Test.other")
+            setOf("Test.field", "Test.other"),
         )
         val source1Copy = JvmTaintSource(
             MethodSignature("Test", "source1", "(Ljava/lang/String;II)Ljava/lang/String;"),
             true,
             true,
             setOf(1, 3),
-            setOf("Test.field", "Test.other")
+            setOf("Test.field", "Test.other"),
         )
         val source2 = JvmTaintSource(
             MethodSignature("Test", "source2", "()Ljava/lang/String;"),
             false,
             true,
             emptySet(),
-            emptySet()
+            emptySet(),
         )
 
         "Should be comparable" {
@@ -47,19 +47,19 @@ class SourceSinkTest : FreeSpec({
             MethodSignature("Test", "sink1", "(Ljava/lang/String;II)V"),
             true,
             setOf(1, 3),
-            setOf("Test.field", "Test.other")
+            setOf("Test.field", "Test.other"),
         )
         val sink1Copy = JvmInvokeTaintSink(
             MethodSignature("Test", "sink1", "(Ljava/lang/String;II)V"),
             true,
             setOf(1, 3),
-            setOf("Test.field", "Test.other")
+            setOf("Test.field", "Test.other"),
         )
         val sink2 = JvmInvokeTaintSink(
             MethodSignature("Test", "sink2", "(Ljava/lang/String;)V"),
             false,
             setOf(1),
-            emptySet()
+            emptySet(),
         )
 
         "Should be comparable" {

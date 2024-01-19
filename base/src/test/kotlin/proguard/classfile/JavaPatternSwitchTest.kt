@@ -40,10 +40,13 @@ class JavaPatternSwitchTest : FreeSpec({
                             System.out.println(formatted);
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = if (currentJavaVersion == 18) {
+                    listOf("--enable-preview", "--release", "18")
+                } else {
+                    emptyList()
+                },
             )
 
             "$className class should be in program class pool" {
@@ -68,10 +71,13 @@ class JavaPatternSwitchTest : FreeSpec({
                             System.out.println(formatted);
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = if (currentJavaVersion == 18) {
+                    listOf("--enable-preview", "--release", "18")
+                } else {
+                    emptyList()
+                },
             )
             "$className class should be in program class pool" {
                 programClassPool.getClass(className) shouldNotBe null
@@ -93,10 +99,13 @@ class JavaPatternSwitchTest : FreeSpec({
                             System.out.println(formatted);
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = if (currentJavaVersion == 18) {
+                    listOf("--enable-preview", "--release", "18")
+                } else {
+                    emptyList()
+                },
             )
 
             "$className class should be in program class pool" {
@@ -118,10 +127,13 @@ class JavaPatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = if (currentJavaVersion == 18) {
+                    listOf("--enable-preview", "--release", "18")
+                } else {
+                    emptyList()
+                },
             )
 
             "$className class should be in program class pool" {
@@ -143,10 +155,13 @@ class JavaPatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = if (currentJavaVersion == 18) {
+                    listOf("--enable-preview", "--release", "18")
+                } else {
+                    emptyList()
+                },
             )
 
             "$className class should be in program class pool" {
@@ -174,10 +189,13 @@ class JavaPatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = if (currentJavaVersion == 18) {
+                    listOf("--enable-preview", "--release", "18")
+                } else {
+                    emptyList()
+                },
             )
 
             "$className class should be in program class pool" {
@@ -202,10 +220,13 @@ class JavaPatternSwitchTest : FreeSpec({
                             };
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = if (currentJavaVersion == 18)
-                    listOf("--enable-preview", "--release", "18") else emptyList()
+                javacArguments = if (currentJavaVersion == 18) {
+                    listOf("--enable-preview", "--release", "18")
+                } else {
+                    emptyList()
+                },
             )
 
             "$className class should be in program class pool" {

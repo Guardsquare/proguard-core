@@ -48,8 +48,8 @@ class KotlinConstructorFlagsTest : FreeSpec({
                 constructor(param: String, param2: String, param3: String, param4: String) : this(param) { }
                 constructor(param: String, param2: String, param3: String, param4: String, param5: String) : this(param) { }
             }
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     "Given a primary constructor" - {
@@ -69,7 +69,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                             @Suppress("DEPRECATION")
                             it.flags.isPrimary shouldBe true
                         }
-                    }
+                    },
                 )
             }
         }
@@ -88,7 +88,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                             @Suppress("DEPRECATION")
                             it.flags.isPrimary shouldBe true
                         }
-                    }
+                    },
                 )
             }
         }
@@ -106,7 +106,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                         withClue("Init: isSecondary shouldBe false") {
                             it.flags.isSecondary shouldBe false
                         }
-                    }
+                    },
                 )
             }
         }
@@ -124,7 +124,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                         withClue("Rewrite: isSecondary shouldBe false") {
                             it.flags.isSecondary shouldBe false
                         }
-                    }
+                    },
                 )
             }
         }
@@ -147,7 +147,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                             @Suppress("DEPRECATION")
                             it.flags.isPrimary shouldBe false
                         }
-                    }
+                    },
                 )
             }
         }
@@ -166,7 +166,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                             @Suppress("DEPRECATION")
                             it.flags.isPrimary shouldBe false
                         }
-                    }
+                    },
                 )
             }
         }
@@ -184,7 +184,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                         withClue("Init: isSecondary shouldBe true") {
                             it.flags.isSecondary shouldBe true
                         }
-                    }
+                    },
                 )
             }
         }
@@ -202,7 +202,7 @@ class KotlinConstructorFlagsTest : FreeSpec({
                         withClue("Rewrite: isSecondary shouldBe true") {
                             it.flags.isSecondary shouldBe true
                         }
-                    }
+                    },
                 )
             }
         }
@@ -215,6 +215,6 @@ private fun createVisitor(consVisitor: KotlinConstructorVisitor, primary: Boolea
     AllConstructorVisitor(
         KotlinConstructorFilter(
             Predicate { if (primary) it.valueParameters.size == 1 else it.valueParameters.size > 1 },
-            consVisitor
-        )
+            consVisitor,
+        ),
     )

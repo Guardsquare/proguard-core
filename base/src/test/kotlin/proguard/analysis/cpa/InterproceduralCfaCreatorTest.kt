@@ -38,7 +38,7 @@ class InterproceduralCfaCreatorTest : FreeSpec({
         offset: Int,
         isExitNode: Boolean,
         enteringEdgesSize: Int,
-        leavingEdgesSize: Int
+        leavingEdgesSize: Int,
     ) {
         node.offset shouldBe offset
         node.isExitNode shouldBe isExitNode
@@ -63,9 +63,9 @@ class InterproceduralCfaCreatorTest : FreeSpec({
                         {
                         }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         ).programClassPool
         val cfa = CfaUtil.createInterproceduralCfaFromClassPool(classPool)
 
@@ -102,16 +102,16 @@ class InterproceduralCfaCreatorTest : FreeSpec({
                         {
                         }
                     }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         ).programClassPool
         val cfa = JvmCfa()
         val callGraph = CallGraph()
         val resolver = CallResolver.Builder(
             classPool,
             ClassPool(),
-            callGraph
+            callGraph,
         )
             .setEvaluateAllCode(true)
             .build()

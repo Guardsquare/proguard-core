@@ -51,15 +51,15 @@ class CallGraphWalkerIterationOrderTest : FunSpec({
                 {
                 }
             }
-            """.trimIndent()
+            """.trimIndent(),
         ),
-        javacArguments = listOf("-source", "1.8", "-target", "1.8")
+        javacArguments = listOf("-source", "1.8", "-target", "1.8"),
     ).programClassPool
     val callGraph = CallGraph()
     val resolver = CallResolver.Builder(
         classPool,
         ClassPool(),
-        callGraph
+        callGraph,
     )
         .setEvaluateAllCode(true)
         .build()

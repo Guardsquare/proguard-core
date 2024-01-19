@@ -39,8 +39,8 @@ class KotlinTypeFlagsTest : FreeSpec({
             @Suppress("UNUSED_PARAMETER")
             fun foo(bar: suspend () -> Unit, string: String): Int? = 42
             fun <T> elvisLike(x: T, y: T & Any): T & Any = x ?: y
-            """
-        )
+            """,
+        ),
     ).programClassPool.getClass("TestKt")
 
     "Given a non-nullable type" - {
@@ -55,7 +55,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -71,7 +71,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -89,7 +89,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe true
                         it.flags.isSuspend shouldBe false
-                    }
+                    },
                 )
             }
         }
@@ -104,7 +104,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isNullable shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -122,7 +122,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -138,7 +138,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                     withArg {
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -157,7 +157,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                         it.flags.isNullable shouldBe false
                         it.flags.isSuspend shouldBe false
                         it.flags.isDefinitelyNonNull shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -172,7 +172,7 @@ class KotlinTypeFlagsTest : FreeSpec({
                     clazz,
                     withArg {
                         it.flags.isDefinitelyNonNull shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -184,8 +184,8 @@ class KotlinTypeFlagsTest : FreeSpec({
                 "Test.kt",
                 """
                 val namedParam: (test: String) -> Unit = {}
-                """
-            )
+                """,
+            ),
         ).programClassPool.getClass("TestKt")
 
         "Then the flags should be initialized correctly" {
@@ -200,10 +200,10 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-                            }
-                        )
-                    )
-                )
+                            },
+                        ),
+                    ),
+                ),
             )
         }
 
@@ -219,10 +219,10 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-                            }
-                        )
-                    )
-                )
+                            },
+                        ),
+                    ),
+                ),
             )
         }
     }
@@ -233,8 +233,8 @@ class KotlinTypeFlagsTest : FreeSpec({
                 "Test.kt",
                 """
                 val namedParam: (String?) -> Unit = {}
-                """
-            )
+                """,
+            ),
         ).programClassPool.getClass("TestKt")
 
         "Then the flags should be initialized correctly" {
@@ -249,10 +249,10 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe true
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-                            }
-                        )
-                    )
-                )
+                            },
+                        ),
+                    ),
+                ),
             )
         }
 
@@ -268,10 +268,10 @@ class KotlinTypeFlagsTest : FreeSpec({
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isNullable shouldBe true
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isSuspend shouldBe false
                                 kotlinTypeMetadata.typeArguments?.get(0)?.flags?.isDefinitelyNonNull shouldBe false
-                            }
-                        )
-                    )
-                )
+                            },
+                        ),
+                    ),
+                ),
             )
         }
     }
@@ -281,14 +281,14 @@ private fun createVisitor(className: String, typeVisitor: KotlinTypeVisitor): Ko
     AllTypeVisitor(
         KotlinTypeFilter(
             { it.className == className },
-            typeVisitor
-        )
+            typeVisitor,
+        ),
     )
 
 private fun createVisitor(typeParamId: Int, typeVisitor: KotlinTypeVisitor): KotlinMetadataVisitor =
     AllTypeVisitor(
         KotlinTypeFilter(
             { it.typeParamID == typeParamId },
-            typeVisitor
-        )
+            typeVisitor,
+        ),
     )

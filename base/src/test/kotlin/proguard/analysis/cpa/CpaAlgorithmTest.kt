@@ -61,8 +61,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // the test should return all states reachable from 0
         reachedset shouldBe setOf(
@@ -70,7 +70,7 @@ class CpaAlgorithmTest : FreeSpec({
             IntegerAbstractState(4),
             IntegerAbstractState(6),
             IntegerAbstractState(8),
-            IntegerAbstractState(10)
+            IntegerAbstractState(10),
         )
 
         val orderedReachedSet: MutableList<AbstractState> = ArrayList()
@@ -82,7 +82,7 @@ class CpaAlgorithmTest : FreeSpec({
             IntegerAbstractState(4),
             IntegerAbstractState(6),
             IntegerAbstractState(8),
-            IntegerAbstractState(10)
+            IntegerAbstractState(10),
         )
     }
 
@@ -96,8 +96,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeJoinOperator,
                 stopContainedOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // the test should return the join of all states reachable from 0
         reachedset shouldBe setOf(IntegerAbstractState(10))
@@ -114,8 +114,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeJoinOperator,
                 stopAlwaysOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // the algorithm iterates until the join of the newly reached state with previous reached states converges
         reachedset shouldBe setOf(IntegerAbstractState(10))
@@ -130,8 +130,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeSepOperator,
                 stopAlwaysOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // since merging does not generate a new state, the newly reached states are not added because of always stopping
         reachedset shouldBe setOf(IntegerAbstractState(0))
@@ -145,8 +145,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeJoinOperator,
                 stopAlwaysOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // if there were no reached states, there is nothing we can add as the result of the join
         reachedset shouldBe setOf()
@@ -163,8 +163,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeSepOperator,
                 stopSepOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // 20 covers all reachable states from 0, hence the reached set remains the same
         reachedset shouldBe setOf(IntegerAbstractState(20))
@@ -179,8 +179,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeSepOperator,
                 stopSepOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // here, the algorithm runs until 10 is reached as it covers all other reachable states
         reachedset shouldBe setOf(
@@ -189,7 +189,7 @@ class CpaAlgorithmTest : FreeSpec({
             IntegerAbstractState(4),
             IntegerAbstractState(6),
             IntegerAbstractState(8),
-            IntegerAbstractState(10)
+            IntegerAbstractState(10),
         )
     }
 
@@ -204,8 +204,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // 20 covers all other states but is not equal to them, hence the reached set is updated until it converges in the common meaning
         reachedset shouldBe setOf(
@@ -214,7 +214,7 @@ class CpaAlgorithmTest : FreeSpec({
             IntegerAbstractState(6),
             IntegerAbstractState(8),
             IntegerAbstractState(10),
-            IntegerAbstractState(20)
+            IntegerAbstractState(20),
         )
 
         waitlist.clear()
@@ -227,8 +227,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist)
         // here, the result coincides with the stopSepOperator because there is no state covering others but unequal to them
         reachedset shouldBe setOf(
@@ -237,7 +237,7 @@ class CpaAlgorithmTest : FreeSpec({
             IntegerAbstractState(4),
             IntegerAbstractState(6),
             IntegerAbstractState(8),
-            IntegerAbstractState(10)
+            IntegerAbstractState(10),
         )
     }
 
@@ -253,8 +253,8 @@ class CpaAlgorithmTest : FreeSpec({
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,
-                precisionAdjustment
-            )
+                precisionAdjustment,
+            ),
         ).run(reachedset, waitlist, abortOperator)
         // the test should return all states reachable from 0
         reachedset shouldBe setOf()

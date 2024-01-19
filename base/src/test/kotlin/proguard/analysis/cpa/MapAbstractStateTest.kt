@@ -31,7 +31,7 @@ class MapAbstractStateTest : FreeSpec({
     listOf(
         { HashMapAbstractState<Int, IntegerAbstractState>() },
         { DifferentialMapAbstractState() },
-        { LimitedHashMapAbstractState { _, _, _ -> Optional.empty() } }
+        { LimitedHashMapAbstractState { _, _, _ -> Optional.empty() } },
     ).forEach { supplier ->
 
         val stateEmpty = supplier.invoke()
@@ -62,7 +62,7 @@ class MapAbstractStateTest : FreeSpec({
             state1.join(state2) shouldBe mapOf(
                 1 to IntegerAbstractState(1),
                 2 to IntegerAbstractState(5),
-                3 to IntegerAbstractState(3)
+                3 to IntegerAbstractState(3),
             )
         }
 

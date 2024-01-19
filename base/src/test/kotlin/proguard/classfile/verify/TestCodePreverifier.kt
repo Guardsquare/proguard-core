@@ -51,9 +51,9 @@ class TestCodePreverifier : FreeSpec({
                          System.out.println(test);
                      }
                  }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
         "Then the local variable should be correct" {
@@ -63,7 +63,7 @@ class TestCodePreverifier : FreeSpec({
                     method: Method,
                     codeAttribute: CodeAttribute,
                     offset: Int,
-                    verificationType: VerificationType
+                    verificationType: VerificationType,
                 ) {
                 }
             })
@@ -71,9 +71,9 @@ class TestCodePreverifier : FreeSpec({
             programClassPool.classesAccept(
                 AllMethodVisitor(
                     AllAttributeVisitor(
-                        CodePreverifier(false)
-                    )
-                )
+                        CodePreverifier(false),
+                    ),
+                ),
             )
 
             programClassPool.classesAccept(
@@ -90,7 +90,8 @@ class TestCodePreverifier : FreeSpec({
 
                         override fun visitCodeAttribute(clazz: Clazz, method: Method, codeAttribute: CodeAttribute) {
                             codeAttribute.attributesAccept(
-                                clazz, method,
+                                clazz,
+                                method,
                                 object : AttributeVisitor {
                                     override fun visitAnyAttribute(clazz: Clazz, attribute: Attribute) {
                                     }
@@ -99,7 +100,7 @@ class TestCodePreverifier : FreeSpec({
                                         clazz: Clazz,
                                         method: Method,
                                         codeAttribute: CodeAttribute,
-                                        stackMapTableAttribute: StackMapTableAttribute
+                                        stackMapTableAttribute: StackMapTableAttribute,
                                     ) {
                                         stackMapTableAttribute.stackMapFramesAccept(
                                             clazz,
@@ -111,7 +112,7 @@ class TestCodePreverifier : FreeSpec({
                                                     method: Method,
                                                     codeAttribute: CodeAttribute,
                                                     offset: Int,
-                                                    stackMapFrame: StackMapFrame
+                                                    stackMapFrame: StackMapFrame,
                                                 ) {
                                                 }
 
@@ -120,24 +121,24 @@ class TestCodePreverifier : FreeSpec({
                                                     method: Method,
                                                     codeAttribute: CodeAttribute,
                                                     offset: Int,
-                                                    moreZeroFrame: MoreZeroFrame
+                                                    moreZeroFrame: MoreZeroFrame,
                                                 ) {
                                                     moreZeroFrame.additionalVariablesAccept(
                                                         clazz,
                                                         method,
                                                         codeAttribute,
                                                         offset,
-                                                        verificationTypeVisitor
+                                                        verificationTypeVisitor,
                                                     )
                                                 }
-                                            }
+                                            },
                                         )
                                     }
-                                }
+                                },
                             )
                         }
-                    }
-                )
+                    },
+                ),
             )
             verify {
                 val clazz = programClassPool.getClass("Test")
@@ -148,7 +149,7 @@ class TestCodePreverifier : FreeSpec({
                     ofType<Int>(),
                     withArg {
                         clazz.getClassName(it.u2classIndex) shouldBe "[Ljava/lang/Object;"
-                    }
+                    },
                 )
             }
         }
@@ -170,9 +171,9 @@ class TestCodePreverifier : FreeSpec({
                          System.out.println(test);
                      }
                  }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = listOf("-source", "1.8", "-target", "1.8")
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
         "Then the local variable should be correct" {
             val verificationTypeVisitor = spyk(object : VerificationTypeVisitor {
@@ -181,7 +182,7 @@ class TestCodePreverifier : FreeSpec({
                     method: Method,
                     codeAttribute: CodeAttribute,
                     offset: Int,
-                    verificationType: VerificationType
+                    verificationType: VerificationType,
                 ) {
                 }
             })
@@ -189,9 +190,9 @@ class TestCodePreverifier : FreeSpec({
             programClassPool.classesAccept(
                 AllMethodVisitor(
                     AllAttributeVisitor(
-                        CodePreverifier(false)
-                    )
-                )
+                        CodePreverifier(false),
+                    ),
+                ),
             )
 
             programClassPool.classesAccept(
@@ -208,7 +209,8 @@ class TestCodePreverifier : FreeSpec({
 
                         override fun visitCodeAttribute(clazz: Clazz, method: Method, codeAttribute: CodeAttribute) {
                             codeAttribute.attributesAccept(
-                                clazz, method,
+                                clazz,
+                                method,
                                 object : AttributeVisitor {
                                     override fun visitAnyAttribute(clazz: Clazz, attribute: Attribute) {
                                     }
@@ -217,7 +219,7 @@ class TestCodePreverifier : FreeSpec({
                                         clazz: Clazz,
                                         method: Method,
                                         codeAttribute: CodeAttribute,
-                                        stackMapTableAttribute: StackMapTableAttribute
+                                        stackMapTableAttribute: StackMapTableAttribute,
                                     ) {
                                         stackMapTableAttribute.stackMapFramesAccept(
                                             clazz,
@@ -229,7 +231,7 @@ class TestCodePreverifier : FreeSpec({
                                                     method: Method,
                                                     codeAttribute: CodeAttribute,
                                                     offset: Int,
-                                                    stackMapFrame: StackMapFrame
+                                                    stackMapFrame: StackMapFrame,
                                                 ) {
                                                 }
 
@@ -238,24 +240,24 @@ class TestCodePreverifier : FreeSpec({
                                                     method: Method,
                                                     codeAttribute: CodeAttribute,
                                                     offset: Int,
-                                                    moreZeroFrame: MoreZeroFrame
+                                                    moreZeroFrame: MoreZeroFrame,
                                                 ) {
                                                     moreZeroFrame.additionalVariablesAccept(
                                                         clazz,
                                                         method,
                                                         codeAttribute,
                                                         offset,
-                                                        verificationTypeVisitor
+                                                        verificationTypeVisitor,
                                                     )
                                                 }
-                                            }
+                                            },
                                         )
                                     }
-                                }
+                                },
                             )
                         }
-                    }
-                )
+                    },
+                ),
             )
             verify {
                 val clazz = programClassPool.getClass("Test")
@@ -266,7 +268,7 @@ class TestCodePreverifier : FreeSpec({
                     ofType<Int>(),
                     withArg {
                         clazz.getClassName(it.u2classIndex) shouldBe "[I"
-                    }
+                    },
                 )
             }
         }

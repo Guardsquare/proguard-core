@@ -11,7 +11,7 @@ class ArrayIndexOutOfBoundsOnTypeTest : FreeSpec({
     "Array index out of bounds on type test" - {
         val smali = getSmaliResource("bb-5-ArrayIndexOutOfBoundsOnType.smali")
         val (programClassPool, _) = ClassPoolBuilder.fromSmali(
-            SmaliSource(smali.name, smali.readText())
+            SmaliSource(smali.name, smali.readText()),
         )
         val testClass = programClassPool.getClass("i")
 

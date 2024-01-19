@@ -54,8 +54,8 @@ class ProguardAssemblerTest : FreeSpec({
             }
 
         }
-        """
-            )
+        """,
+            ),
         )
         "When the ClassPool object is created" - {
             programClassPool.shouldNotBeNull()

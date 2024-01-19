@@ -14,7 +14,7 @@ class EmptyTryCatchWithGotoHeadTest : FreeSpec({
     "Empty Try Catch With Goto Head test" - {
         val smali = getSmaliResource("empty-try-catch-with-goto-head.smali")
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(
-            SmaliSource(smali.name, smali.readText())
+            SmaliSource(smali.name, smali.readText()),
         )
         val testClass = programClassPool.getClass("etcwgh")
         val testMethod = testClass.findMethod("aaa", "(F)V")

@@ -16,8 +16,8 @@ class MLTest : FreeSpec({
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSmali(
             SmaliSource(
                 smali.name,
-                smali.readText()
-            )
+                smali.readText(),
+            ),
         )
 
         val testClass = programClassPool.getClass("ML")

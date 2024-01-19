@@ -37,17 +37,20 @@ class ClassReferenceInitializerJavaRecordTest : FreeSpec({
                 "Record.java",
                 """
                 public record Record<K>(Key<K> key) {}
-                """.trimIndent()
+                """.trimIndent(),
             ),
             JavaSource(
                 "Key.java",
                 """
                 public interface Key<T> {}
-                """.trimIndent()
+                """.trimIndent(),
             ),
             initialize = false,
-            javacArguments = if (currentJavaVersion == 15)
-                listOf("--enable-preview", "--release", "15") else emptyList()
+            javacArguments = if (currentJavaVersion == 15) {
+                listOf("--enable-preview", "--release", "15")
+            } else {
+                emptyList()
+            },
         )
 
         val recordClazz = programClassPool.getClass("Record")
@@ -67,7 +70,7 @@ class ClassReferenceInitializerJavaRecordTest : FreeSpec({
                     recordClazz,
                     withArg {
                         it.getSignature(recordClazz) shouldBe "<K:Ljava/lang/Object;>Ljava/lang/Record;"
-                    }
+                    },
                 )
 
                 // The record component attribute should be visited.
@@ -76,7 +79,7 @@ class ClassReferenceInitializerJavaRecordTest : FreeSpec({
                     ofType<RecordComponentInfo>(),
                     withArg {
                         it.getSignature(recordClazz) shouldBe "LKey<TK;>;"
-                    }
+                    },
                 )
             }
 
@@ -88,7 +91,7 @@ class ClassReferenceInitializerJavaRecordTest : FreeSpec({
                     recordClazz,
                     withArg {
                         it.getSignature(recordClazz) shouldBe "LKey<TK;>;"
-                    }
+                    },
                 )
             }
         }

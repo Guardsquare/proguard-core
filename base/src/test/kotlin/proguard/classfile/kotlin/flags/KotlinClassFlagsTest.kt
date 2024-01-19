@@ -31,8 +31,8 @@ class KotlinClassFlagsTest : FreeSpec({
             annotation class AnnotationClass
             object ObjectClass
             fun interface funInterfaceClass { fun invoke() }
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     include(
@@ -54,7 +54,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -76,7 +76,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -98,7 +98,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -120,7 +120,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -142,7 +142,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -164,7 +164,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -186,7 +186,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -208,7 +208,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     // TODO EnumEntry
@@ -232,7 +232,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -254,7 +254,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     include(
@@ -276,7 +276,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     // TODO isExpect
@@ -292,9 +292,9 @@ class KotlinClassFlagsTest : FreeSpec({
                         print("bar")
                     }
                 }
-            """.trimIndent()
+            """.trimIndent(),
         ),
-        kotlincArguments = listOf("-Xjvm-default=all")
+        kotlincArguments = listOf("-Xjvm-default=all"),
     )
 
     include(
@@ -316,7 +316,7 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe true
             it.isCompiledInCompatibilityMode shouldBe false
-        }
+        },
     )
 
     val (allCompatibilityJvmClassFlagTestPool, _) = ClassPoolBuilder.fromSource(
@@ -328,9 +328,9 @@ class KotlinClassFlagsTest : FreeSpec({
                         print("bar")
                     }
                 }
-            """.trimIndent()
+            """.trimIndent(),
         ),
-        kotlincArguments = listOf("-Xjvm-default=all-compatibility")
+        kotlincArguments = listOf("-Xjvm-default=all-compatibility"),
     )
 
     include(
@@ -352,12 +352,11 @@ class KotlinClassFlagsTest : FreeSpec({
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe true
             it.isCompiledInCompatibilityMode shouldBe true
-        }
+        },
     )
 })
 
 internal fun testClassFlags(clazz: Clazz, flags: (KotlinClassFlags) -> Unit) = funSpec {
-
     test("${clazz.name} flags should be initialized correctly") {
         val kotlinClassVisitor = spyk<KotlinMetadataVisitor>()
         clazz.accept(ReferencedKotlinMetadataVisitor(kotlinClassVisitor))
@@ -365,7 +364,7 @@ internal fun testClassFlags(clazz: Clazz, flags: (KotlinClassFlags) -> Unit) = f
         verify {
             kotlinClassVisitor.visitKotlinClassMetadata(
                 clazz,
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }
@@ -377,7 +376,7 @@ internal fun testClassFlags(clazz: Clazz, flags: (KotlinClassFlags) -> Unit) = f
         verify {
             kotlinClassVisitor.visitKotlinClassMetadata(
                 clazz,
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }

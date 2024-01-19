@@ -36,7 +36,6 @@ import java.io.File
 
 @ExperimentalCli
 fun main(args: Array<String>) {
-
     val parser = ArgParser("proguard-core-tools")
 
     class ListCmd : Subcommand("list", "List classes, methods & fields") {
@@ -46,7 +45,7 @@ fun main(args: Array<String>) {
             ArgType.String,
             description = "Class name filter",
             shortName = "cf",
-            fullName = "classNameFilter"
+            fullName = "classNameFilter",
         ).default("**")
         val programClassPool: ClassPool by lazy { read(input, classNameFilter, false) }
 
@@ -103,8 +102,8 @@ fun main(args: Array<String>) {
                         externalFullFieldDescription(
                             programField.accessFlags,
                             programField.getName(programClass),
-                            programField.getDescriptor(programClass)
-                        )
+                            programField.getDescriptor(programClass),
+                        ),
                 )
             }
 
@@ -114,8 +113,8 @@ fun main(args: Array<String>) {
                         programClass.name,
                         programMethod.accessFlags,
                         programMethod.getName(programClass),
-                        programMethod.getDescriptor(programClass)
-                    )
+                        programMethod.getDescriptor(programClass),
+                    ),
                 )
             }
         }
@@ -128,7 +127,7 @@ fun main(args: Array<String>) {
             ArgType.String,
             description = "Class name filter",
             shortName = "cf",
-            fullName = "classNameFilter"
+            fullName = "classNameFilter",
         ).default("**")
         val programClassPool: ClassPool by lazy { read(input, classNameFilter, false) }
 
@@ -152,19 +151,19 @@ fun main(args: Array<String>) {
             ArgType.String,
             description = "Output file name",
             shortName = "o",
-            fullName = "output"
+            fullName = "output",
         ).required()
         var classNameFilter by option(
             ArgType.String,
             description = "Class name filter",
             shortName = "cf",
-            fullName = "classNameFilter"
+            fullName = "classNameFilter",
         ).default("**")
         var forceOverwrite by option(
             ArgType.Boolean,
             description = "Force file overwriting",
             shortName = "f",
-            fullName = "force"
+            fullName = "force",
         ).default(false)
 
         override fun execute() {
@@ -194,31 +193,35 @@ fun main(args: Array<String>) {
 fun read(
     filename: String,
     classNameFilter: String,
-    isLibrary: Boolean
+    isLibrary: Boolean,
 ): ClassPool = IOUtil.read(
     ClassPath(ClassPathEntry(File(filename), false)),
-    classNameFilter, true, isLibrary, false, false, false
+    classNameFilter,
+    true,
+    isLibrary,
+    false,
+    false,
+    false,
 ) { dataEntryReader, classPoolFiller ->
     val dexReader = NameFilteredDataEntryReader(
         "classes*.dex",
         DexClassReader(
             true,
-            classPoolFiller
+            classPoolFiller,
         ),
-        dataEntryReader
+        dataEntryReader,
     )
     NameFilteredDataEntryReader(
         "**.smali",
         Smali2DexReader(
-            (dexReader)
+            (dexReader),
         ),
-        dexReader
+        dexReader,
     )
 }
 
 class Smali2DexReader(private val delegate: DataEntryReader) : DataEntryReader {
     override fun read(dataEntry: DataEntry) {
-
         val options = SmaliOptions()
         val dexFile = File.createTempFile("classes", ".dex")
         options.outputDexFile = dexFile.absolutePath

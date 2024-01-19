@@ -18,8 +18,8 @@ class TestMonitorConstantInlining : FreeSpec({
             val (pcp, _) = ClassPoolBuilder.fromSmali(
                 SmaliSource(
                     smali.name,
-                    smali.readText()
-                )
+                    smali.readText(),
+                ),
             )
 
             "Then the resulting classpool should not be null" {

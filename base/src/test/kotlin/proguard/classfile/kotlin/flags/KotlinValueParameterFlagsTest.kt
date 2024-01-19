@@ -50,8 +50,8 @@ class KotlinValueParameterFlagsTest : FreeSpec({
              @Suppress("NOTHING_TO_INLINE")
              inline fun foo4(noinline noinlineVPWithDefault: () -> Unit = {}) = noinlineVPWithDefault
              inline fun foo5(crossinline crossinlineVPWithDefault: () -> Unit = {}) = crossinlineVPWithDefault()
-            """
-        )
+            """,
+        ),
     )
 
     include(
@@ -62,7 +62,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -73,7 +73,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -84,7 +84,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -95,7 +95,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isCrossInline") { it.isCrossInline shouldBe true }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -106,7 +106,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 
     include(
@@ -117,7 +117,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isCrossInline") { it.isCrossInline shouldBe true }
 
             withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
-        }
+        },
     )
 })
 
@@ -125,12 +125,11 @@ private fun createVisitor(valueParameterName: String, valueParameterVisitor: Kot
     AllValueParameterVisitor(
         KotlinValueParameterFilter(
             Predicate { it.parameterName == valueParameterName },
-            valueParameterVisitor
-        )
+            valueParameterVisitor,
+        ),
     )
 
 private fun testValueParameterFlags(clazz: Clazz, propName: String, flags: (KotlinValueParameterFlags) -> Unit) = funSpec {
-
     test("Then $propName flags should be initialized correctly") {
         val propertyVisitor = spyk<KotlinValueParameterVisitor>()
         clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(propName, propertyVisitor)))
@@ -138,7 +137,7 @@ private fun testValueParameterFlags(clazz: Clazz, propName: String, flags: (Kotl
         verify {
             propertyVisitor.visitAnyValueParameter(
                 clazz,
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }
@@ -150,7 +149,7 @@ private fun testValueParameterFlags(clazz: Clazz, propName: String, flags: (Kotl
         verify {
             propertyVisitor.visitAnyValueParameter(
                 clazz,
-                withArg { flags.invoke(it.flags) }
+                withArg { flags.invoke(it.flags) },
             )
         }
     }

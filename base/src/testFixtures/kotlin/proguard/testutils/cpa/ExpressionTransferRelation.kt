@@ -38,15 +38,15 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
 
     override fun calculateArithmeticInstruction(
         instruction: Instruction,
-        operands: MutableList<ExpressionAbstractState>
+        operands: MutableList<ExpressionAbstractState>,
     ): ExpressionAbstractState {
         return ExpressionAbstractState(
             setOf(
                 InstructionExpression(
                     instruction,
-                    operands
-                )
-            )
+                    operands,
+                ),
+            ),
         )
     }
 
@@ -55,16 +55,16 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
             setOf(
                 InstructionExpression(
                     VariableInstruction(Instruction.OP_IINC, 0, value),
-                    listOf(state)
-                )
-            )
+                    listOf(state),
+                ),
+            ),
         )
     }
 
     override fun getAbstractDoubleConstant(d: Double): MutableList<ExpressionAbstractState> {
         return mutableListOf(
             abstractDefault,
-            ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(d))))
+            ExpressionAbstractState(setOf(ValueExpression(ParticularDoubleValue(d)))),
         )
     }
 
@@ -79,7 +79,7 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
     override fun getAbstractLongConstant(l: Long): MutableList<ExpressionAbstractState> {
         return mutableListOf(
             abstractDefault,
-            ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(l))))
+            ExpressionAbstractState(setOf(ValueExpression(ParticularLongValue(l)))),
         )
     }
 
@@ -92,10 +92,10 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
                         null,
                         null,
                         0,
-                        null
-                    )
-                )
-            )
+                        null,
+                    ),
+                ),
+            ),
         )
     }
 
@@ -106,7 +106,7 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
     override fun invokeMethod(
         state: JvmAbstractState<ExpressionAbstractState>,
         call: Call,
-        operands: MutableList<ExpressionAbstractState>
+        operands: MutableList<ExpressionAbstractState>,
     ) {
         when (ClassUtil.internalTypeSize(call.target.descriptor.returnType ?: "?")) {
             0 -> return
@@ -116,11 +116,11 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
                         setOf(
                             MethodExpression(
                                 call.target.fqn ?: "?",
-                                operands
-                            )
-                        )
-                    )
-                )
+                                operands,
+                            ),
+                        ),
+                    ),
+                ),
             )
             else -> state.pushAll(
                 mutableListOf(
@@ -129,11 +129,11 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
                         setOf(
                             MethodExpression(
                                 call.target.fqn ?: "?",
-                                operands
-                            )
-                        )
-                    )
-                )
+                                operands,
+                            ),
+                        ),
+                    ),
+                ),
             )
         }
     }

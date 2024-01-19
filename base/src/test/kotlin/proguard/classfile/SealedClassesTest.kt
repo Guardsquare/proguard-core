@@ -48,10 +48,13 @@ class SealedClassesTest : FreeSpec({
                 final class A extends Test {}
                 final class B extends Test {}
                 final class C extends Test {}
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            javacArguments = if (currentJavaVersion == 15 || currentJavaVersion == 16)
-                listOf("--enable-preview", "--release", "$currentJavaVersion") else emptyList()
+            javacArguments = if (currentJavaVersion == 15 || currentJavaVersion == 16) {
+                listOf("--enable-preview", "--release", "$currentJavaVersion")
+            } else {
+                emptyList()
+            },
         )
 
         val clazz = programClassPool.getClass("Test")
@@ -74,9 +77,9 @@ class SealedClassesTest : FreeSpec({
                             override fun visitPermittedSubclassesAttribute(clazz: Clazz, permittedSubclassesAttribute: PermittedSubclassesAttribute) {
                                 permittedSubclassesAttribute.permittedSubclassConstantsAccept(clazz, permittedClassVisitor)
                             }
-                        }
-                    )
-                )
+                        },
+                    ),
+                ),
             )
 
             val permittedSubclasses = mutableListOf<ClassConstant>()
@@ -84,14 +87,14 @@ class SealedClassesTest : FreeSpec({
             verify(exactly = 3) {
                 permittedClassVisitor.visitClassConstant(
                     clazz,
-                    capture(permittedSubclasses)
+                    capture(permittedSubclasses),
                 )
             }
 
             permittedSubclasses.map { it.referencedClass }.shouldExistInOrder(
                 { it == programClassPool.getClass("A") },
                 { it == programClassPool.getClass("B") },
-                { it == programClassPool.getClass("C") }
+                { it == programClassPool.getClass("C") },
             )
         }
     }

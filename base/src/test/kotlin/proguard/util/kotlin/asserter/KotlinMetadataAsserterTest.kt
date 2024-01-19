@@ -38,8 +38,8 @@ class KotlinMetadataAsserterTest : FreeSpec({
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the KotlinMetadataAsserter is run" - {
@@ -55,7 +55,7 @@ class KotlinMetadataAsserterTest : FreeSpec({
                 verify(exactly = 1) {
                     visitor.visitKotlinClassMetadata(
                         programClassPool.getClass("Test"),
-                        ofType<KotlinClassKindMetadata>()
+                        ofType<KotlinClassKindMetadata>(),
                     )
                 }
             }
@@ -72,8 +72,8 @@ class KotlinMetadataAsserterTest : FreeSpec({
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the KotlinMetadataAsserter is run" - {
@@ -91,7 +91,7 @@ class KotlinMetadataAsserterTest : FreeSpec({
                 verify(exactly = 0) {
                     visitor.visitKotlinClassMetadata(
                         programClassPool.getClass("Test"),
-                        ofType<KotlinClassKindMetadata>()
+                        ofType<KotlinClassKindMetadata>(),
                     )
                 }
             }
@@ -108,9 +108,9 @@ class KotlinMetadataAsserterTest : FreeSpec({
                         println("DEFAULT")
                     }
                 }
-                """.trimIndent()
+                """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xjvm-default=all")
+            kotlincArguments = listOf("-Xjvm-default=all"),
         )
 
         "When the KotlinMetadataAsserter is run" - {
@@ -124,7 +124,7 @@ class KotlinMetadataAsserterTest : FreeSpec({
                 verify(exactly = 1) {
                     visitor.visitKotlinClassMetadata(
                         programClassPool.getClass("Test"),
-                        ofType<KotlinClassKindMetadata>()
+                        ofType<KotlinClassKindMetadata>(),
                     )
                 }
             }
@@ -140,8 +140,8 @@ class KotlinMetadataAsserterTest : FreeSpec({
                     CENTER,
                     BOTTOM
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the referencedEnumEntries are set to null" - {
@@ -151,11 +151,11 @@ class KotlinMetadataAsserterTest : FreeSpec({
 
                     override fun visitKotlinClassMetadata(
                         clazz: Clazz?,
-                        kotlinClassKindMetadata: KotlinClassKindMetadata?
+                        kotlinClassKindMetadata: KotlinClassKindMetadata?,
                     ) {
                         kotlinClassKindMetadata?.referencedEnumEntries = listOf(null, null)
                     }
-                }
+                },
             )
             programClassPool.classesAccept("Test") {
                 it.kotlinMetadataAccept(visitor)
@@ -177,14 +177,14 @@ class KotlinMetadataAsserterTest : FreeSpec({
                 "ATest.kt",
                 """
                 class ATest : MyAlias()
-                """.trimIndent()
+                """.trimIndent(),
             ),
             KotlinSource(
                 "FileFacade.kt",
                 """
                  typealias MyAlias = Exception
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "When the library class has no metadata" - {

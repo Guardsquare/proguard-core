@@ -36,7 +36,7 @@ class MultiTypeTest : FreeSpec({
     public class Super {
         public void call() {}
     }
-    """
+    """,
     )
     val codeRemovedSuper = JavaSource(
         "RemovedSuper.java",
@@ -44,7 +44,7 @@ class MultiTypeTest : FreeSpec({
     public class RemovedSuper {
         public void call() {}
     }
-    """
+    """,
     )
     val codeA = JavaSource(
         "A.java",
@@ -53,7 +53,7 @@ class MultiTypeTest : FreeSpec({
         @Override
         public void call() {}
     }
-    """
+    """,
     )
     val codeB = JavaSource(
         "B.java",
@@ -62,7 +62,7 @@ class MultiTypeTest : FreeSpec({
         @Override
         public void call() {}
     }
-    """
+    """,
     )
     val codeC = JavaSource(
         "C.java",
@@ -71,7 +71,7 @@ class MultiTypeTest : FreeSpec({
         @Override
         public void call() {}
     }
-    """
+    """,
     )
     val codeTarget = JavaSource(
         "Target.java",
@@ -125,7 +125,7 @@ class MultiTypeTest : FreeSpec({
             A a = array[3];
         }
     }
-    """
+    """,
     )
     val (classPool, _) = ClassPoolBuilder.fromSource(
         codeSuper,
@@ -135,7 +135,7 @@ class MultiTypeTest : FreeSpec({
         codeC,
         codeTarget,
         javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"),
-        initialize = false
+        initialize = false,
     )
     classPool.removeClass("RemovedSuper")
     ClassPoolBuilder.initialize(classPool, false)
@@ -147,7 +147,7 @@ class MultiTypeTest : FreeSpec({
                 "exact",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
             val (methodEnd, _) = instructions.last()
 
@@ -162,7 +162,7 @@ class MultiTypeTest : FreeSpec({
                 "ternary",
                 "(Z)V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
             val (methodEnd, _) = instructions.last()
 
@@ -184,7 +184,7 @@ class MultiTypeTest : FreeSpec({
                     "noSuperClass",
                     "(Z)V",
                     classPool,
-                    partialEvaluator
+                    partialEvaluator,
                 )
             }
 
@@ -201,7 +201,7 @@ class MultiTypeTest : FreeSpec({
                 "noSuperClass",
                 "(Z)V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
             val (methodEnd, _) = instructions.last()
             val s = partialEvaluator.getVariablesBefore(methodEnd)
@@ -217,7 +217,7 @@ class MultiTypeTest : FreeSpec({
                 "ifElse",
                 "(Z)V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
             val (methodEnd, _) = instructions.last()
 
@@ -233,7 +233,7 @@ class MultiTypeTest : FreeSpec({
                 "switchStmt",
                 "(Ljava/lang/String;)V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
             val (methodEnd, _) = instructions.last()
 
@@ -249,7 +249,7 @@ class MultiTypeTest : FreeSpec({
                 "array",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
             val (methodEnd, _) = instructions.last()
 
@@ -275,7 +275,7 @@ class MultiTypeTest : FreeSpec({
             "LSuper;",
             classPool.getClass("Super"),
             false,
-            false
+            false,
         )
         val multiSuper = MultiTypedReferenceValue(superClass, false)
 
@@ -283,7 +283,7 @@ class MultiTypeTest : FreeSpec({
             "LA;",
             classPool.getClass("A"),
             false,
-            false
+            false,
         )
         val multiA = MultiTypedReferenceValue(a, false)
 
@@ -291,7 +291,7 @@ class MultiTypeTest : FreeSpec({
             "LB;",
             classPool.getClass("B"),
             false,
-            false
+            false,
         )
         val multiB = MultiTypedReferenceValue(b, false)
 
@@ -299,7 +299,7 @@ class MultiTypeTest : FreeSpec({
             "[LA;",
             classPool.getClass("A"),
             false,
-            false
+            false,
         )
         val multiArrayA = MultiTypedReferenceValue(arrayA, false)
 
@@ -416,7 +416,7 @@ class MultiTypeTest : FreeSpec({
             "Handle array dereference" {
                 val dereferenced = multiArrayA.referenceArrayLoad(
                     ParticularIntegerValue(42),
-                    valueFactory
+                    valueFactory,
                 ) as MultiTypedReferenceValue
 
                 dereferenced.type shouldBe "LA;"
@@ -425,7 +425,7 @@ class MultiTypeTest : FreeSpec({
                 val referenced = valueFactory.createArrayReferenceValue(
                     "LA;",
                     classPool.getClass("A"),
-                    ParticularIntegerValue(42)
+                    ParticularIntegerValue(42),
                 ) as MultiTypedReferenceValue
 
                 referenced.type shouldBe "[LA;"
@@ -448,13 +448,13 @@ class MultiTypeTest : FreeSpec({
                     superClass.type,
                     superClass.referencedClass,
                     valueFactory,
-                    true
+                    true,
                 ) shouldBe multiA
                 multiB.cast(
                     superClass.type,
                     superClass.referencedClass,
                     valueFactory,
-                    true
+                    true,
                 ) shouldBe multiB
             }
             "Downcasting overrides type" {
@@ -462,13 +462,13 @@ class MultiTypeTest : FreeSpec({
                     a.type,
                     a.referencedClass,
                     valueFactory,
-                    true
+                    true,
                 ) shouldBe multiA
                 multiSuper.cast(
                     b.type,
                     b.referencedClass,
                     valueFactory,
-                    true
+                    true,
                 ) shouldBe multiB
             }
         }

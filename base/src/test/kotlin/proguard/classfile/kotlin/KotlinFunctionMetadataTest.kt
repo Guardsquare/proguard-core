@@ -36,7 +36,7 @@ class KotlinFunctionMetadataTest : FreeSpec({
 
     "Given a Kotlin function" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent())
+            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent()),
         )
 
         val memberVisitor = spyk<MemberVisitor>(object : MemberVisitor {
@@ -50,7 +50,7 @@ class KotlinFunctionMetadataTest : FreeSpec({
                 override fun visitAnyFunction(clazz: Clazz, metadata: KotlinMetadata, func: KotlinFunctionMetadata) {
                     func.referencedMethodAccept(clazz, memberVisitor)
                 }
-            })
+            }),
         )
 
         "Then a member visitor should visit the referenced method" {
@@ -60,7 +60,7 @@ class KotlinFunctionMetadataTest : FreeSpec({
                     withArg {
                         it.getName(programClass) shouldBe "foo"
                         it.getDescriptor(programClass) shouldBe "()Ljava/lang/String;"
-                    }
+                    },
                 )
             }
         }
@@ -68,7 +68,7 @@ class KotlinFunctionMetadataTest : FreeSpec({
 
     "Given a Kotlin function with an uninitialized referenced method" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
-            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent())
+            KotlinSource("Test.kt", """fun foo() = "bar"""".trimIndent()),
         )
 
         val programClass = programClassPool.getClass("TestKt") as ProgramClass
@@ -78,7 +78,7 @@ class KotlinFunctionMetadataTest : FreeSpec({
                 override fun visitAnyFunction(clazz: Clazz, metadata: KotlinMetadata, func: KotlinFunctionMetadata) {
                     func.referencedMethod = null
                 }
-            })
+            }),
         )
 
         "Then referencedMethodAccept should not throw an exception" {
@@ -92,7 +92,7 @@ class KotlinFunctionMetadataTest : FreeSpec({
                         override fun visitAnyFunction(clazz: Clazz, metadata: KotlinMetadata, func: KotlinFunctionMetadata) {
                             func.referencedMethodAccept(clazz, memberVisitor)
                         }
-                    })
+                    }),
                 )
             }
         }
@@ -108,7 +108,7 @@ class KotlinFunctionMetadataTest : FreeSpec({
                     withArg {
                         it.getName(programClass) shouldBe "foo"
                         it.getDescriptor(programClass) shouldBe "()Ljava/lang/String;"
-                    }
+                    },
                 )
             }
         }

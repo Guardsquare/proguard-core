@@ -47,8 +47,8 @@ class KotlinFunctionFlagsTest : FreeSpec({
             inline fun inlineFun() = "foo"
             suspend fun suspendFun() = "foo"
             tailrec fun tailrecFun(): String = tailrecFun()
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     "Given a normal function in a class" - {
@@ -64,7 +64,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isDeclaration shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -79,7 +79,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isDeclaration shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -98,7 +98,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isInline shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -113,7 +113,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isInline shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -132,7 +132,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isInfix shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -147,7 +147,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isInfix shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -166,7 +166,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isOperator shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -181,7 +181,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isOperator shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -200,7 +200,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isSuspend shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -215,7 +215,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isSuspend shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -234,7 +234,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isTailrec shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -249,7 +249,7 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isTailrec shouldBe true
-                    }
+                    },
                 )
             }
         }
@@ -264,6 +264,6 @@ class KotlinFunctionFlagsTest : FreeSpec({
 private fun createVisitor(funcVisitor: KotlinFunctionVisitor, name: String) = AllFunctionVisitor(
     KotlinFunctionFilter(
         Predicate { it.name == name },
-        funcVisitor
-    )
+        funcVisitor,
+    ),
 )

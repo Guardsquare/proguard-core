@@ -43,7 +43,7 @@ class DetailedArrayTest : FreeSpec({
                     array[1] = 2;
                 }
             }
-            """
+            """,
             )
 
             val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -53,7 +53,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayTest",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             /*
@@ -96,7 +96,7 @@ class DetailedArrayTest : FreeSpec({
                             array[1] = 102;
                         }
                     }
-                    """
+                    """,
             )
 
             val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -106,7 +106,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayTest",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
             /*
                 [8]  =>  (11, iconst_1)
@@ -157,7 +157,7 @@ class DetailedArrayTest : FreeSpec({
                     array[1] = "2";
                 }
             }
-            """
+            """,
             )
 
             val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -167,7 +167,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayTest",
                 "(Z)V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (instruction, _) = instructions.last()
@@ -208,7 +208,7 @@ class DetailedArrayTest : FreeSpec({
                     array[1] = "2";
                 }
             }
-            """
+            """,
             )
 
             val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -218,7 +218,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayTest",
                 "(Z)V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             /*
@@ -291,7 +291,7 @@ class DetailedArrayTest : FreeSpec({
                     return 5;
                 }
             }
-            """
+            """,
             )
 
             val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -301,7 +301,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayTest",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (instruction, _) = instructions.last()
@@ -322,7 +322,7 @@ class DetailedArrayTest : FreeSpec({
                     array[2] = 42;
                 }
             }
-            """
+            """,
             )
 
             val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -332,7 +332,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayTest",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (instruction, _) = instructions.last()
@@ -353,7 +353,7 @@ class DetailedArrayTest : FreeSpec({
                     int number = array[2];
                 }
             }
-            """
+            """,
             )
 
             val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -363,7 +363,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayTest",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (instruction, _) = instructions.last()
@@ -394,9 +394,9 @@ class DetailedArrayTest : FreeSpec({
                         System.out.println(charArray);
                     }
                 }
-                """
+                """,
             ),
-            javacArguments = listOf("-source", "8", "-target", "8")
+            javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
         val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, DetailedArrayValueFactory())
@@ -444,7 +444,7 @@ class DetailedArrayTest : FreeSpec({
                 array[2] = 22;
             }
         }
-        """
+        """,
         )
 
         val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -455,7 +455,7 @@ class DetailedArrayTest : FreeSpec({
                 "arrayReferenceTest",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (aastoreInstruction, _) = instructions[26] // aastore
@@ -474,7 +474,11 @@ class DetailedArrayTest : FreeSpec({
 
         "IdentifiedArrayReference redefined in branch generalize looses id" {
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
-                "Test", "arrayReferenceRedefinedTest", "()V", classPool, partialEvaluator
+                "Test",
+                "arrayReferenceRedefinedTest",
+                "()V",
+                classPool,
+                partialEvaluator,
             )
 
             val (instruction, _) = instructions.last()

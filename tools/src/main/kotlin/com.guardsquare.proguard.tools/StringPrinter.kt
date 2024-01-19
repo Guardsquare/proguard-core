@@ -35,7 +35,7 @@ class StringPrinter :
                 ClassUtil.externalFullFieldDescription(
                     programField.u2accessFlags,
                     programField.getName(programClass),
-                    programField.getDescriptor(programClass)
+                    programField.getDescriptor(programClass),
                 )
             println(name)
             for (s in strings) println("    $s")
@@ -47,8 +47,8 @@ class StringPrinter :
         programMethod.attributesAccept(
             programClass,
             AllInstructionVisitor(
-                InstructionConstantVisitor(this)
-            )
+                InstructionConstantVisitor(this),
+            ),
         )
         if (strings.isNotEmpty()) {
             val name = ClassUtil.externalClassName(programClass.name) + " " +
@@ -56,7 +56,7 @@ class StringPrinter :
                     programClass.name,
                     programMethod.u2accessFlags,
                     programMethod.getName(programClass),
-                    programMethod.getDescriptor(programClass)
+                    programMethod.getDescriptor(programClass),
                 )
             println(name)
             for (s in strings) println("    $s")

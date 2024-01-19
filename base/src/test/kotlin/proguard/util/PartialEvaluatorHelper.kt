@@ -49,7 +49,6 @@ class PartialEvaluatorHelper {
         }
 
         fun collectInvocationsWithStack(clazz: ProgramClass, partialEvaluator: PartialEvaluator, codeAttribute: CodeAttribute): HashMap<Int, MethodWithStack> {
-
             val ret = HashMap<Int, MethodWithStack>()
 
             var offset = 0
@@ -92,7 +91,7 @@ class PartialEvaluatorHelper {
                     println(
                         "\t" + s.javaClass.simpleName +
                             "\t" + (if (s is ParticularReferenceValue) s.type else "") +
-                            "\t" + (if (s is ParticularReferenceValue) s.value()?.toString() else "")
+                            "\t" + (if (s is ParticularReferenceValue) s.value()?.toString() else ""),
                     )
                 }
             }
@@ -102,5 +101,5 @@ class PartialEvaluatorHelper {
 
 data class MethodWithStack(
     var methodSignature: String,
-    var stack: ArrayList<Value> = ArrayList()
+    var stack: ArrayList<Value> = ArrayList(),
 )

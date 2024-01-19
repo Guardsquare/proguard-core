@@ -34,10 +34,10 @@ class JvmTaintBamCpaRunTest : FreeSpec({
                         {
                         }
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 ),
-                javacArguments = listOf("-source", "1.8", "-target", "1.8")
-            ).programClassPool
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
         )
         val calleeSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("callee") }.findFirst().get().signature
         val location = interproceduralCfa.getFunctionNode(calleeSignature, 0)

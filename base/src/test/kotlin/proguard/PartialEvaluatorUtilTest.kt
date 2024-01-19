@@ -38,8 +38,8 @@ class PartialEvaluatorUtilTest : FreeSpec({
                             return
                     }
                 }
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         programClassPool.classAccept("Main") {
@@ -59,10 +59,10 @@ class PartialEvaluatorUtilTest : FreeSpec({
                                     attributesEditor.addAttribute(LocalVariableTableAttribute(index, 0, arrayOf()))
                                     attributesEditor.deleteAttribute(Attribute.LOCAL_VARIABLE_TABLE)
                                 }
-                            }
+                            },
                         )
                     }
-                }
+                },
             )
         }
 
@@ -74,12 +74,12 @@ class PartialEvaluatorUtilTest : FreeSpec({
             "test",
             "()V",
             programClassPool,
-            partialEvaluator
+            partialEvaluator,
         )
         instructions.map { it.second.opcode } shouldBe arrayOf(
             Instruction.OP_BIPUSH,
             Instruction.OP_ISTORE_0,
-            Instruction.OP_RETURN
+            Instruction.OP_RETURN,
         )
     }
 })

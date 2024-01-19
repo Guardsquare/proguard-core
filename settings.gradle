@@ -1,15 +1,15 @@
 pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == 'io.github.gradle-nexus.publish-plugin') {
-                useVersion '1.1.0'
-            }
-        }
-    }
+	resolutionStrategy {
+		eachPlugin {
+			if (requested.id.id == 'io.github.gradle-nexus.publish-plugin') {
+				useVersion '1.1.0'
+			}
+		}
+	}
 }
 
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+	id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
 rootProject.name = 'proguard-core-root'

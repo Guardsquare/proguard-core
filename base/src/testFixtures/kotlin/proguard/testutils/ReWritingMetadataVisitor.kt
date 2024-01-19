@@ -37,15 +37,14 @@ import proguard.classfile.visitor.MultiClassVisitor
  */
 class ReWritingMetadataVisitor(private vararg val visitors: KotlinMetadataVisitor) : ClassVisitor {
     override fun visitAnyClass(clazz: Clazz) {
-
         clazz.accept(
             MultiClassVisitor(
                 KotlinMetadataWriter { _, message -> println(message) },
                 KotlinMetadataInitializer { _, message -> println(message) },
                 ReferencedKotlinMetadataVisitor(
-                    MultiKotlinMetadataVisitor(*visitors)
-                )
-            )
+                    MultiKotlinMetadataVisitor(*visitors),
+                ),
+            ),
         )
     }
 }

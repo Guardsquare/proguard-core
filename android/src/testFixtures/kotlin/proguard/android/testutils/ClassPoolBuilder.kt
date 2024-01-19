@@ -25,15 +25,15 @@ fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {
             "classes*.dex",
             DexClassReader(
                 true,
-                classPoolFiller
+                classPoolFiller,
             ),
-            dataEntryReader
+            dataEntryReader,
         )
 
         NameFilteredDataEntryReader(
             "**.smali",
             Smali2DexReader(dexReader),
-            dexReader
+            dexReader,
         )
     }
     file.deleteOnExit()

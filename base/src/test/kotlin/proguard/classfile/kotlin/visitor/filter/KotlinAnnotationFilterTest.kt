@@ -54,8 +54,8 @@ class KotlinAnnotationFilterTest : FreeSpec({
                 val x: @MyTypeAnnotation String = "foo"
 
                 fun <@MyTypeParamAnnotation T> foo() = 42
-                """.trimIndent()
-            )
+                """.trimIndent(),
+            ),
         )
 
         "Then using a filter for a type alias annotation should visit only that annotation" {
@@ -66,10 +66,10 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     AllKotlinAnnotationVisitor(
                         KotlinAnnotationFilter(
                             Predicate { it.className == "MyTypeAliasAnnotation" },
-                            annotationVisitor
-                        )
-                    )
-                )
+                            annotationVisitor,
+                        ),
+                    ),
+                ),
             )
 
             verify {
@@ -78,7 +78,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     ofType<KotlinTypeAliasMetadata>(),
                     withArg {
                         it.className shouldBe "MyTypeAliasAnnotation"
-                    }
+                    },
                 )
             }
         }
@@ -91,10 +91,10 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     AllKotlinAnnotationVisitor(
                         KotlinAnnotationFilter(
                             Predicate { it.className == "MyTypeAnnotation" },
-                            annotationVisitor
-                        )
-                    )
-                )
+                            annotationVisitor,
+                        ),
+                    ),
+                ),
             )
 
             verify {
@@ -103,7 +103,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     ofType<KotlinTypeMetadata>(),
                     withArg {
                         it.className shouldBe "MyTypeAnnotation"
-                    }
+                    },
                 )
             }
         }
@@ -116,10 +116,10 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     AllKotlinAnnotationVisitor(
                         KotlinAnnotationFilter(
                             Predicate { it.className == "MyTypeParamAnnotation" },
-                            annotationVisitor
-                        )
-                    )
-                )
+                            annotationVisitor,
+                        ),
+                    ),
+                ),
             )
 
             verify {
@@ -128,7 +128,7 @@ class KotlinAnnotationFilterTest : FreeSpec({
                     ofType<KotlinTypeParameterMetadata>(),
                     withArg {
                         it.className shouldBe "MyTypeParamAnnotation"
-                    }
+                    },
                 )
             }
         }

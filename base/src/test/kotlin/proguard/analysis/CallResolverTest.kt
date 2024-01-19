@@ -41,80 +41,80 @@ class CallResolverTest : FreeSpec({
         MethodSignature(
             "Super",
             "test",
-            "()V"
+            "()V",
         )
     val SUPER_STATIC_TEST = MethodSignature(
         "Super",
         "staticTest",
-        "()V"
+        "()V",
     )
     val A_TEST =
         MethodSignature("A", "test", "()V")
     val A_STATIC_TEST = MethodSignature(
         "A",
         "staticTest",
-        "()V"
+        "()V",
     )
     val B_TEST =
         MethodSignature("B", "test", "()V")
     val B_STATIC_TEST = MethodSignature(
         "B",
         "staticTest",
-        "()V"
+        "()V",
     )
     val NOT_OVERRIDDEN_TEST =
         MethodSignature(
             "NotOverridden",
             "test",
-            "()V"
+            "()V",
         )
     val SUPERINTERFACE_DEFAULT_TEST =
         MethodSignature(
             "SuperInterface",
             "defaultTest",
-            "()V"
+            "()V",
         )
     val SUPERINTERFACE_ABSTRACT_TEST =
         MethodSignature(
             "SuperInterface",
             "abstractTest",
-            "()V"
+            "()V",
         )
     val SUBINTERFACE_DEFAULT_TEST =
         MethodSignature(
             "SubInterface",
             "defaultTest",
-            "()V"
+            "()V",
         )
     val NORMAL_IMPL_DEFAULT_TEST =
         MethodSignature(
             "NormalImplementor",
             "defaultTest",
-            "()V"
+            "()V",
         )
     val NORMAL_IMPL_ABSTRACT_TEST =
         MethodSignature(
             "NormalImplementor",
             "abstractTest",
-            "()V"
+            "()V",
         )
     val SUPER_IMPL_DEFAULT_TEST =
         MethodSignature(
             "SuperImplementor",
             "defaultTest",
-            "()V"
+            "()V",
         )
     val SUB_IMPL_DEFAULT_TEST =
         MethodSignature(
             "SubImplementor",
             "defaultTest",
-            "()V"
+            "()V",
         )
     val PRINTLN =
         MethodSignature(
             "java/io/PrintStream",
             "println",
-            "()V"
+            "()V",
         )
     val LAMBDA_FACTORY = MethodSignature(null, null, "()Ljava/util/function/Predicate;")
     val topLevel = Paths.get("src", "test", "resources", "callResolver", "hierarchy")
@@ -196,7 +196,7 @@ class CallResolverTest : FreeSpec({
         val caller = MethodSignature(
             "Main",
             "ambiguous",
-            "()V"
+            "()V",
         )
         caller shouldCall A_TEST andThrow MAYBE controlFlowDependent false typeDependent true
         caller shouldCall B_TEST andThrow MAYBE controlFlowDependent false typeDependent true
@@ -211,19 +211,19 @@ class CallResolverTest : FreeSpec({
             MethodSignature(
                 "Main",
                 "a",
-                "()V"
+                "()V",
             )
         val b =
             MethodSignature(
                 "Main",
                 "b",
-                "()V"
+                "()V",
             )
         val s =
             MethodSignature(
                 "Main",
                 "s",
-                "()V"
+                "()V",
             )
 
         a shouldCall A_TEST andThrow NEVER controlFlowDependent false typeDependent false
@@ -239,7 +239,7 @@ class CallResolverTest : FreeSpec({
         val caller = MethodSignature(
             "Main",
             "notOverridden",
-            "()V"
+            "()V",
         )
         caller shouldCall SUPER_TEST andThrow NEVER controlFlowDependent false typeDependent false
         caller shouldNotCall NOT_OVERRIDDEN_TEST
@@ -249,7 +249,7 @@ class CallResolverTest : FreeSpec({
         val caller = MethodSignature(
             "Main",
             "external",
-            "()V"
+            "()V",
         )
         caller shouldCall PRINTLN andThrow MAYBE controlFlowDependent false typeDependent true
     }
@@ -258,7 +258,7 @@ class CallResolverTest : FreeSpec({
         val caller = MethodSignature(
             "Main",
             "alwaysNull",
-            "()V"
+            "()V",
         )
         caller shouldCall SUPER_TEST andThrow ALWAYS controlFlowDependent false typeDependent false
     }
@@ -267,20 +267,20 @@ class CallResolverTest : FreeSpec({
         var caller = MethodSignature(
             "SuperCall",
             "test",
-            "()V"
+            "()V",
         )
         caller shouldCall SUPER_TEST andThrow NEVER controlFlowDependent false typeDependent false
 
         caller = MethodSignature(
             "SubNotOverridden",
             "test",
-            "()V"
+            "()V",
         )
         caller shouldCall SUPER_TEST andThrow NEVER controlFlowDependent false typeDependent false
         caller shouldNotCall MethodSignature(
             "NotOverridden",
             "test",
-            "()V"
+            "()V",
         )
     }
 
@@ -312,7 +312,7 @@ class CallResolverTest : FreeSpec({
         val caller = MethodSignature(
             "Main",
             "invokeInterface",
-            "()V"
+            "()V",
         )
         caller shouldCall SUPERINTERFACE_DEFAULT_TEST andThrow NEVER controlFlowDependent false typeDependent false
         caller shouldNotCall NORMAL_IMPL_DEFAULT_TEST
@@ -325,7 +325,7 @@ class CallResolverTest : FreeSpec({
         var caller = MethodSignature(
             "Main",
             "mostSpecificDefaultSub",
-            "()V"
+            "()V",
         )
         caller shouldCall SUBINTERFACE_DEFAULT_TEST andThrow NEVER controlFlowDependent false typeDependent false
         caller shouldNotCall SUPERINTERFACE_DEFAULT_TEST
@@ -334,7 +334,7 @@ class CallResolverTest : FreeSpec({
         caller = MethodSignature(
             "Main",
             "mostSpecificDefaultSuper",
-            "()V"
+            "()V",
         )
         caller shouldCall SUBINTERFACE_DEFAULT_TEST controlFlowDependent false typeDependent false
         caller shouldNotCall SUPERINTERFACE_DEFAULT_TEST
@@ -345,22 +345,22 @@ class CallResolverTest : FreeSpec({
         val caller = MethodSignature(
             "Main",
             "makeNoise",
-            "(LVehicle;)V"
+            "(LVehicle;)V",
         )
         val VEHICLE_HONK = MethodSignature(
             "Vehicle",
             "honk",
-            "()V"
+            "()V",
         )
         val BIKE_HONK = MethodSignature(
             "Bike",
             "honk",
-            "()V"
+            "()V",
         )
         val CAR_HONK = MethodSignature(
             "Car",
             "honk",
-            "()V"
+            "()V",
         )
         caller shouldCall VEHICLE_HONK andThrow MAYBE
         caller shouldCall BIKE_HONK andThrow MAYBE
@@ -371,7 +371,7 @@ class CallResolverTest : FreeSpec({
         val caller = MethodSignature(
             "Main",
             "makeString",
-            "(Ljava/lang/Object;)V"
+            "(Ljava/lang/Object;)V",
         )
         callGraph.outgoing shouldHaveKey caller
         val matches = callGraph.outgoing[caller]!!.filter { it.caller.signature == caller }
@@ -379,7 +379,7 @@ class CallResolverTest : FreeSpec({
         matches[0].target shouldBe MethodSignature(
             "java/lang/Object",
             "toString",
-            "()Ljava/lang/String;"
+            "()Ljava/lang/String;",
         )
     }
 

@@ -81,14 +81,14 @@ class HeapOperatorsTest : FreeSpec({
         false,
         true,
         setOf(),
-        setOf()
+        setOf(),
     )
 
     val taintSinkArgument = JvmInvokeTaintSink(
         MethodSignature("A", "sink", "(Ljava/lang/String;)V"),
         false,
         setOf(1),
-        setOf()
+        setOf(),
     )
 
     val mainSignature = MethodSignature("A", "main", "()V")
@@ -100,17 +100,17 @@ class HeapOperatorsTest : FreeSpec({
         listOf(
             HashMapAbstractStateFactory.getInstance(),
             DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
-            LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }
+            LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() },
         ).forEach { staticFieldMapAbstractStateFactory ->
             listOf<Pair<MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>, MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>>>(
                 Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
                 Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
-                Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
+                Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }),
             ).forEach { (principalHeapMapAbstractStateFactory, followerHeapMapAbstractStateFactory) ->
                 listOf<Pair<MapAbstractStateFactory<String, SetAbstractState<Reference>>, MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>>>(
                     Pair(HashMapAbstractStateFactory.getInstance(), HashMapAbstractStateFactory.getInstance()),
                     Pair(DifferentialMapAbstractStateFactory { false }, DifferentialMapAbstractStateFactory { false }),
-                    Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() })
+                    Pair(LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }, LimitedHashMapAbstractStateFactory { _, _, _ -> Optional.empty() }),
                 ).forEach { (principalHeapNodeMapAbstractStateFactory, followerHeapNodeMapAbstractStateFactory) ->
                     val testNameSuffix =
                         """
@@ -177,10 +177,10 @@ class HeapOperatorsTest : FreeSpec({
                         }
                     }
                 }
-                                """.trimIndent()
+                                """.trimIndent(),
                             ),
-                            javacArguments = listOf("-source", "1.8", "-target", "1.8")
-                        ).programClassPool
+                            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+                        ).programClassPool,
                     )
 
                     val taintMemoryLocationCpaRun = JvmTaintMemoryLocationBamCpaRun.Builder()
@@ -359,8 +359,8 @@ class HeapOperatorsTest : FreeSpec({
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:33",
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$D;<init>(LA;)V:30",
                                 "JvmHeapLocation([Reference(JvmStackLocation(0)@LA\$C;<init>(LA;)V:13)], A\$B#s)@LA\$C;<init>(LA;)V:34",
-                                "JvmStackLocation(0)@LA\$C;<init>(LA;)V:31"
-                            )
+                                "JvmStackLocation(0)@LA\$C;<init>(LA;)V:31",
+                            ),
                         )
                     }
                 }

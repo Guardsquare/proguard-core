@@ -37,7 +37,7 @@ class ArrayTypeTest : FreeSpec({
                 int[] array = new int[10];
             }
         }
-        """
+        """,
         )
 
         val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
@@ -48,7 +48,7 @@ class ArrayTypeTest : FreeSpec({
                 "objectArray",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (methodEnd, _) = instructions.last()
@@ -63,7 +63,7 @@ class ArrayTypeTest : FreeSpec({
                 "primitiveArray",
                 "()V",
                 classPool,
-                partialEvaluator
+                partialEvaluator,
             )
 
             val (methodEnd, _) = instructions.last()

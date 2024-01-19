@@ -53,9 +53,9 @@ class KotlinMetadataAnnotationMultiDimensionalArrayTest : FreeSpec({
 
             @MyTypeAliasAnnotation(kClass = Array<Array<Array<String>>>::class)
             typealias myAlias3 = String
-            """.trimIndent()
+            """.trimIndent(),
         ),
-        kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+        kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"),
     )
 
     "Given a type alias with an annotation with multi-dimensional array values" - {
@@ -68,10 +68,10 @@ class KotlinMetadataAnnotationMultiDimensionalArrayTest : FreeSpec({
                 ReWritingMetadataVisitor(
                     AllTypeAliasVisitor(
                         AllKotlinAnnotationVisitor(
-                            AllKotlinAnnotationArgumentVisitor(annotationArgVisitor)
-                        )
-                    )
-                )
+                            AllKotlinAnnotationArgumentVisitor(annotationArgVisitor),
+                        ),
+                    ),
+                ),
             )
 
             verify(exactly = 1) {
@@ -82,7 +82,7 @@ class KotlinMetadataAnnotationMultiDimensionalArrayTest : FreeSpec({
                     withArg {
                         it.name shouldBe "kClass"
                     },
-                    ClassValue("kotlin/String", 0)
+                    ClassValue("kotlin/String", 0),
                 )
 
                 annotationArgVisitor.visitClassArgument(
@@ -92,7 +92,7 @@ class KotlinMetadataAnnotationMultiDimensionalArrayTest : FreeSpec({
                     withArg {
                         it.name shouldBe "kClass"
                     },
-                    ClassValue("kotlin/String", 1)
+                    ClassValue("kotlin/String", 1),
                 )
                 annotationArgVisitor.visitClassArgument(
                     fileFacadeClass,
@@ -101,7 +101,7 @@ class KotlinMetadataAnnotationMultiDimensionalArrayTest : FreeSpec({
                     withArg {
                         it.name shouldBe "kClass"
                     },
-                    ClassValue("kotlin/String", 2)
+                    ClassValue("kotlin/String", 2),
                 )
                 annotationArgVisitor.visitClassArgument(
                     fileFacadeClass,
@@ -110,7 +110,7 @@ class KotlinMetadataAnnotationMultiDimensionalArrayTest : FreeSpec({
                     withArg {
                         it.name shouldBe "kClass"
                     },
-                    ClassValue("kotlin/String", 3)
+                    ClassValue("kotlin/String", 3),
                 )
             }
         }

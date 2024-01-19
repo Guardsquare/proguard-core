@@ -43,8 +43,8 @@ class KotlinValueParameterFilterTest : FreeSpec({
                     set(propVP) { }
                 fun foo(funVP: String) { }
              }
-            """
-        )
+            """,
+        ),
     )
 
     "Given a class value parameters" - {
@@ -62,7 +62,7 @@ class KotlinValueParameterFilterTest : FreeSpec({
                     ofType(KotlinConstructorMetadata::class),
                     withArg {
                         it.parameterName shouldBe "consVP"
-                    }
+                    },
                 )
             }
         }
@@ -79,7 +79,7 @@ class KotlinValueParameterFilterTest : FreeSpec({
                     ofType(KotlinFunctionMetadata::class),
                     withArg {
                         it.parameterName shouldBe "funVP"
-                    }
+                    },
                 )
             }
         }
@@ -96,7 +96,7 @@ class KotlinValueParameterFilterTest : FreeSpec({
                     ofType(KotlinPropertyMetadata::class),
                     withArg {
                         it.parameterName shouldBe "propVP"
-                    }
+                    },
                 )
             }
         }
@@ -107,6 +107,6 @@ private fun createVisitor(name: String, valueParameterVisitor: KotlinValueParame
     AllValueParameterVisitor(
         KotlinValueParameterFilter(
             Predicate { it.parameterName == name },
-            valueParameterVisitor
-        )
+            valueParameterVisitor,
+        ),
     )

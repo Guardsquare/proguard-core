@@ -90,8 +90,8 @@ class KotlinMetadataEffectTest : FreeSpec({
                 }
                 return this != null
             }
-            """.trimIndent()
-        )
+            """.trimIndent(),
+        ),
     )
 
     fun visitFunctionEffectMetadata(funcName: String, effectVisitor: KotlinEffectVisitor) {
@@ -102,10 +102,10 @@ class KotlinMetadataEffectTest : FreeSpec({
                         { it.name == funcName },
                         { clazz, metadata, func ->
                             func.contractsAccept(clazz, metadata) { _, _, _, contract -> contract.effectsAccept(clazz, metadata, func, effectVisitor) }
-                        }
-                    )
-                )
-            )
+                        },
+                    ),
+                ),
+            ),
         )
     }
 
@@ -123,7 +123,7 @@ class KotlinMetadataEffectTest : FreeSpec({
                     withArg {
                         it.effectType shouldBe CALLS
                         it.invocationKind shouldBe AT_LEAST_ONCE
-                    }
+                    },
                 )
             }
         }
@@ -140,7 +140,7 @@ class KotlinMetadataEffectTest : FreeSpec({
                     withArg {
                         it.effectType shouldBe CALLS
                         it.invocationKind shouldBe AT_MOST_ONCE
-                    }
+                    },
                 )
             }
         }
@@ -157,7 +157,7 @@ class KotlinMetadataEffectTest : FreeSpec({
                     withArg {
                         it.effectType shouldBe CALLS
                         it.invocationKind shouldBe EXACTLY_ONCE
-                    }
+                    },
                 )
             }
         }
@@ -174,7 +174,7 @@ class KotlinMetadataEffectTest : FreeSpec({
                     withArg {
                         it.effectType shouldBe RETURNS_CONSTANT
                         it.invocationKind shouldBe null
-                    }
+                    },
                 )
             }
         }

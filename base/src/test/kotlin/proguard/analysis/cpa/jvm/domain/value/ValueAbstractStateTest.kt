@@ -282,14 +282,14 @@ private fun ValueFactory.createString(s: String): Value = createReferenceValue(
     libraryClassPool.getClass("java/lang/String"),
     false,
     false,
-    s
+    s,
 )
 private fun ValueFactory.createStringBuilder(sb: StringBuilder): Value = createReferenceValue(
     "Ljava/lang/StringBuilder;",
     libraryClassPool.getClass("java/lang/StringBuilder"),
     false,
     false,
-    sb
+    sb,
 )
 
 private fun ValueFactory.createStringBuilder(sb: StringBuilder, id: Int): Value = createReferenceValueForId(
@@ -298,5 +298,5 @@ private fun ValueFactory.createStringBuilder(sb: StringBuilder, id: Int): Value 
     false,
     false,
     id,
-    sb
+    sb,
 )
