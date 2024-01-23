@@ -101,6 +101,8 @@ public class ClassConstants {
   public static final String NAME_JAVA_NIO_CHANNELS_CHANNELS = "java/nio/channels/Channels";
   public static final String NAME_JAVA_NIO_CHANNELS_READABLE_BYTE_CHANNEL =
       "java/nio/channels/ReadableByteChannel";
+  public static final String NAME_JAVA_UTIL_COLLECTION = "java/util/Collection";
+  public static final String TYPE_JAVA_UTIL_COLLECTION = "Ljava/util/Collection;";
   public static final String NAME_JAVA_UTIL_MAP = "java/util/Map";
   public static final String TYPE_JAVA_UTIL_MAP = "Ljava/util/Map;";
   public static final String NAME_JAVA_UTIL_HASH_MAP = "java/util/HashMap";
