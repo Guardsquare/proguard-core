@@ -18,6 +18,7 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,13 +31,12 @@ import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
 
 /**
  * The {@link JvmTaintCpa} computes abstract states containing {@link JvmTaintSource}s which can
  * reach the given code location.
- *
- * @author Dmitry Ivanov
  */
 public class JvmTaintCpa extends SimpleCpa {
 
@@ -48,24 +48,49 @@ public class JvmTaintCpa extends SimpleCpa {
   public JvmTaintCpa(Set<? extends JvmTaintSource> sources) {
     this(
         createSourcesMap(sources),
-        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>());
+        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(),
+        Collections.emptyMap());
   }
 
   /**
    * Create a taint CPA.
    *
-   * @param fqnToSources a mapping from fully qualified names to taint sources
+   * @param sources a set of taint sources
+   * @param taintTransformers a mapping from method signature to a transformer object applied to the
+   *     taint state when that method is invoked
    */
-  public JvmTaintCpa(Map<Signature, Set<JvmTaintSource>> signaturesToSources) {
+  public JvmTaintCpa(
+      Set<? extends JvmTaintSource> sources,
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
     this(
-        signaturesToSources,
-        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>());
+        createSourcesMap(sources),
+        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(),
+        taintTransformers);
   }
 
-  private JvmTaintCpa(Map<Signature, Set<JvmTaintSource>> sources, AbstractDomain abstractDomain) {
+  /**
+   * Create a taint CPA.
+   *
+   * @param signaturesToSources a mapping from method signature to taint sources
+   * @param taintTransformers a mapping from method signature to a transformer object applied to the
+   *     taint state when that method is invoked
+   */
+  public JvmTaintCpa(
+      Map<Signature, Set<JvmTaintSource>> signaturesToSources,
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
+    this(
+        signaturesToSources,
+        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(),
+        taintTransformers);
+  }
+
+  private JvmTaintCpa(
+      Map<Signature, Set<JvmTaintSource>> sources,
+      AbstractDomain abstractDomain,
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
     super(
         abstractDomain,
-        new JvmTaintTransferRelation(sources),
+        new JvmTaintTransferRelation(sources, taintTransformers),
         new MergeJoinOperator(abstractDomain),
         new StopJoinOperator(abstractDomain));
   }

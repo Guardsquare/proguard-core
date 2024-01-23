@@ -15,6 +15,7 @@
 - Add new `MaxStackSizeComputer` to compute the maximum stack size of a code attribute which is more memory efficient than the existing `StackSizeComputer`.
 - Add `IdentifiedArrayReferenceValue.generalize()` to maintain `ID` when applied to two instances with same `ID`.
 - Improve `ExecutingInvocationUnit` support to methods that transform a `String` into an array of a primitive type. 
+- Add support for customizing the way method calls are processed in taint analysis.
 
 ## New Code Style
 

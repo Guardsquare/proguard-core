@@ -46,14 +46,12 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.SimpleInstruction;
 import proguard.classfile.util.ClassUtil;
 
-/**
- * The {@link JvmTaintTransferRelation} is parametrized by a set of {@link TaintSource} methods.
- *
- * @author Dmitry Ivanov
- */
+/** The {@link JvmTaintTransferRelation} is parametrized by a set of {@link TaintSource} methods. */
 public class JvmTaintTransferRelation
     extends JvmTransferRelation<SetAbstractState<JvmTaintSource>> {
+
   private final Map<Signature, Set<JvmTaintSource>> taintSources;
+  private final Map<MethodSignature, JvmTaintTransformer> taintTransformers;
 
   /**
    * Create a taint transfer relation.
@@ -61,7 +59,14 @@ public class JvmTaintTransferRelation
    * @param taintSources a mapping from fully qualified names to taint sources
    */
   public JvmTaintTransferRelation(Map<Signature, Set<JvmTaintSource>> taintSources) {
+    this(taintSources, Collections.emptyMap());
+  }
+
+  public JvmTaintTransferRelation(
+      Map<Signature, Set<JvmTaintSource>> taintSources,
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
     this.taintSources = taintSources;
+    this.taintTransformers = taintTransformers;
   }
 
   // implementations for JvmTransferRelation
@@ -71,6 +76,7 @@ public class JvmTaintTransferRelation
       JvmAbstractState<SetAbstractState<JvmTaintSource>> state,
       Call call,
       List<SetAbstractState<JvmTaintSource>> operands) {
+
     MethodSignature target = call.getTarget();
     List<JvmTaintSource> detectedSources =
         taintSources.getOrDefault(target, Collections.emptySet()).stream()
@@ -95,6 +101,9 @@ public class JvmTaintTransferRelation
       state.push(getAbstractDefault());
     }
     if (pushCount > 0) {
+      if (taintTransformers.containsKey(target)) {
+        answerContent = taintTransformers.get(target).transformReturn(answerContent);
+      }
       state.push(answerContent);
     }
 

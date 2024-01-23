@@ -122,7 +122,8 @@ public class JvmTaintMemoryLocationBamCpaRun
       MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
           followerHeapMapAbstractStateFactory,
       MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
-          followerHeapNodeMapAbstractStateFactory) {
+          followerHeapNodeMapAbstractStateFactory,
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
     this(
         new JvmTaintBamCpaRun<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(
             cfa,
@@ -136,7 +137,8 @@ public class JvmTaintMemoryLocationBamCpaRun
             principalHeapMapAbstractStateFactory,
             principalHeapNodeMapAbstractStateFactory,
             followerHeapMapAbstractStateFactory,
-            followerHeapNodeMapAbstractStateFactory),
+            followerHeapNodeMapAbstractStateFactory,
+            taintTransformers),
         threshold,
         taintSinks,
         memoryLocationAbortOperator);
@@ -326,6 +328,8 @@ public class JvmTaintMemoryLocationBamCpaRun
     private MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
         followerHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
 
+    private Map<MethodSignature, JvmTaintTransformer> taintTransformers = Collections.emptyMap();
+
     /** Returns the {@link JvmTaintMemoryLocationBamCpaRun} for given parameters. */
     public JvmTaintMemoryLocationBamCpaRun build() {
       if (cfa == null || mainSignature == null) {
@@ -346,7 +350,8 @@ public class JvmTaintMemoryLocationBamCpaRun
           principalHeapMapAbstractStateFactory,
           principalHeapNodeMapAbstractStateFactory,
           followerHeapMapAbstractStateFactory,
-          followerHeapNodeMapAbstractStateFactory);
+          followerHeapNodeMapAbstractStateFactory,
+          taintTransformers);
     }
 
     /** Sets the control flow automaton. */
@@ -458,6 +463,16 @@ public class JvmTaintMemoryLocationBamCpaRun
         MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
             followerHeapNodeMapAbstractStateFactory) {
       this.followerHeapNodeMapAbstractStateFactory = followerHeapNodeMapAbstractStateFactory;
+      return this;
+    }
+
+    /**
+     * Set a mapping from method signature to a transformer object applied to the taint state when
+     * that method is invoked.
+     */
+    public Builder setTaintTransformers(
+        Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
+      this.taintTransformers = taintTransformers;
       return this;
     }
   }

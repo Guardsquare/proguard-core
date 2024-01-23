@@ -26,6 +26,7 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintBamCpaRun
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmTaintTransformer
 import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
@@ -636,5 +637,72 @@ class JvmTaintCpaTest : FreeSpec({
             (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(taintSourceReturnDouble)
             (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek(1) shouldBe setOf()
         }
+    }
+
+    "Sanitizing transformer breaks the dataflow" - {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfa(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                    class A
+                    {
+
+                        public void main()
+                        {
+                            sink(source1().toString());
+                        }
+
+                        public static void sink(String s)
+                        {
+                        }
+
+                        public static String source1()
+                        {
+                            return "ciao";
+                        }
+                    }
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val location = interproceduralCfa.getFunctionNode(mainSignature, 6)
+
+        val builder = JvmTaintBamCpaRun
+            .Builder()
+            .setCfa(interproceduralCfa)
+            .setMainSignature(mainSignature)
+            .setTaintSources(setOf(taintSourceReturn1))
+            .setMaxCallStackDepth(-1)
+
+        "Normal run has dataflow" {
+            val taintCpaRun = builder.build()
+            val abstractStates = (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(location)
+
+            abstractStates.size shouldBe 1
+            (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(taintSourceReturn1)
+        }
+
+        "Run with sanitizing transformer doesn't have a dataflow" {
+            val sanitizingTransformer = object : JvmTaintTransformer {
+                override fun transformReturn(returnValue: SetAbstractState<JvmTaintSource>?): SetAbstractState<JvmTaintSource> {
+                    return SetAbstractState()
+                }
+            }
+
+            val taintCpaRun = builder
+                .setTaintTransformers(mapOf(MethodSignature("java/lang/String", "toString", "()Ljava/lang/String;") to sanitizingTransformer))
+                .build()
+
+            val abstractStates = (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(location)
+
+            abstractStates.size shouldBe 1
+            (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf()
+        }
+
+        interproceduralCfa.clear()
     }
 })
