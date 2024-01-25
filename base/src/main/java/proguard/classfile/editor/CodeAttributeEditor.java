@@ -31,8 +31,8 @@ import proguard.classfile.ProgramMember;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.ExceptionInfo;
-import proguard.classfile.attribute.ExtendedLineNumberInfo;
 import proguard.classfile.attribute.LineNumberInfo;
+import proguard.classfile.attribute.LineNumberInfoSource;
 import proguard.classfile.attribute.LineNumberTableAttribute;
 import proguard.classfile.attribute.LocalVariableInfo;
 import proguard.classfile.attribute.LocalVariableTableAttribute;
@@ -1457,22 +1457,50 @@ public class CodeAttributeEditor
    * offset.
    */
   public Label line(int lineNumber) {
-    return line(lineNumber, null);
+    return line(lineNumber, (LineNumberInfoSource) null);
+  }
+
+  /**
+   * Creates a new line number instance that will insert the given line number at the current
+   * offset. It will insert an extended line number info with the given source if it's not null.
+   *
+   * @deprecated use {@link #line(int, LineNumberInfoSource)} instead.
+   */
+  @Deprecated
+  public Label line(int lineNumber, String source) {
+    return line(labels.size(), lineNumber, LineNumberInfoSource.fromString(source));
   }
 
   /**
    * Creates a new line number instance that will insert the given line number at the current
    * offset. It will insert an extended line number info with the given source if it's not null.
    */
-  public Label line(int lineNumber, String source) {
+  public Label line(int lineNumber, LineNumberInfoSource source) {
     return line(labels.size(), lineNumber, source);
   }
 
   /**
    * Creates a new line number instance that will insert the given line number at the current
    * offset. It will insert an extended line number info with the given source if it's not null.
+   *
+   * @deprecated use {@link #line(int, int, LineNumberInfoSource)} instead.
    */
+  @Deprecated
   public Label line(int identifier, int lineNumber, String source) {
+    LineNumber lineNumberLabel =
+        new LineNumber(identifier, lineNumber, LineNumberInfoSource.fromString(source));
+
+    // Remember the label, so we can retrieve its offset later on.
+    labels.put(identifier, lineNumberLabel);
+
+    return lineNumberLabel;
+  }
+
+  /**
+   * Creates a new line number instance that will insert the given line number at the current
+   * offset. It will insert an extended line number info with the given source if it's not null.
+   */
+  public Label line(int identifier, int lineNumber, LineNumberInfoSource source) {
     LineNumber lineNumberLabel = new LineNumber(identifier, lineNumber, source);
 
     // Remember the label, so we can retrieve its offset later on.
@@ -1673,16 +1701,9 @@ public class CodeAttributeEditor
    */
   private static class LineNumber extends Label {
     private final int lineNumber;
-    private final String source;
+    private final LineNumberInfoSource source;
 
-    /**
-     * Creates a new LineNumber instance.
-     *
-     * @param identifier an identifier that can be chosen freely.
-     * @param lineNumber the line number to inject at the current offset.
-     * @param source the extended line number info source to optionally add.
-     */
-    public LineNumber(int identifier, int lineNumber, String source) {
+    public LineNumber(int identifier, int lineNumber, LineNumberInfoSource source) {
       super(identifier);
       this.lineNumber = lineNumber;
       this.source = source;
@@ -1732,7 +1753,7 @@ public class CodeAttributeEditor
       lineNumberTableAttributeEditor.addLineNumberInfo(
           source == null
               ? new LineNumberInfo(offset(), lineNumber)
-              : new ExtendedLineNumberInfo(offset(), lineNumber, source));
+              : new LineNumberInfo(offset(), lineNumber, source));
     }
 
     // Implementations for Object.

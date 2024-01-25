@@ -18,13 +18,14 @@
 package proguard.classfile.attribute;
 
 /**
- * Representation of an line number table entry.
+ * Representation of a line number table entry.
  *
  * @author Eric Lafortune
  */
 public class LineNumberInfo {
   public int u2startPC;
   public int u2lineNumber;
+  private LineNumberInfoSource lineNumberInfoSource;
 
   /** Creates an uninitialized LineNumberInfo. */
   public LineNumberInfo() {}
@@ -35,12 +36,46 @@ public class LineNumberInfo {
     this.u2lineNumber = u2lineNumber;
   }
 
+  public LineNumberInfo(
+      int u2startPC, int u2lineNumber, LineNumberInfoSource lineNumberInfoSource) {
+    this(u2startPC, u2lineNumber);
+    this.lineNumberInfoSource = lineNumberInfoSource;
+  }
+
+  // Implementations for LineNumberInfo.
+
+  /** Returns whether this line number info has source information attached. */
+  public boolean hasSource() {
+    return lineNumberInfoSource != null;
+  }
+
+  /**
+   * Returns a description of the source of the line, if known, or null otherwise. Standard line
+   * number entries don't contain information about their source; it is assumed to be the same
+   * source file.
+   *
+   * @deprecated use {@link #getLineNumberInfoSource()} instead.
+   */
+  @Deprecated
+  public String getSource() {
+    return lineNumberInfoSource == null ? null : lineNumberInfoSource.toInternalString();
+  }
+
+  @Deprecated
+  public void setSource(String source) {
+    this.lineNumberInfoSource = LineNumberInfoSource.fromString(source);
+  }
+
   /**
    * Returns a description of the source of the line, if known, or null otherwise. Standard line
    * number entries don't contain information about their source; it is assumed to be the same
    * source file.
    */
-  public String getSource() {
-    return null;
+  public LineNumberInfoSource getLineNumberInfoSource() {
+    return lineNumberInfoSource;
+  }
+
+  public void setLineNumberInfoSource(LineNumberInfoSource lineNumberInfoSource) {
+    this.lineNumberInfoSource = lineNumberInfoSource;
   }
 }

@@ -11,9 +11,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import proguard.classfile.Clazz
 import proguard.classfile.Member
+import proguard.classfile.MethodSignature
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramMethod
 import proguard.classfile.attribute.Attribute
+import proguard.classfile.attribute.LineNumberInfoSource
 import proguard.classfile.attribute.LineNumberTableAttribute
 import proguard.classfile.visitor.MemberVisitor
 import proguard.testutils.ClassPoolBuilder
@@ -145,13 +147,9 @@ class MethodCopierTest : FreeSpec({
 
                 val sourceMethodLowestLineNumber = sourceMethodLineNumberTableAttribute.lowestLineNumber
                 val sourceMethodHighestLineNumber = sourceMethodLineNumberTableAttribute.highestLineNumber
-                val expectedSource = sourceClass.name + "." +
-                    sourceMethod.getName(sourceClass) +
-                    sourceMethod.getDescriptor(sourceClass) + ":" +
-                    sourceMethodLowestLineNumber + ":" +
-                    sourceMethodHighestLineNumber
+                val expectedSource = LineNumberInfoSource(MethodSignature(sourceClass, sourceMethod), sourceMethodLowestLineNumber, sourceMethodHighestLineNumber)
 
-                copiedMethodLineNumberTableAttribute.lineNumberTable.shouldForAll { it.source shouldBe expectedSource }
+                copiedMethodLineNumberTableAttribute.lineNumberTable.shouldForAll { it.lineNumberInfoSource shouldBe expectedSource }
             }
         }
     }

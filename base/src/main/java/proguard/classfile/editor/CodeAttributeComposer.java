@@ -458,9 +458,9 @@ public class CodeAttributeComposer
               + lineNumberInfo.u2startPC
               + "] line "
               + lineNumberInfo.u2lineNumber
-              + (lineNumberInfo.getSource() == null
-                  ? ""
-                  : " [" + lineNumberInfo.getSource() + "]"));
+              + (lineNumberInfo.hasSource()
+                  ? " [" + lineNumberInfo.getLineNumberInfoSource().toInternalString() + "]"
+                  : ""));
     }
 
     lineNumberTable = ArrayUtil.extendArray(lineNumberTable, lineNumberTableLength + 1);
@@ -499,9 +499,9 @@ public class CodeAttributeComposer
               + lineNumberInfo.u2startPC
               + "] line "
               + lineNumberInfo.u2lineNumber
-              + (lineNumberInfo.getSource() == null
-                  ? ""
-                  : " [" + lineNumberInfo.getSource() + "]"));
+              + (lineNumberInfo.hasSource()
+                  ? " [" + lineNumberInfo.getLineNumberInfoSource().toInternalString() + "]"
+                  : ""));
     }
 
     // Add the line number.

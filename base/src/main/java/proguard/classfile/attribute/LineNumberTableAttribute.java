@@ -49,10 +49,18 @@ public class LineNumberTableAttribute extends Attribute {
   }
 
   /** Returns the source corresponding to the given byte code program counter. */
+  @Deprecated
   public String getSource(int pc) {
     LineNumberInfo info = getLineNumberInfo(pc);
 
-    return info == null ? null : info.getSource();
+    return info == null ? null : info.getLineNumberInfoSource().toInternalString();
+  }
+
+  /** Returns the source corresponding to the given byte code program counter. */
+  public LineNumberInfoSource getLineNumberInfoSource(int pc) {
+    LineNumberInfo info = getLineNumberInfo(pc);
+
+    return info == null ? null : info.getLineNumberInfoSource();
   }
 
   /** Returns the line number info corresponding to the given byte code program counter. */
@@ -76,7 +84,7 @@ public class LineNumberTableAttribute extends Attribute {
 
     for (int index = 0; index < u2lineNumberTableLength; index++) {
       LineNumberInfo info = lineNumberTable[index];
-      if (info.getSource() == null) {
+      if (!info.hasSource()) {
         int lineNumber = info.u2lineNumber;
         if (lineNumber < lowestLineNumber) {
           lowestLineNumber = lineNumber;
@@ -96,7 +104,7 @@ public class LineNumberTableAttribute extends Attribute {
 
     for (int index = 0; index < u2lineNumberTableLength; index++) {
       LineNumberInfo info = lineNumberTable[index];
-      if (info.getSource() == null) {
+      if (!info.hasSource()) {
         int lineNumber = info.u2lineNumber;
         if (lineNumber > highestLineNumber) {
           highestLineNumber = lineNumber;

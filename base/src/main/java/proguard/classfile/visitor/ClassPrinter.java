@@ -1118,7 +1118,9 @@ public class ClassPrinter
             + lineNumberInfo.u2startPC
             + "] -> line "
             + lineNumberInfo.u2lineNumber
-            + (lineNumberInfo.getSource() == null ? "" : " [" + lineNumberInfo.getSource() + "]"));
+            + (lineNumberInfo.hasSource()
+                ? " [" + lineNumberInfo.getLineNumberInfoSource().toInternalString() + "]"
+                : ""));
   }
 
   // Implementations for ParameterInfoVisitor.
