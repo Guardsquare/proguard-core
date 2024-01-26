@@ -1,9 +1,8 @@
-package proguard.classfile.attribute.visitor.attribute
+package proguard.classfile.attribute
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import proguard.classfile.attribute.LineNumberInfoSource
 import proguard.exception.ProguardCoreException
 
 class LineNumberInfoSourceTest : BehaviorSpec({

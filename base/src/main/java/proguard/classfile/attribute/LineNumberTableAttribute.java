@@ -53,7 +53,9 @@ public class LineNumberTableAttribute extends Attribute {
   public String getSource(int pc) {
     LineNumberInfo info = getLineNumberInfo(pc);
 
-    return info == null ? null : info.getLineNumberInfoSource().toInternalString();
+    return info == null || info.getLineNumberInfoSource() == null
+        ? null
+        : info.getLineNumberInfoSource().toInternalString();
   }
 
   /** Returns the source corresponding to the given byte code program counter. */
