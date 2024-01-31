@@ -341,10 +341,10 @@ public class AttributeAdder implements AttributeVisitor {
     // Add a line number if there wasn't a line number table before,
     // so we keep track of the source.
     if (codeAttribute.getAttribute(clazz, Attribute.LINE_NUMBER_TABLE) == null) {
-      LineNumberInfoSource source =
-          new LineNumberInfoSource(new MethodSignature(clazz, method), 0, 0);
+      String source =
+          clazz.getName() + '.' + method.getName(clazz) + method.getDescriptor(clazz) + ":0:0";
 
-      codeAttributeComposer.insertLineNumber(new LineNumberInfo(0, 0, source));
+      codeAttributeComposer.insertLineNumber(new ExtendedLineNumberInfo(0, 0, source));
     }
 
     codeAttributeComposer.endCodeFragment();

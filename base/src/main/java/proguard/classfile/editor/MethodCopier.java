@@ -20,13 +20,12 @@ package proguard.classfile.editor;
 import proguard.classfile.Clazz;
 import proguard.classfile.Member;
 import proguard.classfile.Method;
-import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.ExtendedLineNumberInfo;
 import proguard.classfile.attribute.LineNumberInfo;
-import proguard.classfile.attribute.LineNumberInfoSource;
 import proguard.classfile.attribute.LineNumberTableAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.attribute.visitor.AttributeNameFilter;
@@ -154,18 +153,30 @@ public class MethodCopier implements ClassVisitor, MemberVisitor, AttributeVisit
               ? 0
               : sourceMethodLineNumberTableAttribute.getHighestLineNumber();
 
-      LineNumberInfoSource newSource =
-          new LineNumberInfoSource(
-              new MethodSignature(sourceClass, sourceMethod), lowestLineNumber, highestLineNumber);
+      String newSource =
+          initializeLineNumberInfoSource(
+              sourceClass, sourceMethod, lowestLineNumber, highestLineNumber);
 
       for (int i = 0; i < copiedMethodLineNumberTableAttribute.u2lineNumberTableLength; i++) {
         LineNumberInfo currentLineNumberInfo =
             copiedMethodLineNumberTableAttribute.lineNumberTable[i];
-        LineNumberInfo newLineNumberInfo =
-            new LineNumberInfo(
+        ExtendedLineNumberInfo newLineNumberInfo =
+            new ExtendedLineNumberInfo(
                 currentLineNumberInfo.u2startPC, currentLineNumberInfo.u2lineNumber, newSource);
         copiedMethodLineNumberTableAttribute.lineNumberTable[i] = newLineNumberInfo;
       }
+    }
+
+    private String initializeLineNumberInfoSource(
+        Clazz sourceClass, Method sourceMethod, int startLineNumber, int endLineNumber) {
+      return sourceClass.getName()
+          + "."
+          + sourceMethod.getName(sourceClass)
+          + sourceMethod.getDescriptor(sourceClass)
+          + ":"
+          + startLineNumber
+          + ":"
+          + endLineNumber;
     }
   }
 }

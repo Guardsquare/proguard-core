@@ -22,9 +22,8 @@ package proguard.classfile.attribute;
  * can not be represented in class files, but it can be used internally to represent lines in
  * inlined or merged code.
  *
- * @deprecated {@link LineNumberInfo} now contains the source info as structured data.
+ * @author Eric Lafortune
  */
-@Deprecated
 public class ExtendedLineNumberInfo extends LineNumberInfo {
   public String source;
 
@@ -40,29 +39,7 @@ public class ExtendedLineNumberInfo extends LineNumberInfo {
 
   // Implementations for LineNumberInfo.
 
-  public boolean hasSource() {
-    return source != null;
-  }
-
-  @Override
-  @Deprecated
   public String getSource() {
     return source;
-  }
-
-  @Override
-  @Deprecated
-  public void setSource(String source) {
-    this.source = source;
-  }
-
-  @Override
-  public LineNumberInfoSource getLineNumberInfoSource() {
-    return source == null ? null : LineNumberInfoSource.fromString(source);
-  }
-
-  @Override
-  public void setLineNumberInfoSource(LineNumberInfoSource lineNumberInfoSource) {
-    this.source = lineNumberInfoSource.toInternalString();
   }
 }

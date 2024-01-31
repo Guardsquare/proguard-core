@@ -29,7 +29,7 @@ import proguard.classfile.attribute.visitor.*;
 public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisitor {
   private final LineNumberTableAttributeEditor lineNumberTableAttributeEditor;
 
-  private LineNumberInfoSource source;
+  private String source;
 
   /**
    * Creates a new LineNumberInfoAdder that will copy line numbers into the given target line number
@@ -51,10 +51,14 @@ public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisi
       LineNumberTableAttribute lineNumberTableAttribute) {
     // Remember the source.
     source =
-        new LineNumberInfoSource(
-            new MethodSignature(clazz, method),
-            lineNumberTableAttribute.getLowestLineNumber(),
-            lineNumberTableAttribute.getHighestLineNumber());
+        clazz.getName()
+            + '.'
+            + method.getName(clazz)
+            + method.getDescriptor(clazz)
+            + ':'
+            + lineNumberTableAttribute.getLowestLineNumber()
+            + ':'
+            + lineNumberTableAttribute.getHighestLineNumber();
 
     // Copy all line numbers.
     lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, this);
@@ -65,12 +69,12 @@ public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisi
   public void visitLineNumberInfo(
       Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberInfo lineNumberInfo) {
     // Make sure we have a source.
-    LineNumberInfoSource newSource =
-        lineNumberInfo.hasSource() ? lineNumberInfo.getLineNumberInfoSource() : source;
+    String newSource = lineNumberInfo.getSource() != null ? lineNumberInfo.getSource() : source;
 
     // Create a new line number.
     LineNumberInfo newLineNumberInfo =
-        new LineNumberInfo(lineNumberInfo.u2startPC, lineNumberInfo.u2lineNumber, newSource);
+        new ExtendedLineNumberInfo(
+            lineNumberInfo.u2startPC, lineNumberInfo.u2lineNumber, newSource);
 
     // Add it to the target.
     lineNumberTableAttributeEditor.addLineNumberInfo(newLineNumberInfo);

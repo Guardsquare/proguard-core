@@ -60,6 +60,8 @@ public class LineNumberRangeFinder implements LineNumberInfoVisitor {
       highestLineNumber = lineNumber;
     }
 
-    hasSource |= lineNumberInfo.hasSource();
+    if (lineNumberInfo.getSource() != null) {
+      hasSource = true;
+    }
   }
 }
