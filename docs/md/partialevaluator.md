@@ -478,8 +478,8 @@ If the value of `s` is of interest, this can be retrieved using a `ParticularVal
 
     :::java
     ValueFactory            valueFactory     = new ParticularValueFactory(new BasicValueFactory(), 
-                                                                          new ParticularValueFactory.ReferenceValueFactory());
-    ExecutingInvocationUnit invocationUnit   = new ExecutingInvocationUnit(valueFactory);
+                                                                          new ParticularReferenceValueFactory());
+    ExecutingInvocationUnit invocationUnit   = new ExecutingInvocationUnit.Builder().build(valueFactory);
     PartialEvaluator        partialEvaluator = new PartialEvaluator(valueFactory, 
                                                                     invocationUnit, 
                                                                     false);
@@ -507,10 +507,21 @@ Instruction | Stack (before the Instruction) | v0 (before the Instruction) |
 
 The `StringBuilder` is now traced through the method, the value of the reference can be retrieved before and after each location. The value of the reference is printed in this output in the finishing brackets. The notation before the bracket is the notation of a `TypedReference` ([TypedReference](#typed))
 
+### Customization
+
+The `ExecutingInvocationUnit` is designed to be customizable and extensible in its capability to execute different methods. Therefore, it maintains a list of `Executor`s which define how a certain set of methods can be executed. Currently, only the `StringReflectionExecutor` is implemented which supports `String`, `StringBuilder`and `StringBuffer`.
+To customize an `ExecutingInvocationUnit`, use its dedicated `Builder`.
+
+    :::java
+    ExecutingInvocationUnit invocationUnit = new ExecutingInvocationUnit.Builder().setAddDefaultStringReflectionExecutor(false)
+                                                                                  .addExecutor(new MyExecutor())
+                                                                                  .build(valueFactory);
+
 ### Limitations
 
-- Only `String`, `StringBuilder`, and `StringBuffer` are currently supported.
-- The `ParticularValueFactory` keeps track of one specific value of a reference. If more values would be possible (e.g., due to a branch), the result will be an `UnknownReferenceValue`
+- Only `String`, `StringBuilder`, and `StringBuffer` are currently supported, although custom executors can be implemented.
+- The `ParticularValueFactory` keeps track of one specific value of a reference. If more values would be possible (e.g., due to a branch), the result will be an `UnknownReferenceValue`/`IdentifiedReferenceValue`
+- Independent of the specific `Executor`, `ExecutingInvocationUnit` keeps track of changes to the instance of a method. However, it does not check for changes to reference values in the parameters.
 
 ## Lifecycle
 
