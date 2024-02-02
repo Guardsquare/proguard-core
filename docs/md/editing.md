@@ -51,7 +51,7 @@ CodeAttributeEditor.
         new InstructionSequenceBuilder(targetClass);
 
     Instructions[] replacementInstructions = builder
-        .getstatic("java/lang/System", "out", "Ljava/io/
+        .getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
         .ldc("Hello")
         .invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V"        
         .instructions();

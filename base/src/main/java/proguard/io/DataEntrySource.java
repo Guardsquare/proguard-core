@@ -29,5 +29,5 @@ import java.io.IOException;
  */
 public interface DataEntrySource {
   /** Applies the given DataEntryReader to all data entries that the implementation can provide. */
-  public void pumpDataEntries(DataEntryReader dataEntryReader) throws IOException;
+  void pumpDataEntries(DataEntryReader dataEntryReader) throws IOException;
 }

@@ -29,5 +29,5 @@ public interface DataEntryFilter {
    * @param dataEntry the data entry to filter.
    * @return a boolean indicating whether the filter accepts the given data entry.
    */
-  public boolean accepts(DataEntry dataEntry);
+  boolean accepts(DataEntry dataEntry);
 }
