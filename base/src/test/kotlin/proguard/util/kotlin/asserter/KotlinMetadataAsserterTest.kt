@@ -10,18 +10,24 @@ package proguard.util.kotlin.asserter
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import org.apache.logging.log4j.LogManager
+import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
 import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinMetadata
+import proguard.classfile.kotlin.KotlinMultiFileFacadeKindMetadata
 import proguard.classfile.kotlin.visitor.KotlinMetadataRemover
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
+import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.WarningLogger
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer
+import proguard.classfile.visitor.ClassVisitor
 import proguard.resources.file.ResourceFilePool
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
@@ -211,6 +217,56 @@ class KotlinMetadataAsserterTest : FreeSpec({
                 // Since the metadata where the alias is declared is now invalid,
                 // ATest references now invalid metadata and is itself invalid.
                 (programClassPool.getClass("ATest") as ProgramClass).kotlinMetadata shouldBe null
+            }
+        }
+    }
+
+    "Given multi file class facade metadata" - {
+        var metadata = KotlinMultiFileFacadeKindMetadata(
+            intArrayOf(1, 0, 0),
+            arrayOf("SomeFacade", "SomeClass", "SomeOtherClass"),
+            0,
+            "",
+            "",
+        )
+        var hasMetadataBeenRemoved = false
+
+        // Mock a class to hold the above metadata, and set up visitor methods appropriately
+        val mockClass = mockk<ProgramClass>()
+        every { mockClass.getName() } returns "SomeFacade"
+        every { mockClass.kotlinMetadataAccept(any()) } answers {
+            arg<KotlinMetadataVisitor>(0).visitKotlinMultiFileFacadeMetadata(mockClass, metadata)
+        }
+        every { mockClass.accept(any<ReferencedKotlinMetadataVisitor>()) } answers {
+            val visitor = arg<ClassVisitor>(0)
+            if (visitor is ReferencedKotlinMetadataVisitor) {
+                visitor.visitProgramClass(mockClass)
+            } else if (visitor is KotlinMetadataRemover) {
+                hasMetadataBeenRemoved = true
+            }
+        }
+        val classPool = ClassPool(mockClass)
+
+        "When the facade references itself as a part" - {
+            "The metadata should be thrown away" {
+                KotlinMetadataAsserter().execute(warningLogger, classPool, ClassPool(), ResourceFilePool())
+                hasMetadataBeenRemoved shouldBe true
+            }
+        }
+
+        "When the facade does not reference itself as a part" - {
+            metadata = KotlinMultiFileFacadeKindMetadata(
+                intArrayOf(1, 0, 0),
+                arrayOf("SomeClass", "SomeOtherClass"),
+                0,
+                "",
+                "",
+            )
+            hasMetadataBeenRemoved = false
+
+            "The metadata should not be thrown away" {
+                KotlinMetadataAsserter().execute(warningLogger, classPool, ClassPool(), ResourceFilePool())
+                hasMetadataBeenRemoved shouldBe false
             }
         }
     }

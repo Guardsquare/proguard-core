@@ -17,6 +17,9 @@
  */
 package proguard.util;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /** This class contains utility methods for strings. */
 public class StringUtil {
   private static final char TWO_BYTE_LIMIT = 0x80;
@@ -213,5 +216,14 @@ public class StringUtil {
     result = result.replaceAll("\b", "\\\\b");
 
     return result;
+  }
+
+  /** Converts a List of Strings to a nicely readable format. Example: ["foo", "bar", "baz"]. */
+  public static String listToString(List<String> stringList) {
+    return String.format(
+        "[%s]",
+        stringList.stream()
+            .map(str -> String.format("\"%s\"", str))
+            .collect(Collectors.joining(", ")));
   }
 }

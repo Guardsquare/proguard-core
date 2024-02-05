@@ -50,6 +50,7 @@ import proguard.util.kotlin.asserter.constraint.FunctionIntegrity;
 import proguard.util.kotlin.asserter.constraint.KmAnnotationIntegrity;
 import proguard.util.kotlin.asserter.constraint.KotlinAsserterConstraint;
 import proguard.util.kotlin.asserter.constraint.KotlinModuleIntegrity;
+import proguard.util.kotlin.asserter.constraint.MultiFileFacadeIntegrity;
 import proguard.util.kotlin.asserter.constraint.MultiFilePartIntegrity;
 import proguard.util.kotlin.asserter.constraint.PropertyIntegrity;
 import proguard.util.kotlin.asserter.constraint.SyntheticClassIntegrity;
@@ -73,7 +74,8 @@ public class KotlinMetadataAsserter {
           new FileFacadeIntegrity(),
           new MultiFilePartIntegrity(),
           new DeclarationContainerIntegrity(),
-          new KotlinModuleIntegrity());
+          new KotlinModuleIntegrity(),
+          new MultiFileFacadeIntegrity());
 
   public void execute(
       WarningLogger warningLogger,
