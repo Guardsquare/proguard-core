@@ -37,11 +37,22 @@ import proguard.util.CallGraphWalker;
 public class CallGraph {
 
   private static final transient Logger log = LogManager.getLogger(CallGraph.class);
-  public final Map<MethodSignature, Set<Call>> incoming = new HashMap<>();
-  public final Map<MethodSignature, Set<Call>> outgoing = new HashMap<>();
+  public final Map<MethodSignature, Set<Call>> incoming;
+  public final Map<MethodSignature, Set<Call>> outgoing;
 
   /** If true, incoming edges are not explored further for known entry points. */
   private static final boolean STOP_AT_ENTRYPOINT = true;
+
+  /** Create an empty call graph. */
+  public CallGraph() {
+    this(new HashMap<>(), new HashMap<>());
+  }
+
+  protected CallGraph(
+      Map<MethodSignature, Set<Call>> incoming, Map<MethodSignature, Set<Call>> outgoing) {
+    this.incoming = incoming;
+    this.outgoing = outgoing;
+  }
 
   /**
    * Add a {@link Call} to this call graph.
