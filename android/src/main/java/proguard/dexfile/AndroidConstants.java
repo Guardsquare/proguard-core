@@ -77,6 +77,7 @@ public class AndroidConstants {
 
   public static final String APK_CLASSES_DEX_EXPRESSION = "classes*.dex";
   public static final String APK_ASSETS_FILE_EXPRESSION = "assets/**";
+  public static final String APK_ASSETS_DEX_FILE_EXPRESSION = "assets/**.dex";
   public static final String APK_RES_FILE_EXPRESSION = "res/**";
   public static final String APK_RES_XML_FILE_EXPRESSION = "!res/raw*/*,res/**.xml";
   public static final String APK_LIB_FILE_EXPRESSION = "lib/**.so";
@@ -126,6 +127,7 @@ public class AndroidConstants {
   public static final String AAB_RESOURCES_ARSC_EXPRESSION = "*/resources.arsc";
   public static final String AAB_CLASSES_DEX_EXPRESSION = "*/dex/classes*.dex";
   public static final String AAB_ASSETS_FILE_EXPRESSION = "*/assets/**";
+  public static final String AAB_ASSETS_DEX_FILE_EXPRESSION = "*/assets/**.dex";
   public static final String AAB_RES_FILE_EXPRESSION = "*/res/**";
   public static final String AAB_RES_XML_FILE_EXPRESSION =
       "*/res/**.xml"; // Raw files are also binary.
@@ -178,6 +180,8 @@ public class AndroidConstants {
           + FEATURE_ZIP_CLASSES_DEX_EXPRESSION;
   public static final String ASSETS_FILE_EXPRESSION =
       APK_ASSETS_FILE_EXPRESSION + ',' + AAB_ASSETS_FILE_EXPRESSION;
+  public static final String ASSETS_DEX_FILE_EXPRESSION =
+      APK_ASSETS_DEX_FILE_EXPRESSION + ',' + AAB_ASSETS_DEX_FILE_EXPRESSION;
   public static final String RES_FILE_EXPRESSION =
       APK_RES_FILE_EXPRESSION + ',' + AAB_RES_FILE_EXPRESSION;
   public static final String RES_XML_FILE_EXPRESSION =
