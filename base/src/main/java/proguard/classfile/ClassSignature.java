@@ -20,6 +20,7 @@ package proguard.classfile;
 
 import static proguard.classfile.util.ClassUtil.externalClassName;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -30,8 +31,8 @@ import java.util.Map;
  */
 public class ClassSignature extends Signature {
 
-  private static final transient Map<Clazz, ClassSignature> signatureCache =
-      new IdentityHashMap<>();
+  private static final Map<Clazz, ClassSignature> signatureCache =
+      Collections.synchronizedMap(new IdentityHashMap<>());
 
   public ClassSignature(String className) {
     super(className, className.hashCode());

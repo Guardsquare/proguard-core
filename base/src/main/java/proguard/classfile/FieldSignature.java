@@ -22,6 +22,7 @@ import static proguard.classfile.util.ClassUtil.externalClassName;
 import static proguard.classfile.util.ClassUtil.externalShortClassName;
 import static proguard.classfile.util.ClassUtil.externalType;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,8 +34,8 @@ import java.util.Objects;
  */
 public class FieldSignature extends Signature {
 
-  private static final transient Map<Field, FieldSignature> signatureCache =
-      new IdentityHashMap<>();
+  private static final Map<Field, FieldSignature> signatureCache =
+      Collections.synchronizedMap(new IdentityHashMap<>());
   public final String memberName;
   public final String descriptor;
 

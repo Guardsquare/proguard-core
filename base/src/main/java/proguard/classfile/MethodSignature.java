@@ -21,6 +21,7 @@ package proguard.classfile;
 import static proguard.classfile.util.ClassUtil.externalClassName;
 import static proguard.classfile.util.ClassUtil.externalShortClassName;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -40,7 +41,8 @@ public class MethodSignature extends Signature {
 
   public static final MethodSignature UNKNOWN =
       new MethodSignature(null, null, (MethodDescriptor) null);
-  private static final Map<Method, MethodSignature> signatureCache = new IdentityHashMap<>();
+  private static final Map<Method, MethodSignature> signatureCache =
+      Collections.synchronizedMap(new IdentityHashMap<>());
   public final String method;
   public final MethodDescriptor descriptor;
   private Method referencedMethod;
