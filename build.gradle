@@ -37,6 +37,7 @@ allprojects {
 			java {
 				importOrder()
 				googleJavaFormat()
+				endWithNewline()
 			}
 		}
 	}
@@ -45,6 +46,7 @@ allprojects {
 		spotless {
 			kotlin {
 				ktlint()
+				endWithNewline()
 			}
 		}
 	}
@@ -67,6 +69,7 @@ allprojects {
 	spotless {
 		groovyGradle {
 			greclipse()
+			endWithNewline()
 			toggleOffOn('formatter:off', 'formatter:on')
 		}
 	}
