@@ -1,12 +1,10 @@
 package proguard.analysis;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 
-/**
- * Utility to collect statistical information.
- *
- * @author Dennis Titze
- */
+/** Utility to collect statistical information. */
 public class Metrics {
 
   /** Constants which are used as metric types. */
@@ -27,7 +25,8 @@ public class Metrics {
     DEX2PRO_UNPARSEABLE_METHOD_SKIPPED
   }
 
-  public static final Map<MetricType, Integer> counts = new TreeMap<>();
+  public static final Map<MetricType, Integer> counts =
+      Collections.synchronizedMap(new EnumMap<>(MetricType.class));
 
   public static void increaseCount(MetricType type) {
     counts.merge(type, 1, Integer::sum);
