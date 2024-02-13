@@ -1,3 +1,9 @@
+## Version 9.1.2
+
+### Improved
+
+- Refactor `ExecutingInvocationUnit` to be customizable using executors.
+
 ## Version 9.1.1
 
 ### Bugfixes
@@ -16,7 +22,6 @@
 - Add `IdentifiedArrayReferenceValue.generalize()` to maintain `ID` when applied to two instances with same `ID`.
 - Improve `ExecutingInvocationUnit` support to methods that transform a `String` into an array of a primitive type. 
 - Add support for customizing the way method calls are processed in taint analysis.
-- Refactor `ExecutingInvocationUnit` to be customizable using executors.
 
 ## New Code Style
 
