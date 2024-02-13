@@ -102,7 +102,7 @@ public class JvmTaintTransferRelation
     }
     if (pushCount > 0) {
       if (taintTransformers.containsKey(target)) {
-        answerContent = taintTransformers.get(target).transformReturn(answerContent);
+        answerContent = taintTransformers.get(target).transformReturn(answerContent.copy());
       }
       state.push(answerContent);
     }
