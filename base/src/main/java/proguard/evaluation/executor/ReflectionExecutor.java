@@ -303,7 +303,7 @@ public abstract class ReflectionExecutor extends Executor {
         case JavaConstants.TYPE_JAVA_LANG_DOUBLE:
           double[] arrayOfDoubles = new double[length];
           for (int index = 0; index < length; index++) {
-            arrayOfDoubles[index] = values[index].floatValue().value();
+            arrayOfDoubles[index] = values[index].doubleValue().value();
           }
           return arrayOfDoubles;
         default:
