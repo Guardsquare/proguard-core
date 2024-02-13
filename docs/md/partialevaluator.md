@@ -513,7 +513,7 @@ The `ExecutingInvocationUnit` is designed to be customizable and extensible in i
 To customize an `ExecutingInvocationUnit`, use its dedicated `Builder`.
 
     :::java
-    ExecutingInvocationUnit invocationUnit = new ExecutingInvocationUnit.Builder().setAddDefaultStringReflectionExecutor(false)
+    ExecutingInvocationUnit invocationUnit = new ExecutingInvocationUnit.Builder().useDefaultStringReflectionExecutor(false)
                                                                                   .addExecutor(new MyExecutor())
                                                                                   .build(valueFactory);
 

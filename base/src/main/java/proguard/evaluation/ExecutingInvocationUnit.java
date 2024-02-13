@@ -125,7 +125,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   /** Builds an {@link ExecutingInvocationUnit}. */
   public static class Builder {
     protected boolean enableSameInstanceIdApproximation = false;
-    protected boolean addDefaultStringReflectionExecutor = true;
+    protected boolean useDefaultStringReflectionExecutor = true;
     protected List<Executor> registeredExecutors = new ArrayList<>();
 
     /**
@@ -146,7 +146,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      *
      * <p>N.B.: If a method is supported by different executors the first one added gets priority.
      * If {@link
-     * proguard.evaluation.ExecutingInvocationUnit.Builder#setAddDefaultStringReflectionExecutor(boolean)}
+     * proguard.evaluation.ExecutingInvocationUnit.Builder#useDefaultStringReflectionExecutor(boolean)}
      * is not set to <code>false</code> the default {@link StringReflectionExecutor} has the highest
      * priority.
      *
@@ -163,7 +163,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      *
      * <p>N.B.: If a method is supported by different executors the first one added gets priority.
      * If {@link
-     * proguard.evaluation.ExecutingInvocationUnit.Builder#setAddDefaultStringReflectionExecutor(boolean)}
+     * proguard.evaluation.ExecutingInvocationUnit.Builder#useDefaultStringReflectionExecutor(boolean)}
      * is not set to <code>false</code> the default {@link StringReflectionExecutor} has the highest
      * priority.
      *
@@ -178,12 +178,11 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      * Set this flag to false if the {@link ExecutingInvocationUnit} should not use {@link
      * StringReflectionExecutor} by default.
      *
-     * @param addDefaultStringReflectionExecutor whether a default {@link StringReflectionExecutor}
+     * @param useDefaultStringReflectionExecutor whether a default {@link StringReflectionExecutor}
      *     should be used.
      */
-    public Builder setAddDefaultStringReflectionExecutor(
-        boolean addDefaultStringReflectionExecutor) {
-      this.addDefaultStringReflectionExecutor = addDefaultStringReflectionExecutor;
+    public Builder useDefaultStringReflectionExecutor(boolean useDefaultStringReflectionExecutor) {
+      this.useDefaultStringReflectionExecutor = useDefaultStringReflectionExecutor;
       return this;
     }
 
@@ -194,7 +193,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      * @return The built {@link ExecutingInvocationUnit}
      */
     public ExecutingInvocationUnit build(ValueFactory valueFactory) {
-      if (addDefaultStringReflectionExecutor)
+      if (useDefaultStringReflectionExecutor)
         registeredExecutors.add(0, new StringReflectionExecutor());
       return new ExecutingInvocationUnit(
           valueFactory, enableSameInstanceIdApproximation, registeredExecutors);

@@ -29,15 +29,14 @@ import proguard.util.StringMatcher;
  * This {@link ExecutorMatcher} matches using a mapping from classes to methods to a {@link
  * StringMatcher} for the descriptor. Use if only certain method overloads are supported.
  */
-public class ExecutorMethodAndDescriptorMatcher implements ExecutorMatcher {
+public class ExecutorMethodSignatureMatcher implements ExecutorMatcher {
   private final Map<String, Map<String, StringMatcher>> methodMatchers;
 
-  public ExecutorMethodAndDescriptorMatcher(
-      Map<String, Map<String, StringMatcher>> methodMatchers) {
+  public ExecutorMethodSignatureMatcher(Map<String, Map<String, StringMatcher>> methodMatchers) {
     this.methodMatchers = methodMatchers;
   }
 
-  /** Builds an {@link ExecutorMethodAndDescriptorMatcher}. */
+  /** Builds an {@link ExecutorMethodSignatureMatcher}. */
   public static class Builder {
     private final Map<String, Map<String, StringMatcher>> methodMatchers;
 
@@ -66,8 +65,8 @@ public class ExecutorMethodAndDescriptorMatcher implements ExecutorMatcher {
      *
      * @return The built matcher.
      */
-    public ExecutorMethodAndDescriptorMatcher build() {
-      return new ExecutorMethodAndDescriptorMatcher(methodMatchers);
+    public ExecutorMethodSignatureMatcher build() {
+      return new ExecutorMethodSignatureMatcher(methodMatchers);
     }
   }
 
