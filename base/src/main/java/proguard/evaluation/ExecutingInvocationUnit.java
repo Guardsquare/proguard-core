@@ -322,14 +322,10 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
             .map(result -> createResultValue(methodInfo, instanceId, result, returnsOwnInstance))
             .orElse(createFallbackResultValue(methodInfo, returnsOwnInstance, instanceId));
 
-    if (parameters != null
-        && !methodInfo.isStatic()
-        && instanceValue != null
-        && resultValue != null
-        && resultValue.isParticular()) {
+    if (parameters != null && !methodInfo.isStatic() && instanceValue != null) {
       Value oldInstanceValue = parameters[0];
       Value updatedInstanceValue =
-          returnsOwnInstance
+          returnsOwnInstance && resultValue != null && resultValue.isParticular()
               // if the method returned its instance there is no need to create a new value
               ? resultValue
               : (!Objects.equals(oldInstanceValue.referenceValue().value(), callingInstance))
