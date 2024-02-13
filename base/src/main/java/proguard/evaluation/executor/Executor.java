@@ -47,7 +47,7 @@ public abstract class Executor {
    * @return The result of the method call wrapped in an optional. <code>Optional.empty()</code> if
    *     a result could not be calculated.
    */
-  public abstract Optional<Object> getMethodResult(
+  public abstract MethodResult<Object> getMethodResult(
       MethodExecutionInfo methodData,
       ReferenceValue instance,
       Object callingInstance,

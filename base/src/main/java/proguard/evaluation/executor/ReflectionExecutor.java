@@ -21,7 +21,6 @@ package proguard.evaluation.executor;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Optional;
 import proguard.classfile.JavaConstants;
 import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.MethodDescriptor;
@@ -37,20 +36,20 @@ import proguard.evaluation.value.Value;
  */
 public abstract class ReflectionExecutor extends Executor {
   @Override
-  public Optional<Object> getMethodResult(
+  public MethodResult<Object> getMethodResult(
       MethodExecutionInfo methodInfo,
       ReferenceValue instance,
       Object callingInstance,
       Value[] parameters) {
     if (!methodInfo.isStatic() && (instance == null || !instance.isSpecific())) {
       // Instance must at least be specific.
-      return Optional.empty();
+      return MethodResult.empty();
     }
 
     int paramOffset = methodInfo.isStatic() ? 0 : 1;
     if (!Arrays.stream(parameters).skip(paramOffset).allMatch(Value::isParticular)) {
       // All parameters must be particular.
-      return Optional.empty();
+      return MethodResult.empty();
     }
 
     ReflectionParameters reflectionParameters =
@@ -62,7 +61,7 @@ public abstract class ReflectionExecutor extends Executor {
             Class.forName(ClassUtil.externalClassName(methodInfo.getSignature().getClassName()));
 
         // Try to resolve the constructor reflectively and create a new instance.
-        return Optional.of(
+        return MethodResult.of(
             baseClass
                 .getConstructor(reflectionParameters.classes)
                 .newInstance(reflectionParameters.objects));
@@ -73,7 +72,7 @@ public abstract class ReflectionExecutor extends Executor {
           | IllegalAccessException
           | IllegalArgumentException
           | InvocationTargetException e) {
-        return Optional.empty();
+        return MethodResult.empty();
       }
     } else {
       try {
@@ -82,7 +81,7 @@ public abstract class ReflectionExecutor extends Executor {
         if (callingInstance == null && !methodInfo.isStatic()) throw new IllegalArgumentException();
 
         // Try to resolve the method via reflection and invoke the method.
-        return Optional.of(
+        return MethodResult.of(
             baseClass
                 .getMethod(methodInfo.getSignature().method, reflectionParameters.classes)
                 .invoke(callingInstance, reflectionParameters.objects));
@@ -92,7 +91,7 @@ public abstract class ReflectionExecutor extends Executor {
           | IllegalAccessException
           | IllegalArgumentException
           | InvocationTargetException e) {
-        return Optional.empty();
+        return MethodResult.empty();
       }
     }
   }
