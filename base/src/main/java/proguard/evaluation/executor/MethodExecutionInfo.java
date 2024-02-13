@@ -27,6 +27,7 @@ import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
+import proguard.classfile.Signature;
 import proguard.classfile.constant.AnyMethodrefConstant;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ReturnClassExtractor;
@@ -55,7 +56,7 @@ public class MethodExecutionInfo {
    * @param caller The code location of the call site. May be null.
    */
   public MethodExecutionInfo(Clazz clazz, Method method, CodeLocation caller) {
-    signature = new MethodSignature(clazz, method);
+    signature = (MethodSignature) Signature.of(clazz, method);
     this.caller = caller;
 
     returnType = ClassUtil.internalMethodReturnType(signature.descriptor.toString());
