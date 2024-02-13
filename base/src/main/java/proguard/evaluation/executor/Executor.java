@@ -85,5 +85,6 @@ public abstract class Executor {
    * @param className The name of the class of the instance.
    * @return The new calling instance.
    */
-  public abstract Object getInstanceCopyIfMutable(ReferenceValue instanceValue, String className);
+  public abstract Optional<Object> getInstanceCopyIfMutable(
+      ReferenceValue instanceValue, String className);
 }

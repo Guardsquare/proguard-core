@@ -168,7 +168,7 @@ public class MethodExecutionInfo {
   /** Get the calling instance using the copy behavior defined by the executor. */
   public Optional<Object> getCallingInstance(Executor executor, ReferenceValue instanceValue) {
     return (instanceValue != null && instanceValue.isParticular() && !isConstructor)
-        ? Optional.of(executor.getInstanceCopyIfMutable(instanceValue, signature.getClassName()))
+        ? executor.getInstanceCopyIfMutable(instanceValue, signature.getClassName())
         : Optional.empty();
   }
 

@@ -23,6 +23,7 @@ import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
 import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
 
 import java.util.HashMap;
+import java.util.Optional;
 import proguard.evaluation.executor.instancehandler.ExecutorMethodInstanceHandler;
 import proguard.evaluation.executor.matcher.ExecutorClassMatcher;
 import proguard.evaluation.value.ReferenceValue;
@@ -62,17 +63,17 @@ public class StringReflectionExecutor extends ReflectionExecutor {
   }
 
   @Override
-  public Object getInstanceCopyIfMutable(ReferenceValue instanceValue, String className) {
+  public Optional<Object> getInstanceCopyIfMutable(ReferenceValue instanceValue, String className) {
     Object instance = instanceValue.value();
-    if (instance == null || !instanceValue.isParticular()) return null;
+    if (instance == null) return Optional.empty();
     switch (className) {
       case NAME_JAVA_LANG_STRING_BUILDER:
-        return new StringBuilder((StringBuilder) instance);
+        return Optional.of(new StringBuilder((StringBuilder) instance));
       case NAME_JAVA_LANG_STRING_BUFFER:
-        return new StringBuffer((StringBuffer) instance);
+        return Optional.of(new StringBuffer((StringBuffer) instance));
       case NAME_JAVA_LANG_STRING:
-        return instance;
+        return Optional.of(instance);
     }
-    return null;
+    return Optional.empty();
   }
 }
