@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -131,6 +132,12 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
   private final Supplier<Boolean> shouldAnalyzeNextCodeAttribute;
   private final boolean skipIncompleteCalls;
 
+  private final boolean selectiveParameterReconstruction;
+  private final Set<MethodSignature> interestingMethods;
+  private final Set<Predicate<Call>> interestingCallPredicates;
+
+  private CurrentClazzMethodAttribute currentClazzMethodAttribute;
+
   /**
    * Lightweight utility method to resolve the target of an invocation instruction on demand,
    * without having to run a full scale analysis. This means the following for the different
@@ -233,6 +240,9 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
       ValueFactory arrayValueFactory,
       boolean ignoreExceptions,
       ExecutingInvocationUnit.Builder executingInvocationUnitBuilder,
+      boolean selectiveParameterReconstruction,
+      Set<MethodSignature> interestingMethods,
+      Set<Predicate<Call>> interestingCallPredicates,
       CallVisitor... visitors) {
     this.programClassPool = programClassPool;
     this.libraryClassPool = libraryClassPool;
@@ -241,6 +251,14 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     this.useDominatorAnalysis = useDominatorAnalysis;
     this.shouldAnalyzeNextCodeAttribute = shouldAnalyzeNextCodeAttribute;
     this.skipIncompleteCalls = skipIncompleteCalls;
+    this.selectiveParameterReconstruction = selectiveParameterReconstruction;
+    if (selectiveParameterReconstruction
+        && (interestingMethods == null || interestingCallPredicates == null)) {
+      throw new IllegalArgumentException(
+          "Using selectiveParameterReconstruction requires interestingMethods and interestingCallPredicates.");
+    }
+    this.interestingMethods = interestingMethods;
+    this.interestingCallPredicates = interestingCallPredicates;
     this.visitors = Arrays.asList(visitors);
     dominatorCalculator = new DominatorCalculator(ignoreExceptions);
 
@@ -294,6 +312,9 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     if (!shouldAnalyzeNextCodeAttribute.get()) {
       return;
     }
+
+    currentClazzMethodAttribute = new CurrentClazzMethodAttribute(clazz, method, codeAttribute);
+
     // Exceptions while executing the partial evaluators are fine, the virtual
     // call resolving and argument/return value reconstruction handle these
     // cases gracefully.
@@ -310,8 +331,15 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
       log.error("Unexpected exception during multi type analysis", e);
     }
 
+    if (useDominatorAnalysis) {
+      dominatorCalculator.visitCodeAttribute(clazz, method, codeAttribute);
+    }
+
+    codeAttribute.instructionsAccept(clazz, method, this);
+  }
+
+  private void runValueReconstruction(Clazz clazz, Method method, CodeAttribute codeAttribute) {
     try {
-      // Evaluate the code.
       particularValueEvaluationSuccessful = false;
       particularValueEvaluator.visitCodeAttribute0(clazz, method, codeAttribute);
       particularValueEvaluationSuccessful = true;
@@ -322,12 +350,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     } catch (Exception e) {
       log.error("Unexpected exception during particular value analysis", e);
     }
-
-    if (useDominatorAnalysis) {
-      dominatorCalculator.visitCodeAttribute(clazz, method, codeAttribute);
-    }
-
-    codeAttribute.instructionsAccept(clazz, method, this);
+    currentClazzMethodAttribute.evaluated = true;
   }
 
   @Override
@@ -407,15 +430,30 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
             !alwaysInvoked,
             runtimeTypeDependent);
 
-    initArgumentsAndReturnValue(call);
-
-    visitors.forEach(d -> d.visitCall(call));
-    if (clearCallValuesAfterVisit) {
-      call.clearValues();
+    if (shouldReconstructParameters(call)) {
+      if (!currentClazzMethodAttribute.evaluated) {
+        runValueReconstruction(
+            currentClazzMethodAttribute.clazz,
+            currentClazzMethodAttribute.method,
+            currentClazzMethodAttribute.codeAttribute);
+      }
+      initArgumentsAndReturnValue(call);
+      visitors.forEach(d -> d.visitCall(call));
+      if (clearCallValuesAfterVisit) {
+        call.clearValues();
+      }
     }
     if (callGraph != null) {
       callGraph.addCall(call);
     }
+  }
+
+  private boolean shouldReconstructParameters(Call call) {
+    if (!selectiveParameterReconstruction) {
+      return true;
+    }
+    return interestingMethods.contains(call.getTarget())
+        || interestingCallPredicates.stream().anyMatch(p -> p.test(call));
   }
 
   /**
@@ -482,7 +520,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
 
     call.setArguments(arguments);
 
-    if (target.descriptor.returnType.charAt(0) != TypeConstants.VOID
+    if (target.descriptor.getReturnType().charAt(0) != TypeConstants.VOID
         && particularValueEvaluationSuccessful) {
       call.setReturnValue(
           PartialEvaluatorUtils.getStackValue(
@@ -492,17 +530,17 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
 
   private List<Value> getArguments(
       CodeLocation location, MethodSignature invokedMethodSig, boolean isStaticCall) {
-    if (invokedMethodSig.descriptor.argumentTypes == null) {
+    if (invokedMethodSig.descriptor.getArgumentTypes() == null) {
       log.error("Argument types list of {} is null!", invokedMethodSig);
       return Collections.emptyList();
     }
 
     List<Value> args = new ArrayList<>();
     int stackOffset = 0;
-    for (int argNumber = invokedMethodSig.descriptor.argumentTypes.size() - 1;
+    for (int argNumber = invokedMethodSig.descriptor.getArgumentTypes().size() - 1;
         argNumber >= 0;
         argNumber--) {
-      String argType = invokedMethodSig.descriptor.argumentTypes.get(argNumber);
+      String argType = invokedMethodSig.descriptor.getArgumentTypes().get(argNumber);
       // Usually we are interested in concrete values for the arguments, i.e. we take them
       // from the particular value evaluator. But it can happen that this evaluator doesn't
       // know the argument value because it depends on some control flow specifics. Still,
@@ -911,6 +949,19 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     }
   }
 
+  private static class CurrentClazzMethodAttribute {
+    public final Clazz clazz;
+    public final Method method;
+    public final CodeAttribute codeAttribute;
+    public boolean evaluated = false;
+
+    public CurrentClazzMethodAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+      this.clazz = clazz;
+      this.method = method;
+      this.codeAttribute = codeAttribute;
+    }
+  }
+
   public static class Builder {
 
     private final ClassPool programClassPool;
@@ -926,6 +977,10 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     private boolean skipIncompleteCalls = true;
     private ValueFactory arrayValueFactory = new ArrayReferenceValueFactory();
     private boolean ignoreExceptions = true;
+    private boolean selectiveParameterReconstruction = false;
+    private Set<MethodSignature> interestingMethods;
+    private Set<Predicate<Call>> interestingCallPredicates;
+
     private ExecutingInvocationUnit.Builder executingInvocationUnitBuilder =
         new ExecutingInvocationUnit.Builder();
 
@@ -1025,6 +1080,19 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     }
 
     /**
+     * When used allows parameter reconstruction based on the {@link PartialEvaluator} to only be
+     * executed for the calls that match (1) the <code>interestingMethods</code> signatures OR (2)
+     * the <code>interestingCallPredicates</code>.
+     */
+    public Builder useSelectiveParameterReconstruction(
+        Set<MethodSignature> interestingMethods, Set<Predicate<Call>> interestingCallPredicates) {
+      this.selectiveParameterReconstruction = true;
+      this.interestingMethods = interestingMethods;
+      this.interestingCallPredicates = interestingCallPredicates;
+      return this;
+    }
+
+    /**
      * @param executingInvocationUnitBuilder a builder for the invocation unit used for particular
      *     value analysis.
      * @return {@link Builder} object
@@ -1050,6 +1118,9 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
           arrayValueFactory,
           ignoreExceptions,
           executingInvocationUnitBuilder,
+          selectiveParameterReconstruction,
+          interestingMethods,
+          interestingCallPredicates,
           visitors);
     }
   }

@@ -2,6 +2,7 @@
 
 ### Improved
 
+- Add support for selective parameter reconstruction to define which methods should have their calls evaluated.
 - Refactor `ExecutingInvocationUnit` to be customizable using executors. Improve checking whether method instance should be replaced in stack and variables
 - Support execution of methods that operate on 1D arrays of all primitive and reference types with `ReflectionExecutor`.
 
