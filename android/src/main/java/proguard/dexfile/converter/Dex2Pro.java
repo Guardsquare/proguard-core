@@ -1136,6 +1136,8 @@ public class Dex2Pro {
   private void optimize(IrMethod irMethod) {
     // Derived from the extension in Dex2Jar.java
     T_cleanLabel.transform(irMethod);
+    // This method call can theoretically be removed however this significantly increases
+    // the memory and processing overhead for the other optimisers, leading to crashes.
     T_removeLocal.transform(irMethod);
     T_removeConst.transform(irMethod);
     T_zero.transform(irMethod);

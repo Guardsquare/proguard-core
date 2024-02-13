@@ -25,6 +25,13 @@ import proguard.dexfile.ir.stmt.LabelStmt;
 import proguard.dexfile.ir.stmt.Stmt;
 import proguard.dexfile.ir.stmt.StmtList;
 
+/**
+ * This class attempts to remove SSA form and reduce the number of variables used by the program.
+ * This is an optimiser which does not need to be used as it does not change the semantics of a
+ * program but simply the number of variables it uses and therefore its performance. However not
+ * using this will lead to much larger memory requirements of the other optimisers as it requires
+ * them to process more variables and variable assignments.
+ */
 public class RemoveLocalFromSSA extends StatedTransformer {
   static <T extends Value> void replaceAssign(
       List<AssignStmt> assignStmtList, Map<Local, T> toReplace) {
@@ -109,76 +116,114 @@ public class RemoveLocalFromSSA extends StatedTransformer {
 
   private boolean simplePhi(
       List<LabelStmt> phiLabels, Map<Local, Local> toReplace, Set<Value> set) {
+    if (phiLabels == null) {
+      return false;
+    }
+
     boolean changed = false;
-    if (phiLabels != null) {
-      for (Iterator<LabelStmt> itLabel = phiLabels.iterator(); itLabel.hasNext(); ) {
-        LabelStmt labelStmt = itLabel.next();
-        for (Iterator<AssignStmt> it = labelStmt.phis.iterator(); it.hasNext(); ) {
-          AssignStmt phi = it.next();
-          set.addAll(Arrays.asList(phi.getOp2().getOps()));
-          set.remove(phi.getOp1());
-          if (set.size() == 1) {
-            it.remove();
-            changed = true;
-            toReplace.put((Local) phi.getOp1(), (Local) set.iterator().next());
-          }
-          set.clear();
+    for (Iterator<LabelStmt> itLabel = phiLabels.iterator(); itLabel.hasNext(); ) {
+      LabelStmt labelStmt = itLabel.next();
+      for (Iterator<AssignStmt> it = labelStmt.phis.iterator(); it.hasNext(); ) {
+        AssignStmt phi = it.next();
+
+        // Add possible phi inputs to set e.g. [B,C] in A = φ(B,C).
+        set.addAll(Arrays.asList(phi.getOp2().getOps()));
+
+        // Situations where a phi operand is in the input operands and output operands can
+        // be removed e.g. A = φ(A,B) -> A = φ(B).
+        set.remove(phi.getOp1());
+        if (set.size() == 1) {
+          // If there is only one phi operand then we can replace all references to the output
+          // variable with the input variable e.g. [ A = φ(B); print(A); ] -> [ print(B); ].
+          it.remove();
+          changed = true;
+          toReplace.put((Local) phi.getOp1(), (Local) set.iterator().next());
         }
-        if (labelStmt.phis.size() == 0) {
-          labelStmt.phis = null;
-          itLabel.remove();
-        }
+        set.clear();
+      }
+      if (labelStmt.phis.size() == 0) {
+        labelStmt.phis = null;
+        itLabel.remove();
       }
     }
     return changed;
   }
 
+  /**
+   * Create a graph of <a
+   * href="https://en.wikipedia.org/wiki/Static_single-assignment_form">phis</a>. Propagate parent
+   * nodes throughout the graph such that every node will know every single node above it e.g.
+   * parents + grandparents + great-grandparents etc. The nodes at the top of this directed graph
+   * (nodes with no parents, which I refer to as top nodes) will represent variable locations e.g.
+   * input parameters for a method will originate in local variables v1, v2 etc. This will also mean
+   * that a node that contains itself in its parents will be contained in a loop in the Phi graph.
+   * Since Phis are simply variable reassignments each node is checked to see if it contains only 1
+   * top node in its parents. The output variable of that phi operation can simply be replaced with
+   * the top node.
+   */
   private boolean removeLoopFromPhi(List<LabelStmt> phiLabels, Map<Local, Local> toReplace) {
+    if (phiLabels == null) {
+      return false;
+    }
+
     boolean changed = false;
-    if (phiLabels != null) {
-      Set<Local> toDeletePhiAssign = new LinkedHashSet<>();
-      Map<Local, PhiObject> phis;
-      // detect loop init in phi
-      phis = collectPhiObjects(phiLabels);
-      Queue<PhiObject> q = new UniqueQueue<>();
-      q.addAll(phis.values());
-      while (!q.isEmpty()) {
-        PhiObject po = q.poll();
-        for (PhiObject child : po.children) {
-          if (child.isInitByPhi) {
-            if (child.parent.addAll(po.parent)) {
-              q.add(child);
-            }
+    Set<Local> toDeletePhiAssign = new LinkedHashSet<>();
+    Map<Local, PhiObject> phis;
+    // Make a directed phi graph with nodes for all the phi calls e.g. In the example below
+    // C = φ(A,B) is represented by the following graph:
+    //     A -- +
+    //          | --> C
+    //     B ---+
+    phis = collectPhiObjects(phiLabels);
+    Queue<PhiObject> q = new UniqueQueue<>();
+    // Starting from the top nodes of the graph doesn't seem to provide any speed up.
+    q.addAll(phis.values());
+
+    while (!q.isEmpty()) {
+      PhiObject po = q.poll();
+      // This loop makes child phi nodes inherit all their parent's parent nodes.
+      for (PhiObject child : po.children) {
+        // Unclear why this check is needed as non phi-inited nodes should have no parents,
+        // and manual testing on an individual app also confirmed this.
+        if (child.isInitByPhi) {
+          // If new nodes are added to the child then we need to propagate them.
+          if (child.parent.addAll(po.parent)) {
+            q.add(child);
           }
         }
       }
-      for (PhiObject po : phis.values()) {
-        if (po.isInitByPhi) {
-          Local local = null;
-          for (PhiObject p : po.parent) {
-            if (!p.isInitByPhi) {
-              if (local == null) { // the first non-phi value
-                local = p.local;
-              } else {
-                local = null;
-                break;
-              }
+    }
+
+    for (PhiObject po : phis.values()) {
+      if (po.isInitByPhi) {
+        Local local = null;
+        // Itter over parents - if ONLY one of them has a concrete instantiation location (not a
+        // phi), then we replace the produced phi variable with this location.
+        for (PhiObject p : po.parent) {
+          if (!p.isInitByPhi) {
+            if (local == null) { // The first non-phi value.
+              local = p.local;
+            } else {
+              // Another parent has a concrete location, so we can't replace it.
+              local = null;
+              break;
             }
           }
-          if (local != null) {
-            toReplace.put(po.local, local);
-            toDeletePhiAssign.add(po.local);
-            changed = true;
-          }
+        }
+        if (local != null) {
+          // The actual replacements are handled in replacePhi.
+          toReplace.put(po.local, local);
+          toDeletePhiAssign.add(po.local);
+          changed = true;
         }
       }
-      for (Iterator<LabelStmt> itLabel = phiLabels.iterator(); itLabel.hasNext(); ) {
-        LabelStmt labelStmt = itLabel.next();
-        labelStmt.phis.removeIf(phi -> toDeletePhiAssign.contains(phi.getOp1()));
-        if (labelStmt.phis.size() == 0) {
-          labelStmt.phis = null;
-          itLabel.remove();
-        }
+    }
+    for (Iterator<LabelStmt> itLabel = phiLabels.iterator(); itLabel.hasNext(); ) {
+      LabelStmt labelStmt = itLabel.next();
+      labelStmt.phis.removeIf(phi -> toDeletePhiAssign.contains(phi.getOp1()));
+      if (labelStmt.phis.size() == 0) {
+        labelStmt.phis = null;
+        itLabel.remove();
       }
     }
     return changed;
@@ -240,18 +285,32 @@ public class RemoveLocalFromSSA extends StatedTransformer {
     final Map<Local, Local> toReplace = new LinkedHashMap<>();
     Set<Value> set = new LinkedHashSet<>();
     boolean changed = true;
+
     while (changed) {
       changed = false;
 
+      // The removeLoopFromPhi call is where most of the work happens and the large majority of the
+      // processing occurs here. Optimising this would cause significant improvements.
+      // From initial testing it appears this function call can be removed, however it still causes
+      // other optimisers to more memory and therefore crash in some applications.
       if (removeLoopFromPhi(phiLabels, toReplace)) {
         fixReplace(toReplace);
         replacePhi(phiLabels, toReplace, set);
       }
 
-      while (simplePhi(phiLabels, toReplace, set)) { // remove a = phi(b)
+      // This loop is effectively doing graph squashing in O(n^2) time e.g.
+      // (A -> B -> C -> D) = (A-> D).
+      // This can be brought down to O(n) time (if performed on a DAG), however the initial
+      // implementation made the O(n) implementation take longer. It was suspected that
+      // the initial cost of instantiating objects for the algorithm combined with potentially
+      // small graphs being traversed caused this slowdown.
+
+      // Remove a = phi(b) - simple case where phi has only one operand.
+      while (simplePhi(phiLabels, toReplace, set)) {
         fixReplace(toReplace);
         replacePhi(phiLabels, toReplace, set);
       }
+
       while (simpleAssign(phiLabels, assignStmtList, toReplace, method.stmts)) { // remove a=b
         fixReplace(toReplace);
         replaceAssign(assignStmtList, toReplace);
