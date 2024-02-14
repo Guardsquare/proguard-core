@@ -62,7 +62,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
         val concat = MethodExecutionInfo(javaLangString, javaLangString.findMethod("concat"), null)
         "Unknown reference String length" {
             invocationUnit.executeMethod(stringExecutor, length, UnknownReferenceValue()) shouldBe UnknownIntegerValue()
-            invocationUnit.executeMethod(stringExecutor, length, UnknownIntegerValue()) shouldBe UnknownIntegerValue()
+            invocationUnit.executeMethod(stringExecutor, length, UnknownString()) shouldBe UnknownIntegerValue()
         }
 
         "Unknown String length" {
