@@ -25,10 +25,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import proguard.analysis.Metrics;
 import proguard.analysis.Metrics.MetricType;
 import proguard.classfile.AccessConstants;
+import proguard.classfile.Clazz;
+import proguard.classfile.LibraryClass;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
@@ -131,7 +137,28 @@ public class Dex2Pro {
 
   private boolean usePrimitiveArrayConstants = false;
 
-  private static class Clz {
+  // Used when multithreaded mode is enabled
+  private final ExecutorService executor;
+
+  /** Create a new (single-threaded) {@link Dex2Pro} object. */
+  public Dex2Pro() {
+    this.executor = null;
+  }
+
+  /**
+   * Create a new {@link Dex2Pro} object that will use up to maximumThreads threads for conversion.
+   * If more than one thread is set, one must call shutdown() after adding all work, to allow time
+   * for the workers to shut down in an orderly fashion.
+   */
+  public Dex2Pro(int maximumThreads) {
+    if (maximumThreads < 1) {
+      throw new IllegalArgumentException("maximumThreads needs to be at least 1.");
+    }
+
+    executor = (maximumThreads > 1) ? Executors.newFixedThreadPool(maximumThreads) : null;
+  }
+
+  private class Clz {
     private int access;
     private Clz enclosingClass;
     private proguard.dexfile.reader.Method enclosingMethod;
@@ -146,7 +173,10 @@ public class Dex2Pro {
 
     void addInner(Clz clz) {
       if (inners == null) {
-        inners = new LinkedHashSet<>();
+        inners =
+            executor != null
+                ? Collections.newSetFromMap(new ConcurrentHashMap<>())
+                : new LinkedHashSet<>();
       }
       inners.add(clz);
     }
@@ -473,7 +503,7 @@ public class Dex2Pro {
             + "]");
   }
 
-  private static Map<String, Clz> collectClzInfo(DexFileNode fileNode) {
+  private Map<String, Clz> collectClzInfo(DexFileNode fileNode) {
     Map<String, Clz> classes = new LinkedHashMap<>();
     for (DexClassNode classNode : fileNode.clzs) {
       Clz clz = get(classes, classNode.className);
@@ -559,11 +589,36 @@ public class Dex2Pro {
 
   /** Converts the given Dex to classes and applies the given class visitor to them. */
   public void convertDex(DexFileNode fileNode, ClassVisitor classVisitor) {
-    if (fileNode.clzs != null) {
-      Map<String, Clz> classes = collectClzInfo(fileNode);
-      for (DexClassNode classNode : fileNode.clzs) {
-        convertClass(fileNode, classNode, classVisitor, classes);
-      }
+    if (fileNode.clzs == null) {
+      return;
+    }
+
+    // If multithreading is enabled, queue up the class nodes for conversion, otherwise just
+    // process them directly on the main thread, to save time on spin-up overhead etc.
+    Map<String, Clz> classInfo = Collections.unmodifiableMap(collectClzInfo(fileNode));
+    if (executor != null) {
+      // Wrap the visitor in a synchronized helper class
+      ClassVisitor syncVisitor = new SynchronizedClassVisitor(classVisitor);
+      fileNode.clzs.stream()
+          .map(classNode -> new WorkItem(classInfo, fileNode, classNode, syncVisitor))
+          .forEach(executor::execute);
+    } else {
+      fileNode.clzs.forEach(
+          classNode -> convertClass(fileNode, classNode, classVisitor, classInfo));
+    }
+  }
+
+  /** Shuts down and waits for any remaining conversion workers, up to timeoutSeconds. */
+  public void shutdown(int timeoutSeconds) {
+    if (executor == null) {
+      throw new UnsupportedOperationException(
+          "shutdown() should only be called if using multithreaded mode.");
+    }
+
+    executor.shutdown();
+    try {
+      executor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS);
+    } catch (InterruptedException ignored) {
     }
   }
 
@@ -1115,7 +1170,7 @@ public class Dex2Pro {
     return null;
   }
 
-  private static Clz get(Map<String, Clz> classes, String name) {
+  private Clz get(Map<String, Clz> classes, String name) {
     Clz clz = classes.get(name);
     if (clz == null) {
       clz = new Clz(name);
@@ -1219,4 +1274,53 @@ public class Dex2Pro {
 
   private static final Comparator<InnerClassNode> INNER_CLASS_NODE_COMPARATOR =
       Comparator.comparing(o -> o.name);
+
+  /** Basic helper class to hold information on a single class for multithreaded processing. */
+  private class WorkItem implements Runnable {
+    private final Map<String, Clz> classInfo;
+    private final DexFileNode fileNode;
+    private final DexClassNode classNode;
+    private final ClassVisitor classVisitor;
+
+    public WorkItem(
+        Map<String, Clz> classInfo,
+        DexFileNode fileNode,
+        DexClassNode classNode,
+        ClassVisitor classVisitor) {
+      this.classInfo = classInfo;
+      this.fileNode = fileNode;
+      this.classNode = classNode;
+      this.classVisitor = classVisitor;
+    }
+
+    @Override
+    public void run() {
+      convertClass(fileNode, classNode, classVisitor, classInfo);
+    }
+  }
+
+  /** Basic helper class that allows concurrent use of a given delegate {@link ClassVisitor}. */
+  private static class SynchronizedClassVisitor implements ClassVisitor {
+
+    private final ClassVisitor delegate;
+
+    private SynchronizedClassVisitor(ClassVisitor delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public synchronized void visitAnyClass(Clazz clazz) {
+      delegate.visitAnyClass(clazz);
+    }
+
+    @Override
+    public synchronized void visitProgramClass(ProgramClass programClass) {
+      delegate.visitProgramClass(programClass);
+    }
+
+    @Override
+    public synchronized void visitLibraryClass(LibraryClass libraryClass) {
+      delegate.visitLibraryClass(libraryClass);
+    }
+  }
 }
