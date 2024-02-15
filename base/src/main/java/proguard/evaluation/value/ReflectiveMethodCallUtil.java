@@ -30,8 +30,11 @@ import proguard.classfile.util.InternalTypeEnumeration;
  * the call fails, a RuntimeException is thrown, otherwise, a new Value is returned using the given
  * factory.
  *
+ * @deprecated This logic is now implemented in {@link
+ *     proguard.evaluation.executor.ReflectionExecutor}
  * @author Dennis Titze
  */
+@Deprecated
 public class ReflectiveMethodCallUtil {
 
   /**

@@ -7,6 +7,8 @@ import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import proguard.analysis.cpa.defaults.StackAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -121,6 +123,26 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
   }
 
   @Override
+  protected void processCall(JvmAbstractState<ValueAbstractState> state, Call call) {
+    Deque<ValueAbstractState> operands = new LinkedList<>();
+    if (call.getTarget().descriptor.argumentTypes != null) {
+      List<String> argumentTypes = call.getTarget().descriptor.argumentTypes;
+      for (int i = argumentTypes.size() - 1; i >= 0; i--) {
+        boolean isCategory2 = ClassUtil.isInternalCategory2Type(argumentTypes.get(i));
+        operands.offerFirst(state.pop());
+        if (isCategory2) {
+          // ExecutingInvocationUnit expects a single parameter for category 2 values
+          state.pop();
+        }
+      }
+    }
+    if (!call.isStatic()) {
+      operands.offerFirst(state.pop());
+    }
+    invokeMethod(state, call, (List<ValueAbstractState>) operands);
+  }
+
+  @Override
   public void invokeMethod(
       JvmAbstractState<ValueAbstractState> state, Call call, List<ValueAbstractState> operands) {
     if (call instanceof ConcreteCall) {
@@ -135,7 +157,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
       String internalReturnClassName = ClassUtil.internalClassNameFromType(returnType);
       if (returnType != null
           && internalReturnClassName != null
-          && executingInvocationUnit.isSupportedClass(internalReturnClassName)) {
+          && executingInvocationUnit.isSupportedMethodCall(internalReturnClassName, null)) {
         // we can at most know the return type
         pushReturnTypedValue(state, operands, (ConcreteCall) call, returnType);
         return;
@@ -151,8 +173,15 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
       List<ValueAbstractState> operands) {
     Clazz targetClass = call.getTargetClass();
     Method targetMethod = call.getTargetMethod();
+
     Value[] operandsArray =
         operands.stream().map(ValueAbstractState::getValue).toArray(Value[]::new);
+
+    if (operandsArray.length
+        != ClassUtil.internalMethodParameterCount(
+            call.getTarget().descriptor.toString(), call.isStatic())) {
+      throw new IllegalStateException("Unexpected number of parameters");
+    }
 
     Value result = executingInvocationUnit.executeMethod(call, operandsArray);
     String returnType = internalMethodReturnType(targetMethod.getDescriptor(targetClass));
