@@ -2,7 +2,12 @@
 
 ### Improved
 
-- Refactor `ExecutingInvocationUnit` to be customizable using executors.
+- Refactor `ExecutingInvocationUnit` to be customizable using executors. Improve checking whether method instance should be replaced in stack and variables
+- Support execution of methods that operate on 1D arrays of all primitive and reference types with `ReflectionExecutor`.
+
+### Bug fixes
+
+- Fix handling of category 2 values in `JvmValueTransferRelation` to work correctly with `ExecutingInvocationUnit`.
 
 ## Version 9.1.1
 
