@@ -152,7 +152,10 @@ public abstract class ReflectionExecutor extends Executor {
           }
 
           Object arrayObject = getArrayObject(innerClass, valuesArray);
-          classes[index] = arrayObject != null ? arrayObject.getClass() : null;
+          classes[index] =
+              arrayObject == null
+                  ? Array.newInstance(innerClass, 0).getClass()
+                  : arrayObject.getClass();
           objects[index] = arrayObject;
         }
       }
@@ -246,6 +249,10 @@ public abstract class ReflectionExecutor extends Executor {
      * @return The extracted array cast to an {@link Object}.
      */
     private static Object getArrayObject(Class<?> cls, Value[] values) {
+      if (values == null) {
+        return null;
+      }
+
       int length = values.length;
       switch (cls.getName()) {
           // handle arrays of primitive types separately
