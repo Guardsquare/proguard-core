@@ -76,4 +76,10 @@ public class StringReflectionExecutor extends ReflectionExecutor {
     }
     return Optional.empty();
   }
+
+  public static class Builder extends Executor.Builder<StringReflectionExecutor> {
+    public StringReflectionExecutor build() {
+      return new StringReflectionExecutor();
+    }
+  }
 }

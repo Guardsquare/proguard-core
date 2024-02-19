@@ -126,7 +126,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   public static class Builder {
     protected boolean enableSameInstanceIdApproximation = false;
     protected boolean useDefaultStringReflectionExecutor = true;
-    protected List<Executor> registeredExecutors = new ArrayList<>();
+    protected List<Executor.Builder<?>> registeredExecutorBuilders = new ArrayList<>();
 
     /**
      * For methods that are not supported by any executor, decide, whether a method with matching
@@ -150,10 +150,10 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      * is not set to <code>false</code> the default {@link StringReflectionExecutor} has the highest
      * priority.
      *
-     * @param executor The {@link Executor} to be added.
+     * @param executor A {@link Executor.Builder} of the {@link Executor} to be added.
      */
-    public Builder addExecutor(Executor executor) {
-      registeredExecutors.add(executor);
+    public Builder addExecutor(Executor.Builder<?> executor) {
+      registeredExecutorBuilders.add(executor);
       return this;
     }
 
@@ -167,10 +167,10 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      * is not set to <code>false</code> the default {@link StringReflectionExecutor} has the highest
      * priority.
      *
-     * @param executors The {@link Executor}s to be added.
+     * @param executors {@link Executor.Builder}s of the {@link Executor}s to be added.
      */
-    public Builder addExecutors(Executor... executors) {
-      registeredExecutors.addAll(Arrays.asList(executors));
+    public Builder addExecutors(Executor.Builder<?>... executors) {
+      registeredExecutorBuilders.addAll(Arrays.asList(executors));
       return this;
     }
 
@@ -193,8 +193,15 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      * @return The built {@link ExecutingInvocationUnit}
      */
     public ExecutingInvocationUnit build(ValueFactory valueFactory) {
+      List<Executor> registeredExecutors = new ArrayList<>();
+
       if (useDefaultStringReflectionExecutor)
-        registeredExecutors.add(0, new StringReflectionExecutor());
+        registeredExecutors.add(new StringReflectionExecutor.Builder().build());
+
+      registeredExecutorBuilders.stream()
+          .map(Executor.Builder::build)
+          .forEach(registeredExecutors::add);
+
       return new ExecutingInvocationUnit(
           valueFactory, enableSameInstanceIdApproximation, registeredExecutors);
     }

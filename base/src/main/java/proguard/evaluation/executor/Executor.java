@@ -87,4 +87,22 @@ public abstract class Executor {
    */
   public abstract Optional<Object> getInstanceCopyIfMutable(
       ReferenceValue instanceValue, String className);
+
+  /**
+   * A builder for the executor. It's important for each concrete executor to provide one in order
+   * to be able to construct a fresh copy of the executor when needed
+   *
+   * <p>For example this happens in {@link proguard.evaluation.ExecutingInvocationUnit.Builder},
+   * since each invocation unit should use different executors in order to avoid undesired side
+   * effects.
+   */
+  public abstract static class Builder<T extends Executor> {
+
+    /**
+     * Build an executor. If the executor keeps internal state this method needs to guarantee that
+     * no data is shared between the different implementations (unless needed by design, e.g., for
+     * caching).
+     */
+    public abstract T build();
+  }
 }
