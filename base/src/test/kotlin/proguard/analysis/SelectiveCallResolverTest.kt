@@ -20,11 +20,13 @@ package proguard.analysis
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.instanceOf
 import proguard.analysis.datastructure.callgraph.Call
 import proguard.analysis.datastructure.callgraph.CallGraph
 import proguard.classfile.MethodSignature
+import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
+import proguard.evaluation.value.ParticularReferenceValue
+import proguard.evaluation.value.Value
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.util.function.Predicate
@@ -49,49 +51,48 @@ class SelectiveCallResolverTest : FunSpec({
         "()V",
     )
 
-    val SIG_IGNORE = MethodSignature("C", "notEvaluated", "()V")
+    val SIG_UNINTERESTING = MethodSignature("C", "uninteresting", "()V")
 
     val code = JavaSource(
         "Test.java",
-        """public class Test {
+        """
+public class Test {
 
   public static void main(String[] args) {
     A a = new A();
     B b = new B();
     C c = new C();
 
-    a.test("text");
+    a.test();
     b.test();
-    c.notEvaluated();
+    c.uninteresting();
   }
 }
 
 class A {
-
-  public void test(String text) {
-    System.out.println("text");
-    System.out.println(text);
-    new C().notEvaluated();
-  }
-
+  
   public void test() {
-    new A().test("other text");
+    this.test("A: test()");
     new B().test();
+    new C().uninteresting();
+  }
+  
+  public void test(String value) {
+    System.out.println(value);
   }
 }
 
 class B {
 
   public void test() {
-    new A().test("other text");
-    new C().notEvaluated();
+    new C().uninteresting();
   }
 }
 
 class C {
 
-  public void notEvaluated() {
-    System.out.println("notEvaluated");
+  public void uninteresting() {
+    System.out.println("C: evaluated inside uninteresting()");
   }
 }
 """,
@@ -103,23 +104,21 @@ class C {
     class CallSaver : CallVisitor {
 
         val incompleteCalls = ArrayList<Call>()
-        val completeCalls = ArrayList<Call>()
+        val completeCalls = HashMap<Call, Value?>()
         override fun visitCall(call: Call) {
             if (call.hasIncompleteTarget()) {
                 incompleteCalls.add(call)
             } else {
-                completeCalls.add(call)
+                completeCalls[call] = call.getArgument(0)
             }
         }
     }
 
     val callSaver = CallSaver()
 
-    val interestingMethods: Set<MethodSignature> =
-        setOf(SIG_INTERESTING)
+    val interestingMethods: Set<MethodSignature> = setOf(SIG_INTERESTING)
 
-    val interestingCallPredicates: Set<Predicate<Call>> =
-        setOf(Predicate { c -> "test" == c.target.method })
+    val interestingCallPredicates: Set<Predicate<Call>> = setOf(Predicate { c -> "test" == c.target.method })
 
     val callGraph = CallGraph()
     val resolver =
@@ -129,43 +128,36 @@ class C {
             callGraph,
             callSaver,
         )
-            .setClearCallValuesAfterVisit(false)
-            .setUseDominatorAnalysis(true)
+            .setClearCallValuesAfterVisit(true)
+            .setUseDominatorAnalysis(false)
             .setEvaluateAllCode(true)
-            .setIncludeSubClasses(true)
+            .setIncludeSubClasses(false)
             .setMaxPartialEvaluations(50)
             .setSkipIncompleteCalls(false)
+            .setArrayValueFactory(DetailedArrayValueFactory())
             .useSelectiveParameterReconstruction(interestingMethods, interestingCallPredicates)
             .build()
 
     classPools.programClassPool.classesAccept(resolver)
 
     test("Selective visited interesting signature") {
-        val interestingMethodCalls = callSaver.completeCalls.filter { call -> call.target == SIG_INTERESTING }.toList()
+        val interestingCalls = callSaver.completeCalls.filter { it.key.target == SIG_INTERESTING }.map { it.value }.toList()
+        interestingCalls.size shouldBe 2
+        interestingCalls.filterIsInstance<IdentifiedReferenceValue>().count() shouldBe 2
+        interestingCalls.filterIsInstance<ParticularReferenceValue>().count() shouldBe 1
 
-        interestingMethodCalls.size shouldBe 18
-        interestingMethodCalls.forEach { call -> call.getArgument(0) shouldBe instanceOf<IdentifiedReferenceValue>() }
+        callSaver.completeCalls.count { call -> call.key.target == SIG_PREDICATE_I } shouldBe 1
 
-        val count1 = callSaver.completeCalls.count { call -> call.target == SIG_PREDICATE_I }
-        count1 shouldBe 3
+        callSaver.completeCalls.count { call -> call.key.target == SIG_PREDICATE_II } shouldBe 2
 
-        val count2 = callSaver.completeCalls.count { call -> call.target == SIG_PREDICATE_II }
-        count2 shouldBe 2
-
-        val ignored = callSaver.completeCalls.count { call -> call.target == SIG_IGNORE }
-        ignored shouldBe 0
+        callSaver.completeCalls.count { call -> call.key.target == SIG_UNINTERESTING } shouldBe 0
     }
 
     test("CallGraph not affected by selective parameter reconstruction") {
-        val countInterestingMethodCalls = callGraph.incoming[SIG_INTERESTING]!!.size
+        callGraph.incoming[SIG_INTERESTING]!!.size shouldBe 2
 
-        // there is some deduplication in the call graph sets that makes the numbers different
-        countInterestingMethodCalls shouldBe 3
+        callGraph.incoming[SIG_PREDICATE_I]!!.size shouldBe 1
 
-        val count1 = callGraph.incoming[SIG_PREDICATE_I]!!.size
-        count1 shouldBe 3
-
-        val ignored = callGraph.incoming[SIG_IGNORE]!!.size
-        ignored shouldBe 3
+        callGraph.incoming[SIG_UNINTERESTING]!!.size shouldBe 3
     }
 })
