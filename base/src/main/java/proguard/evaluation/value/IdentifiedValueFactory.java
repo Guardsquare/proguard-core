@@ -17,6 +17,7 @@
  */
 package proguard.evaluation.value;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import proguard.classfile.*;
 
 /**
@@ -26,28 +27,28 @@ import proguard.classfile.*;
  * @author Eric Lafortune
  */
 public class IdentifiedValueFactory extends ParticularValueFactory {
-  protected int integerID;
-  protected int longID;
-  protected int floatID;
-  protected int doubleID;
-  protected int referenceID;
+  private final AtomicInteger integerID = new AtomicInteger(0);
+  private final AtomicInteger longID = new AtomicInteger(0);
+  private final AtomicInteger floatID = new AtomicInteger(0);
+  private final AtomicInteger doubleID = new AtomicInteger(0);
+  private static final AtomicInteger referenceIdProvider = new AtomicInteger(0);
 
   // Implementations for BasicValueFactory.
 
   public IntegerValue createIntegerValue() {
-    return new IdentifiedIntegerValue(this, integerID++);
+    return new IdentifiedIntegerValue(this, integerID.incrementAndGet());
   }
 
   public LongValue createLongValue() {
-    return new IdentifiedLongValue(this, longID++);
+    return new IdentifiedLongValue(this, longID.incrementAndGet());
   }
 
   public FloatValue createFloatValue() {
-    return new IdentifiedFloatValue(this, floatID++);
+    return new IdentifiedFloatValue(this, floatID.incrementAndGet());
   }
 
   public DoubleValue createDoubleValue() {
-    return new IdentifiedDoubleValue(this, doubleID++);
+    return new IdentifiedDoubleValue(this, doubleID.incrementAndGet());
   }
 
   public ReferenceValue createReferenceValue(
@@ -55,7 +56,7 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
     return type == null
         ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
         : new IdentifiedReferenceValue(
-            type, referencedClass, mayBeExtension, mayBeNull, this, referenceID++);
+            type, referencedClass, mayBeExtension, mayBeNull, this, generateReferenceId());
   }
 
   @Override
@@ -115,6 +116,15 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
     return type == null
         ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
         : new IdentifiedArrayReferenceValue(
-            TypeConstants.ARRAY + type, referencedClass, false, arrayLength, this, referenceID++);
+            TypeConstants.ARRAY + type,
+            referencedClass,
+            false,
+            arrayLength,
+            this,
+            generateReferenceId());
+  }
+
+  public static int generateReferenceId() {
+    return referenceIdProvider.incrementAndGet();
   }
 }

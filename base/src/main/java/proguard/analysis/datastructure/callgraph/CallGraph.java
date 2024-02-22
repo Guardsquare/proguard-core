@@ -19,6 +19,7 @@
 package proguard.analysis.datastructure.callgraph;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -43,15 +44,28 @@ public class CallGraph {
   /** If true, incoming edges are not explored further for known entry points. */
   private static final boolean STOP_AT_ENTRYPOINT = true;
 
+  private final boolean concurrent;
+
   /** Create an empty call graph. */
   public CallGraph() {
-    this(new HashMap<>(), new HashMap<>());
+    this(new HashMap<>(), new HashMap<>(), false);
   }
 
   protected CallGraph(
-      Map<MethodSignature, Set<Call>> incoming, Map<MethodSignature, Set<Call>> outgoing) {
+      Map<MethodSignature, Set<Call>> incoming,
+      Map<MethodSignature, Set<Call>> outgoing,
+      boolean concurrent) {
     this.incoming = incoming;
     this.outgoing = outgoing;
+    this.concurrent = concurrent;
+  }
+
+  /**
+   * Provides concurrency ready {@link CallGraph}, backed by {@link ConcurrentHashMap}s and by
+   * {@link Collections#synchronizedSet(Set) synchronizedSet}s. Not needed without multithreading.
+   */
+  public static CallGraph concurrentCallGraph() {
+    return new CallGraph(new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), true);
   }
 
   /**
@@ -69,11 +83,13 @@ public class CallGraph {
       return;
     }
 
-    outgoing
-        .computeIfAbsent((MethodSignature) call.caller.signature, e -> new LinkedHashSet<>())
-        .add(call);
+    outgoing.computeIfAbsent((MethodSignature) call.caller.signature, e -> newCallSet()).add(call);
 
-    incoming.computeIfAbsent(call.getTarget(), e -> new LinkedHashSet<>()).add(call);
+    incoming.computeIfAbsent(call.getTarget(), e -> newCallSet()).add(call);
+  }
+
+  private Set<Call> newCallSet() {
+    return concurrent ? Collections.synchronizedSet(new LinkedHashSet<>()) : new LinkedHashSet<>();
   }
 
   /** Clear the call graph references. */

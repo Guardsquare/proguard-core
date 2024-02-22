@@ -23,7 +23,6 @@ import proguard.evaluation.value.Value;
  * with the specified ID.
  */
 public class ParticularReferenceValueFactory extends TypedReferenceValueFactory {
-  private int referenceID = 0;
 
   @Override
   public ReferenceValue createReferenceValue(
@@ -54,14 +53,23 @@ public class ParticularReferenceValueFactory extends TypedReferenceValueFactory 
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
     return createReferenceValueForId(
-        type, referencedClass, mayBeExtension, mayBeNull, referenceID++);
+        type,
+        referencedClass,
+        mayBeExtension,
+        mayBeNull,
+        IdentifiedValueFactory.generateReferenceId());
   }
 
   @Override
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object value) {
     return createReferenceValueForId(
-        type, referencedClass, mayBeExtension, mayBeNull, referenceID++, value);
+        type,
+        referencedClass,
+        mayBeExtension,
+        mayBeNull,
+        IdentifiedValueFactory.generateReferenceId(),
+        value);
   }
 
   @Override

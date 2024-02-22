@@ -39,14 +39,14 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
                 false,
                 arrayLength,
                 this,
-                referenceID++)
+                generateReferenceId())
             : new IdentifiedArrayReferenceValue(
                 TypeConstants.ARRAY + type,
                 referencedClass,
                 false,
                 arrayLength,
                 this,
-                referenceID++);
+                generateReferenceId());
   }
 
   public ReferenceValue createArrayReferenceValue(
@@ -56,7 +56,7 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
 
     if (!arrayLength.isParticular()) {
       return new IdentifiedArrayReferenceValue(
-          type, referencedClass, false, arrayLength, this, referenceID++);
+          type, referencedClass, false, arrayLength, this, generateReferenceId());
     }
     if (!elementValues.getClass().isArray()
         || elementValues.getClass().getComponentType().isArray()) {
@@ -66,7 +66,7 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
 
     DetailedArrayReferenceValue detailedArray =
         new DetailedArrayReferenceValue(
-            type, referencedClass, false, arrayLength, this, referenceID++);
+            type, referencedClass, false, arrayLength, this, generateReferenceId());
     if (elementValues.getClass().isArray()) {
       switch (type.charAt(1)) // 0 is the array char
       {
