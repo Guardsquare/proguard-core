@@ -1,21 +1,11 @@
-/*
- * ProGuard -- shrinking, optimization, obfuscation, and preverification
- *             of Java bytecode.
- *
- * Copyright (c) 2002-2022 Guardsquare NV
- */
-
 package proguard.util.kotlin.asserter
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.every
-import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import org.apache.logging.log4j.LogManager
-import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
 import proguard.classfile.kotlin.KotlinClassKindMetadata
@@ -23,11 +13,9 @@ import proguard.classfile.kotlin.KotlinMetadata
 import proguard.classfile.kotlin.KotlinMultiFileFacadeKindMetadata
 import proguard.classfile.kotlin.visitor.KotlinMetadataRemover
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
-import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.WarningLogger
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer
-import proguard.classfile.visitor.ClassVisitor
 import proguard.resources.file.ResourceFilePool
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
@@ -222,52 +210,117 @@ class KotlinMetadataAsserterTest : FreeSpec({
     }
 
     "Given multi file class facade metadata" - {
-        var metadata = KotlinMultiFileFacadeKindMetadata(
-            intArrayOf(1, 0, 0),
-            arrayOf("SomeFacade", "SomeClass", "SomeOtherClass"),
-            0,
-            "",
-            "",
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "partOne.kt",
+                """
+                        @file:JvmMultifileClass
+                        @file:JvmName("MultiFileClass")
+                        fun partOne(): String = "one"
+                """.trimIndent(),
+            ),
         )
-        var hasMetadataBeenRemoved = false
-
-        // Mock a class to hold the above metadata, and set up visitor methods appropriately
-        val mockClass = mockk<ProgramClass>()
-        every { mockClass.getName() } returns "SomeFacade"
-        every { mockClass.kotlinMetadataAccept(any()) } answers {
-            arg<KotlinMetadataVisitor>(0).visitKotlinMultiFileFacadeMetadata(mockClass, metadata)
-        }
-        every { mockClass.accept(any<ReferencedKotlinMetadataVisitor>()) } answers {
-            val visitor = arg<ClassVisitor>(0)
-            if (visitor is ReferencedKotlinMetadataVisitor) {
-                visitor.visitProgramClass(mockClass)
-            } else if (visitor is KotlinMetadataRemover) {
-                hasMetadataBeenRemoved = true
-            }
-        }
-        val classPool = ClassPool(mockClass)
-
-        "When the facade references itself as a part" - {
-            "The metadata should be thrown away" {
-                KotlinMetadataAsserter().execute(warningLogger, classPool, ClassPool(), ResourceFilePool())
-                hasMetadataBeenRemoved shouldBe true
-            }
-        }
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
 
         "When the facade does not reference itself as a part" - {
-            metadata = KotlinMultiFileFacadeKindMetadata(
-                intArrayOf(1, 0, 0),
-                arrayOf("SomeClass", "SomeOtherClass"),
-                0,
-                "",
-                "",
-            )
-            hasMetadataBeenRemoved = false
+            val facadeClass = programClassPool.getClass("MultiFileClass") as ProgramClass
 
-            "The metadata should not be thrown away" {
-                KotlinMetadataAsserter().execute(warningLogger, classPool, ClassPool(), ResourceFilePool())
-                hasMetadataBeenRemoved shouldBe false
+            "Then metadata should not be thrown away" {
+                KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+                programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+                facadeClass.kotlinMetadata shouldNotBe null
             }
+        }
+
+        "When the facade references itself as a part" - {
+            val facadeClass = programClassPool.getClass("MultiFileClass") as ProgramClass
+            facadeClass.kotlinMetadataAccept { clazz, kotlinMetadata ->
+                if (kotlinMetadata is KotlinMultiFileFacadeKindMetadata) {
+                    kotlinMetadata.referencedPartClasses.add(clazz)
+                    kotlinMetadata.partClassNames.add(clazz.getName())
+                }
+            }
+
+            "Then metadata should be thrown away" {
+                KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+                programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+                facadeClass.kotlinMetadata shouldBe null
+            }
+        }
+    }
+
+    "Given multi file class facade metadata with null references" - {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "partOne.kt",
+                """
+                        @file:JvmMultifileClass
+                        @file:JvmName("MultiFileClass")
+                        fun partOne(): String = "one"
+                """.trimIndent(),
+            ),
+            KotlinSource(
+                "partTwo.kt",
+                """
+                        @file:JvmMultifileClass
+                        @file:JvmName("MultiFileClass")
+                        fun partTwo(): String = "two"
+                """.trimIndent(),
+            ),
+        )
+
+        val facadeClass = programClassPool.getClass("MultiFileClass") as ProgramClass
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+
+        "Before creating the null reference the metadata is not removed" {
+            KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+            facadeClass.kotlinMetadata shouldNotBe null
+        }
+
+        // We remove one of the classes from the class pool and reinitialize, to generate a null reference.
+        programClassPool.removeClass("MultiFileClass__PartTwoKt")
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+
+        "The asserter should remove the metadata" {
+            KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+            facadeClass.kotlinMetadata shouldBe null
+        }
+    }
+
+    "Given multi file class facade metadata with a dangling class reference" - {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "partOne.kt",
+                """
+                        @file:JvmMultifileClass
+                        @file:JvmName("MultiFileClass")
+                        fun partOne(): String = "one"
+                """.trimIndent(),
+            ),
+            KotlinSource(
+                "partTwo.kt",
+                """
+                        @file:JvmMultifileClass
+                        @file:JvmName("MultiFileClass")
+                        fun partTwo(): String = "two"
+                """.trimIndent(),
+            ),
+        )
+
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+        val facadeClass = programClassPool.getClass("MultiFileClass") as ProgramClass
+
+        "Before introducing a dangling reference the metadata isn't removed" {
+            KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+            facadeClass.kotlinMetadata shouldNotBe null
+        }
+
+        // We remove one of the classes from the class pool after initialization, to generate a dangling class reference.
+        programClassPool.removeClass("MultiFileClass__PartTwoKt")
+
+        "The asserter should remove the metadata" {
+            KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+            facadeClass.kotlinMetadata shouldBe null
         }
     }
 })
