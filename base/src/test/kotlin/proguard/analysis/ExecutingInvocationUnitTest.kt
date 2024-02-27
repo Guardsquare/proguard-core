@@ -251,4 +251,55 @@ class ExecutingInvocationUnitTest : FreeSpec({
             }
         }
     }
+
+    "Runtime type taken into consideration when generalizing" - {
+
+        val code = JavaSource(
+            "Test.java",
+            """
+                import java.util.Random;
+                class Test {
+                    public void test(){
+                        CharSequence s = null;
+                        if (new Random().nextInt() > 0)
+                        {
+                            s = "42";
+                        }
+                        else {
+                            // return type is CharSequence, dynamically returns String
+                            s = "hello".subSequence(0, 2);
+                        }
+                        System.out.println(s);
+                    }
+                }
+                """,
+        )
+
+        val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
+        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
+
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+        val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+            "Test",
+            "test",
+            "()V",
+            programClassPool,
+            partialEvaluator,
+        )
+
+        val (instruction, _) = instructions.last()
+        val s = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["s"]!!)
+
+        "Type should be String" {
+            s.shouldBeInstanceOf<TypedReferenceValue>()
+            s.shouldNotBeInstanceOf<IdentifiedReferenceValue>()
+            s.type shouldBe "Ljava/lang/String;"
+        }
+    }
 })

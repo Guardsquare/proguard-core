@@ -44,7 +44,6 @@ public class MethodExecutionInfo {
   private final CodeLocation caller;
   private final boolean isConstructor;
   private final boolean isStatic;
-  private final String returnType;
   private final Clazz resultClass;
   private final String resultType;
 
@@ -59,7 +58,6 @@ public class MethodExecutionInfo {
     signature = (MethodSignature) Signature.of(clazz, method);
     this.caller = caller;
 
-    returnType = ClassUtil.internalMethodReturnType(signature.descriptor.toString());
     isConstructor = signature.method.equals(METHOD_NAME_INIT);
     isStatic = (method.getAccessFlags() & STATIC) != 0;
 
@@ -73,17 +71,18 @@ public class MethodExecutionInfo {
       method.accept(clazz, returnClassExtractor);
       resultClass = returnClassExtractor.returnClass;
     }
+
     resultType =
         resultClass != null && isConstructor
             ? ClassUtil.internalTypeFromClassName(resultClass.getName())
-            : returnType;
+            : ClassUtil.internalMethodReturnType(signature.descriptor.toString());
   }
 
   /**
    * Constructs a MethodExecutionInfo.
    *
    * @param anyMethodrefConstant A method reference constant. Requires referenced class to be
-   *     initialized (using {@link proguard.classfile.util.ClassReferenceInitializer}.
+   *     initialized (using {@link proguard.classfile.util.ClassReferenceInitializer}).
    * @param caller The code location of the call site. May be null.
    */
   public MethodExecutionInfo(AnyMethodrefConstant anyMethodrefConstant, CodeLocation caller) {
@@ -119,14 +118,12 @@ public class MethodExecutionInfo {
     return isStatic;
   }
 
-  /** Get the return type of the method. */
-  public String getReturnType() {
-    return returnType;
-  }
-
   /**
    * Get the result class of the method. If the method is a constructor, this will be the class of
    * the instance.
+   *
+   * <p>This is the result class as declared in the invoked method constructor, method execution
+   * might provide a more specific runtime type.
    */
   public Clazz getResultClass() {
     return resultClass;
@@ -135,6 +132,9 @@ public class MethodExecutionInfo {
   /**
    * Get the result type of the method. If the method is a constructor, this will be the type of the
    * instance.
+   *
+   * <p>This is the result type as declared in the invoked method constructor, method execution
+   * might provide a more specific runtime type.
    */
   public String getResultType() {
     return resultType;
@@ -189,11 +189,16 @@ public class MethodExecutionInfo {
 
   /** Return whether the return and instance types of the method match. */
   public boolean returnsSameTypeAsInstance(ReferenceValue instance) {
+    // This condition is important as long as resultType for constructor is the instance type
+    // instead of "V".
+    if (isConstructor) {
+      return false;
+    }
     return getInstanceValue(instance)
         .map(
             instanceValue ->
                 getInstanceType(instanceValue)
-                    .map(instanceType -> instanceType.equals(returnType))
+                    .map(instanceType -> instanceType.equals(resultType))
                     .orElse(false))
         .orElse(false);
   }

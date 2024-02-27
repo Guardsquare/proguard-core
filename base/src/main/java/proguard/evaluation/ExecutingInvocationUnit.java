@@ -411,12 +411,15 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
           result);
     }
 
+    String runtimeResultType =
+        result == null ? resultType : ClassUtil.internalType(result.getClass().getTypeName());
+
     return methodInfo
         .getCaller()
         .map(
             caller ->
                 valueFactory.createReferenceValue(
-                    resultType,
+                    runtimeResultType,
                     methodInfo.getResultClass(),
                     resultMayBeExtension,
                     resultMayBeNull,
@@ -426,7 +429,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
                     result))
         .orElse(
             valueFactory.createReferenceValue(
-                resultType,
+                runtimeResultType,
                 methodInfo.getResultClass(),
                 resultMayBeExtension,
                 resultMayBeNull,
