@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.defaults;
 
+import java.time.Duration;
+import java.time.Instant;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.ReachedSet;
@@ -51,8 +53,20 @@ public abstract class SequentialCpaRun<
 
   @Override
   public ReachedSet execute() {
-    inputReachedSet = inputCpaRun.execute();
-    return outputReachedSet = super.execute();
+    // Run the input CPA and measure it's time
+    Instant startTime = Instant.now();
+    this.inputReachedSet = this.inputCpaRun.execute();
+    Duration inputCpaDuration = Duration.between(startTime, Instant.now());
+
+    // If the abort operator is reconfigurable, pass the duration of the input CPA to it
+    if (abortOperator instanceof SequentialCpaRun.PreviousRunDurationReceiver) {
+      ((PreviousRunDurationReceiver) abortOperator).setPreviousCpaRunDuration(inputCpaDuration);
+    }
+
+    // Run the second CPA
+    this.outputReachedSet = super.execute();
+
+    return this.outputReachedSet;
   }
 
   public ReachedSet getOutputReachedSet() {
@@ -61,5 +75,17 @@ public abstract class SequentialCpaRun<
 
   public InputCpaRunT getInputCpaRun() {
     return inputCpaRun;
+  }
+
+  /**
+   * Interface that can be implemented by the abort operator of the second CPA. If implemented, the
+   * {@link SequentialCpaRun} would provide it with information about the duration of the first CPA
+   * runtime duration.
+   */
+  public interface PreviousRunDurationReceiver {
+    /**
+     * @param duration The duration of the first CPA run in the {@link SequentialCpaRun}
+     */
+    void setPreviousCpaRunDuration(Duration duration);
   }
 }

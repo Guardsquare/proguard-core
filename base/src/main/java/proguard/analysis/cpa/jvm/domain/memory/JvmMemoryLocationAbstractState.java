@@ -181,7 +181,13 @@ public class JvmMemoryLocationAbstractState<
 
   @Override
   public JvmMemoryLocationAbstractState join(JvmMemoryLocationAbstractState abstractState) {
+    // FIXME: There is a bug in the definition of this lattice. The join operation does not do
+    //        anything with the callStack, but the comparison operations use them. Therefore,
+    //        the standard semi-lattice invariants do not hold. Specifically, the bug is, that
+    //        there can be two states A and B, which merge into state M. But then A <= M
+    //        or B <= M might not hold.
     if (!locationDependentMemoryLocation.equals(abstractState.locationDependentMemoryLocation)) {
+      // FIXME: if this condition is ever triggered, the analysis will crash with an NPE
       return top;
     }
     JvmMemoryLocationAbstractState result = copy();
