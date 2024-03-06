@@ -233,7 +233,6 @@ public class Dex2Pro {
       access |= AccessConstants.PUBLIC;
     }
     access &= ~DexConstants.ACC_DECLARED_SYNCHRONIZED; // clean ACC_DECLARED_SYNCHRONIZED
-    access &= ~DexConstants.ACC_SYNTHETIC; // clean ACC_SYNTHETIC
     return access;
   }
 
@@ -244,7 +243,6 @@ public class Dex2Pro {
     } else if (0 != (access & AccessConstants.PROTECTED)) { // clear public if it is protected
       access &= ~(AccessConstants.PUBLIC);
     }
-    access &= ~DexConstants.ACC_SYNTHETIC; // clean ACC_SYNTHETIC
     return access;
   }
 
