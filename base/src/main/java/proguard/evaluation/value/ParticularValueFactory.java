@@ -17,15 +17,15 @@
  */
 package proguard.evaluation.value;
 
+import org.jetbrains.annotations.NotNull;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
-import proguard.evaluation.ParticularReferenceValueFactory;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This class provides methods to create and reuse Value instances that have particular values,
  * whenever they are known.
- *
- * @author Eric Lafortune
  */
 public class ParticularValueFactory extends BasicValueFactory implements ValueFactory {
   // Shared copies of Value objects, to avoid creating a lot of objects.
@@ -79,6 +79,7 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
 
   // Implementations for ValueFactory.
 
+  @Override
   public IntegerValue createIntegerValue(int value) {
     switch (value) {
       case -1:
@@ -100,10 +101,12 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
     }
   }
 
+  @Override
   public LongValue createLongValue(long value) {
     return value == 0L ? LONG_VALUE_0 : value == 1L ? LONG_VALUE_1 : new ParticularLongValue(value);
   }
 
+  @Override
   public FloatValue createFloatValue(float value) {
     // Make sure to distinguish between +0.0 and -0.0.
     return value == 0.0f && Float.floatToIntBits(value) == POS_ZERO_FLOAT_BITS
@@ -113,6 +116,7 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
             : value == 2.0f ? FLOAT_VALUE_2 : new ParticularFloatValue(value);
   }
 
+  @Override
   public DoubleValue createDoubleValue(double value) {
     // Make sure to distinguish between +0.0 and -0.0.
     return value == 0.0 && Double.doubleToLongBits(value) == POS_ZERO_DOUBLE_BITS
@@ -120,25 +124,44 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
         : value == 1.0 ? DOUBLE_VALUE_1 : new ParticularDoubleValue(value);
   }
 
+  @Override
   public ReferenceValue createReferenceValue() {
     return referenceValueFactory.createReferenceValue();
   }
 
+  @Override
   public ReferenceValue createReferenceValueNull() {
     return referenceValueFactory.createReferenceValueNull();
   }
 
+  @Override
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
     return referenceValueFactory.createReferenceValue(
         type, referencedClass, mayBeExtension, mayBeNull);
   }
 
+  /**
+   * Deprecated, use {@link ParticularValueFactory#createReferenceValue(Clazz, boolean, boolean,
+   * AnalyzedObject)}.
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object value) {
     return referenceValueFactory.createReferenceValue(
         type, referencedClass, mayBeExtension, mayBeNull, value);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      @NotNull AnalyzedObject value) {
+    checkReferenceValue(value);
+    return referenceValueFactory.createReferenceValue(
+        referencedClass, mayBeExtension, mayBeNull, value);
   }
 
   @Override
@@ -160,7 +183,12 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
         creationOffset);
   }
 
+  /**
+   * Deprecated, use {@link ParticularValueFactory#createReferenceValue(Clazz, boolean, boolean,
+   * CodeLocation, AnalyzedObject)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -182,6 +210,24 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
   }
 
   @Override
+  public ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      CodeLocation creationLocation,
+      @NotNull AnalyzedObject value) {
+    checkReferenceValue(value);
+    checkCreationLocation(creationLocation);
+    return referenceValueFactory.createReferenceValue(
+        referencedClass, mayBeExtension, mayBeNull, creationLocation, value);
+  }
+
+  /**
+   * Deprecated, use {@link ParticularValueFactory#createReferenceValueForId(Clazz, boolean,
+   * boolean, Object, AnalyzedObject)}.
+   */
+  @Override
+  @Deprecated
   public ReferenceValue createReferenceValueForId(
       String type,
       Clazz referencedClass,
@@ -195,11 +241,24 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
 
   @Override
   public ReferenceValue createReferenceValueForId(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Object id,
+      @NotNull AnalyzedObject value) {
+    checkReferenceValue(value);
+    return referenceValueFactory.createReferenceValueForId(
+        referencedClass, mayBeExtension, mayBeNull, id, value);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValueForId(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object id) {
     return referenceValueFactory.createReferenceValueForId(
         type, referencedClass, mayBeExtension, mayBeNull, id);
   }
 
+  @Override
   public ReferenceValue createArrayReferenceValue(
       String type, Clazz referencedClass, IntegerValue arrayLength) {
     return arrayReferenceValueFactory.createArrayReferenceValue(type, referencedClass, arrayLength);
@@ -211,14 +270,4 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
     return arrayReferenceValueFactory.createArrayReferenceValue(
         type, referencedClass, arrayLength, elementValues);
   }
-
-  /**
-   * This Reference value factory creates reference values that also represent their content.
-   *
-   * <p>Deprecated: Use {@link ParticularReferenceValueFactory} instead.
-   *
-   * @author Dennis Titze
-   */
-  @Deprecated
-  public static class ReferenceValueFactory extends ParticularReferenceValueFactory {}
 }

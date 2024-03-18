@@ -34,6 +34,7 @@ import proguard.classfile.visitor.ReturnClassExtractor;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This class stores data relevant to modeling the execution of a method and offers methods to
@@ -160,13 +161,14 @@ public class MethodExecutionInfo {
   }
 
   /** Get the calling instance using the copy behavior defined by the executor. */
-  public Optional<Object> getCallingInstance(Executor executor, Value[] parameters) {
+  public Optional<AnalyzedObject> getCallingInstance(Executor executor, Value[] parameters) {
     return getInstanceValue(parameters)
         .flatMap(instanceValue -> getCallingInstance(executor, instanceValue));
   }
 
   /** Get the calling instance using the copy behavior defined by the executor. */
-  public Optional<Object> getCallingInstance(Executor executor, ReferenceValue instanceValue) {
+  public Optional<AnalyzedObject> getCallingInstance(
+      Executor executor, ReferenceValue instanceValue) {
     return (instanceValue != null && instanceValue.isParticular() && !isConstructor)
         ? executor.getInstanceCopyIfMutable(instanceValue, signature.getClassName())
         : Optional.empty();

@@ -1,5 +1,7 @@
 package proguard.evaluation;
 
+import org.jetbrains.annotations.NotNull;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.evaluation.value.IdentifiedReferenceValue;
@@ -8,6 +10,8 @@ import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.TypedReferenceValueFactory;
 import proguard.evaluation.value.Value;
+import proguard.evaluation.value.object.AnalyzedObject;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 
 /**
  * This {@link TypedReferenceValueFactory} creates reference values that also represent their
@@ -36,7 +40,12 @@ public class ParticularReferenceValueFactory extends TypedReferenceValueFactory 
     return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
   }
 
+  /**
+   * Deprecated, use {@link ParticularReferenceValueFactory#createReferenceValue(Clazz, boolean,
+   * boolean, CodeLocation, AnalyzedObject)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -51,6 +60,18 @@ public class ParticularReferenceValueFactory extends TypedReferenceValueFactory 
 
   @Override
   public ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      CodeLocation creationLocation,
+      @NotNull AnalyzedObject value) {
+    checkReferenceValue(value);
+    checkCreationLocation(creationLocation);
+    return createReferenceValue(referencedClass, mayBeExtension, mayBeNull, value);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
     return createReferenceValueForId(
         type,
@@ -60,11 +81,31 @@ public class ParticularReferenceValueFactory extends TypedReferenceValueFactory 
         IdentifiedValueFactory.generateReferenceId());
   }
 
+  /**
+   * Deprecated, use {@link ParticularReferenceValueFactory#createReferenceValue(Clazz, boolean,
+   * boolean, AnalyzedObject)}.
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object value) {
     return createReferenceValueForId(
         type,
+        referencedClass,
+        mayBeExtension,
+        mayBeNull,
+        IdentifiedValueFactory.generateReferenceId(),
+        value);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      @NotNull AnalyzedObject value) {
+    checkReferenceValue(value);
+    return createReferenceValueForId(
         referencedClass,
         mayBeExtension,
         mayBeNull,
@@ -80,7 +121,12 @@ public class ParticularReferenceValueFactory extends TypedReferenceValueFactory 
         : new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, id);
   }
 
+  /**
+   * Deprecated, use {@link ParticularReferenceValueFactory#createReferenceValueForId(Clazz,
+   * boolean, boolean, Object, AnalyzedObject)}.
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValueForId(
       String type,
       Clazz referencedClass,
@@ -88,8 +134,24 @@ public class ParticularReferenceValueFactory extends TypedReferenceValueFactory 
       boolean mayBeNull,
       Object id,
       Object value) {
-    return type == null
-        ? createReferenceValueNull()
-        : new ParticularReferenceValue(type, referencedClass, this, id, value);
+    if (type == null) {
+      return createReferenceValueNull();
+    }
+    AnalyzedObject object = AnalyzedObjectFactory.create(value, type, referencedClass);
+    return new ParticularReferenceValue(referencedClass, this, id, object);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValueForId(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Object id,
+      @NotNull AnalyzedObject value) {
+    checkReferenceValue(value);
+    if (value.getType() == null) {
+      return createReferenceValueNull();
+    }
+    return new ParticularReferenceValue(referencedClass, this, id, value);
   }
 }

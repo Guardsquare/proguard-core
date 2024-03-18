@@ -22,7 +22,6 @@ import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
 import static proguard.classfile.util.ClassUtil.isNullOrFinal;
-import static proguard.evaluation.value.ParticularReferenceValue.UNINITIALIZED;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,12 +30,14 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Clazz;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 
 /** */
 public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> {
@@ -122,14 +123,14 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> 
     IdentifiedReferenceValue value =
         (IdentifiedReferenceValue)
             valueFactory.createReferenceValue(
-                internalTypeFromClassName(className),
                 null,
                 true,
                 true,
-                programLocation.getClazz(),
-                programLocation.getSignature().getReferencedMethod(),
-                programLocation.getOffset(),
-                UNINITIALIZED);
+                new CodeLocation(
+                    programLocation.getClazz(),
+                    programLocation.getSignature().getReferencedMethod(),
+                    programLocation.getOffset()),
+                AnalyzedObjectFactory.createNullOfType(internalTypeFromClassName(className)));
     logger.trace("newObject(className = {}): {}", className, value);
     ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
     setField(value.id, jvmValueAbstractState);
@@ -146,14 +147,14 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> 
     IdentifiedReferenceValue value =
         (IdentifiedReferenceValue)
             valueFactory.createReferenceValue(
-                internalTypeFromClassName(clazz.getName()),
                 clazz,
                 isNullOrFinal(clazz),
                 true,
-                programLocation.getClazz(),
-                programLocation.getSignature().getReferencedMethod(),
-                programLocation.getOffset(),
-                UNINITIALIZED);
+                new CodeLocation(
+                    programLocation.getClazz(),
+                    programLocation.getSignature().getReferencedMethod(),
+                    programLocation.getOffset()),
+                AnalyzedObjectFactory.createNullOfType(internalTypeFromClassName(clazz.getName())));
     logger.trace("newObject(clazz = {}): {}", clazz.getName(), value);
     ValueAbstractState jvmValueAbstractState = new ValueAbstractState(value);
     setField(value.id, jvmValueAbstractState);

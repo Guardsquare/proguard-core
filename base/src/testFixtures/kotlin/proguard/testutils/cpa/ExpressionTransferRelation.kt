@@ -32,7 +32,7 @@ import proguard.evaluation.value.ParticularDoubleValue
 import proguard.evaluation.value.ParticularFloatValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularLongValue
-import proguard.evaluation.value.ParticularReferenceValue
+import proguard.evaluation.value.TypedReferenceValue
 
 class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>() {
 
@@ -87,12 +87,11 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
         return ExpressionAbstractState(
             setOf(
                 ValueExpression(
-                    ParticularReferenceValue(
-                        "",
+                    TypedReferenceValue(
                         null,
                         null,
-                        0,
-                        null,
+                        true,
+                        true,
                     ),
                 ),
             ),

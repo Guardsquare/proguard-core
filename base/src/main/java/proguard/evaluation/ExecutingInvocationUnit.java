@@ -20,7 +20,6 @@ package proguard.evaluation;
 
 import static proguard.classfile.AccessConstants.FINAL;
 import static proguard.classfile.AccessConstants.STATIC;
-import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.TypeConstants.BOOLEAN;
 import static proguard.classfile.TypeConstants.BYTE;
 import static proguard.classfile.TypeConstants.CHAR;
@@ -41,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
@@ -72,6 +72,9 @@ import proguard.evaluation.executor.StringReflectionExecutor;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+import proguard.evaluation.value.object.AnalyzedObject;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
+import proguard.evaluation.value.object.Model;
 
 /**
  * This {@link InvocationUnit} is capable of executing the invoked methods with particular values as
@@ -195,8 +198,9 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     public ExecutingInvocationUnit build(ValueFactory valueFactory) {
       List<Executor> registeredExecutors = new ArrayList<>();
 
-      if (useDefaultStringReflectionExecutor)
+      if (useDefaultStringReflectionExecutor) {
         registeredExecutors.add(new StringReflectionExecutor.Builder().build());
+      }
 
       registeredExecutorBuilders.stream()
           .map(Executor.Builder::build)
@@ -315,30 +319,40 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
       return createFallbackResultValue(methodInfo, returnsOwnInstance, instanceId);
     }
 
-    Object callingInstance = methodInfo.getCallingInstance(executor, parameters).orElse(null);
+    AnalyzedObject callingInstance =
+        methodInfo.getCallingInstance(executor, parameters).orElse(null);
 
     // The executor provides further information on whether a method returns its own instance.
     returnsOwnInstance =
         methodInfo.isConstructor()
             || executor.returnsOwnInstance(methodInfo.getSignature(), returnsSameTypeAsInstance);
 
+    Optional<Value> result =
+        executor.getMethodResult(
+            methodInfo,
+            instanceValue,
+            callingInstance,
+            parameters,
+            res -> createResultValue(methodInfo, instanceId, res, returnsOwnInstance));
+
     // The instantiated object for a constructor or the returned value otherwise
     Value resultValue =
-        executor
-            .getMethodResult(methodInfo, instanceValue, callingInstance, parameters)
-            .map(result -> createResultValue(methodInfo, instanceId, result, returnsOwnInstance))
-            .orElse(createFallbackResultValue(methodInfo, returnsOwnInstance, instanceId));
+        result.orElseGet(
+            () -> createFallbackResultValue(methodInfo, returnsOwnInstance, instanceId));
 
     if (parameters != null && !methodInfo.isStatic() && instanceValue != null) {
       Value oldInstanceValue = parameters[0];
-      Value updatedInstanceValue =
-          returnsOwnInstance && resultValue != null && resultValue.isParticular()
-              // if the method returned its instance there is no need to create a new value
-              ? resultValue
-              : (!Objects.equals(oldInstanceValue.referenceValue().value(), callingInstance))
-                  // otherwise create a value with an updated object
-                  ? createUpdatedInstanceValue(instanceValue, instanceId, callingInstance)
-                  : null;
+
+      Value updatedInstanceValue = null;
+      if (returnsOwnInstance && resultValue != null && resultValue.isParticular())
+      // if the method returned its instance there is no need to create a new value
+      {
+        updatedInstanceValue = resultValue;
+      } else if (callingInstance != null
+          && !Objects.equals(oldInstanceValue.referenceValue().getValue(), callingInstance)) {
+        updatedInstanceValue =
+            createUpdatedInstanceValue(instanceValue, instanceId, callingInstance);
+      }
 
       if (updatedInstanceValue != null) {
         if (variables != null) {
@@ -367,8 +381,12 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
       Object instanceId,
       Object result,
       boolean returnsOwnInstance) {
+
     String resultType = methodInfo.getResultType();
-    if (isInternalPrimitiveType(resultType)) {
+
+    if (ClassUtil.isInternalPrimitiveType(resultType)) {
+      Objects.requireNonNull(result, "Values of primitive types can't be null");
+
       switch (resultType.charAt(0)) {
         case BOOLEAN:
           return valueFactory.createIntegerValue(((Boolean) result) ? 1 : 0);
@@ -392,48 +410,45 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
       return null;
     }
 
+    // TODO: update to handle array of references the same way as primitive arrays
     if (ClassUtil.internalArrayTypeDimensionCount(resultType) == 1
-        && isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(resultType))) {
+        && isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(resultType))
+        && !(result == null)) {
+      if (result instanceof Model) {
+        throw new IllegalStateException(
+            "Modeled arrays are not supported by ExecutingInvocationUnit");
+      }
       return valueFactory.createArrayReferenceValue(
           resultType, null, valueFactory.createIntegerValue(Array.getLength(result)), result);
     }
 
     boolean resultMayBeNull = result == null;
     boolean resultMayBeExtension = !methodInfo.isConstructor();
-
+    AnalyzedObject resultObject =
+        AnalyzedObjectFactory.create(
+            result, methodInfo.getResultType(), methodInfo.getResultClass());
     if (instanceId != null && returnsOwnInstance) {
       return valueFactory.createReferenceValueForId(
-          resultType,
           methodInfo.getResultClass(),
           resultMayBeExtension,
           resultMayBeNull,
           instanceId,
-          result);
+          resultObject);
     }
-
-    String runtimeResultType =
-        result == null ? resultType : ClassUtil.internalType(result.getClass().getTypeName());
 
     return methodInfo
         .getCaller()
         .map(
             caller ->
                 valueFactory.createReferenceValue(
-                    runtimeResultType,
                     methodInfo.getResultClass(),
                     resultMayBeExtension,
                     resultMayBeNull,
-                    caller.clazz,
-                    (Method) caller.member,
-                    caller.offset,
-                    result))
+                    caller,
+                    resultObject))
         .orElse(
             valueFactory.createReferenceValue(
-                runtimeResultType,
-                methodInfo.getResultClass(),
-                resultMayBeExtension,
-                resultMayBeNull,
-                result));
+                methodInfo.getResultClass(), resultMayBeExtension, resultMayBeNull, resultObject));
   }
 
   /**
@@ -445,9 +460,9 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    * @return the updated value.
    */
   private Value createUpdatedInstanceValue(
-      ReferenceValue instanceValue, Object instanceId, Object instance) {
+      ReferenceValue instanceValue, Object instanceId, AnalyzedObject instance) {
+
     return valueFactory.createReferenceValueForId(
-        instanceValue.internalType(),
         instanceValue.getReferencedClass(),
         instanceValue.mayBeExtension(),
         instance == null,
@@ -511,10 +526,14 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    * @return whether the method returns its own instance.
    */
   public boolean returnsOwnInstance(Clazz clazz, Method method, Value instance) {
-    if (!(instance instanceof ReferenceValue)) return false;
+    if (!(instance instanceof ReferenceValue)) {
+      return false;
+    }
 
     MethodExecutionInfo methodInfo = new MethodExecutionInfo(clazz, method, null);
-    if (methodInfo.isConstructor()) return true;
+    if (methodInfo.isConstructor()) {
+      return true;
+    }
 
     Executor executor = getResponsibleExecutor(methodInfo.getSignature());
     boolean returnsSameTypeAsInstance = methodInfo.returnsSameTypeAsInstance(instance);
@@ -534,14 +553,18 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    * @param variables the variables to look through.
    */
   private void replaceReferenceInVariables(Value newValue, Value oldValue, Variables variables) {
-    if (!oldValue.isSpecific() || variables == null) return;
+    if (!oldValue.isSpecific() || variables == null) {
+      return;
+    }
     // we need to replace all instances on the stack and in the vars with new instances now.
     for (int i = 0; i < variables.size(); i++) {
       Value value = variables.getValue(i);
       if (Objects.equals(value, oldValue)) {
         variables.store(i, newValue);
       }
-      if (value != null && value.isCategory2()) i++;
+      if (value != null && value.isCategory2()) {
+        i++;
+      }
     }
   }
 
@@ -553,7 +576,9 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    * @param stack the stack to look through.
    */
   private void replaceReferenceOnStack(Value newValue, Value oldValue, Stack stack) {
-    if (!oldValue.isSpecific()) return;
+    if (!oldValue.isSpecific()) {
+      return;
+    }
     for (int i = 0; i < stack.size(); i++) {
       Value top = stack.getTop(i);
       if (Objects.equals(top, oldValue)) {
@@ -631,11 +656,10 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
       value =
           valueFactory.createReferenceValue(
-              TYPE_JAVA_LANG_STRING,
               currentField.referencedClass,
               isNullOrFinal(currentField.referencedClass),
               false,
-              stringConstant.getString(clazz));
+              AnalyzedObjectFactory.createPrecise(stringConstant.getString(clazz)));
     }
   }
 }

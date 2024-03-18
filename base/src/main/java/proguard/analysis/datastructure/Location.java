@@ -27,6 +27,8 @@ package proguard.analysis.datastructure;
  */
 public abstract class Location implements Comparable<Location> {
 
+  public static final int UNKNOWN_LINE = -1;
+
   public final int line;
 
   protected Location(int line) {

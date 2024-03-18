@@ -28,8 +28,8 @@ import proguard.classfile.Signature;
 /**
  * Represents a unique location in the bytecode. It comprises the {@link Clazz} and {@link Member}
  * where it is contained, the offset therein and the corresponding line number in the source file
- * (may be -1 if it is unknown). Consider the following pseudo-bytecode example which contains code
- * location comments:
+ * ({@link Location#UNKNOWN_LINE} if it is unknown). Consider the following pseudo-bytecode example
+ * which contains code location comments:
  *
  * <pre>{@code
  * public class Test
@@ -58,8 +58,6 @@ import proguard.classfile.Signature;
  *   <li><b>Fields:</b> In this case {@code Test#field}. A field location has a line number (3 in
  *       this example) but no offset, as this concept is only applicable to methods.
  * </ul>
- *
- * @author Samuel Hopstock
  */
 public class CodeLocation extends Location {
 
@@ -67,6 +65,11 @@ public class CodeLocation extends Location {
   public final Member member;
   public final int offset;
   public final Signature signature;
+
+  /** Create a code location with an unknown ({@link Location#UNKNOWN_LINE}) line number. */
+  public CodeLocation(Clazz clazz, Member member, int offset) {
+    this(clazz, member, offset, UNKNOWN_LINE);
+  }
 
   public CodeLocation(Clazz clazz, Member member, int offset, int line) {
     super(line);

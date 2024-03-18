@@ -24,6 +24,7 @@ import proguard.classfile.LibraryMethod;
 import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
+import proguard.classfile.util.ClassUtil;
 
 /** Returns the last referenced class of referencedClasses from the program-/ librarymethod. */
 public class ReturnClassExtractor implements MemberVisitor {
@@ -37,6 +38,9 @@ public class ReturnClassExtractor implements MemberVisitor {
 
   @Override
   public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    if (returnsPrimitiveOrPrimitiveArray(programMethod.getDescriptor(programClass))) {
+      return;
+    }
     if (programMethod.referencedClasses != null) {
       this.returnClass =
           programMethod.referencedClasses[programMethod.referencedClasses.length - 1];
@@ -45,9 +49,16 @@ public class ReturnClassExtractor implements MemberVisitor {
 
   @Override
   public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    if (returnsPrimitiveOrPrimitiveArray(libraryMethod.descriptor)) {
+      return;
+    }
     if (libraryMethod.referencedClasses != null) {
       this.returnClass =
           libraryMethod.referencedClasses[libraryMethod.referencedClasses.length - 1];
     }
+  }
+
+  private boolean returnsPrimitiveOrPrimitiveArray(String descriptor) {
+    return !ClassUtil.isInternalClassType(ClassUtil.internalMethodReturnType(descriptor));
   }
 }

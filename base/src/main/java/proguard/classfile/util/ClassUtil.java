@@ -30,10 +30,12 @@ import proguard.classfile.TypeConstants;
 import proguard.classfile.VersionConstants;
 
 /**
- * Utility methods for converting between internal and external representations of names and
- * descriptions.
+ * Utility methods for:
  *
- * @author Eric Lafortune
+ * <ul>
+ *   <li>Converting between internal and external representations of names and descriptions
+ *   <li>Operation on {@link Clazz}
+ * </ul>
  */
 public class ClassUtil {
   private static final String EMPTY_STRING = "";
@@ -398,10 +400,42 @@ public class ClassUtil {
    * Returns whether the given internal type is a plain primitive type (not void).
    *
    * @param internalType the internal type, e.g. "<code>I</code>".
-   * @return <code>true</code> if the given type is a class type, <code>false</code> otherwise.
+   * @return <code>true</code> if the given type is an internal primitive type, <code>false</code>
+   *     otherwise.
    */
   public static boolean isInternalPrimitiveType(String internalType) {
     return isInternalPrimitiveType(internalType.charAt(0));
+  }
+
+  /**
+   * Returns whether the given class is a class boxing a primitive type (not void).
+   *
+   * @param internalType the internal type, e.g. "<code>Ljava/lang/Integer;</code>".
+   * @return <code>true</code> if the given type is a boxing internal type of a class boxing a
+   *     primitive, <code>false</code> otherwise.
+   */
+  public static boolean isInternalPrimitiveBoxingType(String internalType) {
+    return ClassConstants.TYPE_JAVA_LANG_BOOLEAN.equals(internalType)
+        || ClassConstants.TYPE_JAVA_LANG_BYTE.equals(internalType)
+        || ClassConstants.TYPE_JAVA_LANG_CHARACTER.equals(internalType)
+        || ClassConstants.TYPE_JAVA_LANG_SHORT.equals(internalType)
+        || ClassConstants.TYPE_JAVA_LANG_INTEGER.equals(internalType)
+        || ClassConstants.TYPE_JAVA_LANG_FLOAT.equals(internalType)
+        || ClassConstants.TYPE_JAVA_LANG_LONG.equals(internalType)
+        || ClassConstants.TYPE_JAVA_LANG_DOUBLE.equals(internalType);
+  }
+
+  /**
+   * Returns the primitive type corresponding to the given internal primitive boxing type.
+   *
+   * @param type an internal primitive boxing type, e.g. "<code>Ljava/lang/Integer;</code>".
+   * @return the corresponding primitive type, e.g. "<code>I</code>".
+   */
+  public static char internalPrimitiveTypeFromPrimitiveBoxingType(String type) {
+    if (!isInternalPrimitiveBoxingType(type)) {
+      throw new IllegalArgumentException("The argument is not a primitive boxing internal type");
+    }
+    return internalPrimitiveTypeFromNumericClassName(internalClassNameFromType(type));
   }
 
   /**
@@ -535,7 +569,7 @@ public class ClassUtil {
   }
 
   /**
-   * Returns the internal type of of a given class type (class name or array type). This is the type
+   * Returns the internal type of a given class type (class name or array type). This is the type
    * that can be stored in a class constant.
    *
    * @param internalType the internal class type, e.g. "<code>[I</code>", "<code>[Ljava/lang/Object;

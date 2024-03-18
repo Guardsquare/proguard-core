@@ -26,7 +26,10 @@ import java.util.HashMap;
 import java.util.Optional;
 import proguard.evaluation.executor.instancehandler.ExecutorMethodInstanceHandler;
 import proguard.evaluation.executor.matcher.ExecutorClassMatcher;
+import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
+import proguard.evaluation.value.object.AnalyzedObject;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 import proguard.util.CollectionMatcher;
 import proguard.util.ConstantMatcher;
 import proguard.util.FixedStringMatcher;
@@ -63,16 +66,35 @@ public class StringReflectionExecutor extends ReflectionExecutor {
   }
 
   @Override
-  public Optional<Object> getInstanceCopyIfMutable(ReferenceValue instanceValue, String className) {
-    Object instance = instanceValue.value();
-    if (instance == null) return Optional.empty();
+  public Optional<AnalyzedObject> getInstanceCopyIfMutable(
+      ReferenceValue instanceValue, String className) {
+
+    if (!(instanceValue instanceof ParticularReferenceValue)) {
+      return Optional.empty();
+    }
+
+    AnalyzedObject instanceObject = instanceValue.getValue();
+
+    if (instanceObject.isModeled()) {
+      throw new IllegalStateException(
+          "Should not use reflection on a modeled value, are you sure you are matching the expected executor?");
+    }
+
+    if (instanceObject.isNull()) {
+      return Optional.empty();
+    }
+
     switch (className) {
       case NAME_JAVA_LANG_STRING_BUILDER:
-        return Optional.of(new StringBuilder((StringBuilder) instance));
+        return Optional.of(
+            AnalyzedObjectFactory.createPrecise(
+                new StringBuilder((StringBuilder) instanceObject.getPreciseValue())));
       case NAME_JAVA_LANG_STRING_BUFFER:
-        return Optional.of(new StringBuffer((StringBuffer) instance));
+        return Optional.of(
+            AnalyzedObjectFactory.createPrecise(
+                new StringBuffer((StringBuffer) instanceObject.getPreciseValue())));
       case NAME_JAVA_LANG_STRING:
-        return Optional.of(instance);
+        return Optional.of(instanceObject);
     }
     return Optional.empty();
   }

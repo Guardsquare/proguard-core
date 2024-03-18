@@ -19,12 +19,14 @@
 package proguard.evaluation.executor;
 
 import java.util.Optional;
+import java.util.function.Function;
 import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.executor.instancehandler.ExecutorInstanceHandler;
 import proguard.evaluation.executor.matcher.ExecutorMatcher;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This abstract class specifies a modular component which can be added to a {@link
@@ -44,14 +46,19 @@ public abstract class Executor {
    * @param instance The {@link ReferenceValue} of the instance, <c>null</c> for static methods.
    * @param callingInstance The instance object, <c>null</c> for static methods.
    * @param parameters An array of the parameter values of the method call.
+   * @param valueCalculator a function mapping the result of a method invocation (can be an Object
+   *     with the result if the executor calculates a real value or a {@link
+   *     proguard.evaluation.value.object.Model}) to the appropriate {@link Value} used by the
+   *     analysis.
    * @return The result of the method call wrapped in an optional. <code>Optional.empty()</code> if
    *     a result could not be calculated.
    */
-  public abstract MethodResult<Object> getMethodResult(
+  public abstract Optional<Value> getMethodResult(
       MethodExecutionInfo methodData,
       ReferenceValue instance,
-      Object callingInstance,
-      Value[] parameters);
+      AnalyzedObject callingInstance,
+      Value[] parameters,
+      Function<Object, Value> valueCalculator);
 
   /**
    * Returns whether a certain method invocation is supported.
@@ -85,7 +92,7 @@ public abstract class Executor {
    * @param className The name of the class of the instance.
    * @return The new calling instance.
    */
-  public abstract Optional<Object> getInstanceCopyIfMutable(
+  public abstract Optional<AnalyzedObject> getInstanceCopyIfMutable(
       ReferenceValue instanceValue, String className);
 
   /**

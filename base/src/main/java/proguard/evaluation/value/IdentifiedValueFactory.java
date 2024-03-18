@@ -18,13 +18,13 @@
 package proguard.evaluation.value;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.*;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This class provides methods to create and reuse Value instances that are identified by unique
  * integer IDs.
- *
- * @author Eric Lafortune
  */
 public class IdentifiedValueFactory extends ParticularValueFactory {
   private final AtomicInteger integerID = new AtomicInteger(0);
@@ -59,7 +59,12 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
             type, referencedClass, mayBeExtension, mayBeNull, this, generateReferenceId());
   }
 
+  /**
+   * Deprecated, use {@link IdentifiedValueFactory#createReferenceValue(Clazz, boolean, boolean,
+   * AnalyzedObject)}.
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object value) {
     return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
@@ -77,7 +82,12 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
     return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
   }
 
+  /**
+   * Deprecated, use {@link IdentifiedValueFactory#createReferenceValue(Clazz, boolean, boolean,
+   * CodeLocation, AnalyzedObject)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -98,7 +108,12 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
         : new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, id);
   }
 
+  /**
+   * Deprecated, use {@link IdentifiedValueFactory#createReferenceValueForId(Clazz, boolean,
+   * boolean, Object, AnalyzedObject)}.
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValueForId(
       String type,
       Clazz referencedClass,

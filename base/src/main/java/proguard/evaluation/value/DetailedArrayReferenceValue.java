@@ -17,9 +17,12 @@
  */
 package proguard.evaluation.value;
 
+import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.exception.ArrayIndexOutOfBounds;
+import proguard.evaluation.value.object.AnalyzedObject;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 import proguard.util.ArrayUtil;
 
 /**
@@ -63,9 +66,16 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue {
     }
   }
 
+  /** Deprecated, use {@link DetailedArrayReferenceValue#getValue()}. */
   @Override
+  @Deprecated
   public Object value() {
     return values;
+  }
+
+  @Override
+  public @NotNull AnalyzedObject getValue() {
+    return AnalyzedObjectFactory.createDetailedArray(values, type);
   }
 
   // Implementations for ReferenceValue.

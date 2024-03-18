@@ -19,15 +19,15 @@ package proguard.evaluation.value;
 
 import static proguard.classfile.util.ClassUtil.isNullOrFinal;
 
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.util.ClassUtil;
+import proguard.evaluation.value.object.AnalyzedObject;
 
-/**
- * This interface provides methods to create {@link Value} instances.
- *
- * @author Eric Lafortune
- */
+/** This interface provides methods to create {@link Value} instances. */
 public interface ValueFactory {
   /**
    * Creates a new Value of the given type. The type must be a fully specified internal type for
@@ -73,6 +73,8 @@ public interface ValueFactory {
         ClassUtil.internalTypeFromClassName(clazz.getName()), clazz, isNullOrFinal(clazz), true);
   }
 
+  /** Deprecated, use {@link ValueFactory#createReferenceValue(Clazz, AnalyzedObject)}. */
+  @Deprecated
   default ReferenceValue createReferenceValue(Clazz clazz, Object value) {
     return createReferenceValue(
         ClassUtil.internalTypeFromClassName(clazz.getName()),
@@ -80,6 +82,12 @@ public interface ValueFactory {
         isNullOrFinal(clazz),
         true,
         value);
+  }
+
+  default ReferenceValue createReferenceValue(Clazz clazz, @NotNull AnalyzedObject value) {
+    Objects.requireNonNull(value, "The object value should not be null");
+    Object valueContent = value.isModeled() ? value.getModeledValue() : value.getPreciseValue();
+    return createReferenceValue(clazz, valueContent);
   }
 
   /**
@@ -94,15 +102,37 @@ public interface ValueFactory {
    * Creates a new ReferenceValue that represents the given type. The type must be an internal class
    * name or an array type. If the type is <code>null</code>, the ReferenceValue represents <code>
    * null</code>. The object is the actual value of the reference during execution (can be null).
+   *
+   * <p>Deprecated, use {@link ValueFactory#createReferenceValue(Clazz, boolean, boolean,
+   * AnalyzedObject)}.
    */
+  @Deprecated
   ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean maybeNull, Object value);
 
   /**
+   * Creates a new ReferenceValue that represents the given type. The type must be an internal class
+   * name or an array type. If the type is <code>null</code>, the ReferenceValue represents <code>
+   * null</code>.
+   *
+   * <p>The object wrapped by {@link AnalyzedObject} is either the value of the reference during
+   * execution or a {@link proguard.evaluation.value.object.Model} of it.
+   */
+  default ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean maybeNull,
+      @NotNull AnalyzedObject value) {
+    Objects.requireNonNull(value, "The object value should not be null");
+    Object valueContent = value.isModeled() ? value.getModeledValue() : value.getPreciseValue();
+    return createReferenceValue(
+        value.getType(), referencedClass, mayBeExtension, maybeNull, valueContent);
+  }
+
+  /**
    * Creates a new ReferenceValue that represents the given type, created at the specified code
    * location. The type must be an internal class name or an array type. If the type is <code>null
-   * </code>, the ReferenceValue represents <code>null</code>. The object is the actual value of the
-   * reference during execution (can be null).
+   * </code>, the ReferenceValue represents <code>null</code>.
    */
   ReferenceValue createReferenceValue(
       String type,
@@ -118,7 +148,11 @@ public interface ValueFactory {
    * location. The type must be an internal class name or an array type. If the type is <code>null
    * </code>, the ReferenceValue represents <code>null</code>. The object is the actual value of the
    * reference during execution (can be null).
+   *
+   * <p>Deprecated, use {@link ValueFactory#createReferenceValue(Clazz, boolean, boolean,
+   * CodeLocation, AnalyzedObject)}
    */
+  @Deprecated
   ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -128,6 +162,36 @@ public interface ValueFactory {
       Method creationMethod,
       int creationOffset,
       Object value);
+
+  /**
+   * Creates a new ReferenceValue that represents the given type, created at the specified code
+   * location. The type must be an internal class name or an array type. If the type is <code>null
+   * </code>, the ReferenceValue represents <code>null</code>.
+   *
+   * <p>The object wrapped by {@link AnalyzedObject} is either the value of the reference during
+   * execution or a {@link proguard.evaluation.value.object.Model} of it.
+   */
+  default ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean maybeNull,
+      CodeLocation creationLocation,
+      @NotNull AnalyzedObject value) {
+    Objects.requireNonNull(value, "The object value should not be null");
+    if (!(creationLocation.member instanceof Method)) {
+      throw new IllegalStateException("The creation location needs to be in a method");
+    }
+    Object valueContent = value.isModeled() ? value.getModeledValue() : value.getPreciseValue();
+    return createReferenceValue(
+        value.getType(),
+        referencedClass,
+        mayBeExtension,
+        maybeNull,
+        creationLocation.clazz,
+        (Method) creationLocation.member,
+        creationLocation.offset,
+        valueContent);
+  }
 
   /**
    * Creates a new ReferenceValue that represents the given type with a specified ID. The type must
@@ -142,7 +206,11 @@ public interface ValueFactory {
    * be an internal class name or an array type. If the type is <code>null</code>, the
    * ReferenceValue represents <code>null</code>. The object is the actual value of the reference
    * during execution (can be null).
+   *
+   * <p>Deprecated, use {@link ValueFactory#createReferenceValueForId(Clazz, boolean, boolean,
+   * Object, AnalyzedObject)}.
    */
+  @Deprecated
   ReferenceValue createReferenceValueForId(
       String type,
       Clazz referencedClass,
@@ -150,6 +218,27 @@ public interface ValueFactory {
       boolean maybeNull,
       Object id,
       Object value);
+
+  /**
+   * Creates a new ReferenceValue that represents the given type with a specified ID. The type must
+   * be an internal class name or an array type. If the type is <code>null</code>, the
+   * ReferenceValue represents <code>null</code>.
+   *
+   * <p>The object wrapped by {@link AnalyzedObject} is either the value of the reference during
+   * execution or a {@link proguard.evaluation.value.object.Model} of it.
+   */
+  default ReferenceValue createReferenceValueForId(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean maybeNull,
+      Object id,
+      @NotNull AnalyzedObject value) {
+    Objects.requireNonNull(value, "The object value should not be null");
+    Object valueContent = value.isModeled() ? value.getModeledValue() : value.getPreciseValue();
+    return createReferenceValueForId(
+        value.getType(), referencedClass, mayBeExtension, maybeNull, id, valueContent);
+  }
+
   /**
    * Creates a new ReferenceValue that represents a non-null array with elements of the given type,
    * with the given length.

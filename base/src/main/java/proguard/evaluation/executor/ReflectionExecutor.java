@@ -21,13 +21,18 @@ package proguard.evaluation.executor;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Function;
+import org.jetbrains.annotations.Nullable;
 import proguard.classfile.JavaConstants;
 import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.MethodDescriptor;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.util.ClassUtil;
+import proguard.evaluation.value.DetailedArrayReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This {@link Executor} provides an implementation for {@link Executor#getMethodResult} which tries
@@ -36,20 +41,34 @@ import proguard.evaluation.value.Value;
  */
 public abstract class ReflectionExecutor extends Executor {
   @Override
-  public MethodResult<Object> getMethodResult(
+  public Optional<Value> getMethodResult(
       MethodExecutionInfo methodInfo,
-      ReferenceValue instance,
-      Object callingInstance,
-      Value[] parameters) {
+      @Nullable ReferenceValue instance,
+      @Nullable AnalyzedObject callingInstanceObject,
+      Value[] parameters,
+      Function<Object, Value> valueCalculator) {
     if (!methodInfo.isStatic() && (instance == null || !instance.isSpecific())) {
       // Instance must at least be specific.
-      return MethodResult.empty();
+      return Optional.empty();
+    }
+
+    if (callingInstanceObject != null && callingInstanceObject.isModeled()) {
+      throw new IllegalStateException(
+          "Should not use reflection on a modeled value, are you sure you are matching the expected executor?");
     }
 
     int paramOffset = methodInfo.isStatic() ? 0 : 1;
-    if (!Arrays.stream(parameters).skip(paramOffset).allMatch(Value::isParticular)) {
-      // All parameters must be particular.
-      return MethodResult.empty();
+    if (!Arrays.stream(parameters)
+        .skip(paramOffset)
+        .allMatch(
+            value ->
+                value.isParticular()
+                    && (!(value instanceof ReferenceValue)
+                        || !value.referenceValue().getValue().isModeled()
+                        || value instanceof DetailedArrayReferenceValue))) {
+      // All parameters must be particular and real objects to use reflection. Detailed arrays can
+      // be converted to a real object if they are particular.
+      return Optional.empty();
     }
 
     ReflectionParameters reflectionParameters =
@@ -61,10 +80,11 @@ public abstract class ReflectionExecutor extends Executor {
             Class.forName(ClassUtil.externalClassName(methodInfo.getSignature().getClassName()));
 
         // Try to resolve the constructor reflectively and create a new instance.
-        return MethodResult.of(
-            baseClass
-                .getConstructor(reflectionParameters.classes)
-                .newInstance(reflectionParameters.objects));
+        return Optional.of(
+            valueCalculator.apply(
+                baseClass
+                    .getConstructor(reflectionParameters.classes)
+                    .newInstance(reflectionParameters.objects)));
       } catch (ClassNotFoundException
           | NoSuchMethodException
           | SecurityException
@@ -72,26 +92,35 @@ public abstract class ReflectionExecutor extends Executor {
           | IllegalAccessException
           | IllegalArgumentException
           | InvocationTargetException e) {
-        return MethodResult.empty();
+        return Optional.empty();
       }
     } else {
       try {
         Class<?> baseClass =
             Class.forName(ClassUtil.externalClassName(methodInfo.getSignature().getClassName()));
-        if (callingInstance == null && !methodInfo.isStatic()) throw new IllegalArgumentException();
+        if ((callingInstanceObject == null || callingInstanceObject.isNull())
+            && !methodInfo.isStatic()) {
+          throw new IllegalArgumentException();
+        }
+
+        Object callingInstance =
+            callingInstanceObject == null ? null : callingInstanceObject.getPreciseValue();
 
         // Try to resolve the method via reflection and invoke the method.
-        return MethodResult.of(
+        Object result =
             baseClass
                 .getMethod(methodInfo.getSignature().method, reflectionParameters.classes)
-                .invoke(callingInstance, reflectionParameters.objects));
+                .invoke(callingInstance, reflectionParameters.objects);
+
+        return Optional.of(valueCalculator.apply(result));
+
       } catch (ClassNotFoundException
           | NoSuchMethodException
           | SecurityException
           | IllegalAccessException
           | IllegalArgumentException
           | InvocationTargetException e) {
-        return MethodResult.empty();
+        return Optional.empty();
       }
     }
   }

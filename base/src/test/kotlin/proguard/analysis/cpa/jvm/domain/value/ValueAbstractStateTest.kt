@@ -17,6 +17,7 @@ import proguard.evaluation.value.UnknownIntegerValue
 import proguard.evaluation.value.UnknownValue
 import proguard.evaluation.value.Value
 import proguard.evaluation.value.ValueFactory
+import proguard.evaluation.value.`object`.AnalyzedObjectFactory
 import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 
 class ValueAbstractStateTest : FreeSpec({
@@ -293,10 +294,9 @@ private fun ValueFactory.createStringBuilder(sb: StringBuilder): Value = createR
 )
 
 private fun ValueFactory.createStringBuilder(sb: StringBuilder, id: Int): Value = createReferenceValueForId(
-    "Ljava/lang/StringBuilder;",
     libraryClassPool.getClass("java/lang/StringBuilder"),
     false,
     false,
     id,
-    sb,
+    AnalyzedObjectFactory.createPrecise(sb),
 )

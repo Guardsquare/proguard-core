@@ -17,7 +17,6 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
 import proguard.classfile.editor.ClassBuilder
-import proguard.classfile.util.ClassUtil
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularIntegerValue
@@ -25,6 +24,7 @@ import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownReferenceValue
+import proguard.evaluation.value.`object`.AnalyzedObjectFactory
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
@@ -658,11 +658,10 @@ class ParticularReferenceTest : FreeSpec({
         "No exception" {
             shouldNotThrowAny {
                 ParticularReferenceValue(
-                    ClassUtil.internalTypeFromClassName(charSequenceClass.name),
                     charSequenceClass,
                     null,
                     0,
-                    "",
+                    AnalyzedObjectFactory.createPrecise(""),
                 )
             }
         }
@@ -776,11 +775,10 @@ class ParticularReferenceTest : FreeSpec({
             0,
         )
         val particular = ParticularReferenceValue(
-            "Ljava/lang/StringBuilder;",
             stringBuilderClazz,
             valueFactory,
             0,
-            StringBuilder(),
+            AnalyzedObjectFactory.createPrecise(StringBuilder()),
         )
 
         "Then identified.generalize(particular) should be identified" {
@@ -801,18 +799,16 @@ class ParticularReferenceTest : FreeSpec({
         val stringBuilderClazz = ClassPoolBuilder.libraryClassPool.getClass("java/lang/StringBuilder")
         val stringBuilder = StringBuilder()
         val particular1 = ParticularReferenceValue(
-            "Ljava/lang/StringBuilder;",
             stringBuilderClazz,
             valueFactory,
             0,
-            stringBuilder,
+            AnalyzedObjectFactory.createPrecise(stringBuilder),
         )
         val particular2 = ParticularReferenceValue(
-            "Ljava/lang/StringBuilder;",
             stringBuilderClazz,
             valueFactory,
             0,
-            stringBuilder,
+            AnalyzedObjectFactory.createPrecise(stringBuilder),
         )
 
         "Then particular1.generalize(particular2) should be particular" {

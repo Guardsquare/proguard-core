@@ -1,13 +1,16 @@
 package proguard.analysis.cpa.jvm.domain.value;
 
+import org.jetbrains.annotations.NotNull;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.evaluation.ParticularReferenceValueFactory;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This {@link ParticularReferenceValueFactory} creates {@link IdentifiedReferenceValue} and {@link
@@ -41,20 +44,19 @@ public class JvmCfaReferenceValueFactory extends ParticularReferenceValueFactory
 
   @Override
   public ReferenceValue createReferenceValue(
-      String type,
       Clazz referencedClass,
       boolean mayBeExtension,
       boolean mayBeNull,
-      Clazz creationClass,
-      Method creationMethod,
-      int creationOffset,
-      Object value) {
+      CodeLocation creationLocation,
+      @NotNull AnalyzedObject value) {
+    checkReferenceValue(value);
+    checkCreationLocation(creationLocation);
     return createReferenceValueForId(
-        type,
         referencedClass,
         mayBeExtension,
         mayBeNull,
-        cfa.getFunctionNode(creationClass, creationMethod, creationOffset),
+        cfa.getFunctionNode(
+            creationLocation.clazz, (Method) creationLocation.member, creationLocation.offset),
         value);
   }
 }

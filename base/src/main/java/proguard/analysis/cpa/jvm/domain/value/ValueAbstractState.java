@@ -99,7 +99,7 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
             Object stringA = value.referenceValue().value();
             Object objectB = that.value.referenceValue().value();
 
-            return stringA.equals(objectB);
+            return Objects.equals(stringA, objectB);
           }
           break;
         case TYPE_JAVA_LANG_STRING_BUILDER:
@@ -120,10 +120,17 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
               && that.value instanceof IdentifiedReferenceValue) {
             Object idA = ((IdentifiedReferenceValue) value).id;
             Object idB = ((IdentifiedReferenceValue) that.value).id;
-            String stringA = value.referenceValue().value().toString();
-            String stringB = that.value.referenceValue().value().toString();
+            Object objectA = value.referenceValue().value();
+            Object objectB = that.value.referenceValue().value();
 
-            return idA.equals(idB) && stringA.equals(stringB);
+            if (objectA == null && objectB == null) {
+              throw new IllegalStateException("This condition should have been already checked");
+            }
+            if (objectA == null || objectB == null) {
+              return false;
+            }
+
+            return idA.equals(idB) && objectA.toString().equals(objectB.toString());
           }
           break;
       }

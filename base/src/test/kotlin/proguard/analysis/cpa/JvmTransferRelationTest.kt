@@ -58,6 +58,7 @@ import proguard.evaluation.value.ParticularFloatValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularLongValue
 import proguard.evaluation.value.ParticularReferenceValue
+import proguard.evaluation.value.`object`.AnalyzedObjectFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.cpa.ExpressionAbstractState
@@ -1059,8 +1060,18 @@ class JvmTransferRelationTest : FreeSpec({
      * arguments. For non-static fields the instance should come before other arguments.
      */
     "Method calls are handled correctly" {
-        val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
-        val referenceB = ParticularReferenceValue("LB;", clazzB, null, 0, null)
+        val referenceA = ParticularReferenceValue(
+            clazzA,
+            null,
+            0,
+            AnalyzedObjectFactory.createNullOfType("LA;"),
+        )
+        val referenceB = ParticularReferenceValue(
+            clazzB,
+            null,
+            0,
+            AnalyzedObjectFactory.createNullOfType("LB;"),
+        )
         var state = emptyState.copy()
         state.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
         var result = emptyState.copy()
@@ -1245,7 +1256,12 @@ class JvmTransferRelationTest : FreeSpec({
      * Same for the synchronization instructions.
      */
     "Synchronization is not modeled" {
-        val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
+        val referenceA = ParticularReferenceValue(
+            clazzA,
+            null,
+            0,
+            AnalyzedObjectFactory.createNullOfType("LA;"),
+        )
         var state = emptyState.copy()
         state.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
         getAbstractSuccessorForInstruction.call(
@@ -1389,7 +1405,12 @@ class JvmTransferRelationTest : FreeSpec({
                 ),
                 HashMapAbstractState(),
             )
-            val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
+            val referenceA = ParticularReferenceValue(
+                clazzA,
+                null,
+                0,
+                AnalyzedObjectFactory.createNullOfType("LA;"),
+            )
             sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
 
             val successors = transferRelation.generateAbstractSuccessors(sourceState, null)
@@ -1420,7 +1441,12 @@ class JvmTransferRelationTest : FreeSpec({
                 ),
                 HashMapAbstractState(),
             )
-            val referenceA = ParticularReferenceValue("LA;", clazzA, null, 0, null)
+            val referenceA = ParticularReferenceValue(
+                clazzA,
+                null,
+                0,
+                AnalyzedObjectFactory.createNullOfType("LA;"),
+            )
             sourceState.push(ExpressionAbstractState(setOf(ValueExpression(referenceA))))
 
             val successors = transferRelation.generateAbstractSuccessors(sourceState, null)

@@ -17,11 +17,14 @@
  */
 package proguard.evaluation;
 
+import org.jetbrains.annotations.NotNull;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.evaluation.value.*;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This {@link ValueFactory} tags newly created reference values so they can be traced throughout
@@ -155,39 +158,48 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
 
   // Implementations for BasicValueFactory.
 
+  @Override
   public Value createValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
     return trace(valueFactory.createValue(type, referencedClass, mayBeExtension, mayBeNull));
   }
 
+  @Override
   public IntegerValue createIntegerValue() {
     return valueFactory.createIntegerValue();
   }
 
+  @Override
   public IntegerValue createIntegerValue(int value) {
     return valueFactory.createIntegerValue(value);
   }
 
+  @Override
   public IntegerValue createIntegerValue(int min, int max) {
     return valueFactory.createIntegerValue(min, max);
   }
 
+  @Override
   public LongValue createLongValue() {
     return valueFactory.createLongValue();
   }
 
+  @Override
   public LongValue createLongValue(long value) {
     return valueFactory.createLongValue(value);
   }
 
+  @Override
   public FloatValue createFloatValue() {
     return valueFactory.createFloatValue();
   }
 
+  @Override
   public FloatValue createFloatValue(float value) {
     return valueFactory.createFloatValue(value);
   }
 
+  @Override
   public DoubleValue createDoubleValue() {
     return valueFactory.createDoubleValue();
   }
@@ -196,26 +208,46 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
     return valueFactory.createDoubleValue(value);
   }
 
+  @Override
   public ReferenceValue createReferenceValue() {
     return trace(valueFactory.createReferenceValue());
   }
 
+  @Override
   public ReferenceValue createReferenceValueNull() {
     return trace(valueFactory.createReferenceValueNull());
   }
 
+  @Override
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull) {
     return trace(
         valueFactory.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull));
   }
 
+  /**
+   * Deprecated, use {@link ReferenceTracingValueFactory#createReferenceValue(Clazz, boolean,
+   * boolean, AnalyzedObject)}.
+   */
+  @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object value) {
     return trace(
         valueFactory.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, value));
   }
 
+  @Override
+  public ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      @NotNull AnalyzedObject value) {
+    return trace(
+        valueFactory.createReferenceValue(referencedClass, mayBeExtension, mayBeNull, value));
+  }
+
+  @Override
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -228,6 +260,12 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
         valueFactory.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull));
   }
 
+  /**
+   * Deprecated, use {@link ReferenceTracingValueFactory#createReferenceValue(Clazz, boolean,
+   * boolean, CodeLocation, AnalyzedObject)}
+   */
+  @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -241,6 +279,18 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
         valueFactory.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, value));
   }
 
+  @Override
+  public ReferenceValue createReferenceValue(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      CodeLocation creationLocation,
+      @NotNull AnalyzedObject value) {
+    return trace(
+        valueFactory.createReferenceValue(referencedClass, mayBeExtension, mayBeNull, value));
+  }
+
+  @Override
   public ReferenceValue createReferenceValueForId(
       String type, Clazz referencedClass, boolean mayBeExtension, boolean mayBeNull, Object id) {
     return trace(
@@ -248,6 +298,12 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
             type, referencedClass, mayBeExtension, mayBeNull, id));
   }
 
+  /**
+   * Deprecated, use {@link ReferenceTracingValueFactory#createReferenceValueForId(Clazz, boolean,
+   * boolean, Object, AnalyzedObject)}.
+   */
+  @Override
+  @Deprecated
   public ReferenceValue createReferenceValueForId(
       String type,
       Clazz referencedClass,
@@ -260,6 +316,19 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
             type, referencedClass, mayBeExtension, mayBeNull, id, value));
   }
 
+  @Override
+  public ReferenceValue createReferenceValueForId(
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      Object id,
+      @NotNull AnalyzedObject value) {
+    return trace(
+        valueFactory.createReferenceValueForId(
+            referencedClass, mayBeExtension, mayBeNull, id, value));
+  }
+
+  @Override
   public ReferenceValue createArrayReferenceValue(
       String type, Clazz referencedClass, IntegerValue arrayLength) {
     return trace(valueFactory.createArrayReferenceValue(type, referencedClass, arrayLength));

@@ -1,17 +1,24 @@
 ## Version 9.1.2
 
+## API changes
+
+- Remove deprecated `ReferenceValueFactory`, `ParticularReferenceValueFactory` should be used instead.
+- Deprecate methods in `ValueFactory` taking an `Object` as parameter. The alternatives using `ParticularObject` should be used instead.
+
 ### Improved
 
 - Add support for selective parameter reconstruction to define which methods should have their calls evaluated.
 - Refactor `ExecutingInvocationUnit` to be customizable using executors. Improve checking whether method instance should be replaced in stack and variables.
 - Support execution of methods that operate on 1D arrays of all primitive and reference types with `ReflectionExecutor`.
 - Use runtime type instead of static type when possible in `ExecutingInvocationUnit`.
+- Introduce `ParticularObject` as the value tracked by `ParticularReferenceValue`. This makes explicit which kind of values can be tracked during the analysis, and introduces the possibility of tracking a model of the values that differ from the actual tracked object.
 
 ### Bug fixes
 
 - Improve Kotlin MultiFileFacade metadata assertions to detect uninitialized references. 
 - Fix handling of category 2 values in `JvmValueTransferRelation` to work correctly with `ExecutingInvocationUnit`.
 - Fix concurrency problems in CallGraph and ValueFactory ids.
+- Fix a bug in `ReturnClassExtractor` returning the last parameter type instead of null for primitive return values. 
 
 ## Version 9.1.1
 

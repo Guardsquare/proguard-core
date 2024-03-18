@@ -18,6 +18,8 @@
 package proguard.evaluation.value;
 
 import proguard.classfile.Clazz;
+import proguard.evaluation.value.object.AnalyzedObject;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 
 /**
  * Representation of a partially evaluated reference value.
@@ -27,9 +29,18 @@ import proguard.classfile.Clazz;
 public abstract class ReferenceValue extends Category1Value {
   // Basic unary methods.
 
-  /** Returns the value. */
+  /**
+   * Returns the value.
+   *
+   * <p>Deprecated, use {@link ReferenceValue#getValue()} instead.
+   */
+  @Deprecated
   public Object value() {
     return null;
+  }
+
+  public AnalyzedObject getValue() {
+    return AnalyzedObjectFactory.createNull();
   }
 
   /** Returns the type. */
@@ -292,7 +303,9 @@ public abstract class ReferenceValue extends Category1Value {
   }
 
   public final Value generalize(Value other) {
-    if (other instanceof UnknownValue) return other;
+    if (other instanceof UnknownValue) {
+      return other;
+    }
 
     return this.generalize(other.referenceValue());
   }

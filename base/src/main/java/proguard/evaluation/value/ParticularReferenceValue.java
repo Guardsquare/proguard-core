@@ -18,89 +18,55 @@
 package proguard.evaluation.value;
 
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
-import proguard.classfile.util.ClassUtil;
-import proguard.classfile.visitor.ClassCounter;
-import proguard.classfile.visitor.ClassNameFilter;
+import proguard.evaluation.value.object.AnalyzedObject;
 
 /**
  * This {@link ParticularReferenceValue} represents a particular reference value, i.e. a reference
  * with an associated value. E.g., a String with the value "HelloWorld".
- *
- * @author Dennis Titze
  */
 public class ParticularReferenceValue extends IdentifiedReferenceValue {
 
   // The actual value of the object.
-  private final Object value;
-
-  public static final Object UNINITIALIZED =
-      new Object() {
-        @Override
-        public String toString() {
-          return "UNINITIALIZED";
-        }
-      };
+  private final AnalyzedObject objectValue;
 
   /**
    * Create a new Instance with the given type, the class it is referenced in, and its actual value.
    */
   public ParticularReferenceValue(
-      String type,
-      Clazz referencedClass,
+      @NotNull Clazz referencedClass,
       ValueFactory valueFactory,
       Object referenceID,
-      Object value) {
+      @NotNull AnalyzedObject value) {
     // We store the unique ID to keep track of the same value (independent of casting and
     // generalizations) on stack and vars.
     // This ID is needed, since the generalization and casting might create new instances, and we
     // need to see that these were in fact the ones we need to replace.
-    super(type, referencedClass, false, true, valueFactory, referenceID);
+    super(value.getType(), referencedClass, false, true, valueFactory, referenceID);
 
-    this.value = value;
+    Objects.requireNonNull(referencedClass);
+    Objects.requireNonNull(value);
+    Objects.requireNonNull(
+        value.getType(),
+        "ParticularReferenceValue should not be created with a 'NullObject', a 'TypedReferenceValue' with null type is expected in that case");
 
-    ClassCounter counter = new ClassCounter();
-    if (value != UNINITIALIZED && value != null && referencedClass != null) {
-      referencedClass.hierarchyAccept(
-          true,
-          false,
-          false,
-          true,
-          // if the value is an array check the inheritance for the referenced type
-          new ClassNameFilter(
-              ClassUtil.internalClassName(
-                  ClassUtil.externalBaseType(value.getClass().getCanonicalName())),
-              counter));
-    }
-    boolean isExtended = counter.getCount() > 0;
-
-    // Sanity checks.
-    // If referenced class is known we can check for inheritance
-    // If referenced class is unknown the best we can do is checking if the type exactly matches the
-    // value type
-    if (value != UNINITIALIZED
-        && value != null
-        && (referencedClass != null && !isExtended
-            || referencedClass == null
-                && !type.equals(ClassUtil.internalType(value.getClass().getCanonicalName())))) {
-      throw new RuntimeException(
-          "Type does not match or is not extended by type of the value ("
-              + ClassUtil.internalType(value.getClass().getCanonicalName())
-              + " - "
-              + type
-              + ")");
-    }
-    if (type == null) {
-      throw new RuntimeException("Type must not be null");
-    }
+    this.objectValue = value;
   }
 
   // Implementations for ReferenceValue.
 
+  /** Deprecated, use {@link ParticularReferenceValue#getValue()}. */
   @Override
+  @Deprecated
   public Object value() {
-    return value;
+    return objectValue.isModeled() ? objectValue.getModeledValue() : objectValue.getPreciseValue();
+  }
+
+  @Override
+  public AnalyzedObject getValue() {
+    return objectValue;
   }
 
   // Implementations for TypedReferenceValue.
@@ -112,7 +78,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
 
   @Override
   public int isNull() {
-    return value == null ? ALWAYS : NEVER;
+    return objectValue.isNull() ? ALWAYS : NEVER;
   }
 
   @Override
@@ -151,7 +117,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
       return this;
     }
     if (instanceOf(type, referencedClass) == ALWAYS) {
-      return valueFactory.createReferenceValue(type, referencedClass, true, true, value);
+      return valueFactory.createReferenceValue(referencedClass, true, true, objectValue);
     }
     // not instance of this. Returning unknown.
     return valueFactory.createReferenceValue(type, referencedClass, true, true);
@@ -173,7 +139,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
 
   @Override
   public int hashCode() {
-    return this.getClass().hashCode() ^ (value == null ? 1 : value.hashCode());
+    return this.getClass().hashCode() ^ (objectValue.isNull() ? 1 : objectValue.hashCode());
   }
 
   @Override
@@ -182,7 +148,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
     ParticularReferenceValue that = (ParticularReferenceValue) o;
-    return Objects.equals(value, that.value);
+    return Objects.equals(getValue(), that.getValue());
   }
 
   @Override
@@ -196,9 +162,11 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
     if (getClass() != other.getClass()) {
       return MAYBE;
     }
+
+    ParticularReferenceValue otherParticularValue = (ParticularReferenceValue) other;
     // now, the type and class equals.
-    if ((value == null && other.value() == null)
-        || (value != null && value.equals(other.value()))) {
+    if ((getValue().isNull() && otherParticularValue.getValue().isNull())
+        || (!getValue().isNull() && getValue().equals(otherParticularValue.getValue()))) {
       return ALWAYS;
     }
     return NEVER;
@@ -206,6 +174,6 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
 
   @Override
   public String toString() {
-    return super.toString() + "(" + (value == null ? "null" : value.toString()) + ")";
+    return super.toString() + "(" + (objectValue == null ? "null" : objectValue.toString()) + ")";
   }
 }

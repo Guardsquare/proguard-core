@@ -16,6 +16,7 @@ import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
+import proguard.analysis.datastructure.CodeLocation;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
@@ -27,6 +28,7 @@ import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 
 /** A {@link JvmTransferRelation} that tracks values. */
 public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractState> {
@@ -112,14 +114,11 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
       Object value) {
     return new ValueAbstractState(
         valueFactory.createReferenceValue(
-            internalType,
             referencedClazz,
             mayBeExtension,
             mayBeNull,
-            creationClass,
-            creationMethod,
-            creationOffset,
-            value));
+            new CodeLocation(creationClass, creationMethod, creationOffset),
+            AnalyzedObjectFactory.create(value, internalType, referencedClazz)));
   }
 
   @Override

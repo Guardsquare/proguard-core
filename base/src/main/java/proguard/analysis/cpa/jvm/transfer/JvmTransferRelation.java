@@ -598,7 +598,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           processCall(
               abstractState,
               new SymbolicCall(
-                  new CodeLocation(clazz, method, offset, -1),
+                  new CodeLocation(clazz, method, offset),
                   calleeSignature,
                   Value.MAYBE,
                   constantInstruction,
