@@ -36,7 +36,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
    * Create a new Instance with the given type, the class it is referenced in, and its actual value.
    */
   public ParticularReferenceValue(
-      @NotNull Clazz referencedClass,
+      Clazz referencedClass,
       ValueFactory valueFactory,
       Object referenceID,
       @NotNull AnalyzedObject value) {
@@ -46,7 +46,6 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
     // need to see that these were in fact the ones we need to replace.
     super(value.getType(), referencedClass, false, true, valueFactory, referenceID);
 
-    Objects.requireNonNull(referencedClass);
     Objects.requireNonNull(value);
     Objects.requireNonNull(
         value.getType(),
