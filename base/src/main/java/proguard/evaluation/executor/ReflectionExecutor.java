@@ -133,7 +133,7 @@ public abstract class ReflectionExecutor extends Executor {
 
   /**
    * This class represents the parameters needed for invoking a method using Java's reflection API.
-   * It is capable of parsing these parameters from a
+   * It is capable of parsing these parameters arrays of {@link Value}s.
    */
   private static class ReflectionParameters {
     private final Object[] objects;

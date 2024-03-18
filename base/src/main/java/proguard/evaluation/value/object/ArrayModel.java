@@ -1,11 +1,16 @@
 package proguard.evaluation.value.object;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
+import proguard.classfile.MethodSignature;
 import proguard.evaluation.value.Value;
 import proguard.util.ArrayUtil;
 
+/** A {@link Model} to track array values. */
 public class ArrayModel implements Model {
 
   private final Value[] values;
@@ -17,14 +22,35 @@ public class ArrayModel implements Model {
     this.type = type;
   }
 
+  public Value[] getValues() {
+    return Arrays.copyOf(values, values.length);
+  }
+
   @NotNull
   @Override
   public String getType() {
     return type;
   }
 
-  public Value[] getValues() {
-    return Arrays.copyOf(values, values.length);
+  @Override
+  public Optional<Value> init(
+      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+    throw new UnsupportedOperationException(
+        "Constructors invocation is not supported in ArrayModel");
+  }
+
+  @Override
+  public Optional<Value> invoke(
+      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+    throw new UnsupportedOperationException(
+        "Instance method invocation is not supported in ArrayModel");
+  }
+
+  @Override
+  public Optional<Value> invokeStatic(
+      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+    throw new UnsupportedOperationException(
+        "Static method invocation is not supported in ArrayModel");
   }
 
   @Override

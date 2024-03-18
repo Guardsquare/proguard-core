@@ -77,7 +77,7 @@ public interface AnalyzedObject {
   }
 
   /**
-   * Returns the wrapped value if precise (i.e, {@link AnalyzedObject#isModeled()} is false), throws
+   * Returns the wrapped value if precise (i.e, {@link AnalyzedObject#isPrecise()} is true), throws
    * if called on a non-precise value.
    */
   default @Nullable Object getPreciseValue() {
@@ -87,8 +87,26 @@ public interface AnalyzedObject {
   /**
    * Returns the wrapped value if modeled (i.e, {@link AnalyzedObject#isModeled()} is true), throws
    * if called on a non-modeled value.
+   *
+   * <p>This method should be used when a non-null modeled value is expected or when {@link
+   * AnalyzedObject#isModeled()} has been checked. If a value is expected to be modeled but can also
+   * assume null (precise) values {@link AnalyzedObject#getModeledOrNullValue()} should be used.
    */
   default Model getModeledValue() {
     throw new UnsupportedOperationException("This is not a modeled object");
+  }
+
+  /**
+   * Returns the wrapped value if modeled (i.e, {@link AnalyzedObject#isModeled()} is true) or null,
+   * throws if called on a non-modeled and non-null value.
+   *
+   * <p>This method should be used in cases where the type is known to be modeled by the analysis
+   * but null values are also possible (which are precise).
+   */
+  default @Nullable Model getModeledOrNullValue() {
+    if (isNull()) {
+      return null;
+    }
+    return getModeledValue();
   }
 }

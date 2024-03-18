@@ -23,7 +23,7 @@ import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.util.ClassUtil;
-import proguard.classfile.visitor.ReturnClassExtractor;
+import proguard.classfile.visitor.ReferencedClassesExtractor;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TopValue;
@@ -232,16 +232,16 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
       List<ValueAbstractState> operands,
       ConcreteCall call,
       String returnType) {
-    ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
-    call.targetMethodAccept(returnClassExtractor);
-    if (returnClassExtractor.returnClass == null) {
+    ReferencedClassesExtractor referencedClassesExtractor = new ReferencedClassesExtractor();
+    call.targetMethodAccept(referencedClassesExtractor);
+    if (referencedClassesExtractor.getReturnClass() == null) {
       super.invokeMethod(state, call, operands);
     } else {
       Value result =
           valueFactory.createReferenceValue(
               ClassUtil.internalMethodReturnType(returnType),
-              returnClassExtractor.returnClass,
-              ClassUtil.isNullOrFinal(returnClassExtractor.returnClass),
+              referencedClassesExtractor.getReturnClass(),
+              ClassUtil.isNullOrFinal(referencedClassesExtractor.getReturnClass()),
               true);
       pushReturnValue(state, result, returnType);
     }

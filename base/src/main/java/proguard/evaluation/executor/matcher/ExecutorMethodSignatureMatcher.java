@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import proguard.classfile.MethodSignature;
+import proguard.util.FixedStringMatcher;
 import proguard.util.OrMatcher;
 import proguard.util.StringMatcher;
 
@@ -58,6 +59,18 @@ public class ExecutorMethodSignatureMatcher implements ExecutorMatcher {
           .computeIfAbsent(className, name -> Collections.emptyMap())
           .merge(methodName, descriptorMatcher, OrMatcher::new);
       return this;
+    }
+
+    /**
+     * Add a match for the specified method.
+     *
+     * @param signature The signature of the method to match.
+     */
+    public Builder addMethodMatch(MethodSignature signature) {
+      return addMethodMatch(
+          signature.getClassName(),
+          signature.method,
+          new FixedStringMatcher(signature.descriptor.toString()));
     }
 
     /**

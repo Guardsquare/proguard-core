@@ -140,6 +140,9 @@ public class AnalyzedObjectFactory {
     Objects.requireNonNull(value, "'value' can't be null");
     // TODO throw IllegalStateException if value is an array once we fix the code using
     // ParticularReferenceValue for arrays
+    if (value instanceof Model) {
+      throw new IllegalStateException("Models should not be used to create precise values");
+    }
     return new PreciseObject(value);
   }
 

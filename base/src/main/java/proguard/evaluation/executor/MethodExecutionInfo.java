@@ -22,6 +22,7 @@ import static proguard.classfile.AccessConstants.STATIC;
 import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
 
 import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
@@ -30,7 +31,7 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
 import proguard.classfile.constant.AnyMethodrefConstant;
 import proguard.classfile.util.ClassUtil;
-import proguard.classfile.visitor.ReturnClassExtractor;
+import proguard.classfile.visitor.ReferencedClassesExtractor;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
@@ -45,7 +46,9 @@ public class MethodExecutionInfo {
   private final CodeLocation caller;
   private final boolean isConstructor;
   private final boolean isStatic;
+  private final Clazz targetClass;
   private final Clazz resultClass;
+  private final Clazz[] parametersClasses;
   private final String resultType;
 
   /**
@@ -56,11 +59,15 @@ public class MethodExecutionInfo {
    * @param caller The code location of the call site. May be null.
    */
   public MethodExecutionInfo(Clazz clazz, Method method, CodeLocation caller) {
+    targetClass = clazz;
     signature = (MethodSignature) Signature.of(clazz, method);
     this.caller = caller;
 
     isConstructor = signature.method.equals(METHOD_NAME_INIT);
     isStatic = (method.getAccessFlags() & STATIC) != 0;
+
+    ReferencedClassesExtractor referencedClassesExtractor = new ReferencedClassesExtractor();
+    method.accept(clazz, referencedClassesExtractor);
 
     if (isConstructor) {
       // For a Constructor, we always return a type, even if the return type of the method would be
@@ -68,10 +75,10 @@ public class MethodExecutionInfo {
       resultClass = clazz;
     } else {
       // Get the class of the return type, if available, null otherwise.
-      ReturnClassExtractor returnClassExtractor = new ReturnClassExtractor();
-      method.accept(clazz, returnClassExtractor);
-      resultClass = returnClassExtractor.returnClass;
+      resultClass = referencedClassesExtractor.getReturnClass();
     }
+
+    parametersClasses = referencedClassesExtractor.getParameterClasses();
 
     resultType =
         resultClass != null && isConstructor
@@ -125,9 +132,36 @@ public class MethodExecutionInfo {
    *
    * <p>This is the result class as declared in the invoked method constructor, method execution
    * might provide a more specific runtime type.
+   *
+   * @return The return referenced class. Can be null if the class pools have not been initialized;
+   *     even if they have, the clazz not being null is not a guarantee.
    */
-  public Clazz getResultClass() {
+  public @Nullable Clazz getResultClass() {
     return resultClass;
+  }
+
+  /**
+   * Returns the referenced {@link Clazz} for each parameter.
+   *
+   * @return The referenced class for each parameter (instance excluded), where each parameter can
+   *     be accessed given its position (starting from 0, category 2 values take only one slot). An
+   *     element is null if the corresponding parameter is of a primitive type or an array of
+   *     primitives. An element can be null if the class pools have not been initialized; even if
+   *     they have, elements not being null is not a guarantee
+   */
+  public Clazz[] getParametersClasses() {
+    return parametersClasses;
+  }
+
+  /**
+   * Returns the referenced {@link Clazz} of the target method. Corresponds to the invocation
+   * instance class for instance methods and constructor calls.
+   *
+   * @return The target referenced class. Can be null if the class pools have not been initialized;
+   *     even if they have, the clazz not being null is not a guarantee.
+   */
+  public @Nullable Clazz getTargetClass() {
+    return targetClass;
   }
 
   /**
