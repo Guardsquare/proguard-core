@@ -1,5 +1,6 @@
 package proguard.analysis
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,6 +10,7 @@ import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.ArrayReferenceValueFactory
+import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
@@ -300,6 +302,41 @@ class ExecutingInvocationUnitTest : FreeSpec({
             s.shouldBeInstanceOf<TypedReferenceValue>()
             s.shouldNotBeInstanceOf<IdentifiedReferenceValue>()
             s.type shouldBe "Ljava/lang/String;"
+        }
+    }
+
+    "Regression test: no exception when analyzing methods returning void" - {
+
+        val code = JavaSource(
+            "Test.java",
+            """
+                import java.util.Random;
+                class Test {
+                    public void test(){
+                        "42".getChars(0, 2, new char[2], 0);
+                    }
+                }
+                """,
+        )
+
+        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
+        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
+
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+        shouldNotThrowAny {
+            PartialEvaluatorUtil.evaluate(
+                "Test",
+                "test",
+                "()V",
+                programClassPool,
+                partialEvaluator,
+            )
         }
     }
 })

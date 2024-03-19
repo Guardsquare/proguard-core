@@ -384,6 +384,10 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
 
     String resultType = methodInfo.getResultType();
 
+    if (resultType.charAt(0) == VOID) {
+      throw new IllegalStateException("A result should not be created for methods returning void");
+    }
+
     if (ClassUtil.isInternalPrimitiveType(resultType)) {
       Objects.requireNonNull(result, "Values of primitive types can't be null");
 
@@ -404,10 +408,9 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
           return valueFactory.createDoubleValue((Double) result);
         case LONG:
           return valueFactory.createLongValue((Long) result);
+        default:
+          throw new IllegalStateException("Trying to create a value of an unknown primitive type");
       }
-      return null; // unreachable
-    } else if (resultType.charAt(0) == VOID) {
-      return null;
     }
 
     // TODO: update to handle array of references the same way as primitive arrays

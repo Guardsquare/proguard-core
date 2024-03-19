@@ -18,6 +18,8 @@
 
 package proguard.evaluation.executor;
 
+import static proguard.classfile.TypeConstants.VOID;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -111,6 +113,10 @@ public abstract class ReflectionExecutor extends Executor {
             baseClass
                 .getMethod(methodInfo.getSignature().method, reflectionParameters.classes)
                 .invoke(callingInstance, reflectionParameters.objects);
+
+        if (methodInfo.getResultType().charAt(0) == VOID) {
+          return Optional.empty();
+        }
 
         return Optional.of(valueCalculator.apply(result));
 
