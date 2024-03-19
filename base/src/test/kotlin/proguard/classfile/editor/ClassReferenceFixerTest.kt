@@ -18,7 +18,7 @@
 
 package proguard.classfile.editor
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -28,6 +28,7 @@ import io.mockk.verify
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.ClassConstants
 import proguard.classfile.ClassConstants.NAME_JAVA_LANG_OBJECT
+import proguard.classfile.Clazz
 import proguard.classfile.Method
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramField
@@ -35,6 +36,10 @@ import proguard.classfile.ProgramMember
 import proguard.classfile.TypeConstants
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AllInnerClassesInfoVisitor
+import proguard.classfile.constant.Constant
+import proguard.classfile.constant.StringConstant
+import proguard.classfile.constant.visitor.AllConstantVisitor
+import proguard.classfile.constant.visitor.ConstantVisitor
 import proguard.classfile.editor.ClassReferenceFixer.NameGenerationStrategy
 import proguard.classfile.editor.ClassReferenceFixer.shortKotlinNestedClassName
 import proguard.classfile.kotlin.KotlinAnnotatable
@@ -52,6 +57,7 @@ import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.ClassRenamer
+import proguard.classfile.util.StringReferenceInitializer
 import proguard.classfile.visitor.AllFieldVisitor
 import proguard.classfile.visitor.AllMethodVisitor
 import proguard.classfile.visitor.ClassNameFilter
@@ -63,36 +69,36 @@ import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
 import kotlin.math.abs
 
-class ClassReferenceFixerTest : FreeSpec({
-    "Kotlin nested class short names should be generated correctly" - {
-        "with a valid Java name" {
+class ClassReferenceFixerTest : FunSpec({
+    context("Kotlin nested class short names should be generated correctly") {
+        test("with a valid Java name") {
             val referencedClass = ClassBuilder(55, PUBLIC, "OuterClass\$innerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "innerClass", referencedClass) shouldBe "innerClass"
         }
 
         // dollar symbols are valid in Kotlin when surrounded by backticks `$innerClass`
-        "with 1 dollar symbol" {
+        test("with 1 dollar symbol") {
             val referencedClass = ClassBuilder(55, PUBLIC, "OuterClass\$\$innerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "\$innerClass", referencedClass) shouldBe "\$innerClass"
         }
 
-        "with multiple dollar symbols" {
+        test("with multiple dollar symbols") {
             val referencedClass = ClassBuilder(55, PUBLIC, "OuterClass\$\$\$inner\$Class", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "\$\$inner\$Class", referencedClass) shouldBe "\$\$inner\$Class"
         }
 
-        "when they have a new name" {
+        test("when they have a new name") {
             val referencedClass = ClassBuilder(55, PUBLIC, "newOuterClass\$newInnerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "innerClass", referencedClass) shouldBe "newInnerClass"
         }
 
-        "when they have a new name with a package" {
+        test("when they have a new name with a package") {
             val referencedClass = ClassBuilder(55, PUBLIC, "mypackage/newOuterClass\$newInnerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "innerClass", referencedClass) shouldBe "newInnerClass"
         }
     }
 
-    "Kotlin annotations should be fixed correctly" - {
+    context("Kotlin annotations should be fixed correctly") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -182,16 +188,16 @@ class ClassReferenceFixerTest : FreeSpec({
         programClassPool.classesAccept(ReferencedKotlinMetadataVisitor(AllKotlinAnnotationVisitor(annotationVisitor)))
         val annotation = slot<KotlinAnnotation>()
 
-        "there should be 1 annotation visited" {
+        test("there should be 1 annotation visited") {
             verify(exactly = 1) { annotationVisitor.visitTypeAnnotation(fileFacadeClass, ofType(KotlinTypeMetadata::class), capture(annotation)) }
         }
 
-        "the annotation class name should be correctly renamed" {
+        test("the annotation class name should be correctly renamed") {
             annotation.captured.className shouldBe "MyRenamedTypeAnnotation"
             annotation.captured.referencedAnnotationClass shouldBe programClassPool.getClass("MyTypeAnnotation")
         }
 
-        "the annotation argument value references should be correctly set" {
+        test("the annotation argument value references should be correctly set") {
 
             val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
 
@@ -240,7 +246,7 @@ class ClassReferenceFixerTest : FreeSpec({
         }
     }
 
-    "Given a Kotlin interface with a normal function" - {
+    context("Given a Kotlin interface with a normal function") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -252,10 +258,10 @@ class ClassReferenceFixerTest : FreeSpec({
             ),
         )
 
-        "When applying ClassReferenceFixer" - {
+        context("When applying ClassReferenceFixer") {
             programClassPool.classesAccept(ClassReferenceFixer(false))
 
-            "Then the Kotlin function should be named correctly" {
+            test("Then the Kotlin function should be named correctly") {
                 val functionVisitor = spyk<KotlinFunctionVisitor>()
                 programClassPool.classesAccept(
                     ReferencedKotlinMetadataVisitor(
@@ -275,7 +281,7 @@ class ClassReferenceFixerTest : FreeSpec({
             }
         }
 
-        "When renaming the JVM method and applying ClassReferenceFixer" - {
+        context("When renaming the JVM method and applying ClassReferenceFixer") {
             programClassPool.classesAccept(
                 MultiClassVisitor(
                     ClassRenamer(
@@ -286,7 +292,7 @@ class ClassReferenceFixerTest : FreeSpec({
                 ),
             )
 
-            "Then the Kotlin function should be named correctly" {
+            test("Then the Kotlin function should be named correctly") {
                 val functionVisitor = spyk<KotlinFunctionVisitor>()
                 programClassPool.classesAccept(
                     ReferencedKotlinMetadataVisitor(
@@ -307,7 +313,7 @@ class ClassReferenceFixerTest : FreeSpec({
         }
     }
 
-    "Given a Kotlin interface with a suspend function" - {
+    context("Given a Kotlin interface with a suspend function") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -320,10 +326,10 @@ class ClassReferenceFixerTest : FreeSpec({
             ),
         )
 
-        "When applying ClassReferenceFixer" - {
+        context("When applying ClassReferenceFixer") {
             programClassPool.classesAccept(ClassReferenceFixer(false))
 
-            "Then the Kotlin function should be named correctly" {
+            test("Then the Kotlin function should be named correctly") {
                 val functionVisitor = spyk<KotlinFunctionVisitor>()
                 programClassPool.classesAccept(
                     ReferencedKotlinMetadataVisitor(
@@ -346,7 +352,7 @@ class ClassReferenceFixerTest : FreeSpec({
         }
     }
 
-    "Given a nested class with a name starting with `$`" - {
+    context("Given a nested class with a name starting with `$`") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -358,7 +364,7 @@ class ClassReferenceFixerTest : FreeSpec({
             ),
         )
 
-        "When applying the ClassReferenceFixer" - {
+        context("When applying the ClassReferenceFixer") {
             programClassPool.classesAccept(ClassReferenceFixer(false))
             lateinit var name: String
             programClassPool.classAccept(
@@ -370,13 +376,13 @@ class ClassReferenceFixerTest : FreeSpec({
                 ),
             )
 
-            "Then the inner class' short name should remain unchanged" {
+            test("Then the inner class' short name should remain unchanged") {
                 name shouldBe "${'$'}Bar"
             }
         }
     }
 
-    "Given two classes with an unidirectional association relationship" - {
+    context("Given two classes with an unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -396,20 +402,20 @@ class ClassReferenceFixerTest : FreeSpec({
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
-        "When we obfuscate the Producer class" - {
+        context("When we obfuscate the Producer class") {
             programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
 
-            "And apply the ClassReferenceFixer without ensuring unique names" - {
+            context("And apply the ClassReferenceFixer without ensuring unique names") {
                 programClassPool.classesAccept(ClassReferenceFixer(false))
 
-                "Then field `producer`'s name in the Consumer class remains unchanged" {
+                test("Then field `producer`'s name in the Consumer class remains unchanged") {
                     programClassPool.getClass("Consumer").findField("producer", "LObfuscated;") shouldNotBe null
                 }
             }
         }
     }
 
-    "Given two classes with an unidirectional association relationship" - {
+    context("Given two classes with an unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -429,13 +435,13 @@ class ClassReferenceFixerTest : FreeSpec({
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
-        "When we obfuscate the Producer class" - {
+        context("When we obfuscate the Producer class") {
             programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
 
-            "And apply the ClassReferenceFixer with ensuring unique names" - {
+            context("And apply the ClassReferenceFixer with ensuring unique names") {
                 programClassPool.classesAccept(ClassReferenceFixer(true))
 
-                "Then field `producer`'s name in the Consumer class should be renamed" {
+                test("Then field `producer`'s name in the Consumer class should be renamed") {
                     programClassPool.getClass("Consumer").findField("producer", "LObfuscated;") shouldBe null
                 }
             }
@@ -457,7 +463,7 @@ class ClassReferenceFixerTest : FreeSpec({
         }
     }
 
-    "Given two classes with an unidirectional association relationship" - {
+    context("Given two classes with an unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -477,14 +483,14 @@ class ClassReferenceFixerTest : FreeSpec({
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
-        "When we obfuscate the Producer class" - {
+        context("When we obfuscate the Producer class") {
             programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
 
-            "And there is no member signature clashing " - {
-                "But we apply the ClassReferenceFixer with rename member when there is a member signature clash" - {
+            context("And there is no member signature clashing") {
+                context("But we apply the ClassReferenceFixer with rename member when there is a member signature clash") {
                     programClassPool.classesAccept(ClassReferenceFixer(renameFieldIfClashStrategy))
 
-                    "Then field `producer`'s name in the Consumer class should remain unchanged" {
+                    test("Then field `producer`'s name in the Consumer class should remain unchanged") {
                         programClassPool.getClass("Consumer").findField("producer", "LObfuscated;") shouldNotBe null
                     }
                 }
@@ -492,7 +498,7 @@ class ClassReferenceFixerTest : FreeSpec({
         }
     }
 
-    "Given two classes with an unidirectional association relationship" - {
+    context("Given two classes with an unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -512,7 +518,7 @@ class ClassReferenceFixerTest : FreeSpec({
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
-        "When we obfuscate the Producer class and introduce a member that clashes" - {
+        context("When we obfuscate the Producer class and introduce a member that clashes") {
             programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
             val consumerClass = programClassPool.getClass("Consumer") as ProgramClass
             val fieldToRename = consumerClass.findField("producer", "LProducer;")
@@ -528,17 +534,17 @@ class ClassReferenceFixerTest : FreeSpec({
                 ),
             )
 
-            "And apply the ClassReferenceFixer with rename member when there is a member signature clash" - {
+            context("And apply the ClassReferenceFixer with rename member when there is a member signature clash") {
                 programClassPool.classesAccept(ClassReferenceFixer(renameFieldIfClashStrategy))
 
-                "Then field `producer`'s name in the Consumer class should be renamed" {
+                test("Then field `producer`'s name in the Consumer class should be renamed") {
                     fieldToRename.getName(consumerClass) shouldNotBe "producer"
                 }
             }
         }
     }
 
-    "Given two classes with an unidirectional association relationship" - {
+    context("Given two classes with an unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -561,7 +567,7 @@ class ClassReferenceFixerTest : FreeSpec({
 
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
-        "When we obfuscate the Producer class and introduce a member that clashes" - {
+        context("When we obfuscate the Producer class and introduce a member that clashes") {
             programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
             val consumerClass = programClassPool.getClass("Consumer") as ProgramClass
             val fieldToRename = consumerClass.findField("producer", "LProducer;")
@@ -578,18 +584,131 @@ class ClassReferenceFixerTest : FreeSpec({
                 ),
             )
 
-            "And apply the ClassReferenceFixer with the RENAME_MEMBER strategy when there is a signature clash" - {
+            context("And apply the ClassReferenceFixer with the RENAME_MEMBER strategy when there is a signature clash") {
                 programClassPool.classesAccept(ClassReferenceFixer(renameFieldIfClashStrategy))
 
-                "Then field 'producer' in the Consumer class should be renamed" {
+                test("Then field 'producer' in the Consumer class should be renamed") {
                     fieldToRename.getName(consumerClass) shouldNotBe "producer"
                 }
 
-                "Then method 'getProducer' in the Consumer class should always be renamed even if there is no clash" {
+                test("Then method 'getProducer' in the Consumer class should always be renamed even if there is no clash") {
                     methodToRename.getName(consumerClass) shouldNotBe "getProducer"
                     methodToRename.getName(consumerClass) shouldContain "$"
                 }
             }
         }
     }
+
+    context("Fixing class references in reflection strings") {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "PackagelessClass.java",
+                """
+                            public class PackagelessClass {}
+                """.trimIndent(),
+            ),
+            JavaSource(
+                "ClassWithPackage.java",
+                """
+                            package com.example;
+                            
+                            public class ClassWithPackage {}
+                """.trimIndent(),
+            ),
+            JavaSource(
+                "WithPackageInternalClassName.java",
+                """
+                            public class WithPackageInternalClassName {
+                                public void printInternalClassName() {
+                                    System.out.println("com/example/ClassWithPackage");
+                                }
+                            }
+                """.trimIndent(),
+            ),
+            JavaSource(
+                "ReflectPackagelessClass.java",
+                """
+                            public class ReflectPackagelessClass {
+                                public void reflectPackagelessClass() throws ClassNotFoundException {
+                                    Class.forName("PackagelessClass");
+                                }
+                            }
+                """.trimIndent(),
+            ),
+            JavaSource(
+                "ReflectClassWithPackage.java",
+                """
+                            public class ReflectClassWithPackage {
+                                public void reflectClassWithPackage() throws ClassNotFoundException {
+                                    Class.forName("com.example.ClassWithPackage");
+                                }
+                            }
+                """.trimIndent(),
+            ),
+        )
+
+        programClassPool.classesAccept(AllConstantVisitor(StringReferenceInitializer(programClassPool, libraryClassPool)))
+
+        context("Renaming the classes") {
+            val packagelessClassName = "PackagelessClass"
+            val classWithPackageName = "com/example/ClassWithPackage"
+
+            val newPackagelessClassInternalName = "com/example/RenamedPackagelessClass"
+            val newPackagelessClassExternalName = "com.example.RenamedPackagelessClass"
+
+            val newClassWithPackageInternalName = "com/example/RenamedClassWithPackage"
+            val newClassWithPackageExternalName = "com.example.RenamedClassWithPackage"
+
+            programClassPool.classesAccept(
+                ClassRenamer {
+                    when (it.name) {
+                        packagelessClassName -> newPackagelessClassInternalName
+                        classWithPackageName -> newClassWithPackageInternalName
+                        else -> it.name
+                    }
+                },
+            )
+            programClassPool.classesAccept(ClassReferenceFixer(false))
+
+            val packagelessClass = programClassPool.getClass(packagelessClassName)
+            val classWithPackage = programClassPool.getClass(classWithPackageName)
+
+            test("String constant referencing the internal class name of a class which already had a package should be changed correctly") {
+                val classStringConstantFinder = ClassStringConstantFinder(classWithPackage)
+                val withPackageInternalClassNameClass = programClassPool.getClass("WithPackageInternalClassName")
+                withPackageInternalClassNameClass.constantPoolEntriesAccept(classStringConstantFinder)
+
+                classStringConstantFinder.foundConstant shouldNotBe null
+                classStringConstantFinder.foundConstant?.getString(withPackageInternalClassNameClass) shouldBe newClassWithPackageInternalName
+            }
+            test("Class.forName reflecting a class which didn't have a package yet should be changed correctly") {
+                val classStringConstantFinder = ClassStringConstantFinder(packagelessClass)
+                val reflectPackagelessClass = programClassPool.getClass("ReflectPackagelessClass")
+                reflectPackagelessClass.constantPoolEntriesAccept(classStringConstantFinder)
+
+                classStringConstantFinder.foundConstant shouldNotBe null
+                classStringConstantFinder.foundConstant?.getString(reflectPackagelessClass) shouldBe newPackagelessClassExternalName
+            }
+            test("Class.forName reflecting a class which already had a package should be changed correctly") {
+                val classStringConstantFinder = ClassStringConstantFinder(classWithPackage)
+                val reflectClassWithPackage = programClassPool.getClass("ReflectClassWithPackage")
+                reflectClassWithPackage.constantPoolEntriesAccept(classStringConstantFinder)
+
+                classStringConstantFinder.foundConstant shouldNotBe null
+                classStringConstantFinder.foundConstant?.getString(reflectClassWithPackage) shouldBe newClassWithPackageExternalName
+            }
+        }
+    }
 })
+
+class ClassStringConstantFinder(private val classToFind: Clazz) : ConstantVisitor {
+    var foundConstant: StringConstant? = null
+
+    override fun visitAnyConstant(clazz: Clazz?, constant: Constant?) {}
+
+    override fun visitStringConstant(clazz: Clazz?, stringConstant: StringConstant?) {
+        if (stringConstant?.referencedClass == classToFind) {
+            foundConstant = stringConstant
+        }
+    }
+}

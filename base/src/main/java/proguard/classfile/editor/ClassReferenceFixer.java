@@ -29,7 +29,6 @@ import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
 import proguard.classfile.FieldSignature;
-import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryField;
 import proguard.classfile.LibraryMethod;
@@ -276,16 +275,16 @@ public class ClassReferenceFixer
 
       // Update the String entry if required.
       if (!newInternalClassName.equals(internalClassName)) {
-        // Only convert to an external class name if the original was
-        // an external class name too.
-        String newExternalClassName =
-            externalClassName.indexOf(JavaTypeConstants.PACKAGE_SEPARATOR) >= 0
-                ? ClassUtil.externalClassName(newInternalClassName)
-                : newInternalClassName;
+        // Only convert to an internal class name if the original was
+        // an internal class name too.
+        String newClassName =
+            externalClassName.indexOf(TypeConstants.PACKAGE_SEPARATOR) >= 0
+                ? newInternalClassName
+                : ClassUtil.externalClassName(newInternalClassName);
 
         // Refer to a new Utf8 entry.
         stringConstant.u2stringIndex =
-            new ConstantPoolEditor((ProgramClass) clazz).addUtf8Constant(newExternalClassName);
+            new ConstantPoolEditor((ProgramClass) clazz).addUtf8Constant(newClassName);
       }
     }
   }
