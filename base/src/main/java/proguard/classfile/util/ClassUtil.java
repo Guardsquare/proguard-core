@@ -174,7 +174,13 @@ public class ClassUtil {
                                                                                                     .CLASS_VERSION_21)
                                                                                         ? VersionConstants
                                                                                             .CLASS_VERSION_21
-                                                                                        : 0;
+                                                                                        : externalClassVersion
+                                                                                                .equals(
+                                                                                                    JavaVersionConstants
+                                                                                                        .CLASS_VERSION_22)
+                                                                                            ? VersionConstants
+                                                                                                .CLASS_VERSION_22
+                                                                                            : 0;
   }
 
   /**
@@ -227,6 +233,8 @@ public class ClassUtil {
         return JavaVersionConstants.CLASS_VERSION_20;
       case VersionConstants.CLASS_VERSION_21:
         return JavaVersionConstants.CLASS_VERSION_21;
+      case VersionConstants.CLASS_VERSION_22:
+        return JavaVersionConstants.CLASS_VERSION_22;
       default:
         return null;
     }
