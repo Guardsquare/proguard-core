@@ -89,11 +89,9 @@ public abstract class Executor {
    * in order to not change the reference whose state may be of interest at the end of an analysis.
    *
    * @param instanceValue The {@link ReferenceValue} of the instance.
-   * @param className The name of the class of the instance.
    * @return The new calling instance.
    */
-  public abstract Optional<AnalyzedObject> getInstanceCopyIfMutable(
-      ReferenceValue instanceValue, String className);
+  public abstract Optional<AnalyzedObject> getInstanceCopyIfMutable(ReferenceValue instanceValue);
 
   /**
    * A builder for the executor. It's important for each concrete executor to provide one in order

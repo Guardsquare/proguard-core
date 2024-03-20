@@ -170,7 +170,7 @@ public class MethodExecutionInfo {
   public Optional<AnalyzedObject> getCallingInstance(
       Executor executor, ReferenceValue instanceValue) {
     return (instanceValue != null && instanceValue.isParticular() && !isConstructor)
-        ? executor.getInstanceCopyIfMutable(instanceValue, signature.getClassName())
+        ? executor.getInstanceCopyIfMutable(instanceValue)
         : Optional.empty();
   }
 

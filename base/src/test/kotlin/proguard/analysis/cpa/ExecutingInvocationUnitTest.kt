@@ -1,5 +1,6 @@
 package proguard.analysis.cpa
 
+import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -30,6 +31,7 @@ import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
 import proguard.testutils.findMethod
+import java.lang.ClassCastException
 
 private val javaLangString = libraryClassPool.getClass("java/lang/String")
 private val javaLangStringBuilder = libraryClassPool.getClass("java/lang/StringBuilder")
@@ -238,6 +240,18 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 shouldBeInstanceOf<ParticularReferenceValue>()
                 internalType() shouldBe TYPE_JAVA_LANG_STRING
                 value() shouldBe "Hello, World!"
+            }
+        }
+    }
+
+    "Check resilience against incorrect instance types" - {
+        val stringBufferClazz = libraryClassPool.getClass("java/lang/StringBuffer")
+        val executionInfo = MethodExecutionInfo(stringBufferClazz, stringBufferClazz.findMethod("toString"), null)
+        val stringBuilderValue = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING_BUILDER, javaLangStringBuilder, false, false) as IdentifiedReferenceValue
+
+        "No class cast exception for incorrect instance type" {
+            shouldNotThrow<ClassCastException> {
+                invocationUnit.executeMethod(stringExecutor, executionInfo, stringBuilderValue)
             }
         }
     }

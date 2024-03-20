@@ -21,6 +21,9 @@ package proguard.evaluation.executor;
 import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING;
 import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUFFER;
 import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_STRING_BUILDER;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUFFER;
+import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -66,8 +69,7 @@ public class StringReflectionExecutor extends ReflectionExecutor {
   }
 
   @Override
-  public Optional<AnalyzedObject> getInstanceCopyIfMutable(
-      ReferenceValue instanceValue, String className) {
+  public Optional<AnalyzedObject> getInstanceCopyIfMutable(ReferenceValue instanceValue) {
 
     if (!(instanceValue instanceof ParticularReferenceValue)) {
       return Optional.empty();
@@ -84,19 +86,24 @@ public class StringReflectionExecutor extends ReflectionExecutor {
       return Optional.empty();
     }
 
-    switch (className) {
-      case NAME_JAVA_LANG_STRING_BUILDER:
+    String type = instanceObject.getType();
+    if (type == null) {
+      throw new IllegalStateException("Null type on non-null instance object!");
+    }
+    switch (type) {
+      case TYPE_JAVA_LANG_STRING_BUILDER:
         return Optional.of(
             AnalyzedObjectFactory.createPrecise(
                 new StringBuilder((StringBuilder) instanceObject.getPreciseValue())));
-      case NAME_JAVA_LANG_STRING_BUFFER:
+      case TYPE_JAVA_LANG_STRING_BUFFER:
         return Optional.of(
             AnalyzedObjectFactory.createPrecise(
                 new StringBuffer((StringBuffer) instanceObject.getPreciseValue())));
-      case NAME_JAVA_LANG_STRING:
+      case TYPE_JAVA_LANG_STRING:
         return Optional.of(instanceObject);
+      default:
+        return Optional.empty();
     }
-    return Optional.empty();
   }
 
   public static class Builder extends Executor.Builder<StringReflectionExecutor> {
