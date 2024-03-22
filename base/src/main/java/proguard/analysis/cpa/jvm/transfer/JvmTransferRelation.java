@@ -249,6 +249,12 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     return getAbstractDefault();
   }
 
+  /** Returns an abstract state representing the result of the {@code checkcast} operation. */
+  protected StateT handleCheckCast(StateT state, String typeName) {
+    // Default behavior: ignore the instruction, checkcast leaves the object reference where it is
+    return state;
+  }
+
   /**
    * This {@link InstructionVisitor} performs generic operations (e.g., loads, stores) parametrized
    * by the specific behavior of {@link JvmTransferRelation} for instruction applications, method
@@ -642,6 +648,8 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
             break;
           }
         case Instruction.OP_CHECKCAST:
+          clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
+          abstractState.push(handleCheckCast(abstractState.pop(), constantLookupVisitor.result));
           break;
         default: // should never happen
           throw new InvalidParameterException(

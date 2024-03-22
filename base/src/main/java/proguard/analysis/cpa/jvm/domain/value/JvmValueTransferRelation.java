@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import proguard.analysis.cpa.defaults.StackAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
@@ -26,6 +27,7 @@ import proguard.classfile.visitor.ReturnClassExtractor;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TopValue;
+import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 import proguard.evaluation.value.object.AnalyzedObjectFactory;
@@ -165,6 +167,38 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
     super.invokeMethod(state, call, operands);
   }
+
+  @Override
+  protected ValueAbstractState handleCheckCast(ValueAbstractState state, String internalName) {
+    Value value = state.getValue();
+
+    // JVM spec demands that the operand of checkcast is a reference value, and we can't make
+    // a decision without type information. Note that this excludes arrays, as they are currently
+    // generally not supported in value analysis.
+    if (!(value instanceof TypedReferenceValue)) {
+      return getAbstractDefault();
+    }
+
+    // By the JVM spec, if objectref is null, the stack is left unchanged
+    TypedReferenceValue typedValue = (TypedReferenceValue) value;
+    if (typedValue.getValue().isNull()) {
+      return state;
+    }
+
+    boolean castSuccess;
+    Clazz referencedClass = typedValue.getReferencedClass();
+    if (referencedClass == null) {
+      // Fallback to type string comparison
+      String typeName = ClassUtil.internalTypeFromClassName(internalName);
+      castSuccess = Objects.equals(typeName, typedValue.getType());
+    } else {
+      castSuccess = referencedClass.extendsOrImplements(internalName);
+    }
+
+    return castSuccess ? state : getAbstractDefault();
+  }
+
+  // Private methods
 
   private void executeMethod(
       ConcreteCall call,

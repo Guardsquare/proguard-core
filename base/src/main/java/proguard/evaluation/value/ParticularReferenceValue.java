@@ -64,7 +64,7 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
   }
 
   @Override
-  public AnalyzedObject getValue() {
+  public @NotNull AnalyzedObject getValue() {
     return objectValue;
   }
 

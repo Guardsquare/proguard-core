@@ -17,6 +17,7 @@
  */
 package proguard.evaluation.value;
 
+import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;
 import proguard.evaluation.value.object.AnalyzedObject;
 import proguard.evaluation.value.object.AnalyzedObjectFactory;
@@ -39,6 +40,7 @@ public abstract class ReferenceValue extends Category1Value {
     return null;
   }
 
+  @NotNull
   public AnalyzedObject getValue() {
     return AnalyzedObjectFactory.createNull();
   }
