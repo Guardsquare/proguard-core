@@ -19,7 +19,6 @@
 package proguard.classfile.visitor;
 
 import org.jetbrains.annotations.Nullable;
-import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryMethod;
@@ -31,13 +30,12 @@ import proguard.classfile.ProgramMethod;
 import proguard.classfile.util.ClassUtil;
 
 /**
- * Divides the referenced classes in a program/library method in the classes referenced in return,
- * instance, and parameters.
+ * Divides the referenced classes in a program/library method in the classes referenced in return
+ * and parameters.
  */
 public class ReferencedClassesExtractor implements MemberVisitor {
 
   private Clazz returnClass = null;
-  private Clazz instanceClass = null;
   private Clazz[] parameterClasses = null;
 
   @Override
@@ -71,11 +69,6 @@ public class ReferencedClassesExtractor implements MemberVisitor {
 
     int referencedClassesIndex = 0;
 
-    boolean isStatic = (method.getAccessFlags() & AccessConstants.STATIC) == 0;
-    if (!isStatic) {
-      instanceClass = referencedClasses[referencedClassesIndex++];
-    }
-
     for (int i = 0; i < descriptor.getArgumentTypes().size(); i++) {
       String argumentType = descriptor.getArgumentTypes().get(i);
       if (!isPrimitiveOrPrimitiveArrayType(argumentType)) {
@@ -97,16 +90,6 @@ public class ReferencedClassesExtractor implements MemberVisitor {
    */
   public @Nullable Clazz getReturnClass() {
     return returnClass;
-  }
-
-  /**
-   * Returns the referenced instance {@link Clazz} of the target method.
-   *
-   * @return The instance referenced class. Null for static methods. Can be null if the class pools
-   *     have not been initialized; even if they have, the clazz not being null is not a guarantee.
-   */
-  public @Nullable Clazz getInstanceClass() {
-    return instanceClass;
   }
 
   /**
