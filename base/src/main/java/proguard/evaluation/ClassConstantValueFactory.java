@@ -17,9 +17,12 @@
  */
 package proguard.evaluation;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
 import proguard.classfile.constant.ClassConstant;
+import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.ValueFactory;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
+import proguard.evaluation.value.object.ClassModel;
 
 /**
  * This {@link ConstantValueFactory} creates <code>java.lang.Class</code> {@link ReferenceValue}
@@ -33,11 +36,14 @@ public class ClassConstantValueFactory extends ConstantValueFactory {
   }
 
   // Implementations for ConstantVisitor.
-
+  @Override
   public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
     // Create a Class reference instead of a reference to the class.
     value =
         valueFactory.createReferenceValue(
-            ClassConstants.TYPE_JAVA_LANG_CLASS, classConstant.javaLangClassClass, false, false);
+            classConstant.javaLangClassClass,
+            false,
+            false,
+            AnalyzedObjectFactory.createModeled(new ClassModel(classConstant.referencedClass)));
   }
 }
