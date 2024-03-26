@@ -233,6 +233,8 @@ public class ClassConstants {
       "(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;";
   public static final String METHOD_NAME_FIELD_GET = "get";
   public static final String METHOD_TYPE_FIELD_GET = "(Ljava/lang/Object;)Ljava/lang/Object;";
+  public static final String METHOD_NAME_FIELD_GET_INT = "getInt";
+  public static final String METHOD_TYPE_FIELD_GET_INT = "(Ljava/lang/Object;)I";
   public static final String METHOD_NAME_FIELD_SET = "set";
   public static final String METHOD_TYPE_FIELD_SET = "(Ljava/lang/Object;Ljava/lang/Object;)V";
   public static final String METHOD_NAME_METHOD_INVOKE = "invoke";
