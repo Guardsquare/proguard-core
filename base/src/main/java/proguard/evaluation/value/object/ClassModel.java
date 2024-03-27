@@ -7,7 +7,7 @@ import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
-import proguard.classfile.MethodSignature;
+import proguard.classfile.MethodInfo;
 import proguard.evaluation.value.Value;
 
 /** A {@link Model} to track specific Clazz constants. */
@@ -27,21 +27,21 @@ public class ClassModel implements Model {
 
   @Override
   public Optional<Value> init(
-      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+      MethodInfo signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
     throw new UnsupportedOperationException(
         "Constructors invocation is not supported in ClassModel");
   }
 
   @Override
   public Optional<Value> invoke(
-      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+      MethodInfo signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
     throw new UnsupportedOperationException(
         "Instance method invocation is not supported in ClassModel");
   }
 
   @Override
   public Optional<Value> invokeStatic(
-      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+      MethodInfo signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
     throw new UnsupportedOperationException(
         "Static method invocation is not supported in ClassModel");
   }

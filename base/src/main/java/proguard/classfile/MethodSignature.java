@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a Method signature containing a class, method and a descriptor.
@@ -37,7 +38,7 @@ import java.util.Objects;
  *
  * @author Dennis Titze, Samuel Hopstock
  */
-public class MethodSignature extends Signature {
+public class MethodSignature extends Signature implements MethodInfo {
 
   public static final MethodSignature UNKNOWN =
       new MethodSignature(null, null, (MethodDescriptor) null);
@@ -194,5 +195,23 @@ public class MethodSignature extends Signature {
     }
     MethodSignature that = (MethodSignature) o;
     return Objects.equals(method, that.method) && Objects.equals(descriptor, that.descriptor);
+  }
+
+  @Override
+  public @NotNull String getMethodName() {
+    if (method == null) {
+      throw new IllegalStateException(
+          "Should not use this method if the method name is expected to be null");
+    }
+    return method;
+  }
+
+  @Override
+  public @NotNull MethodDescriptor getDescriptor() {
+    if (descriptor == null) {
+      throw new IllegalStateException(
+          "Should not use this method if the descriptor name is expected to be null");
+    }
+    return descriptor;
   }
 }

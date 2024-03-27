@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-import proguard.classfile.MethodSignature;
+import proguard.classfile.MethodInfo;
 import proguard.evaluation.value.Value;
 
 /**
@@ -16,11 +16,11 @@ import proguard.evaluation.value.Value;
  * <p>The implementations are expected to override {@link Object#equals(Object)} and {@link
  * Object#hashCode()} to guarantee the expected behavior during the analysis.
  *
- * <p>The interface methods {@link Model#init(MethodSignature, List, Function) init}, {@link
- * Model#invoke(MethodSignature, List, Function) invoke}, and {@link
- * Model#invokeStatic(MethodSignature, List, Function) invokeStatic} are meant to be used to handle
- * the proper method calls on the modeled object. These methods should be implemented with the
- * assumption that the callers are checking for the validity of the invocation parameters.
+ * <p>The interface methods {@link Model#init(MethodInfo, List, Function) init}, {@link
+ * Model#invoke(MethodInfo, List, Function) invoke}, and {@link Model#invokeStatic(MethodInfo, List,
+ * Function) invokeStatic} are meant to be used to handle the proper method calls on the modeled
+ * object. These methods should be implemented with the assumption that the callers are checking for
+ * the validity of the invocation parameters.
  */
 public interface Model {
 
@@ -33,7 +33,7 @@ public interface Model {
    *
    * <p>It is suggested to add logic to allow running this only on a dummy model without any state.
    *
-   * @param signature the signature of the invoked constructor.
+   * @param method information on the invoked constructor.
    * @param parameters the parameters of the call (starting from the first argument, calling
    *     instance not included). The implementations should not worry about checking the validity of
    *     the parameters, so callers should be sure that the passed parameters are supported by the
@@ -47,7 +47,7 @@ public interface Model {
    *     handling for the analyzed code).
    */
   Optional<Value> init(
-      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator);
+      MethodInfo method, List<Value> parameters, Function<Object, Value> valueCalculator);
 
   /**
    * Execute an instance method on the modeled object. The state of the instance is represented by
@@ -56,7 +56,7 @@ public interface Model {
    * <p>It is suggested to add logic to allow running this only on a model representing an
    * initialized object.
    *
-   * @param signature the signature of the invoked method.
+   * @param method information on the invoked instance method.
    * @param parameters the parameters of the call (starting from the first argument, calling
    *     instance not included). The implementations should not worry about checking the validity of
    *     the parameters, so callers should be sure that the passed parameters are supported by the
@@ -70,14 +70,14 @@ public interface Model {
    *     proper exception handling for the analyzed code).
    */
   Optional<Value> invoke(
-      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator);
+      MethodInfo method, List<Value> parameters, Function<Object, Value> valueCalculator);
 
   /**
    * Execute a static method for the modeled class.
    *
    * <p>It is suggested to add logic to allow running this only on a dummy model without any state.
    *
-   * @param signature the signature of the invoked method.
+   * @param method information on the invoked static method.
    * @param parameters the parameters of the call. The implementations should not worry about
    *     checking the validity of the parameters, so callers should be sure that the passed
    *     parameters are supported by the model.
@@ -90,5 +90,5 @@ public interface Model {
    *     proper exception handling for the analyzed code).
    */
   Optional<Value> invokeStatic(
-      MethodSignature signature, List<Value> parameters, Function<Object, Value> valueCalculator);
+      MethodInfo method, List<Value> parameters, Function<Object, Value> valueCalculator);
 }
