@@ -18,7 +18,6 @@
 
 package proguard.evaluation.executor.matcher;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import proguard.classfile.MethodSignature;
@@ -56,7 +55,7 @@ public class ExecutorMethodSignatureMatcher implements ExecutorMatcher {
     public Builder addMethodMatch(
         String className, String methodName, StringMatcher descriptorMatcher) {
       methodMatchers
-          .computeIfAbsent(className, name -> Collections.emptyMap())
+          .computeIfAbsent(className, name -> new HashMap<>())
           .merge(methodName, descriptorMatcher, OrMatcher::new);
       return this;
     }

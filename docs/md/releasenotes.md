@@ -18,7 +18,8 @@
 - Improve Kotlin MultiFileFacade metadata assertions to detect uninitialized references. 
 - Fix handling of category 2 values in `JvmValueTransferRelation` to work correctly with `ExecutingInvocationUnit`.
 - Fix concurrency problems in CallGraph and ValueFactory ids.
-- Fix a bug in `ReturnClassExtractor` returning the last parameter type instead of null for primitive return values. 
+- Fix a bug in `ReturnClassExtractor` returning the last parameter type instead of null for primitive return values.
+- Fix `ExecutorMethodSignatureMatcher` trying to mutate an immutable map.
 
 ## Version 9.1.1
 
