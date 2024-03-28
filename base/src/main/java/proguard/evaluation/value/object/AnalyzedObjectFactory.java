@@ -54,7 +54,7 @@ public class AnalyzedObjectFactory {
 
     if (value == null) {
       checkValidTypedNullObject(type, referencedClass);
-      return createNullOfType(ClassUtil.internalTypeFromClassName(type));
+      return createNullOfType(type);
     }
 
     if (value instanceof Model) {
