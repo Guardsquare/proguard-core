@@ -37,6 +37,7 @@ import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.exception.ArrayStoreTypeException;
 import proguard.evaluation.exception.IncompleteClassHierarchyException;
 import proguard.evaluation.exception.ValueTypeException;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 
 /**
  * This {@link ReferenceValue} represents a partially evaluated reference value. It has a type and a
@@ -160,10 +161,21 @@ public class TypedReferenceValue extends ReferenceValue {
 
   public ReferenceValue cast(
       String type, Clazz referencedClass, ValueFactory valueFactory, boolean alwaysCast) {
-    // Just return this value if it's the same type.
-    // Also return this value if it is null or more specific.
-    return (this.type != null && this.type.equals(type))
-            || (!alwaysCast && (this.type == null || instanceOf(type, referencedClass) == ALWAYS))
+
+    // If `type` is null the TypedReferenceValue represents a value with unknown type and null value
+    if (this.type == null) {
+      if (alwaysCast) {
+        // The value is still null but the type is known (if the value factory allows it)
+        return valueFactory.createReferenceValue(
+            referencedClass, true, true, AnalyzedObjectFactory.createNullOfType(type));
+      } else {
+        return this;
+      }
+    }
+
+    // Just return this value if it's the same type or if the current type is more specific than the
+    // checked one
+    return (this.type.equals(type) || (!alwaysCast && instanceOf(type, referencedClass) == ALWAYS))
         ? this
         : valueFactory.createReferenceValue(type, referencedClass, true, mayBeNull);
   }

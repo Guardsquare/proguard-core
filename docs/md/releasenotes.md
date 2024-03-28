@@ -20,6 +20,7 @@
 - Fix concurrency problems in CallGraph and ValueFactory ids.
 - Fix a bug in `ReturnClassExtractor` returning the last parameter type instead of null for primitive return values.
 - Fix `ExecutorMethodSignatureMatcher` trying to mutate an immutable map.
+- Fix `TypedReferenceValue.cast()` not handling null values correctly.
 
 ## Version 9.1.1
 

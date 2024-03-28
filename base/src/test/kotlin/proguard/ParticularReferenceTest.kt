@@ -15,19 +15,25 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.ClassConstants
 import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
 import proguard.classfile.editor.ClassBuilder
+import proguard.evaluation.BasicInvocationUnit
+import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularIntegerValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownReferenceValue
+import proguard.evaluation.value.ValueFactory
 import proguard.evaluation.value.`object`.AnalyzedObjectFactory
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
+import proguard.testutils.PartialEvaluatorUtil
 import proguard.util.MethodWithStack
 import proguard.util.PartialEvaluatorHelper
 
@@ -874,6 +880,87 @@ class ParticularReferenceTest : FreeSpec({
         "Then typed.generalize(identified) should be unknown" {
             val generalized = unknown.generalize(identified)
             generalized.shouldBeInstanceOf<UnknownReferenceValue>()
+        }
+    }
+
+    "Null cast" - {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Test.java",
+                """
+                class Test {
+                    public void test(){
+                        Object o = null;
+                        String s = (String) o;
+                    }
+                }
+                """,
+            ),
+            javacArguments = listOf("-g", "-source", "8", "-target", "8"),
+        )
+
+        "Evaluate all code = false" - {
+            val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
+            val invocationUnit = BasicInvocationUnit(valueFactory)
+            val partialEvaluator = PartialEvaluator(
+                valueFactory,
+                invocationUnit,
+                false,
+            )
+
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test",
+                "test",
+                "()V",
+                programClassPool,
+                partialEvaluator,
+            )
+
+            val (instruction, _) = instructions.last()
+            val o = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["o"]!!)
+            val s = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["s"]!!)
+
+            "Expected values" {
+                o.isParticular shouldBe true
+                o.referenceValue().value.preciseValue shouldBe null
+                o.referenceValue().type shouldBe null
+
+                s.isParticular shouldBe true
+                s.referenceValue().value.preciseValue shouldBe null
+                s.referenceValue().type shouldBe null
+            }
+        }
+
+        "Evaluate all code = true" - {
+            val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
+            val invocationUnit = BasicInvocationUnit(valueFactory)
+            val partialEvaluator = PartialEvaluator(
+                valueFactory,
+                invocationUnit,
+                true,
+            )
+
+            val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+                "Test",
+                "test",
+                "()V",
+                programClassPool,
+                partialEvaluator,
+            )
+
+            val (instruction, _) = instructions.last()
+            val o = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["o"]!!)
+            val s = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["s"]!!)
+
+            "Expected values" {
+                o.isParticular shouldBe true
+                o.referenceValue().value.preciseValue shouldBe null
+                o.referenceValue().type shouldBe null
+
+                s.isParticular shouldBe true
+                s.referenceValue().value.preciseValue shouldBe null
+                s.referenceValue().type shouldBe ClassConstants.TYPE_JAVA_LANG_STRING
+            }
         }
     }
 })
