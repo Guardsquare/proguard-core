@@ -80,7 +80,7 @@ public class ArrayModel implements Model {
 
     StringBuilder builder = new StringBuilder(super.toString());
 
-    builder.append('{');
+    builder.append("ArrayModel{");
     for (int index = 0; index < values.length; index++) {
       builder.append(values[index]);
       builder.append(index < values.length - 1 ? ',' : '}');

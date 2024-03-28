@@ -61,7 +61,7 @@ public class ClassModel implements Model {
 
   @Override
   public String toString() {
-    return clazz.getName();
+    return String.format("ClassModel{%s}", clazz.getName());
   }
 
   public Clazz getClazz() {
