@@ -73,7 +73,7 @@ public interface AnalyzedObject {
     if (isNull() || clazz == null) {
       return false;
     }
-    return !InitializedClassUtil.isInstanceOf(getType(), clazz);
+    return InitializedClassUtil.isInstanceOf(getType(), clazz);
   }
 
   /**
