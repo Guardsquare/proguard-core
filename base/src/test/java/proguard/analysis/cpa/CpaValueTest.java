@@ -455,6 +455,7 @@ public class CpaValueTest {
             Arrays.asList("-source", "1.8", "-target", "1.8"),
             Collections.emptyList(),
             getCurrentJavaHome(),
+            true,
             true)
         .getProgramClassPool();
   }

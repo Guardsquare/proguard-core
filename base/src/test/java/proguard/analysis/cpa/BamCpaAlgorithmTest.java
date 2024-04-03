@@ -106,6 +106,7 @@ public class BamCpaAlgorithmTest {
                 Arrays.asList("-source", "1.8", "-target", "1.8"),
                 Collections.emptyList(),
                 getCurrentJavaHome(),
+                true,
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
@@ -294,6 +295,7 @@ public class BamCpaAlgorithmTest {
                 Arrays.asList("-source", "1.8", "-target", "1.8"),
                 Collections.emptyList(),
                 getCurrentJavaHome(),
+                true,
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
@@ -457,6 +459,7 @@ public class BamCpaAlgorithmTest {
                 Arrays.asList("-source", "1.8", "-target", "1.8"),
                 Collections.emptyList(),
                 getCurrentJavaHome(),
+                true,
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
@@ -540,6 +543,7 @@ public class BamCpaAlgorithmTest {
                 Arrays.asList("-source", "1.8", "-target", "1.8"),
                 Collections.emptyList(),
                 getCurrentJavaHome(),
+                true,
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
@@ -624,6 +628,7 @@ public class BamCpaAlgorithmTest {
                 Arrays.asList("-source", "1.8", "-target", "1.8"),
                 Collections.emptyList(),
                 getCurrentJavaHome(),
+                true,
                 true)
             .getProgramClassPool();
     // create just intra-procedural CFA, all inter-procedural call edges are missing

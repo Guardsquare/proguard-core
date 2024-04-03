@@ -83,6 +83,7 @@ class ClassPoolBuilder private constructor() {
             kotlincArguments: List<String> = emptyList(),
             jdkHome: File = getCurrentJavaHome(),
             initialize: Boolean = true,
+            ignoreStackMapAttributes: Boolean = true,
         ): ClassPools {
             compiler.apply {
                 this.sources = source.filterNot { it is AssemblerSource }.map { it.asSourceFile() }
@@ -109,7 +110,7 @@ class ClassPoolBuilder private constructor() {
                     false,
                     false,
                     false,
-                    true,
+                    ignoreStackMapAttributes,
                     WarningPrinter(PrintWriter(System.err)),
                     ClassPoolFiller(programClassPool),
                 ),
