@@ -22,15 +22,16 @@ import static proguard.classfile.TypeConstants.VOID;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-import org.jetbrains.annotations.Nullable;
 import proguard.classfile.JavaConstants;
 import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.MethodDescriptor;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.util.ClassUtil;
+import proguard.evaluation.MethodResult;
+import proguard.evaluation.ValueCalculator;
+import proguard.evaluation.executor.instancehandler.ExecutorInstanceHandler;
 import proguard.evaluation.value.DetailedArrayReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
@@ -41,93 +42,274 @@ import proguard.evaluation.value.object.AnalyzedObject;
  * to resolve the method at runtime and execute it using Java's reflection API {@link
  * java.lang.reflect}.
  */
-public abstract class ReflectionExecutor extends Executor {
+public abstract class ReflectionExecutor implements Executor {
+
   @Override
-  public Optional<Value> getMethodResult(
-      MethodExecutionInfo methodInfo,
-      @Nullable ReferenceValue instance,
-      @Nullable AnalyzedObject callingInstanceObject,
-      Value[] parameters,
-      Function<Object, Value> valueCalculator) {
-    if (!methodInfo.isStatic() && (instance == null || !instance.isSpecific())) {
-      // Instance must at least be specific.
-      return Optional.empty();
-    }
+  public MethodResult getMethodResult(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
 
-    if (callingInstanceObject != null && callingInstanceObject.isModeled()) {
-      throw new IllegalStateException(
-          "Should not use reflection on a modeled value, are you sure you are matching the expected executor?");
-    }
-
-    int paramOffset = methodInfo.isStatic() ? 0 : 1;
-    if (!Arrays.stream(parameters)
-        .skip(paramOffset)
-        .allMatch(
-            value ->
-                value.isParticular()
-                    && (!(value instanceof ReferenceValue)
-                        || !value.referenceValue().getValue().isModeled()
-                        || value instanceof DetailedArrayReferenceValue))) {
-      // All parameters must be particular and real objects to use reflection. Detailed arrays can
-      // be converted to a real object if they are particular.
-      return Optional.empty();
+    // If reflection is not possible create a result with no particular value, but possibly some
+    // extra information on the object identifier
+    Optional<MethodResult> fallbackResultOptional =
+        createFallbackResultIfInvalidParameters(methodExecutionInfo, valueCalculator);
+    if (fallbackResultOptional.isPresent()) {
+      return fallbackResultOptional.get();
     }
 
     ReflectionParameters reflectionParameters =
-        new ReflectionParameters(methodInfo.getSignature().descriptor, parameters, paramOffset);
+        new ReflectionParameters(
+            methodExecutionInfo.getSignature().descriptor, methodExecutionInfo.getParameters());
 
-    if (methodInfo.isConstructor()) {
-      try {
-        Class<?> baseClass =
-            Class.forName(ClassUtil.externalClassName(methodInfo.getSignature().getClassName()));
-
-        // Try to resolve the constructor reflectively and create a new instance.
-        return Optional.of(
-            valueCalculator.apply(
-                baseClass
-                    .getConstructor(reflectionParameters.classes)
-                    .newInstance(reflectionParameters.objects)));
-      } catch (ClassNotFoundException
-          | NoSuchMethodException
-          | SecurityException
-          | InstantiationException
-          | IllegalAccessException
-          | IllegalArgumentException
-          | InvocationTargetException e) {
-        return Optional.empty();
-      }
+    if (methodExecutionInfo.isConstructor()) {
+      return executeConstructor(methodExecutionInfo, valueCalculator, reflectionParameters);
     } else {
-      try {
-        Class<?> baseClass =
-            Class.forName(ClassUtil.externalClassName(methodInfo.getSignature().getClassName()));
-        if ((callingInstanceObject == null || callingInstanceObject.isNull())
-            && !methodInfo.isStatic()) {
-          throw new IllegalArgumentException();
-        }
+      return executeMethod(methodExecutionInfo, valueCalculator, reflectionParameters);
+    }
+  }
 
-        Object callingInstance =
-            callingInstanceObject == null ? null : callingInstanceObject.getPreciseValue();
+  /**
+   * Creates a fallback result if the parameters are invalid for reflection execution (i.e., all the
+   * parameters should have a known precise value to be able to invoke using reflection with them).
+   *
+   * <p>Since the executor might be able to provide additional information compared to the fallback
+   * of {@link proguard.evaluation.ExecutingInvocationUnit} (e.g., it might know which methods
+   * return the same object as their calling instance) in situation in which the error is
+   * recoverable this does not return {@link MethodResult#invalidResult()}.
+   *
+   * <p>If the optional is empty the parameters are valid.
+   */
+  private Optional<MethodResult> createFallbackResultIfInvalidParameters(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
 
-        // Try to resolve the method via reflection and invoke the method.
-        Object result =
-            baseClass
-                .getMethod(methodInfo.getSignature().method, reflectionParameters.classes)
-                .invoke(callingInstance, reflectionParameters.objects);
+    ReferenceValue instance = methodExecutionInfo.getInstanceOrNullIfStatic();
 
-        if (methodInfo.getResultType().charAt(0) == VOID) {
-          return Optional.empty();
-        }
+    if (!methodExecutionInfo.isStatic() && (instance == null || !instance.isSpecific())) {
+      // Instance must at least be specific (i.e., identified) for non-static methods.
+      return Optional.of(MethodResult.invalidResult());
+    }
 
-        return Optional.of(valueCalculator.apply(result));
+    if (instance != null && instance.isParticular() && instance.getValue().isModeled()) {
+      // The instance must be known to be able to invoke on it via reflection.
+      return Optional.of(createFallbackResultMethod(methodExecutionInfo, valueCalculator));
+    }
 
-      } catch (ClassNotFoundException
-          | NoSuchMethodException
-          | SecurityException
-          | IllegalAccessException
-          | IllegalArgumentException
-          | InvocationTargetException e) {
-        return Optional.empty();
+    int paramOffset = methodExecutionInfo.isStatic() ? 0 : 1;
+    if ((methodExecutionInfo.isInstanceMethod()
+            && (!instance.isParticular() // NOSONAR instance can't be null for instance methods
+                || isNonPreciseParticularValue(instance)))
+        || methodExecutionInfo.getParameters().stream()
+            .skip(paramOffset)
+            .anyMatch(value -> !value.isParticular() || isNonPreciseParticularValue(value))) {
+      // All parameters must be particular and real objects to use reflection. Detailed arrays can
+      // be converted to a real object if they are particular.
+      if (methodExecutionInfo.isConstructor()) {
+        return Optional.of(createFallbackResultConstructor(methodExecutionInfo, valueCalculator));
+      } else {
+        return Optional.of(createFallbackResultMethod(methodExecutionInfo, valueCalculator));
       }
+    }
+
+    return Optional.empty();
+  }
+
+  /**
+   * Particular primitive types are always precise. For now this has a workaround for {@link
+   * DetailedArrayReferenceValue} since the {@link AnalyzedObject} they wrap is not returning true
+   * for {@link AnalyzedObject#isPrecise()}.
+   */
+  private static boolean isNonPreciseParticularValue(Value value) {
+    if (!value.isParticular()) {
+      throw new IllegalStateException("This method should not be called for non particular values");
+    }
+    return (value instanceof ReferenceValue)
+        && !value.referenceValue().getValue().isPrecise()
+        && !(value instanceof DetailedArrayReferenceValue);
+  }
+
+  private MethodResult executeMethod(
+      MethodExecutionInfo methodExecutionInfo,
+      ValueCalculator valueCalculator,
+      ReflectionParameters reflectionParameters) {
+    Object newReferenceId;
+    try {
+      Class<?> baseClass =
+          Class.forName(
+              ClassUtil.externalClassName(methodExecutionInfo.getSignature().getClassName()));
+
+      Object callingInstance = null;
+      boolean isCallingInstanceMutable = false;
+
+      if (!methodExecutionInfo.isStatic()) {
+        Optional<InstanceCopyResult> objectInstanceResultOptional =
+            getInstanceOrCopyIfMutable(methodExecutionInfo.getSpecificInstance());
+        if (!objectInstanceResultOptional.isPresent()) {
+          return MethodResult.invalidResult();
+        }
+        callingInstance = objectInstanceResultOptional.get().getInstance().getPreciseValue();
+        isCallingInstanceMutable = objectInstanceResultOptional.get().isMutable();
+      }
+
+      MethodResult.Builder resultBuilder = new MethodResult.Builder();
+
+      // Try to resolve the method via reflection and invoke the method.
+      Object returnResult =
+          baseClass
+              .getMethod(methodExecutionInfo.getSignature().method, reflectionParameters.classes)
+              .invoke(callingInstance, reflectionParameters.objects);
+
+      // The new reference id is the instance one if the method returned the instance
+      newReferenceId = null;
+      if (!methodExecutionInfo.isStatic() && returnResult == callingInstance) {
+        newReferenceId = methodExecutionInfo.getSpecificInstance().id; // NOSONAR can't throw a NPE
+      }
+
+      if (methodExecutionInfo.getReturnType().charAt(0) != VOID) {
+        Value returnValue =
+            valueCalculator.apply(
+                methodExecutionInfo.getReturnType(),
+                methodExecutionInfo.getReturnClass(),
+                true,
+                returnResult,
+                ClassUtil.isExtendable(methodExecutionInfo.getReturnClass()),
+                newReferenceId);
+        resultBuilder.setReturnValue(returnValue);
+        if (isCallingInstanceMutable && newReferenceId != null) {
+          resultBuilder.setUpdatedInstance(returnValue.referenceValue());
+        }
+      }
+
+      return resultBuilder.build();
+
+    } catch (ClassNotFoundException
+        | NoSuchMethodException
+        | SecurityException
+        | IllegalAccessException
+        | IllegalArgumentException
+        | InvocationTargetException e) {
+      return MethodResult.invalidResult();
+    }
+  }
+
+  private MethodResult executeConstructor(
+      MethodExecutionInfo methodExecutionInfo,
+      ValueCalculator valueCalculator,
+      ReflectionParameters reflectionParameters) {
+    try {
+      Class<?> baseClass =
+          Class.forName(
+              ClassUtil.externalClassName(methodExecutionInfo.getSignature().getClassName()));
+
+      Object newInstance =
+          baseClass
+              .getConstructor(reflectionParameters.classes)
+              .newInstance(reflectionParameters.objects);
+
+      // Try to resolve the constructor reflectively and create a new instance.
+      return new MethodResult.Builder()
+          .setUpdatedInstance(
+              valueCalculator
+                  .apply(
+                      methodExecutionInfo.getTargetType(),
+                      methodExecutionInfo.getTargetClass(),
+                      true,
+                      newInstance,
+                      false,
+                      methodExecutionInfo.getSpecificInstance().id)
+                  .referenceValue())
+          .build();
+    } catch (ClassNotFoundException
+        | NoSuchMethodException
+        | SecurityException
+        | InstantiationException
+        | IllegalAccessException
+        | IllegalArgumentException
+        | InvocationTargetException e) {
+      return MethodResult.invalidResult();
+    }
+  }
+
+  private MethodResult createFallbackResultMethod(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
+    MethodResult.Builder builder = new MethodResult.Builder();
+
+    if (methodExecutionInfo.getReturnType().charAt(0) == VOID) {
+      return builder.build();
+    }
+
+    Object newReferenceId = null;
+
+    if ((methodExecutionInfo.returnsSameTypeAsInstance()
+        && getDefaultInstanceHandler()
+            .returnsOwnInstance(
+                methodExecutionInfo.getSignature().getClassName(),
+                methodExecutionInfo.getSignature().method))) {
+      newReferenceId = methodExecutionInfo.getSpecificInstance().id;
+    }
+
+    builder.setReturnValue(
+        valueCalculator.apply(
+            methodExecutionInfo.getReturnType(),
+            methodExecutionInfo.getReturnClass(),
+            false,
+            null,
+            ClassUtil.isExtendable(methodExecutionInfo.getReturnClass()),
+            newReferenceId));
+
+    return builder.build();
+  }
+
+  private MethodResult createFallbackResultConstructor(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
+    MethodResult.Builder builder = new MethodResult.Builder();
+    builder.setUpdatedInstance(
+        valueCalculator
+            .apply(
+                methodExecutionInfo.getTargetType(),
+                methodExecutionInfo.getTargetClass(),
+                false,
+                null,
+                false,
+                methodExecutionInfo.getSpecificInstance().id)
+            .referenceValue());
+    return builder.build();
+  }
+
+  /**
+   * Get an object which will act as the calling instance. If we know that executing the method does
+   * not modify the instance this can just be the same value. Otherwise, a copy should be returned
+   * in order to not change the reference whose state may be of interest at the end of an analysis.
+   *
+   * @param instanceValue The {@link ReferenceValue} of the instance.
+   * @return The new calling instance.
+   */
+  protected abstract Optional<InstanceCopyResult> getInstanceOrCopyIfMutable(
+      ReferenceValue instanceValue);
+
+  /**
+   * Provides a default instance handler used by the executor in case the reflective execution
+   * fails.
+   *
+   * <p>The handler carries information on whether a method returns the same object as its instance.
+   *
+   * @return the default instance handler.
+   */
+  protected abstract ExecutorInstanceHandler getDefaultInstanceHandler();
+
+  public static class InstanceCopyResult {
+    private final AnalyzedObject instance;
+    private final boolean isMutable;
+
+    public InstanceCopyResult(AnalyzedObject instance, boolean isMutable) {
+      this.instance = instance;
+      this.isMutable = isMutable;
+    }
+
+    public AnalyzedObject getInstance() {
+      return instance;
+    }
+
+    public boolean isMutable() {
+      return isMutable;
     }
   }
 
@@ -144,12 +326,11 @@ public abstract class ReflectionExecutor extends Executor {
      * reflection.
      *
      * @param descriptor The descriptor of the method.
-     * @param parameters An array of the parameters of the method.
-     * @param paramOffset 0 if the method is static, otherwise 1.
+     * @param nonInstanceParameters An array of the non instance parameters of the method.
      */
-    public ReflectionParameters(MethodDescriptor descriptor, Value[] parameters, int paramOffset)
+    public ReflectionParameters(MethodDescriptor descriptor, List<Value> nonInstanceParameters)
         throws IllegalArgumentException {
-      int len = parameters.length - paramOffset;
+      int len = nonInstanceParameters.size();
       if (descriptor.getArgumentTypes().size() != len) {
         throw new IllegalArgumentException("Parameter count does not match the method descriptor.");
       }
@@ -158,7 +339,7 @@ public abstract class ReflectionExecutor extends Executor {
       classes = new Class<?>[len];
       for (int index = 0; index < len; index++) {
         String internalType = descriptor.getArgumentTypes().get(index);
-        Value parameter = parameters[index + paramOffset];
+        Value parameter = nonInstanceParameters.get(index);
 
         if (!ClassUtil.isInternalArrayType(internalType)) {
           Class<?> cls;

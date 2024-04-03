@@ -38,7 +38,10 @@ import proguard.classfile.VersionConstants;
  * </ul>
  */
 public class ClassUtil {
+
   private static final String EMPTY_STRING = "";
+
+  private ClassUtil() {}
 
   /**
    * Checks whether the given class magic number is correct.
@@ -1798,8 +1801,11 @@ public class ClassUtil {
             + 1);
   }
 
-  /** Returns `true` if a {@link Clazz} is null or if it represents a final class. */
-  public static boolean isNullOrFinal(Clazz clazz) {
+  /**
+   * Returns `true` if a {@link Clazz} is null or if it does not represent a final class. This means
+   * that for the sake of our analysis we can consider value of this class not extendable.
+   */
+  public static boolean isExtendable(Clazz clazz) {
     return clazz == null || (clazz.getAccessFlags() & FINAL) == 0;
   }
 }

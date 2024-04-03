@@ -25,6 +25,7 @@ import proguard.classfile.Method;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ReferencedClassesExtractor;
 import proguard.evaluation.ExecutingInvocationUnit;
+import proguard.evaluation.MethodResult;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TopValue;
 import proguard.evaluation.value.TypedReferenceValue;
@@ -216,14 +217,24 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
       throw new IllegalStateException("Unexpected number of parameters");
     }
 
-    Value result = executingInvocationUnit.executeMethod(call, operandsArray);
+    MethodResult result = null;
+
+    if (!call.isStatic() && UNKNOWN.getValue().equals(operandsArray[0])) {
+      result = MethodResult.invalidResult();
+    } else {
+      result = executingInvocationUnit.executeMethod(call, operandsArray);
+    }
+
     String returnType = internalMethodReturnType(targetMethod.getDescriptor(targetClass));
+    if (!isVoidReturnType(returnType)) {
+      Value returnValue =
+          result.isReturnValuePresent() ? result.getReturnValue() : UNKNOWN.getValue();
+      pushReturnValue(state, returnValue, returnType);
+    }
 
-    pushReturnValue(state, result, returnType);
-
-    if (executingInvocationUnit.returnsOwnInstance(targetClass, targetMethod, operandsArray[0])) {
-      updateStack(state, result, returnType);
-      updateHeap(state, result);
+    if (result.isInstanceUpdated()) {
+      updateStack(state, result.getUpdatedInstance(), returnType);
+      updateHeap(state, result.getUpdatedInstance());
     }
   }
 
@@ -241,7 +252,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
           valueFactory.createReferenceValue(
               ClassUtil.internalMethodReturnType(returnType),
               referencedClassesExtractor.getReturnClass(),
-              ClassUtil.isNullOrFinal(referencedClassesExtractor.getReturnClass()),
+              ClassUtil.isExtendable(referencedClassesExtractor.getReturnClass()),
               true);
       pushReturnValue(state, result, returnType);
     }
@@ -249,17 +260,17 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
   private void pushReturnValue(
       JvmAbstractState<ValueAbstractState> state, Value result, String returnType) {
-    if (!isVoidReturnType(returnType)) {
-      if (isInternalCategory2Type(returnType)) {
-        state.push(TOP_VALUE);
-      }
-      state.push(new ValueAbstractState(result));
+    if (isInternalCategory2Type(returnType)) {
+      state.push(TOP_VALUE);
     }
+    state.push(new ValueAbstractState(result));
   }
 
   private void updateStack(
       JvmAbstractState<ValueAbstractState> state, Value result, String returnType) {
-    if (!(result instanceof IdentifiedReferenceValue)) return;
+    if (!(result instanceof IdentifiedReferenceValue)) {
+      return;
+    }
 
     IdentifiedReferenceValue identifiedReferenceValue = (IdentifiedReferenceValue) result;
     StackAbstractState<ValueAbstractState> operandStack = state.getFrame().getOperandStack();

@@ -21,7 +21,7 @@ package proguard.analysis.cpa.jvm.domain.value;
 import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
-import static proguard.classfile.util.ClassUtil.isNullOrFinal;
+import static proguard.classfile.util.ClassUtil.isExtendable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -148,7 +148,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> 
         (IdentifiedReferenceValue)
             valueFactory.createReferenceValue(
                 clazz,
-                isNullOrFinal(clazz),
+                isExtendable(clazz),
                 true,
                 new CodeLocation(
                     programLocation.getClazz(),

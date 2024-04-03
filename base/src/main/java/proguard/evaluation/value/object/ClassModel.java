@@ -1,14 +1,12 @@
 package proguard.evaluation.value.object;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
-import proguard.classfile.MethodInfo;
-import proguard.evaluation.value.Value;
+import proguard.evaluation.MethodResult;
+import proguard.evaluation.ValueCalculator;
+import proguard.evaluation.executor.MethodExecutionInfo;
 
 /** A {@link Model} to track specific Clazz constants. */
 public class ClassModel implements Model {
@@ -26,22 +24,22 @@ public class ClassModel implements Model {
   }
 
   @Override
-  public Optional<Value> init(
-      MethodInfo signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+  public MethodResult init(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
     throw new UnsupportedOperationException(
         "Constructors invocation is not supported in ClassModel");
   }
 
   @Override
-  public Optional<Value> invoke(
-      MethodInfo signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+  public MethodResult invoke(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
     throw new UnsupportedOperationException(
         "Instance method invocation is not supported in ClassModel");
   }
 
   @Override
-  public Optional<Value> invokeStatic(
-      MethodInfo signature, List<Value> parameters, Function<Object, Value> valueCalculator) {
+  public MethodResult invokeStatic(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
     throw new UnsupportedOperationException(
         "Static method invocation is not supported in ClassModel");
   }

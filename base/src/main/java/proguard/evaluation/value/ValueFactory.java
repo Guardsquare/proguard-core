@@ -17,7 +17,7 @@
  */
 package proguard.evaluation.value;
 
-import static proguard.classfile.util.ClassUtil.isNullOrFinal;
+import static proguard.classfile.util.ClassUtil.isExtendable;
 
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +70,7 @@ public interface ValueFactory {
 
   default ReferenceValue createReferenceValue(Clazz clazz) {
     return createReferenceValue(
-        ClassUtil.internalTypeFromClassName(clazz.getName()), clazz, isNullOrFinal(clazz), true);
+        ClassUtil.internalTypeFromClassName(clazz.getName()), clazz, isExtendable(clazz), true);
   }
 
   /** Deprecated, use {@link ValueFactory#createReferenceValue(Clazz, AnalyzedObject)}. */
@@ -79,7 +79,7 @@ public interface ValueFactory {
     return createReferenceValue(
         ClassUtil.internalTypeFromClassName(clazz.getName()),
         clazz,
-        isNullOrFinal(clazz),
+        isExtendable(clazz),
         true,
         value);
   }

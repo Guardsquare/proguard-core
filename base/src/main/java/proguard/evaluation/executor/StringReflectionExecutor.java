@@ -26,9 +26,12 @@ import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUFFER;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import proguard.evaluation.executor.instancehandler.ExecutorInstanceHandler;
 import proguard.evaluation.executor.instancehandler.ExecutorMethodInstanceHandler;
 import proguard.evaluation.executor.matcher.ExecutorClassMatcher;
+import proguard.evaluation.executor.matcher.ExecutorMatcher;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.object.AnalyzedObject;
@@ -43,33 +46,8 @@ import proguard.util.StringMatcher;
  * StringBuilder} and {@link StringBuffer}.
  */
 public class StringReflectionExecutor extends ReflectionExecutor {
-  public StringReflectionExecutor() {
-    executorMatcher =
-        new ExecutorClassMatcher(
-            new CollectionMatcher(
-                NAME_JAVA_LANG_STRING,
-                NAME_JAVA_LANG_STRING_BUILDER,
-                NAME_JAVA_LANG_STRING_BUFFER));
-    instanceHandler =
-        new ExecutorMethodInstanceHandler(
-            new HashMap<String, StringMatcher>() {
-              {
-                // Because strings are immutable, assume that string methods always return a new
-                // instance. This is technically incorrect (methods like substring may return the
-                // instance directly) but acceptable, as the evaluation compares string values
-                // and not IDs.
-                put(NAME_JAVA_LANG_STRING, new FixedStringMatcher("toString"));
-
-                // StringBuffer and StringBuilder make use of the Builder pattern - all methods
-                // which return their own type return the 'this' pointer.
-                put(NAME_JAVA_LANG_STRING_BUFFER, new ConstantMatcher(true));
-                put(NAME_JAVA_LANG_STRING_BUILDER, new ConstantMatcher(true));
-              }
-            });
-  }
-
   @Override
-  public Optional<AnalyzedObject> getInstanceCopyIfMutable(ReferenceValue instanceValue) {
+  public Optional<InstanceCopyResult> getInstanceOrCopyIfMutable(ReferenceValue instanceValue) {
 
     if (!(instanceValue instanceof ParticularReferenceValue)) {
       return Optional.empty();
@@ -78,35 +56,61 @@ public class StringReflectionExecutor extends ReflectionExecutor {
     AnalyzedObject instanceObject = instanceValue.getValue();
 
     if (instanceObject.isModeled()) {
-      throw new IllegalStateException(
-          "Should not use reflection on a modeled value, are you sure you are matching the expected executor?");
+      // Types we want to execute reflective are allowed to be modeled in some situations by the
+      // analysis, in this case execution via reflection is not possible
+      return Optional.empty();
     }
 
     if (instanceObject.isNull()) {
+      // A null instance would throw a NPE but the analysis does not support it, so we just do not
+      // perform the execution
       return Optional.empty();
     }
 
     String type = instanceObject.getType();
     if (type == null) {
-      throw new IllegalStateException("Null type on non-null instance object!");
+      throw new IllegalStateException("Unexpected null type on non-null instance object!");
     }
     switch (type) {
       case TYPE_JAVA_LANG_STRING_BUILDER:
         return Optional.of(
-            AnalyzedObjectFactory.createPrecise(
-                new StringBuilder((StringBuilder) instanceObject.getPreciseValue())));
+            new InstanceCopyResult(
+                AnalyzedObjectFactory.createPrecise(
+                    new StringBuilder((StringBuilder) instanceObject.getPreciseValue())),
+                true));
       case TYPE_JAVA_LANG_STRING_BUFFER:
         return Optional.of(
-            AnalyzedObjectFactory.createPrecise(
-                new StringBuffer((StringBuffer) instanceObject.getPreciseValue())));
+            new InstanceCopyResult(
+                AnalyzedObjectFactory.createPrecise(
+                    new StringBuffer((StringBuffer) instanceObject.getPreciseValue())),
+                true));
       case TYPE_JAVA_LANG_STRING:
-        return Optional.of(instanceObject);
+        return Optional.of(new InstanceCopyResult(instanceObject, false));
       default:
         return Optional.empty();
     }
   }
 
-  public static class Builder extends Executor.Builder<StringReflectionExecutor> {
+  @Override
+  public ExecutorMatcher getExecutorMatcher() {
+    return new ExecutorClassMatcher(
+        new CollectionMatcher(
+            NAME_JAVA_LANG_STRING, NAME_JAVA_LANG_STRING_BUILDER, NAME_JAVA_LANG_STRING_BUFFER));
+  }
+
+  @Override
+  public ExecutorInstanceHandler getDefaultInstanceHandler() {
+    Map<String, StringMatcher> matcherMap = new HashMap<>();
+    matcherMap.put(NAME_JAVA_LANG_STRING, new FixedStringMatcher("toString"));
+    matcherMap.put(NAME_JAVA_LANG_STRING_BUFFER, new ConstantMatcher(true));
+    matcherMap.put(NAME_JAVA_LANG_STRING_BUILDER, new ConstantMatcher(true));
+
+    return new ExecutorMethodInstanceHandler(matcherMap);
+  }
+
+  /** A builder for {@link StringReflectionExecutor}. */
+  public static class Builder implements Executor.Builder<StringReflectionExecutor> {
+    @Override
     public StringReflectionExecutor build() {
       return new StringReflectionExecutor();
     }

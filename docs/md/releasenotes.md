@@ -8,6 +8,7 @@
 
 - Remove deprecated `ReferenceValueFactory`, `ParticularReferenceValueFactory` should be used instead.
 - Deprecate methods in `ValueFactory` taking an `Object` as parameter. The alternatives using `ParticularObject` should be used instead.
+- `Executor#getMethodResult` now returns a `MethodResult` object instead of just the return value of the analyzed method. The calling instance has been removed from the parameters array since it's already available in another argument.
 
 ### Improved
 
@@ -16,6 +17,8 @@
 - Support execution of methods that operate on 1D arrays of all primitive and reference types with `ReflectionExecutor`.
 - Use runtime type instead of static type when possible in `ExecutingInvocationUnit`.
 - Introduce `ParticularObject` as the value tracked by `ParticularReferenceValue`. This makes explicit which kind of values can be tracked during the analysis, and introduces the possibility of tracking a model of the values that differ from the actual tracked object.
+- Extend capabilities of `ExecutingInvocationUnit` to allow executors to specify side effects not only on the instance value, but also on parameters.
+- Extend capabilities of `ExecutingInvocationUnit` to allow executors to specify return/instance/argument values that are not particular.
 
 ### Bug fixes
 

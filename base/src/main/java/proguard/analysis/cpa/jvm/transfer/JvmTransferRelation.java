@@ -20,7 +20,7 @@ package proguard.analysis.cpa.jvm.transfer;
 
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
-import static proguard.classfile.util.ClassUtil.isNullOrFinal;
+import static proguard.classfile.util.ClassUtil.isExtendable;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -733,7 +733,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
             getAbstractReferenceValue(
                 internalTypeFromClassName(classConstant.getName(clazz)),
                 classConstant.referencedClass,
-                isNullOrFinal(classConstant.referencedClass),
+                isExtendable(classConstant.referencedClass),
                 true));
       }
     }

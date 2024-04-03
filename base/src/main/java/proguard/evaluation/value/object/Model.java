@@ -1,11 +1,9 @@
 package proguard.evaluation.value.object;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-import proguard.classfile.MethodInfo;
-import proguard.evaluation.value.Value;
+import proguard.evaluation.MethodResult;
+import proguard.evaluation.ValueCalculator;
+import proguard.evaluation.executor.MethodExecutionInfo;
 
 /**
  * This interface can be implemented for each class that needs to be modeled during an analysis.
@@ -16,11 +14,10 @@ import proguard.evaluation.value.Value;
  * <p>The implementations are expected to override {@link Object#equals(Object)} and {@link
  * Object#hashCode()} to guarantee the expected behavior during the analysis.
  *
- * <p>The interface methods {@link Model#init(MethodInfo, List, Function) init}, {@link
- * Model#invoke(MethodInfo, List, Function) invoke}, and {@link Model#invokeStatic(MethodInfo, List,
- * Function) invokeStatic} are meant to be used to handle the proper method calls on the modeled
- * object. These methods should be implemented with the assumption that the callers are checking for
- * the validity of the invocation parameters.
+ * <p>The interface methods {@link Model#init(MethodExecutionInfo, ValueCalculator) init}, {@link
+ * Model#invoke(MethodExecutionInfo, ValueCalculator) invoke}, and {@link
+ * Model#invokeStatic(MethodExecutionInfo, ValueCalculator) invokeStatic} are meant to be used to
+ * handle the proper method calls on the modeled object.
  */
 public interface Model {
 
@@ -33,21 +30,14 @@ public interface Model {
    *
    * <p>It is suggested to add logic to allow running this only on a dummy model without any state.
    *
-   * @param method information on the invoked constructor.
-   * @param parameters the parameters of the call (starting from the first argument, calling
-   *     instance not included). The implementations should not worry about checking the validity of
-   *     the parameters, so callers should be sure that the passed parameters are supported by the
-   *     model.
-   * @param valueCalculator a function mapping a result (can be an Object with the result if the
-   *     calculated value is the real one or a {@link Model}) to the appropriate {@link Value} used
-   *     by the analysis.
-   * @return an {@link Optional} containing a {@link Value} containing the constructed object.
-   *     Should be empty if the invoked constructor would have thrown an exception with the
-   *     specified parameters (should be modified once the analysis supports proper exception
-   *     handling for the analyzed code).
+   * @param methodExecutionInfo execution info of the target method.
+   * @param valueCalculator the value calculator that should be used to create any value in the
+   *     result.
+   * @return the result of the method invocation. Since it's a constructor invocation the return
+   *     value of the result is expected to be empty and the constructed value should be set as the
+   *     updated instance.
    */
-  Optional<Value> init(
-      MethodInfo method, List<Value> parameters, Function<Object, Value> valueCalculator);
+  MethodResult init(MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator);
 
   /**
    * Execute an instance method on the modeled object. The state of the instance is represented by
@@ -56,39 +46,23 @@ public interface Model {
    * <p>It is suggested to add logic to allow running this only on a model representing an
    * initialized object.
    *
-   * @param method information on the invoked instance method.
-   * @param parameters the parameters of the call (starting from the first argument, calling
-   *     instance not included). The implementations should not worry about checking the validity of
-   *     the parameters, so callers should be sure that the passed parameters are supported by the
-   *     model.
-   * @param valueCalculator a function mapping a result (can be an Object with the result if the
-   *     calculated value is the real one or a {@link Model}) to the appropriate {@link Value} used
-   *     by the analysis.
-   * @return an {@link Optional} containing a {@link Value} containing the return value. Should be
-   *     empty if the method returns void. Should be empty if the invoked method would have thrown
-   *     an exception with the specified parameters (should be modified once the analysis supports
-   *     proper exception handling for the analyzed code).
+   * @param methodExecutionInfo execution info of the target method.
+   * @param valueCalculator the value calculator that should be used to create any value in the
+   *     result.
+   * @return the result of the method invocation.
    */
-  Optional<Value> invoke(
-      MethodInfo method, List<Value> parameters, Function<Object, Value> valueCalculator);
+  MethodResult invoke(MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator);
 
   /**
    * Execute a static method for the modeled class.
    *
    * <p>It is suggested to add logic to allow running this only on a dummy model without any state.
    *
-   * @param method information on the invoked static method.
-   * @param parameters the parameters of the call. The implementations should not worry about
-   *     checking the validity of the parameters, so callers should be sure that the passed
-   *     parameters are supported by the model.
-   * @param valueCalculator a function mapping a result (can be an Object with the result if the
-   *     calculated value is the real one or a {@link Model}) to the appropriate {@link Value} used
-   *     by the analysis.
-   * @return an {@link Optional} containing a {@link Value} containing the return value. Should be
-   *     empty if the method returns void. Should be empty if the invoked method would have thrown
-   *     an exception with the specified parameters (should be modified once the analysis supports
-   *     proper exception handling for the analyzed code).
+   * @param methodExecutionInfo execution info of the target method.
+   * @param valueCalculator the value calculator that should be used to create any value in the
+   *     result.
+   * @return the result of the method invocation.
    */
-  Optional<Value> invokeStatic(
-      MethodInfo method, List<Value> parameters, Function<Object, Value> valueCalculator);
+  MethodResult invokeStatic(
+      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator);
 }

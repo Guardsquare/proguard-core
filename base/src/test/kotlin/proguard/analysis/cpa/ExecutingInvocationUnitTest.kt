@@ -26,6 +26,7 @@ import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.UnknownIntegerValue
 import proguard.evaluation.value.UnknownReferenceValue
 import proguard.evaluation.value.Value
+import proguard.evaluation.value.`object`.AnalyzedObjectFactory
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 import proguard.testutils.JavaSource
@@ -39,106 +40,133 @@ private val valueFactory = ParticularValueFactory(DetailedArrayValueFactory(), P
 private val stringExecutor = StringReflectionExecutor()
 private val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
 private fun Int.toValue(): Value =
-    valueFactory.createIntegerValue(this.toInt())
+    valueFactory.createIntegerValue(this)
 
 private fun Any?.toValue(id: Int? = null): Value = when (this) {
     null -> valueFactory.createReferenceValueNull()
     else -> when (id) {
-        null -> valueFactory.createReferenceValue(libraryClassPool.getClass(ClassUtil.internalClassName(this.javaClass.canonicalName)), this)
+        null -> valueFactory.createReferenceValue(
+            libraryClassPool.getClass(ClassUtil.internalClassName(this.javaClass.canonicalName)),
+            AnalyzedObjectFactory.create(
+                this,
+                ClassUtil.internalTypeFromClassName(ClassUtil.internalClassName(this.javaClass.canonicalName)),
+                libraryClassPool.getClass(ClassUtil.internalClassName(this.javaClass.canonicalName)),
+            ),
+        )
         else -> valueFactory.createReferenceValueForId(
-            ClassUtil.internalTypeFromClassName(ClassUtil.internalClassName(this.javaClass.canonicalName)),
             libraryClassPool.getClass(ClassUtil.internalClassName(this.javaClass.canonicalName)),
             true,
             true,
             id,
-            this,
+            AnalyzedObjectFactory.create(
+                this,
+                ClassUtil.internalTypeFromClassName(ClassUtil.internalClassName(this.javaClass.canonicalName)),
+                libraryClassPool.getClass(ClassUtil.internalClassName(this.javaClass.canonicalName)),
+            ),
         )
     }
 }
-private fun UnknownString(): ReferenceValue =
+
+private fun stringLength(string: Value): MethodExecutionInfo {
+    return MethodExecutionInfo(javaLangString, javaLangString.findMethod("length"), null, string)
+}
+
+private fun stringConcat(string1: Value, string2: Value): MethodExecutionInfo {
+    return MethodExecutionInfo(javaLangString, javaLangString.findMethod("concat"), null, string1, string2)
+}
+
+private fun stringBuilderAppend(stringBuilder: Value, string: Value): MethodExecutionInfo {
+    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("append"), null, stringBuilder, string)
+}
+
+private fun stringBuilderToString(stringBuilder: Value): MethodExecutionInfo {
+    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("toString"), null, stringBuilder)
+}
+
+private fun stringBuilderLength(stringBuilder: Value): MethodExecutionInfo {
+    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("length"), null, stringBuilder)
+}
+
+private fun stringBuilderSubstring(stringBuilder: Value, length: Value): MethodExecutionInfo {
+    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("substring", "(I)Ljava/lang/String;"), null, stringBuilder, length)
+}
+
+private fun unknownString(): ReferenceValue =
     valueFactory.createReferenceValue("Ljava/lang/String;", javaLangString, false, false)
 
 class ExecutingInvocationUnitTest : FreeSpec({
     "String method tests" - {
-        val length = MethodExecutionInfo(javaLangString, javaLangString.findMethod("length"), null)
-        val concat = MethodExecutionInfo(javaLangString, javaLangString.findMethod("concat"), null)
         "Unknown reference String length" {
-            invocationUnit.executeMethod(stringExecutor, length, UnknownReferenceValue()) shouldBe UnknownIntegerValue()
-            invocationUnit.executeMethod(stringExecutor, length, UnknownString()) shouldBe UnknownIntegerValue()
+            invocationUnit.executeMethod(stringExecutor, stringLength(UnknownReferenceValue())).returnValue shouldBe UnknownIntegerValue()
         }
 
         "Unknown String length" {
-            invocationUnit.executeMethod(stringExecutor, length, UNKNOWN_VALUE) shouldBe UnknownIntegerValue()
-            invocationUnit.executeMethod(stringExecutor, length, UnknownString()) shouldBe UnknownIntegerValue()
+            invocationUnit.executeMethod(stringExecutor, stringLength(unknownString())).returnValue shouldBe UnknownIntegerValue()
         }
 
         "Particular string length" {
-            invocationUnit.executeMethod(stringExecutor, length, "Hello".toValue()) shouldBe 5.toValue()
+            invocationUnit.executeMethod(stringExecutor, stringLength("Hello".toValue())).returnValue shouldBe 5.toValue()
         }
 
         "Concat Hello with World" {
-            val result = invocationUnit.executeMethod(stringExecutor, concat, "Hello".toValue(), " World".toValue())
+            val result = invocationUnit.executeMethod(stringExecutor, stringConcat("Hello".toValue(), " World".toValue())).returnValue
             result.shouldBeInstanceOf<ParticularReferenceValue>()
-            result.referenceValue().value() shouldBe "Hello World"
+            result.referenceValue().value.preciseValue shouldBe "Hello World"
         }
 
         "Concat Hello with unknown string" {
-            val result = invocationUnit.executeMethod(stringExecutor, concat, "Hello".toValue(), UnknownString())
+            val result = invocationUnit.executeMethod(stringExecutor, stringConcat("Hello".toValue(), unknownString())).returnValue
             result.shouldBeInstanceOf<TypedReferenceValue>()
             result.shouldNotBeInstanceOf<ParticularReferenceValue>()
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING
         }
 
         "Static valueOf(I)" {
-            val valueOf = MethodExecutionInfo(javaLangString, javaLangString.findMethod("valueOf", "(I)Ljava/lang/String;"), null)
-            val result = invocationUnit.executeMethod(stringExecutor, valueOf, 1.toValue())
+            val valueOf = MethodExecutionInfo(javaLangString, javaLangString.findMethod("valueOf", "(I)Ljava/lang/String;"), null, 1.toValue())
+            val result = invocationUnit.executeMethod(stringExecutor, valueOf).returnValue
             result.shouldBeInstanceOf<ParticularReferenceValue>()
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING
-            result.value() shouldBe "1"
+            result.value.preciseValue shouldBe "1"
         }
     }
 
     "StringBuilder tests" - {
-        val append = MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("append"), null)
-        val toString = MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("toString"), null)
-        val length = MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("length"), null)
-        val substring = MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("substring", "(I)Ljava/lang/String;"), null)
 
         "StringBuilder multiple appends to same ID" {
             val stringBuilder = StringBuilder().toValue() as ParticularReferenceValue
-            val result = invocationUnit.executeMethod(stringExecutor, append, stringBuilder, "Hello".toValue())
+            val result = invocationUnit.executeMethod(stringExecutor, stringBuilderAppend(stringBuilder, "Hello".toValue())).returnValue
 
             result.shouldBeInstanceOf<ParticularReferenceValue>()
             result.id shouldBe stringBuilder.id
-            result.value().toString() shouldBe "Hello"
+            result.value.preciseValue.toString() shouldBe "Hello"
 
-            val result2 = invocationUnit.executeMethod(stringExecutor, append, result.value().toValue(stringBuilder.id as Int), " World".toValue())
+            val result2 = invocationUnit.executeMethod(stringExecutor, stringBuilderAppend(result.value.preciseValue.toValue(stringBuilder.id as Int), " World".toValue())).returnValue
             result2.shouldBeInstanceOf<ParticularReferenceValue>()
             result2.internalType() shouldBe TYPE_JAVA_LANG_STRING_BUILDER
             result2.id shouldBe stringBuilder.id
 
-            val result3 = invocationUnit.executeMethod(stringExecutor, toString, result2.value().toValue(stringBuilder.id as Int))
+            val result3 = invocationUnit.executeMethod(stringExecutor, stringBuilderToString(result2.value.preciseValue.toValue(stringBuilder.id as Int))).returnValue
             result3.shouldBeInstanceOf<ParticularReferenceValue>()
             result3.id shouldNotBe stringBuilder.id
-            result3.value().shouldBeInstanceOf<String>()
-            result3.value() shouldBe "Hello World"
+            result3.value.preciseValue.shouldBeInstanceOf<String>()
+            result3.value.preciseValue shouldBe "Hello World"
         }
 
-        "StringBuilder with unknown instance calling append" {
+        "StringBuilder with non particular instance calling append" {
             val stringBuilder = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING_BUILDER, javaLangStringBuilder, false, false) as IdentifiedReferenceValue
-            val result = invocationUnit.executeMethod(stringExecutor, append, stringBuilder, "Hello".toValue())
+            val result = invocationUnit.executeMethod(stringExecutor, stringBuilderAppend(stringBuilder, "Hello".toValue())).returnValue
 
             result.shouldNotBeInstanceOf<ParticularReferenceValue>()
             result.shouldBeInstanceOf<IdentifiedReferenceValue>()
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING_BUILDER
             // The same ID should be returned
             result.id shouldBe stringBuilder.id
-            result.value() shouldBe null
+            result.value.preciseValue shouldBe null
         }
 
         "StringBuilder with unknown instance calling length" {
             val stringBuilder = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING_BUILDER, javaLangStringBuilder, false, false) as IdentifiedReferenceValue
-            val result = invocationUnit.executeMethod(stringExecutor, length, stringBuilder)
+            val result = invocationUnit.executeMethod(stringExecutor, stringBuilderLength(stringBuilder)).returnValue
 
             result.shouldNotBeInstanceOf<ParticularReferenceValue>()
             result.shouldBeInstanceOf<UnknownIntegerValue>()
@@ -147,19 +175,19 @@ class ExecutingInvocationUnitTest : FreeSpec({
 
         "StringBuilder with unknown instance calling substring" {
             val stringBuilder = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING_BUILDER, javaLangStringBuilder, false, false) as IdentifiedReferenceValue
-            val result = invocationUnit.executeMethod(stringExecutor, substring, stringBuilder, 1.toValue())
+            val result = invocationUnit.executeMethod(stringExecutor, stringBuilderSubstring(stringBuilder, 1.toValue())).returnValue
 
             result.shouldNotBeInstanceOf<ParticularReferenceValue>()
             result.shouldBeInstanceOf<IdentifiedReferenceValue>()
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING
             // The same ID should be not returned
             result.id shouldNotBe stringBuilder.id
-            result.value() shouldBe null
+            result.value.preciseValue shouldBe null
         }
 
         "StringBuilder with unknown parameter" {
             val stringBuilder = StringBuilder().toValue() as ParticularReferenceValue
-            val result = invocationUnit.executeMethod(stringExecutor, append, stringBuilder, UNKNOWN_VALUE)
+            val result = invocationUnit.executeMethod(stringExecutor, stringBuilderAppend(stringBuilder, UNKNOWN_VALUE)).returnValue
 
             result.shouldBeInstanceOf<IdentifiedReferenceValue>()
             result.id shouldBe stringBuilder.id
@@ -188,7 +216,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
         programClassPool.classAccept("Test", AllMethodVisitor(AllAttributeVisitor(partialEvaluator)))
         val stackTop = partialEvaluator.getStackAfter(1).getTop(0)
         stackTop.shouldBeInstanceOf<ParticularReferenceValue>()
-        stackTop.value() shouldBe "1"
+        stackTop.value.preciseValue shouldBe "1"
     }
 
     "Test String static method join and format" - {
@@ -225,13 +253,13 @@ class ExecutingInvocationUnitTest : FreeSpec({
             with(partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["a"]!!)) {
                 shouldBeInstanceOf<ParticularReferenceValue>()
                 internalType() shouldBe TYPE_JAVA_LANG_STRING
-                value() shouldBe "Hello, World!"
+                value.preciseValue shouldBe "Hello, World!"
             }
 
             with(partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["b"]!!)) {
                 shouldBeInstanceOf<ParticularReferenceValue>()
                 internalType() shouldBe TYPE_JAVA_LANG_STRING
-                value() shouldBe "FooBar"
+                value.preciseValue shouldBe "FooBar"
             }
         }
 
@@ -239,19 +267,19 @@ class ExecutingInvocationUnitTest : FreeSpec({
             with(partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["c"]!!)) {
                 shouldBeInstanceOf<ParticularReferenceValue>()
                 internalType() shouldBe TYPE_JAVA_LANG_STRING
-                value() shouldBe "Hello, World!"
+                value.preciseValue shouldBe "Hello, World!"
             }
         }
     }
 
     "Check resilience against incorrect instance types" - {
         val stringBufferClazz = libraryClassPool.getClass("java/lang/StringBuffer")
-        val executionInfo = MethodExecutionInfo(stringBufferClazz, stringBufferClazz.findMethod("toString"), null)
         val stringBuilderValue = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING_BUILDER, javaLangStringBuilder, false, false) as IdentifiedReferenceValue
+        val executionInfo = MethodExecutionInfo(stringBufferClazz, stringBufferClazz.findMethod("toString"), null, stringBuilderValue)
 
         "No class cast exception for incorrect instance type" {
             shouldNotThrow<ClassCastException> {
-                invocationUnit.executeMethod(stringExecutor, executionInfo, stringBuilderValue)
+                invocationUnit.executeMethod(stringExecutor, executionInfo)
             }
         }
     }

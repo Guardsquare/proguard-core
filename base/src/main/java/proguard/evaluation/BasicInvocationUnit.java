@@ -69,7 +69,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
     return valueFactory.createReferenceValue(
         ClassUtil.internalTypeFromClassName(catchClassName),
         catchClass,
-        ClassUtil.isNullOrFinal(catchClass),
+        ClassUtil.isExtendable(catchClass),
         false);
   }
 
@@ -84,7 +84,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
     fieldrefConstant.referencedFieldAccept(this);
 
     return valueFactory.createValue(
-        type, returnTypeClass, ClassUtil.isNullOrFinal(returnTypeClass), true);
+        type, returnTypeClass, ClassUtil.isExtendable(returnTypeClass), true);
   }
 
   public void setFieldValue(Clazz clazz, FieldrefConstant fieldrefConstant, Value value) {
@@ -97,7 +97,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
     fieldrefConstant.referencedFieldAccept(this);
 
     return valueFactory.createValue(
-        type, returnTypeClass, ClassUtil.isNullOrFinal(returnTypeClass), true);
+        type, returnTypeClass, ClassUtil.isExtendable(returnTypeClass), true);
   }
 
   public void setMethodParameterValue(
@@ -111,7 +111,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
     boolean isThis = parameterIndex == 0 && (method.getAccessFlags() & STATIC) == 0;
 
     return valueFactory.createValue(
-        type, referencedClass, ClassUtil.isNullOrFinal(referencedClass), !isThis);
+        type, referencedClass, ClassUtil.isExtendable(referencedClass), !isThis);
   }
 
   public void setMethodReturnValue(Clazz clazz, Method method, Value value) {
@@ -125,7 +125,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
     anyMethodrefConstant.referencedMethodAccept(this);
 
     return valueFactory.createValue(
-        type, returnTypeClass, ClassUtil.isNullOrFinal(returnTypeClass), true);
+        type, returnTypeClass, ClassUtil.isExtendable(returnTypeClass), true);
   }
 
   /** Returns the return value of the specified method. */
@@ -140,7 +140,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
             : null;
 
     return valueFactory.createValue(
-        type, referencedClass, ClassUtil.isNullOrFinal(referencedClass), true);
+        type, referencedClass, ClassUtil.isExtendable(referencedClass), true);
   }
 
   // Implementations for MemberVisitor.

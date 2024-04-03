@@ -20,14 +20,15 @@ package proguard.util;
 
 import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.Stack;
+import proguard.evaluation.value.IdentifiedArrayReferenceValue;
+import proguard.evaluation.value.IdentifiedReferenceValue;
+import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
 
-/**
- * Helper functions to access PartialEvaluator results mode conveniently.
- *
- * @author Dennis Titze
- */
+/** Helper functions to access PartialEvaluator results more conveniently. */
 public class PartialEvaluatorUtils {
+
+  private PartialEvaluatorUtils() {}
 
   /**
    * Returns the value from the stack, counting from the top of the stack. If the stack does not
@@ -50,5 +51,23 @@ public class PartialEvaluatorUtils {
       return partialEvaluator.getStackBefore(offset).getTop(index);
     }
     return null;
+  }
+
+  /**
+   * Returns the identifier of a reference value for which {@link Value#isSpecific()} is true (i.e.,
+   * the reference is identified by a unique number).
+   *
+   * <p>This helper method is needed because {@link IdentifiedReferenceValue} and {@link
+   * IdentifiedArrayReferenceValue} do not share the relevant portion of the class hierarchy, but a
+   * better solution should be implemented in the future.
+   */
+  public static Object getIdFromSpecificReferenceValue(ReferenceValue value) {
+    if (value instanceof IdentifiedReferenceValue) {
+      return ((IdentifiedReferenceValue) value).id;
+    }
+    if (value instanceof IdentifiedArrayReferenceValue) {
+      return ((IdentifiedArrayReferenceValue) value).id;
+    }
+    throw new IllegalStateException("Can't extract the id from a non identified reference value");
   }
 }
