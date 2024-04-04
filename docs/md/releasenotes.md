@@ -1,5 +1,9 @@
 ## Version 9.1.2
 
+### Java support
+
+- Update maximum supported Java class version to 66.65535 (Java 22).
+
 ## API changes
 
 - Remove deprecated `ReferenceValueFactory`, `ParticularReferenceValueFactory` should be used instead.
