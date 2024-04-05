@@ -328,7 +328,7 @@ public class DexFileReader {
   public static void niceExceptionMessage(Throwable t, int deep) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < deep + 1; i++) {
-      sb.append(".");
+      sb.append('.');
     }
     sb.append(' ');
     if (t instanceof DexException) {
