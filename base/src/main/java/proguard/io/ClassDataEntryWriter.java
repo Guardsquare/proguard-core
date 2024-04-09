@@ -17,21 +17,30 @@
  */
 package proguard.io;
 
-import java.io.*;
-import proguard.classfile.*;
+import java.io.DataOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
 import proguard.classfile.io.ProgramClassWriter;
+import proguard.classfile.visitor.ClassVisitor;
 
 /**
  * This {@link DataEntryWriter} finds received class entries in the given class pool and writes them
  * out to the given data entry writer. For resource entries, it returns valid output streams. For
  * class entries, it returns output streams that must not be used.
  *
- * @see IdleRewriter
  * @author Eric Lafortune
+ * @see IdleRewriter
  */
 public class ClassDataEntryWriter implements DataEntryWriter {
   private final ClassPool classPool;
   private final DataEntryWriter dataEntryWriter;
+
+  private final ClassVisitor extraClassVisitor;
 
   /**
    * Creates a new ClassDataEntryWriter.
@@ -40,8 +49,21 @@ public class ClassDataEntryWriter implements DataEntryWriter {
    * @param dataEntryWriter the writer to which the class file is written.
    */
   public ClassDataEntryWriter(ClassPool classPool, DataEntryWriter dataEntryWriter) {
+    this(classPool, dataEntryWriter, null);
+  }
+
+  /**
+   * Creates a new ClassDataEntryWriter.
+   *
+   * @param classPool the class pool in which classes are found.
+   * @param dataEntryWriter the writer to which the class file is written.
+   * @param extraClassVisitor a class visitor that will be visited for each class that is written.
+   */
+  public ClassDataEntryWriter(
+      ClassPool classPool, DataEntryWriter dataEntryWriter, ClassVisitor extraClassVisitor) {
     this.classPool = classPool;
     this.dataEntryWriter = dataEntryWriter;
+    this.extraClassVisitor = extraClassVisitor;
   }
 
   // Implementations for DataEntryWriter.
@@ -82,6 +104,9 @@ public class ClassDataEntryWriter implements DataEntryWriter {
           DataOutputStream classOutputStream = new DataOutputStream(outputStream);
           try {
             clazz.accept(new ProgramClassWriter(classOutputStream));
+            if (extraClassVisitor != null) {
+              clazz.accept(extraClassVisitor);
+            }
           } catch (RuntimeException e) {
             throw (RuntimeException)
                 new RuntimeException(
