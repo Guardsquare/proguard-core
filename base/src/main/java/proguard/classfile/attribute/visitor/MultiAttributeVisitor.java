@@ -122,21 +122,21 @@ public class MultiAttributeVisitor implements AttributeVisitor {
   }
 
   public void visitModuleAttribute(Clazz clazz, ModuleAttribute moduleAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitModuleAttribute(clazz, moduleAttribute);
     }
   }
 
   public void visitModuleMainClassAttribute(
       Clazz clazz, ModuleMainClassAttribute moduleMainClassAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitModuleMainClassAttribute(clazz, moduleMainClassAttribute);
     }
   }
 
   public void visitModulePackagesAttribute(
       Clazz clazz, ModulePackagesAttribute modulePackagesAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitModulePackagesAttribute(clazz, modulePackagesAttribute);
     }
   }
@@ -218,7 +218,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
 
   public void visitMethodParametersAttribute(
       Clazz clazz, Method method, MethodParametersAttribute methodParametersAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitMethodParametersAttribute(
           clazz, method, methodParametersAttribute);
     }
@@ -390,7 +390,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
 
   public void visitRuntimeVisibleTypeAnnotationsAttribute(
       Clazz clazz, RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeVisibleTypeAnnotationsAttribute(
           clazz, runtimeVisibleTypeAnnotationsAttribute);
     }
@@ -400,7 +400,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Clazz clazz,
       RecordComponentInfo recordComponentInfo,
       RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeVisibleTypeAnnotationsAttribute(
           clazz, recordComponentInfo, runtimeVisibleTypeAnnotationsAttribute);
     }
@@ -410,7 +410,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Clazz clazz,
       Field field,
       RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeVisibleTypeAnnotationsAttribute(
           clazz, field, runtimeVisibleTypeAnnotationsAttribute);
     }
@@ -420,7 +420,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Clazz clazz,
       Method method,
       RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeVisibleTypeAnnotationsAttribute(
           clazz, method, runtimeVisibleTypeAnnotationsAttribute);
     }
@@ -431,7 +431,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Method method,
       CodeAttribute codeAttribute,
       RuntimeVisibleTypeAnnotationsAttribute runtimeVisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeVisibleTypeAnnotationsAttribute(
           clazz, method, codeAttribute, runtimeVisibleTypeAnnotationsAttribute);
     }
@@ -440,7 +440,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
   public void visitRuntimeInvisibleTypeAnnotationsAttribute(
       Clazz clazz,
       RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeInvisibleTypeAnnotationsAttribute(
           clazz, runtimeInvisibleTypeAnnotationsAttribute);
     }
@@ -450,7 +450,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Clazz clazz,
       RecordComponentInfo recordComponentInfo,
       RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeInvisibleTypeAnnotationsAttribute(
           clazz, recordComponentInfo, runtimeInvisibleTypeAnnotationsAttribute);
     }
@@ -460,7 +460,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Clazz clazz,
       Field field,
       RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeInvisibleTypeAnnotationsAttribute(
           clazz, field, runtimeInvisibleTypeAnnotationsAttribute);
     }
@@ -470,7 +470,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Clazz clazz,
       Method method,
       RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeInvisibleTypeAnnotationsAttribute(
           clazz, method, runtimeInvisibleTypeAnnotationsAttribute);
     }
@@ -481,7 +481,7 @@ public class MultiAttributeVisitor implements AttributeVisitor {
       Method method,
       CodeAttribute codeAttribute,
       RuntimeInvisibleTypeAnnotationsAttribute runtimeInvisibleTypeAnnotationsAttribute) {
-    for (int index = 0; index < attributeVisitors.length; index++) {
+    for (int index = 0; index < attributeVisitorCount; index++) {
       attributeVisitors[index].visitRuntimeInvisibleTypeAnnotationsAttribute(
           clazz, method, codeAttribute, runtimeInvisibleTypeAnnotationsAttribute);
     }
