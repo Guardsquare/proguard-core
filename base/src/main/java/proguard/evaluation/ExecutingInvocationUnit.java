@@ -419,7 +419,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
 
     Object instanceId = null;
     if (instanceValue != null && instanceValue.isSpecific()) {
-      instanceId = ((IdentifiedReferenceValue) instanceValue).id;
+      instanceId = PartialEvaluatorUtils.getIdFromSpecificReferenceValue(instanceValue);
     }
 
     boolean returnsSameTypeAsInstance = methodInfo.returnsSameTypeAsInstance();

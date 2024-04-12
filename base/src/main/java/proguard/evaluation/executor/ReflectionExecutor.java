@@ -93,12 +93,10 @@ public abstract class ReflectionExecutor implements Executor {
       return Optional.of(createFallbackResultMethod(methodExecutionInfo, valueCalculator));
     }
 
-    int paramOffset = methodExecutionInfo.isStatic() ? 0 : 1;
     if ((methodExecutionInfo.isInstanceMethod()
             && (!instance.isParticular() // NOSONAR instance can't be null for instance methods
                 || isNonPreciseParticularValue(instance)))
         || methodExecutionInfo.getParameters().stream()
-            .skip(paramOffset)
             .anyMatch(value -> !value.isParticular() || isNonPreciseParticularValue(value))) {
       // All parameters must be particular and real objects to use reflection. Detailed arrays can
       // be converted to a real object if they are particular.
