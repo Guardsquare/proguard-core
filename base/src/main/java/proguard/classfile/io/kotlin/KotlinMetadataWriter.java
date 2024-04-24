@@ -1439,11 +1439,9 @@ public class KotlinMetadataWriter
    */
   private class KotlinSyntheticClassConstructor
       implements KotlinMetadataVisitor, KotlinFunctionVisitor {
-    private KmLambda kmLambda;
+    private KmLambda kmLambda = null;
 
-    KotlinSyntheticClassConstructor() {
-      this.kmLambda = new KmLambda();
-    }
+    KotlinSyntheticClassConstructor() {}
 
     // Implementations for KotlinMetadataVisitor.
     @Override
@@ -1452,6 +1450,12 @@ public class KotlinMetadataWriter
     @Override
     public void visitKotlinSyntheticClassMetadata(
         Clazz clazz, KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata) {
+
+      if (kotlinSyntheticClassKindMetadata.flavor
+          == KotlinSyntheticClassKindMetadata.Flavor.LAMBDA) {
+        kotlinSyntheticClassKindMetadata.functionsAccept(clazz, this);
+      }
+
       Metadata metadata =
           new KotlinClassMetadata.SyntheticClass(
                   kmLambda,
@@ -1504,6 +1508,7 @@ public class KotlinMetadataWriter
             kmFunction, kotlinFunctionMetadata.lambdaClassOriginName);
       }
 
+      kmLambda = new KmLambda();
       kmLambda.setFunction(kmFunction);
     }
   }
