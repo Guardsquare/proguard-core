@@ -17,6 +17,8 @@
  */
 package proguard.util;
 
+import java.io.Serializable;
+
 /**
  * Base interface for entities that need flags and/or additional information when they are
  * processed, typically by visitor classes.
@@ -30,7 +32,7 @@ package proguard.util;
  * @author Johan Leys
  * @author Eric Lafortune
  */
-public interface Processable {
+public interface Processable extends Serializable {
   /** Sets the processing flags. */
   public void setProcessingFlags(int processingFlags);
 

@@ -17,11 +17,7 @@ public class KotlinMetadataVersion {
       new KotlinMetadataVersion(new int[] {-1, -1, 0});
 
   public KotlinMetadataVersion(int[] version) {
-    this(version[0], version[1], version.length == 2 ? -1 : version[2]);
-  }
-
-  public KotlinMetadataVersion(int major, int minor) {
-    this(major, minor, -1);
+    this(version[0], version[1], version.length == 2 ? 0 : version[2]);
   }
 
   public KotlinMetadataVersion(int major, int minor, int patch) {
@@ -36,14 +32,14 @@ public class KotlinMetadataVersion {
   public boolean canBeWritten() {
     // The Kotlin metadata library v0.4.1 supports writing versions 1.4 and later.
     // This version may change for future versions of the library!
-    return this != UNKNOWN_VERSION && this.major == 1 && this.minor >= 4;
+    return this != UNKNOWN_VERSION && (this.major == 1 && this.minor >= 4 || this.major == 2);
   }
 
   public String toString() {
-    return this.major + "." + this.minor + (this.patch != -1 ? "." + this.patch : "");
+    return this.major + "." + this.minor + "." + this.patch;
   }
 
   public int[] toArray() {
-    return new int[] {major, minor, patch == -1 ? 0 : patch};
+    return new int[] {major, minor, patch};
   }
 }

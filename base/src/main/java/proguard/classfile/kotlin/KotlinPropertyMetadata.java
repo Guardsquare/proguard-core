@@ -155,8 +155,9 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
         + name
         + " | "
         + (backingFieldSignature != null ? "b" : "")
-        + (flags.hasGetter ? "g" + (getterFlags.isDefault ? "" : "+") : "")
-        + (flags.hasSetter ? "s" + (setterFlags.isDefault ? "" : "+") : "")
+        + "g"
+        + (getterFlags.isDefault ? "" : "+")
+        + (flags.isVar ? "s" + (setterFlags.isDefault ? "" : "+") : "")
         + ")";
   }
 }

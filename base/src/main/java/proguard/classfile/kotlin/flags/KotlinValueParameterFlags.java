@@ -25,7 +25,8 @@ package proguard.classfile.kotlin.flags;
  * <p>hasAnnotations is valid.
  */
 public class KotlinValueParameterFlags implements KotlinFlags {
-  public final KotlinCommonFlags common;
+
+  public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding value parameter declares a default value. Note that the
@@ -42,8 +43,4 @@ public class KotlinValueParameterFlags implements KotlinFlags {
 
   /** Signifies that the corresponding value parameter is `noinline`. */
   public boolean isNoInline;
-
-  public KotlinValueParameterFlags(KotlinCommonFlags common) {
-    this.common = common;
-  }
 }

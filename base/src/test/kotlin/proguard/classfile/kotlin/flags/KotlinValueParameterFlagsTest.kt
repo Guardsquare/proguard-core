@@ -19,7 +19,7 @@
 package proguard.classfile.kotlin.flags
 
 import io.kotest.assertions.withClue
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.spec.style.funSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
@@ -35,7 +35,7 @@ import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
 import java.util.function.Predicate
 
-class KotlinValueParameterFlagsTest : FreeSpec({
+class KotlinValueParameterFlagsTest : BehaviorSpec({
     val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
@@ -61,7 +61,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isNoInline") { it.isNoInline shouldBe false }
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -72,7 +72,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isNoInline") { it.isNoInline shouldBe false }
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -83,7 +83,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isNoInline") { it.isNoInline shouldBe true }
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -94,7 +94,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isNoInline") { it.isNoInline shouldBe false }
             withClue("isCrossInline") { it.isCrossInline shouldBe true }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -105,7 +105,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isNoInline") { it.isNoInline shouldBe true }
             withClue("isCrossInline") { it.isCrossInline shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -116,7 +116,7 @@ class KotlinValueParameterFlagsTest : FreeSpec({
             withClue("isNoInline") { it.isNoInline shouldBe false }
             withClue("isCrossInline") { it.isCrossInline shouldBe true }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 })

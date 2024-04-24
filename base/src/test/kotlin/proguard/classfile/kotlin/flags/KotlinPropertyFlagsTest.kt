@@ -19,7 +19,7 @@
 package proguard.classfile.kotlin.flags
 
 import io.kotest.assertions.withClue
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.spec.style.funSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
@@ -36,7 +36,7 @@ import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
 import java.util.function.Predicate
 
-class KotlinPropertyFlagsTest : FreeSpec({
+class KotlinPropertyFlagsTest : BehaviorSpec({
     val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
@@ -71,8 +71,6 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isDelegation") { it.isDelegation shouldBe false }
             withClue("isSynthesized") { it.isSynthesized shouldBe false }
             withClue("isVar") { it.isVar shouldBe false }
-            withClue("hasGetter") { it.hasGetter shouldBe true }
-            withClue("hasSetter") { it.hasSetter shouldBe false }
             withClue("isConst") { it.isConst shouldBe false }
             withClue("isLateinit") { it.isLateinit shouldBe false }
             withClue("hasConstant") { it.hasConstant shouldBe true }
@@ -81,7 +79,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -94,8 +92,6 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isDelegation") { it.isDelegation shouldBe false }
             withClue("isSynthesized") { it.isSynthesized shouldBe false }
             withClue("isVar") { it.isVar shouldBe true }
-            withClue("hasGetter") { it.hasGetter shouldBe true }
-            withClue("hasSetter") { it.hasSetter shouldBe true }
             withClue("isConst") { it.isConst shouldBe false }
             withClue("isLateinit") { it.isLateinit shouldBe false }
             withClue("hasConstant") { it.hasConstant shouldBe false }
@@ -104,7 +100,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -117,8 +113,6 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isDelegation") { it.isDelegation shouldBe false }
             withClue("isSynthesized") { it.isSynthesized shouldBe false }
             withClue("isVar") { it.isVar shouldBe false }
-            withClue("hasGetter") { it.hasGetter shouldBe true }
-            withClue("hasSetter") { it.hasSetter shouldBe false }
             withClue("isConst") { it.isConst shouldBe true }
             withClue("isLateinit") { it.isLateinit shouldBe false }
             withClue("hasConstant") { it.hasConstant shouldBe true }
@@ -127,7 +121,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -140,8 +134,6 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isDelegation") { it.isDelegation shouldBe false }
             withClue("isSynthesized") { it.isSynthesized shouldBe false }
             withClue("isVar") { it.isVar shouldBe false }
-            withClue("hasGetter") { it.hasGetter shouldBe true }
-            withClue("hasSetter") { it.hasSetter shouldBe false }
             withClue("isConst") { it.isConst shouldBe false }
             withClue("isLateinit") { it.isLateinit shouldBe false }
             withClue("hasConstant") { it.hasConstant shouldBe true }
@@ -150,7 +142,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe true }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe true }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe true }
         },
     )
 
@@ -163,8 +155,6 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isDelegation") { it.isDelegation shouldBe false }
             withClue("isSynthesized") { it.isSynthesized shouldBe false }
             withClue("isVar") { it.isVar shouldBe true }
-            withClue("hasGetter") { it.hasGetter shouldBe true }
-            withClue("hasSetter") { it.hasSetter shouldBe true }
             withClue("isConst") { it.isConst shouldBe false }
             withClue("isLateinit") { it.isLateinit shouldBe true }
             withClue("hasConstant") { it.hasConstant shouldBe false }
@@ -173,7 +163,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 
@@ -186,8 +176,6 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isDelegation") { it.isDelegation shouldBe false }
             withClue("isSynthesized") { it.isSynthesized shouldBe false }
             withClue("isVar") { it.isVar shouldBe false }
-            withClue("hasGetter") { it.hasGetter shouldBe true }
-            withClue("hasSetter") { it.hasSetter shouldBe false }
             withClue("isConst") { it.isConst shouldBe false }
             withClue("isLateinit") { it.isLateinit shouldBe false }
             withClue("hasConstant") { it.hasConstant shouldBe false }
@@ -196,7 +184,7 @@ class KotlinPropertyFlagsTest : FreeSpec({
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
 
-            withClue("hasAnnotations") { it.common.hasAnnotations shouldBe false }
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
     )
 

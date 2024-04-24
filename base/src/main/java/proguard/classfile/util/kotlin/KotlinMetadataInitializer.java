@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2023 Guardsquare NV
+ * Copyright (c) 2002-2024 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,36 +44,38 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import kotlin.Metadata;
-import kotlinx.metadata.Flag;
-import kotlinx.metadata.InconsistentKotlinMetadataException;
-import kotlinx.metadata.KmClass;
-import kotlinx.metadata.KmClassifier;
-import kotlinx.metadata.KmConstructor;
-import kotlinx.metadata.KmContract;
-import kotlinx.metadata.KmEffect;
-import kotlinx.metadata.KmEffectExpression;
-import kotlinx.metadata.KmEffectInvocationKind;
-import kotlinx.metadata.KmEffectType;
-import kotlinx.metadata.KmFlexibleTypeUpperBound;
-import kotlinx.metadata.KmFunction;
-import kotlinx.metadata.KmPackage;
-import kotlinx.metadata.KmProperty;
-import kotlinx.metadata.KmType;
-import kotlinx.metadata.KmTypeAlias;
-import kotlinx.metadata.KmTypeParameter;
-import kotlinx.metadata.KmTypeProjection;
-import kotlinx.metadata.KmValueParameter;
-import kotlinx.metadata.KmVariance;
-import kotlinx.metadata.KmVersionRequirement;
-import kotlinx.metadata.KmVersionRequirementLevel;
-import kotlinx.metadata.KmVersionRequirementVersionKind;
-import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion;
-import kotlinx.metadata.jvm.JvmExtensionsKt;
-import kotlinx.metadata.jvm.JvmFieldSignature;
-import kotlinx.metadata.jvm.JvmFlag;
-import kotlinx.metadata.jvm.JvmMetadataUtil;
-import kotlinx.metadata.jvm.JvmMethodSignature;
-import kotlinx.metadata.jvm.KotlinClassMetadata;
+import kotlin.metadata.Attributes;
+import kotlin.metadata.ClassKind;
+import kotlin.metadata.InconsistentKotlinMetadataException;
+import kotlin.metadata.KmClass;
+import kotlin.metadata.KmClassifier;
+import kotlin.metadata.KmConstructor;
+import kotlin.metadata.KmContract;
+import kotlin.metadata.KmEffect;
+import kotlin.metadata.KmEffectExpression;
+import kotlin.metadata.KmEffectInvocationKind;
+import kotlin.metadata.KmEffectType;
+import kotlin.metadata.KmFlexibleTypeUpperBound;
+import kotlin.metadata.KmFunction;
+import kotlin.metadata.KmPackage;
+import kotlin.metadata.KmProperty;
+import kotlin.metadata.KmPropertyAccessorAttributes;
+import kotlin.metadata.KmType;
+import kotlin.metadata.KmTypeAlias;
+import kotlin.metadata.KmTypeParameter;
+import kotlin.metadata.KmTypeProjection;
+import kotlin.metadata.KmValueParameter;
+import kotlin.metadata.KmVariance;
+import kotlin.metadata.KmVersionRequirement;
+import kotlin.metadata.MemberKind;
+import kotlin.metadata.Modality;
+import kotlin.metadata.Visibility;
+import kotlin.metadata.jvm.JvmAttributes;
+import kotlin.metadata.jvm.JvmExtensionsKt;
+import kotlin.metadata.jvm.JvmFieldSignature;
+import kotlin.metadata.jvm.JvmMetadataUtil;
+import kotlin.metadata.jvm.JvmMethodSignature;
+import kotlin.metadata.jvm.KotlinClassMetadata;
 import proguard.classfile.Clazz;
 import proguard.classfile.FieldSignature;
 import proguard.classfile.LibraryClass;
@@ -119,7 +121,6 @@ import proguard.classfile.kotlin.KotlinVersionRequirementMetadata;
 import proguard.classfile.kotlin.KotlinVersionRequirementVersionKind;
 import proguard.classfile.kotlin.UnsupportedKotlinMetadata;
 import proguard.classfile.kotlin.flags.KotlinClassFlags;
-import proguard.classfile.kotlin.flags.KotlinCommonFlags;
 import proguard.classfile.kotlin.flags.KotlinConstructorFlags;
 import proguard.classfile.kotlin.flags.KotlinEffectExpressionFlags;
 import proguard.classfile.kotlin.flags.KotlinFunctionFlags;
@@ -167,16 +168,6 @@ public class KotlinMetadataInitializer
   private String xs;
   private String pn;
 
-  public static final KotlinMetadataVersion MAX_SUPPORTED_VERSION;
-
-  static {
-    int[] version = JvmMetadataVersion.INSTANCE.toArray();
-    MAX_SUPPORTED_VERSION = new KotlinMetadataVersion(version[0], version[1] + 1);
-  }
-
-  // For Constant visiting
-  private MetadataType currentType;
-
   private final BiConsumer<Clazz, String> errorHandler;
 
   public KotlinMetadataInitializer(WarningPrinter warningPrinter) {
@@ -223,7 +214,7 @@ public class KotlinMetadataInitializer
     try {
       annotation.elementValuesAccept(clazz, this);
     } catch (Exception e) {
-      this.errorHandler.accept(
+      errorHandler.accept(
           clazz,
           "Encountered corrupt Kotlin metadata in class "
               + clazz.getName()
@@ -242,25 +233,20 @@ public class KotlinMetadataInitializer
    * Initialize Kotlin metadata for a given {@link Clazz}.
    *
    * @param clazz The {@link ProgramClass} or {@link LibraryClass}.
-   * @param k
-   * @param mv
-   * @param d1
-   * @param d2
-   * @param xi
-   * @param xs
-   * @param pn
    */
   public void initialize(
       Clazz clazz, int k, int[] mv, String[] d1, String[] d2, int xi, String xs, String pn) {
     // Parse the collected metadata.
     Metadata metadata = JvmMetadataUtil.Metadata(k, mv, d1, d2, xs, pn, xi);
-    KotlinClassMetadata md = KotlinClassMetadata.read(metadata);
-    if (md == null) {
+    KotlinClassMetadata md;
+    try {
+      md = KotlinClassMetadata.readStrict(metadata);
+    } catch (IllegalArgumentException e) {
       String version =
           mv == null
               ? "unknown"
               : Arrays.stream(mv).mapToObj(Integer::toString).collect(joining("."));
-      this.errorHandler.accept(
+      errorHandler.accept(
           clazz,
           "Encountered corrupt @kotlin/Metadata for class "
               + clazz.getName()
@@ -275,14 +261,14 @@ public class KotlinMetadataInitializer
     try {
       switch (k) {
         case METADATA_KIND_CLASS:
-          KotlinClassKindMetadata kotlinClassKindMetadata = toKotlinClassKindMetadata(md);
+          KotlinClassKindMetadata kotlinClassKindMetadata = convertClassKindMetadata(metadata, md);
           kotlinClassKindMetadata.ownerClassName = clazz.getName();
           clazz.accept(new SimpleKotlinMetadataSetter(kotlinClassKindMetadata));
           break;
 
         case METADATA_KIND_FILE_FACADE: // For package level functions/properties
           KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata =
-              toKotlinFileFacadeKindMetadata(md);
+              convertFileFacadeKindMetadata(metadata, md);
 
           kotlinFileFacadeKindMetadata.ownerClassName = clazz.getName();
           clazz.accept(new SimpleKotlinMetadataSetter(kotlinFileFacadeKindMetadata));
@@ -310,7 +296,7 @@ public class KotlinMetadataInitializer
             // Only lambdas contain exactly 1 function.
             kotlinSyntheticClassKindMetadata.functions = new ArrayList<>(1);
             kotlinSyntheticClassKindMetadata.functions.add(
-                toKotlinFunctionMetadata(Objects.requireNonNull(smd.toKmLambda()).getFunction()));
+                convertKmFunction(Objects.requireNonNull(smd.getKmLambda()).getFunction()));
           } else {
             // Other synthetic classes never contain any functions.
             kotlinSyntheticClassKindMetadata.functions = Collections.emptyList();
@@ -329,7 +315,7 @@ public class KotlinMetadataInitializer
 
         case METADATA_KIND_MULTI_FILE_CLASS_PART:
           KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata =
-              toKotlinMultiFilePartKindMetadata(md);
+              convertMultiFilePartKindMetadata(metadata, md);
 
           kotlinMultiFilePartKindMetadata.ownerClassName = clazz.getName();
           clazz.accept(new SimpleKotlinMetadataSetter(kotlinMultiFilePartKindMetadata));
@@ -337,7 +323,7 @@ public class KotlinMetadataInitializer
 
         default:
           // This happens when the library is outdated and a newer type of Kotlin class is passed.
-          this.errorHandler.accept(
+          errorHandler.accept(
               clazz,
               "Unknown Kotlin class kind in class "
                   + clazz.getName()
@@ -347,7 +333,7 @@ public class KotlinMetadataInitializer
           break;
       }
     } catch (InconsistentKotlinMetadataException e) {
-      this.errorHandler.accept(
+      errorHandler.accept(
           clazz,
           "Encountered corrupt Kotlin metadata in class "
               + clazz.getName()
@@ -370,7 +356,7 @@ public class KotlinMetadataInitializer
   @Override
   public void visitArrayElementValue(
       Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue) {
-    MetadataType arrayElementType = metadataTypeOf(arrayElementValue.getMethodName(clazz));
+    KotlinMetadataType arrayElementType = metadataTypeOf(arrayElementValue.getMethodName(clazz));
     switch (arrayElementType) {
       case mv:
         this.mv = new int[arrayElementValue.u2elementValuesCount];
@@ -381,6 +367,8 @@ public class KotlinMetadataInitializer
       case d2:
         this.d2 = new String[arrayElementValue.u2elementValuesCount];
         break;
+      default:
+        break;
     }
 
     arrayElementValue.elementValuesAccept(
@@ -388,11 +376,13 @@ public class KotlinMetadataInitializer
   }
 
   // Implementations for ConstantVisitor
+  private KotlinMetadataType currentType;
+
   @Override
   public void visitUtf8Constant(Clazz clazz, Utf8Constant utf8Constant) {
-    if (this.currentType == MetadataType.xs) {
+    if (this.currentType == KotlinMetadataType.xs) {
       xs = utf8Constant.getString();
-    } else if (this.currentType == MetadataType.pn) {
+    } else if (this.currentType == KotlinMetadataType.pn) {
       pn = utf8Constant.getString();
     } else {
       throw new UnsupportedOperationException("Cannot store Utf8Constant in int");
@@ -401,9 +391,9 @@ public class KotlinMetadataInitializer
 
   @Override
   public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant) {
-    if (this.currentType == MetadataType.k) {
+    if (this.currentType == KotlinMetadataType.k) {
       k = integerConstant.getValue();
-    } else if (this.currentType == MetadataType.xi) {
+    } else if (this.currentType == KotlinMetadataType.xi) {
       xi = integerConstant.getValue();
     } else {
       throw new UnsupportedOperationException("Cannot store Utf8Constant in int");
@@ -415,10 +405,10 @@ public class KotlinMetadataInitializer
 
           // Implementation interfaces.
           ConstantVisitor {
-    private final MetadataType arrayType;
+    private final KotlinMetadataType arrayType;
     private int index;
 
-    ArrayElementValueCollector(MetadataType array) {
+    ArrayElementValueCollector(KotlinMetadataType array) {
       this.arrayType = array;
       this.index = 0;
     }
@@ -433,9 +423,9 @@ public class KotlinMetadataInitializer
     // Implementations for ConstantVisitor
     @Override
     public void visitUtf8Constant(Clazz clazz, Utf8Constant utf8Constant) {
-      if (this.arrayType == MetadataType.d1) {
+      if (this.arrayType == KotlinMetadataType.d1) {
         d1[index++] = utf8Constant.getString();
-      } else if (this.arrayType == MetadataType.d2) {
+      } else if (this.arrayType == KotlinMetadataType.d2) {
         d2[index++] = utf8Constant.getString();
       } else {
         throw new UnsupportedOperationException("Cannot store UTF8Constant in int[]");
@@ -444,27 +434,16 @@ public class KotlinMetadataInitializer
 
     @Override
     public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant) {
-      if (this.arrayType == MetadataType.mv) {
-        mv[index++] = integerConstant.getValue();
-      } else if (this.arrayType == MetadataType.bv) {
-        // Deprecated & removed from kotlinx.metadata library, do nothing.
-      } else {
-        throw new UnsupportedOperationException("Cannot store IntegerConstant in String[]");
+      switch (arrayType) {
+        case mv:
+          mv[index++] = integerConstant.getValue();
+          break;
+        case bv: // Deprecated & removed from kotlin.metadata library, do nothing.
+          break;
+        default:
+          throw new UnsupportedOperationException("Cannot store IntegerConstant in String[]");
       }
     }
-  }
-
-  public enum MetadataType {
-    k,
-    mv,
-    d1,
-    d2,
-    xi,
-    xs,
-    pn,
-
-    @Deprecated
-    bv // was removed but older metadata will still contain it.
   }
 
   private static class SimpleKotlinMetadataSetter implements ClassVisitor {
@@ -492,16 +471,13 @@ public class KotlinMetadataInitializer
   }
 
   /** Convert a {@link KotlinClassMetadata} to an internal {@link KotlinClassKindMetadata} model. */
-  private KotlinClassKindMetadata toKotlinClassKindMetadata(KotlinClassMetadata md) {
+  private KotlinClassKindMetadata convertClassKindMetadata(
+      Metadata metadata, KotlinClassMetadata md) {
     KotlinClassKindMetadata kotlinClassKindMetadata =
-        new KotlinClassKindMetadata(
-            md.getAnnotationData().mv(),
-            md.getAnnotationData().xi(),
-            md.getAnnotationData().xs(),
-            md.getAnnotationData().pn());
+        new KotlinClassKindMetadata(metadata.mv(), metadata.xi(), metadata.xs(), metadata.pn());
 
     KotlinClassMetadata.Class classMetadata = (KotlinClassMetadata.Class) md;
-    KmClass kmClass = classMetadata.toKmClass();
+    KmClass kmClass = classMetadata.getKmClass();
 
     String className = kmClass.getName();
     if (className.startsWith(".")) {
@@ -515,12 +491,12 @@ public class KotlinMetadataInitializer
     className = className.replace('.', '$');
 
     kotlinClassKindMetadata.className = className;
-    kotlinClassKindMetadata.flags = convertClassFlags(kmClass.getFlags());
+    kotlinClassKindMetadata.flags = convertClassFlags(kmClass);
 
     kotlinClassKindMetadata.companionObjectName = kmClass.getCompanionObject();
     kotlinClassKindMetadata.underlyingPropertyName = kmClass.getInlineClassUnderlyingPropertyName();
     kotlinClassKindMetadata.underlyingPropertyType =
-        toKotlinTypeMetadata(kmClass.getInlineClassUnderlyingType());
+        convertKmType(kmClass.getInlineClassUnderlyingType());
     kotlinClassKindMetadata.enumEntryNames = kmClass.getEnumEntries();
     kotlinClassKindMetadata.nestedClassNames = kmClass.getNestedClasses();
     kotlinClassKindMetadata.sealedSubclassNames =
@@ -529,41 +505,36 @@ public class KotlinMetadataInitializer
             .collect(Collectors.toList());
 
     kotlinClassKindMetadata.versionRequirement =
-        toKotlinVersionRequirementMetadataFromList(kmClass.getVersionRequirements());
+        convertKmVersionRequirement(kmClass.getVersionRequirements());
 
     kotlinClassKindMetadata.typeParameters =
         kmClass.getTypeParameters().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeParameterMetadata)
+            .map(KotlinMetadataInitializer::convertKmTypeParameter)
             .collect(Collectors.toList());
 
     kotlinClassKindMetadata.contextReceivers =
         kmClass.getContextReceiverTypes().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+            .map(KotlinMetadataInitializer::convertKmType)
             .collect(Collectors.toList());
 
     kotlinClassKindMetadata.superTypes =
         kmClass.getSupertypes().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+            .map(KotlinMetadataInitializer::convertKmType)
             .collect(Collectors.toList());
 
     kotlinClassKindMetadata.constructors =
         kmClass.getConstructors().stream()
-            .map(
-                it ->
-                    toKotlinConstructorMetadata(
-                        md.getAnnotationData().mv(),
-                        kotlinClassKindMetadata.flags.isAnnotationClass,
-                        it))
+            .map(it -> convertKmConstructor(kotlinClassKindMetadata.flags.isAnnotationClass, it))
             .collect(Collectors.toList());
 
     kotlinClassKindMetadata.functions =
         kmClass.getFunctions().stream()
-            .map(KotlinMetadataInitializer::toKotlinFunctionMetadata)
+            .map(KotlinMetadataInitializer::convertKmFunction)
             .collect(Collectors.toList());
 
     kotlinClassKindMetadata.properties =
         kmClass.getProperties().stream()
-            .map(KotlinMetadataInitializer::toKotlinPropertyMetadata)
+            .map(KotlinMetadataInitializer::convertKmProperty)
             .collect(Collectors.toList());
 
     // Currently only top-level typeAlias declarations are allowed, so this
@@ -572,155 +543,128 @@ public class KotlinMetadataInitializer
     // @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
     kotlinClassKindMetadata.typeAliases =
         kmClass.getTypeAliases().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeAliasMetadata)
+            .map(KotlinMetadataInitializer::convertKmTypeAlias)
             .collect(Collectors.toList());
 
     // JvmExtensions
 
-    setClassJvmFlags(kotlinClassKindMetadata.flags, JvmExtensionsKt.getJvmFlags(kmClass));
+    kotlinClassKindMetadata.flags.hasMethodBodiesInInterface =
+        JvmAttributes.getHasMethodBodiesInInterface(kmClass);
+    kotlinClassKindMetadata.flags.isCompiledInCompatibilityMode =
+        JvmAttributes.isCompiledInCompatibilityMode(kmClass);
+
     kotlinClassKindMetadata.anonymousObjectOriginName =
         JvmExtensionsKt.getAnonymousObjectOriginName(kmClass);
     kotlinClassKindMetadata.localDelegatedProperties =
         JvmExtensionsKt.getLocalDelegatedProperties(kmClass).stream()
-            .map(KotlinMetadataInitializer::toKotlinPropertyMetadata)
+            .map(KotlinMetadataInitializer::convertKmProperty)
             .collect(Collectors.toList());
 
     return kotlinClassKindMetadata;
   }
 
-  private static KotlinFileFacadeKindMetadata toKotlinFileFacadeKindMetadata(
-      KotlinClassMetadata md) {
+  private static KotlinFileFacadeKindMetadata convertFileFacadeKindMetadata(
+      Metadata metadata, KotlinClassMetadata md) {
     KotlinFileFacadeKindMetadata kotlinFileFacadeKindMetadata =
         new KotlinFileFacadeKindMetadata(
-            md.getAnnotationData().mv(),
-            md.getAnnotationData().xi(),
-            md.getAnnotationData().xs(),
-            md.getAnnotationData().pn());
+            metadata.mv(), metadata.xi(), metadata.xs(), metadata.pn());
 
     KotlinClassMetadata.FileFacade fileFacade = (KotlinClassMetadata.FileFacade) md;
-    KmPackage kmPackage = fileFacade.toKmPackage();
+    KmPackage kmPackage = fileFacade.getKmPackage();
 
     populateFromKmPackage(kotlinFileFacadeKindMetadata, kmPackage);
 
     return kotlinFileFacadeKindMetadata;
   }
 
-  private static KotlinMultiFilePartKindMetadata toKotlinMultiFilePartKindMetadata(
-      KotlinClassMetadata md) {
+  private static KotlinMultiFilePartKindMetadata convertMultiFilePartKindMetadata(
+      Metadata metadata, KotlinClassMetadata md) {
     KotlinMultiFilePartKindMetadata kotlinMultiFilePartKindMetadata =
         new KotlinMultiFilePartKindMetadata(
-            md.getAnnotationData().mv(),
-            md.getAnnotationData().xi(),
-            md.getAnnotationData().xs(),
-            md.getAnnotationData().pn());
+            metadata.mv(), metadata.xi(), metadata.xs(), metadata.pn());
 
     KotlinClassMetadata.MultiFileClassPart fileFacade = (KotlinClassMetadata.MultiFileClassPart) md;
-    KmPackage kmPackage = fileFacade.toKmPackage();
+    KmPackage kmPackage = fileFacade.getKmPackage();
 
     populateFromKmPackage(kotlinMultiFilePartKindMetadata, kmPackage);
 
     return kotlinMultiFilePartKindMetadata;
   }
 
-  private static void populateFromKmPackage(
-      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata, KmPackage kmPackage) {
-    kotlinDeclarationContainerMetadata.functions =
-        kmPackage.getFunctions().stream()
-            .map(KotlinMetadataInitializer::toKotlinFunctionMetadata)
-            .collect(Collectors.toList());
-
-    kotlinDeclarationContainerMetadata.typeAliases =
-        kmPackage.getTypeAliases().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeAliasMetadata)
-            .collect(Collectors.toList());
-
-    kotlinDeclarationContainerMetadata.properties =
-        kmPackage.getProperties().stream()
-            .map(KotlinMetadataInitializer::toKotlinPropertyMetadata)
-            .collect(Collectors.toList());
-
-    kotlinDeclarationContainerMetadata.localDelegatedProperties =
-        JvmExtensionsKt.getLocalDelegatedProperties(kmPackage).stream()
-            .map(KotlinMetadataInitializer::toKotlinPropertyMetadata)
-            .collect(Collectors.toList());
-  }
-
-  private static KotlinFunctionMetadata toKotlinFunctionMetadata(KmFunction kmFunction) {
+  private static KotlinFunctionMetadata convertKmFunction(KmFunction kmFunction) {
     KotlinFunctionMetadata kotlinFunctionMetadata =
-        new KotlinFunctionMetadata(
-            convertFunctionFlags(kmFunction.getFlags()), kmFunction.getName());
+        new KotlinFunctionMetadata(convertFunctionFlags(kmFunction), kmFunction.getName());
 
     // TODO: We previously used a list, but there should be a single contract.
     kotlinFunctionMetadata.contracts =
         kmFunction.getContract() != null
-            ? new ArrayList<>(
-                Collections.singleton(toKotlinContractMetadata(kmFunction.getContract())))
+            ? new ArrayList<>(Collections.singleton(convertKmContract(kmFunction.getContract())))
             : new ArrayList<>();
 
-    kotlinFunctionMetadata.receiverType =
-        toKotlinTypeMetadata(kmFunction.getReceiverParameterType());
+    kotlinFunctionMetadata.receiverType = convertKmType(kmFunction.getReceiverParameterType());
     kotlinFunctionMetadata.contextReceivers =
         kmFunction.getContextReceiverTypes().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+            .map(KotlinMetadataInitializer::convertKmType)
             .collect(Collectors.toList());
 
-    kotlinFunctionMetadata.returnType = toKotlinTypeMetadata(kmFunction.returnType);
+    kotlinFunctionMetadata.returnType = convertKmType(kmFunction.returnType);
     kotlinFunctionMetadata.typeParameters =
         kmFunction.getTypeParameters().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeParameterMetadata)
+            .map(KotlinMetadataInitializer::convertKmTypeParameter)
             .collect(Collectors.toList());
 
     List<KmValueParameter> valueParameters = kmFunction.getValueParameters();
     kotlinFunctionMetadata.valueParameters = new ArrayList<>(valueParameters.size());
     for (int i = 0; i < valueParameters.size(); i++) {
       kotlinFunctionMetadata.valueParameters.add(
-          toKotlinValueParameterMetadata(i, valueParameters.get(i)));
+          convertKmValueParameter(i, valueParameters.get(i)));
     }
 
     kotlinFunctionMetadata.versionRequirement =
-        toKotlinVersionRequirementMetadataFromList(kmFunction.getVersionRequirements());
+        convertKmVersionRequirement(kmFunction.getVersionRequirements());
     kotlinFunctionMetadata.jvmSignature =
-        fromKotlinJvmMethodSignature(JvmExtensionsKt.getSignature(kmFunction));
+        convertJvmMethodSignature(JvmExtensionsKt.getSignature(kmFunction));
     kotlinFunctionMetadata.lambdaClassOriginName =
         JvmExtensionsKt.getLambdaClassOriginName(kmFunction);
 
     return kotlinFunctionMetadata;
   }
 
-  private static KotlinContractMetadata toKotlinContractMetadata(KmContract kmContract) {
+  private static KotlinContractMetadata convertKmContract(KmContract kmContract) {
     KotlinContractMetadata kotlinContractMetadata = new KotlinContractMetadata();
 
     kotlinContractMetadata.effects =
         kmContract.getEffects().stream()
-            .map(KotlinMetadataInitializer::toKotlinEffectMetadata)
+            .map(KotlinMetadataInitializer::convertKmEffect)
             .collect(Collectors.toList());
 
     return kotlinContractMetadata;
   }
 
-  private static KotlinEffectMetadata toKotlinEffectMetadata(KmEffect kmEffect) {
+  private static KotlinEffectMetadata convertKmEffect(KmEffect kmEffect) {
     KotlinEffectMetadata effect =
         new KotlinEffectMetadata(
-            fromKmEffectType(kmEffect.getType()),
-            fromKmEffectInvocationKind(kmEffect.getInvocationKind()));
+            convertKmEffectType(kmEffect.getType()),
+            convertKmEffectInvocationKind(kmEffect.getInvocationKind()));
 
-    effect.conclusionOfConditionalEffect =
-        toKotlinEffectExpressionMetadata(kmEffect.getConclusion());
+    effect.conclusionOfConditionalEffect = convertKmEffectExpression(kmEffect.getConclusion());
     effect.constructorArguments =
         kmEffect.getConstructorArguments().stream()
-            .map(KotlinMetadataInitializer::toKotlinEffectExpressionMetadata)
+            .map(KotlinMetadataInitializer::convertKmEffectExpression)
             .collect(Collectors.toList());
 
     return effect;
   }
 
-  private static KotlinEffectExpressionMetadata toKotlinEffectExpressionMetadata(
+  private static KotlinEffectExpressionMetadata convertKmEffectExpression(
       KmEffectExpression kmEffectExpression) {
-    if (kmEffectExpression == null) return null;
+    if (kmEffectExpression == null) {
+      return null;
+    }
 
     KotlinEffectExpressionMetadata expressionMetadata = new KotlinEffectExpressionMetadata();
 
-    expressionMetadata.flags = convertEffectExpressionFlags(kmEffectExpression.getFlags());
+    expressionMetadata.flags = convertEffectExpressionFlags(kmEffectExpression);
 
     if (kmEffectExpression.getParameterIndex() != null) {
       // Optional 1-based index of the value parameter of the function, for effects which assert
@@ -736,31 +680,30 @@ public class KotlinMetadataInitializer
     }
 
     if (kmEffectExpression.isInstanceType() != null) {
-      expressionMetadata.typeOfIs = toKotlinTypeMetadata(kmEffectExpression.isInstanceType());
+      expressionMetadata.typeOfIs = convertKmType(kmEffectExpression.isInstanceType());
     }
 
     expressionMetadata.andRightHandSides =
         kmEffectExpression.getAndArguments().stream()
-            .map(KotlinMetadataInitializer::toKotlinEffectExpressionMetadata)
+            .map(KotlinMetadataInitializer::convertKmEffectExpression)
             .collect(Collectors.toList());
 
     expressionMetadata.orRightHandSides =
         kmEffectExpression.getOrArguments().stream()
-            .map(KotlinMetadataInitializer::toKotlinEffectExpressionMetadata)
+            .map(KotlinMetadataInitializer::convertKmEffectExpression)
             .collect(Collectors.toList());
 
     return expressionMetadata;
   }
 
-  private static KotlinTypeAliasMetadata toKotlinTypeAliasMetadata(KmTypeAlias kmTypeAlias) {
+  private static KotlinTypeAliasMetadata convertKmTypeAlias(KmTypeAlias kmTypeAlias) {
     KotlinTypeAliasMetadata typeAlias =
-        new KotlinTypeAliasMetadata(
-            convertTypeAliasFlags(kmTypeAlias.getFlags()), kmTypeAlias.getName());
+        new KotlinTypeAliasMetadata(convertTypeAliasFlags(kmTypeAlias), kmTypeAlias.getName());
 
-    typeAlias.underlyingType = toKotlinTypeMetadata(kmTypeAlias.getUnderlyingType());
-    typeAlias.expandedType = toKotlinTypeMetadata(kmTypeAlias.getExpandedType());
+    typeAlias.underlyingType = convertKmType(kmTypeAlias.getUnderlyingType());
+    typeAlias.expandedType = convertKmType(kmTypeAlias.getExpandedType());
     typeAlias.versionRequirement =
-        toKotlinVersionRequirementMetadataFromList(kmTypeAlias.getVersionRequirements());
+        convertKmVersionRequirement(kmTypeAlias.getVersionRequirements());
 
     typeAlias.annotations =
         kmTypeAlias.getAnnotations().stream()
@@ -769,30 +712,31 @@ public class KotlinMetadataInitializer
 
     typeAlias.typeParameters =
         kmTypeAlias.getTypeParameters().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeParameterMetadata)
+            .map(KotlinMetadataInitializer::convertKmTypeParameter)
             .collect(Collectors.toList());
 
     return typeAlias;
   }
 
-  private static KotlinPropertyMetadata toKotlinPropertyMetadata(KmProperty kmProperty) {
+  private static KotlinPropertyMetadata convertKmProperty(KmProperty kmProperty) {
     KotlinPropertyMetadata property =
         new KotlinPropertyMetadata(
-            convertPropertyFlags(kmProperty.getFlags()),
+            convertPropertyFlags(kmProperty),
             kmProperty.getName(),
-            convertPropertyAccessorFlags(kmProperty.getGetterFlags()),
-            convertPropertyAccessorFlags(kmProperty.getSetterFlags()));
+            convertPropertyAccessorFlags(kmProperty.getGetter()),
+            Attributes.isVar(kmProperty)
+                ? convertPropertyAccessorFlags(kmProperty.getSetter())
+                : null);
 
-    property.receiverType = toKotlinTypeMetadata(kmProperty.getReceiverParameterType());
+    property.receiverType = convertKmType(kmProperty.getReceiverParameterType());
 
     property.contextReceivers =
         kmProperty.getContextReceiverTypes().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+            .map(KotlinMetadataInitializer::convertKmType)
             .collect(Collectors.toList());
 
-    property.type = toKotlinTypeMetadata(kmProperty.returnType);
-    property.versionRequirement =
-        toKotlinVersionRequirementMetadataFromList(kmProperty.getVersionRequirements());
+    property.type = convertKmType(kmProperty.returnType);
+    property.versionRequirement = convertKmVersionRequirement(kmProperty.getVersionRequirements());
 
     KmValueParameter setterParameter = kmProperty.getSetterParameter();
     // TODO: There can only be one Setter parameter but previously our API used a list.
@@ -801,42 +745,45 @@ public class KotlinMetadataInitializer
     property.setterParameters =
         setterParameter != null
             ? new ArrayList<>(
-                Collections.singletonList(toKotlinValueParameterMetadata(0, setterParameter)))
+                Collections.singletonList(convertKmValueParameter(0, setterParameter)))
             : new ArrayList<>();
 
     property.typeParameters =
         kmProperty.getTypeParameters().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeParameterMetadata)
+            .map(KotlinMetadataInitializer::convertKmTypeParameter)
             .collect(Collectors.toList());
 
     property.backingFieldSignature =
-        fromKotlinJvmFieldSignature(JvmExtensionsKt.getFieldSignature(kmProperty));
+        convertJvmFieldSignature(JvmExtensionsKt.getFieldSignature(kmProperty));
     property.getterSignature =
-        fromKotlinJvmMethodSignature(JvmExtensionsKt.getGetterSignature(kmProperty));
+        convertJvmMethodSignature(JvmExtensionsKt.getGetterSignature(kmProperty));
     property.setterSignature =
-        fromKotlinJvmMethodSignature(JvmExtensionsKt.getSetterSignature(kmProperty));
+        convertJvmMethodSignature(JvmExtensionsKt.getSetterSignature(kmProperty));
 
-    setPropertyJvmFlags(property.flags, JvmExtensionsKt.getJvmFlags(kmProperty));
+    property.flags.isMovedFromInterfaceCompanion =
+        JvmAttributes.isMovedFromInterfaceCompanion(kmProperty);
 
     property.syntheticMethodForAnnotations =
-        fromKotlinJvmMethodSignature(JvmExtensionsKt.getSyntheticMethodForAnnotations(kmProperty));
+        convertJvmMethodSignature(JvmExtensionsKt.getSyntheticMethodForAnnotations(kmProperty));
     property.syntheticMethodForDelegate =
-        fromKotlinJvmMethodSignature(JvmExtensionsKt.getSyntheticMethodForDelegate(kmProperty));
+        convertJvmMethodSignature(JvmExtensionsKt.getSyntheticMethodForDelegate(kmProperty));
 
     return property;
   }
 
-  private static KotlinTypeMetadata toKotlinTypeMetadata(KmType kmType) {
-    return toKotlinTypeMetadata(kmType, null);
+  private static KotlinTypeMetadata convertKmType(KmType kmType) {
+    return convertKmType(kmType, null);
   }
 
-  private static KotlinTypeMetadata toKotlinTypeMetadata(KmType kmType, KmVariance kmVariance) {
-    if (kmType == null) return null;
+  private static KotlinTypeMetadata convertKmType(KmType kmType, KmVariance kmVariance) {
+    if (kmType == null) {
+      return null;
+    }
 
     KotlinTypeMetadata type =
-        new KotlinTypeMetadata(convertTypeFlags(kmType.getFlags()), fromKmVariance(kmVariance));
+        new KotlinTypeMetadata(convertTypeFlags(kmType), convertKmVariance(kmVariance));
 
-    type.abbreviation = toKotlinTypeMetadata(kmType.getAbbreviatedType(), null);
+    type.abbreviation = convertKmType(kmType.getAbbreviatedType(), null);
 
     if (kmType.getClassifier() instanceof KmClassifier.Class) {
       KmClassifier.Class classifier = (KmClassifier.Class) kmType.getClassifier();
@@ -862,10 +809,10 @@ public class KotlinMetadataInitializer
       type.typeParamID = classifier.getId();
     } else if (kmType.getClassifier() instanceof KmClassifier.TypeAlias) {
       // Note that all types are expanded for metadata produced
-      // by the Kotlin compiler, so the the type with a type alias
+      // by the Kotlin compiler, so the type with a type alias
       // classifier may only appear in a call to [visitAbbreviatedType].
-      KmClassifier.TypeAlias classifer = (KmClassifier.TypeAlias) kmType.getClassifier();
-      type.aliasName = classifer.getName();
+      KmClassifier.TypeAlias classifier = (KmClassifier.TypeAlias) kmType.getClassifier();
+      type.aliasName = classifier.getName();
     }
 
     // Outer class type example:
@@ -878,13 +825,13 @@ public class KotlinMetadataInitializer
     // class `B`, and it has one type argument,
     //  type `Byte?`), and its outer type is `A<*>` (a type whose classifier is class `A`, and it
     // has one type argument, star projection).
-    type.outerClassType = toKotlinTypeMetadata(kmType.getOuterType());
+    type.outerClassType = convertKmType(kmType.getOuterType());
 
     // For example, in `MutableMap<in String?, *>`, `in String?` is the type projection which is the
     // first type argument of the type.
     type.typeArguments =
         kmType.getArguments().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeMetadataFromKotlinTypeProjection)
+            .map(KotlinMetadataInitializer::convertKmTypeProjection)
             .collect(Collectors.toList());
 
     //  Flexible types in Kotlin include platform types in Kotlin/JVM and `dynamic` type in
@@ -898,7 +845,7 @@ public class KotlinMetadataInitializer
       type.flexibilityID = flexibleTypeUpperBound.getTypeFlexibilityId();
       type.upperBounds =
           new ArrayList<>(
-              Collections.singletonList(toKotlinTypeMetadata(flexibleTypeUpperBound.getType())));
+              Collections.singletonList(convertKmType(flexibleTypeUpperBound.getType())));
     } else {
       type.upperBounds = new ArrayList<>();
     }
@@ -913,27 +860,26 @@ public class KotlinMetadataInitializer
     return type;
   }
 
-  private static KotlinTypeMetadata toKotlinTypeMetadataFromKotlinTypeProjection(
-      KmTypeProjection kmTypeProjection) {
+  private static KotlinTypeMetadata convertKmTypeProjection(KmTypeProjection kmTypeProjection) {
     if (kmTypeProjection == KmTypeProjection.STAR) {
       return KotlinTypeMetadata.starProjection();
     } else {
-      return toKotlinTypeMetadata(kmTypeProjection.getType(), kmTypeProjection.getVariance());
+      return convertKmType(kmTypeProjection.getType(), kmTypeProjection.getVariance());
     }
   }
 
-  private static KotlinTypeParameterMetadata toKotlinTypeParameterMetadata(
+  private static KotlinTypeParameterMetadata convertKmTypeParameter(
       KmTypeParameter kmTypeParameter) {
     KotlinTypeParameterMetadata kotlinTypeParameterMetadata =
         new KotlinTypeParameterMetadata(
-            convertTypeParameterFlags(kmTypeParameter.getFlags()),
+            convertTypeParameterFlags(kmTypeParameter),
             kmTypeParameter.getName(),
             kmTypeParameter.getId(),
-            fromKmVariance(kmTypeParameter.getVariance()));
+            convertKmVariance(kmTypeParameter.getVariance()));
 
     kotlinTypeParameterMetadata.upperBounds =
         kmTypeParameter.getUpperBounds().stream()
-            .map(KotlinMetadataInitializer::toKotlinTypeMetadata)
+            .map(KotlinMetadataInitializer::convertKmType)
             .collect(Collectors.toList());
 
     kotlinTypeParameterMetadata.annotations =
@@ -944,51 +890,49 @@ public class KotlinMetadataInitializer
     return kotlinTypeParameterMetadata;
   }
 
-  private static KotlinConstructorMetadata toKotlinConstructorMetadata(
-      int[] mv, boolean isAnnotationClass, KmConstructor kmConstructor) {
+  private static KotlinConstructorMetadata convertKmConstructor(
+      boolean isAnnotationClass, KmConstructor kmConstructor) {
     KotlinConstructorMetadata constructor =
-        new KotlinConstructorMetadata(convertConstructorFlags(mv, kmConstructor.getFlags()));
+        new KotlinConstructorMetadata(convertConstructorFlags(kmConstructor));
 
     List<KmValueParameter> valueParameters = kmConstructor.getValueParameters();
     constructor.valueParameters = new ArrayList<>(valueParameters.size());
     for (int i = 0; i < valueParameters.size(); i++) {
-      constructor.valueParameters.add(toKotlinValueParameterMetadata(i, valueParameters.get(i)));
+      constructor.valueParameters.add(convertKmValueParameter(i, valueParameters.get(i)));
     }
 
     constructor.versionRequirement =
-        toKotlinVersionRequirementMetadataFromList(kmConstructor.getVersionRequirements());
+        convertKmVersionRequirement(kmConstructor.getVersionRequirements());
 
     if (!isAnnotationClass) {
       // For annotation classes, the metadata will have a JVM signature for a constructor,
       // while this is impossible to correspond to a real constructor. We set the jvmSignature
       // to null in this case.
       constructor.jvmSignature =
-          fromKotlinJvmMethodSignature(JvmExtensionsKt.getSignature(kmConstructor));
+          convertJvmMethodSignature(JvmExtensionsKt.getSignature(kmConstructor));
     }
 
     return constructor;
   }
 
-  private static KotlinValueParameterMetadata toKotlinValueParameterMetadata(
+  private static KotlinValueParameterMetadata convertKmValueParameter(
       int index, KmValueParameter kmValueParameter) {
     KotlinValueParameterMetadata valueParameterMetadata =
         new KotlinValueParameterMetadata(
-            convertValueParameterFlags(kmValueParameter.getFlags()),
-            index,
-            kmValueParameter.getName());
+            convertValueParameterFlags(kmValueParameter), index, kmValueParameter.getName());
 
-    valueParameterMetadata.type = toKotlinTypeMetadata(kmValueParameter.getType());
+    valueParameterMetadata.type = convertKmType(kmValueParameter.getType());
     valueParameterMetadata.varArgElementType =
-        toKotlinTypeMetadata(kmValueParameter.getVarargElementType());
+        convertKmType(kmValueParameter.getVarargElementType());
 
     return valueParameterMetadata;
   }
 
-  private static KotlinVersionRequirementMetadata toKotlinVersionRequirementMetadataFromList(
+  private static KotlinVersionRequirementMetadata convertKmVersionRequirement(
       List<KmVersionRequirement> kmVersionRequirement) {
     List<KotlinVersionRequirementMetadata> versionRequirementMetadata =
         kmVersionRequirement.stream()
-            .map(KotlinMetadataInitializer::toKotlinVersionRequirementMetadata)
+            .map(KotlinMetadataInitializer::convertKmVersionRequirement)
             .collect(Collectors.toList());
 
     if (versionRequirementMetadata.size() > 1) {
@@ -1003,12 +947,40 @@ public class KotlinMetadataInitializer
     return null;
   }
 
-  private static KotlinVersionRequirementMetadata toKotlinVersionRequirementMetadata(
+  private static KotlinVersionRequirementMetadata convertKmVersionRequirement(
       KmVersionRequirement kmVersionRequirement) {
     KotlinVersionRequirementMetadata versionReq = new KotlinVersionRequirementMetadata();
 
-    versionReq.kind = fromKmVersionRequirementVersionKind(kmVersionRequirement.kind);
-    versionReq.level = fromKmVersionRequirementLevel(kmVersionRequirement.level);
+    switch (kmVersionRequirement.kind) {
+      case API_VERSION:
+        versionReq.kind = KotlinVersionRequirementVersionKind.API_VERSION;
+        break;
+      case COMPILER_VERSION:
+        versionReq.kind = KotlinVersionRequirementVersionKind.COMPILER_VERSION;
+        break;
+      case LANGUAGE_VERSION:
+        versionReq.kind = KotlinVersionRequirementVersionKind.LANGUAGE_VERSION;
+        break;
+      default:
+        throw new UnsupportedOperationException(
+            "Encountered unknown enum value for KmVersionRequirementVersionKind.");
+    }
+
+    switch (kmVersionRequirement.level) {
+      case ERROR:
+        versionReq.level = KotlinVersionRequirementLevel.ERROR;
+        break;
+      case HIDDEN:
+        versionReq.level = KotlinVersionRequirementLevel.HIDDEN;
+        break;
+      case WARNING:
+        versionReq.level = KotlinVersionRequirementLevel.WARNING;
+        break;
+      default:
+        throw new UnsupportedOperationException(
+            "Encountered unknown enum value for KmVersionRequirementLevel.");
+    }
+
     versionReq.errorCode = kmVersionRequirement.getErrorCode();
     versionReq.message = kmVersionRequirement.getMessage();
 
@@ -1019,31 +991,31 @@ public class KotlinMetadataInitializer
     return versionReq;
   }
 
-  // Small helper methods.
-
-  private static MethodSignature fromKotlinJvmMethodSignature(
-      JvmMethodSignature jvmMethodSignature) {
+  private static MethodSignature convertJvmMethodSignature(JvmMethodSignature jvmMethodSignature) {
     if (jvmMethodSignature == null) {
       return null;
     }
 
     try {
-      return new MethodSignature(null, jvmMethodSignature.getName(), jvmMethodSignature.getDesc());
+      return new MethodSignature(
+          null, jvmMethodSignature.getName(), jvmMethodSignature.getDescriptor());
     } catch (Exception e) {
       return null;
     }
   }
 
-  private static FieldSignature fromKotlinJvmFieldSignature(JvmFieldSignature jvmFieldSignature) {
+  private static FieldSignature convertJvmFieldSignature(JvmFieldSignature jvmFieldSignature) {
     if (jvmFieldSignature == null) {
       return null;
     }
 
-    return new FieldSignature(null, jvmFieldSignature.getName(), jvmFieldSignature.getDesc());
+    return new FieldSignature(null, jvmFieldSignature.getName(), jvmFieldSignature.getDescriptor());
   }
 
-  private static KotlinTypeVariance fromKmVariance(KmVariance variance) {
-    if (variance == null) return null;
+  private static KotlinTypeVariance convertKmVariance(KmVariance variance) {
+    if (variance == null) {
+      return null;
+    }
 
     switch (variance) {
       case IN:
@@ -1057,37 +1029,7 @@ public class KotlinMetadataInitializer
     }
   }
 
-  private static KotlinVersionRequirementVersionKind fromKmVersionRequirementVersionKind(
-      KmVersionRequirementVersionKind kotlinVersionRequirementVersionKind) {
-    switch (kotlinVersionRequirementVersionKind) {
-      case API_VERSION:
-        return KotlinVersionRequirementVersionKind.API_VERSION;
-      case COMPILER_VERSION:
-        return KotlinVersionRequirementVersionKind.COMPILER_VERSION;
-      case LANGUAGE_VERSION:
-        return KotlinVersionRequirementVersionKind.LANGUAGE_VERSION;
-      default:
-        throw new UnsupportedOperationException(
-            "Encountered unknown enum value for KmVersionRequirementVersionKind.");
-    }
-  }
-
-  private static KotlinVersionRequirementLevel fromKmVersionRequirementLevel(
-      KmVersionRequirementLevel kmVersionRequirementLevel) {
-    switch (kmVersionRequirementLevel) {
-      case ERROR:
-        return KotlinVersionRequirementLevel.ERROR;
-      case HIDDEN:
-        return KotlinVersionRequirementLevel.HIDDEN;
-      case WARNING:
-        return KotlinVersionRequirementLevel.WARNING;
-      default:
-        throw new UnsupportedOperationException(
-            "Encountered unknown enum value for KmVersionRequirementLevel.");
-    }
-  }
-
-  private static KotlinEffectType fromKmEffectType(KmEffectType effectType) {
+  private static KotlinEffectType convertKmEffectType(KmEffectType effectType) {
     switch (effectType) {
       case CALLS:
         return KotlinEffectType.CALLS;
@@ -1100,7 +1042,7 @@ public class KotlinMetadataInitializer
     }
   }
 
-  private static KotlinEffectInvocationKind fromKmEffectInvocationKind(
+  private static KotlinEffectInvocationKind convertKmEffectInvocationKind(
       KmEffectInvocationKind invocationKind) {
     if (invocationKind == null) {
       return null;
@@ -1118,201 +1060,205 @@ public class KotlinMetadataInitializer
     }
   }
 
-  private static KotlinCommonFlags convertCommonFlags(int kotlinFlags) {
-    KotlinCommonFlags flags = new KotlinCommonFlags();
+  // Flag conversion methods.
 
-    flags.hasAnnotations = Flag.HAS_ANNOTATIONS.invoke(kotlinFlags);
-
-    return flags;
-  }
-
-  private static KotlinVisibilityFlags convertVisibilityFlags(int kotlinFlags) {
+  private static KotlinVisibilityFlags convertVisibilityFlags(Visibility visibility) {
     KotlinVisibilityFlags flags = new KotlinVisibilityFlags();
 
-    flags.isInternal = Flag.IS_INTERNAL.invoke(kotlinFlags);
-    flags.isLocal = Flag.IS_LOCAL.invoke(kotlinFlags);
-    flags.isPrivate = Flag.IS_PRIVATE.invoke(kotlinFlags);
-    flags.isProtected = Flag.IS_PROTECTED.invoke(kotlinFlags);
-    flags.isPublic = Flag.IS_PUBLIC.invoke(kotlinFlags);
-    flags.isPrivateToThis = Flag.IS_PRIVATE_TO_THIS.invoke(kotlinFlags);
+    flags.isInternal = visibility == Visibility.INTERNAL;
+    flags.isLocal = visibility == Visibility.LOCAL;
+    flags.isPrivate = visibility == Visibility.PRIVATE;
+    flags.isProtected = visibility == Visibility.PROTECTED;
+    flags.isPublic = visibility == Visibility.PUBLIC;
+    flags.isPrivateToThis = visibility == Visibility.PRIVATE_TO_THIS;
 
     return flags;
   }
 
-  private static KotlinModalityFlags convertModalityFlags(int kotlinFlags) {
+  private static KotlinModalityFlags convertModalityFlags(Modality modality) {
     KotlinModalityFlags flags = new KotlinModalityFlags();
 
-    flags.isAbstract = Flag.IS_ABSTRACT.invoke(kotlinFlags);
-    flags.isFinal = Flag.IS_FINAL.invoke(kotlinFlags);
-    flags.isOpen = Flag.IS_OPEN.invoke(kotlinFlags);
-    flags.isSealed = Flag.IS_SEALED.invoke(kotlinFlags);
+    flags.isAbstract = modality == Modality.ABSTRACT;
+    flags.isFinal = modality == Modality.FINAL;
+    flags.isOpen = modality == Modality.OPEN;
+    flags.isSealed = modality == Modality.SEALED;
 
     return flags;
   }
 
-  private static KotlinClassFlags convertClassFlags(int kotlinFlags) {
+  private static KotlinClassFlags convertClassFlags(KmClass kmClass) {
     KotlinClassFlags flags =
         new KotlinClassFlags(
-            convertCommonFlags(kotlinFlags),
-            convertVisibilityFlags(kotlinFlags),
-            convertModalityFlags(kotlinFlags));
+            convertVisibilityFlags(Attributes.getVisibility(kmClass)),
+            convertModalityFlags(Attributes.getModality(kmClass)));
 
-    flags.isUsualClass = Flag.Class.IS_CLASS.invoke(kotlinFlags);
-    flags.isInterface = Flag.Class.IS_INTERFACE.invoke(kotlinFlags);
-    flags.isEnumClass = Flag.Class.IS_ENUM_CLASS.invoke(kotlinFlags);
-    flags.isEnumEntry = Flag.Class.IS_ENUM_ENTRY.invoke(kotlinFlags);
-    flags.isAnnotationClass = Flag.Class.IS_ANNOTATION_CLASS.invoke(kotlinFlags);
-    flags.isObject = Flag.Class.IS_OBJECT.invoke(kotlinFlags);
-    flags.isCompanionObject = Flag.Class.IS_COMPANION_OBJECT.invoke(kotlinFlags);
-    flags.isInner = Flag.Class.IS_INNER.invoke(kotlinFlags);
-    flags.isData = Flag.Class.IS_DATA.invoke(kotlinFlags);
-    flags.isExternal = Flag.Class.IS_EXTERNAL.invoke(kotlinFlags);
-    flags.isExpect = Flag.Class.IS_EXPECT.invoke(kotlinFlags);
-    flags.isInline = Flag.Class.IS_INLINE.invoke(kotlinFlags);
-    flags.isValue = Flag.Class.IS_VALUE.invoke(kotlinFlags);
-    flags.isFun = Flag.Class.IS_FUN.invoke(kotlinFlags);
+    flags.isUsualClass = Attributes.getKind(kmClass) == ClassKind.CLASS;
+    flags.isInterface = Attributes.getKind(kmClass) == ClassKind.INTERFACE;
+    flags.isEnumClass = Attributes.getKind(kmClass) == ClassKind.ENUM_CLASS;
+    flags.isEnumEntry = Attributes.getKind(kmClass) == ClassKind.ENUM_ENTRY;
+    flags.isAnnotationClass = Attributes.getKind(kmClass) == ClassKind.ANNOTATION_CLASS;
+    flags.isObject = Attributes.getKind(kmClass) == ClassKind.OBJECT;
+    flags.isCompanionObject = Attributes.getKind(kmClass) == ClassKind.COMPANION_OBJECT;
+    flags.hasAnnotations = Attributes.getHasAnnotations(kmClass);
+    flags.isInner = Attributes.isInner(kmClass);
+    flags.isData = Attributes.isData(kmClass);
+    flags.isExternal = Attributes.isExternal(kmClass);
+    flags.isExpect = Attributes.isExpect(kmClass);
+    flags.isValue = Attributes.isValue(kmClass);
+    flags.isFun = Attributes.isFunInterface(kmClass);
 
     return flags;
   }
 
-  private static KotlinConstructorFlags convertConstructorFlags(int[] mv, int kotlinFlags) {
+  private static KotlinConstructorFlags convertConstructorFlags(KmConstructor kmConstructor) {
     KotlinConstructorFlags flags =
-        new KotlinConstructorFlags(
-            convertCommonFlags(kotlinFlags), convertVisibilityFlags(kotlinFlags));
+        new KotlinConstructorFlags(convertVisibilityFlags(Attributes.getVisibility(kmConstructor)));
 
-    flags.isPrimary = Flag.Constructor.IS_PRIMARY.invoke(kotlinFlags);
-
-    // When reading older metadata where the isSecondary flag was not yet introduced,
-    // we initialize isSecondary based on isPrimary.
-    if (mv[0] == 1 && mv[1] == 1) {
-      flags.isSecondary = !flags.isPrimary;
-    } else {
-      flags.isSecondary = Flag.Constructor.IS_SECONDARY.invoke(kotlinFlags);
-    }
-
-    flags.hasNonStableParameterNames =
-        Flag.Constructor.HAS_NON_STABLE_PARAMETER_NAMES.invoke(kotlinFlags);
+    flags.hasAnnotations = Attributes.getHasAnnotations(kmConstructor);
+    flags.hasNonStableParameterNames = Attributes.getHasNonStableParameterNames(kmConstructor);
+    flags.isSecondary = Attributes.isSecondary(kmConstructor);
 
     return flags;
   }
 
-  private static KotlinFunctionFlags convertFunctionFlags(int kotlinFlags) {
+  private static KotlinFunctionFlags convertFunctionFlags(KmFunction kmFunction) {
+
     KotlinFunctionFlags flags =
         new KotlinFunctionFlags(
-            convertCommonFlags(kotlinFlags),
-            convertVisibilityFlags(kotlinFlags),
-            convertModalityFlags(kotlinFlags));
+            convertVisibilityFlags(Attributes.getVisibility(kmFunction)),
+            convertModalityFlags(Attributes.getModality(kmFunction)));
 
-    flags.isDeclaration = Flag.Function.IS_DECLARATION.invoke(kotlinFlags);
-    flags.isFakeOverride = Flag.Function.IS_FAKE_OVERRIDE.invoke(kotlinFlags);
-    flags.isDelegation = Flag.Function.IS_DELEGATION.invoke(kotlinFlags);
-    flags.isSynthesized = Flag.Function.IS_SYNTHESIZED.invoke(kotlinFlags);
-    flags.isOperator = Flag.Function.IS_OPERATOR.invoke(kotlinFlags);
-    flags.isInfix = Flag.Function.IS_INFIX.invoke(kotlinFlags);
-    flags.isInline = Flag.Function.IS_INLINE.invoke(kotlinFlags);
-    flags.isTailrec = Flag.Function.IS_TAILREC.invoke(kotlinFlags);
-    flags.isExternal = Flag.Function.IS_EXTERNAL.invoke(kotlinFlags);
-    flags.isSuspend = Flag.Function.IS_SUSPEND.invoke(kotlinFlags);
-    flags.isExpect = Flag.Function.IS_EXPECT.invoke(kotlinFlags);
+    flags.isDeclaration = Attributes.getKind(kmFunction) == MemberKind.DECLARATION;
+    flags.isFakeOverride = Attributes.getKind(kmFunction) == MemberKind.FAKE_OVERRIDE;
+    flags.isDelegation = Attributes.getKind(kmFunction) == MemberKind.DELEGATION;
+    flags.isSynthesized = Attributes.getKind(kmFunction) == MemberKind.SYNTHESIZED;
+    flags.hasAnnotations = Attributes.getHasAnnotations(kmFunction);
+    flags.isOperator = Attributes.isOperator(kmFunction);
+    flags.isInfix = Attributes.isInfix(kmFunction);
+    flags.isInline = Attributes.isInline(kmFunction);
+    flags.isTailrec = Attributes.isTailrec(kmFunction);
+    flags.isExternal = Attributes.isExternal(kmFunction);
+    flags.isSuspend = Attributes.isSuspend(kmFunction);
+    flags.isExpect = Attributes.isExpect(kmFunction);
 
     return flags;
   }
 
-  private static KotlinTypeFlags convertTypeFlags(int kotlinFlags) {
+  private static KotlinTypeFlags convertTypeFlags(KmType kmType) {
     KotlinTypeFlags flags = new KotlinTypeFlags();
 
-    flags.isNullable = Flag.Type.IS_NULLABLE.invoke(kotlinFlags);
-    flags.isSuspend = Flag.Type.IS_SUSPEND.invoke(kotlinFlags);
-    flags.isDefinitelyNonNull = Flag.Type.IS_DEFINITELY_NON_NULL.invoke(kotlinFlags);
+    flags.isNullable = Attributes.isNullable(kmType);
+    flags.isSuspend = Attributes.isSuspend(kmType);
+    flags.isDefinitelyNonNull = Attributes.isDefinitelyNonNull(kmType);
 
     return flags;
   }
 
-  private static KotlinTypeParameterFlags convertTypeParameterFlags(int kotlinFlags) {
+  private static KotlinTypeParameterFlags convertTypeParameterFlags(
+      KmTypeParameter kmTypeParameter) {
     KotlinTypeParameterFlags flags = new KotlinTypeParameterFlags();
-
-    flags.isReified = Flag.TypeParameter.IS_REIFIED.invoke(kotlinFlags);
+    flags.isReified = Attributes.isReified(kmTypeParameter);
 
     return flags;
   }
 
-  private static KotlinTypeAliasFlags convertTypeAliasFlags(int kotlinFlags) {
-    return new KotlinTypeAliasFlags(
-        convertCommonFlags(kotlinFlags), convertVisibilityFlags(kotlinFlags));
+  private static KotlinTypeAliasFlags convertTypeAliasFlags(KmTypeAlias kmTypeAlias) {
+    KotlinTypeAliasFlags flags =
+        new KotlinTypeAliasFlags(convertVisibilityFlags(Attributes.getVisibility(kmTypeAlias)));
+
+    flags.hasAnnotations = Attributes.getHasAnnotations(kmTypeAlias);
+
+    return flags;
   }
 
-  private static KotlinPropertyFlags convertPropertyFlags(int kotlinFlags) {
+  private static KotlinPropertyFlags convertPropertyFlags(KmProperty kmProperty) {
+
     KotlinPropertyFlags flags =
         new KotlinPropertyFlags(
-            convertCommonFlags(kotlinFlags),
-            convertVisibilityFlags(kotlinFlags),
-            convertModalityFlags(kotlinFlags));
+            convertVisibilityFlags(Attributes.getVisibility(kmProperty)),
+            convertModalityFlags(Attributes.getModality(kmProperty)));
 
-    flags.isDeclared = Flag.Property.IS_DECLARATION.invoke(kotlinFlags);
-    flags.isFakeOverride = Flag.Property.IS_FAKE_OVERRIDE.invoke(kotlinFlags);
-    flags.isDelegation = Flag.Property.IS_DELEGATION.invoke(kotlinFlags);
-    flags.isSynthesized = Flag.Property.IS_SYNTHESIZED.invoke(kotlinFlags);
-    flags.isVar = Flag.Property.IS_VAR.invoke(kotlinFlags);
-    flags.hasGetter = Flag.Property.HAS_GETTER.invoke(kotlinFlags);
-    flags.hasSetter = Flag.Property.HAS_SETTER.invoke(kotlinFlags);
-    flags.isConst = Flag.Property.IS_CONST.invoke(kotlinFlags);
-    flags.isLateinit = Flag.Property.IS_LATEINIT.invoke(kotlinFlags);
-    flags.hasConstant = Flag.Property.HAS_CONSTANT.invoke(kotlinFlags);
-    flags.isExternal = Flag.Property.IS_EXTERNAL.invoke(kotlinFlags);
-    flags.isDelegated = Flag.Property.IS_DELEGATED.invoke(kotlinFlags);
-    flags.isExpect = Flag.Property.IS_EXPECT.invoke(kotlinFlags);
+    flags.isDeclared = Attributes.getKind(kmProperty) == MemberKind.DECLARATION;
+    flags.isFakeOverride = Attributes.getKind(kmProperty) == MemberKind.FAKE_OVERRIDE;
+    flags.isDelegation = Attributes.getKind(kmProperty) == MemberKind.DELEGATION;
+    flags.isSynthesized = Attributes.getKind(kmProperty) == MemberKind.SYNTHESIZED;
+    flags.hasAnnotations = Attributes.getHasAnnotations(kmProperty);
+    flags.isVar = Attributes.isVar(kmProperty);
+    flags.isConst = Attributes.isConst(kmProperty);
+    flags.isLateinit = Attributes.isLateinit(kmProperty);
+    flags.hasConstant = Attributes.getHasConstant(kmProperty);
+    flags.isExternal = Attributes.isExternal(kmProperty);
+    flags.isDelegated = Attributes.isDelegated(kmProperty);
+    flags.isExpect = Attributes.isExpect(kmProperty);
 
     return flags;
   }
 
-  private static void setPropertyJvmFlags(KotlinPropertyFlags flags, int jvmFlags) {
-    flags.isMovedFromInterfaceCompanion =
-        JvmFlag.Property.IS_MOVED_FROM_INTERFACE_COMPANION.invoke(jvmFlags);
-  }
-
-  private static void setClassJvmFlags(KotlinClassFlags flags, int jvmFlags) {
-    flags.hasMethodBodiesInInterface =
-        JvmFlag.Class.HAS_METHOD_BODIES_IN_INTERFACE.invoke(jvmFlags);
-    flags.isCompiledInCompatibilityMode =
-        JvmFlag.Class.IS_COMPILED_IN_COMPATIBILITY_MODE.invoke(jvmFlags);
-  }
-
-  private static KotlinPropertyAccessorFlags convertPropertyAccessorFlags(int kotlinFlags) {
+  private static KotlinPropertyAccessorFlags convertPropertyAccessorFlags(
+      KmPropertyAccessorAttributes kmPropertyAccessorAttributes) {
     KotlinPropertyAccessorFlags flags =
         new KotlinPropertyAccessorFlags(
-            convertCommonFlags(kotlinFlags),
-            convertVisibilityFlags(kotlinFlags),
-            convertModalityFlags(kotlinFlags));
+            convertVisibilityFlags(Attributes.getVisibility(kmPropertyAccessorAttributes)),
+            convertModalityFlags(Attributes.getModality(kmPropertyAccessorAttributes)));
 
-    flags.isDefault = !Flag.PropertyAccessor.IS_NOT_DEFAULT.invoke(kotlinFlags);
-    flags.isExternal = Flag.PropertyAccessor.IS_EXTERNAL.invoke(kotlinFlags);
-    flags.isInline = Flag.PropertyAccessor.IS_INLINE.invoke(kotlinFlags);
-
-    return flags;
-  }
-
-  private static KotlinValueParameterFlags convertValueParameterFlags(int kotlinFlags) {
-    KotlinValueParameterFlags flags =
-        new KotlinValueParameterFlags(convertCommonFlags(kotlinFlags));
-
-    flags.hasDefaultValue = Flag.ValueParameter.DECLARES_DEFAULT_VALUE.invoke(kotlinFlags);
-    flags.isCrossInline = Flag.ValueParameter.IS_CROSSINLINE.invoke(kotlinFlags);
-    flags.isNoInline = Flag.ValueParameter.IS_NOINLINE.invoke(kotlinFlags);
+    flags.hasAnnotations = Attributes.getHasAnnotations(kmPropertyAccessorAttributes);
+    flags.isDefault = !Attributes.isNotDefault(kmPropertyAccessorAttributes);
+    flags.isExternal = Attributes.isExternal(kmPropertyAccessorAttributes);
+    flags.isInline = Attributes.isInline(kmPropertyAccessorAttributes);
 
     return flags;
   }
 
-  private static KotlinEffectExpressionFlags convertEffectExpressionFlags(int kotlinFlags) {
+  private static KotlinValueParameterFlags convertValueParameterFlags(
+      KmValueParameter kmValueParameter) {
+
+    KotlinValueParameterFlags flags = new KotlinValueParameterFlags();
+
+    flags.hasAnnotations = Attributes.getHasAnnotations(kmValueParameter);
+    flags.hasDefaultValue = Attributes.getDeclaresDefaultValue(kmValueParameter);
+    flags.isCrossInline = Attributes.isCrossinline(kmValueParameter);
+    flags.isNoInline = Attributes.isNoinline(kmValueParameter);
+
+    return flags;
+  }
+
+  private static KotlinEffectExpressionFlags convertEffectExpressionFlags(
+      KmEffectExpression kmEffectExpression) {
     KotlinEffectExpressionFlags flags = new KotlinEffectExpressionFlags();
 
-    flags.isNullCheckPredicate = Flag.EffectExpression.IS_NULL_CHECK_PREDICATE.invoke(kotlinFlags);
-    flags.isNegated = Flag.EffectExpression.IS_NEGATED.invoke(kotlinFlags);
+    flags.isNullCheckPredicate = Attributes.isNullCheckPredicate(kmEffectExpression);
+    flags.isNegated = Attributes.isNegated(kmEffectExpression);
 
     return flags;
+  }
+
+  // Helper methods.
+
+  private static void populateFromKmPackage(
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata, KmPackage kmPackage) {
+    kotlinDeclarationContainerMetadata.functions =
+        kmPackage.getFunctions().stream()
+            .map(KotlinMetadataInitializer::convertKmFunction)
+            .collect(Collectors.toList());
+
+    kotlinDeclarationContainerMetadata.typeAliases =
+        kmPackage.getTypeAliases().stream()
+            .map(KotlinMetadataInitializer::convertKmTypeAlias)
+            .collect(Collectors.toList());
+
+    kotlinDeclarationContainerMetadata.properties =
+        kmPackage.getProperties().stream()
+            .map(KotlinMetadataInitializer::convertKmProperty)
+            .collect(Collectors.toList());
+
+    kotlinDeclarationContainerMetadata.localDelegatedProperties =
+        JvmExtensionsKt.getLocalDelegatedProperties(kmPackage).stream()
+            .map(KotlinMetadataInitializer::convertKmProperty)
+            .collect(Collectors.toList());
   }
 
   public static boolean isSupportedMetadataVersion(KotlinMetadataVersion mv) {
-    return new JvmMetadataVersion(mv.major, mv.minor, mv.patch).isCompatible();
+    return mv.major == 1 && mv.minor >= 4 || mv.major == 2;
   }
 
   public static boolean isValidKotlinMetadataAnnotationField(String name) {
@@ -1331,24 +1277,24 @@ public class KotlinMetadataInitializer
     }
   }
 
-  public static MetadataType metadataTypeOf(String name) {
+  public static KotlinMetadataType metadataTypeOf(String name) {
     switch (name) {
       case KOTLIN_METADATA_FIELD_K:
-        return MetadataType.k;
+        return KotlinMetadataType.k;
       case KOTLIN_METADATA_FIELD_BV:
-        return MetadataType.bv;
+        return KotlinMetadataType.bv;
       case KOTLIN_METADATA_FIELD_MV:
-        return MetadataType.mv;
+        return KotlinMetadataType.mv;
       case KOTLIN_METADATA_FIELD_D1:
-        return MetadataType.d1;
+        return KotlinMetadataType.d1;
       case KOTLIN_METADATA_FIELD_D2:
-        return MetadataType.d2;
+        return KotlinMetadataType.d2;
       case KOTLIN_METADATA_FIELD_XI:
-        return MetadataType.xi;
+        return KotlinMetadataType.xi;
       case KOLTIN_METADATA_FIELD_XS:
-        return MetadataType.xs;
+        return KotlinMetadataType.xs;
       case KOTLIN_METADATA_FIELD_PN:
-        return MetadataType.pn;
+        return KotlinMetadataType.pn;
       default:
         throw new IllegalArgumentException("Unknown Kotlin metadata field '" + name + "'");
     }

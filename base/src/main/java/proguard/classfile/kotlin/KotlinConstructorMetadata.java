@@ -77,6 +77,6 @@ public class KotlinConstructorMetadata extends SimpleProcessable implements Proc
   // Implementations for Object.
   @Override
   public String toString() {
-    return "Kotlin " + (flags.isPrimary ? "primary " : "") + "constructor";
+    return "Kotlin " + (flags.isSecondary ? "secondary " : "") + "constructor";
   }
 }

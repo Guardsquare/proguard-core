@@ -19,7 +19,7 @@
 package proguard.classfile.kotlin.flags
 
 import io.kotest.assertions.withClue
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
@@ -31,14 +31,14 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
 
-class KotlinPropertyAccessorFlagsTest : FreeSpec({
+class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
 
-    "Given a property with default getter and setter" - {
+    Given("a value property with default getter") {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource("Test.kt", "val foo: Int = 1".trimIndent()),
         ).programClassPool.getClass("TestKt")
 
-        "Then the property accessor flags should be set accordingly" {
+        Then("the property accessor flags should be set accordingly") {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
             clazz.accept(ReferencedKotlinMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
@@ -51,16 +51,14 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isDefault") { it.getterFlags.isDefault shouldBe true }
                         withClue("isInline") { it.getterFlags.isInline shouldBe false }
                         withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
-                        // setterFlags shoquld be set correctly
-                        withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
-                        withClue("isExternal") { it.setterFlags.isInline shouldBe false }
-                        withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
+                        // Value properties do not have setters.
+                        it.setterFlags shouldBe null
                     },
                 )
             }
         }
 
-        "Then the property accessor flags should be written and re-initialized correctly" {
+        Then("the property accessor flags should be written and re-initialized correctly") {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
             clazz.accept(ReWritingMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
@@ -73,22 +71,20 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isDefault") { it.getterFlags.isDefault shouldBe true }
                         withClue("isInline") { it.getterFlags.isInline shouldBe false }
                         withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
-                        // setterFlags should be set correctly
-                        withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
-                        withClue("isExternal") { it.setterFlags.isInline shouldBe false }
-                        withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
+                        // Value properties do not have setters.
+                        it.setterFlags shouldBe null
                     },
                 )
             }
         }
     }
 
-    "Given a property with a non-default, inlined getter" - {
+    Given("a property with a non-default, inlined getter") {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource("Test.kt", "val foo: Int inline get() = 1".trimIndent()),
         ).programClassPool.getClass("TestKt")
 
-        "Then the property accessor flags should be set accordingly" {
+        Then("the property accessor flags should be set accordingly") {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
             clazz.accept(ReferencedKotlinMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
@@ -101,16 +97,14 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isDefault") { it.getterFlags.isDefault shouldBe false }
                         withClue("isInline") { it.getterFlags.isInline shouldBe true }
                         withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
-                        // setterFlags should be set correctly
-                        withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
-                        withClue("isExternal") { it.setterFlags.isInline shouldBe false }
-                        withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
+                        // Value properties do not have setters.
+                        it.setterFlags shouldBe null
                     },
                 )
             }
         }
 
-        "Then the property accessor flags should written and re-initialized correctly" {
+        Then("the property accessor flags should written and re-initialized correctly") {
             val propertyVisitor = spyk<KotlinPropertyVisitor>()
             clazz.accept(ReWritingMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
 
@@ -123,10 +117,8 @@ class KotlinPropertyAccessorFlagsTest : FreeSpec({
                         withClue("isDefault") { it.getterFlags.isDefault shouldBe false }
                         withClue("isInline") { it.getterFlags.isInline shouldBe true }
                         withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
-                        // setterFlags should be set correctly
-                        withClue("isExternal") { it.setterFlags.isDefault shouldBe true }
-                        withClue("isExternal") { it.setterFlags.isInline shouldBe false }
-                        withClue("isExternal") { it.setterFlags.isExternal shouldBe false }
+                        // Value properties do not have setters.
+                        it.setterFlags shouldBe null
                     },
                 )
             }

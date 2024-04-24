@@ -25,9 +25,10 @@ package proguard.classfile.kotlin.flags;
  */
 public class KotlinPropertyFlags implements KotlinFlags {
 
-  public final KotlinCommonFlags common;
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
+
+  public boolean hasAnnotations;
 
   /**
    * A member kind flag, signifying that the corresponding property is explicitly declared in the
@@ -57,12 +58,6 @@ public class KotlinPropertyFlags implements KotlinFlags {
 
   /** Signifies that the corresponding property is `var`. */
   public boolean isVar;
-
-  /** Signifies that the corresponding property has a getter. */
-  public boolean hasGetter;
-
-  /** Signifies that the corresponding property has a setter. */
-  public boolean hasSetter;
 
   /** Signifies that the corresponding property is `const`. */
   public boolean isConst;
@@ -97,9 +92,7 @@ public class KotlinPropertyFlags implements KotlinFlags {
    */
   public boolean isMovedFromInterfaceCompanion;
 
-  public KotlinPropertyFlags(
-      KotlinCommonFlags common, KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
-    this.common = common;
+  public KotlinPropertyFlags(KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;
     this.modality = modality;
   }

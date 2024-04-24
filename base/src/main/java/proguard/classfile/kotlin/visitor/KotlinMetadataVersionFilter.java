@@ -19,6 +19,7 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.util.kotlin.KotlinMetadataType;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
@@ -80,7 +81,8 @@ public class KotlinMetadataVersionFilter
   @Override
   public void visitArrayElementValue(
       Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue) {
-    MetadataType arrayElementType = MetadataType.valueOf(arrayElementValue.getMethodName(clazz));
+    KotlinMetadataType arrayElementType =
+        KotlinMetadataType.valueOf(arrayElementValue.getMethodName(clazz));
     // Collect the major, minor and patch elements of the metadataVersion in mv.
     arrayElementValue.elementValuesAccept(
         clazz, annotation, new MetadataVersionCollector(arrayElementType));
@@ -89,9 +91,9 @@ public class KotlinMetadataVersionFilter
   private class MetadataVersionCollector implements ElementValueVisitor, ConstantVisitor {
     private int index = 0;
 
-    private final MetadataType arrayElementType;
+    private final KotlinMetadataType arrayElementType;
 
-    public MetadataVersionCollector(MetadataType arrayElementType) {
+    public MetadataVersionCollector(KotlinMetadataType arrayElementType) {
       this.arrayElementType = arrayElementType;
     }
 
@@ -114,7 +116,7 @@ public class KotlinMetadataVersionFilter
 
     @Override
     public void visitIntegerConstant(Clazz clazz, IntegerConstant integerConstant) {
-      if (this.arrayElementType == MetadataType.mv) {
+      if (this.arrayElementType == KotlinMetadataType.mv) {
         mv[index++] = integerConstant.getValue();
       }
     }

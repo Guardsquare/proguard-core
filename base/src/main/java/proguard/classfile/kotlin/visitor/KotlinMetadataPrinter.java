@@ -89,7 +89,7 @@ public class KotlinMetadataPrinter
             + "Kotlin "
             + classFlags(kotlinClassKindMetadata.flags)
             + "class("
-            + hasAnnotationsFlag(kotlinClassKindMetadata.flags.common)
+            + (kotlinClassKindMetadata.flags.hasAnnotations ? "@" : "")
             + externalClassName(kotlinClassKindMetadata.className)
             + ")");
 
@@ -209,12 +209,12 @@ public class KotlinMetadataPrinter
     if (kotlinClassKindMetadata.flags.isAnnotationClass) {
       pw.println(
           constructorFlags(kotlinConstructorMetadata.flags)
-              + hasAnnotationsFlag(kotlinConstructorMetadata.flags.common));
+              + (kotlinConstructorMetadata.flags.hasAnnotations ? "@" : ""));
     } else {
       pw.println(
           hasRefIndicator(kotlinConstructorMetadata.referencedMethod)
               + constructorFlags(kotlinConstructorMetadata.flags)
-              + hasAnnotationsFlag(kotlinConstructorMetadata.flags.common)
+              + (kotlinConstructorMetadata.flags.hasAnnotations ? "@" : "")
               + "["
               + externalMethodDescription(kotlinConstructorMetadata.jvmSignature)
               + "]");
@@ -254,7 +254,7 @@ public class KotlinMetadataPrinter
     println(
         "[VALP] "
             + valueParameterFlags(kotlinValueParameterMetadata.flags)
-            + hasAnnotationsFlag(kotlinValueParameterMetadata.flags.common)
+            + (kotlinValueParameterMetadata.flags.hasAnnotations ? "@" : "")
             + "\""
             + kotlinValueParameterMetadata.parameterName
             + "\" ");
@@ -310,33 +310,25 @@ public class KotlinMetadataPrinter
       KotlinPropertyMetadata kotlinPropertyMetadata) {
     print(
         propertyFlags(kotlinPropertyMetadata.flags)
-            + hasAnnotationsFlag(kotlinPropertyMetadata.flags.common)
+            + (kotlinPropertyMetadata.flags.hasAnnotations ? "@" : "")
             + "\""
             + kotlinPropertyMetadata.name
             + "\" ");
 
     String getString =
-        kotlinPropertyMetadata.flags.hasGetter
-            ? (propertyAccessorFlags(kotlinPropertyMetadata.getterFlags)
-                + hasAnnotationsFlag(kotlinPropertyMetadata.getterFlags.common)
-                + "get")
-            : "";
+        propertyAccessorFlags(kotlinPropertyMetadata.getterFlags)
+            + (kotlinPropertyMetadata.getterFlags.hasAnnotations ? "@" : "")
+            + "get";
 
     String setString =
-        kotlinPropertyMetadata.flags.hasSetter
+        kotlinPropertyMetadata.flags.isVar
             ? (propertyAccessorFlags(kotlinPropertyMetadata.setterFlags)
-                + hasAnnotationsFlag(kotlinPropertyMetadata.setterFlags.common)
+                + (kotlinPropertyMetadata.setterFlags.hasAnnotations ? "@" : "")
                 + "set")
             : "";
 
     pw.println(
-        "["
-            + getString
-            + (kotlinPropertyMetadata.flags.hasGetter && kotlinPropertyMetadata.flags.hasSetter
-                ? "/"
-                : "")
-            + setString
-            + "] ");
+        "[" + getString + (kotlinPropertyMetadata.flags.isVar ? "/" : "") + setString + "] ");
 
     indent();
 
@@ -621,7 +613,7 @@ public class KotlinMetadataPrinter
       KotlinTypeAliasMetadata kotlinTypeAliasMetadata) {
     println(
         "[ALIA] "
-            + hasAnnotationsFlag(kotlinTypeAliasMetadata.flags.common)
+            + (kotlinTypeAliasMetadata.flags.hasAnnotations ? "@" : "")
             + hasRefIndicator(kotlinTypeAliasMetadata.referencedDeclarationContainer)
             + kotlinTypeAliasMetadata.name
             + " ");
@@ -679,7 +671,7 @@ public class KotlinMetadataPrinter
     pw.print(
         hasRefIndicator(kotlinFunctionMetadata.referencedMethod)
             + functionFlags(kotlinFunctionMetadata.flags)
-            + hasAnnotationsFlag(kotlinFunctionMetadata.flags.common)
+            + (kotlinFunctionMetadata.flags.hasAnnotations ? "@" : "")
             + "\""
             + kotlinFunctionMetadata.name
             + "\" ["
@@ -1027,7 +1019,6 @@ public class KotlinMetadataPrinter
         + (flags.isUsualClass ? "usual " : "")
         + (flags.isObject ? "object " : "")
         + (flags.isData ? "data " : "")
-        + (flags.isInline ? "inline " : "")
         + (flags.isValue ? "value " : "")
         + (flags.isInner ? "inner " : "")
         + (flags.isExpect ? "expect " : "")
@@ -1044,7 +1035,7 @@ public class KotlinMetadataPrinter
 
   private String constructorFlags(KotlinConstructorFlags flags) {
     return visibilityFlags(flags.visibility)
-        + (flags.isPrimary ? "primary " : "secondary ")
+        + (flags.isSecondary ? "secondary " : "primary ")
         + (flags.hasNonStableParameterNames ? "nonstable " : "stable ");
   }
 

@@ -22,16 +22,51 @@ import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_METADATA;
 import static proguard.classfile.util.kotlin.KotlinMetadataInitializer.isValidKotlinMetadataAnnotationField;
 import static proguard.classfile.util.kotlin.KotlinMetadataInitializer.metadataTypeOf;
 
-import java.io.*;
-import java.util.*;
-import proguard.classfile.*;
-import proguard.classfile.attribute.annotation.*;
+import java.io.DataInput;
+import java.util.ArrayList;
+import java.util.List;
+import proguard.classfile.Clazz;
+import proguard.classfile.LibraryClass;
+import proguard.classfile.LibraryField;
+import proguard.classfile.LibraryMember;
+import proguard.classfile.LibraryMethod;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramMember;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.attribute.annotation.Annotation;
+import proguard.classfile.attribute.annotation.AnnotationElementValue;
+import proguard.classfile.attribute.annotation.ArrayElementValue;
+import proguard.classfile.attribute.annotation.ClassElementValue;
+import proguard.classfile.attribute.annotation.ConstantElementValue;
+import proguard.classfile.attribute.annotation.ElementValue;
+import proguard.classfile.attribute.annotation.EnumConstantElementValue;
 import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
-import proguard.classfile.constant.*;
+import proguard.classfile.constant.ClassConstant;
+import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.DoubleConstant;
+import proguard.classfile.constant.DynamicConstant;
+import proguard.classfile.constant.FieldrefConstant;
+import proguard.classfile.constant.FloatConstant;
+import proguard.classfile.constant.IntegerConstant;
+import proguard.classfile.constant.InterfaceMethodrefConstant;
+import proguard.classfile.constant.InvokeDynamicConstant;
+import proguard.classfile.constant.LongConstant;
+import proguard.classfile.constant.MethodHandleConstant;
+import proguard.classfile.constant.MethodTypeConstant;
+import proguard.classfile.constant.MethodrefConstant;
+import proguard.classfile.constant.ModuleConstant;
+import proguard.classfile.constant.NameAndTypeConstant;
+import proguard.classfile.constant.PackageConstant;
+import proguard.classfile.constant.PrimitiveArrayConstant;
+import proguard.classfile.constant.RefConstant;
+import proguard.classfile.constant.StringConstant;
+import proguard.classfile.constant.Utf8Constant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.util.*;
-import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MetadataType;
-import proguard.classfile.visitor.*;
+import proguard.classfile.util.AccessUtil;
+import proguard.classfile.util.ClassUtil;
+import proguard.classfile.util.kotlin.KotlinMetadataType;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberVisitor;
 import proguard.io.RuntimeDataInput;
 
 /**
@@ -501,11 +536,11 @@ public class LibraryClassReader implements ClassVisitor, MemberVisitor, Constant
 
   private class KotlinMetadataAnnotationElementValueReader implements ElementValueVisitor {
 
-    private final MetadataType elementName;
+    private final KotlinMetadataType elementName;
     private final KotlinMetadataElementValues kotlinMetadataFields;
 
     public KotlinMetadataAnnotationElementValueReader(
-        MetadataType elementName, KotlinMetadataElementValues kotlinMetadataFields) {
+        KotlinMetadataType elementName, KotlinMetadataElementValues kotlinMetadataFields) {
       this.elementName = elementName;
       this.kotlinMetadataFields = kotlinMetadataFields;
     }

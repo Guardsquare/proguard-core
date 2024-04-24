@@ -18,7 +18,7 @@
 
 package proguard.classfile.kotlin.flags
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.spec.style.funSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
@@ -46,7 +46,7 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
 
-class KotlinCommonFlagsTest : FreeSpec({
+class KotlinHasAnnotationsFlagTest : BehaviorSpec({
 
     val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
@@ -140,7 +140,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
         verify {
             kotlinClassVisitor.visitKotlinClassMetadata(
                 clazz,
-                withArg { it.flags.common.hasAnnotations shouldBe expected },
+                withArg { it.flags.hasAnnotations shouldBe expected },
             )
         }
     }
@@ -151,7 +151,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 clazz,
                 ofType(KotlinClassKindMetadata::class),
                 withArg {
-                    it.flags.common.hasAnnotations shouldBe expected
+                    it.flags.hasAnnotations shouldBe expected
                 },
             )
         }
@@ -163,7 +163,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 clazz,
                 ofType(KotlinClassKindMetadata::class),
                 withArg {
-                    it.flags.common.hasAnnotations shouldBe expected
+                    it.flags.hasAnnotations shouldBe expected
                 },
             )
         }
@@ -175,9 +175,9 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
                 clazz,
                 ofType(KotlinClassKindMetadata::class),
                 withArg {
-                    it.flags.common.hasAnnotations shouldBe expected
-                    it.getterFlags.common.hasAnnotations shouldBe expected
-                    it.setterFlags.common.hasAnnotations shouldBe expected
+                    it.flags.hasAnnotations shouldBe expected
+                    it.getterFlags.hasAnnotations shouldBe expected
+                    it.setterFlags.hasAnnotations shouldBe expected
                 },
             )
         }
@@ -188,7 +188,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
             kotlinValueParamVisitor.visitAnyValueParameter(
                 clazz,
                 withArg {
-                    it.flags.common.hasAnnotations shouldBe expected
+                    it.flags.hasAnnotations shouldBe expected
                 },
             )
         }
@@ -199,7 +199,7 @@ internal fun testHasAnnotation(prefix: String, clazz: Clazz, expected: Boolean, 
             kotlinTypeAliasVisitor.visitTypeAlias(
                 clazz,
                 ofType(KotlinDeclarationContainerMetadata::class),
-                withArg { it.flags.common.hasAnnotations shouldBe expected },
+                withArg { it.flags.hasAnnotations shouldBe expected },
             )
         }
     }

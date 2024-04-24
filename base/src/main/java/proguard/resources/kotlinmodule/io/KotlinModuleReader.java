@@ -28,8 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import kotlinx.metadata.jvm.KmModule;
-import kotlinx.metadata.jvm.KotlinModuleMetadata;
+import kotlin.metadata.jvm.KmModule;
+import kotlin.metadata.jvm.KotlinModuleMetadata;
 import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.kotlin.KotlinMetadataVersion;
@@ -73,7 +73,7 @@ public class KotlinModuleReader implements ResourceFileVisitor {
 
       byte[] bytes = byteStream.toByteArray();
       KotlinModuleMetadata kotlinModuleMetadata = KotlinModuleMetadata.read(bytes);
-      KmModule kmModule = requireNonNull(kotlinModuleMetadata).toKmModule();
+      KmModule kmModule = requireNonNull(kotlinModuleMetadata).getKmModule();
 
       kotlinModule.version = getKotlinModuleMetadataVersion(bytes);
 

@@ -18,7 +18,7 @@
 
 package proguard.util
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import proguard.classfile.ProgramClass
@@ -26,8 +26,8 @@ import proguard.classfile.constant.Utf8Constant
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 
-class ProguardAssemblerTest : FreeSpec({
-    "Given Java bytecode" - {
+class ProguardAssemblerTest : BehaviorSpec({
+    Given("Java bytecode") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             AssemblerSource(
                 "A.jbc",
@@ -57,9 +57,9 @@ class ProguardAssemblerTest : FreeSpec({
         """,
             ),
         )
-        "When the ClassPool object is created" - {
+        When("the ClassPool object is created") {
             programClassPool.shouldNotBeNull()
-            "Then the count and name of the methods should match the bytecode" {
+            Then("the count and name of the methods should match the bytecode") {
                 val classA = programClassPool.getClass("A") as ProgramClass
                 classA.methods.size shouldBe 2
                 (classA.constantPool[classA.methods[0].u2nameIndex] as Utf8Constant).string shouldBe "<init>"

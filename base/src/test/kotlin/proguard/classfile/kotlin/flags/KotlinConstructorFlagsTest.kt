@@ -19,7 +19,7 @@
 package proguard.classfile.kotlin.flags
 
 import io.kotest.assertions.withClue
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
@@ -32,9 +32,8 @@ import proguard.classfile.kotlin.visitor.filter.KotlinConstructorFilter
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
-import java.util.function.Predicate
 
-class KotlinConstructorFlagsTest : FreeSpec({
+class KotlinConstructorFlagsTest : BehaviorSpec({
 
     val (programClassPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
@@ -52,51 +51,13 @@ class KotlinConstructorFlagsTest : FreeSpec({
         ),
     )
 
-    "Given a primary constructor" - {
+    Given("a primary constructor") {
         val clazz = programClassPool.getClass("Foo")
 
-        "Then the isPrimary flag should be initialized to true" {
+        Then("the isSecondary flag should be initialized to false") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
-            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, primary = true)))
-
-            verify(exactly = 1) {
-                consVisitor.visitConstructor(
-                    clazz,
-                    ofType(KotlinClassKindMetadata::class),
-                    withArg {
-                        withClue("Init: isPrimary shouldBe true") {
-                            @Suppress("DEPRECATION")
-                            it.flags.isPrimary shouldBe true
-                        }
-                    },
-                )
-            }
-        }
-
-        "Then the isPrimary flag should be written and re-initialized to true" {
-            val consVisitor = spyk<KotlinConstructorVisitor>()
-
-            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, primary = true)))
-
-            verify(exactly = 1) {
-                consVisitor.visitConstructor(
-                    clazz,
-                    ofType(KotlinClassKindMetadata::class),
-                    withArg {
-                        withClue("Rewrite: isPrimary shouldBe true") {
-                            @Suppress("DEPRECATION")
-                            it.flags.isPrimary shouldBe true
-                        }
-                    },
-                )
-            }
-        }
-
-        "Then the isSecondary flag should be initialized to false" {
-            val consVisitor = spyk<KotlinConstructorVisitor>()
-
-            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, primary = true)))
+            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, secondary = false)))
 
             verify(exactly = 1) {
                 consVisitor.visitConstructor(
@@ -111,10 +72,10 @@ class KotlinConstructorFlagsTest : FreeSpec({
             }
         }
 
-        "Then the isSecondary flag should be written and re-initialized to false" {
+        Then("the isSecondary flag should be written and re-initialized to false") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
-            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, primary = true)))
+            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, secondary = false)))
 
             verify(exactly = 1) {
                 consVisitor.visitConstructor(
@@ -130,51 +91,13 @@ class KotlinConstructorFlagsTest : FreeSpec({
         }
     }
 
-    "Given secondary constructors" - {
+    Given("secondary constructors") {
         val clazz = programClassPool.getClass("Foo")
 
-        "Then the isPrimary flag should be initialized to false" {
+        Then("the isSecondary flag should be initialized to true") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
-            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, primary = false)))
-
-            verify(exactly = 4) {
-                consVisitor.visitConstructor(
-                    clazz,
-                    ofType(KotlinClassKindMetadata::class),
-                    withArg {
-                        withClue("Init: isPrimary shouldBe false") {
-                            @Suppress("DEPRECATION")
-                            it.flags.isPrimary shouldBe false
-                        }
-                    },
-                )
-            }
-        }
-
-        "Then the isPrimary flag should be written and re-initialized to false" {
-            val consVisitor = spyk<KotlinConstructorVisitor>()
-
-            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, primary = false)))
-
-            verify(exactly = 4) {
-                consVisitor.visitConstructor(
-                    clazz,
-                    ofType(KotlinClassKindMetadata::class),
-                    withArg {
-                        withClue("Rewrite: isPrimary shouldBe false") {
-                            @Suppress("DEPRECATION")
-                            it.flags.isPrimary shouldBe false
-                        }
-                    },
-                )
-            }
-        }
-
-        "Then the isSecondary flag should be initialized to true" {
-            val consVisitor = spyk<KotlinConstructorVisitor>()
-
-            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, primary = false)))
+            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, secondary = true)))
 
             verify(exactly = 4) {
                 consVisitor.visitConstructor(
@@ -189,10 +112,10 @@ class KotlinConstructorFlagsTest : FreeSpec({
             }
         }
 
-        "Then the isSecondary flag should be written and re-initialized to true" {
+        Then("the isSecondary flag should be written and re-initialized to true") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
-            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, primary = false)))
+            clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, secondary = true)))
 
             verify(exactly = 4) {
                 consVisitor.visitConstructor(
@@ -211,10 +134,10 @@ class KotlinConstructorFlagsTest : FreeSpec({
     // TODO(T5550) Add test for hasNonStableParameterNames
 })
 
-private fun createVisitor(consVisitor: KotlinConstructorVisitor, primary: Boolean): KotlinMetadataVisitor =
+private fun createVisitor(consVisitor: KotlinConstructorVisitor, secondary: Boolean): KotlinMetadataVisitor =
     AllConstructorVisitor(
         KotlinConstructorFilter(
-            Predicate { if (primary) it.valueParameters.size == 1 else it.valueParameters.size > 1 },
+            { if (!secondary) it.valueParameters.size == 1 else it.valueParameters.size > 1 },
             consVisitor,
         ),
     )

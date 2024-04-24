@@ -18,14 +18,15 @@
 
 package proguard.classfile.kotlin
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyAll
-import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 import proguard.classfile.MethodSignature
+import proguard.classfile.io.kotlin.KotlinMetadataWriter.HIGHEST_ALLOWED_TO_WRITE
+import proguard.classfile.io.kotlin.KotlinMetadataWriter.LATEST_STABLE_SUPPORTED
 import proguard.classfile.kotlin.KotlinAnnotationArgument.ArrayValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.BooleanValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.ByteValue
@@ -52,7 +53,6 @@ import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
 import proguard.classfile.util.kotlin.KotlinMetadataInitializer
-import proguard.classfile.util.kotlin.KotlinMetadataInitializer.MAX_SUPPORTED_VERSION
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
@@ -69,9 +69,9 @@ import proguard.testutils.ReWritingMetadataVisitor
  * If the writer correctly wrote the metadata then the initializer should be able to
  * re-generate the model correctly.
  */
-class KotlinMetadataWriterTest : FreeSpec({
+class KotlinMetadataWriterTest : BehaviorSpec({
 
-    "Given a file facade" - {
+    Given("a file facade") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -99,7 +99,7 @@ class KotlinMetadataWriterTest : FreeSpec({
             ),
         )
 
-        "Then the ownerClassName shouldBe correct" {
+        Then("the ownerClassName shouldBe correct") {
             verify(exactly = 1) {
                 metadataVisitor.visitKotlinFileFacadeMetadata(
                     programClassPool.getClass("TestKt"),
@@ -110,7 +110,7 @@ class KotlinMetadataWriterTest : FreeSpec({
             }
         }
 
-        "Then there should be 1 function" {
+        Then("there should be 1 function") {
             verify(exactly = 1) {
                 functionVisitor.visitFunction(
                     programClassPool.getClass("TestKt"),
@@ -124,7 +124,7 @@ class KotlinMetadataWriterTest : FreeSpec({
         }
     }
 
-    "Given an annotation" - {
+    Given("an annotation") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -190,7 +190,7 @@ class KotlinMetadataWriterTest : FreeSpec({
         )
         val annotation = slot<KotlinAnnotation>()
 
-        "Then there should be 1 annotation visited" {
+        Then("there should be 1 annotation visited") {
             verify(exactly = 1) {
                 annotationVisitor.visitTypeAnnotation(
                     fileFacadeClass,
@@ -200,7 +200,7 @@ class KotlinMetadataWriterTest : FreeSpec({
             }
         }
 
-        "Then the annotation argument values should be correctly set" {
+        Then("the annotation argument values should be correctly set") {
             val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
 
             programClassPool.classesAccept(
@@ -371,7 +371,7 @@ class KotlinMetadataWriterTest : FreeSpec({
         }
     }
 
-    "Given an inline class" - {
+    Given("an inline class") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -391,7 +391,7 @@ class KotlinMetadataWriterTest : FreeSpec({
             ),
         )
 
-        "Then the type and name should be correct" {
+        Then("the type and name should be correct") {
             verify {
                 kotlinTypeVisitor.visitInlineClassUnderlyingPropertyType(
                     clazz,
@@ -405,7 +405,7 @@ class KotlinMetadataWriterTest : FreeSpec({
         }
     }
 
-    "Given a Kotlin class with a incompatible metadata version" - {
+    Given("a Kotlin class with a incompatible metadata version") {
         val unsupportedVersion = KotlinMetadataVersion(1, 3, 0)
 
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
@@ -425,7 +425,7 @@ class KotlinMetadataWriterTest : FreeSpec({
         programClassPool.classesAccept(KotlinMetadataInitializer { _, _ -> })
         val clazz = programClassPool.getClass("TestCompatibleMetadata")
 
-        "Then the compatible version from the metadata library should be written" {
+        Then("the compatible version from the metadata library should be written") {
             val visitor = spyk<KotlinMetadataVisitor>()
 
             clazz.accept(ReWritingMetadataVisitor(visitor))
@@ -434,15 +434,15 @@ class KotlinMetadataWriterTest : FreeSpec({
                 visitor.visitKotlinClassMetadata(
                     clazz,
                     withArg {
-                        it.mv shouldBe JvmMetadataVersion.INSTANCE.toArray()
+                        it.mv shouldBe LATEST_STABLE_SUPPORTED.toArray()
                     },
                 )
             }
         }
     }
 
-    "Given a Kotlin class with a compatible metadata version" - {
-        val maxVersion = MAX_SUPPORTED_VERSION
+    Given("a Kotlin class with a compatible metadata version") {
+        val maxVersion = HIGHEST_ALLOWED_TO_WRITE
 
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
@@ -461,7 +461,7 @@ class KotlinMetadataWriterTest : FreeSpec({
         programClassPool.classesAccept(KotlinMetadataInitializer { _, _ -> })
         val clazz = programClassPool.getClass("TestCompatibleMetadata")
 
-        "Then the compatible version from the metadata library should be written" {
+        Then("the compatible version from the metadata library should be written") {
             val visitor = spyk<KotlinMetadataVisitor>()
 
             clazz.accept(ReWritingMetadataVisitor(visitor))
@@ -470,7 +470,7 @@ class KotlinMetadataWriterTest : FreeSpec({
                 visitor.visitKotlinClassMetadata(
                     clazz,
                     withArg {
-                        it.mv shouldBe maxVersion.toArray()
+                        it.mv shouldBe HIGHEST_ALLOWED_TO_WRITE.toArray()
                     },
                 )
             }

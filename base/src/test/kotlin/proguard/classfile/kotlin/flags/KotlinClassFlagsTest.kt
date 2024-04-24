@@ -1,6 +1,6 @@
 package proguard.classfile.kotlin.flags
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.spec.style.funSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
@@ -12,7 +12,7 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
 
-class KotlinClassFlagsTest : FreeSpec({
+class KotlinClassFlagsTest : BehaviorSpec({
 
     val (classFlagsTestPool, _) = ClassPoolBuilder.fromSource(
         KotlinSource(
@@ -48,8 +48,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -70,8 +68,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe true
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe true
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -92,8 +88,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe true
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe true
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -114,8 +108,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -136,8 +128,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -158,8 +148,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe true
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -180,8 +168,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -202,8 +188,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -226,8 +210,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -248,8 +230,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -270,8 +250,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe true
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe false
@@ -310,8 +288,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe true
@@ -346,8 +322,6 @@ class KotlinClassFlagsTest : FreeSpec({
             it.isData shouldBe false
             it.isExternal shouldBe false
             it.isValue shouldBe false
-            @Suppress("DEPRECATION")
-            it.isInline shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
             it.hasMethodBodiesInInterface shouldBe true

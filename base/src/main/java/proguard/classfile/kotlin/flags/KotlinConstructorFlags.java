@@ -25,15 +25,9 @@ package proguard.classfile.kotlin.flags;
  */
 public class KotlinConstructorFlags implements KotlinFlags {
 
-  public final KotlinCommonFlags common;
   public final KotlinVisibilityFlags visibility;
 
-  /**
-   * Signifies that the corresponding constructor is the primary constructor.
-   *
-   * @deprecated Use {@link #isSecondary} instead.
-   */
-  @Deprecated public boolean isPrimary;
+  public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding constructor is secondary, i.e. declared not in the class
@@ -47,8 +41,7 @@ public class KotlinConstructorFlags implements KotlinFlags {
    */
   public boolean hasNonStableParameterNames;
 
-  public KotlinConstructorFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility) {
-    this.common = common;
+  public KotlinConstructorFlags(KotlinVisibilityFlags visibility) {
     this.visibility = visibility;
   }
 }

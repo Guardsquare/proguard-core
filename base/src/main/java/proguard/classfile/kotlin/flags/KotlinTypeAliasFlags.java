@@ -19,10 +19,10 @@ package proguard.classfile.kotlin.flags;
 
 public class KotlinTypeAliasFlags implements KotlinFlags {
   public final KotlinVisibilityFlags visibility;
-  public final KotlinCommonFlags common;
 
-  public KotlinTypeAliasFlags(KotlinCommonFlags common, KotlinVisibilityFlags visibility) {
-    this.common = common;
+  public boolean hasAnnotations;
+
+  public KotlinTypeAliasFlags(KotlinVisibilityFlags visibility) {
     this.visibility = visibility;
   }
 }

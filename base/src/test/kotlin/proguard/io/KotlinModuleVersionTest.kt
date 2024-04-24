@@ -7,19 +7,19 @@
 
 package proguard.io
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 import proguard.resources.kotlinmodule.KotlinModule
 import proguard.resources.kotlinmodule.io.KotlinModuleReader
 import proguard.resources.kotlinmodule.io.KotlinModuleWriter
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.Base64
+import kotlin.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
 
-class KotlinModuleVersionTest : FreeSpec({
+class KotlinModuleVersionTest : BehaviorSpec({
 
-    "When given a Kotlin Module file with a supported Kotlin metadata version" - {
+    Given("given a Kotlin Module file with a supported Kotlin metadata version") {
         val base64encoded1dot7dot0ModuleFile = "AAAAAwAAAAEAAAAHAAAAAAAAAAAiACoA"
         val decodedBytes = Base64.getDecoder().decode(base64encoded1dot7dot0ModuleFile)
         // Read the module.
@@ -28,7 +28,7 @@ class KotlinModuleVersionTest : FreeSpec({
         kotlinModuleReader.visitKotlinModule(kotlinModule)
         kotlinModule.version.toArray() shouldBe arrayOf(1, 7, 0)
 
-        "Then that version of the Kotlin metadata is written" {
+        Then("that version of the Kotlin metadata is written") {
             // Write the processed module.
             val outputStream = ByteArrayOutputStream()
             val kotlinModuleWriter = KotlinModuleWriter(outputStream)
@@ -43,7 +43,7 @@ class KotlinModuleVersionTest : FreeSpec({
         }
     }
 
-    "When given a Kotlin Module file with an unsupported Kotlin metadata version" - {
+    Given("given a Kotlin Module file with an unsupported Kotlin metadata version") {
         val base64encoded1dot1dot18ModuleFile = "AAAAAwAAAAEAAAABAAAAEiIAKgA="
         val decodedBytes = Base64.getDecoder().decode(base64encoded1dot1dot18ModuleFile)
         val kotlinModule = KotlinModule("kotlin_test.kotlin_module", decodedBytes.size.toLong())
@@ -52,7 +52,7 @@ class KotlinModuleVersionTest : FreeSpec({
         kotlinModuleReader.visitKotlinModule(kotlinModule)
         kotlinModule.version.toArray() shouldBe arrayOf(1, 1, 18)
 
-        "Then the COMPATIBLE version of the Kotlin metadata is written" {
+        Then("the COMPATIBLE version of the Kotlin metadata is written") {
             // Write the processed module.
             val outputStream = ByteArrayOutputStream()
             val kotlinModuleWriter = KotlinModuleWriter(outputStream)

@@ -24,9 +24,11 @@ package proguard.classfile.kotlin.flags;
  * isPrivateToThis - isLocal - isFinal - isOpen - isAbstract - isSealed
  */
 public class KotlinPropertyAccessorFlags implements KotlinFlags {
-  public KotlinCommonFlags common;
+
   public KotlinVisibilityFlags visibility;
   public KotlinModalityFlags modality;
+
+  public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding property is not default, i.e. it has a body and/or annotations
@@ -41,8 +43,7 @@ public class KotlinPropertyAccessorFlags implements KotlinFlags {
   public boolean isInline;
 
   public KotlinPropertyAccessorFlags(
-      KotlinCommonFlags common, KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
-    this.common = common;
+      KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;
     this.modality = modality;
   }

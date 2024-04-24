@@ -27,7 +27,8 @@ public class KotlinClassFlags implements KotlinFlags {
 
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
-  public final KotlinCommonFlags common;
+
+  public boolean hasAnnotations;
 
   /** A class kind flag, signifying that the corresponding class is a usual `class`. */
   public boolean isUsualClass;
@@ -62,9 +63,6 @@ public class KotlinClassFlags implements KotlinFlags {
   /** Signifies that the corresponding class is `expect`. */
   public boolean isExpect;
 
-  /** Signifies that the corresponding class is `inline`. */
-  @Deprecated public boolean isInline;
-
   /** Signifies that the corresponding class is `value`. */
   public boolean isValue;
 
@@ -92,9 +90,7 @@ public class KotlinClassFlags implements KotlinFlags {
    */
   public boolean isCompiledInCompatibilityMode;
 
-  public KotlinClassFlags(
-      KotlinCommonFlags common, KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
-    this.common = common;
+  public KotlinClassFlags(KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;
     this.modality = modality;
   }

@@ -25,9 +25,10 @@ package proguard.classfile.kotlin.flags;
  */
 public class KotlinFunctionFlags implements KotlinFlags {
 
-  public final KotlinCommonFlags common;
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
+
+  public boolean hasAnnotations;
 
   /**
    * A member kind flag, signifying that the corresponding function is explicitly declared in the
@@ -75,9 +76,7 @@ public class KotlinFunctionFlags implements KotlinFlags {
   /** Signifies that the corresponding function is `expect`. */
   public boolean isExpect;
 
-  public KotlinFunctionFlags(
-      KotlinCommonFlags common, KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
-    this.common = common;
+  public KotlinFunctionFlags(KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;
     this.modality = modality;
   }

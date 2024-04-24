@@ -1034,7 +1034,7 @@ public class ClassReferenceFixer
 
     if (!oldSignature.equals(newSignature) && flags != null) {
       addJvmNameAnnotation((ProgramClass) referencedMethodClass, (ProgramMethod) referencedMethod);
-      flags.common.hasAnnotations = true;
+      flags.hasAnnotations = true;
     }
 
     return newSignature;

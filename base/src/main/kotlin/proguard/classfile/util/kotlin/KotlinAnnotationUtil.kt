@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2020 Guardsquare NV
+ * Copyright (c) 2002-2024 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,30 +17,31 @@
  */
 package proguard.classfile.util.kotlin
 
-import kotlinx.metadata.KmAnnotation
-import kotlinx.metadata.KmAnnotationArgument
-import kotlinx.metadata.KmAnnotationArgument.AnnotationValue
-import kotlinx.metadata.KmAnnotationArgument.ArrayValue
-import kotlinx.metadata.KmAnnotationArgument.BooleanValue
-import kotlinx.metadata.KmAnnotationArgument.ByteValue
-import kotlinx.metadata.KmAnnotationArgument.CharValue
-import kotlinx.metadata.KmAnnotationArgument.DoubleValue
-import kotlinx.metadata.KmAnnotationArgument.EnumValue
-import kotlinx.metadata.KmAnnotationArgument.FloatValue
-import kotlinx.metadata.KmAnnotationArgument.IntValue
-import kotlinx.metadata.KmAnnotationArgument.KClassValue
-import kotlinx.metadata.KmAnnotationArgument.LongValue
-import kotlinx.metadata.KmAnnotationArgument.ShortValue
-import kotlinx.metadata.KmAnnotationArgument.StringValue
-import kotlinx.metadata.KmAnnotationArgument.UByteValue
-import kotlinx.metadata.KmAnnotationArgument.UIntValue
-import kotlinx.metadata.KmAnnotationArgument.ULongValue
-import kotlinx.metadata.KmAnnotationArgument.UShortValue
 import proguard.classfile.Clazz
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import java.util.function.BiConsumer
 import java.util.function.Consumer
+import kotlin.metadata.KmAnnotation
+import kotlin.metadata.KmAnnotationArgument
+import kotlin.metadata.KmAnnotationArgument.AnnotationValue
+import kotlin.metadata.KmAnnotationArgument.ArrayKClassValue
+import kotlin.metadata.KmAnnotationArgument.ArrayValue
+import kotlin.metadata.KmAnnotationArgument.BooleanValue
+import kotlin.metadata.KmAnnotationArgument.ByteValue
+import kotlin.metadata.KmAnnotationArgument.CharValue
+import kotlin.metadata.KmAnnotationArgument.DoubleValue
+import kotlin.metadata.KmAnnotationArgument.EnumValue
+import kotlin.metadata.KmAnnotationArgument.FloatValue
+import kotlin.metadata.KmAnnotationArgument.IntValue
+import kotlin.metadata.KmAnnotationArgument.KClassValue
+import kotlin.metadata.KmAnnotationArgument.LongValue
+import kotlin.metadata.KmAnnotationArgument.ShortValue
+import kotlin.metadata.KmAnnotationArgument.StringValue
+import kotlin.metadata.KmAnnotationArgument.UByteValue
+import kotlin.metadata.KmAnnotationArgument.UIntValue
+import kotlin.metadata.KmAnnotationArgument.ULongValue
+import kotlin.metadata.KmAnnotationArgument.UShortValue
 import proguard.classfile.kotlin.KotlinAnnotatable as ProGuardKotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation as ProGuardKotlinAnnotation
 import proguard.classfile.kotlin.KotlinAnnotationArgument as ProGuardAnnotationArgument
@@ -72,8 +73,7 @@ fun convertAnnotation(kmAnnotation: KmAnnotation): ProGuardKotlinAnnotation = km
 private fun KmAnnotation.toProGuardKotlinAnnotation(): ProGuardKotlinAnnotation =
     ProGuardKotlinAnnotation(
         className,
-        arguments.map {
-                (key, value) ->
+        arguments.map { (key, value) ->
             ProGuardAnnotationArgument(key, value.toProGuardKotlinAnnotationArgumentValue())
         },
     )
@@ -94,7 +94,8 @@ private fun KmAnnotationArgument.toProGuardKotlinAnnotationArgumentValue(): ProG
         is UIntValue -> ProGuardUIntValue(value.toInt())
         is ULongValue -> ProGuardULongValue(value.toLong())
         is StringValue -> ProGuardStringValue(value)
-        is KClassValue -> ProGuardClassValue(className, arrayDimensionCount)
+        is KClassValue -> ProGuardClassValue(className)
+        is ArrayKClassValue -> ProGuardClassValue(className, arrayDimensionCount)
         is EnumValue -> ProGuardEnumValue(enumClassName, enumEntryName)
         is AnnotationValue -> ProGuardAnnotationValue(annotation.toProGuardKotlinAnnotation())
         is ArrayValue -> ProGuardArrayValue(elements.map { it.toProGuardKotlinAnnotationArgumentValue() })
@@ -102,7 +103,11 @@ private fun KmAnnotationArgument.toProGuardKotlinAnnotationArgumentValue(): ProG
 
 @ExperimentalUnsignedTypes
 class AnnotationConstructor(private val consumer: Consumer<KmAnnotation>) : KotlinAnnotationVisitor {
-    override fun visitAnyAnnotation(clazz: Clazz, annotatable: ProGuardKotlinAnnotatable, annotation: ProGuardKotlinAnnotation) =
+    override fun visitAnyAnnotation(
+        clazz: Clazz,
+        annotatable: ProGuardKotlinAnnotatable,
+        annotation: ProGuardKotlinAnnotation,
+    ) =
         with(mutableMapOf<String, KmAnnotationArgument>()) {
             // collect the arguments in a Map
             annotation.argumentsAccept(
@@ -116,7 +121,8 @@ class AnnotationConstructor(private val consumer: Consumer<KmAnnotation>) : Kotl
 }
 
 @ExperimentalUnsignedTypes
-private class AnnotationArgumentConstructor(private val consumer: BiConsumer<String, KmAnnotationArgument>) : KotlinAnnotationArgumentVisitor {
+private class AnnotationArgumentConstructor(private val consumer: BiConsumer<String, KmAnnotationArgument>) :
+    KotlinAnnotationArgumentVisitor {
 
     override fun visitAnyArgument(
         clazz: Clazz,
@@ -124,7 +130,8 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
         value: ProGuardKotlinAnnotationArgumentValue,
-    ) { }
+    ) {
+    }
 
     override fun visitUByteArgument(
         clazz: Clazz,
@@ -236,7 +243,13 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
         value: ProGuardClassValue,
-    ) = consumer.accept(argument.name, KClassValue(value.className, value.arrayDimensionsCount))
+    ) = run {
+        if (value.arrayDimensionsCount == 0) {
+            consumer.accept(argument.name, KClassValue(value.className))
+        } else {
+            consumer.accept(argument.name, ArrayKClassValue(value.className, value.arrayDimensionsCount))
+        }
+    }
 
     override fun visitEnumArgument(
         clazz: Clazz,

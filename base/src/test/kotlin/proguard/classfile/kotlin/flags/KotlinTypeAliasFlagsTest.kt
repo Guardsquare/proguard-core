@@ -18,7 +18,7 @@
 
 package proguard.classfile.kotlin.flags
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
@@ -30,14 +30,14 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 import proguard.testutils.ReWritingMetadataVisitor
 
-class KotlinTypeAliasFlagsTest : FreeSpec({
+class KotlinTypeAliasFlagsTest : BehaviorSpec({
 
-    "Given a public type alias without annotation" - {
+    Given("a public type alias without annotation") {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource("Test.kt", "typealias privateAlias = String"),
         ).programClassPool.getClass("TestKt")
 
-        "Then the flags should be initialized correctly" {
+        Then("the flags should be initialized correctly") {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
             clazz.kotlinMetadataAccept(AllTypeAliasVisitor(typeAliasVisitor))
 
@@ -53,13 +53,13 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isInternal shouldBe false
                         it.flags.visibility.isLocal shouldBe false
 
-                        it.flags.common.hasAnnotations shouldBe false
+                        it.flags.hasAnnotations shouldBe false
                     },
                 )
             }
         }
 
-        "Then the flags should be written and re-initialized correctly" {
+        Then("the flags should be written and re-initialized correctly") {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
             clazz.accept(ReWritingMetadataVisitor(AllTypeAliasVisitor(typeAliasVisitor)))
 
@@ -75,19 +75,19 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isInternal shouldBe false
                         it.flags.visibility.isLocal shouldBe false
 
-                        it.flags.common.hasAnnotations shouldBe false
+                        it.flags.hasAnnotations shouldBe false
                     },
                 )
             }
         }
     }
 
-    "Given a private type alias without annotation" - {
+    Given("a private type alias without annotation") {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource("Test.kt", "private typealias privateAlias = String"),
         ).programClassPool.getClass("TestKt")
 
-        "Then the flags should be initialized correctly" {
+        Then("the flags should be initialized correctly") {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
             clazz.kotlinMetadataAccept(AllTypeAliasVisitor(typeAliasVisitor))
 
@@ -103,13 +103,13 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isInternal shouldBe false
                         it.flags.visibility.isLocal shouldBe false
 
-                        it.flags.common.hasAnnotations shouldBe false
+                        it.flags.hasAnnotations shouldBe false
                     },
                 )
             }
         }
 
-        "Then the flags should be written and re-initialized correctly" {
+        Then("the flags should be written and re-initialized correctly") {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
             clazz.accept(ReWritingMetadataVisitor(AllTypeAliasVisitor(typeAliasVisitor)))
 
@@ -125,14 +125,14 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                         it.flags.visibility.isInternal shouldBe false
                         it.flags.visibility.isLocal shouldBe false
 
-                        it.flags.common.hasAnnotations shouldBe false
+                        it.flags.hasAnnotations shouldBe false
                     },
                 )
             }
         }
     }
 
-    "Given an annotated type alias" - {
+    Given("an annotated type alias") {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -145,7 +145,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
             ),
         ).programClassPool.getClass("TestKt")
 
-        "Then the hasAnnotation common flag should be initialized correctly" {
+        Then("the hasAnnotation common flag should be initialized correctly") {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
             clazz.accept(ReferencedKotlinMetadataVisitor(AllTypeAliasVisitor(typeAliasVisitor)))
 
@@ -154,13 +154,13 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                     clazz,
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
-                        it.flags.common.hasAnnotations shouldBe true
+                        it.flags.hasAnnotations shouldBe true
                     },
                 )
             }
         }
 
-        "Then the hasAnnotation common flag should be written and re-initialized correctly" {
+        Then("the hasAnnotation common flag should be written and re-initialized correctly") {
             val typeAliasVisitor = spyk<KotlinTypeAliasVisitor>()
             clazz.accept(ReWritingMetadataVisitor(AllTypeAliasVisitor(typeAliasVisitor)))
 
@@ -169,7 +169,7 @@ class KotlinTypeAliasFlagsTest : FreeSpec({
                     clazz,
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
-                        it.flags.common.hasAnnotations shouldBe true
+                        it.flags.hasAnnotations shouldBe true
                     },
                 )
             }

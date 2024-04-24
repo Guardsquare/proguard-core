@@ -1,7 +1,7 @@
 /*
  * ProGuardCORE -- library to process Java bytecode.
  *
- * Copyright (c) 2002-2021 Guardsquare NV
+ * Copyright (c) 2002-2024 Guardsquare NV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,34 +18,35 @@
 
 package proguard.classfile.kotlin
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.spyk
 import io.mockk.verify
 import proguard.classfile.Clazz
 import proguard.classfile.kotlin.KotlinVersionRequirementLevel.ERROR
-import proguard.classfile.kotlin.KotlinVersionRequirementVersionKind.LANGUAGE_VERSION
+import proguard.classfile.kotlin.KotlinVersionRequirementVersionKind.COMPILER_VERSION
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinVersionRequirementVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
 
-class KotlinMetadataVersionRequirementTest : FreeSpec({
-    val (programClassPool, _) = ClassPoolBuilder.fromSource(
+class KotlinMetadataVersionRequirementTest : BehaviorSpec({
+    val (_, libraryClassPool) = ClassPoolBuilder.fromSource(
         KotlinSource(
             "Test.kt",
             """
-            // For inline classes, the compiler sets versionRequirement=1.3.0,
-            // versionRequirementLevel = ERROR and versionRequirementKind = LANGUAGE_VERSION
-            inline class T(val param:String)
+            // Random class for the ProgramClass pool. It is difficult to create a class with a version requirement,
+            // so instead we will check the kotlin/jvm/JvmDefaultWithCompatibility class which has one.
+            // https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/jvm/src/kotlin/jvm/JvmDefault.kt#L48
+            class T
             """.trimIndent(),
         ),
     )
 
-    "Given a class with a versionRequirement" - {
+    Given("a class with a versionRequirement") {
         val versionRequirementVisitor = spyk<KotlinVersionRequirementVisitor>()
-        programClassPool.classesAccept(
+        libraryClassPool.getClass("kotlin/jvm/JvmDefaultWithCompatibility").accept(
             ReferencedKotlinMetadataVisitor(
                 object : KotlinMetadataVisitor {
                     override fun visitAnyKotlinMetadata(clazz: Clazz, kotlinMetadata: KotlinMetadata) {}
@@ -56,16 +57,16 @@ class KotlinMetadataVersionRequirementTest : FreeSpec({
             ),
         )
 
-        "Then the version requirement should be visited" {
+        Then("the version requirement should be visited") {
             verify {
                 versionRequirementVisitor.visitAnyVersionRequirement(
-                    programClassPool.getClass("T"),
+                    libraryClassPool.getClass("kotlin/jvm/JvmDefaultWithCompatibility"),
                     withArg {
                         it.major shouldBe 1
-                        it.minor shouldBe 3
+                        it.minor shouldBe 6
                         it.patch shouldBe 0
                         it.level shouldBe ERROR
-                        it.kind shouldBe LANGUAGE_VERSION
+                        it.kind shouldBe COMPILER_VERSION
                     },
                 )
             }

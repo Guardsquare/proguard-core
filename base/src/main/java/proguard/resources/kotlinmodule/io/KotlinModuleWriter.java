@@ -18,14 +18,13 @@
 
 package proguard.resources.kotlinmodule.io;
 
-import static kotlinx.metadata.jvm.KotlinClassMetadata.COMPATIBLE_METADATA_VERSION;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.function.BiConsumer;
-import kotlinx.metadata.jvm.KmModule;
-import kotlinx.metadata.jvm.KmPackageParts;
-import kotlinx.metadata.jvm.KotlinModuleMetadata;
+import kotlin.metadata.jvm.JvmMetadataVersion;
+import kotlin.metadata.jvm.KmModule;
+import kotlin.metadata.jvm.KmPackageParts;
+import kotlin.metadata.jvm.KotlinModuleMetadata;
 import proguard.classfile.util.ClassUtil;
 import proguard.resources.file.visitor.ResourceFileVisitor;
 import proguard.resources.kotlinmodule.KotlinModule;
@@ -65,12 +64,12 @@ public class KotlinModuleWriter implements ResourceFileVisitor {
       // kmModule.getOptionalAnnotationClasses();
 
       byte[] transformedBytes =
-          KotlinModuleMetadata.Companion.write(
+          new KotlinModuleMetadata(
                   kmModule,
                   kotlinModule.version.canBeWritten()
-                      ? kotlinModule.version.toArray()
-                      : COMPATIBLE_METADATA_VERSION)
-              .getBytes();
+                      ? new JvmMetadataVersion(kotlinModule.version.toArray())
+                      : JvmMetadataVersion.LATEST_STABLE_SUPPORTED)
+              .write();
       outputStream.write(transformedBytes);
     } catch (IOException e) {
       if (this.errorHandler != null) {
