@@ -8,17 +8,28 @@
 package proguard.classfile.util
 
 import io.kotest.assertions.throwables.shouldNotThrow
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrowMessage
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import proguard.classfile.AccessConstants
 import proguard.classfile.ClassPool
+import proguard.classfile.Clazz
+import proguard.classfile.JavaConstants
 import proguard.classfile.Method
 import proguard.classfile.MethodSignature
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramMethod
+import proguard.classfile.VersionConstants
+import proguard.classfile.attribute.EnclosingMethodAttribute
+import proguard.classfile.editor.AttributesEditor
+import proguard.classfile.editor.ClassBuilder
+import proguard.classfile.editor.ConstantPoolEditor
+import proguard.classfile.editor.LibraryClassBuilder
 import proguard.classfile.kotlin.KotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinAnnotationArgument
@@ -40,14 +51,14 @@ import proguard.classfile.visitor.AllMemberVisitor
 import proguard.classfile.visitor.MemberNameFilter
 import proguard.classfile.visitor.MemberVisitor
 import proguard.testutils.ClassPoolBuilder
+import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
-import java.lang.RuntimeException
 import java.util.function.Predicate
 import proguard.classfile.kotlin.KotlinConstants.dummyClassPool as kotlinDummyClassPool
 
-class ClassReferenceInitializerTest : FreeSpec({
+class ClassReferenceInitializerTest : BehaviorSpec({
 
-    "Kotlin annotations should be initialized correctly" - {
+    Given("Kotlin annotations should be initialized correctly") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -112,18 +123,18 @@ class ClassReferenceInitializerTest : FreeSpec({
         programClassPool.classesAccept(ReferencedKotlinMetadataVisitor(AllKotlinAnnotationVisitor(annotationVisitor)))
         val annotation = slot<KotlinAnnotation>()
 
-        "Then there should be 1 annotation visited" {
+        Then("There should be 1 annotation visited") {
             verify(exactly = 1) {
                 annotationVisitor.visitTypeAnnotation(fileFacadeClass, ofType(KotlinTypeMetadata::class), capture(annotation))
             }
         }
 
-        "Then the annotation referenced class should be correct" {
+        Then("The annotation referenced class should be correct") {
             annotation.captured.className shouldBe "MyTypeAnnotation"
             annotation.captured.referencedAnnotationClass shouldBe programClassPool.getClass("MyTypeAnnotation")
         }
 
-        "Then the annotation argument value references should be correctly set" {
+        Then("The annotation argument value references should be correctly set") {
 
             val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
 
@@ -171,7 +182,7 @@ class ClassReferenceInitializerTest : FreeSpec({
             }
         }
 
-        "Then the class argument values should have their references correctly set" {
+        Then("The class argument values should have their references correctly set") {
             val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
 
             programClassPool.classesAccept(
@@ -201,7 +212,7 @@ class ClassReferenceInitializerTest : FreeSpec({
             }
         }
 
-        "Then the enum argument values should have their references correctly set" {
+        Then("The enum argument values should have their references correctly set") {
             val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
 
             programClassPool.classesAccept(
@@ -231,7 +242,7 @@ class ClassReferenceInitializerTest : FreeSpec({
             }
         }
 
-        "Then the annotation argument values should have their references correctly set" {
+        Then("The annotation argument values should have their references correctly set") {
             val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
 
             programClassPool.classesAccept(
@@ -265,7 +276,7 @@ class ClassReferenceInitializerTest : FreeSpec({
         }
     }
 
-    "Given a Kotlin function with named types" - {
+    Given("A Kotlin function with named types") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -278,14 +289,14 @@ class ClassReferenceInitializerTest : FreeSpec({
             ),
         )
 
-        "Then an exception should not be thrown when library classes are missing" {
+        Then("An exception should not be thrown when library classes are missing") {
             shouldNotThrow<Exception> {
                 programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, ClassPool()))
             }
         }
     }
 
-    "Given a companion object with a constant property" - {
+    Given("A companion object with a constant property") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -300,7 +311,7 @@ class ClassReferenceInitializerTest : FreeSpec({
             initialize = false,
         )
 
-        "Then an exception should not be thrown if the base class is missing" {
+        Then("An exception should not be thrown if the base class is missing") {
             programClassPool.removeClass("BaseClass")
             programClassPool.classesAccept(
                 KotlinMetadataInitializer { _, message ->
@@ -317,7 +328,7 @@ class ClassReferenceInitializerTest : FreeSpec({
         }
     }
 
-    "Given an annotation class containing annotations" - {
+    Given("An annotation class containing annotations") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "MyAnnotation.kt",
@@ -332,7 +343,7 @@ class ClassReferenceInitializerTest : FreeSpec({
             ),
         )
 
-        "Then the annotation synthetic method should be initialized correctly" {
+        Then("The annotation synthetic method should be initialized correctly") {
             val visitor = spyk<KotlinPropertyVisitor>()
             programClassPool.classesAccept(
                 "MyAnnotation",
@@ -370,6 +381,223 @@ class ClassReferenceInitializerTest : FreeSpec({
                         it.referencedSyntheticMethodForAnnotations shouldBe syntheticAnnotationMethod
                     },
                 )
+            }
+        }
+    }
+
+    Given("A missing reference visitor") {
+        val missingReferenceCrasher = object : InvalidReferenceVisitor {
+            override fun visitMissingClass(referencingClazz: Clazz, reference: String) {
+                if (!reference.startsWith(ClassUtil.internalClassName(JavaConstants.PACKAGE_JAVA_LANG))) {
+                    throw RuntimeException("Missing reference: $reference")
+                }
+            }
+
+            override fun visitProgramDependency(referencingClazz: Clazz, dependency: Clazz) {
+                throw RuntimeException("Library class depending on program class: ${dependency.getName()}")
+            }
+
+            override fun visitAnyMissingMember(referencingClazz: Clazz, reference: Clazz, name: String, type: String) {
+                throw RuntimeException("Missing member reference: ${reference.getName()}.$name")
+            }
+
+            override fun visitMissingEnclosingMethod(
+                enclosingClazz: Clazz,
+                reference: Clazz,
+                name: String,
+                type: String,
+            ) {
+                throw RuntimeException("Missing enclosing method reference: ${reference.getName()}.$name")
+            }
+        }
+
+        When("There are no missing references") {
+            Then("The missing reference visitor should not be called") {
+                val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                    JavaSource(
+                        "Main.java",
+                        """
+                    public class Main {
+                        public static void main(String[] args ) {
+                            Other other = new Other();
+                            other.someField = 6;
+                            other.someMethod();
+                        }
+                    }   
+                        """.trimIndent(),
+                    ),
+                    JavaSource(
+                        "Other.java",
+                        """
+                    public class Other {
+                        public int someField;
+                        
+                        public void someMethod() {}
+                    }
+                        """.trimIndent(),
+                    ),
+                )
+
+                val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true, missingReferenceCrasher)
+
+                shouldNotThrowAny {
+                    programClassPool.classesAccept(initializer)
+                }
+            }
+        }
+
+        When("A library class references a program class") {
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
+                    public class A {                    
+                    }   
+                    """.trimIndent(),
+                ),
+            )
+
+            val libraryClassPool = ClassPool()
+            val builder = LibraryClassBuilder(AccessConstants.PUBLIC, "B", "A")
+            builder.addField(AccessConstants.PUBLIC, "something", "LA;")
+            libraryClassPool.addClass(builder.libraryClass)
+
+            Then("visitProgramDependency should be invoked") {
+                val referenceInitializer = ClassReferenceInitializer(programClassPool, libraryClassPool, true, missingReferenceCrasher)
+
+                shouldThrowMessage("Library class depending on program class: A") {
+                    // Test field ref.
+                    libraryClassPool.classesAccept(referenceInitializer)
+                }
+            }
+        }
+
+        When("A class is missing") {
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "Main.java",
+                    """
+                    public class Main {
+                        public static void main(String[] args ) {
+                            Other other = new Other();
+                        }
+                    }   
+                    """.trimIndent(),
+                ),
+                JavaSource(
+                    "Other.java",
+                    """
+                    public class Other {
+                        
+                    }
+                    """.trimIndent(),
+                ),
+            )
+
+            programClassPool.removeClass("Other")
+
+            val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true, missingReferenceCrasher)
+
+            Then("visitMissingClass should be invoked") {
+                shouldThrowMessage("Missing reference: Other") { programClassPool.classesAccept(initializer) }
+            }
+        }
+
+        When("A method is missing") {
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "Main.java",
+                    """
+                    public class Main {
+                        public static void main(String[] args ) {
+                            Other other = new Other();
+                            other.doSomething();
+                        }
+                    }   
+                    """.trimIndent(),
+                ),
+                JavaSource(
+                    "Other.java",
+                    """
+                    public class Other {
+                        public void doSomething() {}
+                    }
+                    """.trimIndent(),
+                ),
+            )
+
+            programClassPool.getClass("Other").methodAccept("doSomething", "()V", MemberRenamer { _, _ -> "doNothing" })
+
+            val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true, missingReferenceCrasher)
+
+            Then("visitAnyMissingMember should be invoked") {
+                shouldThrowMessage("Missing member reference: Other.doSomething") { programClassPool.classesAccept(initializer) }
+            }
+        }
+
+        When("A field is missing") {
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "Main.java",
+                    """
+                    public class Main {
+                        public static void main(String[] args ) {
+                            Other other = new Other();
+                            other.someField = 10;
+                        }
+                    }   
+                    """.trimIndent(),
+                ),
+                JavaSource(
+                    "Other.java",
+                    """
+                    public class Other {
+                        public int someField;
+                    }
+                    """.trimIndent(),
+                ),
+            )
+
+            programClassPool.getClass("Other").fieldAccept("someField", "I", MemberRenamer { _, _ -> "nothing" })
+
+            val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true, missingReferenceCrasher)
+
+            Then("visitAnyMissingMember should be invoked") {
+                shouldThrowMessage("Missing member reference: Other.someField") { programClassPool.classesAccept(initializer) }
+            }
+        }
+
+        When("An enclosing method is missing") {
+            val (programClassPool, _) = ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "Main.java",
+                    """
+                    public class Main {
+                    }   
+                    """.trimIndent(),
+                ),
+            )
+
+            val clazz = ClassBuilder(VersionConstants.CLASS_VERSION_17, AccessConstants.PUBLIC, "Test", "java/lang/Object").programClass
+            val attributesEditor = AttributesEditor(clazz, false)
+            val constantPoolEditor = ConstantPoolEditor(clazz)
+
+            attributesEditor.addAttribute(
+                EnclosingMethodAttribute(
+                    constantPoolEditor.addUtf8Constant("EnclosingMethod"),
+                    constantPoolEditor.addClassConstant("Main", null),
+                    constantPoolEditor.addNameAndTypeConstant("iDontExist", "()V"),
+                ),
+            )
+
+            programClassPool.addClass(clazz)
+
+            val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true, missingReferenceCrasher)
+
+            Then("visitMissingEnclosingMethod should be invoked") {
+                shouldThrowMessage("Missing enclosing method reference: Main.iDontExist") {
+                    programClassPool.classesAccept(initializer)
+                }
             }
         }
     }

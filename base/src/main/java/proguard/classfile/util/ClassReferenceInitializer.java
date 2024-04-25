@@ -132,8 +132,6 @@ import proguard.classfile.visitor.MemberVisitor;
  * <p>All Kotlin metadata elements get references to their corresponding Java implementation
  * elements.
  *
- * <p>This visitor optionally prints warnings if some items can't be found.
- *
  * <p>The class hierarchy must be initialized before using this visitor.
  *
  * @author Eric Lafortune
@@ -150,14 +148,11 @@ public class ClassReferenceInitializer
         LocalVariableTypeInfoVisitor,
         AnnotationVisitor,
         ElementValueVisitor {
+
   private final ClassPool programClassPool;
   private final ClassPool libraryClassPool;
   private final boolean checkAccessRules;
-  private final WarningPrinter missingClassWarningPrinter;
-  private final WarningPrinter missingProgramMemberWarningPrinter;
-  private final WarningPrinter missingLibraryMemberWarningPrinter;
-  private final WarningPrinter dependencyWarningPrinter;
-
+  private final InvalidReferenceVisitor invalidReferenceVisitor;
   private final MemberFinder memberFinder = new MemberFinder();
   private final MemberFinder strictMemberFinder = new MemberFinder(false);
 
@@ -177,7 +172,7 @@ public class ClassReferenceInitializer
    */
   public ClassReferenceInitializer(
       ClassPool programClassPool, ClassPool libraryClassPool, boolean checkAccessRules) {
-    this(programClassPool, libraryClassPool, checkAccessRules, null, null, null, null);
+    this(programClassPool, libraryClassPool, checkAccessRules, null);
   }
 
   /**
@@ -215,13 +210,30 @@ public class ClassReferenceInitializer
       WarningPrinter missingProgramMemberWarningPrinter,
       WarningPrinter missingLibraryMemberWarningPrinter,
       WarningPrinter dependencyWarningPrinter) {
+    this(
+        programClassPool,
+        libraryClassPool,
+        checkAccessRules,
+        new InvalidReferenceWarningVisitor(
+            missingClassWarningPrinter,
+            missingProgramMemberWarningPrinter,
+            missingLibraryMemberWarningPrinter,
+            dependencyWarningPrinter));
+  }
+
+  /**
+   * Creates a new ClassReferenceInitializer that initializes the references of all visited class
+   * files, visiting the given {@link InvalidReferenceVisitor} for any broken references.
+   */
+  public ClassReferenceInitializer(
+      ClassPool programClassPool,
+      ClassPool libraryClassPool,
+      boolean checkAccessRules,
+      InvalidReferenceVisitor invalidReferenceVisitor) {
     this.programClassPool = programClassPool;
     this.libraryClassPool = libraryClassPool;
     this.checkAccessRules = checkAccessRules;
-    this.missingClassWarningPrinter = missingClassWarningPrinter;
-    this.missingProgramMemberWarningPrinter = missingProgramMemberWarningPrinter;
-    this.missingLibraryMemberWarningPrinter = missingLibraryMemberWarningPrinter;
-    this.dependencyWarningPrinter = dependencyWarningPrinter;
+    this.invalidReferenceVisitor = invalidReferenceVisitor;
     this.kotlinReferenceInitializer = new KotlinReferenceInitializer();
   }
 
@@ -347,27 +359,14 @@ public class ClassReferenceInitializer
           memberFinder.findField(referencingClass, referencedClass, name, type);
       fieldrefConstant.referencedClass = memberFinder.correspondingClass();
 
-      if (fieldrefConstant.referencedField == null) {
+      if (fieldrefConstant.referencedField == null && invalidReferenceVisitor != null) {
         // We haven't found the class member anywhere in the hierarchy.
-        boolean isProgramClass = referencedClass instanceof ProgramClass;
-
-        WarningPrinter missingMemberWarningPrinter =
-            isProgramClass
-                ? missingProgramMemberWarningPrinter
-                : missingLibraryMemberWarningPrinter;
-
-        if (missingMemberWarningPrinter != null) {
-          missingMemberWarningPrinter.print(
-              clazz.getName(),
-              className,
-              "Warning: "
-                  + ClassUtil.externalClassName(clazz.getName())
-                  + ": can't find referenced field '"
-                  + ClassUtil.externalFullFieldDescription(0, name, type)
-                  + "' in "
-                  + (isProgramClass ? "program" : "library")
-                  + " class "
-                  + ClassUtil.externalClassName(className));
+        if (referencedClass instanceof ProgramClass) {
+          invalidReferenceVisitor.visitMissingProgramField(
+              clazz, ((ProgramClass) referencedClass), name, type);
+        } else {
+          invalidReferenceVisitor.visitMissingLibraryField(
+              clazz, ((LibraryClass) referencedClass), name, type);
         }
       }
     }
@@ -391,8 +390,6 @@ public class ClassReferenceInitializer
       String name = anyMethodrefConstant.getName(clazz);
       String type = anyMethodrefConstant.getType(clazz);
 
-      boolean isFieldRef = anyMethodrefConstant.getTag() == Constant.FIELDREF;
-
       // See if we can find the referenced class member somewhere in the
       // hierarchy.
       Clazz referencingClass = checkAccessRules ? clazz : null;
@@ -401,27 +398,14 @@ public class ClassReferenceInitializer
           memberFinder.findMethod(referencingClass, referencedClass, name, type);
       anyMethodrefConstant.referencedClass = memberFinder.correspondingClass();
 
-      if (anyMethodrefConstant.referencedMethod == null) {
+      if (anyMethodrefConstant.referencedMethod == null && invalidReferenceVisitor != null) {
         // We haven't found the class member anywhere in the hierarchy.
-        boolean isProgramClass = referencedClass instanceof ProgramClass;
-
-        WarningPrinter missingMemberWarningPrinter =
-            isProgramClass
-                ? missingProgramMemberWarningPrinter
-                : missingLibraryMemberWarningPrinter;
-
-        if (missingMemberWarningPrinter != null) {
-          missingMemberWarningPrinter.print(
-              clazz.getName(),
-              className,
-              "Warning: "
-                  + ClassUtil.externalClassName(clazz.getName())
-                  + ": can't find referenced method '"
-                  + ClassUtil.externalFullMethodDescription(className, 0, name, type)
-                  + "' in "
-                  + (isProgramClass ? "program" : "library")
-                  + " class "
-                  + ClassUtil.externalClassName(className));
+        if (referencedClass instanceof ProgramClass) {
+          invalidReferenceVisitor.visitMissingProgramMethod(
+              clazz, ((ProgramClass) referencedClass), name, type);
+        } else {
+          invalidReferenceVisitor.visitMissingLibraryMethod(
+              clazz, ((LibraryClass) referencedClass), name, type);
         }
       }
     }
@@ -476,20 +460,10 @@ public class ClassReferenceInitializer
         enclosingMethodAttribute.referencedMethod =
             enclosingMethodAttribute.referencedClass.findMethod(name, type);
 
-        if (enclosingMethodAttribute.referencedMethod == null
-            && missingProgramMemberWarningPrinter != null) {
+        if (enclosingMethodAttribute.referencedMethod == null && invalidReferenceVisitor != null) {
           // We couldn't find the enclosing method.
-          String className = clazz.getName();
-
-          missingProgramMemberWarningPrinter.print(
-              className,
-              enclosingClassName,
-              "Warning: "
-                  + ClassUtil.externalClassName(className)
-                  + ": can't find enclosing method '"
-                  + ClassUtil.externalFullMethodDescription(enclosingClassName, 0, name, type)
-                  + "' in program class "
-                  + ClassUtil.externalClassName(enclosingClassName));
+          invalidReferenceVisitor.visitMissingEnclosingMethod(
+              clazz, enclosingMethodAttribute.referencedClass, name, type);
         }
       }
     } else {
@@ -509,8 +483,8 @@ public class ClassReferenceInitializer
 
         if (enclosingMethodAttribute.referencedClass == null
             && clazz != null
-            && missingClassWarningPrinter != null) {
-          reportMissingClass(clazz.getName(), enclosingClassName);
+            && invalidReferenceVisitor != null) {
+          invalidReferenceVisitor.visitMissingClass(clazz, enclosingClassName);
         }
       }
     }
@@ -1283,35 +1257,20 @@ public class ClassReferenceInitializer
     if (clazz == null) {
       clazz = libraryClassPool.getClass(name);
 
-      if (report && clazz == null && missingClassWarningPrinter != null) {
+      if (report && clazz == null) {
         // We didn't find the superclass or interface. Print a warning.
-        reportMissingClass(referencingClass.getName(), name);
+        if (invalidReferenceVisitor != null) {
+          invalidReferenceVisitor.visitMissingClass(referencingClass, name);
+        }
       }
-    } else if (dependencyWarningPrinter != null) {
+    } else if (referencingClass instanceof LibraryClass) {
       // The superclass or interface was found in the program class pool.
-      // Print a warning.
-      String referencingClassName = referencingClass.getName();
-
-      dependencyWarningPrinter.print(
-          referencingClassName,
-          name,
-          "Warning: library class "
-              + ClassUtil.externalClassName(referencingClassName)
-              + " depends on program class "
-              + ClassUtil.externalClassName(name));
+      if (invalidReferenceVisitor != null) {
+        invalidReferenceVisitor.visitProgramDependency(referencingClass, clazz);
+      }
     }
 
     return clazz;
-  }
-
-  private void reportMissingClass(String referencingClassName, String name) {
-    missingClassWarningPrinter.print(
-        referencingClassName,
-        name,
-        "Warning: "
-            + ClassUtil.externalClassName(referencingClassName)
-            + ": can't find referenced class "
-            + ClassUtil.externalClassName(name));
   }
 
   // Helper classes for KotlinReferenceInitializer.
@@ -1709,6 +1668,124 @@ public class ClassReferenceInitializer
       return !internalTypeEnumeration.hasMoreTypes();
     } catch (Exception corruptedSignature) {
       return false;
+    }
+  }
+
+  /**
+   * This {@link InvalidReferenceVisitor} will print out missing references to the supplied warning
+   * printers.
+   */
+  private static class InvalidReferenceWarningVisitor implements InvalidReferenceVisitor {
+
+    private final WarningPrinter missingClassWarningPrinter;
+    private final WarningPrinter missingProgramMemberWarningPrinter;
+    private final WarningPrinter missingLibraryMemberWarningPrinter;
+    private final WarningPrinter dependencyWarningPrinter;
+
+    public InvalidReferenceWarningVisitor(
+        WarningPrinter missingClassWarningPrinter,
+        WarningPrinter missingProgramMemberWarningPrinter,
+        WarningPrinter missingLibraryMemberWarningPrinter,
+        WarningPrinter dependencyWarningPrinter) {
+      this.missingClassWarningPrinter = missingClassWarningPrinter;
+      this.missingProgramMemberWarningPrinter = missingProgramMemberWarningPrinter;
+      this.missingLibraryMemberWarningPrinter = missingLibraryMemberWarningPrinter;
+      this.dependencyWarningPrinter = dependencyWarningPrinter;
+    }
+
+    // Implementations for InvalidReferenceVisitor.
+
+    @Override
+    public void visitMissingClass(Clazz referencingClazz, String reference) {
+      if (missingClassWarningPrinter != null) {
+        String className = referencingClazz.getName();
+        missingClassWarningPrinter.print(
+            className,
+            reference,
+            "Warning: "
+                + ClassUtil.externalClassName(className)
+                + ": can't find referenced class "
+                + ClassUtil.externalClassName(reference));
+      }
+    }
+
+    @Override
+    public void visitProgramDependency(Clazz referencingClazz, Clazz dependency) {
+      if (dependencyWarningPrinter != null) {
+        dependencyWarningPrinter.print(
+            referencingClazz.getName(),
+            dependency.getName(),
+            "Warning: library class "
+                + ClassUtil.externalClassName(referencingClazz.getName())
+                + " depends on program class "
+                + ClassUtil.externalClassName(dependency.getName()));
+      }
+    }
+
+    @Override
+    public void visitAnyMissingMember(
+        Clazz referencingClazz, Clazz reference, String name, String type) {}
+
+    @Override
+    public void visitAnyMissingField(
+        Clazz referencingClazz, Clazz reference, String name, String type) {
+      boolean isProgramClass = reference instanceof ProgramClass;
+      WarningPrinter missingMemberWarningPrinter =
+          isProgramClass ? missingProgramMemberWarningPrinter : missingLibraryMemberWarningPrinter;
+
+      if (missingMemberWarningPrinter != null) {
+        missingMemberWarningPrinter.print(
+            referencingClazz.getName(),
+            reference.getName(),
+            "Warning: "
+                + ClassUtil.externalClassName(referencingClazz.getName())
+                + ": can't find referenced field '"
+                + ClassUtil.externalFullFieldDescription(0, name, type)
+                + "' in "
+                + (isProgramClass ? "program" : "library")
+                + " class "
+                + ClassUtil.externalClassName(reference.getName()));
+      }
+    }
+
+    @Override
+    public void visitAnyMissingMethod(
+        Clazz referencingClazz, Clazz reference, String name, String type) {
+      boolean isProgramClass = reference instanceof ProgramClass;
+      WarningPrinter missingMemberWarningPrinter =
+          isProgramClass ? missingProgramMemberWarningPrinter : missingLibraryMemberWarningPrinter;
+
+      if (missingMemberWarningPrinter != null) {
+        missingMemberWarningPrinter.print(
+            referencingClazz.getName(),
+            reference.getName(),
+            "Warning: "
+                + ClassUtil.externalClassName(referencingClazz.getName())
+                + ": can't find referenced method '"
+                + ClassUtil.externalFullMethodDescription(reference.getName(), 0, name, type)
+                + "' in "
+                + (isProgramClass ? "program" : "library")
+                + " class "
+                + ClassUtil.externalClassName(reference.getName()));
+      }
+    }
+
+    @Override
+    public void visitMissingEnclosingMethod(
+        Clazz enclosingClazz, Clazz reference, String name, String type) {
+      if (missingProgramMemberWarningPrinter != null) {
+        String className = enclosingClazz.getName();
+
+        missingProgramMemberWarningPrinter.print(
+            className,
+            reference.getName(),
+            "Warning: "
+                + ClassUtil.externalClassName(className)
+                + ": can't find enclosing method '"
+                + ClassUtil.externalFullMethodDescription(reference.getName(), 0, name, type)
+                + "' in program class "
+                + ClassUtil.externalClassName(reference.getName()));
+      }
     }
   }
 }
