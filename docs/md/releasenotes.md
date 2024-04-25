@@ -1,3 +1,10 @@
+## Version 9.1.3
+
+### Kotlin support
+
+- Add support for processing Kotlin 2.0 metadata.
+- Update to stable version of the Kotlin metadata library.
+
 ## Version 9.1.2
 
 ### Java support
