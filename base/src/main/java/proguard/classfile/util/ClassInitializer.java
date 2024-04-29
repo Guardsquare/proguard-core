@@ -17,8 +17,9 @@
  */
 package proguard.classfile.util;
 
-import proguard.classfile.*;
-import proguard.classfile.visitor.*;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
+import proguard.classfile.visitor.ClassVisitor;
 
 /**
  * This {@link ClassVisitor} initializes the class hierarchy and references of all classes that it
@@ -27,14 +28,12 @@ import proguard.classfile.visitor.*;
  * ClassSuperHierarchyInitializer}, {@link ClassSubHierarchyInitializer}, and {@link
  * ClassReferenceInitializer} on all classes.
  *
- * <p>This visitor optionally prints warnings if some items can't be found.
- *
  * <p>
  *
+ * @author Eric Lafortune
  * @see ClassSuperHierarchyInitializer
  * @see ClassSubHierarchyInitializer
  * @see ClassReferenceInitializer
- * @author Eric Lafortune
  */
 public class ClassInitializer implements ClassVisitor {
   private final ClassSuperHierarchyInitializer classSuperHierarchyInitializer;
@@ -46,7 +45,7 @@ public class ClassInitializer implements ClassVisitor {
    * visited class files.
    */
   public ClassInitializer(ClassPool programClassPool, ClassPool libraryClassPool) {
-    this(programClassPool, libraryClassPool, null, null, null, null);
+    this(programClassPool, libraryClassPool, true, null, null);
   }
 
   /**
@@ -95,10 +94,31 @@ public class ClassInitializer implements ClassVisitor {
         new ClassReferenceInitializer(
             programClassPool,
             libraryClassPool,
+            checkAccessRules,
             missingClassWarningPrinter,
             missingProgramMemberWarningPrinter,
             missingLibraryMemberWarningPrinter,
             dependencyWarningPrinter);
+  }
+
+  /**
+   * Creates a new ClassInitializer that initializes the references of all visited class files,
+   * optionally visiting the provided {@link InvalidReferenceVisitor} or {@link
+   * InvalidClassReferenceVisitor} for any invalid references.
+   */
+  public ClassInitializer(
+      ClassPool programClassPool,
+      ClassPool libraryClassPool,
+      boolean checkAccessRules,
+      InvalidReferenceVisitor invalidReferenceVisitor,
+      InvalidClassReferenceVisitor invalidClassReferenceVisitor) {
+    this.classSuperHierarchyInitializer =
+        new ClassSuperHierarchyInitializer(
+            programClassPool, libraryClassPool, invalidClassReferenceVisitor);
+    this.classSubHierarchyInitializer = new ClassSubHierarchyInitializer();
+    this.classReferenceInitializer =
+        new ClassReferenceInitializer(
+            programClassPool, libraryClassPool, checkAccessRules, invalidReferenceVisitor);
   }
 
   // Implementations for ClassVisitor.
