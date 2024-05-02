@@ -156,6 +156,6 @@ public class InstructionExceptionFormatter {
       messageBuilder.append("Stack: ").append(stack).append("\n");
     }
 
-    logger.error(messageBuilder.toString());
+    logger.error(messageBuilder.toString(), exception);
   }
 }

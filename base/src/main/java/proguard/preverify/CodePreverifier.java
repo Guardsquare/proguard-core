@@ -79,10 +79,17 @@ public class CodePreverifier implements AttributeVisitor {
       // Process the code.
       visitCodeAttribute0(clazz, method, codeAttribute);
     } catch (RuntimeException ex) {
-      logger.error("Unexpected error while preverifying:");
-      logger.error("  Class       = [{}]", clazz.getName());
-      logger.error("  Method      = [{}]", method.getName(clazz) + method.getDescriptor(clazz));
-      logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+      logger.error(
+          "Unexpected error while preverifying:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
+          System.lineSeparator(),
+          clazz.getName(),
+          System.lineSeparator(),
+          method.getName(clazz),
+          method.getDescriptor(clazz),
+          System.lineSeparator(),
+          ex.getClass().getName(),
+          ex.getMessage(),
+          ex);
 
       throw ex;
     }

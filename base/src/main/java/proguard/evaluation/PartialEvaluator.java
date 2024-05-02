@@ -345,10 +345,17 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
       // Process the code.
       visitCodeAttribute0(clazz, method, codeAttribute);
     } catch (RuntimeException ex) {
-      logger.error("Unexpected error while performing partial evaluation:");
-      logger.error("  Class       = [{}]", clazz.getName());
-      logger.error("  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
-      logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+      logger.error(
+          "Unexpected error while performing partial evaluation:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
+          System.lineSeparator(),
+          clazz.getName(),
+          System.lineSeparator(),
+          method.getName(clazz),
+          method.getDescriptor(clazz),
+          System.lineSeparator(),
+          ex.getClass().getName(),
+          ex.getMessage(),
+          ex);
 
       if (stateTracker != null)
         stateTracker.registerException(clazz, method, codeAttribute, this, ex);
@@ -775,12 +782,19 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
         } catch (RuntimeException ex) {
           // Fallback to the default exception formatter.
           if (formatter == null) {
-            logger.error("Unexpected error while evaluating instruction:");
-            logger.error("  Class       = [{}]", clazz.getName());
             logger.error(
-                "  Method      = [{}{}]", method.getName(clazz), method.getDescriptor(clazz));
-            logger.error("  Instruction = {}", instruction.toString(clazz, instructionOffset));
-            logger.error("  Exception   = [{}] ({})", ex.getClass().getName(), ex.getMessage());
+                "Unexpected error while evaluating instruction:{}  Class       = [{}]{}  Method      = [{}{}]{}  Instruction = {}{}  Exception   = [{}] ({})",
+                System.lineSeparator(),
+                clazz.getName(),
+                System.lineSeparator(),
+                method.getName(clazz),
+                method.getDescriptor(clazz),
+                System.lineSeparator(),
+                instruction.toString(clazz, instructionOffset),
+                System.lineSeparator(),
+                ex.getClass().getName(),
+                ex.getMessage(),
+                ex);
           }
 
           throw ex;

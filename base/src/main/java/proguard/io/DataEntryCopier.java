@@ -74,12 +74,10 @@ public class DataEntryCopier implements DataEntryReader {
         }
       }
     } catch (IOException ex) {
-      logger.error("Warning: can't write resource [{}] ({})", dataEntry.getName(), ex.getMessage());
+      logger.warn("Warning: can't write resource [{}] ({})", dataEntry.getName(), ex.getMessage());
     } catch (Exception ex) {
-      throw (IOException)
-          new IOException(
-                  "Can't write resource [" + dataEntry.getName() + "] (" + ex.getMessage() + ")")
-              .initCause(ex);
+      throw new IOException(
+          "Can't write resource [" + dataEntry.getName() + "] (" + ex.getMessage() + ")", ex);
     }
   }
 

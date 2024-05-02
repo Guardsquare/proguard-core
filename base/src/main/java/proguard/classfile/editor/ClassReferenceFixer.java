@@ -972,15 +972,29 @@ public class ClassReferenceFixer
 
       return newDescriptorBuffer.toString();
     } catch (RuntimeException e) {
-      logger.error("Unexpected error while updating descriptor:");
-      logger.error("  Descriptor = [{}]", descriptor);
-      logger.error("  Referenced classes: {}", referencedClasses.length);
+      StringBuilder error =
+          new StringBuilder("Unexpected error while updating descriptor:" + System.lineSeparator())
+              .append("  Descriptor = [")
+              .append(descriptor)
+              .append("]")
+              .append(System.lineSeparator())
+              .append("  Referenced classes: ")
+              .append(referencedClasses.length)
+              .append(System.lineSeparator());
       for (int index = 0; index < referencedClasses.length; index++) {
         Clazz referencedClass = referencedClasses[index];
         if (referencedClass != null) {
-          logger.error("    #{}: [{}]", index, referencedClass.getName());
+          error
+              .append("    #")
+              .append(index)
+              .append(": [")
+              .append(referencedClass.getName())
+              .append("]")
+              .append(System.lineSeparator());
         }
       }
+
+      logger.error(error, e);
 
       throw e;
     }
