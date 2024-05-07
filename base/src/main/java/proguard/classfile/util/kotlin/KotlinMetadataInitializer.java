@@ -719,14 +719,18 @@ public class KotlinMetadataInitializer
   }
 
   private static KotlinPropertyMetadata convertKmProperty(KmProperty kmProperty) {
+    // We are checking whether getSetter is null because we have encountered occurrences where
+    // Attributes.isVar returns true even though there is no setter for the given property.
+    KotlinPropertyAccessorFlags setterFlags =
+        kmProperty.getSetter() != null
+            ? convertPropertyAccessorFlags(kmProperty.getSetter())
+            : null;
     KotlinPropertyMetadata property =
         new KotlinPropertyMetadata(
             convertPropertyFlags(kmProperty),
             kmProperty.getName(),
             convertPropertyAccessorFlags(kmProperty.getGetter()),
-            Attributes.isVar(kmProperty)
-                ? convertPropertyAccessorFlags(kmProperty.getSetter())
-                : null);
+            setterFlags);
 
     property.receiverType = convertKmType(kmProperty.getReceiverParameterType());
 
