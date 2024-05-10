@@ -1,3 +1,9 @@
+## Version 9.1.4
+
+### Bugfixes
+
+- Prevent potential `NullPointerException` when Kotlin property metadata `isVar` flag does not correctly indicate the presence of a setter.
+
 ## Version 9.1.3
 
 ### Kotlin support
