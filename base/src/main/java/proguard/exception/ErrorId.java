@@ -39,6 +39,8 @@ public final class ErrorId {
   public static int ARRAY_STORE_TYPE_EXCEPTION = 1_012;
   public static int NEGATIVE_STACK_SIZE = 2_000;
 
+  public static int MAX_STACK_SIZE_COMPUTER_ERROR = 3_000;
+
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}
 }

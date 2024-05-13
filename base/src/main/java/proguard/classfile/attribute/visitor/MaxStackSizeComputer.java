@@ -35,7 +35,9 @@ import proguard.classfile.instruction.SwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.ClassPrinter;
+import proguard.exception.ErrorId;
 import proguard.exception.InstructionExceptionFormatter;
+import proguard.exception.ProguardCoreException;
 import proguard.util.ArrayUtil;
 import proguard.util.CircularIntBuffer;
 
@@ -101,24 +103,31 @@ public class MaxStackSizeComputer
     try {
       // Process the code.
       visitCodeAttribute0(clazz, method, codeAttribute);
+    } catch (ProguardCoreException ex) {
+      if (DEBUG) {
+        method.accept(clazz, new ClassPrinter());
+      }
+      throw ex;
     } catch (RuntimeException ex) {
-      logger.error(
-          "Unexpected error while computing stack sizes:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-          System.lineSeparator(),
-          clazz.getName(),
-          System.lineSeparator(),
-          method.getName(clazz),
-          method.getDescriptor(clazz),
-          System.lineSeparator(),
-          ex.getClass().getName(),
-          ex.getMessage(),
-          ex);
+      ProguardCoreException proguardCoreException =
+          new ProguardCoreException(
+              ErrorId.MAX_STACK_SIZE_COMPUTER_ERROR,
+              ex,
+              "Unexpected error while computing stack sizes:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
+              System.lineSeparator(),
+              clazz.getName(),
+              System.lineSeparator(),
+              method.getName(clazz),
+              method.getDescriptor(clazz),
+              System.lineSeparator(),
+              ex.getClass().getName(),
+              ex.getMessage());
 
       if (DEBUG) {
         method.accept(clazz, new ClassPrinter());
       }
 
-      throw ex;
+      throw proguardCoreException;
     }
   }
 
