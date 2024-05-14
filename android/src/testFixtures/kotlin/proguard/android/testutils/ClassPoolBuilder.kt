@@ -45,13 +45,14 @@ class Smali2DexReader(private val delegate: DataEntryReader) : DataEntryReader {
     override fun read(dataEntry: DataEntry) {
         val options = SmaliOptions()
         val dexFile = File.createTempFile("classes", ".dex")
+        dexFile.deleteOnExit()
         options.outputDexFile = dexFile.absolutePath
         val tempFile = File.createTempFile("smali", ".smali")
+        tempFile.deleteOnExit()
         copyInputStreamToFile(dataEntry.inputStream, tempFile)
         Smali.assemble(options, tempFile.absolutePath)
         val fileDataEntry = FileDataEntry(dexFile)
         delegate.read(fileDataEntry)
-        dexFile.deleteOnExit()
         dataEntry.closeInputStream()
     }
 
