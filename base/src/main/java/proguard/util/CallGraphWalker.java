@@ -333,7 +333,7 @@ public class CallGraphWalker {
     Set<Node> predecessors = new LinkedHashSet<>();
     for (Call i : callGraph.incoming.getOrDefault(curr.signature, Collections.emptySet())) {
       if (!(i.caller.signature instanceof MethodSignature)) {
-        log.error("Call graph edge {} does not have a method as the caller member!", i);
+        log.warn("Call graph edge {} does not have a method as the caller member!", i);
         continue;
       }
       // Only add the caller to the chain if this doesn't create a loop

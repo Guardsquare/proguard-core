@@ -49,6 +49,7 @@ import proguard.evaluation.value.BasicValueFactory;
 import proguard.evaluation.value.InstructionOffsetValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+import proguard.exception.ErrorId;
 import proguard.exception.InstructionExceptionFormatter;
 import proguard.exception.ProguardCoreException;
 import proguard.util.CircularIntBuffer;
@@ -344,23 +345,31 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
     try {
       // Process the code.
       visitCodeAttribute0(clazz, method, codeAttribute);
-    } catch (RuntimeException ex) {
-      logger.error(
-          "Unexpected error while performing partial evaluation:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-          System.lineSeparator(),
-          clazz.getName(),
-          System.lineSeparator(),
-          method.getName(clazz),
-          method.getDescriptor(clazz),
-          System.lineSeparator(),
-          ex.getClass().getName(),
-          ex.getMessage(),
-          ex);
-
-      if (stateTracker != null)
+    } catch (ProguardCoreException ex) {
+      if (stateTracker != null) {
         stateTracker.registerException(clazz, method, codeAttribute, this, ex);
-
+      }
       throw ex;
+    } catch (RuntimeException ex) {
+      ProguardCoreException proguardCoreException =
+          new ProguardCoreException(
+              ErrorId.PARTIAL_EVALUATOR_ERROR2,
+              ex,
+              "Unexpected error while performing partial evaluation:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
+              System.lineSeparator(),
+              clazz.getName(),
+              System.lineSeparator(),
+              method.getName(clazz),
+              method.getDescriptor(clazz),
+              System.lineSeparator(),
+              ex.getClass().getName(),
+              ex.getMessage());
+
+      if (stateTracker != null) {
+        stateTracker.registerException(clazz, method, codeAttribute, this, proguardCoreException);
+      }
+
+      throw proguardCoreException;
     }
   }
 
@@ -779,10 +788,12 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
           // variables and the stack, and it may call the branch unit
           // and the invocation unit.
           instruction.accept(clazz, method, codeAttribute, instructionOffset, processor);
+        } catch (ProguardCoreException ex) {
+          throw ex;
         } catch (RuntimeException ex) {
           // Fallback to the default exception formatter.
           if (formatter == null) {
-            logger.error(
+            logger.warn(
                 "Unexpected error while evaluating instruction:{}  Class       = [{}]{}  Method      = [{}{}]{}  Instruction = {}{}  Exception   = [{}] ({})",
                 System.lineSeparator(),
                 clazz.getName(),
@@ -797,7 +808,20 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
                 ex);
           }
 
-          throw ex;
+          throw new ProguardCoreException(
+              ErrorId.PARTIAL_EVALUATOR_ERROR1,
+              ex,
+              "Unexpected error while evaluating instruction:{}  Class       = [{}]{}  Method      = [{}{}]{}  Instruction = {}{}  Exception   = [{}] ({})",
+              System.lineSeparator(),
+              clazz.getName(),
+              System.lineSeparator(),
+              method.getName(clazz),
+              method.getDescriptor(clazz),
+              System.lineSeparator(),
+              instruction.toString(clazz, instructionOffset),
+              System.lineSeparator(),
+              ex.getClass().getName(),
+              ex.getMessage());
         }
 
         // Collect the branch targets from the branch unit.

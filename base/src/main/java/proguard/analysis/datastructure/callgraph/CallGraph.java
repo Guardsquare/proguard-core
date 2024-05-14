@@ -75,11 +75,11 @@ public class CallGraph {
    */
   public void addCall(Call call) {
     if (!(call.caller.signature instanceof MethodSignature)) {
-      log.error("Location of call {} is not a method", call);
+      log.warn("Location of call {} is not a method", call);
       return;
     }
     if (call.getTarget() == null) {
-      log.error("Target of call {} is null", call);
+      log.warn("Target of call {} is null", call);
       return;
     }
 
@@ -186,7 +186,7 @@ public class CallGraph {
     // Get all classes that contain known entryPoints and are superclasses of the current one
     Clazz currClass = programClassPool.getClass(curr.signature.getClassName());
     if (currClass == null) {
-      log.error("Could not find class {} in class pool", curr.signature.getClassName());
+      log.warn("Could not find class {} in class pool", curr.signature.getClassName());
       curr.isTruncated = true;
       return false;
     }

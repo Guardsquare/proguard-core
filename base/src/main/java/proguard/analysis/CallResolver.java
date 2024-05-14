@@ -328,7 +328,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     } catch (EmptyCodeAttributeException e) {
       log.info(e);
     } catch (Exception e) {
-      log.error("Unexpected exception during multi type analysis", e);
+      log.warn("Unexpected exception during multi type analysis", e);
     }
 
     if (useDominatorAnalysis) {
@@ -348,7 +348,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     } catch (EmptyCodeAttributeException e) {
       log.info(e);
     } catch (Exception e) {
-      log.error("Unexpected exception during particular value analysis", e);
+      log.warn("Unexpected exception during particular value analysis", e);
     }
     currentClazzMethodAttribute.evaluated = true;
   }
@@ -394,8 +394,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
           break;
         default:
           Metrics.increaseCount(MetricType.UNSUPPORTED_OPCODE);
-          log.warn(
-              "Unsupported invocation opcode " + constantInstruction.opcode + " at " + location);
+          log.warn("Unsupported invocation opcode {} at {}", constantInstruction.opcode, location);
       }
     }
   }
@@ -531,7 +530,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
   private List<Value> getArguments(
       CodeLocation location, MethodSignature invokedMethodSig, boolean isStaticCall) {
     if (invokedMethodSig.descriptor.getArgumentTypes() == null) {
-      log.error("Argument types list of {} is null!", invokedMethodSig);
+      log.warn("Argument types list of {} is null!", invokedMethodSig);
       return Collections.emptyList();
     }
 

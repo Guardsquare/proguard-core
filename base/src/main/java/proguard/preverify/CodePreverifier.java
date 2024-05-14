@@ -29,6 +29,8 @@ import proguard.classfile.util.*;
 import proguard.classfile.visitor.ClassPrinter;
 import proguard.evaluation.*;
 import proguard.evaluation.value.*;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link AttributeVisitor} adds preverification information (for Java Micro Edition or for
@@ -78,8 +80,12 @@ public class CodePreverifier implements AttributeVisitor {
     try {
       // Process the code.
       visitCodeAttribute0(clazz, method, codeAttribute);
+    } catch (ProguardCoreException ex) {
+      throw ex;
     } catch (RuntimeException ex) {
-      logger.error(
+      throw new ProguardCoreException(
+          ErrorId.CODE_PREVERIFIER_ERROR,
+          ex,
           "Unexpected error while preverifying:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
           System.lineSeparator(),
           clazz.getName(),
@@ -88,10 +94,7 @@ public class CodePreverifier implements AttributeVisitor {
           method.getDescriptor(clazz),
           System.lineSeparator(),
           ex.getClass().getName(),
-          ex.getMessage(),
-          ex);
-
-      throw ex;
+          ex.getMessage());
     }
   }
 

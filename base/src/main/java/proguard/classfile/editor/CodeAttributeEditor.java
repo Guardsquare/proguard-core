@@ -71,6 +71,8 @@ import proguard.classfile.instruction.SimpleInstruction;
 import proguard.classfile.instruction.TableSwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 import proguard.util.ArrayUtil;
 
 /**
@@ -553,8 +555,12 @@ public class CodeAttributeEditor
     try {
       // Process the code.
       visitCodeAttribute0(clazz, method, codeAttribute);
+    } catch (ProguardCoreException ex) {
+      throw ex;
     } catch (RuntimeException ex) {
-      logger.error(
+      throw new ProguardCoreException(
+          ErrorId.CODE_ATTRIBUTE_EDITOR_ERROR,
+          ex,
           "Unexpected error while editing code:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
           System.lineSeparator(),
           clazz.getName(),
@@ -563,10 +569,7 @@ public class CodeAttributeEditor
           method.getDescriptor(clazz),
           System.lineSeparator(),
           ex.getClass().getName(),
-          ex.getMessage(),
-          ex);
-
-      throw ex;
+          ex.getMessage());
     }
   }
 

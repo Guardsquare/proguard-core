@@ -339,7 +339,9 @@ public class MaxStackSizeComputer
         NegativeStackSizeException ex =
             new NegativeStackSizeException(clazz, method, instruction, instructionOffset);
 
-        if (formatter != null) formatter.printException(ex);
+        if (formatter != null) {
+          formatter.printException(ex);
+        }
 
         throw ex;
       }

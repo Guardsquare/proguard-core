@@ -111,6 +111,8 @@ import proguard.classfile.util.ClassUtil;
 import proguard.classfile.util.DescriptorClassEnumeration;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link ClassVisitor} fixes references of constant pool entries, fields, methods, attributes
@@ -971,7 +973,9 @@ public class ClassReferenceFixer
       }
 
       return newDescriptorBuffer.toString();
-    } catch (RuntimeException e) {
+    } catch (ProguardCoreException ex) {
+      throw ex;
+    } catch (RuntimeException ex) {
       StringBuilder error =
           new StringBuilder("Unexpected error while updating descriptor:" + System.lineSeparator())
               .append("  Descriptor = [")
@@ -993,10 +997,7 @@ public class ClassReferenceFixer
               .append(System.lineSeparator());
         }
       }
-
-      logger.error(error, e);
-
-      throw e;
+      throw new ProguardCoreException(ErrorId.CLASS_REFERENCE_FIXER_ERROR, ex, error.toString());
     }
   }
 

@@ -27,6 +27,8 @@ import proguard.classfile.instruction.*;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.*;
 import proguard.classfile.visitor.*;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This AttributeVisitor inlines local subroutines (jsr/ret) in the code attributes that it visits.
@@ -66,24 +68,28 @@ public class CodeSubroutineInliner
     try {
       // Process the code.
       visitCodeAttribute0(clazz, method, codeAttribute);
+    } catch (ProguardCoreException ex) {
+      throw ex;
     } catch (RuntimeException ex) {
-      logger.error(
-          "Unexpected error while inlining subroutines:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-          System.lineSeparator(),
-          clazz.getName(),
-          System.lineSeparator(),
-          method.getName(clazz),
-          method.getDescriptor(clazz),
-          System.lineSeparator(),
-          ex.getClass().getName(),
-          ex.getMessage(),
-          ex);
+      ProguardCoreException proguardCoreException =
+          new ProguardCoreException(
+              ErrorId.CODE_SUBROUTINE_INLINER_ERROR,
+              ex,
+              "Unexpected error while inlining subroutines:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
+              System.lineSeparator(),
+              clazz.getName(),
+              System.lineSeparator(),
+              method.getName(clazz),
+              method.getDescriptor(clazz),
+              System.lineSeparator(),
+              ex.getClass().getName(),
+              ex.getMessage());
 
       if (DEBUG) {
         method.accept(clazz, new ClassPrinter());
       }
 
-      throw ex;
+      throw proguardCoreException;
     }
   }
 
