@@ -18,11 +18,11 @@
 
 package proguard.evaluation.executor;
 
+import java.util.List;
 import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.MethodResult;
 import proguard.evaluation.ValueCalculator;
-import proguard.evaluation.executor.matcher.ExecutorMatcher;
 import proguard.evaluation.value.Value;
 
 /**
@@ -53,21 +53,16 @@ public interface Executor {
   MethodResult getMethodResult(MethodExecutionInfo methodData, ValueCalculator valueCalculator);
 
   /**
-   * Returns whether a certain method invocation is supported.
+   * Get a list of method signature wildcards that indicate which methods are supported by this
+   * executor. Please note, that the ExecutionInvocationUnit also handles dynamic dispatch, so your
+   * executor might be called with subclasses of the specified types. E.g. if you specify to allow
+   * all android/content/Context methods, your executor will be also executed with
+   * android/app/Activity, because it extends Context.
    *
-   * @param signature The method signature.
-   * @return whether the method invocation is supported.
+   * @return List method signature wildcards indicating, which methods are supported by this
+   *     executor.
    */
-  default boolean isSupportedMethodCall(MethodSignature signature) {
-    return getExecutorMatcher().matches(signature);
-  }
-
-  /**
-   * Get a matcher telling if the executor should be used to execute a certain method.
-   *
-   * @return the executor's matcher.
-   */
-  ExecutorMatcher getExecutorMatcher();
+  List<MethodSignature> getSupportedMethodSignatures();
 
   /**
    * A builder for the executor. It's important for each concrete executor to provide one in order

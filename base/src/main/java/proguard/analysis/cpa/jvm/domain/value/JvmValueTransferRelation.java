@@ -148,8 +148,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
   public void invokeMethod(
       JvmAbstractState<ValueAbstractState> state, Call call, List<ValueAbstractState> operands) {
     if (call instanceof ConcreteCall) {
-      if (executingInvocationUnit.isSupportedMethodCall(
-          call.getTarget().getClassName(), call.getTarget().method)) {
+      if (executingInvocationUnit.canExecute(call.getTarget())) {
         // we can try to execute the method with reflection
         executeMethod((ConcreteCall) call, state, operands);
         return;
@@ -159,7 +158,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
       String internalReturnClassName = ClassUtil.internalClassNameFromType(returnType);
       if (returnType != null
           && internalReturnClassName != null
-          && executingInvocationUnit.isSupportedMethodCall(internalReturnClassName, null)) {
+          && executingInvocationUnit.supportsInstancesOf(internalReturnClassName)) {
         // we can at most know the return type
         pushReturnTypedValue(state, operands, (ConcreteCall) call, returnType);
         return;

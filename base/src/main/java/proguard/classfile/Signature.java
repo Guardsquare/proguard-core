@@ -22,6 +22,7 @@ import static proguard.classfile.util.ClassUtil.externalClassName;
 import static proguard.classfile.util.ClassUtil.externalPackageName;
 
 import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A signature currently can be a Method- or a FieldSignature. This class can be used to create the
@@ -46,7 +47,7 @@ public abstract class Signature implements Comparable<Signature> {
    * The {@link Clazz} that the {@link Signature#className} references. May be <code>null</code> if
    * there is no reference available (e.g. class is missing from the class pool).
    */
-  protected Clazz referencedClass;
+  protected @Nullable Clazz referencedClass;
 
   protected Signature(String internalClassName, int hashCode) {
     this.className = internalClassName;
@@ -167,7 +168,7 @@ public abstract class Signature implements Comparable<Signature> {
    * Signature#getClassName()} or <code>null</code> if no reference is available (e.g. class is
    * missing from the class pool).
    */
-  public Clazz getReferencedClass() {
+  public @Nullable Clazz getReferencedClass() {
     return referencedClass;
   }
 

@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.jvm.domain.value;
 
-import static proguard.classfile.ClassConstants.METHOD_NAME_INIT;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
 import static proguard.classfile.util.ClassUtil.isExtendable;
@@ -116,7 +115,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> 
   /** Returns an {@link ValueAbstractState} for a new object of the given {@code className}. */
   @Override
   public ValueAbstractState newObject(String className) {
-    if (!executingInvocationUnit.isSupportedMethodCall(className, METHOD_NAME_INIT)) {
+    if (!executingInvocationUnit.supportsInstancesOf(className)) {
       return new ValueAbstractState(valueFactory.createReferenceValue());
     }
 
@@ -140,7 +139,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> 
   /** Returns an {@link ValueAbstractState} state for a new object of the given {@link Clazz}. */
   @Override
   public ValueAbstractState newObject(Clazz clazz) {
-    if (!executingInvocationUnit.isSupportedMethodCall(clazz.getName(), METHOD_NAME_INIT)) {
+    if (!executingInvocationUnit.supportsInstancesOf(clazz)) {
       return new ValueAbstractState(valueFactory.createReferenceValue());
     }
 

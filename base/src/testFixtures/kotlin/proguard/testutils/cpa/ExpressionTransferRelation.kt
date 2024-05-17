@@ -107,7 +107,7 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
         call: Call,
         operands: MutableList<ExpressionAbstractState>,
     ) {
-        when (ClassUtil.internalTypeSize(call.target.descriptor.returnType ?: "?")) {
+        when (ClassUtil.internalTypeSize(call.target.descriptor?.returnType ?: "?")) {
             0 -> return
             1 -> state.pushAll(
                 mutableListOf(

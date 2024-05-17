@@ -37,9 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
@@ -51,7 +49,6 @@ import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
 import proguard.classfile.Member;
-import proguard.classfile.MethodDescriptor;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramField;
@@ -108,10 +105,9 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   private static final Logger log = LogManager.getLogger(ExecutingInvocationUnit.class);
   @Nullable private Value[] parameters;
   private final boolean enableSameInstanceIdApproximation;
-  private final List<Executor> registeredExecutors;
 
-  // Lazily initialized lookup from method signatures to their responsible executor.
-  private final Map<MethodSignature, Executor> responsibleExecutor = new HashMap<>();
+  /** Data structure for mapping method signatures onto responsible executors. */
+  private final ExecutorLookup executorLookup;
 
   /** Creates an {@link ExecutingInvocationUnit}. */
   protected ExecutingInvocationUnit(
@@ -120,7 +116,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
       List<Executor> registeredExecutors) {
     super(valueFactory);
     this.enableSameInstanceIdApproximation = enableSameInstanceIdApproximation;
-    this.registeredExecutors = registeredExecutors;
+    this.executorLookup = new ExecutorLookup(registeredExecutors);
   }
 
   /** Deprecated constructor, use {@link ExecutingInvocationUnit.Builder}. */
@@ -261,7 +257,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
 
     MethodExecutionInfo methodInfo =
         new MethodExecutionInfo(anyMethodrefConstant, null, parameters);
-    Executor executor = getResponsibleExecutor(methodInfo.getSignature());
+    Executor executor = getResponsibleExecutor(methodInfo);
 
     MethodResult result = executeMethod(executor, methodInfo);
 
@@ -344,20 +340,13 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   }
 
   /**
-   * Get the responsible {@link Executor} for a given class name and a method name. Cache previously
-   * determined executors.
+   * Get the responsible {@link Executor} for a given method execution info.
    *
-   * @param signature The method signature.
+   * @param info Information about the method execution.
    * @return The responsible executor.
    */
-  private Executor getResponsibleExecutor(MethodSignature signature) {
-    return responsibleExecutor.computeIfAbsent(
-        signature,
-        sig ->
-            registeredExecutors.stream()
-                .filter(executor -> executor.isSupportedMethodCall(signature))
-                .findFirst()
-                .orElse(null));
+  private Executor getResponsibleExecutor(@NotNull MethodExecutionInfo info) {
+    return executorLookup.lookupExecutor(info);
   }
 
   /**
@@ -370,7 +359,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    */
   public MethodResult executeMethod(ConcreteCall call, Value... parameters) {
     MethodExecutionInfo methodInfo = new MethodExecutionInfo(call, parameters);
-    Executor executor = getResponsibleExecutor(call.getTarget());
+    Executor executor = getResponsibleExecutor(methodInfo);
     return executeMethod(executor, methodInfo);
   }
 
@@ -572,20 +561,46 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   }
 
   /**
-   * Return whether the invocation unit is expected to handle the method call based on the class
-   * name and the method name.
+   * Returns whether the execution invocation unit is able to handle the given method. Prefer {@link
+   * #canExecute(MethodExecutionInfo)} as it can handle dynamic dispatch resolution.
    *
-   * @param internalClassName The class name for the method.
-   * @param methodName The name of the method.
-   * @return whether the invocation unit is expected to handle the method call.
+   * @param signature The method signature of the method being tested
+   * @return true if the method can be executed.
    */
-  public boolean isSupportedMethodCall(String internalClassName, String methodName) {
-    return isSupportedMethodCall(
-        new MethodSignature(internalClassName, methodName, (MethodDescriptor) null));
+  public boolean canExecute(@NotNull MethodSignature signature) {
+    return this.executorLookup.hasExecutorFor(signature);
   }
 
-  public boolean isSupportedMethodCall(MethodSignature methodSignature) {
-    return getResponsibleExecutor(methodSignature) != null;
+  /**
+   * Returns whether the execution invocation unit is able to handle the given method described by
+   * its method execution info. Handles dynamic dispatch resolution.
+   *
+   * @param info The method execution info to be tested
+   * @return true if the method can be executed.
+   */
+  public boolean canExecute(@NotNull MethodExecutionInfo info) {
+    return this.executorLookup.hasExecutorFor(info);
+  }
+
+  /**
+   * Checks whether any methods of the given class are supported by the executors.
+   *
+   * @param clazz The class to check
+   * @return true if any method of the given class is supported by the executor
+   */
+  public boolean supportsInstancesOf(@NotNull Clazz clazz) {
+    return executorLookup.shouldTrackInstancesOfType(clazz);
+  }
+
+  /**
+   * Checks whether any methods of the given class are supported by the executors. Prefer to use
+   * {@link #supportsInstancesOf(Clazz)} whenever possible.
+   *
+   * @param className The class name to check
+   * @return true if any method of the given class is supported by the executor
+   */
+  public boolean supportsInstancesOf(@NotNull String className) {
+    return executorLookup.shouldTrackInstancesOfType(className);
   }
 
   /**

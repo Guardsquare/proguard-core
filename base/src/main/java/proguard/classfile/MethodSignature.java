@@ -26,6 +26,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a Method signature containing a class, method and a descriptor.
@@ -44,11 +45,14 @@ public class MethodSignature extends Signature implements MethodInfo {
       new MethodSignature(null, null, (MethodDescriptor) null);
   private static final Map<Method, MethodSignature> signatureCache =
       Collections.synchronizedMap(new IdentityHashMap<>());
-  public final String method;
-  public final MethodDescriptor descriptor;
+  public final @Nullable String method;
+  public final @Nullable MethodDescriptor descriptor;
   private Method referencedMethod;
 
-  public MethodSignature(String internalClassName, String method, MethodDescriptor descriptor) {
+  public MethodSignature(
+      @Nullable String internalClassName,
+      @Nullable String method,
+      @Nullable MethodDescriptor descriptor) {
     super(internalClassName, Objects.hash(internalClassName, method, descriptor));
     this.method = method;
     this.descriptor = descriptor;
@@ -56,14 +60,24 @@ public class MethodSignature extends Signature implements MethodInfo {
     this.referencedMethod = null;
   }
 
-  public MethodSignature(String internalClassName, String method, String descriptor) {
-    this(internalClassName, method, new MethodDescriptor(descriptor));
+  public MethodSignature(
+      @Nullable String internalClassName, @Nullable String method, @Nullable String descriptor) {
+    this(internalClassName, method, descriptor == null ? null : new MethodDescriptor(descriptor));
   }
 
-  public MethodSignature(Clazz clazz, Method method) {
+  public MethodSignature(@NotNull Clazz clazz, @NotNull Method method) {
     this(clazz.getName(), method.getName(clazz), method.getDescriptor(clazz));
     this.referencedClass = clazz;
     this.referencedMethod = method;
+  }
+
+  public MethodSignature(@NotNull Clazz clazz) {
+    this(clazz.getName(), null, (String) null);
+    this.referencedClass = clazz;
+  }
+
+  public MethodSignature(@Nullable String className) {
+    this(className, null, (String) null);
   }
 
   /**
@@ -198,20 +212,12 @@ public class MethodSignature extends Signature implements MethodInfo {
   }
 
   @Override
-  public @NotNull String getMethodName() {
-    if (method == null) {
-      throw new IllegalStateException(
-          "Should not use this method if the method name is expected to be null");
-    }
+  public @Nullable String getMethodName() {
     return method;
   }
 
   @Override
-  public @NotNull MethodDescriptor getDescriptor() {
-    if (descriptor == null) {
-      throw new IllegalStateException(
-          "Should not use this method if the descriptor name is expected to be null");
-    }
+  public @Nullable MethodDescriptor getDescriptor() {
     return descriptor;
   }
 }

@@ -26,17 +26,18 @@ import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUFFER;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import proguard.classfile.MethodSignature;
 import proguard.evaluation.executor.instancehandler.ExecutorInstanceHandler;
 import proguard.evaluation.executor.instancehandler.ExecutorMethodInstanceHandler;
-import proguard.evaluation.executor.matcher.ExecutorClassMatcher;
-import proguard.evaluation.executor.matcher.ExecutorMatcher;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.object.AnalyzedObject;
 import proguard.evaluation.value.object.AnalyzedObjectFactory;
-import proguard.util.CollectionMatcher;
 import proguard.util.ConstantMatcher;
 import proguard.util.FixedStringMatcher;
 import proguard.util.StringMatcher;
@@ -92,13 +93,6 @@ public class StringReflectionExecutor extends ReflectionExecutor {
   }
 
   @Override
-  public ExecutorMatcher getExecutorMatcher() {
-    return new ExecutorClassMatcher(
-        new CollectionMatcher(
-            NAME_JAVA_LANG_STRING, NAME_JAVA_LANG_STRING_BUILDER, NAME_JAVA_LANG_STRING_BUFFER));
-  }
-
-  @Override
   public ExecutorInstanceHandler getDefaultInstanceHandler() {
     Map<String, StringMatcher> matcherMap = new HashMap<>();
     matcherMap.put(NAME_JAVA_LANG_STRING, new FixedStringMatcher("toString"));
@@ -106,6 +100,15 @@ public class StringReflectionExecutor extends ReflectionExecutor {
     matcherMap.put(NAME_JAVA_LANG_STRING_BUILDER, new ConstantMatcher(true));
 
     return new ExecutorMethodInstanceHandler(matcherMap);
+  }
+
+  @Override
+  public List<MethodSignature> getSupportedMethodSignatures() {
+    return Stream.of(
+            new MethodSignature(NAME_JAVA_LANG_STRING),
+            new MethodSignature(NAME_JAVA_LANG_STRING_BUILDER),
+            new MethodSignature(NAME_JAVA_LANG_STRING_BUFFER))
+        .collect(Collectors.toList());
   }
 
   /** A builder for {@link StringReflectionExecutor}. */
