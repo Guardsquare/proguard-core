@@ -1,5 +1,9 @@
 ## Version 9.1.4
 
+### Kotlin support
+
+- Update Kotlin dependency to 2.0.0 final release version.
+
 ### Bugfixes
 
 - Prevent potential `NullPointerException` when Kotlin property metadata `isVar` flag does not correctly indicate the presence of a setter.
