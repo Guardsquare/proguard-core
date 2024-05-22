@@ -4,6 +4,15 @@
 
 - Update Kotlin dependency to 2.0.0 final release version.
 
+### Improved
+
+- Add support for dynamic dispatch in `ExecutorInvocationUnit`. This makes it possible to execute methods based on statically observed types of objects, not only based on the type of the used variables.
+
+### API changes
+
+- Remove `ExecutorMatcher` and change the `Executor` interface so that it declares supported methods by `MethodSignature` wildcards instead.
+- Add `@Nullable` annotations to `MethodSignature`.
+
 ### Bugfixes
 
 - Prevent potential `NullPointerException` when Kotlin property metadata `isVar` flag does not correctly indicate the presence of a setter.
@@ -21,7 +30,7 @@
 
 - Update maximum supported Java class version to 66.65535 (Java 22).
 
-## API changes
+### API changes
 
 - Remove deprecated `ReferenceValueFactory`, `ParticularReferenceValueFactory` should be used instead.
 - Deprecate methods in `ValueFactory` taking an `Object` as parameter. The alternatives using `ParticularObject` should be used instead.
