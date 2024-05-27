@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
+import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.executor.Executor;
 import proguard.evaluation.executor.MethodExecutionInfo;
 import proguard.evaluation.value.ReferenceValue;
@@ -47,14 +48,14 @@ final class ExecutorLookup {
   }
 
   /**
-   * Get list of possible object types from an instance used in a method call. Always returns at
-   * least one type.
+   * Get list of possible object class names from an instance used in a method call. Always returns
+   * at least one.
    *
    * @param object The instance value the invocation was made with.
-   * @return A list of its types, ordered from the most specific to the least specific one. The
-   *     returned list is never empty.
+   * @return A list of the name of the classes, ordered from the most specific to the least specific
+   *     one. The returned list is never empty.
    */
-  private static List<String> getTypesTheGivenInstanceValueIsAssignableTo(@NotNull Value object) {
+  private static List<String> getClassesTheGivenInstanceValueIsAssignableTo(@NotNull Value object) {
     if (!(object instanceof ReferenceValue)) {
       log.error(
           "It's impossible to have a non-reference value as an instance object. Defaulting to \"{}\"",
@@ -62,25 +63,24 @@ final class ExecutorLookup {
       return Collections.singletonList(ClassConstants.NAME_JAVA_LANG_OBJECT);
     }
 
-    // try to collect the types by traversing the class hierarchy
+    // try to collect the classNames by traversing the class hierarchy
     ReferenceValue refValue = ((ReferenceValue) object);
     Clazz clazz = refValue.getReferencedClass();
-    List<String> types = new ArrayList<>();
+    List<String> classNames = new ArrayList<>();
     while (clazz != null) {
-      types.add(clazz.getName());
+      classNames.add(clazz.getName());
       clazz = clazz.getSuperClass();
     }
 
     // the above might have failed, so we try different method
-    if (types.isEmpty()) {
+    if (classNames.isEmpty()) {
       if (refValue.getType() != null) {
-        return Collections.singletonList(refValue.getType());
+        return Collections.singletonList(ClassUtil.internalClassNameFromType(refValue.getType()));
       } else {
-        log.error("The instance value does not have a referenced class or a type!");
         return Collections.singletonList(ClassConstants.NAME_JAVA_LANG_OBJECT);
       }
     } else {
-      return types;
+      return classNames;
     }
   }
 
@@ -107,11 +107,14 @@ final class ExecutorLookup {
       //
       // As an example, if we have a hierarchy of classes [Object < A < B < C < D], and we
       // called method B.foo() on instance of D, we would create a list [D#foo, C#foo, B#foo]
-      for (String type : getTypesTheGivenInstanceValueIsAssignableTo(info.getInstanceNonStatic())) {
+      for (String className :
+          getClassesTheGivenInstanceValueIsAssignableTo(info.getInstanceNonStatic())) {
         possibleMethodSignatures.add(
-            new MethodSignature(type, signature.method, signature.descriptor));
+            new MethodSignature(className, signature.method, signature.descriptor));
         // we don't want to go lower than in the hierarchy than what the instruction expects
-        if (type.equals(signature.getClassName())) break;
+        if (className.equals(signature.getClassName())) {
+          break;
+        }
       }
     } else {
       // For the remaining invocations - constructors and static methods - always use
