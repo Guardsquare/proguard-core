@@ -561,13 +561,10 @@ public class CodeAttributeEditor
       throw new ProguardCoreException(
           ErrorId.CODE_ATTRIBUTE_EDITOR_ERROR,
           ex,
-          "Unexpected error while editing code:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-          System.lineSeparator(),
+          "Unexpected error while editing code:%n  Class       = [%s]%n  Method      = [%s%s]%n  Exception   = [%s] (%s)",
           clazz.getName(),
-          System.lineSeparator(),
           method.getName(clazz),
           method.getDescriptor(clazz),
-          System.lineSeparator(),
           ex.getClass().getName(),
           ex.getMessage());
     }

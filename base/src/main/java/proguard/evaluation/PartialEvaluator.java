@@ -355,13 +355,10 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
           new ProguardCoreException(
               ErrorId.PARTIAL_EVALUATOR_ERROR2,
               ex,
-              "Unexpected error while performing partial evaluation:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-              System.lineSeparator(),
+              "Unexpected error while performing partial evaluation:%n  Class       = [%s]%n  Method      = [%s%s]%n  Exception   = [%s] (%s)",
               clazz.getName(),
-              System.lineSeparator(),
               method.getName(clazz),
               method.getDescriptor(clazz),
-              System.lineSeparator(),
               ex.getClass().getName(),
               ex.getMessage());
 
@@ -811,15 +808,11 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
           throw new ProguardCoreException(
               ErrorId.PARTIAL_EVALUATOR_ERROR1,
               ex,
-              "Unexpected error while evaluating instruction:{}  Class       = [{}]{}  Method      = [{}{}]{}  Instruction = {}{}  Exception   = [{}] ({})",
-              System.lineSeparator(),
+              "Unexpected error while evaluating instruction:%n  Class       = [%s]%n  Method      = [%s%s]%n  Instruction = %s%n  Exception   = [%s] (%s)",
               clazz.getName(),
-              System.lineSeparator(),
               method.getName(clazz),
               method.getDescriptor(clazz),
-              System.lineSeparator(),
               instruction.toString(clazz, instructionOffset),
-              System.lineSeparator(),
               ex.getClass().getName(),
               ex.getMessage());
         }

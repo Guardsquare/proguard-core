@@ -86,13 +86,10 @@ public class CodePreverifier implements AttributeVisitor {
       throw new ProguardCoreException(
           ErrorId.CODE_PREVERIFIER_ERROR,
           ex,
-          "Unexpected error while preverifying:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-          System.lineSeparator(),
+          "Unexpected error while preverifying:%n  Class       = [%s]%n  Method      = [%s%s]%n  Exception   = [%s] (%s)",
           clazz.getName(),
-          System.lineSeparator(),
           method.getName(clazz),
           method.getDescriptor(clazz),
-          System.lineSeparator(),
           ex.getClass().getName(),
           ex.getMessage());
     }

@@ -75,13 +75,10 @@ public class CodeSubroutineInliner
           new ProguardCoreException(
               ErrorId.CODE_SUBROUTINE_INLINER_ERROR,
               ex,
-              "Unexpected error while inlining subroutines:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-              System.lineSeparator(),
+              "Unexpected error while inlining subroutines:%n  Class       = [%s]%n  Method      = [%s%s]%n  Exception   = [%s] (%s)",
               clazz.getName(),
-              System.lineSeparator(),
               method.getName(clazz),
               method.getDescriptor(clazz),
-              System.lineSeparator(),
               ex.getClass().getName(),
               ex.getMessage());
 

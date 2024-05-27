@@ -113,13 +113,10 @@ public class MaxStackSizeComputer
           new ProguardCoreException(
               ErrorId.MAX_STACK_SIZE_COMPUTER_ERROR,
               ex,
-              "Unexpected error while computing stack sizes:{}  Class       = [{}]{}  Method      = [{}{}]{}  Exception   = [{}] ({})",
-              System.lineSeparator(),
+              "Unexpected error while computing stack sizes:%n  Class       = [%s]%n  Method      = [%s%s]%n  Exception   = [%s] (%s)",
               clazz.getName(),
-              System.lineSeparator(),
               method.getName(clazz),
               method.getDescriptor(clazz),
-              System.lineSeparator(),
               ex.getClass().getName(),
               ex.getMessage());
 
