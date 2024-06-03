@@ -1698,6 +1698,9 @@ public class KotlinMetadataWriter
         case LANGUAGE_VERSION:
           kmVersionRequirement.kind = KmVersionRequirementVersionKind.LANGUAGE_VERSION;
           break;
+        case UNKNOWN:
+          kmVersionRequirement.kind = KmVersionRequirementVersionKind.UNKNOWN;
+          break;
         default:
           throw new UnsupportedOperationException(
               "Encountered unknown enum value for KotlinVersionRequirementVersionKind.");

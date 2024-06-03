@@ -965,6 +965,9 @@ public class KotlinMetadataInitializer
       case LANGUAGE_VERSION:
         versionReq.kind = KotlinVersionRequirementVersionKind.LANGUAGE_VERSION;
         break;
+      case UNKNOWN:
+        versionReq.kind = KotlinVersionRequirementVersionKind.UNKNOWN;
+        break;
       default:
         throw new UnsupportedOperationException(
             "Encountered unknown enum value for KmVersionRequirementVersionKind.");

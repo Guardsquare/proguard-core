@@ -22,4 +22,5 @@ enum class KotlinVersionRequirementVersionKind {
     LANGUAGE_VERSION,
     COMPILER_VERSION,
     API_VERSION,
+    UNKNOWN,
 }
