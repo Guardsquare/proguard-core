@@ -1,3 +1,9 @@
+## Version 9.1.5
+
+### Bugfixes
+
+- Prevent `unknown enum value for KmVersionRequirementVersionKind` exception when processing code compiled with an outdated Kotlin version.
+
 ## Version 9.1.4
 
 ### Kotlin support
