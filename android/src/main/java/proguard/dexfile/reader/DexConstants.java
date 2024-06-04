@@ -61,4 +61,6 @@ public interface DexConstants {
   int DEX_037 = 0x00303337;
   int DEX_038 = 0x00303338;
   int DEX_039 = 0x00303339;
+  int DEX_040 = 0x00303430;
+  int DEX_041 = 0x00303431;
 }

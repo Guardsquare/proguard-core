@@ -16,16 +16,14 @@
 
 package proguard.dexfile.reader;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import static proguard.dexfile.reader.DexConstants.DEX_035;
+import static proguard.dexfile.reader.DexConstants.DEX_038;
+import static proguard.dexfile.reader.DexConstants.DEX_041;
+
 import java.io.UTFDataFormatException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -63,7 +61,7 @@ import proguard.dexfile.reader.visitors.DexMethodVisitor;
  * @author <a href="mailto:pxb1988@gmail.com">Panxiaobo</a>
  * @version $Rev$
  */
-public class DexFileReader {
+public class DexFileReader implements BaseDexFileReader {
   /** skip debug infos in dex file. */
   public static final int SKIP_DEBUG = 1;
   /** skip code info in dex file, this indicate {@link #SKIP_DEBUG} */
@@ -151,6 +149,10 @@ public class DexFileReader {
   final int call_site_ids_size;
   final int method_handle_ids_size;
   final int dex_version;
+  final int file_size;
+  final int header_size;
+  final int container_size;
+  final int container_offset;
 
   /**
    * read dex from a {@link ByteBuffer}.
@@ -158,7 +160,17 @@ public class DexFileReader {
    * @param in
    */
   public DexFileReader(ByteBuffer in) {
-    ((Buffer) in).position(0);
+    this(in, 0);
+  }
+
+  /**
+   * read dex from a {@link ByteBuffer}.
+   *
+   * @param in
+   * @param position start of the dexfile in the buffer
+   */
+  public DexFileReader(ByteBuffer in, int position) {
+    ((Buffer) in).position(position);
     in = in.asReadOnlyBuffer().order(ByteOrder.BIG_ENDIAN);
 
     // Size of the dex file header must be at least 0x70 bytes, see:
@@ -174,24 +186,24 @@ public class DexFileReader {
     final int MAGIC_ODEX = 0x6465790A & 0xFFFFFF00; // hex for 'dey ', ignore the 0A
 
     if (magic == MAGIC_DEX) {
+      // ok
     } else if (magic == MAGIC_ODEX) {
       throw new DexException("Odex unsupported.");
     } else {
       throw new DexException("Magic unsupported.");
     }
     int version = in.getInt() >> 8;
-    if (version < DexConstants.DEX_035) {
-      System.err.println("Unknown DEX version.");
-      // throw new DexException("not support version.");
+    if (version < DEX_035 || version > DEX_041) {
+      throw new DexException("DEX " + version + " unsupported.");
     }
     this.dex_version = version;
     in.order(ByteOrder.LITTLE_ENDIAN);
 
     // skip uint checksum
     // and 20 bytes signature
-    // and uint file_size
-    // and uint header_size 0x70
-    skip(in, 4 + 20 + 4 + 4);
+    skip(in, 4 + 20);
+    file_size = in.getInt();
+    header_size = in.getInt();
 
     int endian_tag = in.getInt();
     if (endian_tag != ENDIAN_CONSTANT) {
@@ -216,13 +228,25 @@ public class DexFileReader {
     int method_ids_off = in.getInt();
     class_defs_size = in.getInt();
     int class_defs_off = in.getInt();
-    // skip uint data_size data_off
+
+    // Read the container size & offset if the version is >= 41 and the header size is large enough.
+
+    if (dex_version >= DEX_041 && header_size >= 0x78) {
+      // skip uint data_size data_off
+
+      skip(in, 4 + 4);
+      container_size = in.getInt();
+      container_offset = in.getInt();
+    } else {
+      container_size = -1;
+      container_offset = -1;
+    }
 
     int call_site_ids_off = 0;
     int call_site_ids_size = 0;
     int method_handle_ids_off = 0;
     int method_handle_ids_size = 0;
-    if (dex_version > DexConstants.DEX_037) {
+    if (dex_version >= DEX_038) {
       ((Buffer) in).position(map_off);
       int size = in.getInt();
       for (int i = 0; i < size; i++) {
@@ -271,26 +295,9 @@ public class DexFileReader {
 
   /**
    * @param data the byte array of dex
-   * @return
    */
   public DexFileReader(byte[] data) {
     this(ByteBuffer.wrap(data));
-  }
-
-  /**
-   * @param file the dex file
-   * @throws IOException
-   */
-  public DexFileReader(File file) throws IOException {
-    this(file.toPath());
-  }
-
-  public DexFileReader(Path file) throws IOException {
-    this(Files.readAllBytes(file));
-  }
-
-  public DexFileReader(InputStream is) throws IOException {
-    this(toByteArray(is));
   }
 
   /**
@@ -302,15 +309,6 @@ public class DexFileReader {
   private static int readStringIndex(ByteBuffer bs) {
     int offsetIndex = readULeb128i(bs);
     return offsetIndex - 1;
-  }
-
-  private static byte[] toByteArray(InputStream is) throws IOException {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    byte[] buff = new byte[1024];
-    for (int c = is.read(buff); c > 0; c = is.read(buff)) {
-      out.write(buff, 0, c);
-    }
-    return out.toByteArray();
   }
 
   private static ByteBuffer slice(ByteBuffer in, int offset, int length) {
@@ -616,6 +614,7 @@ public class DexFileReader {
     }
   }
 
+  @Override
   public int getDexVersion() {
     return dex_version;
   }
@@ -625,10 +624,12 @@ public class DexFileReader {
    *
    * @param dv
    */
+  @Override
   public void accept(DexFileVisitor dv) {
     this.accept(dv, 0);
   }
 
+  @Override
   public List<String> getClassNames() {
     List<String> names = new ArrayList<>(class_defs_size);
     ByteBuffer in = classDefIn;
@@ -647,6 +648,7 @@ public class DexFileReader {
    * @param config config flags, {@link #SKIP_CODE}, {@link #SKIP_DEBUG}, {@link #SKIP_ANNOTATION},
    *     {@link #SKIP_FIELD_CONSTANT}
    */
+  @Override
   public void accept(DexFileVisitor dv, int config) {
     dv.visitDexFileVersion(this.dex_version);
     for (int cid = 0; cid < class_defs_size; cid++) {
@@ -664,6 +666,7 @@ public class DexFileReader {
    * @param config config flags, {@link #SKIP_CODE}, {@link #SKIP_DEBUG}, {@link #SKIP_ANNOTATION},
    *     {@link #SKIP_FIELD_CONSTANT}
    */
+  @Override
   public void accept(DexFileVisitor dv, int classIdx, int config) {
     ((Buffer) classDefIn).position(classIdx * 32);
     int class_idx = classDefIn.getInt();
@@ -699,6 +702,7 @@ public class DexFileReader {
   }
 
   /** Provides the given consumer with all strings in the dex file. */
+  @Override
   public void accept(Consumer<String> stringConsumer) {
     for (int cid = 0; cid < string_ids_size; cid++) {
       stringConsumer.accept(this.getString(cid));

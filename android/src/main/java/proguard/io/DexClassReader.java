@@ -20,6 +20,7 @@ package proguard.io;
 import static proguard.dexfile.reader.DexFileReader.KEEP_CLINIT;
 import static proguard.dexfile.reader.DexFileReader.SKIP_CODE;
 import static proguard.dexfile.reader.DexFileReader.SKIP_DEBUG;
+import static proguard.dexfile.reader.DexReaderFactory.createSingleReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +31,6 @@ import proguard.classfile.visitor.ClassPrinter;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.dexfile.converter.Dex2Pro;
 import proguard.dexfile.reader.DexException;
-import proguard.dexfile.reader.DexFileReader;
 import proguard.dexfile.reader.node.DexFileNode;
 
 /**
@@ -85,7 +85,7 @@ public class DexClassReader implements DataEntryReader {
       // Fill out a Dex2jar file node.
       DexFileNode fileNode = new DexFileNode();
       int readerConfig = readCode ? 0 : (SKIP_CODE | KEEP_CLINIT | SKIP_DEBUG);
-      new DexFileReader(inputStream).accept(fileNode, readerConfig);
+      createSingleReader(inputStream).accept(fileNode, readerConfig);
 
       // Convert it to classes, with the help of Dex2Pro.
       new Dex2Pro()
