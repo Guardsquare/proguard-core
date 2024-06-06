@@ -239,6 +239,8 @@ class KotlinMetadataInitializerTest : FreeSpec({
                 }
                 """.trimIndent(),
             ),
+            // Since Kotlin 2.0, the default is -Xlambdas=indy, which doesn't generate any metadata for us to verify.
+            kotlincArguments = listOf("-Xlambdas=class"),
         )
 
         "When the jvmSignature method name is <anonymous>" - {
