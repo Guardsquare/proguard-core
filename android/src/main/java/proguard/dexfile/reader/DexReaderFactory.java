@@ -32,6 +32,6 @@ public class DexReaderFactory {
       }
     } while (!end);
 
-    return readers.size() > 1 ? new MultiDexFileReader(readers) : readers.get(0);
+    return readers.size() > 1 ? new DexContainerReader(readers) : readers.get(0);
   }
 }

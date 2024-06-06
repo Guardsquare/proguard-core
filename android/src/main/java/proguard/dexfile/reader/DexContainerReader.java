@@ -9,11 +9,21 @@ import java.util.Set;
 import java.util.function.Consumer;
 import proguard.dexfile.reader.visitors.DexFileVisitor;
 
-public class MultiDexFileReader implements BaseDexFileReader {
+/**
+ * Open and read a dex container, introduced in dex format v41. To read a dex file with this, use
+ * the {@link proguard.dexfile.reader.DexReaderFactory} factory methods:
+ *
+ * <pre>
+ * DexFileVisitor visitor = new xxxFileVisitor();
+ * BaseDexFileReader reader = DexReaderFactory.createSingleReader(dexFile);
+ * reader.accept(visitor);
+ * </pre>
+ */
+public class DexContainerReader implements BaseDexFileReader {
   private final List<BaseDexFileReader> readers = new ArrayList<>();
   private final List<Item> items = new ArrayList<>();
 
-  public MultiDexFileReader(Collection<? extends BaseDexFileReader> readers) {
+  public DexContainerReader(Collection<? extends BaseDexFileReader> readers) {
     this.readers.addAll(readers);
     init();
   }
@@ -79,9 +89,7 @@ public class MultiDexFileReader implements BaseDexFileReader {
 
   @Override
   public void accept(Consumer<String> stringConsumer) {
-    for (BaseDexFileReader reader : readers) {
-      reader.accept(stringConsumer);
-    }
+    readers.get(0).accept(stringConsumer);
   }
 
   static class Item {
