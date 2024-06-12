@@ -19,16 +19,12 @@ package proguard.evaluation.value;
 
 import proguard.classfile.*;
 
-/**
- * {@link ReferenceValue} that is unknown.
- *
- * @author Eric Lafortune
- */
+/** {@link ReferenceValue} that is unknown. */
 public class UnknownReferenceValue extends ReferenceValue {
   // Implementations of unary methods of ReferenceValue.
 
   public String getType() {
-    return ClassConstants.NAME_JAVA_LANG_OBJECT;
+    return ClassConstants.TYPE_JAVA_LANG_OBJECT;
   }
 
   public Clazz getReferencedClass() {

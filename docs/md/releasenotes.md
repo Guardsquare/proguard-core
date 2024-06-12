@@ -3,6 +3,7 @@
 ### Bugfixes
 
 - Prevent `unknown enum value for KmVersionRequirementVersionKind` exception when processing code compiled with an outdated Kotlin version.
+- Fix `UnknownReferenceValue` return wrong string format in `getType`.
 
 ## Version 9.1.4
 
