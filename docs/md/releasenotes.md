@@ -4,6 +4,7 @@
 
 - Prevent `unknown enum value for KmVersionRequirementVersionKind` exception when processing code compiled with an outdated Kotlin version.
 - Fix `UnknownReferenceValue` return wrong string format in `getType`.
+- Fix `ReflectionExecutor` not updating instance of `StringBuilder`s in fallback result.
 
 ## Version 9.1.4
 

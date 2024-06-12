@@ -12,6 +12,7 @@ import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
+import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.ValueFactory
@@ -338,5 +339,48 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 partialEvaluator,
             )
         }
+    }
+
+    "Regression test: StringBuilder in variables updated" - {
+
+        val code = JavaSource(
+            "Test.java",
+            """
+                class Test {
+                    public void test(){
+                        StringBuilder sb = new StringBuilder("hello");
+                        sb.append(someUnknowString());
+                        String str = sb.toString();
+                    }
+                    
+                    public String someUnknowString() {
+                        return null;
+                    }
+                }
+                """,
+        )
+
+        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
+        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
+
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+        val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+            "Test",
+            "test",
+            "()V",
+            programClassPool,
+            partialEvaluator,
+        )
+
+        val (instruction, _) = instructions.last()
+
+        val str = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["str"]!!)
+        str.shouldNotBeInstanceOf<ParticularReferenceValue>()
     }
 })

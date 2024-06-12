@@ -236,22 +236,32 @@ public abstract class ReflectionExecutor implements Executor {
 
     Object newReferenceId = null;
 
-    if ((methodExecutionInfo.returnsSameTypeAsInstance()
-        && getDefaultInstanceHandler()
-            .returnsOwnInstance(
-                methodExecutionInfo.getSignature().getClassName(),
-                methodExecutionInfo.getSignature().method))) {
+    boolean returnsInstance =
+        methodExecutionInfo.returnsSameTypeAsInstance()
+            && getDefaultInstanceHandler()
+                .returnsOwnInstance(
+                    methodExecutionInfo.getSignature().getClassName(),
+                    methodExecutionInfo.getSignature().method);
+
+    if (returnsInstance) {
       newReferenceId = methodExecutionInfo.getSpecificInstance().id;
     }
 
-    builder.setReturnValue(
+    Value returnValue =
         valueCalculator.apply(
             methodExecutionInfo.getReturnType(),
             methodExecutionInfo.getReturnClass(),
             false,
             null,
             ClassUtil.isExtendable(methodExecutionInfo.getReturnClass()),
-            newReferenceId));
+            newReferenceId);
+
+    builder.setReturnValue(returnValue);
+
+    // Also make the instance unknown (e.g., in case it's stored in a local variable)
+    if (returnsInstance) {
+      builder.setUpdatedInstance(returnValue.referenceValue());
+    }
 
     return builder.build();
   }
