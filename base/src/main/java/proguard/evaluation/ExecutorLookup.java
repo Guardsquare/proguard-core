@@ -65,6 +65,14 @@ final class ExecutorLookup {
 
     // try to collect the classNames by traversing the class hierarchy
     ReferenceValue refValue = ((ReferenceValue) object);
+
+    String type = refValue.getType();
+
+    // If the instance is an array the only methods invoked can be from Object
+    if (type == null || ClassUtil.isInternalArrayType(refValue.getType())) {
+      return Collections.singletonList(ClassConstants.NAME_JAVA_LANG_OBJECT);
+    }
+
     Clazz clazz = refValue.getReferencedClass();
     List<String> classNames = new ArrayList<>();
     while (clazz != null) {
@@ -74,11 +82,7 @@ final class ExecutorLookup {
 
     // the above might have failed, so we try different method
     if (classNames.isEmpty()) {
-      if (refValue.getType() != null) {
-        return Collections.singletonList(ClassUtil.internalClassNameFromType(refValue.getType()));
-      } else {
-        return Collections.singletonList(ClassConstants.NAME_JAVA_LANG_OBJECT);
-      }
+      return Collections.singletonList(ClassUtil.internalClassNameFromType(refValue.getType()));
     } else {
       return classNames;
     }
