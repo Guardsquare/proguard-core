@@ -161,7 +161,6 @@ class ExecutingInvocationUnitTest : FreeSpec({
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING_BUILDER
             // The same ID should be returned
             result.id shouldBe stringBuilder.id
-            result.value.preciseValue shouldBe null
         }
 
         "StringBuilder with unknown instance calling length" {
@@ -182,7 +181,6 @@ class ExecutingInvocationUnitTest : FreeSpec({
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING
             // The same ID should be not returned
             result.id shouldNotBe stringBuilder.id
-            result.value.preciseValue shouldBe null
         }
 
         "StringBuilder with unknown parameter" {

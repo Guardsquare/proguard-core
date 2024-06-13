@@ -181,7 +181,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
     // By the JVM spec, if objectref is null, the stack is left unchanged
     TypedReferenceValue typedValue = (TypedReferenceValue) value;
-    if (typedValue.getValue().isNull()) {
+    if (typedValue.isParticular() && typedValue.getValue().isNull()) {
       return state;
     }
 
