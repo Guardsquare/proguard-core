@@ -70,7 +70,6 @@ import proguard.classfile.visitor.MemberVisitor;
 import proguard.evaluation.executor.Executor;
 import proguard.evaluation.executor.MethodExecutionInfo;
 import proguard.evaluation.executor.StringReflectionExecutor;
-import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
@@ -294,13 +293,14 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   }
 
   private Optional<Value> getUpdatedInstance(MethodResult result) {
-    IdentifiedReferenceValue updatedInstance =
-        (IdentifiedReferenceValue) result.getUpdatedInstance();
-    if (!updatedInstance.isSpecific() || !parameters[0].isSpecific()) {
-      throw new IllegalStateException(
-          "An updated instance was provided but either it or the original instance are not specific");
-    }
-    if (!updatedInstance.id.equals(((IdentifiedReferenceValue) parameters[0]).id)) {
+    ReferenceValue updatedInstance = result.getUpdatedInstance();
+    ReferenceValue oldInstance = (ReferenceValue) parameters[0];
+    // We log an error if a new instance id is assigned, but it's allowed for the method call to
+    // assign a new id to a non-identified value
+    if (updatedInstance.isSpecific()
+        && oldInstance.isSpecific()
+        && !PartialEvaluatorUtils.getIdFromSpecificReferenceValue(updatedInstance)
+            .equals(PartialEvaluatorUtils.getIdFromSpecificReferenceValue(oldInstance))) {
       log.error(
           "The updated instance has unexpectedly a different identifier from the calling instance");
       return Optional.empty();
