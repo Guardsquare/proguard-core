@@ -51,6 +51,9 @@ public final class ErrorId {
 
   public static final int CODE_SUBROUTINE_INLINER_ERROR = 7_000;
 
+  // Proguard Util Exceptions
+  public static final int WILDCARD_WRONG_INDEX = 8_000;
+
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}
 }

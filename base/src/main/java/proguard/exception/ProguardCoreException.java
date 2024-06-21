@@ -24,25 +24,25 @@ public class ProguardCoreException extends RuntimeException {
   private final int componentErrorId;
 
   /** Information related to the error. */
-  private final String[] errorParameters;
+  private final Object[] errorParameters;
 
   /**
    * Overload of {@link ProguardCoreException#ProguardCoreException(int, Throwable, String,
-   * String...)}} without throwable.
+   * Object...)}} without throwable.
    */
-  public ProguardCoreException(int componentErrorId, String message, String... errorParameters) {
+  public ProguardCoreException(int componentErrorId, String message, Object... errorParameters) {
     this(componentErrorId, null, message, errorParameters);
   }
 
   /**
    * <b>Main constructor, all other constructors need to call this one in order to do common things
    * (formating string for instance).</b> Same as {@link
-   * ProguardCoreException#ProguardCoreException(int, String, String...)} but takes a Throwable
+   * ProguardCoreException#ProguardCoreException(int, String, Object...)} but takes a Throwable
    * argument to initialize the cause.
    */
   public ProguardCoreException(
-      int componentErrorId, Throwable cause, String message, String... errorParameters) {
-    super(String.format(message, (Object[]) errorParameters), cause);
+      int componentErrorId, Throwable cause, String message, Object... errorParameters) {
+    super(String.format(message, errorParameters), cause);
 
     this.componentErrorId = componentErrorId;
     this.errorParameters = errorParameters;
@@ -54,7 +54,7 @@ public class ProguardCoreException extends RuntimeException {
   }
 
   /** Returns the list of information related to this error. */
-  public String[] getErrorParameters() {
+  public Object[] getErrorParameters() {
     return errorParameters;
   }
 }

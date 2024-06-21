@@ -17,7 +17,10 @@
  */
 package proguard.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This utility class creates and manages {@link StringMatcher} instances that (1) match wildcards,
@@ -32,7 +35,7 @@ public class WildcardManager {
 
   /** Creates a new WildcardManager. */
   public WildcardManager() {
-    this(new ArrayList<VariableStringMatcher>());
+    this(new ArrayList<>());
   }
 
   /**
@@ -40,7 +43,7 @@ public class WildcardManager {
    * WildcardManager.
    */
   public WildcardManager(WildcardManager wildcardManager) {
-    this(new ArrayList<VariableStringMatcher>(wildcardManager.variableStringMatchers));
+    this(new ArrayList<>(wildcardManager.variableStringMatchers));
   }
 
   /** Creates a new WildcardManager with the given list of string matchers. */
@@ -178,16 +181,22 @@ public class WildcardManager {
 
     try {
       int wildcardIndex = Integer.parseInt(argumentBetweenBrackets);
-      if (wildcardIndex < 1 || wildcardIndex > variableStringMatchers.size()) {
-        throw new IllegalArgumentException(
-            "Invalid reference to wildcard ("
-                + wildcardIndex
-                + ", must lie between 1 and "
-                + variableStringMatchers.size()
-                + " in ["
-                + regularExpression
-                + "])");
+      if (variableStringMatchers.isEmpty()) {
+        throw new ProguardCoreException(
+            ErrorId.WILDCARD_WRONG_INDEX,
+            "Reference to wildcard %d in expression %s but no matched groups to refer to.",
+            wildcardIndex,
+            regularExpression);
+      } else if (wildcardIndex > variableStringMatchers.size()) {
+        throw new ProguardCoreException(
+            ErrorId.WILDCARD_WRONG_INDEX,
+            "Invalid Reference to wildcard (%d, must lie between 1 and %d in [%s])",
+            wildcardIndex,
+            variableStringMatchers.size(),
+            regularExpression);
       }
+      System.out.println(wildcardIndex);
+      System.out.println(variableStringMatchers.size());
 
       return wildcardIndex - 1;
     } catch (NumberFormatException e) {
