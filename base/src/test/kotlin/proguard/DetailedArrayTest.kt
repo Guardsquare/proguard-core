@@ -24,8 +24,6 @@ import proguard.util.PartialEvaluatorHelper
 
 class DetailedArrayTest : FreeSpec({
     val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
-    val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
-    val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
     "Array values evaluated correctly" - {
 
@@ -46,13 +44,16 @@ class DetailedArrayTest : FreeSpec({
             """,
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayTest",
                 "()V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 
@@ -99,13 +100,16 @@ class DetailedArrayTest : FreeSpec({
                     """,
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayTest",
                 "()V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
             /*
@@ -160,13 +164,16 @@ class DetailedArrayTest : FreeSpec({
             """,
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayTest",
                 "(Z)V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 
@@ -211,13 +218,16 @@ class DetailedArrayTest : FreeSpec({
             """,
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayTest",
                 "(Z)V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 
@@ -294,13 +304,16 @@ class DetailedArrayTest : FreeSpec({
             """,
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayTest",
                 "()V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 
@@ -325,13 +338,16 @@ class DetailedArrayTest : FreeSpec({
             """,
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayTest",
                 "()V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 
@@ -356,13 +372,16 @@ class DetailedArrayTest : FreeSpec({
             """,
             )
 
-            val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayTest",
                 "()V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 
@@ -378,7 +397,7 @@ class DetailedArrayTest : FreeSpec({
     }
 
     "String function returning primitive array" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -399,7 +418,7 @@ class DetailedArrayTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, DetailedArrayValueFactory())
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool, DetailedArrayValueFactory())
 
         "Primitive byte array evaluated correctly" {
             val value = invocationsWithStack[14]!!.stack[0]
@@ -447,14 +466,17 @@ class DetailedArrayTest : FreeSpec({
         """,
         )
 
-        val (classPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
+        val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+        val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
         "IdentifiedArrayReference generalize maintains id" {
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
                 "arrayReferenceTest",
                 "()V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 
@@ -477,7 +499,7 @@ class DetailedArrayTest : FreeSpec({
                 "Test",
                 "arrayReferenceRedefinedTest",
                 "()V",
-                classPool,
+                programClassPool,
                 partialEvaluator,
             )
 

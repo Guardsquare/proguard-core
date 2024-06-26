@@ -63,16 +63,16 @@ class ExecutingInvocationUnitTest : FreeSpec({
             """,
         )
 
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+
         "Approximate id method returns same type as instance" - {
             val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
-            val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+            val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
             val partialEvaluator = PartialEvaluator(
                 valueFactory,
                 invocationUnit,
                 false,
             )
-
-            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
@@ -98,14 +98,12 @@ class ExecutingInvocationUnitTest : FreeSpec({
 
         "No approximation" - {
             val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
-            val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(false).build(valueFactory)
+            val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(false).build(valueFactory, libraryClassPool)
             val partialEvaluator = PartialEvaluator(
                 valueFactory,
                 invocationUnit,
                 false,
             )
-
-            val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
                 "Test",
@@ -131,14 +129,6 @@ class ExecutingInvocationUnitTest : FreeSpec({
     }
 
     "Arrays with value null" - {
-        val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
-        val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
-        val partialEvaluator = PartialEvaluator(
-            valueFactory,
-            invocationUnit,
-            false,
-        )
-
         val code = JavaSource(
             "Test.java",
             """
@@ -184,6 +174,13 @@ class ExecutingInvocationUnitTest : FreeSpec({
         )
 
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+        val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
+        val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
 
         "Typed value null" {
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -278,15 +275,14 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 """,
         )
 
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
         val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
-        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
         val partialEvaluator = PartialEvaluator(
             valueFactory,
             invocationUnit,
             false,
         )
-
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
         val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
             "Test",
@@ -320,15 +316,14 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 """,
         )
 
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
         val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
-        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
         val partialEvaluator = PartialEvaluator(
             valueFactory,
             invocationUnit,
             false,
         )
-
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
         shouldNotThrowAny {
             PartialEvaluatorUtil.evaluate(
@@ -360,15 +355,14 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 """,
         )
 
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
         val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
-        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
         val partialEvaluator = PartialEvaluator(
             valueFactory,
             invocationUnit,
             false,
         )
-
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
         val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
             "Test",

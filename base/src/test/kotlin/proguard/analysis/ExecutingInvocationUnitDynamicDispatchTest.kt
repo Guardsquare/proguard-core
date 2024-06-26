@@ -12,7 +12,7 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
 
-class PartialEvaluatorDynamicDispatchTest : FunSpec({
+class ExecutingInvocationUnitDynamicDispatchTest : FunSpec({
     test("Dynamic type used to match executors") {
 
         val code = JavaSource(
@@ -28,15 +28,14 @@ class PartialEvaluatorDynamicDispatchTest : FunSpec({
         """,
         )
 
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
         val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
-        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory)
+        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
         val partialEvaluator = PartialEvaluator(
             valueFactory,
             invocationUnit,
             false,
         )
-
-        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
         val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
             "Test",

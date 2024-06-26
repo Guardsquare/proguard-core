@@ -101,6 +101,10 @@ public class ClassPool {
   /**
    * Returns a Clazz from the class pool based on its name. Returns <code>null</code> if the class
    * with the given name is not in the class pool.
+   *
+   * @param className a class name (e.g., "java/lang/String").
+   * @return the corresponding {@link Clazz}. {@code null} if the class pool does not contain a
+   *     class with the specified name.
    */
   public Clazz getClass(String className) {
     return classes.get(className);

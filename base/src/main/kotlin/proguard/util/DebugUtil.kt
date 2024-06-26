@@ -57,7 +57,7 @@ object DebugUtil {
     @JvmOverloads
     fun asString(classPool: ClassPool, signature: MethodSignature, verbose: Boolean = false): String {
         val clazz = classPool.getClass(signature.className)
-        check(clazz is Clazz) { "Class " + clazz.name + " not found in class pool" }
+        check(clazz is Clazz) { "Class " + clazz!!.name + " not found in class pool" }
         val method = clazz.findMethod(signature.method, signature.descriptor.toString())
         check(method is Method) { "Method " + signature + " not found in class " + clazz.name }
         return asString(clazz, method, verbose)

@@ -37,8 +37,8 @@ import java.lang.ClassCastException
 private val javaLangString = libraryClassPool.getClass("java/lang/String")
 private val javaLangStringBuilder = libraryClassPool.getClass("java/lang/StringBuilder")
 private val valueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
-private val stringExecutor = StringReflectionExecutor()
-private val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
+private val stringExecutor = StringReflectionExecutor(libraryClassPool)
+private val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
 private fun Int.toValue(): Value =
     valueFactory.createIntegerValue(this)
 

@@ -158,7 +158,7 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
       String internalReturnClassName = ClassUtil.internalClassNameFromType(returnType);
       if (returnType != null
           && internalReturnClassName != null
-          && executingInvocationUnit.supportsInstancesOf(internalReturnClassName)) {
+          && executingInvocationUnit.supportsAnyMethodOf(internalReturnClassName)) {
         // we can at most know the return type
         pushReturnTypedValue(state, operands, (ConcreteCall) call, returnType);
         return;

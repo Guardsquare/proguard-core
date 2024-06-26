@@ -36,7 +36,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
+import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
 import proguard.classfile.Member;
@@ -118,15 +118,6 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     this.executorLookup = new ExecutorLookup(registeredExecutors);
   }
 
-  /** Deprecated constructor, use {@link ExecutingInvocationUnit.Builder}. */
-  @Deprecated
-  public ExecutingInvocationUnit(ValueFactory valueFactory) {
-    this(
-        valueFactory,
-        false,
-        new ArrayList<>(Collections.singletonList(new StringReflectionExecutor())));
-  }
-
   /** Builds an {@link ExecutingInvocationUnit}. */
   public static class Builder {
     protected boolean enableSameInstanceIdApproximation = false;
@@ -195,14 +186,41 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      * Build the {@link ExecutingInvocationUnit} defined by this builder instance.
      *
      * @param valueFactory The {@link ValueFactory} responsible for creating result values.
+     * @param libraryClassPool The library class pool. Can be null if
+     *     `useDefaultStringReflectionExecutor` is set to false.
      * @return The built {@link ExecutingInvocationUnit}
      */
-    public ExecutingInvocationUnit build(ValueFactory valueFactory) {
+    public ExecutingInvocationUnit build(
+        ValueFactory valueFactory, @Nullable ClassPool libraryClassPool) {
+      if (useDefaultStringReflectionExecutor && libraryClassPool == null) {
+        throw new IllegalStateException(
+            "Need to set a valid library class pool to use the default string executor");
+      }
+
       List<Executor> registeredExecutors = new ArrayList<>();
 
       if (useDefaultStringReflectionExecutor) {
-        registeredExecutors.add(new StringReflectionExecutor.Builder().build());
+        registeredExecutors.add(new StringReflectionExecutor.Builder(libraryClassPool).build());
       }
+
+      registeredExecutorBuilders.stream()
+          .map(Executor.Builder::build)
+          .forEach(registeredExecutors::add);
+
+      return new ExecutingInvocationUnit(
+          valueFactory, enableSameInstanceIdApproximation, registeredExecutors);
+    }
+
+    /**
+     * Build the {@link ExecutingInvocationUnit} defined by this builder instance, do not add the
+     * default executor even if otherwise specified.
+     *
+     * @param valueFactory The {@link ValueFactory} responsible for creating result values.
+     * @return The built {@link ExecutingInvocationUnit}
+     */
+    public ExecutingInvocationUnit buildWithoutDefaults(ValueFactory valueFactory) {
+
+      List<Executor> registeredExecutors = new ArrayList<>();
 
       registeredExecutorBuilders.stream()
           .map(Executor.Builder::build)
@@ -256,7 +274,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
 
     MethodExecutionInfo methodInfo =
         new MethodExecutionInfo(anyMethodrefConstant, null, parameters);
-    Executor executor = getResponsibleExecutor(methodInfo);
+    Executor executor = executorLookup.lookupExecutor(methodInfo);
 
     MethodResult result = executeMethod(executor, methodInfo);
 
@@ -340,16 +358,6 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   }
 
   /**
-   * Get the responsible {@link Executor} for a given method execution info.
-   *
-   * @param info Information about the method execution.
-   * @return The responsible executor.
-   */
-  private Executor getResponsibleExecutor(@NotNull MethodExecutionInfo info) {
-    return executorLookup.lookupExecutor(info);
-  }
-
-  /**
    * Execute the method given by a {@link ConcreteCall}. See {@link
    * ExecutingInvocationUnit#executeMethod(Executor, MethodExecutionInfo)}
    *
@@ -359,7 +367,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    */
   public MethodResult executeMethod(ConcreteCall call, Value... parameters) {
     MethodExecutionInfo methodInfo = new MethodExecutionInfo(call, parameters);
-    Executor executor = getResponsibleExecutor(methodInfo);
+    Executor executor = executorLookup.lookupExecutor(methodInfo);
     return executeMethod(executor, methodInfo);
   }
 
@@ -561,8 +569,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   }
 
   /**
-   * Returns whether the execution invocation unit is able to handle the given method. Prefer {@link
-   * #canExecute(MethodExecutionInfo)} as it can handle dynamic dispatch resolution.
+   * Returns whether the invocation unit is able to handle the given method.
    *
    * @param signature The method signature of the method being tested
    * @return true if the method can be executed.
@@ -572,35 +579,23 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   }
 
   /**
-   * Returns whether the execution invocation unit is able to handle the given method described by
-   * its method execution info. Handles dynamic dispatch resolution.
-   *
-   * @param info The method execution info to be tested
-   * @return true if the method can be executed.
-   */
-  public boolean canExecute(@NotNull MethodExecutionInfo info) {
-    return this.executorLookup.hasExecutorFor(info);
-  }
-
-  /**
-   * Checks whether any methods of the given class are supported by the executors.
+   * Checks whether any method of the given class is supported by the executors.
    *
    * @param clazz The class to check
    * @return true if any method of the given class is supported by the executor
    */
-  public boolean supportsInstancesOf(@NotNull Clazz clazz) {
-    return executorLookup.shouldTrackInstancesOfType(clazz);
+  public boolean supportsAnyMethodOf(@NotNull Clazz clazz) {
+    return executorLookup.shouldTrackInstancesOf(clazz);
   }
 
   /**
-   * Checks whether any methods of the given class are supported by the executors. Prefer to use
-   * {@link #supportsInstancesOf(Clazz)} whenever possible.
+   * Checks whether any method of the given class is supported by the executors.
    *
    * @param className The class name to check
    * @return true if any method of the given class is supported by the executor
    */
-  public boolean supportsInstancesOf(@NotNull String className) {
-    return executorLookup.shouldTrackInstancesOfType(className);
+  public boolean supportsAnyMethodOf(@NotNull String className) {
+    return executorLookup.shouldTrackInstancesOf(className);
   }
 
   /**

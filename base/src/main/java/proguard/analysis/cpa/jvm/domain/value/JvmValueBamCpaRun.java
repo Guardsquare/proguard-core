@@ -28,6 +28,7 @@ import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
+import proguard.classfile.ClassPool;
 import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.ParticularValueFactory;
@@ -124,23 +125,16 @@ public class JvmValueBamCpaRun
     private TransferRelationFactory transferRelationFactory;
     private MapAbstractState<String, ValueAbstractState> staticFields =
         new HashMapAbstractState<>();
+    private ClassPool libraryClassPool;
 
-    @Deprecated
-    public Builder() {
-      this(null, null);
-    }
-
-    public Builder(JvmCfa cfa) {
-      this(cfa, null);
-    }
-
-    public Builder(JvmCfa cfa, MethodSignature mainSignature) {
+    public Builder(JvmCfa cfa, MethodSignature mainSignature, ClassPool libraryClassPool) {
       super.heapModel = HeapModel.SHALLOW;
       super.maxCallStackDepth = 10;
       super.cfa = cfa;
       this.valueFactory = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
       this.mainSignature = mainSignature;
       this.transferRelationFactory = Builder::defaultTransferRelationFactory;
+      this.libraryClassPool = libraryClassPool;
     }
 
     private static JvmValueTransferRelation defaultTransferRelationFactory(
@@ -157,7 +151,7 @@ public class JvmValueBamCpaRun
           transferRelationFactory,
           new ExecutingInvocationUnit.Builder()
               .setEnableSameInstanceIdApproximation(true)
-              .build(valueFactory),
+              .build(valueFactory, libraryClassPool),
           maxCallStackDepth,
           heapModel,
           staticFields,

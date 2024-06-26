@@ -9,7 +9,6 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.BasicInvocationUnit
-import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.util.jsonprinter.JsonPrinter
@@ -48,7 +47,7 @@ class PartialEvaluatorTest : FreeSpec({
             val tracker = JsonPrinter()
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
-                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setInvocationUnit(BasicInvocationUnit(valueFactory))
                 .setEvaluateAllCode(true).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,
@@ -150,7 +149,7 @@ class PartialEvaluatorTest : FreeSpec({
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
-                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setInvocationUnit(BasicInvocationUnit(valueFactory))
                 .setEvaluateAllCode(true).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,
@@ -180,7 +179,7 @@ class PartialEvaluatorTest : FreeSpec({
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
-                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setInvocationUnit(BasicInvocationUnit(valueFactory))
                 .setEvaluateAllCode(false).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,
@@ -237,7 +236,7 @@ class PartialEvaluatorTest : FreeSpec({
             val valueFactory = ParticularValueFactory(ParticularReferenceValueFactory())
             val pe = PartialEvaluator.Builder.create()
                 .setValueFactory(valueFactory)
-                .setInvocationUnit(ExecutingInvocationUnit.Builder().build(valueFactory))
+                .setInvocationUnit(BasicInvocationUnit(valueFactory))
                 .setEvaluateAllCode(false).setStateTracker(tracker).build()
             evaluateProgramClass(
                 programClass,

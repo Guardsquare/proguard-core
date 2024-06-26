@@ -7,24 +7,13 @@ import proguard.classfile.MethodSignature
 import proguard.evaluation.executor.Executor
 import proguard.evaluation.executor.MethodExecutionInfo
 import proguard.evaluation.executor.StringReflectionExecutor
+import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 import java.util.stream.Collectors
 
 class ExecutorLookupTest : FunSpec({
 
     val signatures = listOf(
-        MethodSignature("C", null, null as String?),
-        MethodSignature("C", "a", null as String?),
-        MethodSignature("C", "a", MethodDescriptor("V()")),
-        MethodSignature("B", null, null as String?),
-        MethodSignature("B", "a", null as String?),
-        MethodSignature("B", "a", MethodDescriptor("V()")),
-        MethodSignature("A", null, null as String?),
-        MethodSignature("A", "a", null as String?),
         MethodSignature("A", "a", MethodDescriptor("V()")),
-        MethodSignature(null, "a", null as String?),
-        MethodSignature(null, "a", MethodDescriptor("V()")),
-        MethodSignature("D", "a", null as String?),
-
     )
 
     test("Method lookup works correctly") {
@@ -37,15 +26,15 @@ class ExecutorLookupTest : FunSpec({
                 throw UnsupportedOperationException("Mocked!")
             }
 
-            override fun getSupportedMethodSignatures(): MutableList<MethodSignature> {
-                return signatures.stream().collect(Collectors.toList())
+            override fun getSupportedMethodSignatures(): MutableSet<MethodSignature> {
+                return signatures.stream().collect(Collectors.toSet())
             }
         }
 
         // construct the object to be tested
         val lookup = ExecutorLookup(
             listOf(
-                StringReflectionExecutor.Builder().build(),
+                StringReflectionExecutor.Builder(libraryClassPool).build(),
                 testExecutor,
             ),
         )
@@ -55,24 +44,13 @@ class ExecutorLookupTest : FunSpec({
             MethodSignature(
                 "dummy",
                 "dummy",
-                null as String?,
+                "()V",
             ),
         ) shouldBe false
-        lookup.hasExecutorFor(MethodSignature("D", "b", null as String?)) shouldBe false
-
-        // this should be found
-        lookup.hasExecutorFor(MethodSignature("A", "dummy", null as String?)) shouldBe true
-        lookup.hasExecutorFor(
-            MethodSignature(
-                "D",
-                "a",
-                MethodDescriptor("V()"),
-            ),
-        ) shouldBe true
         lookup.hasExecutorFor(
             MethodSignature(
                 "A",
-                null,
+                "a",
                 MethodDescriptor("V()"),
             ),
         ) shouldBe true

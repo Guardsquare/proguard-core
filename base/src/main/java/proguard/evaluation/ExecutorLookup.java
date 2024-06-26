@@ -1,38 +1,37 @@
 package proguard.evaluation;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.executor.Executor;
 import proguard.evaluation.executor.MethodExecutionInfo;
-import proguard.evaluation.value.ReferenceValue;
-import proguard.evaluation.value.Value;
-import proguard.util.HierarchicalWildcardMap;
+import proguard.evaluation.value.TypedReferenceValue;
 
-/** Class for performing lookups of registered executors based on method signatures. */
+/**
+ * Class for performing lookups of registered executors based on method signatures.
+ *
+ * <p>Dynamic lookup is performed for instance methods by using the analyzed type, if available,
+ * instead of the static type of the target method.
+ *
+ * <p>Executors are expected to provide exactly all the methods they expect to be able to support
+ * via {@link Executor#getSupportedMethodSignatures()}, for example to support inheritance the
+ * executors need to specify both the parent and child class in the returned signatures.
+ */
 final class ExecutorLookup {
 
   private static final Logger log = LogManager.getLogger(ExecutorLookup.class);
-  /**
-   * Lookup table for the executors. The mapping is from (class name, method name, method
-   * descriptor) to an instance of Executor. A null value in the key indicates a wildcard.
-   */
-  private final HierarchicalWildcardMap<MethodSignature, Executor, Object> executorFromSignature =
-      new HierarchicalWildcardMap<>(
-          3,
-          signature ->
-              new Object[] {
-                signature.getClassName(), signature.getMethodName(), signature.getDescriptor()
-              },
-          null);
+  private final Map<MethodSignature, Executor> executorFromSignature = new HashMap<>();
+
+  private final Set<String> supportedClasses = new HashSet<>();
 
   /**
    * Constructor
@@ -42,49 +41,21 @@ final class ExecutorLookup {
   public ExecutorLookup(List<Executor> registeredExecutors) {
     for (Executor executor : registeredExecutors) {
       for (MethodSignature signature : executor.getSupportedMethodSignatures()) {
-        executorFromSignature.put(signature, executor);
+        if (signature.isIncomplete()) {
+          log.warn(
+              "Wildcard signatures are not supported by ExecutorLookup, they will get ignored");
+          continue;
+        }
+
+        if (executorFromSignature.putIfAbsent(signature, executor) != null) {
+          log.warn(
+              "Signature {} is supported by multiple executors. {} will be ignored",
+              signature,
+              executor.getClass().getSimpleName());
+        } else {
+          supportedClasses.add(signature.getClassName());
+        }
       }
-    }
-  }
-
-  /**
-   * Get list of possible object class names from an instance used in a method call. Always returns
-   * at least one.
-   *
-   * @param object The instance value the invocation was made with.
-   * @return A list of the name of the classes, ordered from the most specific to the least specific
-   *     one. The returned list is never empty.
-   */
-  private static List<String> getClassesTheGivenInstanceValueIsAssignableTo(@NotNull Value object) {
-    if (!(object instanceof ReferenceValue)) {
-      log.error(
-          "It's impossible to have a non-reference value as an instance object. Defaulting to \"{}\"",
-          ClassConstants.NAME_JAVA_LANG_OBJECT);
-      return Collections.singletonList(ClassConstants.NAME_JAVA_LANG_OBJECT);
-    }
-
-    // try to collect the classNames by traversing the class hierarchy
-    ReferenceValue refValue = ((ReferenceValue) object);
-
-    String type = refValue.getType();
-
-    // If the instance is an array the only methods invoked can be from Object
-    if (type == null || ClassUtil.isInternalArrayType(refValue.getType())) {
-      return Collections.singletonList(ClassConstants.NAME_JAVA_LANG_OBJECT);
-    }
-
-    Clazz clazz = refValue.getReferencedClass();
-    List<String> classNames = new ArrayList<>();
-    while (clazz != null) {
-      classNames.add(clazz.getName());
-      clazz = clazz.getSuperClass();
-    }
-
-    // the above might have failed, so we try different method
-    if (classNames.isEmpty()) {
-      return Collections.singletonList(ClassUtil.internalClassNameFromType(refValue.getType()));
-    } else {
-      return classNames;
     }
   }
 
@@ -95,65 +66,36 @@ final class ExecutorLookup {
    * @return Executor, if the method can be handled. Null otherwise.
    */
   public @Nullable Executor lookupExecutor(@NotNull MethodExecutionInfo info) {
-    // The main problem this method solves is that a variable of type `Object` can contain a
-    // `String` and we want to execute e.g. `toString()` with the string executor rather
-    // than saying that there is no executor for objects.
-    //
-    // We do that by first collecting a list of method signatures with varying types, ordered
-    // from the most specific type to the least specific (e.g. [String, Object])
+    MethodSignature targetSignature;
+    MethodSignature staticSignature = info.getSignature();
 
-    List<MethodSignature> possibleMethodSignatures = new ArrayList<>();
-    MethodSignature signature = info.getSignature();
-    if (info.isInstanceMethod()) {
-      // For instance classes, collect all possible signatures that could be executed with a
-      // dynamic dispatch on the particular instance type and the corresponding 'invoke'
-      // instructions. Order the list from most specific to most generic
-      //
-      // As an example, if we have a hierarchy of classes [Object < A < B < C < D], and we
-      // called method B.foo() on instance of D, we would create a list [D#foo, C#foo, B#foo]
-      for (String className :
-          getClassesTheGivenInstanceValueIsAssignableTo(info.getInstanceNonStatic())) {
-        possibleMethodSignatures.add(
-            new MethodSignature(className, signature.method, signature.descriptor));
-        // we don't want to go lower than in the hierarchy than what the instruction expects
-        if (className.equals(signature.getClassName())) {
-          break;
-        }
-      }
+    if (info.isInstanceMethod() && (info.getInstanceNonStatic() instanceof TypedReferenceValue)) {
+      // Try to perform a "dynamic" lookup for instance methods if additional type information is
+      // available
+      TypedReferenceValue instance = (TypedReferenceValue) info.getInstanceNonStatic();
+      targetSignature =
+          new MethodSignature(
+              ClassUtil.internalClassNameFromClassType(instance.getType()),
+              staticSignature.method,
+              staticSignature.descriptor);
     } else {
-      // For the remaining invocations - constructors and static methods - always use
-      // just the signature in the instruction
-      possibleMethodSignatures.add(signature);
+      // For the remaining invocations just use the static signature
+      targetSignature = staticSignature;
     }
 
-    // lookup the executors - complexity O(#possibleMethodSignatures)
-    for (MethodSignature possibleSignature : possibleMethodSignatures) {
-      Executor result = this.executorFromSignature.get(possibleSignature);
-      if (result != null) {
-        return result;
-      }
-    }
-    return null;
+    info.setResolvedTargetSignature(targetSignature);
+    return executorFromSignature.get(targetSignature);
   }
 
   /**
-   * Checks whether there is an executor for the provided method execution info.
+   * Check, whether the given signature is supported by this executor.
    *
-   * @param info The method execution info to use for the executor lookup
-   * @return True if an executor exists that can handle this
-   */
-  public boolean hasExecutorFor(@NotNull MethodExecutionInfo info) {
-    return this.lookupExecutor(info) != null;
-  }
-
-  /**
-   * Check, whether the given signature is supported by this executor. Does not resolve types for
-   * dynamic dispatch check. Wildcards are honoured. Prefer to use {@link
-   * #hasExecutorFor(MethodExecutionInfo)} whenever possible.
+   * <p>NB: inheritance is not taken into account if not explicitly specified. i.e., if a certain
+   * method is supported it does not necessarily mean that the same method from a child class is
+   * supported, even if the method was not overridden.
    *
    * @param methodSignature The given method signature to check.
-   * @return True iff the method can be executed. Sometimes also returns false when it would be
-   *     possible to execute.
+   * @return True iff the method can be executed.
    */
   public boolean hasExecutorFor(@NotNull MethodSignature methodSignature) {
     return this.executorFromSignature.containsKey(methodSignature);
@@ -163,30 +105,27 @@ final class ExecutorLookup {
    * Checks whether it makes sense to track objects of the given class, i.e. if there exists a
    * method on that class that we are able to execute.
    *
+   * <p>NB: inheritance is not taken into account if not explicitly specified. i.e., if an object of
+   * a certain type is supported it does not mean that objects of its child classes are.
+   *
    * @param clazz The class to be tested
    * @return True if instances of that class should be tracked
    */
-  public boolean shouldTrackInstancesOfType(@NotNull Clazz clazz) {
-    while (clazz != null) {
-      MethodSignature signature = new MethodSignature(clazz);
-      if (this.executorFromSignature.containsKey((signature))) {
-        return true;
-      }
-      clazz = clazz.getSuperClass();
-    }
-    return false;
+  public boolean shouldTrackInstancesOf(@NotNull Clazz clazz) {
+    return shouldTrackInstancesOf(clazz.getName());
   }
 
   /**
    * Checks whether it makes sense to track objects of the given class, i.e. if there exists a
-   * method on that class that we are able to execute. Prefer to use {@link
-   * #shouldTrackInstancesOfType(Clazz)} whenever possible.
+   * method on that class that we are able to execute.
+   *
+   * <p>NB: inheritance is not taken into account if not explicitly specified. i.e., if an object of
+   * a certain type is supported it does not mean that objects of its child classes are.
    *
    * @param className The class to be tested
    * @return True if instances of that class should be tracked
    */
-  public boolean shouldTrackInstancesOfType(@NotNull String className) {
-    MethodSignature signature = new MethodSignature(className);
-    return this.executorFromSignature.containsKey(signature);
+  public boolean shouldTrackInstancesOf(@NotNull String className) {
+    return supportedClasses.contains(className);
   }
 }

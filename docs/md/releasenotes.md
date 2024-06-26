@@ -6,6 +6,11 @@
 - Fix `UnknownReferenceValue` return wrong string format in `getType`.
 - Fix `ReflectionExecutor` not updating instance of `StringBuilder`s in fallback result.
 
+### API changes
+
+- `Executor`s do not support `MethodSignature` wildcards anymore. The assumption from `ExecutorLookup` is now that all the signatures supported by the executor are declared explicitly in `getSupportedMethodSignatures`.
+- `StringExecutor`, `ExecutingInvocationUnit`, and `JvmValueBamCpaRun` now need the library class pool as parameter.
+
 ## Version 9.1.4
 
 ### Kotlin support

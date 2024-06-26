@@ -63,7 +63,7 @@ class BamOperatorsTest : FreeSpec({
         }
         val clazz = programClassPool.getClass(className) as ProgramClass
         val mainSignature = Signature.of(clazz, clazz.findMethod("main", null)) as MethodSignature
-        val bamCpaRun = JvmValueBamCpaRun.Builder(cfa, mainSignature).setReduceHeap(true).build()
+        val bamCpaRun = JvmValueBamCpaRun.Builder(cfa, mainSignature, libraryClassPool).setReduceHeap(true).build()
         bamCpaRun.execute()
         return bamCpaRun.cpa.cache
     }

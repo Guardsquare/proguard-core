@@ -410,7 +410,7 @@ public class CpaValueTest {
     ExecutingInvocationUnit executingInvocationUnit =
         new ExecutingInvocationUnit.Builder()
             .setEnableSameInstanceIdApproximation(true)
-            .build(valueFactory);
+            .build(valueFactory, ClassPoolBuilder.Companion.getLibraryClassPool());
     JvmValueTransferRelation transferRelation =
         new JvmValueTransferRelation(valueFactory, executingInvocationUnit);
     MergeOperator mergeJoinOperator = new MergeJoinOperator(abstractDomain);

@@ -25,13 +25,19 @@ import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUFFER;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import proguard.classfile.ClassPool;
+import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
+import proguard.classfile.visitor.MemberVisitor;
+import proguard.classfile.visitor.SignatureAdapter;
 import proguard.evaluation.executor.instancehandler.ExecutorInstanceHandler;
 import proguard.evaluation.executor.instancehandler.ExecutorMethodInstanceHandler;
 import proguard.evaluation.value.ParticularReferenceValue;
@@ -47,6 +53,15 @@ import proguard.util.StringMatcher;
  * StringBuilder} and {@link StringBuffer}.
  */
 public class StringReflectionExecutor extends ReflectionExecutor {
+
+  private static final Logger log = LogManager.getLogger(StringReflectionExecutor.class);
+
+  private final ClassPool libraryClassPool;
+
+  public StringReflectionExecutor(ClassPool libraryClassPool) {
+    this.libraryClassPool = libraryClassPool;
+  }
+
   @Override
   public Optional<InstanceCopyResult> getInstanceOrCopyIfMutable(ReferenceValue instanceValue) {
 
@@ -103,19 +118,42 @@ public class StringReflectionExecutor extends ReflectionExecutor {
   }
 
   @Override
-  public List<MethodSignature> getSupportedMethodSignatures() {
-    return Stream.of(
-            new MethodSignature(NAME_JAVA_LANG_STRING),
-            new MethodSignature(NAME_JAVA_LANG_STRING_BUILDER),
-            new MethodSignature(NAME_JAVA_LANG_STRING_BUFFER))
-        .collect(Collectors.toList());
+  public Set<MethodSignature> getSupportedMethodSignatures() {
+    Clazz stringClazz = libraryClassPool.getClass(NAME_JAVA_LANG_STRING);
+    Clazz stringBuilderClazz = libraryClassPool.getClass(NAME_JAVA_LANG_STRING_BUILDER);
+    Clazz stringBufferClazz = libraryClassPool.getClass(NAME_JAVA_LANG_STRING_BUFFER);
+
+    if (stringClazz == null || stringBuilderClazz == null || stringBufferClazz == null) {
+      // I would prefer an IllegalStateException here, but since this executor is used by default
+      // it's easier to print a warning than it having to be explicitly disabled even when not
+      // needed
+      log.warn(
+          "StringReflectionExecutor needs String, StringBuilder, and StringBuffer to be present in the library class pool, the executor will never be matched");
+      return Collections.emptySet();
+    }
+
+    Set<MethodSignature> supportedSignatures = new HashSet<>();
+    MemberVisitor collector = new SignatureAdapter<>(supportedSignatures::add);
+
+    stringClazz.methodsAccept(collector);
+    stringBuilderClazz.methodsAccept(collector);
+    stringBufferClazz.methodsAccept(collector);
+
+    return supportedSignatures;
   }
 
   /** A builder for {@link StringReflectionExecutor}. */
   public static class Builder implements Executor.Builder<StringReflectionExecutor> {
+
+    private final ClassPool libraryClassPool;
+
+    public Builder(ClassPool libraryClassPool) {
+      this.libraryClassPool = libraryClassPool;
+    }
+
     @Override
     public StringReflectionExecutor build() {
-      return new StringReflectionExecutor();
+      return new StringReflectionExecutor(libraryClassPool);
     }
   }
 }

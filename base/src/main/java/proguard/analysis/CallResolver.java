@@ -281,7 +281,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     ValueFactory particularValueFactory =
         new ParticularValueFactory(arrayValueFactory, new ParticularReferenceValueFactory());
     InvocationUnit particularValueInvocationUnit =
-        executingInvocationUnitBuilder.build(particularValueFactory);
+        executingInvocationUnitBuilder.build(particularValueFactory, libraryClassPool);
     particularValueEvaluator =
         PartialEvaluator.Builder.create()
             .setValueFactory(particularValueFactory)

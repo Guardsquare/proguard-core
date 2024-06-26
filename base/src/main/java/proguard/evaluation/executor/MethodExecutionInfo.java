@@ -39,6 +39,7 @@ import proguard.classfile.Signature;
 import proguard.classfile.constant.AnyMethodrefConstant;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.ReferencedClassesExtractor;
+import proguard.evaluation.ValueCalculator;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.Value;
@@ -58,6 +59,8 @@ public class MethodExecutionInfo {
   private final @Nullable ReferenceValue instance;
   /** NB: the calling instance is not included in the parameters. */
   private final List<Value> parameters;
+  /** Lazily initialized field, available inside the executors. */
+  private @Nullable MethodSignature resolvedTargetSignature = null;
 
   /**
    * Constructs a MethodExecutionInfo.
@@ -273,5 +276,34 @@ public class MethodExecutionInfo {
   /** Returns the parameters of the method, calling instance not included. */
   public List<Value> getParameters() {
     return parameters;
+  }
+
+  /**
+   * Gets the resolved target of the method call. For constructors and static methods this
+   * corresponds to the static signature, while dynamic method resolution is performed by the
+   * invocation unit for instance methods (i.e., the class in the signature is the calculated
+   * runtime type of the instance).
+   *
+   * <p>This property is lazily initialized and is guaranteed to be available while {@link
+   * Executor#getMethodResult(MethodExecutionInfo, ValueCalculator)} is running.
+   *
+   * @throws IllegalStateException if called before the initialization of the property.
+   */
+  public MethodSignature getResolvedTargetSignature() {
+    if (resolvedTargetSignature == null) {
+      throw new IllegalStateException("The dynamic target signature has not been initialized yet");
+    }
+    return resolvedTargetSignature;
+  }
+
+  /**
+   * Sets the lazy property containing the resolved target of the method calls. For constructors and
+   * static methods this corresponds to the static signature, while dynamic method resolution is
+   * performed by the invocation unit for instance methods (i.e., the class in the signature is the
+   * calculated runtime type of the instance).
+   */
+  public void setResolvedTargetSignature(@NotNull MethodSignature resolvedTargetSignature) {
+    Objects.requireNonNull(resolvedTargetSignature);
+    this.resolvedTargetSignature = resolvedTargetSignature;
   }
 }

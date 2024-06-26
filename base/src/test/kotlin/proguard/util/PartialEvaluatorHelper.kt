@@ -22,11 +22,11 @@ import proguard.evaluation.value.ValueFactory
 class PartialEvaluatorHelper {
     companion object {
 
-        fun evaluateMethod(className: String, methodName: String, methodDescriptor: String, programClassPool: ClassPool, arrayReferenceValueFactory: ValueFactory = ArrayReferenceValueFactory()): HashMap<Int, MethodWithStack> {
+        fun evaluateMethod(className: String, methodName: String, methodDescriptor: String, programClassPool: ClassPool, libraryClassPool: ClassPool, arrayReferenceValueFactory: ValueFactory = ArrayReferenceValueFactory()): HashMap<Int, MethodWithStack> {
             val clazz = programClassPool.getClass(className) as ProgramClass
 
             val valueFactory: ValueFactory = ParticularValueFactory(arrayReferenceValueFactory, ParticularReferenceValueFactory())
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory)
+            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, true)
 
             val codeAttribute = visitMethod(clazz, partialEvaluator, methodName, methodDescriptor)

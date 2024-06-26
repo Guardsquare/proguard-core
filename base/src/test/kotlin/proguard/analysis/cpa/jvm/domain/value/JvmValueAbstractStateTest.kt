@@ -7,9 +7,9 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState
 import proguard.classfile.MethodSignature
-import proguard.classfile.MethodSignature.UNKNOWN
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.value.BasicValueFactory
+import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 
 class JvmValueAbstractStateTest : FreeSpec({
     "Given different instance but equivalent states" - {
@@ -17,7 +17,7 @@ class JvmValueAbstractStateTest : FreeSpec({
         val valueFactory = BasicValueFactory()
         val a = JvmValueAbstractState(
             valueFactory,
-            ExecutingInvocationUnit.Builder().build(valueFactory),
+            ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool),
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),
@@ -25,7 +25,7 @@ class JvmValueAbstractStateTest : FreeSpec({
         )
         val b = JvmValueAbstractState(
             valueFactory,
-            ExecutingInvocationUnit.Builder().build(valueFactory),
+            ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool),
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),

@@ -40,7 +40,7 @@ import proguard.util.PartialEvaluatorHelper
 class ParticularReferenceTest : FreeSpec({
 
     "Simple empty value in Constructor" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -55,7 +55,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "ctor", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "ctor", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 2
@@ -85,7 +85,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Unknown value if different possibilities exist - loop" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -104,7 +104,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "loop", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "loop", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 5
@@ -123,7 +123,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Unknown value if different possibilities exist - branch" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -146,7 +146,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "branch", "(I)V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "branch", "(I)V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 5
@@ -163,7 +163,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Unknown value for non-final field" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -179,7 +179,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "field", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "field", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 3
@@ -198,7 +198,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple usage" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -213,7 +213,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 1
@@ -226,7 +226,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple concat" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -243,7 +243,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 5
@@ -256,7 +256,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple append" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -274,7 +274,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "append", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 4
@@ -287,7 +287,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Append length" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -306,7 +306,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "stringLength", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "stringLength", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 6
@@ -319,7 +319,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Simple String concat" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -338,7 +338,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 6
@@ -350,7 +350,7 @@ class ParticularReferenceTest : FreeSpec({
         }
     }
     "Static final field" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -368,7 +368,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "concat", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 5
@@ -381,7 +381,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "StringBuilder functions" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -402,7 +402,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 8
@@ -415,7 +415,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "StringBuffer functions" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -436,7 +436,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 8
@@ -449,7 +449,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "String functions" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -474,7 +474,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 7
@@ -487,7 +487,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Failed casting" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -503,7 +503,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "cast", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "cast", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 2
@@ -519,7 +519,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Correct internal stack state after partial evaluation - StringBuilder" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -540,7 +540,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 8
@@ -588,7 +588,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Correct internal stack state after partial evaluation - StringBuffer" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -609,7 +609,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool)
 
         "Expected number of instructions" {
             invocationsWithStack.keys shouldHaveSize 8
@@ -674,7 +674,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Load primitive value from static final field" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             AssemblerSource(
                 "A.jbc",
                 """
@@ -698,7 +698,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool, libraryClassPool)
 
         "getstatic loaded int parameter" {
             val value = invocationsWithStack[6]!!.stack[0]
@@ -709,7 +709,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "Load reference value from static final field" - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             AssemblerSource(
                 "A.jbc",
                 """
@@ -733,7 +733,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "staticfield", "()V", programClassPool, libraryClassPool)
 
         "getstatic loaded String parameter" {
             checkExpectedValueParticularReferenceValue(invocationsWithStack, 6, 0, "42")
@@ -742,7 +742,7 @@ class ParticularReferenceTest : FreeSpec({
     }
 
     "String function returning reference array " - {
-        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "A.java",
                 """
@@ -759,7 +759,7 @@ class ParticularReferenceTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool)
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool)
 
         "String array evaluated correctly" {
             val value = invocationsWithStack[14]!!.stack[0]

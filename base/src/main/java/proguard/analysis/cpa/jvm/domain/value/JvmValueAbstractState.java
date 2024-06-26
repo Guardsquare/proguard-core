@@ -115,7 +115,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> 
   /** Returns an {@link ValueAbstractState} for a new object of the given {@code className}. */
   @Override
   public ValueAbstractState newObject(String className) {
-    if (!executingInvocationUnit.supportsInstancesOf(className)) {
+    if (!executingInvocationUnit.supportsAnyMethodOf(className)) {
       return new ValueAbstractState(valueFactory.createReferenceValue());
     }
 
@@ -139,7 +139,7 @@ public class JvmValueAbstractState extends JvmAbstractState<ValueAbstractState> 
   /** Returns an {@link ValueAbstractState} state for a new object of the given {@link Clazz}. */
   @Override
   public ValueAbstractState newObject(Clazz clazz) {
-    if (!executingInvocationUnit.supportsInstancesOf(clazz)) {
+    if (!executingInvocationUnit.supportsAnyMethodOf(clazz)) {
       return new ValueAbstractState(valueFactory.createReferenceValue());
     }
 
