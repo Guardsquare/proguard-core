@@ -17,7 +17,8 @@
  */
 package proguard.classfile.util;
 
-import proguard.classfile.*;
+import java.util.Iterator;
+import proguard.classfile.TypeConstants;
 
 /**
  * An {@link InternalTypeEnumeration} provides an enumeration of all types listed in a given
@@ -29,7 +30,7 @@ import proguard.classfile.*;
  *
  * @author Eric Lafortune
  */
-public class InternalTypeEnumeration {
+public class InternalTypeEnumeration implements Iterator<String> {
   private final String descriptor;
   private final int formalTypeParametersIndex;
   private final int openIndex;
@@ -119,7 +120,7 @@ public class InternalTypeEnumeration {
   }
 
   /** Resets the enumeration. */
-  private void reset() {
+  void reset() {
     this.index = openIndex >= 0 ? openIndex + 1 : formalTypeParametersIndex;
   }
 
@@ -236,5 +237,17 @@ public class InternalTypeEnumeration {
     } catch (Exception ex) {
       ex.printStackTrace();
     }
+  }
+
+  // Implementations for Iterator.
+
+  @Override
+  public boolean hasNext() {
+    return hasMoreTypes();
+  }
+
+  @Override
+  public String next() {
+    return nextType();
   }
 }
