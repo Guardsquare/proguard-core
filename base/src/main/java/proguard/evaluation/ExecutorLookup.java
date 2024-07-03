@@ -68,10 +68,12 @@ final class ExecutorLookup {
   public @Nullable Executor lookupExecutor(@NotNull MethodExecutionInfo info) {
     MethodSignature targetSignature;
     MethodSignature staticSignature = info.getSignature();
+    boolean isTargetDynamic = false;
 
     if (info.isInstanceMethod() && (info.getInstanceNonStatic() instanceof TypedReferenceValue)) {
       // Try to perform a "dynamic" lookup for instance methods if additional type information is
       // available
+      isTargetDynamic = true;
       TypedReferenceValue instance = (TypedReferenceValue) info.getInstanceNonStatic();
       targetSignature =
           new MethodSignature(
@@ -84,7 +86,19 @@ final class ExecutorLookup {
     }
 
     info.setResolvedTargetSignature(targetSignature);
-    return executorFromSignature.get(targetSignature);
+
+    Executor targetExecutor = executorFromSignature.get(targetSignature);
+
+    if (isTargetDynamic
+        && targetExecutor == null
+        && executorFromSignature.get(staticSignature) != null) {
+      log.warn(
+          "Dynamic target {} is not supported by the executors but static target {} is, check if your executor should also support the child class methods",
+          targetSignature,
+          staticSignature);
+    }
+
+    return targetExecutor;
   }
 
   /**
