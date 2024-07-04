@@ -70,7 +70,9 @@ final class ExecutorLookup {
     MethodSignature staticSignature = info.getSignature();
     boolean isTargetDynamic = false;
 
-    if (info.isInstanceMethod() && (info.getInstanceNonStatic() instanceof TypedReferenceValue)) {
+    if (info.isInstanceMethod()
+        && (info.getInstanceNonStatic() instanceof TypedReferenceValue)
+        && info.getInstanceNonStatic().getType() != null) {
       // Try to perform a "dynamic" lookup for instance methods if additional type information is
       // available
       isTargetDynamic = true;
