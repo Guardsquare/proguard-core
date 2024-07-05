@@ -588,7 +588,9 @@ public class ClassUtil {
 
   /**
    * Returns the internal class name of a given internal class type (including an array type). Types
-   * involving primitive types are returned unchanged.
+   * involving primitive types are returned unchanged. </br> Note: If you are parsing a Signature
+   * attribute string, use {@link ClassUtil#internalClassNameFromClassSignature(String)} instead, as
+   * this method will not handle generic type parameters and the '.' as inner class separator.
    *
    * @param internalClassType the internal class type, e.g. "<code>[Ljava/lang/Object;</code>", "
    *     <code>Ljava/lang/Object;</code>", or "<code>java/lang/Object</code>".
@@ -600,6 +602,47 @@ public class ClassUtil {
             internalClassType.indexOf(TypeConstants.CLASS_START) + 1,
             internalClassType.length() - 1)
         : internalClassType;
+  }
+
+  /**
+   * Returns the internal class name for a given Class Signature.
+   *
+   * @param classSignature the class signature, e.g. "<code>Lsome/package/Klass< T;>.Inner</code>"
+   * @return the internal class name, e.g. "<code>some/package/Klass$Inner</code>".
+   */
+  public static String internalClassNameFromClassSignature(String classSignature) {
+    // Remove generic type information.
+    String internalClassName = removeGenericTypes(classSignature);
+
+    // Remove the 'L' and ';' bits.
+    internalClassName = internalClassNameFromClassType(internalClassName);
+
+    // Convert each '.' to a '$', as dictated by the JVM spec.
+    // See: https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3.4
+    return internalClassName.replace('.', '$');
+  }
+
+  /** Remove any generic type parameters from the given descriptor. */
+  public static String removeGenericTypes(String descriptor) {
+    int start = descriptor.indexOf('<');
+    int end = descriptor.lastIndexOf('>');
+
+    if (start < end && start >= 0) {
+      int index = start;
+
+      while (index < end) {
+        index++;
+        if (descriptor.charAt(index) == '<') {
+          start = index;
+        } else if (descriptor.charAt(index) == '>') {
+          // Found a closing tag, by this point it has to be the most inner one.
+          return removeGenericTypes(
+              descriptor.substring(0, start) + descriptor.substring(index + 1));
+        }
+      }
+    }
+
+    return descriptor;
   }
 
   /**

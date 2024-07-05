@@ -158,6 +158,8 @@ public class ClassReferenceInitializer
 
   private final KotlinReferenceInitializer kotlinReferenceInitializer;
 
+  private final InvalidSignatureCleaner invalidSignatureCleaner = new InvalidSignatureCleaner();
+
   /**
    * Creates a new ClassReferenceInitializer that initializes the references of all visited class
    * files.
@@ -254,6 +256,10 @@ public class ClassReferenceInitializer
     programClass.fieldsAccept(this);
     programClass.methodsAccept(this);
 
+    // Clean up invalid signatures. We cannot do this while initializing the other attributes, since
+    // that will result in possibly modifying the attributes while we are iterating over them.
+    programClass.attributesAccept(invalidSignatureCleaner);
+
     // Initialize the attributes.
     programClass.attributesAccept(this);
 
@@ -278,6 +284,10 @@ public class ClassReferenceInitializer
     programField.referencedClass =
         findReferencedClass(programClass, programField.getDescriptor(programClass));
 
+    // Clean up invalid signatures. We cannot do this while initializing the other attributes, since
+    // that will result in possibly modifying the attributes while we are iterating over them.
+    programField.attributesAccept(programClass, invalidSignatureCleaner);
+
     // Initialize the attributes.
     programField.attributesAccept(programClass, this);
   }
@@ -286,6 +296,10 @@ public class ClassReferenceInitializer
   public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
     programMethod.referencedClasses =
         findReferencedClasses(programClass, programMethod.getDescriptor(programClass));
+
+    // Clean up invalid signatures. We cannot do this while initializing the other attributes, since
+    // that will result in possibly modifying the attributes while we are iterating over them.
+    programMethod.attributesAccept(programClass, invalidSignatureCleaner);
 
     // Initialize the attributes.
     programMethod.attributesAccept(programClass, this);
@@ -519,37 +533,21 @@ public class ClassReferenceInitializer
   @Override
   public void visitSignatureAttribute(
       Clazz clazz, Member member, SignatureAttribute signatureAttribute) {
-    try {
-      signatureAttribute.referencedClasses =
-          findReferencedClasses(clazz, signatureAttribute.getSignature(clazz));
-    } catch (Exception corruptSignature) {
-      // #2468: delete corrupt signature attributes, since they
-      // cannot be otherwise worked around.
-      member.accept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
-    }
+    signatureAttribute.referencedClasses =
+        findReferencedClasses(clazz, signatureAttribute.getSignature(clazz));
   }
 
   @Override
   public void visitSignatureAttribute(
       Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute signatureAttribute) {
-    try {
-      signatureAttribute.referencedClasses =
-          findReferencedClasses(clazz, signatureAttribute.getSignature(clazz));
-    } catch (Exception corruptSignature) {
-      // #2468: delete corrupt signature attributes, since they
-      // cannot be otherwise worked around.
-      recordComponentInfo.attributesAccept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
-    }
+    signatureAttribute.referencedClasses =
+        findReferencedClasses(clazz, signatureAttribute.getSignature(clazz));
   }
 
   @Override
   public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute) {
-    if (isValidClassSignature(clazz, signatureAttribute.getSignature(clazz))) {
-      signatureAttribute.referencedClasses =
-          findReferencedClasses(clazz, signatureAttribute.getSignature(clazz));
-    } else {
-      clazz.accept(new NamedAttributeDeleter(Attribute.SIGNATURE));
-    }
+    signatureAttribute.referencedClasses =
+        findReferencedClasses(clazz, signatureAttribute.getSignature(clazz));
   }
 
   @Override
@@ -580,6 +578,10 @@ public class ClassReferenceInitializer
     String descriptor = recordComponentInfo.getDescriptor(clazz);
 
     recordComponentInfo.referencedField = memberFinder.findField(clazz, name, descriptor);
+
+    // Clean up invalid signatures. We cannot do this while initializing the other attributes, since
+    // that will result in possibly modifying the attributes while we are iterating over them.
+    recordComponentInfo.attributesAccept(clazz, invalidSignatureCleaner);
 
     // Initialize the attributes.
     recordComponentInfo.attributesAccept(clazz, this);
@@ -1273,6 +1275,84 @@ public class ClassReferenceInitializer
     return clazz;
   }
 
+  /** A small utility class used to clean up invalid signatures. */
+  private class InvalidSignatureCleaner implements AttributeVisitor {
+    /**
+     * Perform some sanity checks on the Signature and whether it follows the JVM specification.
+     * TODO: T4517
+     */
+    private boolean isValidClassSignature(Clazz clazz, String signature) {
+      try {
+        // Loop through the signature to if it can be parsed.
+        new DescriptorClassEnumeration(signature).classCount();
+
+        // Then check whether the listed types are as expected.
+        InternalTypeEnumeration internalTypeEnumeration = new InternalTypeEnumeration(signature);
+
+        if (!internalTypeEnumeration.hasMoreTypes()) {
+          return false;
+        }
+
+        String superName = clazz.getSuperName();
+        String signSuperName =
+            ClassUtil.internalClassNameFromClassSignature(internalTypeEnumeration.nextType());
+        if (superName != null && !signSuperName.startsWith(superName)) {
+          return false;
+        }
+
+        // We are assuming interfaces in the descriptor occur in the same order as they are defined
+        // on the class file level. While this is very likely in the vast majority of cases, it
+        // doesn't seem like the JVM actually checks for this. TODO: see T4517.
+        for (int i = 0; i < clazz.getInterfaceCount(); i++) {
+          if (!internalTypeEnumeration.hasMoreTypes()) {
+            return false;
+          }
+
+          String intfName = clazz.getInterfaceName(i);
+          String signIntfName =
+              ClassUtil.internalClassNameFromClassSignature(internalTypeEnumeration.nextType());
+          if (!signIntfName.startsWith(intfName)) {
+            return false;
+          }
+        }
+
+        return !internalTypeEnumeration.hasMoreTypes();
+      } catch (Exception corruptedSignature) {
+        return false;
+      }
+    }
+
+    // Implementations for AttributeVisitor.
+
+    @Override
+    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+    @Override
+    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute) {
+      if (!isValidClassSignature(clazz, signatureAttribute.getSignature(clazz))) {
+        clazz.accept(new NamedAttributeDeleter(Attribute.SIGNATURE));
+      }
+    }
+
+    @Override
+    public void visitSignatureAttribute(
+        Clazz clazz,
+        RecordComponentInfo recordComponentInfo,
+        SignatureAttribute signatureAttribute) {
+      if (!isValidClassSignature(clazz, signatureAttribute.getSignature(clazz))) {
+        recordComponentInfo.attributesAccept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
+      }
+    }
+
+    @Override
+    public void visitSignatureAttribute(
+        Clazz clazz, Member member, SignatureAttribute signatureAttribute) {
+      if (!isValidClassSignature(clazz, signatureAttribute.getSignature(clazz))) {
+        member.accept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
+      }
+    }
+  }
+
   // Helper classes for KotlinReferenceInitializer.
 
   public static class KotlinTypeAliasReferenceInitializer
@@ -1629,45 +1709,6 @@ public class ClassReferenceInitializer
         thisClazz.kotlinMetadataAccept(
             new AllPropertyVisitor(new KotlinInterClassPropertyReferenceInitializer(parentClazz)));
       }
-    }
-  }
-
-  /** Perform some sanity checks on the Signature and whether it follows the JVM specification. */
-  private boolean isValidClassSignature(Clazz clazz, String signature) {
-    try {
-      // Loop through the signature to if it can be parsed.
-      new DescriptorClassEnumeration(signature).classCount();
-
-      // Then check whether the listed types are as expected.
-      InternalTypeEnumeration internalTypeEnumeration = new InternalTypeEnumeration(signature);
-
-      if (!internalTypeEnumeration.hasMoreTypes()) {
-        return false;
-      }
-
-      String superName = clazz.getSuperName();
-      String signSuperName =
-          ClassUtil.internalClassNameFromClassType(internalTypeEnumeration.nextType());
-      if (superName != null && !signSuperName.startsWith(superName)) {
-        return false;
-      }
-
-      for (int i = 0; i < clazz.getInterfaceCount(); i++) {
-        if (!internalTypeEnumeration.hasMoreTypes()) {
-          return false;
-        }
-
-        String intfName = clazz.getInterfaceName(i);
-        String signIntfName =
-            ClassUtil.internalClassNameFromClassType(internalTypeEnumeration.nextType());
-        if (!signIntfName.startsWith(intfName)) {
-          return false;
-        }
-      }
-
-      return !internalTypeEnumeration.hasMoreTypes();
-    } catch (Exception corruptedSignature) {
-      return false;
     }
   }
 

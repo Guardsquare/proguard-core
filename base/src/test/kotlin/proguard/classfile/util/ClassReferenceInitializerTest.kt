@@ -25,7 +25,11 @@ import proguard.classfile.MethodSignature
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramMethod
 import proguard.classfile.VersionConstants
+import proguard.classfile.attribute.Attribute
 import proguard.classfile.attribute.EnclosingMethodAttribute
+import proguard.classfile.attribute.SignatureAttribute
+import proguard.classfile.attribute.visitor.AllAttributeVisitor
+import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.editor.AttributesEditor
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.editor.ConstantPoolEditor
@@ -599,6 +603,126 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                     programClassPool.classesAccept(initializer)
                 }
             }
+        }
+    }
+
+    Given("A class with a valid signature attribute") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "MyTest.java",
+                """
+                    public class MyTest<T> {
+                    }   
+                """.trimIndent(),
+            ),
+            JavaSource(
+                "Test.java",
+                """
+                    public class Test<T> extends MyTest<T> {}
+                """.trimIndent(),
+            ),
+        )
+
+        val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+
+        Then("The referenced classes for the attribute should be set") {
+            programClassPool.classesAccept(initializer)
+            var attributeFound = false
+            programClassPool.classAccept(
+                "Test",
+                AllAttributeVisitor(object : AttributeVisitor {
+                    override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {}
+
+                    override fun visitSignatureAttribute(clazz: Clazz?, signatureAttribute: SignatureAttribute?) {
+                        if (signatureAttribute!!.referencedClasses[1].equals(programClassPool.getClass("MyTest"))) {
+                            attributeFound = true
+                        }
+                    }
+                }),
+            )
+            attributeFound shouldBe true
+        }
+    }
+
+    Given("A class with an invalid signature attribute") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "MyTest.java",
+                """
+                    public class MyTest<T> {
+                    }   
+                """.trimIndent(),
+            ),
+        )
+
+        val clazz = ClassBuilder(VersionConstants.CLASS_VERSION_17, AccessConstants.PUBLIC, "Test", "MyTest").programClass
+        val attributesEditor = AttributesEditor(clazz, false)
+        val constantPoolEditor = ConstantPoolEditor(clazz)
+
+        attributesEditor.addAttribute(
+            SignatureAttribute(
+                constantPoolEditor.addUtf8Constant("Signature"),
+                constantPoolEditor.addUtf8Constant("<T:Ljava/lang/Object;>LMyTest<TT;>;<invalid>"),
+            ),
+        )
+
+        programClassPool.addClass(clazz)
+
+        val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+
+        Then("The invalid attribute should be removed") {
+            programClassPool.classesAccept(initializer)
+            var attributeFound = false
+            programClassPool.classAccept(
+                "Test",
+                AllAttributeVisitor(object : AttributeVisitor {
+                    override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {}
+
+                    override fun visitSignatureAttribute(clazz: Clazz?, signatureAttribute: SignatureAttribute?) {
+                        attributeFound = true
+                    }
+                }),
+            )
+            attributeFound shouldBe false
+        }
+    }
+
+    Given("A class with a valid signature attribute referencing an inner class") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "MyTest.java",
+                """
+                    public class MyTest<T> {
+                        public class InnerClass {}
+                        public class Test extends InnerClass {}
+                    }   
+                """.trimIndent(),
+            ),
+        )
+
+        val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+
+        Then("The referenced classes for the attribute should be set") {
+            programClassPool.classesAccept(initializer)
+            var attributeFound = false
+            programClassPool.classAccept(
+                "MyTest\$Test",
+                AllAttributeVisitor(object : AttributeVisitor {
+                    override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {}
+
+                    override fun visitSignatureAttribute(
+                        clazz: Clazz?,
+                        signatureAttribute: SignatureAttribute?,
+                    ) {
+                        if (programClassPool.getClass("MyTest")?.equals(signatureAttribute?.referencedClasses?.get(0)) == true &&
+                            programClassPool.getClass("MyTest\$InnerClass")?.equals(signatureAttribute?.referencedClasses?.get(1)) == true
+                        ) {
+                            attributeFound = true
+                        }
+                    }
+                }),
+            )
+            attributeFound shouldBe true
         }
     }
 })
