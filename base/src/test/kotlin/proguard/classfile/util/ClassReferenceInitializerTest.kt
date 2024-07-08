@@ -20,9 +20,11 @@ import proguard.classfile.AccessConstants
 import proguard.classfile.ClassPool
 import proguard.classfile.Clazz
 import proguard.classfile.JavaConstants
+import proguard.classfile.Member
 import proguard.classfile.Method
 import proguard.classfile.MethodSignature
 import proguard.classfile.ProgramClass
+import proguard.classfile.ProgramMember
 import proguard.classfile.ProgramMethod
 import proguard.classfile.VersionConstants
 import proguard.classfile.attribute.Attribute
@@ -723,6 +725,204 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                 }),
             )
             attributeFound shouldBe true
+        }
+    }
+
+    Given("A class with a generic field") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "MyTest.java",
+                """
+                    import java.util.List;
+                    
+                    public class MyTest {
+                        public List<String> aList;
+                    }   
+                """.trimIndent(),
+            ),
+        )
+
+        val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+
+        Then("The signature attribute should not be removed") {
+            programClassPool.classesAccept(initializer)
+            var attributeFound = false
+            programClassPool.classAccept(
+                "MyTest",
+                AllMemberVisitor(
+                    AllAttributeVisitor(object : AttributeVisitor {
+                        override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {}
+
+                        override fun visitSignatureAttribute(
+                            clazz: Clazz?,
+                            member: Member?,
+                            signatureAttribute: SignatureAttribute?,
+                        ) {
+                            if (signatureAttribute?.getSignature(clazz).equals("Ljava/util/List<Ljava/lang/String;>;")) {
+                                attributeFound = true
+                            }
+                        }
+                    }),
+                ),
+            )
+            attributeFound shouldBe true
+        }
+    }
+
+    Given("A class with a generic field with an invalid signature") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "MyTest.java",
+                """
+                    import java.util.List;
+                    
+                    public class MyTest {
+                        public List<String> aList;
+                    }   
+                """.trimIndent(),
+            ),
+        )
+
+        val clazz = programClassPool.getClass("MyTest")
+        val field = clazz.findField("aList", "Ljava/util/List;")
+
+        val editor = AttributesEditor(clazz as ProgramClass?, field as ProgramMember?, true)
+        editor.deleteAttribute("Signature")
+
+        val constantPoolEditor = ConstantPoolEditor(clazz)
+
+        editor.addAttribute(
+            SignatureAttribute(
+                constantPoolEditor.addUtf8Constant("Signature"),
+                constantPoolEditor.addUtf8Constant("<T:Lja<invalid>"),
+            ),
+        )
+
+        val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+
+        Then("The signature attribute should be removed") {
+            programClassPool.classesAccept(initializer)
+            var attributeFound = false
+            programClassPool.classAccept(
+                "MyTest",
+                AllMemberVisitor(
+                    AllAttributeVisitor(object : AttributeVisitor {
+                        override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {}
+
+                        override fun visitSignatureAttribute(
+                            clazz: Clazz?,
+                            member: Member?,
+                            signatureAttribute: SignatureAttribute?,
+                        ) {
+                            if (signatureAttribute?.getSignature(clazz).equals("Ljava/util/List<Ljava/lang/String;>;")) {
+                                attributeFound = true
+                            }
+                        }
+                    }),
+                ),
+            )
+            attributeFound shouldBe false
+        }
+    }
+
+    Given("A class with a generic method") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "MyTest.java",
+                """
+                    import java.util.List;
+                    
+                    public class MyTest {
+                        public List<String> getList() {
+                            return null;
+                        }
+                    }   
+                """.trimIndent(),
+            ),
+        )
+
+        val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+
+        Then("The signature attribute should not be removed") {
+            programClassPool.classesAccept(initializer)
+            var attributeFound = false
+            programClassPool.classAccept(
+                "MyTest",
+                AllMemberVisitor(
+                    AllAttributeVisitor(object : AttributeVisitor {
+                        override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {}
+
+                        override fun visitSignatureAttribute(
+                            clazz: Clazz?,
+                            member: Member?,
+                            signatureAttribute: SignatureAttribute?,
+                        ) {
+                            if (signatureAttribute?.getSignature(clazz).equals("()Ljava/util/List<Ljava/lang/String;>;")) {
+                                attributeFound = true
+                            }
+                        }
+                    }),
+                ),
+            )
+            attributeFound shouldBe true
+        }
+    }
+
+    Given("A class with a generic method with an invalid signature") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "MyTest.java",
+                """
+                    import java.util.List;
+                    
+                    public class MyTest {
+                        public List<String> getList() {
+                            return null;
+                        }
+                    }   
+                """.trimIndent(),
+            ),
+        )
+
+        val clazz = programClassPool.getClass("MyTest")
+        val method = clazz.findMethod("getList", "()Ljava/util/List;")
+
+        val editor = AttributesEditor(clazz as ProgramClass?, method as ProgramMember?, true)
+        editor.deleteAttribute("Signature")
+
+        val constantPoolEditor = ConstantPoolEditor(clazz)
+
+        editor.addAttribute(
+            SignatureAttribute(
+                constantPoolEditor.addUtf8Constant("Signature"),
+                constantPoolEditor.addUtf8Constant("<T:Lja<invalid>"),
+            ),
+        )
+
+        val initializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+
+        Then("The signature attribute should be removed") {
+            programClassPool.classesAccept(initializer)
+            var attributeFound = false
+            programClassPool.classAccept(
+                "MyTest",
+                AllMemberVisitor(
+                    AllAttributeVisitor(object : AttributeVisitor {
+                        override fun visitAnyAttribute(clazz: Clazz?, attribute: Attribute?) {}
+
+                        override fun visitSignatureAttribute(
+                            clazz: Clazz?,
+                            member: Member?,
+                            signatureAttribute: SignatureAttribute?,
+                        ) {
+                            if (signatureAttribute?.getSignature(clazz).equals("()Ljava/util/List<Ljava/lang/String;>;")) {
+                                attributeFound = true
+                            }
+                        }
+                    }),
+                ),
+            )
+            attributeFound shouldBe false
         }
     }
 })

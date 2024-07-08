@@ -1322,6 +1322,19 @@ public class ClassReferenceInitializer
       }
     }
 
+    /** Return false if the given signature is invalid. */
+    private boolean isValidSignature(String signature) {
+      try {
+        DescriptorClassEnumeration enumeration = new DescriptorClassEnumeration(signature);
+
+        // Calling 'classCount()' will parse the entire signature.
+        enumeration.classCount();
+        return true;
+      } catch (Exception e) {
+        return false;
+      }
+    }
+
     // Implementations for AttributeVisitor.
 
     @Override
@@ -1339,7 +1352,7 @@ public class ClassReferenceInitializer
         Clazz clazz,
         RecordComponentInfo recordComponentInfo,
         SignatureAttribute signatureAttribute) {
-      if (!isValidClassSignature(clazz, signatureAttribute.getSignature(clazz))) {
+      if (!isValidSignature(signatureAttribute.getSignature(clazz))) {
         recordComponentInfo.attributesAccept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
       }
     }
@@ -1347,7 +1360,7 @@ public class ClassReferenceInitializer
     @Override
     public void visitSignatureAttribute(
         Clazz clazz, Member member, SignatureAttribute signatureAttribute) {
-      if (!isValidClassSignature(clazz, signatureAttribute.getSignature(clazz))) {
+      if (!isValidSignature(signatureAttribute.getSignature(clazz))) {
         member.accept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
       }
     }
