@@ -10,6 +10,7 @@
 
 - `Executor`s do not support `MethodSignature` wildcards anymore. The assumption from `ExecutorLookup` is now that all the signatures supported by the executor are declared explicitly in `getSupportedMethodSignatures`.
 - `StringExecutor`, `ExecutingInvocationUnit`, and `JvmValueBamCpaRun` now need the library class pool as parameter.
+- Calls to `InstructionSequenceBuilder.ldc` now optionally accept a `ConstantVisitor`. The visitor will visit the constant that is referenced by the added instruction.
 
 ## Version 9.1.4
 

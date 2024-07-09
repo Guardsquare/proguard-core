@@ -65,6 +65,7 @@ import proguard.classfile.ProgramClass;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.VersionConstants;
 import proguard.classfile.constant.Constant;
+import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.instruction.BranchInstruction;
 import proguard.classfile.instruction.ConstantInstruction;
 import proguard.classfile.instruction.Instruction;
@@ -313,17 +314,41 @@ public class InstructionSequenceBuilder {
 
   /** Appends an ldc instruction that loads an integer constant with the given value. */
   public InstructionSequenceBuilder ldc(int value) {
-    return ldc_(constantPoolEditor.addIntegerConstant(value));
+    return ldc(value, null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads an integer constant with the given value. Also visits the
+   * constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(int value, ConstantVisitor visitor) {
+    return ldc_(constantPoolEditor.addIntegerConstant(value), visitor);
   }
 
   /** Appends an ldc instruction that loads a float constant with the given value. */
   public InstructionSequenceBuilder ldc(float value) {
-    return ldc_(constantPoolEditor.addFloatConstant(value));
+    return ldc(value, null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads a float constant with the given value. Also visits the
+   * constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(float value, ConstantVisitor visitor) {
+    return ldc_(constantPoolEditor.addFloatConstant(value), visitor);
   }
 
   /** Appends an ldc instruction that loads a string constant with the given value. */
   public InstructionSequenceBuilder ldc(String string) {
-    return ldc(string, null, null);
+    return ldc(string, (ConstantVisitor) null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads a string constant with the given value. Also visits the
+   * constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(String string, ConstantVisitor visitor) {
+    return ldc(string, null, null, visitor);
   }
 
   /**
@@ -331,12 +356,28 @@ public class InstructionSequenceBuilder {
    * value.
    */
   public InstructionSequenceBuilder ldc(Object primitiveArray) {
-    return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
+    return ldc(primitiveArray, null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads an (internal) primitive array constant with the given
+   * value. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(Object primitiveArray, ConstantVisitor visitor) {
+    return ldc_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray), visitor);
   }
 
   /** Appends an ldc instruction that loads a string constant with the given class member name. */
   public InstructionSequenceBuilder ldc(Clazz clazz, Member member) {
-    return ldc(member.getName(clazz), clazz, member);
+    return ldc(clazz, member, null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads a string constant with the given class member name. Also
+   * visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(Clazz clazz, Member member, ConstantVisitor visitor) {
+    return ldc(member.getName(clazz), clazz, member, visitor);
   }
 
   /**
@@ -345,12 +386,26 @@ public class InstructionSequenceBuilder {
    */
   public InstructionSequenceBuilder ldc(
       String string, Clazz referencedClass, Member referencedMember) {
-    return ldc_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
+    return ldc(string, referencedClass, referencedMember, null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads a string constant with the given value, that references
+   * the given class member. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(
+      String string, Clazz referencedClass, Member referencedMember, ConstantVisitor visitor) {
+    return ldc_(
+        constantPoolEditor.addStringConstant(string, referencedClass, referencedMember), visitor);
   }
 
   /** Appends an ldc instruction that loads a string constant with the given resource file name. */
   public InstructionSequenceBuilder ldc(ResourceFile resourceFile) {
-    return ldc(resourceFile.getFileName(), resourceFile);
+    return ldc(resourceFile, null);
+  }
+
+  public InstructionSequenceBuilder ldc(ResourceFile resourceFile, ConstantVisitor visitor) {
+    return ldc(resourceFile.getFileName(), resourceFile, visitor);
   }
 
   /**
@@ -358,12 +413,25 @@ public class InstructionSequenceBuilder {
    * the given resource file.
    */
   public InstructionSequenceBuilder ldc(String string, ResourceFile referencedResourceFile) {
-    return ldc_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
+    return ldc(string, referencedResourceFile, null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads a string constant with the given value, that references
+   * the given resource file. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(
+      String string, ResourceFile referencedResourceFile, ConstantVisitor visitor) {
+    return ldc_(constantPoolEditor.addStringConstant(string, referencedResourceFile), visitor);
   }
 
   /** Appends an ldc instruction that loads a class constant for the given class. */
   public InstructionSequenceBuilder ldc(Clazz clazz) {
-    return ldc(clazz.getName(), clazz);
+    return ldc(clazz, (ConstantVisitor) null);
+  }
+
+  public InstructionSequenceBuilder ldc(Clazz clazz, ConstantVisitor visitor) {
+    return ldc(clazz.getName(), clazz, visitor);
   }
 
   /**
@@ -371,27 +439,64 @@ public class InstructionSequenceBuilder {
    * the given class.
    */
   public InstructionSequenceBuilder ldc(String typeName, Clazz referencedClass) {
-    return ldc_(constantPoolEditor.addClassConstant(typeName, referencedClass));
+    return ldc(typeName, referencedClass, (ConstantVisitor) null);
+  }
+
+  /**
+   * Appends an ldc instruction that loads a class constant for the given type name, that references
+   * the given class. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc(
+      String typeName, Clazz referencedClass, ConstantVisitor visitor) {
+    return ldc_(constantPoolEditor.addClassConstant(typeName, referencedClass), visitor);
   }
 
   /** Appends an ldc instruction that loads the constant at the given index. */
   public InstructionSequenceBuilder ldc_(int constantIndex) {
+    return ldc_(constantIndex, null);
+  }
+
+  public InstructionSequenceBuilder ldc_(int constantIndex, ConstantVisitor visitor) {
+    visitConstantAtIndex(visitor, constantIndex);
     return appendInstruction(new ConstantInstruction(Instruction.OP_LDC, constantIndex));
   }
 
-  /** Appends an ldc_w instruction that loads an integer constant with the given value. */
   public InstructionSequenceBuilder ldc_w(int value) {
-    return ldc_w_(constantPoolEditor.addIntegerConstant(value));
+    return ldc_w_(value);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads an integer constant with the given value. Also visits
+   * the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(int value, ConstantVisitor visitor) {
+    return ldc_w_(constantPoolEditor.addIntegerConstant(value), visitor);
   }
 
   /** Appends an ldc_w instruction that loads a float constant with the given value. */
   public InstructionSequenceBuilder ldc_w(float value) {
-    return ldc_w_(constantPoolEditor.addFloatConstant(value));
+    return ldc_w(value, null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a float constant with the given value. Also visits the
+   * constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(float value, ConstantVisitor visitor) {
+    return ldc_w_(constantPoolEditor.addFloatConstant(value), visitor);
   }
 
   /** Appends an ldc_w instruction that loads a string constant with the given value. */
   public InstructionSequenceBuilder ldc_w(String string) {
-    return ldc_w(string, null, null);
+    return ldc_w(string, (ConstantVisitor) null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a string constant with the given value. Also visits the
+   * constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(String string, ConstantVisitor visitor) {
+    return ldc_w(string, null, null, visitor);
   }
 
   /**
@@ -399,12 +504,28 @@ public class InstructionSequenceBuilder {
    * value.
    */
   public InstructionSequenceBuilder ldc_w(Object primitiveArray) {
-    return ldc_w_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray));
+    return ldc_w(primitiveArray, null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads an (internal) primitive array constant with the given
+   * value. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(Object primitiveArray, ConstantVisitor visitor) {
+    return ldc_w_(constantPoolEditor.addPrimitiveArrayConstant(primitiveArray), visitor);
   }
 
   /** Appends an ldc_w instruction that loads a string constant with the given class member name. */
   public InstructionSequenceBuilder ldc_w(Clazz clazz, Member member) {
-    return ldc_w(member.getName(clazz), clazz, member);
+    return ldc_w(clazz, member, null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a string constant with the given class member name.
+   * Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(Clazz clazz, Member member, ConstantVisitor visitor) {
+    return ldc_w(member.getName(clazz), clazz, member, visitor);
   }
 
   /**
@@ -413,14 +534,32 @@ public class InstructionSequenceBuilder {
    */
   public InstructionSequenceBuilder ldc_w(
       String string, Clazz referencedClass, Member referencedMember) {
-    return ldc_w_(constantPoolEditor.addStringConstant(string, referencedClass, referencedMember));
+    return ldc_w(string, referencedClass, referencedMember, null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a string constant with the given value, that references
+   * the given class member. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(
+      String string, Clazz referencedClass, Member referencedMember, ConstantVisitor visitor) {
+    return ldc_w_(
+        constantPoolEditor.addStringConstant(string, referencedClass, referencedMember), visitor);
   }
 
   /**
    * Appends an ldc_w instruction that loads a string constant with the given resource file name.
    */
   public InstructionSequenceBuilder ldc_w(ResourceFile resourceFile) {
-    return ldc_w(resourceFile.getFileName(), resourceFile);
+    return ldc_w(resourceFile, null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a string constant with the given resource file name.
+   * Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(ResourceFile resourceFile, ConstantVisitor visitor) {
+    return ldc_w(resourceFile.getFileName(), resourceFile, visitor);
   }
 
   /**
@@ -428,12 +567,29 @@ public class InstructionSequenceBuilder {
    * the given resource file.
    */
   public InstructionSequenceBuilder ldc_w(String string, ResourceFile referencedResourceFile) {
-    return ldc_w_(constantPoolEditor.addStringConstant(string, referencedResourceFile));
+    return ldc_w(string, referencedResourceFile, null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a string constant with the given value, that references
+   * the given resource file. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(
+      String string, ResourceFile referencedResourceFile, ConstantVisitor visitor) {
+    return ldc_w_(constantPoolEditor.addStringConstant(string, referencedResourceFile), visitor);
   }
 
   /** Appends an ldc_w instruction that loads a class constant for the given class. */
   public InstructionSequenceBuilder ldc_w(Clazz clazz) {
-    return ldc_w(clazz.getName(), clazz);
+    return ldc_w(clazz, (ConstantVisitor) null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a class constant for the given class. Also visits the
+   * constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(Clazz clazz, ConstantVisitor visitor) {
+    return ldc_w(clazz.getName(), clazz, visitor);
   }
 
   /**
@@ -441,22 +597,56 @@ public class InstructionSequenceBuilder {
    * references the given class.
    */
   public InstructionSequenceBuilder ldc_w(String typeName, Clazz referencedClass) {
-    return ldc_w_(constantPoolEditor.addClassConstant(typeName, referencedClass));
+    return ldc_w(typeName, referencedClass, (ConstantVisitor) null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads a class constant for the given type name, that
+   * references the given class. Also visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w(
+      String typeName, Clazz referencedClass, ConstantVisitor visitor) {
+    return ldc_w_(constantPoolEditor.addClassConstant(typeName, referencedClass), visitor);
   }
 
   /** Appends an ldc_w instruction that loads the constant at the given index. */
   public InstructionSequenceBuilder ldc_w_(int constantIndex) {
+    return ldc_w_(constantIndex, null);
+  }
+
+  /**
+   * Appends an ldc_w instruction that loads the constant at the given index. Also visits the
+   * constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc_w_(int constantIndex, ConstantVisitor visitor) {
+    visitConstantAtIndex(visitor, constantIndex);
     return appendInstruction(new ConstantInstruction(Instruction.OP_LDC_W, constantIndex));
   }
 
   /** Appends an ldc2_w instruction that loads a long constant with the given value. */
   public InstructionSequenceBuilder ldc2_w(long value) {
-    return ldc2_w(constantPoolEditor.addLongConstant(value));
+    return ldc2_w(value, null);
+  }
+
+  /**
+   * Appends an ldc2_w instruction that loads a long constant with the given value. Also visits the
+   * constant with the given index.
+   */
+  public InstructionSequenceBuilder ldc2_w(long value, ConstantVisitor visitor) {
+    return ldc2_w(constantPoolEditor.addLongConstant(value), visitor);
   }
 
   /** Appends an ldc2_w instruction that loads a double constant with the given value. */
   public InstructionSequenceBuilder ldc2_w(double value) {
-    return ldc2_w(constantPoolEditor.addDoubleConstant(value));
+    return ldc2_w(value, null);
+  }
+
+  /**
+   * Appends an ldc2_w instruction that loads a double constant with the given value. Also visits
+   * the constant with the given index.
+   */
+  public InstructionSequenceBuilder ldc2_w(double value, ConstantVisitor visitor) {
+    return ldc2_w(constantPoolEditor.addDoubleConstant(value), visitor);
   }
 
   /**
@@ -489,7 +679,32 @@ public class InstructionSequenceBuilder {
 
   /** Appends an ldc2_w instruction that loads the Category 2 constant at the given index. */
   public InstructionSequenceBuilder ldc2_w(int constantIndex) {
+    return ldc2_w(constantIndex, null);
+  }
+
+  /**
+   * Appends an ldc2_w instruction that loads the Category 2 constant at the given index. Also
+   * visits the constant with the given visitor.
+   */
+  public InstructionSequenceBuilder ldc2_w(int constantIndex, ConstantVisitor visitor) {
+    visitConstantAtIndex(visitor, constantIndex);
     return add(new ConstantInstruction(Instruction.OP_LDC2_W, constantIndex));
+  }
+
+  /**
+   * If the given constant index is a valid entry into the target class's constant pool, visit the
+   * corresponding constant with the given visitor.
+   */
+  private void visitConstantAtIndex(ConstantVisitor visitor, int constantIndex) {
+    if (visitor == null
+        || constantPoolEditor == null
+        || constantPoolEditor.getTargetClass() == null) {
+      return;
+    }
+    Constant constant = constantPoolEditor.getTargetClass().getConstant(constantIndex);
+    if (constant != null) {
+      constant.accept(constantPoolEditor.getTargetClass(), visitor);
+    }
   }
 
   public InstructionSequenceBuilder iload(int variableIndex) {
