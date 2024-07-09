@@ -195,8 +195,6 @@ public class WildcardManager {
             variableStringMatchers.size(),
             regularExpression);
       }
-      System.out.println(wildcardIndex);
-      System.out.println(variableStringMatchers.size());
 
       return wildcardIndex - 1;
     } catch (NumberFormatException e) {
