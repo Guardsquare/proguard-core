@@ -96,8 +96,8 @@ public class InstructionSequenceBuilder {
    * Creates a new InstructionSequenceBuilder that automatically initializes class references and
    * class member references in new constants.
    *
-   * @param programClassPool the program class pool from which new constants can be initialized.
-   * @param libraryClassPool the library class pool from which new constants can be initialized.
+   * @param programClassPool The program class pool from which new constants can be initialized.
+   * @param libraryClassPool The library class pool from which new constants can be initialized.
    */
   public InstructionSequenceBuilder(ClassPool programClassPool, ClassPool libraryClassPool) {
     this(new MyDummyClass(), programClassPool, libraryClassPool);
@@ -106,7 +106,7 @@ public class InstructionSequenceBuilder {
   /**
    * Creates a new InstructionSequenceBuilder.
    *
-   * @param targetClass the target class for the instruction constants.
+   * @param targetClass The target class for the instruction constants.
    */
   public InstructionSequenceBuilder(ProgramClass targetClass) {
     this(new ConstantPoolEditor(targetClass));
@@ -116,9 +116,9 @@ public class InstructionSequenceBuilder {
    * Creates a new InstructionSequenceBuilder that automatically initializes class references and
    * class member references in new constants.
    *
-   * @param targetClass the target class for the instruction constants.
-   * @param programClassPool the program class pool from which new constants can be initialized.
-   * @param libraryClassPool the library class pool from which new constants can be initialized.
+   * @param targetClass The target class for the instruction constants.
+   * @param programClassPool The program class pool from which new constants can be initialized.
+   * @param libraryClassPool The library class pool from which new constants can be initialized.
    */
   public InstructionSequenceBuilder(
       ProgramClass targetClass, ClassPool programClassPool, ClassPool libraryClassPool) {
@@ -128,7 +128,7 @@ public class InstructionSequenceBuilder {
   /**
    * Creates a new InstructionSequenceBuilder.
    *
-   * @param constantPoolEditor the editor to use for creating any constants for the instructions.
+   * @param constantPoolEditor The editor to use for creating any constants for the instructions.
    */
   public InstructionSequenceBuilder(ConstantPoolEditor constantPoolEditor) {
     this.constantPoolEditor = constantPoolEditor;
@@ -137,7 +137,7 @@ public class InstructionSequenceBuilder {
   /**
    * Returns the ConstantPoolEditor used by this builder to create constants.
    *
-   * @return the ConstantPoolEditor used by this builder to create constants.
+   * @return The ConstantPoolEditor used by this builder to create constants.
    */
   public ConstantPoolEditor getConstantPoolEditor() {
     return constantPoolEditor;
@@ -169,8 +169,8 @@ public class InstructionSequenceBuilder {
   /**
    * Appends the given instruction.
    *
-   * @param instruction the instruction to be appended.
-   * @return the builder itself.
+   * @param instruction The instruction to be appended.
+   * @return The builder itself.
    */
   public InstructionSequenceBuilder appendInstruction(Instruction instruction) {
     return add(instruction);
@@ -179,8 +179,8 @@ public class InstructionSequenceBuilder {
   /**
    * Appends the given instructions.
    *
-   * @param instructions the instructions to be appended.
-   * @return the builder itself.
+   * @param instructions The instructions to be appended.
+   * @return The builder itself.
    */
   public InstructionSequenceBuilder appendInstructions(Instruction[] instructions) {
     for (Instruction instruction : instructions) {
@@ -404,6 +404,10 @@ public class InstructionSequenceBuilder {
     return ldc(resourceFile, null);
   }
 
+  /**
+   * Appends an ldc instruction that loads a string constant with the given resource file name. Also
+   * visits the constant with the given visitor.
+   */
   public InstructionSequenceBuilder ldc(ResourceFile resourceFile, ConstantVisitor visitor) {
     return ldc(resourceFile.getFileName(), resourceFile, visitor);
   }
@@ -430,6 +434,10 @@ public class InstructionSequenceBuilder {
     return ldc(clazz, (ConstantVisitor) null);
   }
 
+  /**
+   * Appends an ldc instruction that loads a class constant for the given class. Also visits the
+   * constant with the given visitor.
+   */
   public InstructionSequenceBuilder ldc(Clazz clazz, ConstantVisitor visitor) {
     return ldc(clazz.getName(), clazz, visitor);
   }
@@ -456,13 +464,18 @@ public class InstructionSequenceBuilder {
     return ldc_(constantIndex, null);
   }
 
+  /**
+   * Appends an ldc instruction that loads the constant at the given index. Also visits the constant
+   * with the given visitor.
+   */
   public InstructionSequenceBuilder ldc_(int constantIndex, ConstantVisitor visitor) {
     visitConstantAtIndex(visitor, constantIndex);
     return appendInstruction(new ConstantInstruction(Instruction.OP_LDC, constantIndex));
   }
 
+  /** Appends an ldc_w instruction that loads an integer constant with the given value. */
   public InstructionSequenceBuilder ldc_w(int value) {
-    return ldc_w_(value);
+    return ldc_w(value, null);
   }
 
   /**
@@ -1719,10 +1732,10 @@ public class InstructionSequenceBuilder {
   /**
    * Pushes the given primitive value on the stack.
    *
-   * <p>Operand stack: ... -> ..., value
+   * <p>Operand stack: ... -> ..., value.
    *
-   * @param value the primitive value to be pushed - should never be null.
-   * @param type the internal type of the primitive ('Z','B','I',...)
+   * @param value The primitive value to be pushed - should never be null.
+   * @param type The internal type of the primitive ('Z','B','I',...).
    */
   public InstructionSequenceBuilder pushPrimitive(Object value, char type) {
     switch (type) {
@@ -1748,10 +1761,10 @@ public class InstructionSequenceBuilder {
   /**
    * Box the primitive value present on the stack.
    *
-   * <p>Operand stack: ..., primitive -> ..., boxed_primitive
+   * <p>Operand stack: ..., primitive -> ..., boxed_primitive.
    *
-   * @param sourceType type of the primitive on the stack.
-   * @return this
+   * @param sourceType Type of the primitive on the stack.
+   * @return This.
    */
   public InstructionSequenceBuilder boxPrimitiveType(char sourceType) {
     // Perform auto-boxing.
@@ -1798,10 +1811,10 @@ public class InstructionSequenceBuilder {
   /**
    * Unbox the object on the stack to a primitive value.
    *
-   * <p>Operand stack: ..., boxed_primitive -> ..., primitive
+   * <p>Operand stack: ..., boxed_primitive -> ..., primitive.
    *
-   * @param sourceType type of the primitive that should be unboxed.
-   * @param targetType resulting type.
+   * @param sourceType Type of the primitive that should be unboxed.
+   * @param targetType Resulting type.
    */
   public InstructionSequenceBuilder unboxPrimitiveType(String sourceType, String targetType) {
     boolean castRequired = sourceType.equals(TYPE_JAVA_LANG_OBJECT);
@@ -1875,9 +1888,10 @@ public class InstructionSequenceBuilder {
   /**
    * Pushes the given string or primitive on the stack.
    *
-   * @param value the primitive value to be pushed - should never be null.
-   * @param type the internal type of the primitive ('Z','B','I',...)
-   * @throws IllegalArgumentException if the type is neither primitive or Ljava/lang/String;
+   * @param value The primitive value to be pushed - should never be null.
+   * @param type The internal type of the primitive ('Z','B','I',...).
+   * @throws IllegalArgumentException if the type is neither primitive or <code>Ljava/lang/String;
+   *     </code>.
    */
   public InstructionSequenceBuilder pushPrimitiveOrString(Object value, String type) {
     return pushPrimitiveOrString(value, type, true);
@@ -1886,11 +1900,12 @@ public class InstructionSequenceBuilder {
   /**
    * Pushes the given string or primitive on the stack.
    *
-   * @param value the primitive value to be pushed - should never be null.
-   * @param type the internal type of the primitive ('Z','B','I',...)
+   * @param value The primitive value to be pushed - should never be null.
+   * @param type The internal type of the primitive ('Z','B','I',...).
    * @param allowBoxing If the type is a primitive wrapper class, set allowBoxing = true, to push a
    *     boxed primitive.
-   * @throws IllegalArgumentException if the type is neither primitive or Ljava/lang/String;
+   * @throws IllegalArgumentException if the type is neither primitive or <code>Ljava/lang/String;
+   *     </code>.
    */
   public InstructionSequenceBuilder pushPrimitiveOrString(
       Object value, String type, boolean allowBoxing) {
@@ -1920,8 +1935,8 @@ public class InstructionSequenceBuilder {
   /**
    * Push a primitive on the stack followed by a call to it's boxed valueOf method.
    *
-   * @param value the value.
-   * @param type the type e.g. Ljava/lang/Integer;
+   * @param value The value.
+   * @param type The type, e.g. <code>Ljava/lang/Integer;</code>.
    */
   public InstructionSequenceBuilder pushBoxedPrimitive(Object value, String type) {
     String internalPrimitiveClassName = ClassUtil.internalClassNameFromType(type);
@@ -1939,7 +1954,7 @@ public class InstructionSequenceBuilder {
    * Pushes the given primitive int on the stack in the most efficient way (as an iconst, bipush,
    * sipush, or ldc instruction).
    *
-   * @param value the int value to be pushed.
+   * @param value The int value to be pushed.
    */
   public InstructionSequenceBuilder pushInt(int value) {
     switch (value) {
@@ -1968,7 +1983,7 @@ public class InstructionSequenceBuilder {
    * Pushes the given primitive float on the stack in the most efficient way (as an fconst or ldc
    * instruction).
    *
-   * @param value the float value to be pushed.
+   * @param value The float value to be pushed.
    */
   public InstructionSequenceBuilder pushFloat(float value) {
     return value == 0f
@@ -1980,7 +1995,7 @@ public class InstructionSequenceBuilder {
    * Pushes the given primitive long on the stack in the most efficient way (as an lconst or ldc
    * instruction).
    *
-   * @param value the inlongue to be pushed.
+   * @param value The long to be pushed.
    */
   public InstructionSequenceBuilder pushLong(long value) {
     return value == 0L ? lconst_0() : value == 1L ? lconst_1() : ldc2_w(value);
@@ -1990,7 +2005,7 @@ public class InstructionSequenceBuilder {
    * Pushes the given primitive double on the stack in the most efficient way (as a dconst or ldc
    * instruction).
    *
-   * @param value the double value to be pushed.
+   * @param value The double value to be pushed.
    */
   public InstructionSequenceBuilder pushDouble(double value) {
     return value == 0. ? dconst_0() : value == 1. ? dconst_1() : ldc2_w(value);
@@ -1999,10 +2014,10 @@ public class InstructionSequenceBuilder {
   /**
    * Pushes a new array on the stack.
    *
-   * <p>Operand stack: ... -> ..., array
+   * <p>Operand stack: ... -> ..., array.
    *
-   * @param type the array element type (or class name in case of objects).
-   * @param size the size of the array to be created.
+   * @param type The array element type (or class name in case of objects).
+   * @param size The size of the array to be created.
    */
   public InstructionSequenceBuilder pushNewArray(String type, int size) {
     // Create new array.
@@ -2019,10 +2034,10 @@ public class InstructionSequenceBuilder {
    * <p>For primitives you can specify, for example, either I or Ljava/lang/Integer; to create an
    * object array or a primitive array.
    *
-   * <p>Operand stack: ... -> ..., array
+   * <p>Operand stack: ... -> ..., array.
    *
-   * @param type the array element type (or class name in case of objects).
-   * @param values the array values.
+   * @param type The array element type (or class name in case of objects).
+   * @param values The array values.
    */
   public InstructionSequenceBuilder pushPrimitiveOrStringArray(String type, Object[] values) {
     String internalClassType = ClassUtil.internalClassTypeFromType(type);
@@ -2045,7 +2060,7 @@ public class InstructionSequenceBuilder {
    *
    * <p>Either 0 for primitives or null for objects.
    *
-   * @param type the type.
+   * @param type The type.
    */
   public InstructionSequenceBuilder pushDefault(String type) {
     switch (type.charAt(0)) {
@@ -2069,10 +2084,10 @@ public class InstructionSequenceBuilder {
   /**
    * Loads the given variable onto the stack.
    *
-   * <p>Operand stack: ... -> ..., value
+   * <p>Operand stack: ... -> ..., value.
    *
-   * @param variableIndex the index of the variable to be loaded.
-   * @param type the type of the variable to be loaded.
+   * @param variableIndex The index of the variable to be loaded.
+   * @param type The type of the variable to be loaded.
    */
   public InstructionSequenceBuilder load(int variableIndex, String type) {
     return load(variableIndex, type.charAt(0));
@@ -2081,10 +2096,10 @@ public class InstructionSequenceBuilder {
   /**
    * Loads the given variable of primitive type onto the stack.
    *
-   * <p>Operand stack: ... -> ..., value
+   * <p>Operand stack: ... -> ..., value.
    *
-   * @param variableIndex the index of the variable to be loaded.
-   * @param type the type of the variable to be loaded.
+   * @param variableIndex The index of the variable to be loaded.
+   * @param type The type of the variable to be loaded.
    */
   public InstructionSequenceBuilder load(int variableIndex, char type) {
     switch (type) {
@@ -2110,8 +2125,8 @@ public class InstructionSequenceBuilder {
    *
    * <p>Operand stsack: ..., value -> ...
    *
-   * @param variableIndex the index of the variable where to store the value.
-   * @param type the type of the value to be stored.
+   * @param variableIndex The index of the variable where to store the value.
+   * @param type The type of the value to be stored.
    */
   public InstructionSequenceBuilder store(int variableIndex, String type) {
     return store(variableIndex, type.charAt(0));
@@ -2122,8 +2137,8 @@ public class InstructionSequenceBuilder {
    *
    * <p>Operand stack: ..., value -> ...
    *
-   * @param variableIndex the index of the variable where to store the value.
-   * @param type the type of the value to be stored.
+   * @param variableIndex The index of the variable where to store the value.
+   * @param type The type of the value to be stored.
    */
   public InstructionSequenceBuilder store(int variableIndex, char type) {
     switch (type) {
@@ -2149,7 +2164,7 @@ public class InstructionSequenceBuilder {
    *
    * <p>Operand stack: ..., array, index, value -> ...
    *
-   * @param elementType the type of the value to be stored.
+   * @param elementType The type of the value to be stored.
    */
   public InstructionSequenceBuilder storeToArray(String elementType) {
     // Store element on stack in array.
@@ -2177,9 +2192,9 @@ public class InstructionSequenceBuilder {
   /**
    * Loads an element from an array.
    *
-   * <p>Operand stack: ..., array, index -> ..., value
+   * <p>Operand stack: ..., array, index -> ..., value.
    *
-   * @param elementType the type of the value to be loaded.
+   * @param elementType The type of the value to be loaded.
    */
   public InstructionSequenceBuilder loadFromArray(String elementType) {
     // Load element from array on stack.
@@ -2249,7 +2264,7 @@ public class InstructionSequenceBuilder {
       super(VersionConstants.CLASS_VERSION_1_0, 1, new Constant[256], 0, 0, 0);
     }
 
-    // Overriding methods for Claaz.
+    // Overriding methods for Clazz.
 
     public String getName() {
       return null;
