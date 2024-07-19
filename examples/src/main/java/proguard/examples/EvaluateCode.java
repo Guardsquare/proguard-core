@@ -138,7 +138,8 @@ public class EvaluateCode {
                                 : precision.equals(ARRAY)
                                     ? new ArrayReferenceValueFactory()
                                     : precision.equals(DETAILEDARRAY)
-                                        ? new DetailedArrayValueFactory()
+                                        ? new DetailedArrayValueFactory(
+                                            new TypedReferenceValueFactory())
                                         : unknownPrecision(precision);
 
     // In this example, we pick an invocation unit that doesn't try to

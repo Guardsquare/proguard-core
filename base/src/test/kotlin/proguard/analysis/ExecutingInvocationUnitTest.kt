@@ -16,12 +16,15 @@ import proguard.evaluation.ValueCalculator
 import proguard.evaluation.executor.Executor
 import proguard.evaluation.executor.MethodExecutionInfo
 import proguard.evaluation.value.ArrayReferenceValueFactory
+import proguard.evaluation.value.DetailedArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.evaluation.value.ParticularValueFactory
+import proguard.evaluation.value.ReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.ValueFactory
+import proguard.evaluation.value.`object`.ArrayModel
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
@@ -323,7 +326,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
         )
 
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
-        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
+        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(ParticularReferenceValueFactory()), ParticularReferenceValueFactory())
         val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
         val partialEvaluator = PartialEvaluator(
             valueFactory,
@@ -362,7 +365,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
         )
 
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
-        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
+        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(ParticularReferenceValueFactory()), ParticularReferenceValueFactory())
         val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
         val partialEvaluator = PartialEvaluator(
             valueFactory,
@@ -402,7 +405,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
         )
 
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
-        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
+        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(ParticularReferenceValueFactory()), ParticularReferenceValueFactory())
 
         val fooExecutor = object : Executor {
 
@@ -448,5 +451,46 @@ class ExecutingInvocationUnitTest : FreeSpec({
         val str = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["str"]!!)
         str.shouldBeInstanceOf<ParticularReferenceValue>()
         str.value.preciseValue shouldBe "42"
+    }
+
+    "Executed methods returning non-primitive array has correct type and value" - {
+
+        val code = JavaSource(
+            "Test.java",
+            """
+                class Test {
+                    public void test(){
+                        String[] array = "Hello World".split(" ");
+                    }
+                }
+                """,
+        )
+
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(ParticularReferenceValueFactory()), ParticularReferenceValueFactory())
+        val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
+
+        val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+            "Test",
+            "test",
+            "()V",
+            programClassPool,
+            partialEvaluator,
+        )
+
+        val (instruction, _) = instructions.last()
+
+        val array = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["array"]!!)
+
+        "String array" {
+            array.shouldBeInstanceOf<DetailedArrayReferenceValue>()
+            array.type shouldBe "[Ljava/lang/String;"
+            (array.value.modeledValue as ArrayModel).values.map { value -> (value as ReferenceValue).value.preciseValue } shouldBe arrayOf("Hello", "World")
+        }
     }
 })

@@ -33,6 +33,30 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
   private final AtomicInteger doubleID = new AtomicInteger(0);
   private static final AtomicInteger referenceIdProvider = new AtomicInteger(0);
 
+  /** Creates a new IdentifiedValueFactory which does not keep track of particular references. */
+  public IdentifiedValueFactory() {
+    super();
+  }
+
+  /**
+   * Creates a new IdentifiedValueFactory, which uses the given valuefactory for both array and
+   * non-array reference construction.
+   */
+  public IdentifiedValueFactory(ValueFactory referenceValueFactory) {
+    super(referenceValueFactory);
+  }
+
+  /**
+   * Creates a new IdentifiedValueFactory.
+   *
+   * @param arrayReferenceValueFactory the valuefactory to delegate new array references to.
+   * @param referenceValueFactory the valuefactory to delegate new references to.
+   */
+  public IdentifiedValueFactory(
+      ValueFactory arrayReferenceValueFactory, ValueFactory referenceValueFactory) {
+    super(arrayReferenceValueFactory, referenceValueFactory);
+  }
+
   // Implementations for BasicValueFactory.
 
   public IntegerValue createIntegerValue() {
@@ -121,9 +145,7 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
       boolean mayBeNull,
       Object id,
       Object value) {
-    return type == null
-        ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
-        : new IdentifiedReferenceValue(type, referencedClass, mayBeExtension, mayBeNull, this, id);
+    return this.createReferenceValueForId(type, referencedClass, mayBeExtension, mayBeNull, id);
   }
 
   public ReferenceValue createArrayReferenceValue(

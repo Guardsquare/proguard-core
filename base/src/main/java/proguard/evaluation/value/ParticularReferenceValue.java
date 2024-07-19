@@ -28,6 +28,8 @@ import proguard.evaluation.value.object.AnalyzedObject;
  * with an associated value. E.g., a String with the value "HelloWorld".
  */
 public class ParticularReferenceValue extends IdentifiedReferenceValue {
+  public static boolean ARRAY_EXCEPTIONS =
+      System.getProperty("proguard.particularvalue.arrayexceptions") != null;
 
   // The actual value of the object.
   private final AnalyzedObject objectValue;
@@ -50,6 +52,12 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
     Objects.requireNonNull(
         value.getType(),
         "ParticularReferenceValue should not be created with a 'NullObject', a 'TypedReferenceValue' with null type is expected in that case");
+
+    if (ARRAY_EXCEPTIONS
+        && proguard.classfile.util.ClassUtil.isInternalArrayType(value.getType())) {
+      throw new IllegalStateException(
+          "ParticularReferenceValue should not be used for arrays use DetailedArrayReferenceValue instead");
+    }
 
     this.objectValue = value;
   }

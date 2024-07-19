@@ -21,6 +21,7 @@ import proguard.classfile.editor.ClassBuilder
 import proguard.evaluation.BasicInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.value.ArrayReferenceValue
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularIntegerValue
@@ -763,9 +764,9 @@ class ParticularReferenceTest : FreeSpec({
 
         "String array evaluated correctly" {
             val value = invocationsWithStack[14]!!.stack[0]
-            value.shouldBeInstanceOf<ParticularReferenceValue>()
+            // NB: this is not an IdentifiedArrayReferenceValue because ArrayReferenceValueFactory does not support identified arrays
+            value.shouldBeInstanceOf<ArrayReferenceValue>()
             value.type shouldBe "[Ljava/lang/String;"
-            value.value() shouldBe arrayOf("42", "43")
         }
     }
 

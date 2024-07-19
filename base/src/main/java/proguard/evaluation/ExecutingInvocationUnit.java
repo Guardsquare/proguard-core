@@ -514,17 +514,15 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
       }
     }
 
-    // TODO: update to handle array of references the same way as primitive arrays
-    if (ClassUtil.internalArrayTypeDimensionCount(type) == 1
-        && isInternalPrimitiveType(ClassUtil.internalTypeFromArrayType(type))
-        && concreteValue != null) {
+    if (ClassUtil.internalArrayTypeDimensionCount(type) == 1 && concreteValue != null) {
       if (concreteValue instanceof Model) {
         throw new IllegalStateException(
             "Modeled arrays are not supported by ExecutingInvocationUnit");
       }
       return valueFactory.createArrayReferenceValue(
-          type,
-          null, // NB the class is null just because we are filtering for primitive arrays
+          // This method expects the type of the content of the array
+          type.substring(1),
+          referencedClass, // Might be null (for primitive arrays)
           valueFactory.createIntegerValue(Array.getLength(concreteValue)),
           concreteValue);
     }

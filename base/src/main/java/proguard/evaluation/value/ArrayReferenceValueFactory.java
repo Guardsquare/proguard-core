@@ -28,10 +28,17 @@ import proguard.classfile.*;
 public class ArrayReferenceValueFactory extends TypedReferenceValueFactory {
   // Implementations for ReferenceValue.
 
+  @Override
   public ReferenceValue createArrayReferenceValue(
       String type, Clazz referencedClass, IntegerValue arrayLength) {
     return type == null
         ? REFERENCE_VALUE_NULL
         : new ArrayReferenceValue(TypeConstants.ARRAY + type, referencedClass, false, arrayLength);
+  }
+
+  @Override
+  public ReferenceValue createArrayReferenceValue(
+      String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues) {
+    return createArrayReferenceValue(type, referencedClass, arrayLength);
   }
 }

@@ -28,8 +28,6 @@ import proguard.util.ArrayUtil;
 /**
  * This {@link IdentifiedArrayReferenceValue} represents an identified array reference value with
  * its elements.
- *
- * @author Eric Lafortune
  */
 public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue {
   private static final int MAXIMUM_STORED_ARRAY_LENGTH = 64;

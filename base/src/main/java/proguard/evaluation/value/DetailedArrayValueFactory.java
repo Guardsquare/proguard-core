@@ -17,17 +17,37 @@
  */
 package proguard.evaluation.value;
 
-import proguard.classfile.*;
+import proguard.classfile.Clazz;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.util.ClassUtil;
+import proguard.evaluation.value.object.AnalyzedObject;
+import proguard.evaluation.value.object.AnalyzedObjectFactory;
 
 /**
  * This identified value factory creates array reference values that also represent their elements,
  * in as far as possible.
- *
- * @author Eric Lafortune
  */
 public class DetailedArrayValueFactory extends IdentifiedValueFactory {
-  // Implementations for ReferenceValue.
 
+  /** Creates a new DetailedArrayValueFactory, which does not track reference values. */
+  @Deprecated
+  public DetailedArrayValueFactory() {
+    this(new TypedReferenceValueFactory());
+  }
+
+  /**
+   * Creates a new DetailedArrayValueFactory, which uses the given value factory for non-array
+   * reference construction.
+   */
+  public DetailedArrayValueFactory(ValueFactory referenceValueFactory) {
+    // This is quite ugly, but unavoidable without refactoring the value factories hierarchy. Since
+    // what's currently going on is that DetailedArrayReferenceValue is a ParticularValueFactory
+    // that overrides all the methods where arrayReferenceValueFactory is used, even if we pass an
+    // ArrayReferenceValueFactory to super this will never be used.
+    super(new UnusableArrayValueFactory(), referenceValueFactory);
+  }
+
+  @Override
   public ReferenceValue createArrayReferenceValue(
       String type, Clazz referencedClass, IntegerValue arrayLength) {
     return type == null
@@ -49,14 +69,17 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
                 generateReferenceId());
   }
 
+  @Override
   public ReferenceValue createArrayReferenceValue(
       String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues) {
 
     if (type == null) return TypedReferenceValueFactory.REFERENCE_VALUE_NULL;
 
+    String arrayType = TypeConstants.ARRAY + type;
+
     if (!arrayLength.isParticular()) {
       return new IdentifiedArrayReferenceValue(
-          type, referencedClass, false, arrayLength, this, generateReferenceId());
+          arrayType, referencedClass, false, arrayLength, this, generateReferenceId());
     }
     if (!elementValues.getClass().isArray()
         || elementValues.getClass().getComponentType().isArray()) {
@@ -66,38 +89,38 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
 
     DetailedArrayReferenceValue detailedArray =
         new DetailedArrayReferenceValue(
-            type, referencedClass, false, arrayLength, this, generateReferenceId());
-    if (elementValues.getClass().isArray()) {
-      switch (type.charAt(1)) // 0 is the array char
-      {
-        case TypeConstants.BOOLEAN:
-          storeBooleanArray(detailedArray, (boolean[]) elementValues);
-          break;
-        case TypeConstants.BYTE:
-          storeByteArray(detailedArray, (byte[]) elementValues);
-          break;
-        case TypeConstants.CHAR:
-          storeCharArray(detailedArray, (char[]) elementValues);
-          break;
-        case TypeConstants.SHORT:
-          storeShortArray(detailedArray, (short[]) elementValues);
-          break;
-        case TypeConstants.INT:
-          storeIntArray(detailedArray, (int[]) elementValues);
-          break;
-        case TypeConstants.LONG:
-          storeLongArray(detailedArray, (long[]) elementValues);
-          break;
-        case TypeConstants.FLOAT:
-          storeFloatArray(detailedArray, (float[]) elementValues);
-          break;
-        case TypeConstants.DOUBLE:
-          storeDoubleArray(detailedArray, (double[]) elementValues);
-          break;
-        default:
-          storeObjectArray(detailedArray, (Object[]) elementValues);
-      }
+            arrayType, referencedClass, false, arrayLength, this, generateReferenceId());
+
+    switch (arrayType.charAt(1)) // 0 is the array char
+    {
+      case TypeConstants.BOOLEAN:
+        storeBooleanArray(detailedArray, (boolean[]) elementValues);
+        break;
+      case TypeConstants.BYTE:
+        storeByteArray(detailedArray, (byte[]) elementValues);
+        break;
+      case TypeConstants.CHAR:
+        storeCharArray(detailedArray, (char[]) elementValues);
+        break;
+      case TypeConstants.SHORT:
+        storeShortArray(detailedArray, (short[]) elementValues);
+        break;
+      case TypeConstants.INT:
+        storeIntArray(detailedArray, (int[]) elementValues);
+        break;
+      case TypeConstants.LONG:
+        storeLongArray(detailedArray, (long[]) elementValues);
+        break;
+      case TypeConstants.FLOAT:
+        storeFloatArray(detailedArray, (float[]) elementValues);
+        break;
+      case TypeConstants.DOUBLE:
+        storeDoubleArray(detailedArray, (double[]) elementValues);
+        break;
+      default:
+        storeObjectArray(detailedArray, (Object[]) elementValues);
     }
+
     return detailedArray;
   }
 
@@ -150,11 +173,48 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
     }
   }
 
-  private void storeObjectArray(DetailedArrayReferenceValue detailedArray, Object[] elementValues) {
-    for (int i = 0; i < elementValues.length; i++) {
-      detailedArray.arrayStore(
-          createIntegerValue(i),
-          createReferenceValue(detailedArray.referencedClass, elementValues[i]));
+  private void storeObjectArray(DetailedArrayReferenceValue detailedArray, Object[] elements) {
+    for (int i = 0; i < elements.length; i++) {
+      Object element = elements[i];
+      Value elementValue;
+      if (element == null) {
+        elementValue = createReferenceValueNull();
+      } else {
+        Clazz referencedClass = detailedArray.referencedClass;
+        AnalyzedObject object =
+            AnalyzedObjectFactory.create(
+                element,
+                ClassUtil.internalTypeFromClassName(referencedClass.getName()),
+                referencedClass);
+        // Call on referenceValueFactory instead of "this" to avoid the behavior from
+        // IdentifiedValueFactory (from which DetailedArrayValueFactory should probably not
+        // inherit).
+        elementValue =
+            referenceValueFactory.createReferenceValue(
+                referencedClass, ClassUtil.isExtendable(referencedClass), false, object);
+      }
+      detailedArray.arrayStore(createIntegerValue(i), elementValue);
+    }
+  }
+
+  /**
+   * A value factory that should never be used, used as a placeholder for the arrayValueFactory in
+   * {@link ParticularValueFactory}, since all the methods calling it should be overridden by {@link
+   * DetailedArrayValueFactory}.
+   */
+  private static class UnusableArrayValueFactory extends ArrayReferenceValueFactory {
+    @Override
+    public ReferenceValue createArrayReferenceValue(
+        String type, Clazz referencedClass, IntegerValue arrayLength) {
+      throw new IllegalStateException(
+          "This value factory should never be used, DetailedArrayValueFactory should override all methods calling this");
+    }
+
+    @Override
+    public ReferenceValue createArrayReferenceValue(
+        String type, Clazz referencedClass, IntegerValue arrayLength, Object elementValues) {
+      throw new IllegalStateException(
+          "This value factory should never be used, DetailedArrayValueFactory should override all methods calling this");
     }
   }
 }

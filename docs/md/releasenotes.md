@@ -8,12 +8,16 @@
 - Prevent `unknown enum value for KmVersionRequirementVersionKind` exception when processing code compiled with an outdated Kotlin version.
 - Fix `UnknownReferenceValue` return wrong string format in `getType`.
 - Fix `ReflectionExecutor` not updating instance of `StringBuilder`s in fallback result.
+- Fix `DetailedArrayValueFactory#createArrayReferenceValue` expecting an array type instead of the type of the values contained in the array.
+- Fix `ExecutingInvocationUnit` using both `ParticularReferenceValue` and `DetailedArrayReferenceValue` for arrays of reference types. Now `DetailedArrayValueFactory` is used consistently.
 
 ### API changes
 
 - `Executor`s do not support `MethodSignature` wildcards anymore. The assumption from `ExecutorLookup` is now that all the signatures supported by the executor are declared explicitly in `getSupportedMethodSignatures`.
 - `StringExecutor`, `ExecutingInvocationUnit`, and `JvmValueBamCpaRun` now need the library class pool as parameter.
 - Calls to `InstructionSequenceBuilder.ldc` now optionally accept a `ConstantVisitor`. The visitor will visit the constant that is referenced by the added instruction.
+- `DetailedArrayValueFactory` now takes a `referenceValueFactory` parameter, which determines if the value factory supports direct creation of reference arrays.
+- `ParticularReferenceValue` can't be used with arrays anymore.
 
 ## Version 9.1.4
 

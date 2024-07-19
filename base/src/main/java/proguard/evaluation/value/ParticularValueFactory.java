@@ -48,9 +48,11 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
   private static final long POS_ZERO_DOUBLE_BITS = Double.doubleToLongBits(0.0);
 
   private final ValueFactory arrayReferenceValueFactory;
-  // if set to true, a ParticularReferenceValue will be created for each reference. Otherwise, this
-  // will be delegated to the referenceValueFactory.
-  private final ValueFactory referenceValueFactory;
+  // This is protected to be usable directly by children, which should ideally be not allowed, but
+  // this is a hacky fix for improper inheritance currently taking place (i.e.,
+  // DetailedArrayReferenceValue inheriting from IdentifiedReferenceValue, which inherits from this
+  // class).
+  protected final ValueFactory referenceValueFactory;
 
   /** Creates a new ParticularValueFactory which does not keep track of particular references. */
   public ParticularValueFactory() {

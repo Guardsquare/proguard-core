@@ -390,7 +390,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     programClass,
                     PartialEvaluator(
                         ParticularValueFactory(
-                            DetailedArrayValueFactory(),
+                            DetailedArrayValueFactory(ParticularReferenceValueFactory()),
                             ParticularReferenceValueFactory(),
                         ),
                     ),
@@ -419,7 +419,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     programClass,
                     PartialEvaluator(
                         ParticularValueFactory(
-                            DetailedArrayValueFactory(),
+                            DetailedArrayValueFactory(ParticularReferenceValueFactory()),
                             ParticularReferenceValueFactory(),
                         ),
                     ),

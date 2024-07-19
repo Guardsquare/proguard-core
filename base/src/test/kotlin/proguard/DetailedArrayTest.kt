@@ -23,7 +23,7 @@ import proguard.testutils.PartialEvaluatorUtil
 import proguard.util.PartialEvaluatorHelper
 
 class DetailedArrayTest : FreeSpec({
-    val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
+    val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(ParticularReferenceValueFactory()), ParticularReferenceValueFactory())
 
     "Array values evaluated correctly" - {
 
@@ -418,7 +418,7 @@ class DetailedArrayTest : FreeSpec({
             javacArguments = listOf("-source", "8", "-target", "8"),
         )
 
-        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool, DetailedArrayValueFactory())
+        val invocationsWithStack = PartialEvaluatorHelper.evaluateMethod("A", "functions", "()V", programClassPool, libraryClassPool, DetailedArrayValueFactory(ParticularReferenceValueFactory()))
 
         "Primitive byte array evaluated correctly" {
             val value = invocationsWithStack[14]!!.stack[0]

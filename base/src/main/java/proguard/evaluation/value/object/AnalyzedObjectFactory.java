@@ -4,8 +4,10 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import proguard.classfile.Clazz;
+import proguard.classfile.TypeConstants;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.util.InitializedClassUtil;
+import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.Value;
 
 /** Factory methods to create {@link AnalyzedObject}. */
@@ -63,8 +65,9 @@ public class AnalyzedObjectFactory {
       return createModeled(model);
     }
 
-    // TODO create ArrayObject if value is an array once we fix the code using
-    // ParticularReferenceValue for arrays
+    if (ParticularReferenceValue.ARRAY_EXCEPTIONS) {
+      checkNotArray(value, type);
+    }
 
     checkValidPrecise(value, type, referencedClass);
     return createPrecise(value);
@@ -111,6 +114,12 @@ public class AnalyzedObjectFactory {
           String.format(
               "The type \"%s\" of model \"%s\" does not extend the referenced clazz \"%s\"",
               model.getType(), model, referencedClass.getName()));
+    }
+  }
+
+  private static void checkNotArray(Object value, String type) {
+    if (value.getClass().isArray() || TypeConstants.ARRAY == type.charAt(0)) {
+      throw new IllegalStateException("Arrays are supported only via ArrayModel");
     }
   }
 

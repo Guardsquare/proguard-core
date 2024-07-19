@@ -23,6 +23,7 @@ import io.kotest.matchers.shouldBe
 import proguard.analysis.datastructure.callgraph.Call
 import proguard.analysis.datastructure.callgraph.CallGraph
 import proguard.classfile.MethodSignature
+import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularReferenceValue
@@ -134,7 +135,7 @@ class C {
             .setIncludeSubClasses(false)
             .setMaxPartialEvaluations(50)
             .setSkipIncompleteCalls(false)
-            .setArrayValueFactory(DetailedArrayValueFactory())
+            .setArrayValueFactory(DetailedArrayValueFactory(ParticularReferenceValueFactory()))
             .useSelectiveParameterReconstruction(interestingMethods, interestingCallPredicates)
             .build()
 
