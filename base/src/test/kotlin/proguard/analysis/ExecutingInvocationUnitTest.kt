@@ -6,9 +6,15 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldNotBeInstanceOf
+import proguard.classfile.ClassConstants
+import proguard.classfile.MethodSignature
 import proguard.evaluation.ExecutingInvocationUnit
+import proguard.evaluation.MethodResult
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.ValueCalculator
+import proguard.evaluation.executor.Executor
+import proguard.evaluation.executor.MethodExecutionInfo
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
@@ -376,5 +382,71 @@ class ExecutingInvocationUnitTest : FreeSpec({
 
         val str = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["str"]!!)
         str.shouldNotBeInstanceOf<ParticularReferenceValue>()
+    }
+
+    "Static method with no parameters executed" - {
+
+        val code = JavaSource(
+            "Test.java",
+            """
+                class Test {
+                    public void test(){
+                        String str = foo();
+                    }
+                    
+                    public static String foo() {
+                        return "42";
+                    }
+                }
+                """,
+        )
+
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
+        val valueFactory: ValueFactory = ParticularValueFactory(DetailedArrayValueFactory(), ParticularReferenceValueFactory())
+
+        val fooExecutor = object : Executor {
+
+            override fun getMethodResult(
+                methodData: MethodExecutionInfo,
+                valueCalculator: ValueCalculator,
+            ): MethodResult {
+                return MethodResult.Builder()
+                    .setReturnValue(
+                        valueCalculator.apply(
+                            ClassConstants.TYPE_JAVA_LANG_STRING,
+                            libraryClassPool.getClass(ClassConstants.NAME_JAVA_LANG_STRING),
+                            true,
+                            "42",
+                            false,
+                            null,
+                        ),
+                    ).build()
+            }
+
+            override fun getSupportedMethodSignatures(): MutableSet<MethodSignature> {
+                return mutableSetOf(MethodSignature("Test", "foo", "()Ljava/lang/String;"))
+            }
+        }
+
+        val invocationUnit = ExecutingInvocationUnit.Builder().addExecutor { fooExecutor }.build(valueFactory, libraryClassPool)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
+
+        val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+            "Test",
+            "test",
+            "()V",
+            programClassPool,
+            partialEvaluator,
+        )
+
+        val (instruction, _) = instructions.last()
+
+        val str = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["str"]!!)
+        str.shouldBeInstanceOf<ParticularReferenceValue>()
+        str.value.preciseValue shouldBe "42"
     }
 })

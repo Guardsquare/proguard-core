@@ -268,12 +268,18 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   @Override
   public Value getMethodReturnValue(
       Clazz clazz, AnyMethodrefConstant anyMethodrefConstant, String returnType) {
-    if (anyMethodrefConstant.referencedMethod == null || parameters == null) {
+    if (anyMethodrefConstant.referencedMethod == null) {
+      return super.getMethodReturnValue(clazz, anyMethodrefConstant, returnType);
+    }
+
+    if (!isStatic && parameters == null) {
+      log.error("Parameters unexpectedly null for non-static method");
       return super.getMethodReturnValue(clazz, anyMethodrefConstant, returnType);
     }
 
     MethodExecutionInfo methodInfo =
-        new MethodExecutionInfo(anyMethodrefConstant, null, parameters);
+        new MethodExecutionInfo(
+            anyMethodrefConstant, null, parameters == null ? new Value[0] : parameters);
     Executor executor = executorLookup.lookupExecutor(methodInfo);
 
     MethodResult result = executeMethod(executor, methodInfo);

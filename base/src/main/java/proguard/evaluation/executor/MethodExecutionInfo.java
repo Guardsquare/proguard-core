@@ -71,8 +71,13 @@ public class MethodExecutionInfo {
    * @param parameters The parameters of the call, calling instance included.
    */
   public MethodExecutionInfo(
-      @NotNull Clazz clazz, Method method, CodeLocation caller, Value... parameters) {
+      @NotNull Clazz clazz,
+      @NotNull Method method,
+      @Nullable CodeLocation caller,
+      @NotNull Value... parameters) {
     Objects.requireNonNull(clazz);
+    Objects.requireNonNull(method);
+    Objects.requireNonNull(parameters);
     targetClass = clazz;
     signature = (MethodSignature) Signature.of(clazz, method);
     this.caller = caller;

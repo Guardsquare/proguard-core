@@ -1,5 +1,8 @@
 ## Version 9.1.5
 
+### Improved
+- `ExecutingInvocationUnit` now supports execution of static methods with no parameters.
+
 ### Bugfixes
 
 - Prevent `unknown enum value for KmVersionRequirementVersionKind` exception when processing code compiled with an outdated Kotlin version.
