@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
@@ -48,9 +50,22 @@ import proguard.evaluation.value.object.AnalyzedObjectFactory;
  */
 public class TypedReferenceValue extends ReferenceValue {
 
+  /** Indicates whether there were occurrences of {@link IncompleteClassHierarchyException}. */
+  public static boolean INCOMPLETE_CLASS_HIERARCHY = false;
+
+  /** If true, do not throw an {@link IncompleteClassHierarchyException} when one would occur. */
   public static boolean ALLOW_INCOMPLETE_CLASS_HIERARCHY =
       System.getProperty("allow.incomplete.class.hierarchy") != null;
+
+  /**
+   * If true, print warnings for occurrences of {@link IncompleteClassHierarchyException} when
+   * ALLOW_INCOMPLETE_CLASS_HIERARCHY is enabled.
+   */
+  public static boolean WARN_INCOMPLETE_CLASS_HIERARCHY = false;
+
   private static final boolean DEBUG = false;
+
+  private static final Logger logger = LogManager.getLogger(TypedReferenceValue.class);
 
   protected final String type;
   protected final Clazz referencedClass;
@@ -300,6 +315,9 @@ public class TypedReferenceValue extends ReferenceValue {
         } catch (IncompleteClassHierarchyException e) {
           // The class hierarchy seems to be incomplete.
           if (ALLOW_INCOMPLETE_CLASS_HIERARCHY) {
+            if (WARN_INCOMPLETE_CLASS_HIERARCHY) {
+              logger.warn("Warning: Incomplete class hierarchy: {}", e.getMessage());
+            }
             // We'll return an unknown reference value.
             return BasicValueFactory.REFERENCE_VALUE;
           }

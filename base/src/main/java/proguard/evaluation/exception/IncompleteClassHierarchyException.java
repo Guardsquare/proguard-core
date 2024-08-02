@@ -18,6 +18,8 @@
 
 package proguard.evaluation.exception;
 
+import proguard.evaluation.value.TypedReferenceValue;
+
 /**
  * Represents an exception during partial evaluation when an incomplete class hierarchy was
  * encountered.
@@ -26,5 +28,7 @@ public class IncompleteClassHierarchyException
     extends proguard.evaluation.IncompleteClassHierarchyException {
   public IncompleteClassHierarchyException(String message) {
     super(message);
+
+    TypedReferenceValue.INCOMPLETE_CLASS_HIERARCHY = true;
   }
 }
