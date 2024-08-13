@@ -80,6 +80,9 @@ public class DexFileReader implements BaseDexFileReader {
   /** keep clinit method when {@link #SKIP_DEBUG} */
   public static final int SKIP_EXCEPTION = 1 << 8;
 
+  /** Do not throw an exception if debug info is not valid */
+  public static final int SKIP_BROKEN_DEBUG_INFO = 1 << 9;
+
   // private static final int REVERSE_ENDIAN_CONSTANT = 0x78563412;
 
   static final int DBG_END_SEQUENCE = 0x00;
@@ -119,7 +122,7 @@ public class DexFileReader implements BaseDexFileReader {
   private static final int TYPE_CALL_SITE_ID_ITEM = 0x0007;
   private static final int TYPE_METHOD_HANDLE_ITEM = 0x0008;
 
-  private static final boolean SKIP_BROKEN_DEBUG_INFO =
+  private static final boolean SKIP_BROKEN_DEBUG_INFO_SYSTEM_PROPERTY =
       System.getProperty("dex2jar.skip_broken_debug_information") != null;
 
   final ByteBuffer annotationSetRefListIn;
@@ -1507,6 +1510,8 @@ public class DexFileReader implements BaseDexFileReader {
       }
     }
     // 处理debug信息
+    boolean skipBrokenInfo =
+        SKIP_BROKEN_DEBUG_INFO_SYSTEM_PROPERTY || 0 != (config & SKIP_BROKEN_DEBUG_INFO);
     if (debug_info_off != 0 && (0 == (config & SKIP_DEBUG))) {
       DexDebugVisitor ddv = dcv.visitDebug();
       if (ddv != null) {
@@ -1515,7 +1520,7 @@ public class DexFileReader implements BaseDexFileReader {
               debug_info_off, registers_size, isStatic, method, labelsMap, ddv, insnsArray.length);
           ddv.visitEnd();
         } catch (Exception e) {
-          if (!SKIP_BROKEN_DEBUG_INFO) {
+          if (!skipBrokenInfo) {
             throw e;
           }
         }
