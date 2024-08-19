@@ -18,12 +18,16 @@
 
 package proguard.analysis.datastructure.callgraph;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
@@ -32,17 +36,12 @@ import proguard.util.CallGraphWalker;
 /**
  * Collection of all {@link Call}s in a program, optimized for retrieval of incoming and outgoing
  * edges for any method in constant time.
- *
- * @author Samuel Hopstock
  */
 public class CallGraph {
 
   private static final transient Logger log = LogManager.getLogger(CallGraph.class);
   public final Map<MethodSignature, Set<Call>> incoming;
   public final Map<MethodSignature, Set<Call>> outgoing;
-
-  /** If true, incoming edges are not explored further for known entry points. */
-  private static final boolean STOP_AT_ENTRYPOINT = true;
 
   private final boolean concurrent;
 
@@ -99,21 +98,25 @@ public class CallGraph {
   }
 
   /**
-   * See {@link #reconstructCallGraph(ClassPool, MethodSignature, int, int)}
+   * See {@link #reconstructCallGraph(ClassPool, MethodSignature, int, int, Set)}
    *
    * @param programClassPool The current {@link ClassPool} of the program that can be used for
    *     mapping. class names to the actual {@link Clazz}.
    * @param start The {@link MethodSignature} of the method whose incoming call graph should be
    *     calculated.
+   * @param stopMethods Set of {@link MethodSignature} to stop exploration at, if desired.
    * @return A {@link Node} that represents the single call graph root, i.e. the start method.
    */
-  public Node reconstructCallGraph(ClassPool programClassPool, MethodSignature start) {
+  public Node reconstructCallGraph(
+      ClassPool programClassPool, MethodSignature start, Set<MethodSignature> stopMethods) {
     return CallGraphWalker.predecessorPathsAccept(
-        this, start, n -> handleUntilEntryPoint(programClassPool, n, null));
+        this, start, n -> handleUntil(programClassPool, n, stopMethods, null));
   }
 
   /**
-   * Calculate the incoming call graph for a method of interest, showing how it can be reached.
+   * Calculate the incoming call graph for a method of interest, showing how it can be reached from
+   * a given Set of stop methods, which typically are Android lifecycle methods such as an
+   * Activity's onCreate() method:
    *
    * <p>We have an inverted tree structure like the following example:
    *
@@ -128,11 +131,6 @@ public class CallGraph {
    * shows that it can be reached from {@code onCreate()} via {@code proxy()}, and also directly
    * from {@code onResume()} or {@code unusedMethod()}.
    *
-   * <p>Generally, we still can't be sure whether the top most methods (leaves in the tree) can be
-   * reached themselves, if we don't find any incoming edges. But if these methods are {@link
-   * EntryPoint}s of an Android app, they will most likely be called at some point in the app
-   * lifecycle.
-   *
    * @param programClassPool The current {@link ClassPool} of the program that can be used for
    *     mapping. class names to the actual {@link Clazz}.
    * @param start The {@link MethodSignature} of the method whose incoming call graph should be
@@ -141,100 +139,75 @@ public class CallGraph {
    *     CallGraphWalker#MAX_DEPTH_DEFAULT}.
    * @param maxWidth maximal width of reconstructed {@link CallGraph} similar to {@link
    *     CallGraphWalker#MAX_WIDTH_DEFAULT}.
+   * @param stopMethods Set of method signatures to stop exploration, for example for entry points
    * @return A {@link Node} that represents the single call graph root, i.e. the start method.
    */
   public Node reconstructCallGraph(
-      ClassPool programClassPool, MethodSignature start, int maxDepth, int maxWidth) {
+      ClassPool programClassPool,
+      MethodSignature start,
+      int maxDepth,
+      int maxWidth,
+      Set<MethodSignature> stopMethods) {
     return CallGraphWalker.predecessorPathsAccept(
-        this, start, n -> handleUntilEntryPoint(programClassPool, n, null), maxDepth, maxWidth);
+        this, start, n -> handleUntil(programClassPool, n, stopMethods, null), maxDepth, maxWidth);
   }
 
   /**
-   * Extension of {@link #reconstructCallGraph(ClassPool, MethodSignature)} that also collects all
-   * {@link EntryPoint}s found along the way.
+   * Extension of {@link #reconstructCallGraph(ClassPool, MethodSignature, Set)} that also collects
+   * all reached stop methods.
    *
    * @param programClassPool The current {@link ClassPool} of the program that can be used for
    *     mapping.
    * @param start The {@link MethodSignature} of the method whose incoming call graph should be
    *     calculated.
-   * @param entryPoints A set that will be filled with all {@link EntryPoint}s that are part of the
-   *     incoming call graph.
+   * @param stopMethods A set of {@link MethodSignature} to stop exploration, e.g. app entry points
+   * @param reachedMethods A set that will be filled with all reached stop methods
    * @return A {@link Node} that represents the single call graph root, i.e. the start method.
    */
   public Node reconstructCallGraph(
-      ClassPool programClassPool, MethodSignature start, Set<EntryPoint> entryPoints) {
+      ClassPool programClassPool,
+      MethodSignature start,
+      Set<MethodSignature> stopMethods,
+      Set<MethodSignature> reachedMethods) {
     return CallGraphWalker.predecessorPathsAccept(
-        this, start, n -> handleUntilEntryPoint(programClassPool, n, entryPoints));
+        this, start, n -> handleUntil(programClassPool, n, stopMethods, reachedMethods));
   }
 
   /**
    * Handler implementation for {@link CallGraphWalker#predecessorPathsAccept(CallGraph,
-   * MethodSignature, Predicate)} that checks discovered paths if they have arrived at a known entry
-   * point.
+   * MethodSignature, Predicate)} that checks if one of a given set of stop methods has been reached
+   * along the call graph paths.
    *
    * @param programClassPool The current {@link ClassPool} of the program that can be used for
    *     mapping class names to the actual {@link Clazz}.
-   * @param curr The {@link Node} that represents the currently discovered call graph node and its
-   *     successors.
-   * @param entryPoints a set containing the entrypoints seen on this path, will be filled during
-   *     the reconstruction of the callgraph.
-   * @return true if we have arrived at an entry point, so that the {@link CallGraphWalker} stops
-   *     exploring this particular path.
+   * @param current The {@link Node} that represents the currently discovered call graph node and
+   *     its successors.
+   * @param reachedMethods A set for collecting reached stop methods, can be null.
+   * @return true if call graph exploration should continue, false otherwise.
    */
-  private boolean handleUntilEntryPoint(
-      ClassPool programClassPool, Node curr, Set<EntryPoint> entryPoints) {
-    // Get all classes that contain known entryPoints and are superclasses of the current one
-    Clazz currClass = programClassPool.getClass(curr.signature.getClassName());
-    if (currClass == null) {
-      log.warn("Could not find class {} in class pool", curr.signature.getClassName());
-      curr.isTruncated = true;
+  private boolean handleUntil(
+      ClassPool programClassPool,
+      Node current,
+      Set<MethodSignature> stopMethods,
+      @Nullable Set<MethodSignature> reachedMethods) {
+
+    MethodSignature currentSignature = current.signature;
+    String currentClassName = currentSignature.getClassName();
+    Clazz currentClass = programClassPool.getClass(currentClassName);
+
+    if (currentClass == null) {
+      log.warn("Could not find class {} in class pool", currentClassName);
+      current.isTruncated = true;
       return false;
     }
-    Set<String> entrypointSuperclassNames =
-        EntryPoint.WELL_KNOWN_ENTRYPOINT_CLASSES.stream()
-            .filter(e -> classExtendsOrEquals(currClass, e.replace('.', '/')))
-            .collect(Collectors.toSet());
-    // If we are in a method overriding any known entrypoint, that's a call graph leaf
-    Optional<EntryPoint> matchingEntrypoint =
-        EntryPoint.WELL_KNOWN_ENTRYPOINTS.stream()
-            .filter(
-                e ->
-                    entrypointSuperclassNames.contains(e.className)
-                        && e.methodName.equals(curr.signature.method))
-            .findFirst();
-    if (matchingEntrypoint.isPresent()) {
-      curr.matchingEntrypoint = matchingEntrypoint.get();
-      if (entryPoints != null) {
-        entryPoints.add(
-            new EntryPoint(
-                matchingEntrypoint.get().type,
-                curr.signature.getClassName(),
-                curr.signature.method));
-      }
-      return !STOP_AT_ENTRYPOINT;
-    }
-    return true;
-  }
 
-  /**
-   * Check if a {@link Clazz} either matches the provided class name or extends this provided class.
-   * Both direct and transitive inheritance is allowed.
-   *
-   * @param currClass The {@link Clazz} that might be equal to or a subclass of the provided class
-   *     name.
-   * @param className The potential super class name.
-   * @return True if currClass is equal to className or is one of its subclasses.
-   */
-  private boolean classExtendsOrEquals(Clazz currClass, String className) {
-    if (Objects.equals(currClass.getSuperName(), className)) {
-      return true;
-    }
-    if (currClass.getSuperClass() != null) {
-      if (Objects.equals(currClass.getSuperClass().getName(), className)) {
-        return true;
+    if (stopMethods.contains(currentSignature)) {
+      if (reachedMethods != null) {
+        reachedMethods.add(currentSignature);
       }
-      return classExtendsOrEquals(currClass.getSuperClass(), className);
+      return false;
     }
-    return false;
+
+    return true;
   }
 }

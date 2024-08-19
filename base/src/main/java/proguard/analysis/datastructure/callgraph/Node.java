@@ -48,7 +48,6 @@ public class Node {
   public final Set<CodeLocation> outgoingCallLocations = new HashSet<>();
 
   public final Set<Node> successors = new HashSet<>();
-  public EntryPoint matchingEntrypoint = null;
   public boolean isTruncated = false;
 
   public Node(MethodSignature signature) {
