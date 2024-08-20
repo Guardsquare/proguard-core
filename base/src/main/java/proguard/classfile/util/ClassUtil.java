@@ -94,98 +94,61 @@ public class ClassUtil {
    * @return the internal class version number.
    */
   public static int internalClassVersion(String externalClassVersion) {
-    return externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_0)
-            || externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_1)
-        ? VersionConstants.CLASS_VERSION_1_0
-        : externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_2)
-            ? VersionConstants.CLASS_VERSION_1_2
-            : externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_3)
-                ? VersionConstants.CLASS_VERSION_1_3
-                : externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_4)
-                    ? VersionConstants.CLASS_VERSION_1_4
-                    : externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_5_ALIAS)
-                            || externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_5)
-                        ? VersionConstants.CLASS_VERSION_1_5
-                        : externalClassVersion.equals(JavaVersionConstants.CLASS_VERSION_1_6_ALIAS)
-                                || externalClassVersion.equals(
-                                    JavaVersionConstants.CLASS_VERSION_1_6)
-                            ? VersionConstants.CLASS_VERSION_1_6
-                            : externalClassVersion.equals(
-                                        JavaVersionConstants.CLASS_VERSION_1_7_ALIAS)
-                                    || externalClassVersion.equals(
-                                        JavaVersionConstants.CLASS_VERSION_1_7)
-                                ? VersionConstants.CLASS_VERSION_1_7
-                                : externalClassVersion.equals(
-                                            JavaVersionConstants.CLASS_VERSION_1_8_ALIAS)
-                                        || externalClassVersion.equals(
-                                            JavaVersionConstants.CLASS_VERSION_1_8)
-                                    ? VersionConstants.CLASS_VERSION_1_8
-                                    : externalClassVersion.equals(
-                                                JavaVersionConstants.CLASS_VERSION_1_9_ALIAS)
-                                            || externalClassVersion.equals(
-                                                JavaVersionConstants.CLASS_VERSION_1_9)
-                                        ? VersionConstants.CLASS_VERSION_1_9
-                                        : externalClassVersion.equals(
-                                                JavaVersionConstants.CLASS_VERSION_10)
-                                            ? VersionConstants.CLASS_VERSION_10
-                                            : externalClassVersion.equals(
-                                                    JavaVersionConstants.CLASS_VERSION_11)
-                                                ? VersionConstants.CLASS_VERSION_11
-                                                : externalClassVersion.equals(
-                                                        JavaVersionConstants.CLASS_VERSION_12)
-                                                    ? VersionConstants.CLASS_VERSION_12
-                                                    : externalClassVersion.equals(
-                                                            JavaVersionConstants.CLASS_VERSION_13)
-                                                        ? VersionConstants.CLASS_VERSION_13
-                                                        : externalClassVersion.equals(
-                                                                JavaVersionConstants
-                                                                    .CLASS_VERSION_14)
-                                                            ? VersionConstants.CLASS_VERSION_14
-                                                            : externalClassVersion.equals(
-                                                                    JavaVersionConstants
-                                                                        .CLASS_VERSION_15)
-                                                                ? VersionConstants.CLASS_VERSION_15
-                                                                : externalClassVersion.equals(
-                                                                        JavaVersionConstants
-                                                                            .CLASS_VERSION_16)
-                                                                    ? VersionConstants
-                                                                        .CLASS_VERSION_16
-                                                                    : externalClassVersion.equals(
-                                                                            JavaVersionConstants
-                                                                                .CLASS_VERSION_17)
-                                                                        ? VersionConstants
-                                                                            .CLASS_VERSION_17
-                                                                        : externalClassVersion
-                                                                                .equals(
-                                                                                    JavaVersionConstants
-                                                                                        .CLASS_VERSION_18)
-                                                                            ? VersionConstants
-                                                                                .CLASS_VERSION_18
-                                                                            : externalClassVersion
-                                                                                    .equals(
-                                                                                        JavaVersionConstants
-                                                                                            .CLASS_VERSION_19)
-                                                                                ? VersionConstants
-                                                                                    .CLASS_VERSION_19
-                                                                                : externalClassVersion
-                                                                                        .equals(
-                                                                                            JavaVersionConstants
-                                                                                                .CLASS_VERSION_20)
-                                                                                    ? VersionConstants
-                                                                                        .CLASS_VERSION_20
-                                                                                    : externalClassVersion
-                                                                                            .equals(
-                                                                                                JavaVersionConstants
-                                                                                                    .CLASS_VERSION_21)
-                                                                                        ? VersionConstants
-                                                                                            .CLASS_VERSION_21
-                                                                                        : externalClassVersion
-                                                                                                .equals(
-                                                                                                    JavaVersionConstants
-                                                                                                        .CLASS_VERSION_22)
-                                                                                            ? VersionConstants
-                                                                                                .CLASS_VERSION_22
-                                                                                            : 0;
+    switch (externalClassVersion) {
+      case JavaVersionConstants.CLASS_VERSION_1_0:
+      case JavaVersionConstants.CLASS_VERSION_1_1:
+        return VersionConstants.CLASS_VERSION_1_0;
+      case JavaVersionConstants.CLASS_VERSION_1_2:
+        return VersionConstants.CLASS_VERSION_1_2;
+      case JavaVersionConstants.CLASS_VERSION_1_3:
+        return VersionConstants.CLASS_VERSION_1_3;
+      case JavaVersionConstants.CLASS_VERSION_1_4:
+        return VersionConstants.CLASS_VERSION_1_4;
+      case JavaVersionConstants.CLASS_VERSION_1_5_ALIAS:
+      case JavaVersionConstants.CLASS_VERSION_1_5:
+        return VersionConstants.CLASS_VERSION_1_5;
+      case JavaVersionConstants.CLASS_VERSION_1_6_ALIAS:
+      case JavaVersionConstants.CLASS_VERSION_1_6:
+        return VersionConstants.CLASS_VERSION_1_6;
+      case JavaVersionConstants.CLASS_VERSION_1_7_ALIAS:
+      case JavaVersionConstants.CLASS_VERSION_1_7:
+        return VersionConstants.CLASS_VERSION_1_7;
+      case JavaVersionConstants.CLASS_VERSION_1_8_ALIAS:
+      case JavaVersionConstants.CLASS_VERSION_1_8:
+        return VersionConstants.CLASS_VERSION_1_8;
+      case JavaVersionConstants.CLASS_VERSION_1_9_ALIAS:
+      case JavaVersionConstants.CLASS_VERSION_1_9:
+        return VersionConstants.CLASS_VERSION_1_9;
+      case JavaVersionConstants.CLASS_VERSION_10:
+        return VersionConstants.CLASS_VERSION_10;
+      case JavaVersionConstants.CLASS_VERSION_11:
+        return VersionConstants.CLASS_VERSION_11;
+      case JavaVersionConstants.CLASS_VERSION_12:
+        return VersionConstants.CLASS_VERSION_12;
+      case JavaVersionConstants.CLASS_VERSION_13:
+        return VersionConstants.CLASS_VERSION_13;
+      case JavaVersionConstants.CLASS_VERSION_14:
+        return VersionConstants.CLASS_VERSION_14;
+      case JavaVersionConstants.CLASS_VERSION_15:
+        return VersionConstants.CLASS_VERSION_15;
+      case JavaVersionConstants.CLASS_VERSION_16:
+        return VersionConstants.CLASS_VERSION_16;
+      case JavaVersionConstants.CLASS_VERSION_17:
+        return VersionConstants.CLASS_VERSION_17;
+      case JavaVersionConstants.CLASS_VERSION_18:
+        return VersionConstants.CLASS_VERSION_18;
+      case JavaVersionConstants.CLASS_VERSION_19:
+        return VersionConstants.CLASS_VERSION_19;
+      case JavaVersionConstants.CLASS_VERSION_20:
+        return VersionConstants.CLASS_VERSION_20;
+      case JavaVersionConstants.CLASS_VERSION_21:
+        return VersionConstants.CLASS_VERSION_21;
+      case JavaVersionConstants.CLASS_VERSION_22:
+        return VersionConstants.CLASS_VERSION_22;
+      case JavaVersionConstants.CLASS_VERSION_23:
+        return VersionConstants.CLASS_VERSION_23;
+    }
+    return 0;
   }
 
   /**
@@ -240,6 +203,8 @@ public class ClassUtil {
         return JavaVersionConstants.CLASS_VERSION_21;
       case VersionConstants.CLASS_VERSION_22:
         return JavaVersionConstants.CLASS_VERSION_22;
+      case VersionConstants.CLASS_VERSION_23:
+        return JavaVersionConstants.CLASS_VERSION_23;
       default:
         return null;
     }

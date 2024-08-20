@@ -29,6 +29,25 @@ class ClassUtilTest : BehaviorSpec({
         }
     }
 
+    Given("Class file version 23") {
+        val version = 67 shl 16
+        Then("The external version should be 23") {
+            externalClassVersion(version) shouldBe "23"
+        }
+
+        And("Given a class file with version 23") {
+            val programClass = ClassBuilder(
+                version,
+                PUBLIC,
+                "Test",
+                "java/lang/Object",
+            ).programClass
+            Then("The internal version should be 23") {
+                programClass.u4version shouldBe internalClassVersion("23")
+            }
+        }
+    }
+
     Given("A valid magic number") {
         Then("No exception should be thrown") {
             shouldNotThrowAny {

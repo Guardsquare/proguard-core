@@ -1,5 +1,9 @@
 ## Version 9.1.6
 
+### Java support
+
+- Update maximum supported Java class version to 67.65535 (Java 23).
+
 ### API changes
 
 - Make `CallGraph` reconstruction/traversal methods generic in that they now take a `Set<MethodSignature>` to determine when to stop exploration
