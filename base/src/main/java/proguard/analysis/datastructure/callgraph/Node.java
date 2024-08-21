@@ -77,7 +77,7 @@ public class Node {
     if (this.signature.equals(signature)) {
       return true;
     }
-    return successors.stream().anyMatch(s -> s.predecessorsContain(signature));
+    return predecessors.stream().anyMatch(s -> s.predecessorsContain(signature));
   }
 
   /**

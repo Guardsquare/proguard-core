@@ -9,6 +9,10 @@
 - Make `CallGraph` reconstruction/traversal methods generic in that they now take a `Set<MethodSignature>` to determine when to stop exploration
 - Delete `EntryPoint` class
 
+### Bugfixes
+
+- Fix incorrect traversal direction in `predecessorsContain`.
+
 ## Version 9.1.5
 
 ### Improved
