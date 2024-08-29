@@ -21,8 +21,11 @@ package proguard.analysis.cpa.jvm.transfer;
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
 import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
 import static proguard.classfile.util.ClassUtil.isExtendable;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_CONSTANT_INSTRUCTION_VISITOR_OPCODE_UNSUPPORTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_INSTRUCTION_PUSH_COUNT_HIGHER_THAN_TWO;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_STATE_UNSUPPORTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_UNEXPECTED_UNKNOWN_SIGNATURE;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,6 +69,7 @@ import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.value.Value;
+import proguard.exception.ProguardCoreException;
 
 /**
  * The {@link JvmTransferRelation} computes the successors of an {@link JvmAbstractState} for a
@@ -83,8 +87,10 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
   public AbstractState generateEdgeAbstractSuccessor(
       AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
     if (!(abstractState instanceof JvmAbstractState)) {
-      throw new IllegalArgumentException(
-          getClass().getName() + " does not support " + abstractState.getClass().getName());
+      throw new ProguardCoreException.Builder(
+              "%s does not support %s", ANALYSIS_JVM_TRANSFER_RELATION_STATE_UNSUPPORTED)
+          .errorParameters(getClass().getName(), abstractState.getClass().getName())
+          .build();
     }
     JvmAbstractState<StateT> state = (JvmAbstractState<StateT>) abstractState;
     JvmAbstractState<StateT> successor = state.copy();
@@ -476,9 +482,11 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
 
             int resultCount = simpleInstruction.stackPushCount(clazz);
             if (resultCount > 2) {
-              throw new IllegalStateException(
-                  "No instruction with more than 2 push count should be handled here. Instruction: "
-                      + simpleInstruction);
+              throw new ProguardCoreException.Builder(
+                      "No instruction with push count higher than 2 should be handled here. Instruction: %s",
+                      ANALYSIS_JVM_TRANSFER_RELATION_INSTRUCTION_PUSH_COUNT_HIGHER_THAN_TWO)
+                  .errorParameters(simpleInstruction)
+                  .build();
             }
             if (resultCount == 2) {
               abstractState.push(getAbstractDefault());
@@ -599,7 +607,10 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           MethodSignature calleeSignature =
               CallResolver.quickResolve(constantInstruction, (ProgramClass) clazz);
           if (calleeSignature.equals(MethodSignature.UNKNOWN)) {
-            throw new IllegalStateException("Unexpected unknown signature");
+            throw new ProguardCoreException.Builder(
+                    "Unexpected unknown signature",
+                    ANALYSIS_JVM_TRANSFER_RELATION_UNEXPECTED_UNKNOWN_SIGNATURE)
+                .build();
           }
           processCall(
               abstractState,
@@ -652,10 +663,11 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           abstractState.push(handleCheckCast(abstractState.pop(), constantLookupVisitor.result));
           break;
         default: // should never happen
-          throw new InvalidParameterException(
-              "The opcode "
-                  + constantInstruction.opcode
-                  + " is not supported by the constant instruction visitor");
+          throw new ProguardCoreException.Builder(
+                  "The opcode %02X is not supported by the constant instruction visitor",
+                  ANALYSIS_JVM_TRANSFER_RELATION_CONSTANT_INSTRUCTION_VISITOR_OPCODE_UNSUPPORTED)
+              .errorParameters(constantInstruction.opcode)
+              .build();
       }
     }
 

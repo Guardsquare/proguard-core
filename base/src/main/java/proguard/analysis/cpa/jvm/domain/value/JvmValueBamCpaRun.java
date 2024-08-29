@@ -2,6 +2,7 @@ package proguard.analysis.cpa.jvm.domain.value;
 
 import static java.util.Collections.singletonList;
 import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_VALUE_BAM_CPA_RUN_SET_CFA_UNSUPPORTED;
 
 import java.util.Collection;
 import proguard.analysis.cpa.bam.ExpandOperator;
@@ -33,6 +34,7 @@ import proguard.classfile.MethodSignature;
 import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ValueFactory;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This run wraps the execution of BAM JVM Value Analysis CPA (see {@link JvmValueAbstractState}).
@@ -164,7 +166,10 @@ public class JvmValueBamCpaRun
       // Don't allow setting the CFA here because it could
       // result in a different CFA than the one used for the default
       // ValueFactory.
-      throw new UnsupportedOperationException("CFA should only be set via the Builder constructor");
+      throw new ProguardCoreException.Builder(
+              "CFA should only be set via the Builder constructor",
+              ANALYSIS_JVM_VALUE_BAM_CPA_RUN_SET_CFA_UNSUPPORTED)
+          .build();
     }
 
     public Builder setMainSignature(MethodSignature mainSignature) {

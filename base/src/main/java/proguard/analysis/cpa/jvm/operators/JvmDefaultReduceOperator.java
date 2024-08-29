@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.operators;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_REDUCE_OPERATOR_STATE_UNSUPPORTED;
+
 import java.util.ListIterator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
@@ -34,6 +36,7 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.util.ClassUtil;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link ReduceOperator} simulates the JVM behavior on a method call. It takes a clone of the
@@ -69,10 +72,11 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
       AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
 
     if (!(expandedInitialState instanceof JvmAbstractState)) {
-      throw new IllegalArgumentException(
-          "The operator works on JVM states, states of type "
-              + expandedInitialState.getClass().getName()
-              + " are not supported");
+      throw new ProguardCoreException.Builder(
+              "The operator works on JVM states, states of type %s are not supported",
+              ANALYSIS_JVM_DEFAULT_REDUCE_OPERATOR_STATE_UNSUPPORTED)
+          .errorParameters(expandedInitialState.getClass().getName())
+          .build();
     }
 
     JvmAbstractState<StateT> initialJvmState =

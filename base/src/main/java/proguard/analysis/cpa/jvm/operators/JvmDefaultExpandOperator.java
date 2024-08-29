@@ -18,6 +18,12 @@
 
 package proguard.analysis.cpa.jvm.operators;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_EXIT_NODE_EXPECTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_EXIT_STATE_UNSUPPORTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_INITIAL_STATE_UNSUPPORTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_MISSING_EXPECTED_CATCH_NODE_EXPECTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_RETURN_INSTRUCTION_EXPECTED;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +51,7 @@ import proguard.classfile.attribute.ExceptionInfo;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.instruction.Instruction;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link ExpandOperator} simulates the JVM behavior on a method exit.
@@ -98,17 +105,19 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
       Call call) {
 
     if (!(expandedInitialState instanceof JvmAbstractState)) {
-      throw new IllegalArgumentException(
-          "The operator works on JVM states, states of type "
-              + expandedInitialState.getClass().getName()
-              + " are not supported");
+      throw new ProguardCoreException.Builder(
+              "The operator works on JVM states, states of type %s are not supported",
+              ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_INITIAL_STATE_UNSUPPORTED)
+          .errorParameters(expandedInitialState.getClass().getName())
+          .build();
     }
 
     if (!(reducedExitState instanceof JvmAbstractState)) {
-      throw new IllegalArgumentException(
-          "The operator works on JVM states, states of type "
-              + reducedExitState.getClass().getName()
-              + " are not supported");
+      throw new ProguardCoreException.Builder(
+              "The operator works on JVM states, states of type %s are not supported",
+              ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_EXIT_STATE_UNSUPPORTED)
+          .errorParameters(reducedExitState.getClass().getName())
+          .build();
     }
 
     JvmCfaNode exitNode = ((JvmAbstractState<StateT>) reducedExitState).getProgramLocation();
@@ -144,8 +153,10 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
       JvmCfaEdge returnEdge = exitNode.getEnteringEdges().get(0);
       if (!InstructionClassifier.isReturn(
           ((JvmInstructionCfaEdge) returnEdge).getInstruction().opcode)) {
-        throw new IllegalStateException(
-            "The entering edges into the return node should be return instructions");
+        throw new ProguardCoreException.Builder(
+                "The entering edges into the return node should be return instructions",
+                ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_RETURN_INSTRUCTION_EXPECTED)
+            .build();
       }
 
       Instruction returnInstruction = ((JvmInstructionCfaEdge) returnEdge).getInstruction();
@@ -182,12 +193,11 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
       return returnState;
     }
 
-    throw new IllegalStateException(
-        "The node of "
-            + exitNode.getSignature()
-            + " at offset "
-            + exitNode.getOffset()
-            + " is not an exit node");
+    throw new ProguardCoreException.Builder(
+            "The node of %s at offset %d is not an exit node",
+            ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_EXIT_NODE_EXPECTED)
+        .errorParameters(exitNode.getSignature(), exitNode.getOffset())
+        .build();
   }
 
   /** Calculates the returned state. Can be overridden to handle special behavior. */
@@ -240,8 +250,11 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
             cfa.getFunctionCatchNode(
                 (MethodSignature) call.caller.signature, firstCatch.get().u2handlerPC);
         if (firstCatchNode == null) {
-          throw new IllegalStateException(
-              "Missing expected catch node in CFA for method " + call.caller.signature);
+          throw new ProguardCoreException.Builder(
+                  "Missing expected catch node in CFA for method %s",
+                  ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_MISSING_EXPECTED_CATCH_NODE_EXPECTED)
+              .errorParameters(call.caller.signature)
+              .build();
         }
 
         nextNode = firstCatchNode;

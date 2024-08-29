@@ -18,7 +18,10 @@
 
 package proguard.analysis.cpa.defaults;
 
+import static proguard.exception.ErrorId.ANALYSIS_STACK_STATE_OPERAND_STACK_INDEX_OUT_OF_BOUNDS;
+
 import java.util.Stack;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link StackAbstractState} represents a stack of {@link LatticeAbstractState}s with the
@@ -94,7 +97,11 @@ public class StackAbstractState<AbstractSpaceT extends LatticeAbstractState<Abst
   public AbstractSpaceT peek(int index) {
     int elementIndex = size() - 1 - index;
     if (elementIndex < 0) {
-      throw new IllegalArgumentException("Operand stack index is out of bound (" + index + ")");
+      throw new ProguardCoreException.Builder(
+              "Operand stack index is out of bounds (%d)",
+              ANALYSIS_STACK_STATE_OPERAND_STACK_INDEX_OUT_OF_BOUNDS)
+          .errorParameters(index)
+          .build();
     } else {
       return get(elementIndex);
     }

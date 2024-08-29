@@ -18,12 +18,15 @@
 
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_STATE_INCOMPATIBLE;
+
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
+import proguard.exception.ProguardCoreException;
 
 /**
  * The tree heap model represents the memory as a map from references to objects or arrays ({@link
@@ -150,7 +153,10 @@ public abstract class JvmTreeHeapAbstractState<StateT extends LatticeAbstractSta
   @Override
   public void expand(JvmHeapAbstractState<StateT> otherState) {
     if (!(otherState instanceof JvmTreeHeapAbstractState)) {
-      throw new IllegalArgumentException("The other state should be a JvmTreeHeapAbstractState");
+      throw new ProguardCoreException.Builder(
+              "The other state should be a JvmTreeHeapAbstractState",
+              ANALYSIS_JVM_TREE_HEAP_STATE_INCOMPATIBLE)
+          .build();
     }
 
     ((JvmTreeHeapAbstractState<StateT>) otherState)

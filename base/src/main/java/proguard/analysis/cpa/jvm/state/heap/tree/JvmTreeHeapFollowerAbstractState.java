@@ -18,6 +18,11 @@
 
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_FOLLOWER_ARRAY_GET_UNSUPPORTED_REFERENCE_TYPE;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_FOLLOWER_ARRAY_SET_UNSUPPORTED_REFERENCE_TYPE;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_FOLLOWER_GET_UNSUPPORTED_REFERENCE_TYPE;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_FOLLOWER_SET_UNSUPPORTED_REFERENCE_TYPE;
+
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -31,6 +36,7 @@ import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This is a heap model for analyses that need to track the actual content of heap objects. This
@@ -80,10 +86,11 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     if (object instanceof SetAbstractState) {
       return getField((SetAbstractState<Reference>) object, fqn, defaultValue);
     }
-    throw new IllegalStateException(
-        String.format(
+    throw new ProguardCoreException.Builder(
             "%s does not support %s as reference type",
-            getClass().getName(), object.getClass().getName()));
+            ANALYSIS_JVM_TREE_HEAP_FOLLOWER_GET_UNSUPPORTED_REFERENCE_TYPE)
+        .errorParameters(getClass().getName(), object.getClass().getName())
+        .build();
   }
 
   @Override
@@ -96,10 +103,11 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
       assignField((SetAbstractState<Reference>) object, fqn, value);
       return;
     }
-    throw new IllegalStateException(
-        String.format(
+    throw new ProguardCoreException.Builder(
             "%s does not support %s as reference type",
-            getClass().getName(), object.getClass().getName()));
+            ANALYSIS_JVM_TREE_HEAP_FOLLOWER_SET_UNSUPPORTED_REFERENCE_TYPE)
+        .errorParameters(getClass().getName(), object.getClass().getName())
+        .build();
   }
 
   @Override
@@ -111,10 +119,11 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
     if (array instanceof SetAbstractState) {
       return getArrayElementOrDefault((SetAbstractState<Reference>) array, index, defaultValue);
     }
-    throw new IllegalStateException(
-        String.format(
+    throw new ProguardCoreException.Builder(
             "%s does not support %s as reference type",
-            getClass().getName(), array.getClass().getName()));
+            ANALYSIS_JVM_TREE_HEAP_FOLLOWER_ARRAY_GET_UNSUPPORTED_REFERENCE_TYPE)
+        .errorParameters(getClass().getName(), array.getClass().getName())
+        .build();
   }
 
   @Override
@@ -127,10 +136,11 @@ public class JvmTreeHeapFollowerAbstractState<StateT extends LatticeAbstractStat
       setArrayElement((SetAbstractState<Reference>) array, index, value);
       return;
     }
-    throw new IllegalStateException(
-        String.format(
+    throw new ProguardCoreException.Builder(
             "%s does not support %s as reference type",
-            getClass().getName(), array.getClass().getName()));
+            ANALYSIS_JVM_TREE_HEAP_FOLLOWER_ARRAY_SET_UNSUPPORTED_REFERENCE_TYPE)
+        .errorParameters(getClass().getName(), array.getClass().getName())
+        .build();
   }
 
   @Override

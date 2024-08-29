@@ -42,7 +42,7 @@ public class ProguardCoreException extends RuntimeException {
    */
   public ProguardCoreException(
       int componentErrorId, Throwable cause, String message, Object... errorParameters) {
-    super(String.format(message, errorParameters), cause);
+    super(message != null ? String.format(message, errorParameters) : null, cause);
 
     this.componentErrorId = componentErrorId;
     this.errorParameters = errorParameters;
@@ -56,5 +56,33 @@ public class ProguardCoreException extends RuntimeException {
   /** Returns the list of information related to this error. */
   public Object[] getErrorParameters() {
     return errorParameters;
+  }
+
+  /** Builder to construct ProguardCoreException objects. */
+  public static class Builder {
+    private final String message;
+    private final int componentErrorId;
+
+    private Object[] errorParameters = new Object[] {};
+    private Throwable cause = null;
+
+    public Builder(String message, int componentErrorId) {
+      this.message = message;
+      this.componentErrorId = componentErrorId;
+    }
+
+    public Builder errorParameters(Object... errorParameters) {
+      this.errorParameters = errorParameters;
+      return this;
+    }
+
+    public Builder cause(Throwable cause) {
+      this.cause = cause;
+      return this;
+    }
+
+    public ProguardCoreException build() {
+      return new ProguardCoreException(componentErrorId, cause, message, errorParameters);
+    }
   }
 }

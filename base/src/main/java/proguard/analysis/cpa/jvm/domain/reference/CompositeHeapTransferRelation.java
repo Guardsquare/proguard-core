@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
+import static proguard.exception.ErrorId.ANALYSIS_COMPOSITE_TRANSFER_RELATION_STATE_UNSUPPORTED;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,6 +32,7 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
 import proguard.classfile.MethodSignature;
+import proguard.exception.ProguardCoreException;
 
 /**
  * A wrapper class around multiple {@link JvmTransferRelation}s applying them elementwise to {@link
@@ -69,8 +72,10 @@ public class CompositeHeapTransferRelation
   public CompositeHeapJvmAbstractState generateEdgeAbstractSuccessor(
       AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
     if (!(abstractState instanceof CompositeHeapJvmAbstractState)) {
-      throw new IllegalArgumentException(
-          getClass().getName() + " does not support " + abstractState.getClass().getName());
+      throw new ProguardCoreException.Builder(
+              "%s does not support %s", ANALYSIS_COMPOSITE_TRANSFER_RELATION_STATE_UNSUPPORTED)
+          .errorParameters(getClass().getName(), abstractState.getClass().getName())
+          .build();
     }
     CompositeHeapJvmAbstractState compositeState = (CompositeHeapJvmAbstractState) abstractState;
     Iterator<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>>

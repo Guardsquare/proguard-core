@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.util;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_BAM_CPA_RUN_UNSUPPORTED_HEAP_MODEL;
+
 import java.util.Arrays;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.BamCpaRun;
@@ -36,6 +38,7 @@ import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceReduceOperator;
 import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.classfile.MethodSignature;
+import proguard.exception.ProguardCoreException;
 
 /**
  * A JVM instance of {@link BamCpaRun} uses a reached set optimized for program location-dependent
@@ -104,8 +107,11 @@ public abstract class JvmBamCpaRun<
         return new JvmCompositeHeapReduceOperator(
             Arrays.asList(new JvmReferenceReduceOperator(reduceHeap), jvmReduceOperator));
       default:
-        throw new IllegalArgumentException(
-            "Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
+        throw new ProguardCoreException.Builder(
+                "Heap model %s is not supported by %s",
+                ANALYSIS_JVM_BAM_CPA_RUN_UNSUPPORTED_HEAP_MODEL)
+            .errorParameters(heapModel.name(), getClass().getName())
+            .build();
     }
   }
 

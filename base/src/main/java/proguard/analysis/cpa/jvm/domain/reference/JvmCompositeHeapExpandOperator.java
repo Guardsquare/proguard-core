@@ -18,6 +18,9 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_COMPOSITE_HEAP_EXPAND_OPERATOR_EXIT_STATE_UNSUPPORTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_COMPOSITE_HEAP_EXPAND_OPERATOR_INITIAL_STATE_UNSUPPORTED;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +32,7 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
+import proguard.exception.ProguardCoreException;
 
 /**
  * A wrapper class around multiple {@link ExpandOperator}s applying them elementwise to {@link
@@ -65,17 +69,19 @@ public class JvmCompositeHeapExpandOperator
       JvmCfaNode blockEntryNode,
       Call call) {
     if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState)) {
-      throw new IllegalArgumentException(
-          "The operator works on composite JVM states, states of type "
-              + expandedInitialState.getClass().getName()
-              + " are not supported");
+      throw new ProguardCoreException.Builder(
+              "The operator works on composite JVM states, states of type %s are not supported",
+              ANALYSIS_JVM_COMPOSITE_HEAP_EXPAND_OPERATOR_INITIAL_STATE_UNSUPPORTED)
+          .errorParameters(expandedInitialState.getClass().getName())
+          .build();
     }
 
     if (!(reducedExitState instanceof CompositeHeapJvmAbstractState)) {
-      throw new IllegalArgumentException(
-          "The operator works on composite JVM states, states of type "
-              + reducedExitState.getClass().getName()
-              + " are not supported");
+      throw new ProguardCoreException.Builder(
+              "The operator works on composite JVM states, states of type %s are not supported",
+              ANALYSIS_JVM_COMPOSITE_HEAP_EXPAND_OPERATOR_EXIT_STATE_UNSUPPORTED)
+          .errorParameters(reducedExitState.getClass().getName())
+          .build();
     }
 
     List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> expandedStates =

@@ -18,12 +18,15 @@
 
 package proguard.analysis.cpa.interfaces;
 
+import static proguard.exception.ErrorId.ANALYSIS_PROGRAM_LOCATION_DEPENDENT_TRANSFER_RELATION_STATE_UNSUPPORTED;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import proguard.classfile.Signature;
+import proguard.exception.ProguardCoreException;
 
 /**
  * An interface for {@link TransferRelation}s that depend on the {@link
@@ -55,8 +58,11 @@ public interface ProgramLocationDependentTransferRelation<
   default Collection<? extends AbstractState> generateAbstractSuccessors(
       AbstractState abstractState, Precision precision) {
     if (!(abstractState instanceof ProgramLocationDependent)) {
-      throw new IllegalArgumentException(
-          getClass().getName() + " does not support " + abstractState.getClass().getName());
+      throw new ProguardCoreException.Builder(
+              "%s does not support %s",
+              ANALYSIS_PROGRAM_LOCATION_DEPENDENT_TRANSFER_RELATION_STATE_UNSUPPORTED)
+          .errorParameters(getClass().getName(), abstractState.getClass().getName())
+          .build();
     }
     ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state =
         (ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) abstractState;

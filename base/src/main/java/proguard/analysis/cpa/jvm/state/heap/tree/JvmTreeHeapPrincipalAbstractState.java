@@ -18,6 +18,11 @@
 
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_ARRAY_GET_UNSUPPORTED_REFERENCE_TYPE;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_ARRAY_SET_UNSUPPORTED_REFERENCE_TYPE;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_GET_UNSUPPORTED_REFERENCE_TYPE;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_SET_UNSUPPORTED_REFERENCE_TYPE;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -33,6 +38,7 @@ import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This is a self-sufficient heap model in the sense that it contains references necessary for
@@ -84,10 +90,11 @@ public class JvmTreeHeapPrincipalAbstractState
   public <T> SetAbstractState<Reference> getFieldOrDefault(
       T object, String fqn, SetAbstractState<Reference> defaultValue) {
     if (!(object instanceof SetAbstractState)) {
-      throw new IllegalStateException(
-          String.format(
+      throw new ProguardCoreException.Builder(
               "%s does not support %s as reference type",
-              getClass().getName(), object.getClass().getName()));
+              ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_GET_UNSUPPORTED_REFERENCE_TYPE)
+          .errorParameters(getClass().getName(), object.getClass().getName())
+          .build();
     }
     return ((SetAbstractState<Reference>) object)
         .stream()
@@ -107,10 +114,11 @@ public class JvmTreeHeapPrincipalAbstractState
   @Override
   public <T> void setField(T object, String fqn, SetAbstractState<Reference> value) {
     if (!(object instanceof SetAbstractState)) {
-      throw new IllegalStateException(
-          String.format(
+      throw new ProguardCoreException.Builder(
               "%s does not support %s as reference type",
-              getClass().getName(), object.getClass().getName()));
+              ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_SET_UNSUPPORTED_REFERENCE_TYPE)
+          .errorParameters(getClass().getName(), object.getClass().getName())
+          .build();
     }
     SetAbstractState<Reference> objectReference = (SetAbstractState<Reference>) object;
     if (objectReference.size() <= 1) {
@@ -140,10 +148,11 @@ public class JvmTreeHeapPrincipalAbstractState
   public <T> SetAbstractState<Reference> getArrayElementOrDefault(
       T array, SetAbstractState<Reference> index, SetAbstractState<Reference> defaultValue) {
     if (!(array instanceof SetAbstractState)) {
-      throw new IllegalStateException(
-          String.format(
+      throw new ProguardCoreException.Builder(
               "%s does not support %s as reference type",
-              getClass().getName(), array.getClass().getName()));
+              ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_ARRAY_GET_UNSUPPORTED_REFERENCE_TYPE)
+          .errorParameters(getClass().getName(), array.getClass().getName())
+          .build();
     }
     return ((SetAbstractState<Reference>) array)
         .stream()
@@ -164,10 +173,11 @@ public class JvmTreeHeapPrincipalAbstractState
   public <T> void setArrayElement(
       T array, SetAbstractState<Reference> index, SetAbstractState<Reference> value) {
     if (!(array instanceof SetAbstractState)) {
-      throw new IllegalStateException(
-          String.format(
+      throw new ProguardCoreException.Builder(
               "%s does not support %s as reference type",
-              getClass().getName(), array.getClass().getName()));
+              ANALYSIS_JVM_TREE_HEAP_PRINCIPAL_ARRAY_SET_UNSUPPORTED_REFERENCE_TYPE)
+          .errorParameters(getClass().getName(), array.getClass().getName())
+          .build();
     }
     ((SetAbstractState<Reference>) array)
         .forEach(

@@ -18,6 +18,8 @@
 
 package proguard.analysis;
 
+import static proguard.exception.ErrorId.ANALYSIS_CALL_RESOLVER_SELECTIVE_PARAMETER_RECONSTRUCTION_MISSING_PARAMS;
+
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +77,7 @@ import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
+import proguard.exception.ProguardCoreException;
 import proguard.util.PartialEvaluatorUtils;
 
 /**
@@ -253,8 +256,10 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     this.selectiveParameterReconstruction = selectiveParameterReconstruction;
     if (selectiveParameterReconstruction
         && (interestingMethods == null || interestingCallPredicates == null)) {
-      throw new IllegalArgumentException(
-          "Using selectiveParameterReconstruction requires interestingMethods and interestingCallPredicates.");
+      throw new ProguardCoreException.Builder(
+              "Using selectiveParameterReconstruction requires interestingMethods and interestingCallPredicates.",
+              ANALYSIS_CALL_RESOLVER_SELECTIVE_PARAMETER_RECONSTRUCTION_MISSING_PARAMS)
+          .build();
     }
     this.interestingMethods = interestingMethods;
     this.interestingCallPredicates = interestingCallPredicates;

@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_INVOKE_TAINT_SINK_MISSING_TAINT;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -33,6 +35,7 @@ import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.Signature;
 import proguard.classfile.util.ClassUtil;
+import proguard.exception.ProguardCoreException;
 
 /**
  * A {@link JvmTaintSink} on a method invocation. This sinks can be sensitive to the instance, the
@@ -115,8 +118,11 @@ public class JvmInvokeTaintSink extends JvmTaintSink {
     super(signature, isValidForSource);
 
     if (!takesInstance && takesArgs.isEmpty() && takesGlobals.isEmpty()) {
-      throw new RuntimeException(
-          String.format("Tainted sink for method %s must have taint somewhere!", signature));
+      throw new ProguardCoreException.Builder(
+              "Tainted sink for method %s is missing taint",
+              ANALYSIS_JVM_INVOKE_TAINT_SINK_MISSING_TAINT)
+          .errorParameters(signature)
+          .build();
     }
 
     this.takesInstance = takesInstance;

@@ -19,6 +19,7 @@
 package proguard.analysis.cpa.jvm.domain.reference;
 
 import static proguard.analysis.cpa.jvm.domain.reference.CompositeHeapJvmAbstractState.REFERENCE_STATE_INDEX;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_COMPOSITE_HEAP_REDUCE_OPERATOR_STATE_UNSUPPORTED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapFollowerAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
+import proguard.exception.ProguardCoreException;
 
 /**
  * A wrapper class around multiple {@link ReduceOperator}s applying them elementwise to {@link
@@ -65,10 +67,11 @@ public class JvmCompositeHeapReduceOperator
   public CompositeHeapJvmAbstractState reduce(
       AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
     if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState)) {
-      throw new IllegalArgumentException(
-          "The operator works on composite JVM states, states of type "
-              + expandedInitialState.getClass().getName()
-              + " are not supported");
+      throw new ProguardCoreException.Builder(
+              "The operator works on composite JVM states, states of type %s are not supported",
+              ANALYSIS_JVM_COMPOSITE_HEAP_REDUCE_OPERATOR_STATE_UNSUPPORTED)
+          .errorParameters(expandedInitialState.getClass().getName())
+          .build();
     }
 
     int stateSize =

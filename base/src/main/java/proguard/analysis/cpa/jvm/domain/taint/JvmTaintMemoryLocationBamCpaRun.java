@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_MEMORY_LOCATION_BAM_CPA_RUN_CFA_OR_MAIN_SIGNATURE_NOT_SET;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +55,7 @@ import proguard.analysis.cpa.state.MapAbstractStateFactory;
 import proguard.analysis.cpa.util.StateNames;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
+import proguard.exception.ProguardCoreException;
 
 /** This run wraps the execution of BAM {@link JvmMemoryLocationCpa}. */
 public class JvmTaintMemoryLocationBamCpaRun
@@ -333,7 +336,10 @@ public class JvmTaintMemoryLocationBamCpaRun
     /** Returns the {@link JvmTaintMemoryLocationBamCpaRun} for given parameters. */
     public JvmTaintMemoryLocationBamCpaRun build() {
       if (cfa == null || mainSignature == null) {
-        throw new IllegalStateException("CFA and the main signature must be set");
+        throw new ProguardCoreException.Builder(
+                "CFA and the main signature must be set",
+                ANALYSIS_JVM_TAINT_MEMORY_LOCATION_BAM_CPA_RUN_CFA_OR_MAIN_SIGNATURE_NOT_SET)
+            .build();
       }
       return new JvmTaintMemoryLocationBamCpaRun(
           cfa,

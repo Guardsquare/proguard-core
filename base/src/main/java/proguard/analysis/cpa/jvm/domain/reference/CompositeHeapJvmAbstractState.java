@@ -18,6 +18,10 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
+import static proguard.exception.ErrorId.ANALYSIS_COMPOSITE_HEAP_JVM_COMPARE_STATE_DIFFERENT_LENGTH;
+import static proguard.exception.ErrorId.ANALYSIS_COMPOSITE_HEAP_JVM_JOIN_STATE_DIFFERENT_LENGTH;
+import static proguard.exception.ErrorId.ANALYSIS_COMPOSITE_HEAP_JVM_NO_REFERENCE_STATE_AT_INDEX;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +34,7 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapFollowerAbstractState;
 import proguard.classfile.MethodSignature;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link AbstractWrapperState} stores a {@link JvmReferenceAbstractState} having the {@link
@@ -64,10 +69,12 @@ public class CompositeHeapJvmAbstractState extends AbstractWrapperState
       List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>>
           jvmAbstractStates) {
     if (!(jvmAbstractStates.get(REFERENCE_STATE_INDEX) instanceof JvmReferenceAbstractState)) {
-      throw new IllegalArgumentException(
-          "The abstract state at index "
-              + REFERENCE_STATE_INDEX
-              + " must be a reference abstract state");
+      throw new ProguardCoreException.Builder(
+              "The abstract state at index "
+                  + REFERENCE_STATE_INDEX
+                  + " must be a reference abstract state",
+              ANALYSIS_COMPOSITE_HEAP_JVM_NO_REFERENCE_STATE_AT_INDEX)
+          .build();
     }
     this.jvmAbstractStates = jvmAbstractStates;
   }
@@ -104,8 +111,10 @@ public class CompositeHeapJvmAbstractState extends AbstractWrapperState
   @Override
   public CompositeHeapJvmAbstractState join(CompositeHeapJvmAbstractState abstractState) {
     if (jvmAbstractStates.size() != abstractState.jvmAbstractStates.size()) {
-      throw new IllegalArgumentException(
-          "Trying to join two abstract state sequences of different lengths");
+      throw new ProguardCoreException.Builder(
+              "Trying to join two abstract state sequences of different lengths",
+              ANALYSIS_COMPOSITE_HEAP_JVM_JOIN_STATE_DIFFERENT_LENGTH)
+          .build();
     }
     List<JvmAbstractState<? extends LatticeAbstractState<? extends AbstractState>>> resultStates =
         new ArrayList<>(jvmAbstractStates.size());
@@ -121,8 +130,10 @@ public class CompositeHeapJvmAbstractState extends AbstractWrapperState
   @Override
   public boolean isLessOrEqual(CompositeHeapJvmAbstractState abstractState) {
     if (jvmAbstractStates.size() != abstractState.jvmAbstractStates.size()) {
-      throw new IllegalArgumentException(
-          "Trying to compare two abstract state sequences of different lengths");
+      throw new ProguardCoreException.Builder(
+              "Trying to compare two abstract state sequences of different lengths",
+              ANALYSIS_COMPOSITE_HEAP_JVM_COMPARE_STATE_DIFFERENT_LENGTH)
+          .build();
     }
     for (int i = 0; i < jvmAbstractStates.size(); i++) {
       JvmAbstractState<? extends AbstractState> state1 = jvmAbstractStates.get(i);

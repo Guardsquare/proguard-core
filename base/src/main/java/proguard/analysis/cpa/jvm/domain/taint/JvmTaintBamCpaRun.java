@@ -18,6 +18,11 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_BAM_CPA_RUN_CFA_OR_MAIN_SIGNATURE_NOT_SET;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_BAM_CPA_RUN_EXPAND_OPERATOR_HEAP_MODEL_UNSUPPORTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_BAM_CPA_RUN_HEAP_MODEL_INVALID;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_BAM_CPA_RUN_INTRAPROCEDURAL_CPA_HEAP_MODEL_UNSUPPORTED;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,6 +60,7 @@ import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
 import proguard.classfile.MethodSignature;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This run wraps the execution of BAM {@link JvmTaintCpa}.
@@ -152,8 +158,11 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
             new MergeJoinOperator(abstractDomain),
             new StopJoinOperator(abstractDomain));
       default:
-        throw new IllegalArgumentException(
-            "Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
+        throw new ProguardCoreException.Builder(
+                "Heap model %s is not supported by %s",
+                ANALYSIS_JVM_TAINT_BAM_CPA_RUN_INTRAPROCEDURAL_CPA_HEAP_MODEL_UNSUPPORTED)
+            .errorParameters(heapModel.name(), getClass().getName())
+            .build();
     }
   }
 
@@ -184,8 +193,11 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
         return new JvmCompositeHeapExpandOperator(
             Arrays.asList(new JvmReferenceExpandOperator(cfa, reduceHeap), jvmExpandOperator));
       default:
-        throw new IllegalArgumentException(
-            "Heap model " + heapModel.name() + " is not supported by " + getClass().getName());
+        throw new ProguardCoreException.Builder(
+                "Heap model %s is not supported by %s",
+                ANALYSIS_JVM_TAINT_BAM_CPA_RUN_EXPAND_OPERATOR_HEAP_MODEL_UNSUPPORTED)
+            .errorParameters(heapModel.name(), getClass().getName())
+            .build();
     }
   }
 
@@ -237,7 +249,10 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
                                     followerHeapNodeMapAbstractStateFactory),
                             staticFieldMapAbstractStateFactory.createMapAbstractState()))));
       default:
-        throw new IllegalStateException("Invalid heap model: " + heapModel.name());
+        throw new ProguardCoreException.Builder(
+                "Invalid heap model: %s", ANALYSIS_JVM_TAINT_BAM_CPA_RUN_HEAP_MODEL_INVALID)
+            .errorParameters(heapModel.name())
+            .build();
     }
   }
 
@@ -270,7 +285,10 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     @Override
     public JvmTaintBamCpaRun<?> build() {
       if (cfa == null || mainSignature == null) {
-        throw new IllegalStateException("CFA and the main signature must be set");
+        throw new ProguardCoreException.Builder(
+                "CFA and the main signature must be set",
+                ANALYSIS_JVM_TAINT_BAM_CPA_RUN_CFA_OR_MAIN_SIGNATURE_NOT_SET)
+            .build();
       }
       return new JvmTaintBamCpaRun<>(
           cfa,

@@ -17,7 +17,7 @@ public class PartialEvaluatorException extends ProguardCoreException {
       Method method,
       String message,
       String... errorParameters) {
-    super(componentErrorId, cause, message, errorParameters);
+    super(componentErrorId, cause, message, (Object[]) errorParameters);
     this.clazz = clazz;
     this.method = method;
   }

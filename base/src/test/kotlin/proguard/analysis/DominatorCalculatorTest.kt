@@ -33,6 +33,7 @@ import proguard.classfile.attribute.visitor.AttributeVisitor
 import proguard.classfile.instruction.Instruction
 import proguard.classfile.visitor.ClassVisitor
 import proguard.classfile.visitor.MemberVisitor
+import proguard.exception.ProguardCoreException
 import java.util.BitSet
 import kotlin.streams.asSequence
 
@@ -580,16 +581,16 @@ class DominatorCalculatorTest : FreeSpec({
               EXIT
          */
 
-        shouldThrow<IllegalStateException> {
+        shouldThrow<ProguardCoreException> {
             calculator.dominates(0, 1)
         }
-        shouldThrow<IllegalStateException> {
+        shouldThrow<ProguardCoreException> {
             calculator.dominates(0, 3)
         }
-        shouldThrow<IllegalStateException> {
+        shouldThrow<ProguardCoreException> {
             calculator.dominates(0, 5)
         }
-        shouldThrow<IllegalStateException> {
+        shouldThrow<ProguardCoreException> {
             calculator.dominates(0, 7)
         }
     }
@@ -609,7 +610,7 @@ class DominatorCalculatorTest : FreeSpec({
         }
 
         "All offsets are unknown" {
-            shouldThrow<IllegalStateException> {
+            shouldThrow<ProguardCoreException> {
                 calculator.dominates(0, 1)
             }
         }

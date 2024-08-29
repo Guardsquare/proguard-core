@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.reference;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_REFERENCE_TRANSFER_RELATION_STATE_UNSUPPORTED;
+
 import java.util.Collection;
 import java.util.List;
 import proguard.analysis.cpa.defaults.SetAbstractState;
@@ -30,6 +32,7 @@ import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.util.ClassUtil;
+import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link JvmTransferRelation} propagates reference values, destroys references upon arithmetic
@@ -45,8 +48,10 @@ public class JvmReferenceTransferRelation extends JvmTransferRelation<SetAbstrac
   public JvmReferenceAbstractState generateEdgeAbstractSuccessor(
       AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
     if (!(abstractState instanceof JvmReferenceAbstractState)) {
-      throw new IllegalArgumentException(
-          getClass().getName() + " does not support " + abstractState.getClass().getName());
+      throw new ProguardCoreException.Builder(
+              "%s does not support %s", ANALYSIS_JVM_REFERENCE_TRANSFER_RELATION_STATE_UNSUPPORTED)
+          .errorParameters(getClass().getName(), abstractState.getClass().getName())
+          .build();
     }
 
     return (JvmReferenceAbstractState)

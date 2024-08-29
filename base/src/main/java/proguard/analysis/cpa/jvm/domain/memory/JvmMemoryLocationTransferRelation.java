@@ -18,6 +18,9 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_MEMORY_LOCATION_TRANSFER_RELATION_STATE_UNSUPPORTED;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_MEMORY_LOCATION_TRANSFER_RELATION_TYPE_UNSUPPORTED;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -74,6 +77,7 @@ import proguard.classfile.instruction.SwitchInstruction;
 import proguard.classfile.instruction.VariableInstruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.util.ClassUtil;
+import proguard.exception.ProguardCoreException;
 
 /**
  * The {@link JvmMemoryLocationTransferRelation} computes the backward successors of an {@link
@@ -147,8 +151,11 @@ public class JvmMemoryLocationTransferRelation<
   public Collection<? extends AbstractState> generateAbstractSuccessors(
       AbstractState abstractState, Precision precision) {
     if (!(abstractState instanceof JvmMemoryLocationAbstractState)) {
-      throw new IllegalArgumentException(
-          getClass().getName() + " does not support " + abstractState.getClass().getName());
+      throw new ProguardCoreException.Builder(
+              "%s does not support %s",
+              ANALYSIS_JVM_MEMORY_LOCATION_TRANSFER_RELATION_STATE_UNSUPPORTED)
+          .errorParameters(getClass().getName(), abstractState.getClass().getName())
+          .build();
     }
 
     JvmMemoryLocationAbstractState state = (JvmMemoryLocationAbstractState) abstractState.copy();
@@ -537,8 +544,11 @@ public class JvmMemoryLocationTransferRelation<
     } else if (memoryLocation instanceof JvmStackLocation) {
       return Optional.empty();
     } else {
-      throw new IllegalStateException(
-          "Unsupported memory location type " + memoryLocation.getClass().getCanonicalName());
+      throw new ProguardCoreException.Builder(
+              "Unsupported memory location type %s",
+              ANALYSIS_JVM_MEMORY_LOCATION_TRANSFER_RELATION_TYPE_UNSUPPORTED)
+          .errorParameters(memoryLocation.getClass().getCanonicalName())
+          .build();
     }
   }
 

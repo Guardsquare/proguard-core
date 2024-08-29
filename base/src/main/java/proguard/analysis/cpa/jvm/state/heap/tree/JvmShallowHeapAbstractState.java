@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.state.heap.tree;
 
+import static proguard.exception.ErrorId.ANALYSIS_JVM_SHALLOW_HEAP_STATE_INCOMPATIBLE;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -27,6 +29,7 @@ import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
+import proguard.exception.ProguardCoreException;
 
 /**
  * A shallow heap models objects as atomic abstract states thus having only one level of depth.
@@ -81,7 +84,10 @@ public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstr
   @Override
   public void expand(JvmHeapAbstractState<StateT> otherState) {
     if (!(otherState instanceof JvmShallowHeapAbstractState)) {
-      throw new IllegalArgumentException("The other state should be a JvmShallowHeapAbstractState");
+      throw new ProguardCoreException.Builder(
+              "The other state should be a JvmShallowHeapAbstractState",
+              ANALYSIS_JVM_SHALLOW_HEAP_STATE_INCOMPATIBLE)
+          .build();
     }
 
     ((JvmShallowHeapAbstractState<ReferenceT, StateT>) otherState)

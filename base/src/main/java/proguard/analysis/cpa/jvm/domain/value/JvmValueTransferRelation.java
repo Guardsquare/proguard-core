@@ -4,6 +4,7 @@ import static proguard.analysis.cpa.jvm.domain.value.ValueAbstractState.UNKNOWN;
 import static proguard.classfile.TypeConstants.VOID;
 import static proguard.classfile.util.ClassUtil.internalMethodReturnType;
 import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
+import static proguard.exception.ErrorId.ANALYSIS_JVM_VALUE_TRANSFER_RELATION_INCORRECT_PARAMETER_COUNT;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,6 +33,7 @@ import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 import proguard.evaluation.value.object.AnalyzedObjectFactory;
+import proguard.exception.ProguardCoreException;
 
 /** A {@link JvmTransferRelation} that tracks values. */
 public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractState> {
@@ -213,7 +215,10 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
     if (operandsArray.length
         != ClassUtil.internalMethodParameterCount(
             call.getTarget().descriptor.toString(), call.isStatic())) {
-      throw new IllegalStateException("Unexpected number of parameters");
+      throw new ProguardCoreException.Builder(
+              "Unexpected number of parameters",
+              ANALYSIS_JVM_VALUE_TRANSFER_RELATION_INCORRECT_PARAMETER_COUNT)
+          .build();
     }
 
     MethodResult result = null;

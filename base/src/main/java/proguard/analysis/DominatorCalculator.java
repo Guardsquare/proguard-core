@@ -18,6 +18,8 @@
 
 package proguard.analysis;
 
+import static proguard.exception.ErrorId.ANALYSIS_DOMINATOR_CALCULATOR_NO_DOMINATOR_AT_OFFSET;
+
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ import proguard.classfile.instruction.BranchInstruction;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionFactory;
 import proguard.classfile.instruction.SwitchInstruction;
+import proguard.exception.ProguardCoreException;
 
 /**
  * Calculate the dominator tree of any method, making it possible to determine which instructions
@@ -122,7 +125,11 @@ public class DominatorCalculator implements AttributeVisitor {
   public boolean dominates(int dominator, int inferior) {
     BitSet dominators = dominatorMap.get(inferior);
     if (dominators == null) {
-      throw new IllegalStateException("No dominator information known for offset " + inferior);
+      throw new ProguardCoreException.Builder(
+              "No dominator information known for offset %d",
+              ANALYSIS_DOMINATOR_CALCULATOR_NO_DOMINATOR_AT_OFFSET)
+          .errorParameters(inferior)
+          .build();
     }
     return dominators.get(offsetToIndex(dominator));
   }
