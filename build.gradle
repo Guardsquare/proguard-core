@@ -7,7 +7,7 @@ plugins {
 	id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
 	id 'com.adarshr.test-logger' version '3.0.0' apply false
 	id "org.sonarqube" version "3.4.0.2513"
-	id "io.freefair.aggregate-javadoc" version "6.5.0.3"
+	id "io.freefair.aggregate-javadoc" version "8.10"
 	id "com.diffplug.spotless" version "6.13.0" apply false
 }
 
@@ -75,14 +75,22 @@ allprojects {
 	}
 }
 
-aggregateJavadoc {
+dependencies {
+	rootProject.subprojects { subproject ->
+		subproject.plugins.withId("java") {
+			javadoc subproject
+		}
+	}
+}
+
+javadoc {
 	title          = 'ProGuardCORE'
 	destinationDir = file('docs/md/api')
 	options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 task buildDocumentation(type: Exec) {
-	dependsOn aggregateJavadoc
+	dependsOn javadoc
 	inputs.dir 'docs/md'
 	inputs.file 'docs/mkdocs.yml'
 	outputs.dir 'docs/html'
@@ -91,7 +99,7 @@ task buildDocumentation(type: Exec) {
 }
 
 clean {
-	delete aggregateJavadoc.outputs
+	delete javadoc.outputs
 	//delete buildDocumentation.outputs
 }
 
@@ -122,11 +130,11 @@ distributions {
 distTar {
 	compression = Compression.GZIP
 	archiveExtension.set('tar.gz')
-	dependsOn('aggregateJavadoc')
+	dependsOn('javadoc')
 }
 
 distZip {
-	dependsOn('aggregateJavadoc')
+	dependsOn('javadoc')
 }
 
 nexusPublishing {
