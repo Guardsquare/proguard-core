@@ -112,7 +112,7 @@ public class InstructionExceptionFormatter {
           .append("\n");
     }
     // print the erroneous instruction
-    int offset = offsetBuffer.peek();
+    String offset = String.valueOf(offsetBuffer.peek());
     messageBuilder
         .append(ANSI_CYAN)
         .append(offset)
@@ -123,10 +123,11 @@ public class InstructionExceptionFormatter {
         .append("\n");
 
     String indicators = new String(new char[errorInstructionString.length()]).replace('\0', '^');
+    String margin = new String(new char[offset.length()]).replace('\0', ' ');
     messageBuilder
-        .append("  ")
+        .append(margin)
         .append(ANSI_CYAN)
-        .append("|")
+        .append(" |")
         .append(ANSI_RESET)
         .append("     ")
         .append(ANSI_RED)
