@@ -1,20 +1,3 @@
-/*
- * ProGuardCORE -- library to process Java bytecode.
- *
- * Copyright (c) 2002-2021 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package proguard.classfile.editor;
 
 import java.util.*;
@@ -31,10 +14,7 @@ import proguard.util.*;
  *
  * @author Johan Leys
  */
-public class InitializerEditor
-    implements
-    // Implementation interface.
-    AttributeVisitor {
+public class InitializerEditor implements AttributeVisitor {
   private static final String EXTRA_INIT_METHOD_NAME = "init$";
   private static final String EXTRA_INIT_METHOD_DESCRIPTOR = "()V";
 
@@ -46,7 +26,7 @@ public class InitializerEditor
   /**
    * Creates a new InitializerEditor for the given class.
    *
-   * @param programClass the class to be edited.
+   * @param programClass The class to be edited.
    */
   public InitializerEditor(ProgramClass programClass) {
     this.programClass = programClass;
@@ -57,10 +37,10 @@ public class InitializerEditor
    * contains a static initializer, the new instructions will be appended to the existing
    * initializer.
    *
-   * @param mergeIntoExistingInitializer indicates whether the instructions should be added to the
+   * @param mergeIntoExistingInitializer Indicates whether the instructions should be added to the
    *     existing static initializer (if it exists), or if a new method should be created, which is
    *     then called from the existing initializer.
-   * @param codeBuilder the provider of a builder to add instructions. This functional interface can
+   * @param codeBuilder The provider of a builder to add instructions. This functional interface can
    *     conveniently be implemented as a closure.
    */
   public void addStaticInitializerInstructions(
@@ -80,10 +60,10 @@ public class InitializerEditor
    * contains a static initializer, the new instructions will be appended to the existing
    * initializer.
    *
-   * @param mergeIntoExistingInitializer indicates whether the instructions should be added to the
+   * @param mergeIntoExistingInitializer Indicates whether the instructions should be added to the
    *     existing static initializer (if it exists), or if a new method should be created, which is
    *     then called from the existing initializer.
-   * @param instructions the instructions to be added.
+   * @param instructions The instructions to be added.
    */
   public void addStaticInitializerInstructions(
       boolean mergeIntoExistingInitializer, Instruction[] instructions) {
@@ -92,8 +72,7 @@ public class InitializerEditor
         programClass.findMethod(
             ClassConstants.METHOD_NAME_CLINIT, ClassConstants.METHOD_TYPE_CLINIT);
     if (method == null) {
-      // Create a new static initializer with the instructions and
-      // a return.
+      // Create a new static initializer with the instructions and a return.
       new ClassBuilder(programClass)
           .addMethod(
               AccessConstants.STATIC,
@@ -106,20 +85,25 @@ public class InitializerEditor
       insertInstructions = instructions;
       method.accept(programClass, new AllAttributeVisitor(this));
     } else {
-      // Create a new static method with the instructions and
-      // a return.
+      // Create a new static method with the instructions and a return.
       String methodName = uniqueMethodName(ClassConstants.METHOD_TYPE_INIT);
+
+      // Interface methods need to be public.
+      int accessFlags =
+          (programClass.getAccessFlags() & AccessConstants.INTERFACE) != 0
+              ? AccessConstants.PUBLIC | AccessConstants.STATIC
+              : AccessConstants.STATIC;
 
       new ClassBuilder(programClass)
           .addMethod(
-              AccessConstants.STATIC,
+              accessFlags,
               methodName,
               ClassConstants.METHOD_TYPE_CLINIT,
               2 * instructions.length + 10,
               ____ -> ____.appendInstructions(instructions).return_(),
 
-              // Make sure that such methods are not optimized (inlined)
-              // to prevent potential overflow errors during conversion.
+              // Make sure that such methods are not optimized (inlined) to prevent potential
+              // overflow errors during conversion.
               new ProcessingFlagSetter(ProcessingFlags.DONT_OPTIMIZE));
 
       // Retrieve the newly created extra initialization method
@@ -139,14 +123,18 @@ public class InitializerEditor
   /**
    * Adds the specified initialization instructions to the edited class.
    *
-   * <p>- If the class doesn't contain a constructor yet, it will be created, and the instructions
-   * will be added to this constructor. - If there is a single super-calling constructor, the
-   * instructions will be added at the beginning of it's code attribute. - If there are multiple
-   * super-calling constructors, a new private parameterless helper method will be created, to which
-   * the instructions will be added. An invocation to this new method will be added at the beginning
-   * of the code attribute of all super-calling constructors.
+   * <ul>
+   *   <li>If the class doesn't contain a constructor yet, it will be created, and the instructions
+   *       will be added to this constructor.
+   *   <li>If there is a single super-calling constructor, the instructions will be added at the
+   *       beginning of its code attribute.
+   *   <li>If there are multiple super-calling constructors, a new private parameterless helper
+   *       method will be created, to which the instructions will be added. An invocation to this
+   *       new method will be added at the beginning of the code attribute of all super-calling
+   *       constructors.
+   * </ul>
    *
-   * @param codeBuilder the provider of a builder to add instructions. This functional interface can
+   * @param codeBuilder The provider of a builder to add instructions. This functional interface can
    *     conveniently be implemented as a closure.
    */
   public void addInitializerInstructions(CodeBuilder codeBuilder) {
@@ -163,21 +151,24 @@ public class InitializerEditor
   /**
    * Adds the given initialization instructions to the edited class.
    *
-   * <p>- If the class doesn't contain a constructor yet, it will be created, and the instructions
-   * will be added to this constructor. - If there is a single super-calling constructor, the
-   * instructions will be added at the beginning of it's code attribute. - If there are multiple
-   * super-calling constructors, a new private parameterless helper method will be created, to which
-   * the instructions will be added. An invocation to this new method will be added at the beginning
-   * of the code attribute of all super-calling constructors.
+   * <ul>
+   *   <li>If the class doesn't contain a constructor yet, it will be created, and the instructions
+   *       will be added to this constructor.
+   *   <li>If there is a single super-calling constructor, the instructions will be added at the
+   *       beginning of its code attribute.
+   *   <li>If there are multiple super-calling constructors, a new private parameterless helper
+   *       method will be created, to which the instructions will be added. An invocation to this
+   *       new method will be added at the beginning of the code attribute of all super-calling
+   *       constructors.
+   * </ul>
    *
-   * @param instructions the instructions to be added.
+   * @param instructions The instructions to be added.
    */
   public void addInitializerInstructions(Instruction[] instructions) {
     // Is there any initializer?
     Method method = programClass.findMethod(ClassConstants.METHOD_NAME_INIT, null);
     if (method == null) {
-      // Create a new initializer with super(), the instructions, and
-      // a return.
+      // Create a new initializer with super(), the instructions, and a return.
       new ClassBuilder(programClass)
           .addMethod(
               AccessConstants.PUBLIC,
@@ -194,25 +185,22 @@ public class InitializerEditor
                       .return_());
     } else {
       // Find all super-calling constructors.
-      Set<Method> constructors = new HashSet<Method>();
+      Set<Method> constructors = new HashSet<>();
       programClass.methodsAccept(
           new ConstructorMethodFilter(new MethodCollector(constructors), null, null));
 
       if (constructors.size() == 1) {
-        // There is only one supper-calling constructor.
-        // Add the code to this constructor.
+        // There is only one supper-calling constructor. Add the code to this constructor.
         insertInstructions = instructions;
         constructors.iterator().next().accept(programClass, new AllAttributeVisitor(this));
       } else {
-        // There are multiple super-calling constructors. Add the
-        // instructions to a separate, parameterless initialization
-        // method, and invoke this method from all super-calling
+        // There are multiple super-calling constructors. Add the instructions to a separate,
+        // parameterless initialization method, and invoke this method from all super-calling
         // constructors.
         Method initMethod =
             programClass.findMethod(EXTRA_INIT_METHOD_NAME, EXTRA_INIT_METHOD_DESCRIPTOR);
         if (initMethod == null) {
-          // Create a new private method with the instructions and
-          // a return.
+          // Create a new private method with the instructions and a return.
           new ClassBuilder(programClass)
               .addMethod(
                   AccessConstants.STATIC,
@@ -221,8 +209,8 @@ public class InitializerEditor
                   2 * instructions.length + 10,
                   ____ -> ____.appendInstructions(instructions).return_(),
 
-                  // Make sure that this methods is not optimized (inlined)
-                  // to prevent potential overflow errors during conversion.
+                  // Make sure that this method is not optimized (inlined) to prevent potential
+                  // overflow errors during conversion.
                   new ProcessingFlagSetter(ProcessingFlags.DONT_OPTIMIZE));
 
           // Call the private method from all super-calling constructors.
@@ -257,8 +245,10 @@ public class InitializerEditor
 
   // Implementations for AttributeVisitor.
 
+  @Override
   public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
+  @Override
   public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
     // Insert the instructions befotre the first instruction of this method.
     CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor();
@@ -269,6 +259,6 @@ public class InitializerEditor
 
   /** This functional interface provides an instruction sequence builder to its caller. */
   public interface CodeBuilder {
-    public void build(InstructionSequenceBuilder code);
+    void build(InstructionSequenceBuilder code);
   }
 }

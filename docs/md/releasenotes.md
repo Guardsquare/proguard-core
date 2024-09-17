@@ -1,3 +1,9 @@
+## Version 9.1.7
+
+### Bugfixes
+
+- Make sure injected initialization methods in interfaces have the correct access flags.
+
 ## Version 9.1.6
 
 ### Java support
@@ -16,6 +22,7 @@
 ## Version 9.1.5
 
 ### Improved
+
 - `ExecutingInvocationUnit` now supports execution of static methods with no parameters.
 
 ### Bugfixes
