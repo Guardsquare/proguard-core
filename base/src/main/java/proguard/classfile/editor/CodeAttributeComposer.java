@@ -291,6 +291,7 @@ public class CodeAttributeComposer
     int newCodeLength = codeLength + instruction.length(codeLength);
 
     ensureCodeLength(newCodeLength);
+    ensureFragmentLength(oldInstructionOffset + 1);
 
     // Remember the old offset of the appended instruction.
     oldInstructionOffsets[codeLength] = oldInstructionOffset;
@@ -325,6 +326,7 @@ public class CodeAttributeComposer
 
     // Make sure the code and offset arrays are large enough.
     ensureCodeLength(codeLength + 1);
+    ensureFragmentLength(oldInstructionOffset + 1);
 
     // Remember the old offset of the following instruction.
     oldInstructionOffsets[codeLength] = oldInstructionOffset;
@@ -1064,6 +1066,22 @@ public class CodeAttributeComposer
       oldInstructionOffsets = ArrayUtil.extendArray(oldInstructionOffsets, newCodeLength);
 
       instructionWriter.extend(newCodeLength);
+    }
+  }
+
+  /** Make sure the code fragment offset array have at least the given size. */
+  private void ensureFragmentLength(int newFragmentLength) {
+    if (codeFragmentLengths[level] < newFragmentLength) {
+      codeFragmentLengths[level] = newFragmentLength;
+
+      int oldFragmentLength = instructionOffsetMap[level].length;
+      if (newFragmentLength > oldFragmentLength) {
+        // Add 20% to avoid extending the arrays too often.
+        newFragmentLength = newFragmentLength * 6 / 5;
+        instructionOffsetMap[level] =
+            ArrayUtil.extendArray(instructionOffsetMap[level], newFragmentLength);
+        Arrays.fill(instructionOffsetMap[level], oldFragmentLength, newFragmentLength, INVALID);
+      }
     }
   }
 
