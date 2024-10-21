@@ -84,6 +84,7 @@ public class AndroidConstants {
   public static final String APK_DYLIB_FILE_EXPRESSION = "lib/**.dylib";
   public static final String APK_XML_FILE_EXPRESSION =
       ANDROID_MANIFEST_XML + ',' + APK_RES_XML_FILE_EXPRESSION;
+  public static final String SERVICE_PROVIDER_EXPRESSION = "META-INF/services/*";
 
   // Obb files.
   public static final String OBB_FILE_EXTENSION = ".obb";
