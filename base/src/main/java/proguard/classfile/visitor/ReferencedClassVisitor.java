@@ -59,7 +59,7 @@ public class ReferencedClassVisitor
   public ReferencedClassVisitor(boolean includeKotlinMetadata, ClassVisitor classVisitor) {
     this.classVisitor = classVisitor;
     this.kotlinReferencedClassVisitor =
-        includeKotlinMetadata ? new KotlinReferencedClassVisitor() : null;
+        includeKotlinMetadata ? new KotlinReferencedClassVisitor(classVisitor) : null;
   }
 
   // Implementations for ClassVisitor.
@@ -286,7 +286,7 @@ public class ReferencedClassVisitor
     arrayElementValue.elementValuesAccept(clazz, annotation, this);
   }
 
-  private class KotlinReferencedClassVisitor
+  public static class KotlinReferencedClassVisitor
       implements KotlinMetadataVisitor,
           KotlinTypeVisitor,
           KotlinTypeAliasVisitor,
@@ -296,6 +296,12 @@ public class ReferencedClassVisitor
           KotlinPropertyVisitor,
           KotlinAnnotationVisitor,
           KotlinAnnotationArgumentVisitor {
+
+    private final ClassVisitor classVisitor;
+
+    public KotlinReferencedClassVisitor(ClassVisitor classVisitor) {
+      this.classVisitor = classVisitor;
+    }
 
     // Implementations for KotlinTypeVisitor.
 
