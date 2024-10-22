@@ -17,6 +17,9 @@
  */
 package proguard.evaluation.value;
 
+import java.util.Optional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.classfile.Clazz;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.util.ClassUtil;
@@ -28,6 +31,8 @@ import proguard.evaluation.value.object.AnalyzedObjectFactory;
  * in as far as possible.
  */
 public class DetailedArrayValueFactory extends IdentifiedValueFactory {
+
+  private static final Logger log = LogManager.getLogger(ReferenceValue.class);
 
   /** Creates a new DetailedArrayValueFactory, which does not track reference values. */
   @Deprecated
@@ -50,23 +55,30 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
   @Override
   public ReferenceValue createArrayReferenceValue(
       String type, Clazz referencedClass, IntegerValue arrayLength) {
-    return type == null
-        ? TypedReferenceValueFactory.REFERENCE_VALUE_NULL
-        : arrayLength.isParticular()
-            ? new DetailedArrayReferenceValue(
-                TypeConstants.ARRAY + type,
-                referencedClass,
-                false,
-                arrayLength,
-                this,
-                generateReferenceId())
-            : new IdentifiedArrayReferenceValue(
-                TypeConstants.ARRAY + type,
-                referencedClass,
-                false,
-                arrayLength,
-                this,
-                generateReferenceId());
+    if (type == null) {
+      return TypedReferenceValueFactory.REFERENCE_VALUE_NULL;
+    } else {
+      Optional<DetailedArrayReferenceValue> detailedArray =
+          DetailedArrayReferenceValue.create(
+              TypeConstants.ARRAY + type,
+              referencedClass,
+              false,
+              arrayLength,
+              this,
+              generateReferenceId());
+
+      if (detailedArray.isPresent()) {
+        return detailedArray.get();
+      } else {
+        return new IdentifiedArrayReferenceValue(
+            TypeConstants.ARRAY + type,
+            referencedClass,
+            false,
+            arrayLength,
+            this,
+            generateReferenceId());
+      }
+    }
   }
 
   @Override
@@ -77,7 +89,11 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
 
     String arrayType = TypeConstants.ARRAY + type;
 
-    if (!arrayLength.isParticular()) {
+    Optional<DetailedArrayReferenceValue> detailedArrayOpt =
+        DetailedArrayReferenceValue.create(
+            arrayType, referencedClass, false, arrayLength, this, generateReferenceId());
+
+    if (!detailedArrayOpt.isPresent()) {
       return new IdentifiedArrayReferenceValue(
           arrayType, referencedClass, false, arrayLength, this, generateReferenceId());
     }
@@ -87,9 +103,7 @@ public class DetailedArrayValueFactory extends IdentifiedValueFactory {
           "Only one-dimension array type is supported: " + elementValues.getClass());
     }
 
-    DetailedArrayReferenceValue detailedArray =
-        new DetailedArrayReferenceValue(
-            arrayType, referencedClass, false, arrayLength, this, generateReferenceId());
+    DetailedArrayReferenceValue detailedArray = detailedArrayOpt.get();
 
     switch (arrayType.charAt(1)) // 0 is the array char
     {

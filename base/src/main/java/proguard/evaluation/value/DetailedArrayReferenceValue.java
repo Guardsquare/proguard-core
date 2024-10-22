@@ -17,6 +17,7 @@
  */
 package proguard.evaluation.value;
 
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
@@ -32,10 +33,10 @@ import proguard.util.ArrayUtil;
 public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue {
   private static final int MAXIMUM_STORED_ARRAY_LENGTH = 64;
 
-  private Value[] values;
+  @NotNull private Value[] values;
 
   /** Creates a new array reference value with the given ID. */
-  public DetailedArrayReferenceValue(
+  private DetailedArrayReferenceValue(
       String type,
       Clazz referencedClass,
       boolean mayBeExtension,
@@ -44,23 +45,15 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue {
       int id) {
     super(type, referencedClass, mayBeExtension, arrayLength, valuefactory, id);
 
-    // Is the array short enough to analyze?
-    if (arrayLength.isParticular()
-        && arrayLength.value() >= 0
-        && arrayLength.value() <= MAXIMUM_STORED_ARRAY_LENGTH) {
-      // Initialize the values of the array.
-      InitialValueFactory initialValueFactory = new InitialValueFactory(valuefactory);
+    // Initialize the values of the array.
+    InitialValueFactory initialValueFactory = new InitialValueFactory(valuefactory);
 
-      String elementType = ClassUtil.isInternalArrayType(type) ? type.substring(1) : type;
+    String elementType = ClassUtil.isInternalArrayType(type) ? type.substring(1) : type;
 
-      this.values = new Value[arrayLength.value()];
+    this.values = new Value[arrayLength.value()];
 
-      for (int index = 0; index < values.length; index++) {
-        values[index] = initialValueFactory.createValue(elementType);
-      }
-    } else {
-      // Just ignore the values of the array.
-      this.values = null;
+    for (int index = 0; index < values.length; index++) {
+      values[index] = initialValueFactory.createValue(elementType);
     }
   }
 
@@ -147,108 +140,6 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue {
     return other.equal(this);
   }
 
-  //    // Implementations of binary ReferenceValue methods with
-  //    // UnknownReferenceValue arguments.
-  //
-  //    public ReferenceValue generalize(UnknownReferenceValue other)
-  //    {
-  //        return other;
-  //    }
-  //
-  //
-  //    public int equal(UnknownReferenceValue other)
-  //    {
-  //        return MAYBE;
-  //    }
-  //
-  //
-  //    // Implementations of binary ReferenceValue methods with
-  //    // TypedReferenceValue arguments.
-  //
-  //    public ReferenceValue generalize(TypedReferenceValue other)
-  //    {
-  //    }
-  //
-  //
-  //    public int equal(TypedReferenceValue other)
-  //    {
-  //    }
-  //
-  //
-  //    // Implementations of binary ReferenceValue methods with
-  //    // IdentifiedReferenceValue arguments.
-  //
-  //    public ReferenceValue generalize(IdentifiedReferenceValue other)
-  //    {
-  //        return generalize((TypedReferenceValue)other);
-  //    }
-  //
-  //
-  //    public int equal(IdentifiedReferenceValue other)
-  //    {
-  //        return equal((TypedReferenceValue)other);
-  //    }
-  //
-  //
-  //    // Implementations of binary ReferenceValue methods with
-  //    // ArrayReferenceValue arguments.
-  //
-  //    public ReferenceValue generalize(ArrayReferenceValue other)
-  //    {
-  //        return generalize((TypedReferenceValue)other);
-  //    }
-  //
-  //
-  //    public int equal(ArrayReferenceValue other)
-  //    {
-  //        return equal((TypedReferenceValue)other);
-  //    }
-  //
-  //
-  //    // Implementations of binary ReferenceValue methods with
-  //    // IdentifiedArrayReferenceValue arguments.
-  //
-  //    public ReferenceValue generalize(IdentifiedArrayReferenceValue other)
-  //    {
-  //        return generalize((ArrayReferenceValue)other);
-  //    }
-  //
-  //
-  //    public int equal(IdentifiedArrayReferenceValue other)
-  //    {
-  //        return equal((ArrayReferenceValue)other);
-  //    }
-  //
-  //
-  //    // Implementations of binary ReferenceValue methods with
-  //    // DetailedArrayReferenceValue arguments.
-  //
-  //    public ReferenceValue generalize(DetailedArrayReferenceValue other)
-  //    {
-  //        return generalize((IdentifiedArrayReferenceValue)other);
-  //    }
-  //
-  //
-  //    public int equal(DetailedArrayReferenceValue other)
-  //    {
-  //        return equal((IdentifiedArrayReferenceValue)other);
-  //    }
-  //
-  //
-  //    // Implementations of binary ReferenceValue methods with
-  //    // TracedReferenceValue arguments.
-  //
-  //    public ReferenceValue generalize(TracedReferenceValue other)
-  //    {
-  //        return other.generalize(this);
-  //    }
-  //
-  //
-  //    public int equal(TracedReferenceValue other)
-  //    {
-  //        return other.equal(this);
-  //    }
-
   // Implementations for Value.
 
   public boolean isParticular() {
@@ -314,5 +205,27 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue {
     }
 
     return buffer.toString();
+  }
+
+  /**
+   * If possible it will create a new array reference value with the given ID, otherwise an empty
+   * optional is returned
+   */
+  public static Optional<DetailedArrayReferenceValue> create(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      IntegerValue arrayLength,
+      ValueFactory valuefactory,
+      int id) {
+    // Is the array short enough to analyze?
+    if (arrayLength.isParticular()
+        && arrayLength.value() >= 0
+        && arrayLength.value() <= MAXIMUM_STORED_ARRAY_LENGTH) {
+      return Optional.of(
+          new DetailedArrayReferenceValue(
+              type, referencedClass, mayBeExtension, arrayLength, valuefactory, id));
+    }
+    return Optional.empty();
   }
 }
