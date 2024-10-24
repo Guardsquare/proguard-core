@@ -4,6 +4,10 @@
 
 - Make sure injected initialization methods in interfaces have the correct access flags.
 
+### Improved
+
+- `InstructionSequenceMatcher` now supports matching of primitive array constants.
+
 ## Version 9.1.6
 
 ### Java support

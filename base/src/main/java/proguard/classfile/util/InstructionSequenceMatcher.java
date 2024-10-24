@@ -362,16 +362,10 @@ public class InstructionSequenceMatcher implements InstructionVisitor, ConstantV
 
   public void visitPrimitiveArrayConstant(
       Clazz clazz, PrimitiveArrayConstant primitiveArrayConstant) {
-    // PrimitiveArrayConstant primitiveArrayPatternConstant =
-    // (PrimitiveArrayConstant)patternConstant;
-    //
-    //// Compare the primitive array values.
-    // matchingConstant =
-    //    primitiveArrayConstant.getLength() == primitiveArrayPatternConstant.getLength() &&
-    //    ArrayUtil.equal(primitiveArrayConstant.getValues(),
-    //                    primitiveArrayPatternConstant.getValues(),
-    //                    primitiveArrayPatternConstant.getLength());
-    throw new UnsupportedOperationException();
+    PrimitiveArrayConstant primitiveArrayPatternConstant = (PrimitiveArrayConstant) patternConstant;
+
+    // Compare the primitive array values.
+    matchingConstant = primitiveArrayConstant.contentEquals(primitiveArrayPatternConstant);
   }
 
   public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {

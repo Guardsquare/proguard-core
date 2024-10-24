@@ -18,8 +18,12 @@
 
 package proguard.classfile.constant;
 
-import proguard.classfile.*;
-import proguard.classfile.constant.visitor.*;
+import java.util.Arrays;
+import proguard.classfile.Clazz;
+import proguard.classfile.TypeConstants;
+import proguard.classfile.constant.visitor.ConstantVisitor;
+import proguard.classfile.constant.visitor.PrimitiveArrayConstantElementVisitor;
+import proguard.classfile.constant.visitor.PrimitiveArrayConstantVisitor;
 
 /**
  * This unofficial Constant represents an array of primitives in the constant pool. It is not
@@ -161,6 +165,45 @@ public class PrimitiveArrayConstant extends Constant {
             clazz, this, index, doubleValues[index]);
       }
     }
+  }
+
+  /**
+   * Returns whether all elements of the primitive array are equal to the elements of the given
+   * primitive array.
+   */
+  public boolean contentEquals(PrimitiveArrayConstant other) {
+    if (other == null || !this.getClass().equals(other.getClass())) {
+      return false;
+    }
+
+    if (this.getLength() != other.getLength()
+        || this.getPrimitiveType() != other.getPrimitiveType()) {
+      return false;
+    }
+
+    if (this == other || this.values == other.values) {
+      return true;
+    }
+
+    if (values instanceof boolean[]) {
+      return Arrays.equals((boolean[]) this.values, (boolean[]) other.values);
+    } else if (values instanceof byte[]) {
+      return Arrays.equals((byte[]) this.values, (byte[]) other.values);
+    } else if (values instanceof char[]) {
+      return Arrays.equals((char[]) this.values, (char[]) other.values);
+    } else if (values instanceof short[]) {
+      return Arrays.equals((short[]) this.values, (short[]) other.values);
+    } else if (values instanceof int[]) {
+      return Arrays.equals((int[]) this.values, (int[]) other.values);
+    } else if (values instanceof float[]) {
+      return Arrays.equals((float[]) this.values, (float[]) other.values);
+    } else if (values instanceof long[]) {
+      return Arrays.equals((long[]) this.values, (long[]) other.values);
+    } else if (values instanceof double[]) {
+      return Arrays.equals((double[]) this.values, (double[]) other.values);
+    }
+
+    return false;
   }
 
   // Implementations for Constant.
