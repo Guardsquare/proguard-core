@@ -40,8 +40,6 @@ import proguard.exception.ProguardCoreException;
  *
  * <p>Also discards from the heap state all nodes not in a subtree of references in method's call
  * arguments or static variables.
- *
- * @author Dmitry Ivanov
  */
 public class JvmCompositeHeapReduceOperator
     implements ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> {
@@ -64,7 +62,7 @@ public class JvmCompositeHeapReduceOperator
   // Implementations for ReduceOperator
 
   @Override
-  public CompositeHeapJvmAbstractState reduce(
+  public CompositeHeapJvmAbstractState reduceImpl(
       AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
     if (!(expandedInitialState instanceof CompositeHeapJvmAbstractState)) {
       throw new ProguardCoreException.Builder(

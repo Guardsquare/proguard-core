@@ -28,8 +28,6 @@ import proguard.classfile.Signature;
 /**
  * This {@link ReduceOperator} returns the original {@link AbstractState} without performing any
  * reduction.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class NoOpReduceOperator<
         CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
@@ -40,7 +38,7 @@ public class NoOpReduceOperator<
   // Implementations for ReduceOperator
 
   @Override
-  public AbstractState reduce(
+  public AbstractState reduceImpl(
       AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call) {
     AbstractState result = expandedInitialState.copy();
     ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) result)

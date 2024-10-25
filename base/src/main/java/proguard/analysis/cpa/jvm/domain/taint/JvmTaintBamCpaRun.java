@@ -62,11 +62,7 @@ import proguard.analysis.cpa.state.MapAbstractStateFactory;
 import proguard.classfile.MethodSignature;
 import proguard.exception.ProguardCoreException;
 
-/**
- * This run wraps the execution of BAM {@link JvmTaintCpa}.
- *
- * @author Dmitry Ivanov
- */
+/** This run wraps the execution of BAM {@link JvmTaintCpa}. */
 public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     extends JvmBamCpaRun<SimpleCpa, SetAbstractState<JvmTaintSource>, OuterAbstractStateT> {
 
@@ -175,6 +171,8 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
             Arrays.asList(
                 new JvmReferenceReduceOperator(reduceHeap),
                 new JvmTaintReduceOperator(reduceHeap)));
+      case FORGETFUL:
+        return new JvmTaintReduceOperator(reduceHeap, JvmTaintCpa.createSourcesMap(taintSources));
       default:
         return super.createReduceOperator();
     }

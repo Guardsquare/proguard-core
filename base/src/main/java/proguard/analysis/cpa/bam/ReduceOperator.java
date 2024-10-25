@@ -27,13 +27,28 @@ import proguard.classfile.Signature;
 /**
  * This operator is used to discard unnecessary information when entering a procedure block
  * depending on the domain-specific analysis (e.g. local variables, caller stack).
- *
- * @author Carlo Alberto Pozzoli
  */
 public interface ReduceOperator<
     CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
     CfaEdgeT extends CfaEdge<CfaNodeT>,
     SignatureT extends Signature> {
+
+  /**
+   * Accumulates the reduction procedure by calling the method to create the initial state of the
+   * called procedure discarding the useless information from the state of the caller and calling a
+   * method that performs additional operations on the created state if any are specified by an
+   * implementing class.
+   *
+   * @param expandedInitialState the entry state of the called procedure before any reduction
+   * @param blockEntryNode the entry node of the called procedure
+   * @param call the information of the call to the procedure
+   * @return The entry state of the called procedure
+   */
+  default AbstractState reduce(
+      AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call) {
+    AbstractState state = reduceImpl(expandedInitialState, blockEntryNode, call);
+    return onMethodEntry(state, call.isStatic());
+  }
 
   /**
    * Creates the initial state of the called procedure discarding the useless information from the
@@ -44,5 +59,18 @@ public interface ReduceOperator<
    * @param call the information of the call to the procedure
    * @return The entry state of the called procedure
    */
-  AbstractState reduce(AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call);
+  AbstractState reduceImpl(AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call);
+
+  /**
+   * Performs additional operations on the reduced state (i.e. on the method entry state). Does
+   * nothing by default. NB: since this is still part of the reduction operation the result of this
+   * method is the state used by the analysis and part of the cache key for the called method.
+   *
+   * @param reducedState reduced state (i.e., the entry state of the called method)
+   * @param isStatic is the called method static
+   * @return the state after performing additional operations or untouched state by default
+   */
+  default AbstractState onMethodEntry(AbstractState reducedState, boolean isStatic) {
+    return reducedState;
+  }
 }

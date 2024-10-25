@@ -48,8 +48,10 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.StopOperator;
 import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.interfaces.Waitlist;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
+import proguard.classfile.AccessConstants;
 import proguard.classfile.Signature;
 import proguard.exception.ProguardCoreException;
 
@@ -61,8 +63,6 @@ import proguard.exception.ProguardCoreException;
  * relation of a {@link CpaWithBamOperators} inter-procedurally. For more details on how the
  * transfer relation works see {@link BamTransferRelation#generateAbstractSuccessors(AbstractState,
  * Precision)}.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class BamTransferRelation<
         CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
@@ -287,7 +287,7 @@ public class BamTransferRelation<
             ? wrappedCpa
                 .getReduceOperator()
                 .reduce(callState, cfa.getFunctionEntryNode(currentFunction), call)
-            : callState;
+            : wrappedCpa.getReduceOperator().onMethodEntry(callState, isCallStatic(callState));
 
     Optional<AbstractState> previousCall =
         stack.stream()
@@ -404,6 +404,22 @@ public class BamTransferRelation<
     }
 
     return exitStates;
+  }
+
+  private boolean isCallStatic(AbstractState callState) {
+    if (!(callState instanceof ProgramLocationDependent)) {
+      throw new ProguardCoreException.Builder(
+              "The abstract state of type " + AbstractState.class + " is not location dependent",
+              ANALYSIS_BAM_TRANSFER_RELATION_STATE_NOT_LOCATION_DEPENDENT)
+          .build();
+    }
+    JvmCfaNode programLocation =
+        (JvmCfaNode) ((ProgramLocationDependent) callState).getProgramLocation();
+    String methodName = programLocation.getSignature().getMethodName();
+    String descriptor = String.valueOf(programLocation.getSignature().getDescriptor());
+    return (programLocation.getClazz().findMethod(methodName, descriptor).getAccessFlags()
+            & AccessConstants.STATIC)
+        != 0;
   }
 
   private class StackEntry {

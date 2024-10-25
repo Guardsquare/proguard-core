@@ -68,7 +68,7 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
   // Implementations for ReduceOperator
 
   @Override
-  public JvmAbstractState<StateT> reduce(
+  public JvmAbstractState<StateT> reduceImpl(
       AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
 
     if (!(expandedInitialState instanceof JvmAbstractState)) {
