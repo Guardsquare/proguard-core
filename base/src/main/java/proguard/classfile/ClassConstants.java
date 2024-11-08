@@ -147,8 +147,60 @@ public class ClassConstants {
 
   public static final String METHOD_NAME_OBJECT_GET_CLASS = "getClass";
   public static final String METHOD_TYPE_OBJECT_GET_CLASS = "()Ljava/lang/Class;";
+
   public static final String METHOD_NAME_CLASS_FOR_NAME = "forName";
   public static final String METHOD_TYPE_CLASS_FOR_NAME = "(Ljava/lang/String;)Ljava/lang/Class;";
+  public static final MethodSignature CLASS_FOR_NAME_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS, METHOD_NAME_CLASS_FOR_NAME, METHOD_TYPE_CLASS_FOR_NAME);
+  public static final String METHOD_TYPE_CLASS_FOR_NAME2 =
+      "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;";
+  public static final MethodSignature CLASS_FOR_NAME_SIGNATURE2 =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS, METHOD_NAME_CLASS_FOR_NAME, METHOD_TYPE_CLASS_FOR_NAME2);
+
+  public static final String METHOD_NAME_CLASS_GET_NAME = "getName";
+  public static final String METHOD_TYPE_CLASS_GET_NAME = "()Ljava/lang/String;";
+  public static final MethodSignature CLASS_GET_NAME_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS, METHOD_NAME_CLASS_GET_NAME, METHOD_TYPE_CLASS_GET_NAME);
+
+  public static final String METHOD_NAME_CLASS_GET_SIMPLE_NAME = "getSimpleName";
+  public static final String METHOD_TYPE_CLASS_GET_SIMPLE_NAME = "()Ljava/lang/String;";
+  public static final MethodSignature CLASS_GET_SIMPLE_NAME_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS,
+          METHOD_NAME_CLASS_GET_SIMPLE_NAME,
+          METHOD_TYPE_CLASS_GET_SIMPLE_NAME);
+
+  public static final String METHOD_NAME_CLASS_GET_CANONICAL_NAME = "getCanonicalName";
+  public static final String METHOD_TYPE_CLASS_GET_CANONICAL_NAME = "()Ljava/lang/String;";
+  public static final MethodSignature CLASS_GET_CANONICAL_NAME_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS,
+          METHOD_NAME_CLASS_GET_CANONICAL_NAME,
+          METHOD_TYPE_CLASS_GET_CANONICAL_NAME);
+
+  public static final String METHOD_NAME_CLASS_GET_TYPE_NAME = "getTypeName";
+  public static final String METHOD_TYPE_CLASS_GET_TYPE_NAME = "()Ljava/lang/String;";
+  public static final MethodSignature CLASS_GET_TYPE_NAME_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS, METHOD_NAME_CLASS_GET_TYPE_NAME, METHOD_TYPE_CLASS_GET_TYPE_NAME);
+
+  public static final String METHOD_NAME_CLASS_GET_PACKAGE_NAME = "getPackageName";
+  public static final String METHOD_TYPE_CLASS_GET_PACKAGE_NAME = "()Ljava/lang/String;";
+  public static final MethodSignature CLASS_GET_PACKAGE_NAME_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS,
+          METHOD_NAME_CLASS_GET_PACKAGE_NAME,
+          METHOD_TYPE_CLASS_GET_PACKAGE_NAME);
+
+  public static final String METHOD_NAME_CLASS_GET_SUPERCLASS = "getSuperclass";
+  public static final String METHOD_TYPE_CLASS_GET_SUPERCLASS = "()Ljava/lang/Class;";
+  public static final MethodSignature CLASS_GET_SUPERCLASS_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS, METHOD_NAME_CLASS_GET_SUPERCLASS, METHOD_TYPE_CLASS_GET_SUPERCLASS);
+
   public static final String METHOD_TYPE_CLASS_FOR_NAME_CLASSLOADER =
       "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;";
   public static final String METHOD_NAME_CLASS_IS_INSTANCE = "isInstance";
@@ -185,6 +237,9 @@ public class ClassConstants {
   public static final String METHOD_NAME_CLASS_GET_METHOD = "getMethod";
   public static final String METHOD_TYPE_CLASS_GET_METHOD =
       "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;";
+  public static final MethodSignature CLASS_GET_METHOD_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS, METHOD_NAME_CLASS_GET_METHOD, METHOD_TYPE_CLASS_GET_METHOD);
   public static final String METHOD_NAME_CLASS_GET_DECLARED_METHOD = "getDeclaredMethod";
   public static final String METHOD_TYPE_CLASS_GET_DECLARED_METHOD =
       "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;";
@@ -195,8 +250,16 @@ public class ClassConstants {
       "()[Ljava/lang/reflect/Method;";
   public static final String METHOD_NAME_FIND_CLASS = "findClass";
   public static final String METHOD_TYPE_FIND_CLASS = "(Ljava/lang/String;)Ljava/lang/Class;";
+
   public static final String METHOD_NAME_LOAD_CLASS = "loadClass";
   public static final String METHOD_TYPE_LOAD_CLASS = "(Ljava/lang/String;Z)Ljava/lang/Class;";
+  public static final MethodSignature CLASSLOADER_LOAD_CLASS_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS_LOADER, METHOD_NAME_LOAD_CLASS, METHOD_TYPE_CLASS_FOR_NAME);
+  public static final MethodSignature CLASSLOADER_LOAD_CLASS_SIGNATURE2 =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS_LOADER, METHOD_NAME_LOAD_CLASS, METHOD_TYPE_LOAD_CLASS);
+
   public static final String METHOD_NAME_FIND_LIBRARY = "findLibrary";
   public static final String METHOD_TYPE_FIND_LIBRARY = "(Ljava/lang/String;)Ljava/lang/String;";
   public static final String METHOD_NAME_LOAD_LIBRARY = "loadLibrary";

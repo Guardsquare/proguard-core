@@ -247,6 +247,17 @@ public class ClassUtil {
   }
 
   /**
+   * Converts an external class name into a canonical class name.
+   *
+   * @param externalClassName the external class name e.g. <code>com.example.Enclosing$Inner</code>
+   * @return the canonical class name, e.g. <code>com.example.Enclosing.Inner</code>
+   */
+  public static String canonicalClassName(String externalClassName) {
+    return externalClassName.replace(
+        JavaTypeConstants.SPECIAL_MEMBER_SEPARATOR, JavaTypeConstants.PACKAGE_SEPARATOR);
+  }
+
+  /**
    * Converts an internal class description into an external class description.
    *
    * @param accessFlags the access flags of the class.
