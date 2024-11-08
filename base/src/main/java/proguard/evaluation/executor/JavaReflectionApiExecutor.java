@@ -115,6 +115,10 @@ public class JavaReflectionApiExecutor implements Executor {
 
       ClassModel modeledValue =
           (ClassModel) typedInstance.referenceValue().getValue().getModeledValue();
+
+      // TODO(T32172): workaround for certain problematic cases of `ClassModel(null)`.
+      if (modeledValue.getClazz() == null) return MethodResult.invalidResult();
+
       String externalClassName = externalClassName(modeledValue.getClazz().getName());
 
       Object concreteValue = null;
