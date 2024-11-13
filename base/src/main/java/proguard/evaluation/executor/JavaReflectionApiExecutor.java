@@ -92,6 +92,7 @@ public class JavaReflectionApiExecutor implements Executor {
       if (!(instance instanceof TypedReferenceValue)) return MethodResult.invalidResult();
       TypedReferenceValue typedInstance = (TypedReferenceValue) instance;
 
+      if (typedInstance.getType() == null) return MethodResult.invalidResult();
       Optional<Clazz> clazz =
           findReferencedClazz(internalClassNameFromType(typedInstance.getType()));
       if (clazz.isPresent()) {
