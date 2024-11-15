@@ -660,18 +660,11 @@ public class PartialEvaluator implements AttributeVisitor, ExceptionInfoVisitor 
 
     int instructionOffset = startOffset;
 
-    int maxOffset = startOffset;
-
     // Evaluate the subsequent instructions.
     while (true) {
       try {
-
         if (formatter != null) {
           formatter.registerInstructionOffset(instructionOffset);
-        }
-
-        if (maxOffset < instructionOffset) {
-          maxOffset = instructionOffset;
         }
 
         // Decode the instruction.
