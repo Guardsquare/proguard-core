@@ -29,6 +29,8 @@ import proguard.evaluation.value.TypedReferenceValue;
 final class ExecutorLookup {
 
   private static final Logger log = LogManager.getLogger(ExecutorLookup.class);
+  private static final boolean PRINT_ERRORS =
+      System.getProperty("proguard.value.logerrors") != null;
   private final Map<MethodSignature, Executor> executorFromSignature = new HashMap<>();
 
   private final Set<String> supportedClasses = new HashSet<>();
@@ -41,17 +43,18 @@ final class ExecutorLookup {
   public ExecutorLookup(List<Executor> registeredExecutors) {
     for (Executor executor : registeredExecutors) {
       for (MethodSignature signature : executor.getSupportedMethodSignatures()) {
-        if (signature.isIncomplete()) {
+        if (PRINT_ERRORS && signature.isIncomplete()) {
           log.warn(
               "Wildcard signatures are not supported by ExecutorLookup, they will get ignored");
           continue;
         }
 
         if (executorFromSignature.putIfAbsent(signature, executor) != null) {
-          log.warn(
-              "Signature {} is supported by multiple executors. {} will be ignored",
-              signature,
-              executor.getClass().getSimpleName());
+          if (PRINT_ERRORS)
+            log.warn(
+                "Signature {} is supported by multiple executors. {} will be ignored",
+                signature,
+                executor.getClass().getSimpleName());
         } else {
           supportedClasses.add(signature.getClassName());
         }
@@ -91,7 +94,8 @@ final class ExecutorLookup {
 
     Executor targetExecutor = executorFromSignature.get(targetSignature);
 
-    if (isTargetDynamic
+    if (PRINT_ERRORS
+        && isTargetDynamic
         && targetExecutor == null
         && executorFromSignature.get(staticSignature) != null) {
       log.warn(
