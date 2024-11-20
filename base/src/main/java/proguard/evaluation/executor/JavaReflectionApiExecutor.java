@@ -53,6 +53,7 @@ public class JavaReflectionApiExecutor implements Executor {
                 CLASS_GET_CANONICAL_NAME_SIGNATURE,
                 CLASSLOADER_LOAD_CLASS_SIGNATURE,
                 CLASSLOADER_LOAD_CLASS_SIGNATURE2,
+                CLASSLOADER_FIND_LOADED_CLASS_SIGNATURE,
                 CLASS_FOR_NAME_SIGNATURE,
                 CLASS_FOR_NAME_SIGNATURE2));
 
@@ -74,7 +75,8 @@ public class JavaReflectionApiExecutor implements Executor {
     if (target.equals(CLASS_FOR_NAME_SIGNATURE)
         || target.equals(CLASS_FOR_NAME_SIGNATURE2)
         || target.equals(CLASSLOADER_LOAD_CLASS_SIGNATURE)
-        || target.equals(CLASSLOADER_LOAD_CLASS_SIGNATURE2)) {
+        || target.equals(CLASSLOADER_LOAD_CLASS_SIGNATURE2)
+        || target.equals(CLASSLOADER_FIND_LOADED_CLASS_SIGNATURE)) {
       Value className = methodExecutionInfo.getParameters().get(0);
       if (!className.isParticular()) return MethodResult.invalidResult();
 

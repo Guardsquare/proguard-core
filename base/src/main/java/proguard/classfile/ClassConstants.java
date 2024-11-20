@@ -260,6 +260,15 @@ public class ClassConstants {
       new MethodSignature(
           NAME_JAVA_LANG_CLASS_LOADER, METHOD_NAME_LOAD_CLASS, METHOD_TYPE_LOAD_CLASS);
 
+  public static final String METHOD_NAME_FIND_LOADED_CLASS = "findLoadedClass";
+  public static final String METHOD_TYPE_FIND_LOADED_CLASS =
+      "(Ljava/lang/String;)Ljava/lang/Class;";
+  public static final MethodSignature CLASSLOADER_FIND_LOADED_CLASS_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS_LOADER,
+          METHOD_NAME_FIND_LOADED_CLASS,
+          METHOD_TYPE_FIND_LOADED_CLASS);
+
   public static final String METHOD_NAME_FIND_LIBRARY = "findLibrary";
   public static final String METHOD_TYPE_FIND_LIBRARY = "(Ljava/lang/String;)Ljava/lang/String;";
   public static final String METHOD_NAME_LOAD_LIBRARY = "loadLibrary";
