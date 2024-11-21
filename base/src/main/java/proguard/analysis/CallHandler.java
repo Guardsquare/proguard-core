@@ -19,19 +19,21 @@
 package proguard.analysis;
 
 import proguard.analysis.datastructure.callgraph.Call;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
 
 /**
- * This visitor is invoked by the {@link CallResolver} whenever new method calls have been resolved
+ * This handler is invoked by the {@link CallResolver} whenever new method calls have been resolved
  * in the code.
- *
- * @author Samuel Hopstock
  */
-public interface CallVisitor {
+public interface CallHandler {
 
   /**
    * Will be called for every newly discovered method call in the code.
    *
    * @param call The {@link Call} that was found
+   * @param stack stack state before the call
+   * @param localVariables local variables array state before the call
    */
-  void visitCall(Call call);
+  void handleCall(Call call, TracedStack stack, TracedVariables localVariables);
 }

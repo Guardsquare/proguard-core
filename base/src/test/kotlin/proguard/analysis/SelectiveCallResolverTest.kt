@@ -24,6 +24,8 @@ import proguard.analysis.datastructure.callgraph.Call
 import proguard.analysis.datastructure.callgraph.CallGraph
 import proguard.classfile.MethodSignature
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.TracedStack
+import proguard.evaluation.TracedVariables
 import proguard.evaluation.value.DetailedArrayValueFactory
 import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularReferenceValue
@@ -102,11 +104,11 @@ class C {
 
     val classPools = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-    class CallSaver : CallVisitor {
+    class CallSaver : CallHandler {
 
         val incompleteCalls = ArrayList<Call>()
         val completeCalls = HashMap<Call, Value?>()
-        override fun visitCall(call: Call) {
+        override fun handleCall(call: Call, stack: TracedStack, localVariables: TracedVariables) {
             if (call.hasIncompleteTarget()) {
                 incompleteCalls.add(call)
             } else {

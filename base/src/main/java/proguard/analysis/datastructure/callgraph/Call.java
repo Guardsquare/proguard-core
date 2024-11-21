@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proguard.analysis.CallHandler;
 import proguard.analysis.CallResolver;
-import proguard.analysis.CallVisitor;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
@@ -131,9 +131,9 @@ public abstract class Call {
    * Get the value for a specific argument index.
    *
    * <p><b>Note:</b> This is only to be used in implementations of {@link
-   * CallVisitor#visitCall(Call)}. Afterwards, the values will have been cleared to reduce
-   * unnecessary memory usage, as argument values are not needed for the full call graph
-   * reconstruction.
+   * CallHandler#handleCall(Call, TracedStack, TracedVariables)}. Afterwards, the values will have
+   * been cleared to reduce unnecessary memory usage, as argument values are not needed for the full
+   * call graph reconstruction.
    */
   public Value getArgument(int index) {
     if (valuesCleared) {
@@ -155,9 +155,9 @@ public abstract class Call {
    * method is called, usually an {@link IdentifiedReferenceValue}. For static calls this is null.
    *
    * <p><b>Note:</b> This is only to be used in implementations of {@link
-   * CallVisitor#visitCall(Call)}. Afterwards, the value will have been cleared to reduce
-   * unnecessary memory usage, as the instance value is not needed for the full call graph
-   * reconstruction.
+   * CallHandler#handleCall(Call, TracedStack, TracedVariables)}. Afterwards, the value will have
+   * been cleared to reduce unnecessary memory usage, as the instance value is not needed for the
+   * full call graph reconstruction.
    */
   public Value getInstance() {
     if (valuesCleared) {
@@ -175,9 +175,9 @@ public abstract class Call {
    * Get the return value of this call.
    *
    * <p><b>Note:</b> This is only to be used in implementations of {@link
-   * CallVisitor#visitCall(Call)}. Afterwards, the value will have been cleared to reduce
-   * unnecessary memory usage, as the return value is not needed for the full call graph
-   * reconstruction.
+   * CallHandler#handleCall(Call, TracedStack, TracedVariables)}. Afterwards, the value will have
+   * been cleared to reduce unnecessary memory usage, as the return value is not needed for the full
+   * call graph reconstruction.
    */
   public Value getReturnValue() {
     if (valuesCleared) {

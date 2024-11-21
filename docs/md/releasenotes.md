@@ -8,6 +8,10 @@
 
 - `InstructionSequenceMatcher` now supports matching of primitive array constants.
 
+### API improvements
+
+- Rename `CallVisitor` to `CallHandler` and add extra parameters to handle calls accounting for more data.
+
 ## Version 9.1.6
 
 ### Java support

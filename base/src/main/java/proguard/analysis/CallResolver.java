@@ -67,6 +67,8 @@ import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.InvocationUnit;
 import proguard.evaluation.PartialEvaluator;
 import proguard.evaluation.ParticularReferenceValueFactory;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
 import proguard.evaluation.exception.EmptyCodeAttributeException;
 import proguard.evaluation.exception.ExcessiveComplexityException;
 import proguard.evaluation.value.ArrayReferenceValueFactory;
@@ -99,7 +101,7 @@ import proguard.util.PartialEvaluatorUtils;
  *
  * <p>In addition to resolving the call target, this analyzer also reconstructs the corresponding
  * arguments and the return value. All of the collected information is wrapped in a {@link Call}
- * object and passed to subscribed {@link CallVisitor}s.
+ * object and passed to subscribed {@link CallHandler}s.
  *
  * @author Samuel Hopstock
  */
@@ -114,7 +116,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
   private final CallGraph callGraph;
   private final boolean clearCallValuesAfterVisit;
   private final boolean useDominatorAnalysis;
-  private final List<CallVisitor> visitors;
+  private final List<CallHandler> callHandlers;
   /**
    * Calculates concrete values that are created by the bytecode and stored in variables or on the
    * stack. Needed to reconstruct the actual arguments and return value of method calls.
@@ -202,10 +204,10 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
    *     when resolving calls whose target lies in such a library class.
    * @param callGraph The {@link CallGraph} to fill with all discovered {@link Call}s.
    * @param clearCallValuesAfterVisit If true, {@link Call#clearValues()} will be called after
-   *     {@link CallVisitor#visitCall(Call)}. This makes it possible to analyze arguments and the
-   *     return value of calls while still adding them to a {@link CallGraph} afterwards, as call
-   *     graph analysis itself usually only requires the call locations and their targets, not the
-   *     arguments or return value.
+   *     {@link CallHandler#handleCall(Call, TracedStack, TracedVariables)}. This makes it possible
+   *     to analyze arguments and the return value of calls while still adding them to a {@link
+   *     CallGraph} afterwards, as call graph analysis itself usually only requires the call
+   *     locations and their targets, not the arguments or return value.
    * @param useDominatorAnalysis If true, a dominator analysis is carried out using the {@link
    *     DominatorCalculator} for each method, in order to be able to fill the {@link
    *     Call#controlFlowDependent} flag.
@@ -225,8 +227,8 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
    *     analyzed. Otherwise, the code attribute will be skipped.
    * @param skipIncompleteCalls If true, any discovered call that would return true for {@link
    *     Call#hasIncompleteTarget()} will be discarded and not be forwarded to {@link
-   *     CallVisitor#visitCall(Call)}.
-   * @param visitors {@link CallVisitor}s that are interested in the results of this analysis.
+   *     CallHandler#handleCall(Call, TracedStack, TracedVariables)}.
+   * @param callHandlers {@link CallHandler}s that are interested in the results of this analysis.
    */
   public CallResolver(
       ClassPool programClassPool,
@@ -245,7 +247,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
       boolean selectiveParameterReconstruction,
       Set<MethodSignature> interestingMethods,
       Set<Predicate<Call>> interestingCallPredicates,
-      CallVisitor... visitors) {
+      CallHandler... callHandlers) {
     this.programClassPool = programClassPool;
     this.libraryClassPool = libraryClassPool;
     this.callGraph = callGraph;
@@ -263,7 +265,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     }
     this.interestingMethods = interestingMethods;
     this.interestingCallPredicates = interestingCallPredicates;
-    this.visitors = Arrays.asList(visitors);
+    this.callHandlers = Arrays.asList(callHandlers);
     dominatorCalculator = new DominatorCalculator(ignoreExceptions);
 
     // Initialize the multitype evaluator.
@@ -441,7 +443,12 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
             currentClazzMethodAttribute.codeAttribute);
       }
       initArgumentsAndReturnValue(call);
-      visitors.forEach(d -> d.visitCall(call));
+      callHandlers.forEach(
+          d ->
+              d.handleCall(
+                  call,
+                  particularValueEvaluator.getStackBefore(call.caller.offset),
+                  particularValueEvaluator.getVariablesBefore(call.caller.offset)));
       if (clearCallValuesAfterVisit) {
         call.clearValues();
       }
@@ -844,7 +851,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     private final ClassPool programClassPool;
     private final ClassPool libraryClassPool;
     private final CallGraph callGraph;
-    private final CallVisitor[] visitors;
+    private final CallHandler[] callHandlers;
     private boolean clearCallValuesAfterVisit = true;
     private boolean useDominatorAnalysis = false;
     private boolean evaluateAllCode = false;
@@ -865,18 +872,19 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
         ClassPool programClassPool,
         ClassPool libraryClassPool,
         CallGraph callGraph,
-        CallVisitor... visitors) {
+        CallHandler... visitors) {
       this.programClassPool = programClassPool;
       this.libraryClassPool = libraryClassPool;
       this.callGraph = callGraph;
-      this.visitors = visitors;
+      this.callHandlers = visitors;
     }
 
     /**
-     * If true, {@link Call#clearValues()} will be called after {@link CallVisitor#visitCall(Call)}.
-     * This makes it possible to analyze arguments and the return value of calls while still adding
-     * them to a {@link CallGraph} afterwards, as call graph analysis itself usually only requires
-     * the call locations and their targets, not the arguments or return value.
+     * If true, {@link Call#clearValues()} will be called after {@link CallHandler#handleCall(Call,
+     * TracedStack, TracedVariables)}. This makes it possible to analyze arguments and the return
+     * value of calls while still adding them to a {@link CallGraph} afterwards, as call graph
+     * analysis itself usually only requires the call locations and their targets, not the arguments
+     * or return value.
      */
     public Builder setClearCallValuesAfterVisit(boolean clearCallValuesAfterVisit) {
       this.clearCallValuesAfterVisit = clearCallValuesAfterVisit;
@@ -933,7 +941,8 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
 
     /**
      * If true, any discovered call that would return true for {@link Call#hasIncompleteTarget()}
-     * will be discarded and not be forwarded to {@link CallVisitor#visitCall(Call)}.
+     * will be discarded and not be forwarded to {@link CallHandler#handleCall(Call, TracedStack,
+     * TracedVariables)}.
      */
     public Builder setSkipIncompleteCalls(boolean skipIncompleteCalls) {
       this.skipIncompleteCalls = skipIncompleteCalls;
@@ -998,7 +1007,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
           selectiveParameterReconstruction,
           interestingMethods,
           interestingCallPredicates,
-          visitors);
+          callHandlers);
     }
   }
 }
