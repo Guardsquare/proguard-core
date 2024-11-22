@@ -107,6 +107,6 @@ public class JvmTaintReduceOperator
         (SetAbstractState<JvmTaintSource>)
             frame.getLocalVariables().getOrDefault(index, SetAbstractState.bottom);
     SetAbstractState<JvmTaintSource> newState = oldState.join(new SetAbstractState<>(source));
-    frame.getLocalVariables().set(index, newState, oldState);
+    frame.getLocalVariables().set(index, newState, SetAbstractState.bottom);
   }
 }
