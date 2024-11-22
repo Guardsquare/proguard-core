@@ -730,12 +730,31 @@ public class ClassUtil {
   /**
    * Returns whether the given method name refers to a class initializer or an instance initializer.
    *
-   * @param internalMethodName the internal method name, e.g. "<code>&ltclinit&gt;</code>".
-   * @return whether the method name refers to an initializer, e.g. <code>true</code>.
+   * @param internalMethodName The internal method name, e.g. "<code>&ltclinit&gt;</code>".
+   * @return Whether the method name refers to an initializer, e.g. <code>true</code>.
    */
   public static boolean isInitializer(String internalMethodName) {
-    return internalMethodName.equals(ClassConstants.METHOD_NAME_CLINIT)
-        || internalMethodName.equals(ClassConstants.METHOD_NAME_INIT);
+    return isClassInitializer(internalMethodName) || isInstanceInitializer(internalMethodName);
+  }
+
+  /**
+   * Returns whether the given method name refers to a class initializer.
+   *
+   * @param internalMethodName The internal method name, e.g. "<code>&ltclinit&gt;</code>".
+   * @return Whether the method name refers to a class initializer, e.g. <code>true</code>.
+   */
+  public static boolean isClassInitializer(String internalMethodName) {
+    return ClassConstants.METHOD_NAME_CLINIT.equals(internalMethodName);
+  }
+
+  /**
+   * Returns whether the given method name refers to an instance initializer.
+   *
+   * @param internalMethodName The internal method name, e.g. "<code>&ltinit&gt;</code>".
+   * @return Whether the method name refers to an instance initializer, e.g. <code>true</code>.
+   */
+  public static boolean isInstanceInitializer(String internalMethodName) {
+    return ClassConstants.METHOD_NAME_INIT.equals(internalMethodName);
   }
 
   /**

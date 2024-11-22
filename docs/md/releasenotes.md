@@ -12,6 +12,7 @@
 ### API improvements
 
 - Rename `CallVisitor` to `CallHandler` and add extra parameters to handle calls accounting for more data.
+- Add `ClassUtil.isClassInitializer(String)` and `ClassUtil.isInstanceInitializer(String)`.
 
 ## Version 9.1.6
 
