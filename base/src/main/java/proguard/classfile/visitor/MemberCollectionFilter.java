@@ -28,7 +28,7 @@ import proguard.classfile.Member;
  * @author Johan Leys
  */
 public class MemberCollectionFilter implements MemberVisitor {
-  private final Set<Member> members;
+  private final Set<? extends Member> members;
 
   private final MemberVisitor acceptedVisitor;
   private final MemberVisitor rejectedVisitor;
@@ -40,7 +40,7 @@ public class MemberCollectionFilter implements MemberVisitor {
    * @param acceptedVisitor this visitor will be called for members that are present in the member
    *     collection.
    */
-  public MemberCollectionFilter(Set<Member> members, MemberVisitor acceptedVisitor) {
+  public MemberCollectionFilter(Set<? extends Member> members, MemberVisitor acceptedVisitor) {
     this(members, acceptedVisitor, null);
   }
 
@@ -53,7 +53,7 @@ public class MemberCollectionFilter implements MemberVisitor {
    * @param rejectedVisitor this visitor will be called otherwise.
    */
   public MemberCollectionFilter(
-      Set<Member> members, MemberVisitor acceptedVisitor, MemberVisitor rejectedVisitor) {
+      Set<? extends Member> members, MemberVisitor acceptedVisitor, MemberVisitor rejectedVisitor) {
     this.members = members;
     this.acceptedVisitor = acceptedVisitor;
     this.rejectedVisitor = rejectedVisitor;

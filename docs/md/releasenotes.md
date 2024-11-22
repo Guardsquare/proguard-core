@@ -13,6 +13,7 @@
 
 - Rename `CallVisitor` to `CallHandler` and add extra parameters to handle calls accounting for more data.
 - Add `ClassUtil.isClassInitializer(String)` and `ClassUtil.isInstanceInitializer(String)`.
+- Extend `MemberCollectionFilter` to accept a `Set` of any subtype of `Member`.
 
 ## Version 9.1.6
 
