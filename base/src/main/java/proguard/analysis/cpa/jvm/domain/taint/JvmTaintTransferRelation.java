@@ -25,7 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import proguard.analysis.cpa.defaults.ListAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.defaults.StackAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
@@ -33,6 +35,8 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
 import proguard.analysis.cpa.jvm.util.HeapUtil;
+import proguard.analysis.cpa.jvm.witness.JvmLocalVariableLocation;
+import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 import proguard.analysis.datastructure.callgraph.Call;
@@ -52,6 +56,12 @@ public class JvmTaintTransferRelation
 
   private final Map<Signature, Set<JvmTaintSource>> taintSources;
   private final Map<MethodSignature, JvmTaintTransformer> taintTransformers;
+  /**
+   * Maps calls to locations which should become tainted after the call is invoked. For example, it
+   * maps 'init' calls to the locations in local variables array or on stack, to which the value was
+   * put after duplicating the constructed instance.
+   */
+  private final Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations;
 
   /**
    * Create a taint transfer relation.
@@ -59,14 +69,22 @@ public class JvmTaintTransferRelation
    * @param taintSources a mapping from fully qualified names to taint sources
    */
   public JvmTaintTransferRelation(Map<Signature, Set<JvmTaintSource>> taintSources) {
-    this(taintSources, Collections.emptyMap());
+    this(taintSources, Collections.emptyMap(), Collections.emptyMap());
   }
 
   public JvmTaintTransferRelation(
       Map<Signature, Set<JvmTaintSource>> taintSources,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
+    this(taintSources, taintTransformers, Collections.emptyMap());
+  }
+
+  public JvmTaintTransferRelation(
+      Map<Signature, Set<JvmTaintSource>> taintSources,
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this.taintSources = taintSources;
     this.taintTransformers = taintTransformers;
+    this.extraTaintPropagationLocations = extraTaintPropagationLocations;
   }
 
   // implementations for JvmTransferRelation
@@ -95,6 +113,8 @@ public class JvmTaintTransferRelation
       answerContent = answerContent.copy();
       answerContent.addAll(detectedReturnSources);
     }
+
+    propagateExtraTaints(call, state, answerContent);
 
     // pad to the return type size and put the abstract state on the top of the stack
     for (int i = 1; i < pushCount; i++) {
@@ -299,5 +319,29 @@ public class JvmTaintTransferRelation
       AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
     return wrapAbstractSuccessorInCollection(
         generateEdgeAbstractSuccessor(abstractState, edge, precision));
+  }
+
+  /** If relevant, taints locations which should become tainted after the call is invoked. */
+  private void propagateExtraTaints(
+      Call call,
+      JvmAbstractState<SetAbstractState<JvmTaintSource>> state,
+      SetAbstractState<JvmTaintSource> answerContent) {
+    if (extraTaintPropagationLocations.containsKey(call)) {
+      for (JvmMemoryLocation location : extraTaintPropagationLocations.get(call)) {
+        if (location instanceof JvmLocalVariableLocation) {
+          int index = ((JvmLocalVariableLocation) location).index;
+          ListAbstractState<SetAbstractState<JvmTaintSource>> localVariables =
+              state.getFrame().getLocalVariables();
+          SetAbstractState<JvmTaintSource> newState =
+              localVariables.getOrDefault(index, SetAbstractState.bottom).join(answerContent);
+          localVariables.set(index, newState, SetAbstractState.bottom);
+        } else if (location instanceof JvmStackLocation) {
+          int index = ((JvmStackLocation) location).index;
+          StackAbstractState<SetAbstractState<JvmTaintSource>> stack =
+              state.getFrame().getOperandStack();
+          stack.set(index, stack.get(index).join(answerContent));
+        }
+      }
+    }
   }
 }

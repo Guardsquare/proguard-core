@@ -26,7 +26,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
@@ -64,6 +66,7 @@ import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 import proguard.analysis.cpa.util.StateNames;
+import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
@@ -117,7 +120,6 @@ import proguard.exception.ProguardCoreException;
  * traces generated with {@link JvmMemoryLocationTransferRelation}.
  *
  * @param <AbstractStateT> The type of the values of the traced analysis.
- * @author Dmitry Ivanov
  */
 public class JvmMemoryLocationTransferRelation<
         AbstractStateT extends LatticeAbstractState<AbstractStateT>>
@@ -129,6 +131,12 @@ public class JvmMemoryLocationTransferRelation<
   private final BamCache<MethodSignature> cache;
   private final ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> tracedCpaReduceOperator;
   private final ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> tracedCpaExpandOperator;
+  /**
+   * Maps calls to locations which should become tainted after the call is invoked. For example, it
+   * maps constructor calls to the locations in local variables array or on stack, to which the
+   * reference was put after duplicating the uninitialized instance.
+   */
+  private final Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations;
 
   /**
    * Create a memory location transfer relation.
@@ -137,12 +145,15 @@ public class JvmMemoryLocationTransferRelation<
    * @param bamCpa the BAM cpa that was used to calculate the results in the cache
    */
   public JvmMemoryLocationTransferRelation(
-      AbstractStateT threshold, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa) {
+      AbstractStateT threshold,
+      BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this.threshold = threshold;
     this.cfa = (JvmCfa) bamCpa.getCfa();
     this.cache = bamCpa.getCache();
     this.tracedCpaReduceOperator = bamCpa.getReduceOperator();
     this.tracedCpaExpandOperator = bamCpa.getExpandOperator();
+    this.extraTaintPropagationLocations = extraTaintPropagationLocations;
   }
 
   // implementations for TransferRelation
@@ -418,11 +429,51 @@ public class JvmMemoryLocationTransferRelation<
 
   /**
    * The default implementation traces the return value back to the method arguments and the
-   * instance.
+   * instance. Additionally, handles extra taints' propagation if the need is identified at this
+   * call site.
    */
   protected List<JvmMemoryLocation> processCall(
-      JvmMemoryLocation memoryLocation, ConstantInstruction callInstruction, Clazz clazz) {
-    return backtraceStackLocation(memoryLocation, callInstruction, clazz);
+      JvmMemoryLocation memoryLocation,
+      ConstantInstruction callInstruction,
+      Clazz clazz,
+      JvmCfaNode parentNode) {
+    List<JvmMemoryLocation> successors =
+        new ArrayList<>(backtraceStackLocation(memoryLocation, callInstruction, clazz));
+    successors.addAll(handleExtraPropagation(memoryLocation, callInstruction, clazz, parentNode));
+    return successors;
+  }
+
+  /**
+   * Returns extra locations where the taints should be propagated via the leaving edges at the
+   * given call site, based on the information from {@link
+   * JvmMemoryLocationTransferRelation#extraTaintPropagationLocations}.
+   */
+  private Collection<? extends JvmMemoryLocation> handleExtraPropagation(
+      JvmMemoryLocation memoryLocation,
+      ConstantInstruction callInstruction,
+      Clazz clazz,
+      JvmCfaNode parentNode) {
+    if (parentNode.getLeavingEdges().stream()
+        .noneMatch(edge -> shouldEdgePropagateTaint(edge, memoryLocation))) {
+      return Collections.emptyList();
+    } else {
+      return getPoppedLocations(callInstruction.stackPopCount(clazz));
+    }
+  }
+
+  /**
+   * Returns 'true' for the calls that require extra handling of taint propagation at the given jvm
+   * memory location. Information about such calls and corresponding locations is contained in
+   * {@link JvmMemoryLocationTransferRelation#extraTaintPropagationLocations}.
+   */
+  private boolean shouldEdgePropagateTaint(
+      JvmCfaEdge jvmCfaEdge, JvmMemoryLocation memoryLocation) {
+    if (!(jvmCfaEdge instanceof JvmCallCfaEdge)) {
+      return false;
+    }
+    Call call = ((JvmCallCfaEdge) jvmCfaEdge).getCall();
+    return (extraTaintPropagationLocations.containsKey(call)
+        && extraTaintPropagationLocations.get(call).contains(memoryLocation));
   }
 
   /**
@@ -890,7 +941,13 @@ public class JvmMemoryLocationTransferRelation<
         case Instruction.OP_INVOKEVIRTUAL:
         case Instruction.OP_INVOKESPECIAL:
         case Instruction.OP_INVOKEINTERFACE:
-          answer.addAll(processCall(memoryLocation, constantInstruction, clazz));
+          answer.addAll(
+              processCall(
+                  memoryLocation,
+                  constantInstruction,
+                  clazz,
+                  ((JvmAbstractState<AbstractStateT>) parentState.getStateByName(StateNames.Jvm))
+                      .getProgramLocation()));
           break;
         case Instruction.OP_NEW: // TODO creating objects on the heap is not yet modeled
         case Instruction.OP_NEWARRAY:

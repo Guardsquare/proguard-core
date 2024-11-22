@@ -102,8 +102,6 @@ import proguard.util.PartialEvaluatorUtils;
  * <p>In addition to resolving the call target, this analyzer also reconstructs the corresponding
  * arguments and the return value. All of the collected information is wrapped in a {@link Call}
  * object and passed to subscribed {@link CallHandler}s.
- *
- * @author Samuel Hopstock
  */
 public class CallResolver implements AttributeVisitor, ClassVisitor, InstructionVisitor {
 
@@ -117,6 +115,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
   private final boolean clearCallValuesAfterVisit;
   private final boolean useDominatorAnalysis;
   private final List<CallHandler> callHandlers;
+
   /**
    * Calculates concrete values that are created by the bytecode and stored in variables or on the
    * stack. Needed to reconstruct the actual arguments and return value of method calls.

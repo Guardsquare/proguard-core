@@ -53,6 +53,7 @@ import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
 import proguard.analysis.cpa.util.StateNames;
+import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
 import proguard.exception.ProguardCoreException;
@@ -77,8 +78,9 @@ public class JvmTaintMemoryLocationBamCpaRun
       JvmTaintBamCpaRun jvmTaintCpaRun,
       SetAbstractState<JvmTaintSource> threshold,
       Collection<? extends JvmTaintSink> taintSinks,
-      AbortOperator memoryLocationAbortOperator) {
-    super(jvmTaintCpaRun, threshold, memoryLocationAbortOperator);
+      AbortOperator memoryLocationAbortOperator,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
+    super(jvmTaintCpaRun, threshold, memoryLocationAbortOperator, extraTaintPropagationLocations);
     this.taintSinks = taintSinks;
   }
 
@@ -104,6 +106,8 @@ public class JvmTaintMemoryLocationBamCpaRun
    *     the mapping from references to objects in the follower heap model
    * @param followerHeapNodeMapAbstractStateFactory a map abstract state factory used for
    *     constructing the mapping from fields to values in the follower heap model
+   * @param extraTaintPropagationLocations maps calls to jvm memory locations which needs to get
+   *     tainted after the call
    */
   protected JvmTaintMemoryLocationBamCpaRun(
       JvmCfa cfa,
@@ -126,7 +130,8 @@ public class JvmTaintMemoryLocationBamCpaRun
           followerHeapMapAbstractStateFactory,
       MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
           followerHeapNodeMapAbstractStateFactory,
-      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this(
         new JvmTaintBamCpaRun<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(
             cfa,
@@ -141,10 +146,12 @@ public class JvmTaintMemoryLocationBamCpaRun
             principalHeapNodeMapAbstractStateFactory,
             followerHeapMapAbstractStateFactory,
             followerHeapNodeMapAbstractStateFactory,
-            taintTransformers),
+            taintTransformers,
+            extraTaintPropagationLocations),
         threshold,
         taintSinks,
-        memoryLocationAbortOperator);
+        memoryLocationAbortOperator,
+        extraTaintPropagationLocations);
   }
 
   public Collection<? extends JvmTaintSink> getTaintSinks() {
@@ -332,6 +339,8 @@ public class JvmTaintMemoryLocationBamCpaRun
         followerHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
 
     private Map<MethodSignature, JvmTaintTransformer> taintTransformers = Collections.emptyMap();
+    private Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations =
+        Collections.emptyMap();
 
     /** Returns the {@link JvmTaintMemoryLocationBamCpaRun} for given parameters. */
     public JvmTaintMemoryLocationBamCpaRun build() {
@@ -357,7 +366,8 @@ public class JvmTaintMemoryLocationBamCpaRun
           principalHeapNodeMapAbstractStateFactory,
           followerHeapMapAbstractStateFactory,
           followerHeapNodeMapAbstractStateFactory,
-          taintTransformers);
+          taintTransformers,
+          extraTaintPropagationLocations);
     }
 
     /** Sets the control flow automaton. */
@@ -479,6 +489,16 @@ public class JvmTaintMemoryLocationBamCpaRun
     public Builder setTaintTransformers(
         Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
       this.taintTransformers = taintTransformers;
+      return this;
+    }
+
+    /**
+     * Set a mapping from a call to the set of locations which should get tainted after the call
+     * invocation.
+     */
+    public Builder setExtraTaintPropagationLocations(
+        Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
+      this.extraTaintPropagationLocations = extraTaintPropagationLocations;
       return this;
     }
   }

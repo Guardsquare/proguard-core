@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
+import java.util.Map;
+import java.util.Set;
 import proguard.analysis.cpa.bam.BamCpa;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
@@ -26,6 +28,8 @@ import proguard.analysis.cpa.defaults.StopSepOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
+import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 
 /**
@@ -33,23 +37,29 @@ import proguard.classfile.MethodSignature;
  * JvmMemoryLocationTransferRelation} for details.
  *
  * @param <AbstractStateT> The type of the values of the traced analysis.
- * @author Dmitry Ivanov
  */
 public class JvmMemoryLocationCpa<AbstractStateT extends LatticeAbstractState<AbstractStateT>>
     extends SimpleCpa {
 
   public JvmMemoryLocationCpa(
-      AbstractStateT threshold, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa) {
-    this(threshold, bamCpa, new DelegateAbstractDomain<JvmMemoryLocationAbstractState>());
+      AbstractStateT threshold,
+      BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
+    this(
+        threshold,
+        bamCpa,
+        new DelegateAbstractDomain<JvmMemoryLocationAbstractState>(),
+        extraTaintPropagationLocations);
   }
 
   private JvmMemoryLocationCpa(
       AbstractStateT threshold,
       BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
-      AbstractDomain abstractDomain) {
+      AbstractDomain abstractDomain,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     super(
         abstractDomain,
-        new JvmMemoryLocationTransferRelation<>(threshold, bamCpa),
+        new JvmMemoryLocationTransferRelation<>(threshold, bamCpa, extraTaintPropagationLocations),
         new JvmMemoryLocationMergeJoinOperator(abstractDomain),
         new StopSepOperator(abstractDomain));
   }

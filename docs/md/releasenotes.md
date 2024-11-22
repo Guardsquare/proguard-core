@@ -7,6 +7,7 @@
 ### Improved
 
 - `InstructionSequenceMatcher` now supports matching of primitive array constants.
+- Support propagation of extra specified taints in `JvmTaintTransferRelation`.
 
 ### API improvements
 

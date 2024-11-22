@@ -32,6 +32,8 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.InstructionUtil;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.visitor.MemberVisitor;
+import proguard.evaluation.TracedStack;
+import proguard.evaluation.TracedVariables;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.Value;
 

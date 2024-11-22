@@ -57,8 +57,10 @@ import proguard.analysis.cpa.jvm.state.heap.JvmForgetfulHeapAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapPrincipalAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
+import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
+import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 import proguard.exception.ProguardCoreException;
 
@@ -79,6 +81,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
   private final MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
       followerHeapNodeMapAbstractStateFactory;
   private final Map<MethodSignature, JvmTaintTransformer> taintTransformers;
+  private final Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations;
 
   /**
    * Create a CPA run. If reduceHeap is set to false no reduction/expansion is applied to the heap
@@ -122,7 +125,8 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
           followerHeapMapAbstractStateFactory,
       MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
           followerHeapNodeMapAbstractStateFactory,
-      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     super(cfa, maxCallStackDepth, heapModel, abortOperator, reduceHeap);
     this.taintSources = taintSources;
     this.mainMethodSignature = mainMethodSignature;
@@ -132,6 +136,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     this.followerHeapMapAbstractStateFactory = followerHeapMapAbstractStateFactory;
     this.followerHeapNodeMapAbstractStateFactory = followerHeapNodeMapAbstractStateFactory;
     this.taintTransformers = taintTransformers;
+    this.extraTaintPropagationLocations = extraTaintPropagationLocations;
   }
 
   // implementations for JvmBamCpaRun
@@ -140,7 +145,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
   public SimpleCpa createIntraproceduralCPA() {
     switch (heapModel) {
       case FORGETFUL:
-        return new JvmTaintCpa(taintSources, taintTransformers);
+        return new JvmTaintCpa(taintSources, taintTransformers, extraTaintPropagationLocations);
       case TREE:
       case TAINT_TREE:
         AbstractDomain abstractDomain = new DelegateAbstractDomain<CompositeHeapJvmAbstractState>();
@@ -257,8 +262,6 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
   /**
    * A builder for {@link JvmTaintBamCpaRun}. It assumes either the best performing parameters or
    * the most basic one, if there is no absolute benefit.
-   *
-   * @author Dmitry Ivanov
    */
   public static class Builder extends JvmBamCpaRun.Builder {
 
@@ -276,6 +279,8 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
         followerHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
 
     protected Map<MethodSignature, JvmTaintTransformer> taintTransformers = Collections.emptyMap();
+    protected Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations =
+        Collections.emptyMap();
 
     // implementations for JvmBamCpaRun.Builder
 
@@ -301,7 +306,8 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
           principalHeapNodeMapAbstractStateFactory,
           followerHeapMapAbstractStateFactory,
           followerHeapNodeMapAbstractStateFactory,
-          taintTransformers);
+          taintTransformers,
+          extraTaintPropagationLocations);
     }
 
     @Override
@@ -400,6 +406,16 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     public Builder setTaintTransformers(
         Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
       this.taintTransformers = taintTransformers;
+      return this;
+    }
+
+    /**
+     * Set a mapping from a call to the set of locations which should get tainted after the call
+     * invocation.
+     */
+    public Builder setExtraTaintPropagationLocations(
+        Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
+      this.extraTaintPropagationLocations = extraTaintPropagationLocations;
       return this;
     }
   }

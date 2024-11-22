@@ -150,6 +150,11 @@ public class Variables {
     return values[index];
   }
 
+  /** Gets the Values of the variables array, without disturbing it. */
+  public Value[] getValues() {
+    return values;
+  }
+
   /** Stores the given Value at the given variable index. */
   public void store(int index, Value value) {
     if (index < 0 || index >= size) {

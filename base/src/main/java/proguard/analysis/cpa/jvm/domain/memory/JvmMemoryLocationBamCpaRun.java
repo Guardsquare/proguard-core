@@ -18,6 +18,9 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import proguard.analysis.cpa.defaults.BamCpaRun;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
@@ -34,6 +37,7 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
+import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.MethodSignature;
 
 /**
@@ -44,7 +48,6 @@ import proguard.classfile.MethodSignature;
  * be included into the continuation of the trace.
  *
  * @param <AbstractStateT> The type of the values of the traced analysis.
- * @author Dmitry Ivanov
  */
 public abstract class JvmMemoryLocationBamCpaRun<
         CpaT extends ConfigurableProgramAnalysis,
@@ -72,7 +75,7 @@ public abstract class JvmMemoryLocationBamCpaRun<
       BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature>
           inputCpaRun,
       AbstractStateT threshold) {
-    this(inputCpaRun, threshold, NeverAbortOperator.INSTANCE);
+    this(inputCpaRun, threshold, NeverAbortOperator.INSTANCE, Collections.emptyMap());
   }
 
   /**
@@ -86,10 +89,12 @@ public abstract class JvmMemoryLocationBamCpaRun<
       BamCpaRun<CpaT, JvmAbstractState<AbstractStateT>, JvmCfaNode, JvmCfaEdge, MethodSignature>
           inputCpaRun,
       AbstractStateT threshold,
-      AbortOperator abortOperator) {
+      AbortOperator abortOperator,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     super(inputCpaRun);
     this.threshold = threshold;
-    cpa = new JvmMemoryLocationCpa<>(threshold, inputCpaRun.getCpa());
+    cpa =
+        new JvmMemoryLocationCpa<>(threshold, inputCpaRun.getCpa(), extraTaintPropagationLocations);
     this.abortOperator = abortOperator;
   }
 
