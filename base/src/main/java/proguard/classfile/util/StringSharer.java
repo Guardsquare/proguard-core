@@ -22,6 +22,9 @@ import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
+import proguard.classfile.kotlin.KotlinClassKindMetadata;
+import proguard.classfile.kotlin.KotlinMetadata;
+import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
@@ -29,7 +32,8 @@ import proguard.classfile.visitor.ClassVisitor;
  *
  * @author Eric Lafortune
  */
-public class StringSharer implements ClassVisitor, ConstantVisitor, AttributeVisitor {
+public class StringSharer
+    implements ClassVisitor, ConstantVisitor, AttributeVisitor, KotlinMetadataVisitor {
   // A fields acting as an argument for the visitor methods.
   private String name;
   private String type;
@@ -50,6 +54,9 @@ public class StringSharer implements ClassVisitor, ConstantVisitor, AttributeVis
     // Replace attribute name strings in the constant pool by internalized
     // strings.
     programClass.attributesAccept(this);
+
+    // Replace strings in Kotlin metadata.
+    programClass.kotlinMetadataAccept(this);
   }
 
   @Override
@@ -73,6 +80,9 @@ public class StringSharer implements ClassVisitor, ConstantVisitor, AttributeVis
         }
       }
     }
+
+    // Replace strings in Kotlin metadata.
+    libraryClass.kotlinMetadataAccept(this);
   }
 
   // Implementations for ConstantVisitor.
@@ -153,5 +163,26 @@ public class StringSharer implements ClassVisitor, ConstantVisitor, AttributeVis
     // Put the internalized attribute's name string in the class pool.
     name = attribute.getAttributeName(clazz).intern();
     clazz.constantPoolEntryAccept(attribute.u2attributeNameIndex, this);
+  }
+
+  // Implementations for KotlinMetadataVisitor.
+
+  public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
+
+  public void visitKotlinClassMetadata(
+      Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata) {
+    if (kotlinClassKindMetadata.referencedClass != null) {
+      kotlinClassKindMetadata.className = kotlinClassKindMetadata.referencedClass.getName();
+    }
+
+    if (kotlinClassKindMetadata.referencedCompanionClass != null) {
+      kotlinClassKindMetadata.companionObjectName =
+          kotlinClassKindMetadata.referencedCompanionField.getName(clazz);
+    }
+
+    if (kotlinClassKindMetadata.anonymousObjectOriginClass != null) {
+      kotlinClassKindMetadata.anonymousObjectOriginName =
+          kotlinClassKindMetadata.anonymousObjectOriginClass.getName();
+    }
   }
 }
