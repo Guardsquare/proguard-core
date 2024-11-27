@@ -27,15 +27,6 @@ import proguard.util.StringUtil;
  * @author Eric Lafortune
  */
 public class Utf8Constant extends Constant {
-  // There are a lot of Utf8Constant objects, so we're optimising their storage.
-  // Initially, we're storing the UTF-8 bytes in a byte array.
-  // When the corresponding String is requested, we ditch the array and just
-  // store the String.
-  // The StringSharer pass ensures many identical Strings in Utf8Constants are shared. To preserve
-  // this, the String is never converted back to byte arrays.
-
-  // private int u2length;
-  private byte[] bytes;
 
   private String string;
 
@@ -44,34 +35,26 @@ public class Utf8Constant extends Constant {
 
   /** Creates a Utf8Constant containing the given string. */
   public Utf8Constant(String string) {
-    this.bytes = null;
     this.string = string;
   }
 
   /** Initializes the UTF-8 data with an array of bytes. */
   public void setBytes(byte[] bytes) {
-    this.bytes = bytes;
-    this.string = null;
+    this.string = StringUtil.getString(bytes);
   }
 
   /** Returns the UTF-8 data as an array of bytes. */
   public byte[] getBytes() {
-    if (bytes != null) {
-      return bytes;
-    }
     return StringUtil.getModifiedUtf8Bytes(string);
   }
 
   /** Initializes the UTF-8 data with a String. */
   public void setString(String utf8String) {
-    this.bytes = null;
     this.string = utf8String;
   }
 
   /** Returns the UTF-8 data as a String. */
   public String getString() {
-    switchToStringRepresentation();
-
     return string;
   }
 
@@ -92,16 +75,6 @@ public class Utf8Constant extends Constant {
     constantVisitor.visitUtf8Constant(clazz, this);
   }
 
-  // Small utility methods.
-
-  /** Switches to a String representation of the UTF-8 data. */
-  private void switchToStringRepresentation() {
-    if (string == null) {
-      string = StringUtil.getString(bytes);
-      bytes = null;
-    }
-  }
-
   // Implementations for Object.
 
   @Override
@@ -116,23 +89,16 @@ public class Utf8Constant extends Constant {
 
     Utf8Constant other = (Utf8Constant) object;
 
-    this.switchToStringRepresentation();
-    other.switchToStringRepresentation();
-
     return this.string.equals(other.string);
   }
 
   @Override
   public int hashCode() {
-    switchToStringRepresentation();
-
     return Constant.UTF8 ^ string.hashCode();
   }
 
   @Override
   public String toString() {
-    switchToStringRepresentation();
-
     return "Utf8(" + string + ")";
   }
 }
