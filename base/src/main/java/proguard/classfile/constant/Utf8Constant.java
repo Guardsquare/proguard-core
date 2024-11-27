@@ -31,6 +31,8 @@ public class Utf8Constant extends Constant {
   // Initially, we're storing the UTF-8 bytes in a byte array.
   // When the corresponding String is requested, we ditch the array and just
   // store the String.
+  // The StringSharer pass ensures many identical Strings in Utf8Constants are shared. To preserve
+  // this, the String is never converted back to byte arrays.
 
   // private int u2length;
   private byte[] bytes;
@@ -54,9 +56,10 @@ public class Utf8Constant extends Constant {
 
   /** Returns the UTF-8 data as an array of bytes. */
   public byte[] getBytes() {
-    switchToByteArrayRepresentation();
-
-    return bytes;
+    if (bytes != null) {
+      return bytes;
+    }
+    return StringUtil.getModifiedUtf8Bytes(string);
   }
 
   /** Initializes the UTF-8 data with a String. */
@@ -90,14 +93,6 @@ public class Utf8Constant extends Constant {
   }
 
   // Small utility methods.
-
-  /** Switches to a byte array representation of the UTF-8 data. */
-  private void switchToByteArrayRepresentation() {
-    if (bytes == null) {
-      bytes = StringUtil.getModifiedUtf8Bytes(string);
-      string = null;
-    }
-  }
 
   /** Switches to a String representation of the UTF-8 data. */
   private void switchToStringRepresentation() {
