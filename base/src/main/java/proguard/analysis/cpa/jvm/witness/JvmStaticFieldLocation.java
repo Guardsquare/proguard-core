@@ -23,8 +23,6 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * The {@link JvmStaticFieldLocation} is a memory location corresponding to a public static field.
- *
- * @author Dmitry Ivanov
  */
 public class JvmStaticFieldLocation extends JvmMemoryLocation {
 
@@ -42,9 +40,9 @@ public class JvmStaticFieldLocation extends JvmMemoryLocation {
   // implementations for MemoryLocation
 
   @Override
-  public <T extends LatticeAbstractState> T extractValueOrDefault(
-      JvmAbstractState abstractState, T defaultValue) {
-    return (T) abstractState.getStaticOrDefault(fqn, defaultValue);
+  public <T extends LatticeAbstractState<T>> T extractValueOrDefault(
+      JvmAbstractState<T> jvmState, T defaultValue) {
+    return jvmState.getStaticOrDefault(fqn, defaultValue);
   }
 
   // implementations for Object

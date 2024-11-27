@@ -21,6 +21,12 @@
 - Move classes related to `Model` to the `proguard.evaluation.value.object.model` package.
 - `StringSharer` now uses a string pool to share strings, instead of traversing references.
 
+### API changes for the dataflow analysis code
+There are several changes to the dataflow analysis code with the objective of eliminating unnecessary abstraction and 
+make its usage easier. This includes:
+- Remove `MemoryLocation`, use `JvmMemoryLocation` instead.
+- Make `JvmMemoryLocation` independent of the type of value contained in the analysis' state. The type of the value now needs only to be provided when calling `extractValueOrDefault`. 
+
 ## Version 9.1.6
 
 ### Java support

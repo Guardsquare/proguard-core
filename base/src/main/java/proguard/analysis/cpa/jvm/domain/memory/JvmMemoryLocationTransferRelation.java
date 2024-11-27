@@ -39,7 +39,6 @@ import proguard.analysis.cpa.bam.BlockAbstraction;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.defaults.MemoryLocation;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -85,7 +84,7 @@ import proguard.exception.ProguardCoreException;
 /**
  * The {@link JvmMemoryLocationTransferRelation} computes the backward successors of an {@link
  * JvmMemoryLocationAbstractState} for a given instruction. A backward successor is a memory
- * location which may have contributed to the value of the current {@link MemoryLocation}.
+ * location which may have contributed to the value of the current {@link JvmMemoryLocation}.
  *
  * <p>The transfer relation uses a {@link BamCache} containing the results of an analysis in order
  * to calculate the successors {@link JvmMemoryLocationAbstractState}:

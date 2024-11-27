@@ -26,11 +26,7 @@ import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
-/**
- * The {@link JvmHeapLocation} is a memory location corresponding to a dynamic memory entity.
- *
- * @author Dmitry Ivanov
- */
+/** The {@link JvmHeapLocation} is a memory location corresponding to a dynamic memory entity. */
 public class JvmHeapLocation extends JvmMemoryLocation {
 
   public final SetAbstractState<Reference> reference;
@@ -49,9 +45,9 @@ public class JvmHeapLocation extends JvmMemoryLocation {
   // implementations for MemoryLocation
 
   @Override
-  public <T extends LatticeAbstractState> T extractValueOrDefault(
-      JvmAbstractState abstractState, T defaultValue) {
-    return (T) abstractState.getHeap().getFieldOrDefault(reference, field, defaultValue);
+  public <T extends LatticeAbstractState<T>> T extractValueOrDefault(
+      JvmAbstractState<T> jvmState, T defaultValue) {
+    return jvmState.getHeap().getFieldOrDefault(reference, field, defaultValue);
   }
 
   // implementations for Object

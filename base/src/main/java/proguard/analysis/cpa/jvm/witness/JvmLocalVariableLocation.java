@@ -22,11 +22,7 @@ import java.util.Objects;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
-/**
- * The {@link JvmLocalVariableLocation} is a memory location at the local variable array.
- *
- * @author Dmitry Ivanov
- */
+/** The {@link JvmLocalVariableLocation} is a memory location at the local variable array. */
 public class JvmLocalVariableLocation extends JvmMemoryLocation {
 
   public final int index;
@@ -43,9 +39,9 @@ public class JvmLocalVariableLocation extends JvmMemoryLocation {
   // implementations for MemoryLocation
 
   @Override
-  public <T extends LatticeAbstractState> T extractValueOrDefault(
-      JvmAbstractState abstractState, T defaultValue) {
-    return (T) abstractState.getVariableOrDefault(index, defaultValue);
+  public <T extends LatticeAbstractState<T>> T extractValueOrDefault(
+      JvmAbstractState<T> jvmState, T defaultValue) {
+    return jvmState.getVariableOrDefault(index, defaultValue);
   }
 
   // implementations for Object

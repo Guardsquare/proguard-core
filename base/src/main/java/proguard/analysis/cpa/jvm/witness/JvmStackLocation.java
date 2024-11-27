@@ -25,8 +25,6 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 /**
  * The {@link JvmStackLocation} is a memory location at the operand stack. Indexing starts from the
  * top of the stack.
- *
- * @author Dmitry Ivanov
  */
 public class JvmStackLocation extends JvmMemoryLocation {
 
@@ -44,9 +42,9 @@ public class JvmStackLocation extends JvmMemoryLocation {
   // implementations for MemoryLocation
 
   @Override
-  public <T extends LatticeAbstractState> T extractValueOrDefault(
-      JvmAbstractState abstractState, T defaultValue) {
-    return (T) abstractState.peekOrDefault(index, defaultValue);
+  public <T extends LatticeAbstractState<T>> T extractValueOrDefault(
+      JvmAbstractState<T> jvmState, T defaultValue) {
+    return jvmState.peekOrDefault(index, defaultValue);
   }
 
   /** Returns the stack index from the top. */

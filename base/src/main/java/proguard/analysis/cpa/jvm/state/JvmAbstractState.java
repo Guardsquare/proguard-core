@@ -32,7 +32,9 @@ import proguard.classfile.MethodSignature;
  * The {@link JvmAbstractState} consists of the method frame {@link JvmFrameAbstractState} and the
  * heap {@link JvmHeapAbstractState}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the states contained in the JVM state. e.g., for taint analysis this
+ *     would be a {@link proguard.analysis.cpa.defaults.SetAbstractState} containing the taints and
+ *     for value analysis a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState}.
  */
 public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     implements LatticeAbstractState<JvmAbstractState<StateT>>,
