@@ -175,7 +175,7 @@ public class StringSharer
       kotlinClassKindMetadata.className = kotlinClassKindMetadata.referencedClass.getName();
     }
 
-    if (kotlinClassKindMetadata.referencedCompanionClass != null) {
+    if (kotlinClassKindMetadata.referencedCompanionField != null) {
       kotlinClassKindMetadata.companionObjectName =
           kotlinClassKindMetadata.referencedCompanionField.getName(clazz);
     }
