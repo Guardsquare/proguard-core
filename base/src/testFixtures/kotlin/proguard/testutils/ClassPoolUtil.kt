@@ -1,6 +1,7 @@
 package proguard.testutils
 
 import proguard.classfile.ClassPool
+import proguard.classfile.Clazz
 import proguard.classfile.util.ClassPoolClassLoader
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
@@ -40,4 +41,21 @@ fun runClassPool(programClassPool: ClassPool, mainClass: String, args: Array<Str
     } catch (e: ClassNotFoundException) {
         throw RuntimeException(e)
     }
+}
+
+/**
+ * Runs the specified method of the provided class.
+ * This can be used to ensure the bytecode is deemed valid by the JVM.
+ * TODO: Currently, only methods without parameters are supported.
+ *
+ * @param methodName Name of the method to be executed.
+ */
+fun Clazz.runMethod(methodName: String): Any? {
+    val testClassPool = ClassPool(this)
+    return testClassPool.runMethodOf(this.name, methodName)
+}
+
+fun ClassPool.runMethodOf(cls: String, methodName: String): Any? {
+    val clazz = ClassPoolClassLoader(this).loadClass(cls)
+    return clazz.getDeclaredMethod(methodName).invoke(null)
 }
