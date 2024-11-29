@@ -126,6 +126,9 @@ public class KotlinModuleIntegrity
                 if (mfp != null) {
                   util.reportIfNull(
                       "referenced multi-file part for '" + mfpName + "'", mfp.ownerReferencedClass);
+                  util.reportIfNull(
+                      "referenced multi-file part for '" + mfpName + "'",
+                      mfp.referencedFacadeClass);
                 }
               });
         });
