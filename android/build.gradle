@@ -14,20 +14,20 @@ dependencies {
 	api project(":proguard-core")
 	implementation 'com.android.tools:r8:3.3.75'
 
-	implementation 'org.jetbrains:annotations:24.0.0'
+	implementation 'org.jetbrains:annotations:26.0.1'
 
 	testImplementation(testFixtures(project(":proguard-core")))
 	testFixturesImplementation(testFixtures(project(":proguard-core")))
 
 	testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
 	testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-	testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.7.2' // for kotest framework
-	testImplementation 'io.kotest:kotest-assertions-core-jvm:5.7.2' // for kotest core jvm assertions
-	testImplementation 'io.kotest:kotest-property-jvm:5.7.2' // for kotest property test
-	testImplementation 'io.kotest:kotest-framework-datatest:5.7.2'
-	testImplementation 'io.mockk:mockk:1.13.12' // for mocking
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3' // for junit framework
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3' // for junit framework
+	testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.9.1' // for kotest framework
+	testImplementation 'io.kotest:kotest-assertions-core-jvm:5.9.1' // for kotest core jvm assertions
+	testImplementation 'io.kotest:kotest-property-jvm:5.9.1' // for kotest property test
+	testImplementation 'io.kotest:kotest-framework-datatest:5.9.1'
+	testImplementation 'io.mockk:mockk:1.13.13' // for mocking
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.3' // for junit framework
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.3' // for junit framework
 
 	testFixturesImplementation 'org.smali:smali:2.5.2'
 }

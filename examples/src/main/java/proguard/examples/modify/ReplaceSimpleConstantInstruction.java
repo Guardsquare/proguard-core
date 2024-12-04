@@ -26,7 +26,9 @@ public class ReplaceSimpleConstantInstruction {
   private static final String METHOD_TYPE_PRINTLN = "(Ljava/lang/String;)V";
 
   public static void main(String[] args)
-      throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+      throws ClassNotFoundException,
+          NoSuchMethodException,
+          InvocationTargetException,
           IllegalAccessException {
     // Create a sample class by re-using the CreateHelloWorldClass example
     ProgramClass helloWorld =

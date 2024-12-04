@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
 	implementation(project(":proguard-core-android"))
-	implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
+	implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
 	implementation 'org.smali:smali:2.5.2'
 }
 

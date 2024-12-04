@@ -79,7 +79,9 @@ public class ExampleUtil {
       String methodName,
       Class<?>[] parameterTypes,
       Object[] arguments)
-      throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+      throws ClassNotFoundException,
+          NoSuchMethodException,
+          InvocationTargetException,
           IllegalAccessException {
     ClassPoolClassLoader classPoolClassLoader = new ClassPoolClassLoader(classPool);
     Class<?> clazz = classPoolClassLoader.findClass(ClassUtil.externalClassName(internalClassName));

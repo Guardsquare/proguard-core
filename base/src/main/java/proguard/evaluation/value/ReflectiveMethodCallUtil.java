@@ -177,8 +177,11 @@ public class ReflectiveMethodCallUtil {
   /** Reflectively call the constructor of className with the given parameters. */
   public static Object callConstructor(
       String className, Class<?>[] parameterClasses, Object[] parameterObjects)
-      throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-          InvocationTargetException, InstantiationException {
+      throws ClassNotFoundException,
+          NoSuchMethodException,
+          IllegalAccessException,
+          InvocationTargetException,
+          InstantiationException {
     Class<?> baseClass = Class.forName(className);
     Constructor<?> constructor = baseClass.getConstructor(parameterClasses);
     return constructor.newInstance(parameterObjects);
@@ -193,7 +196,9 @@ public class ReflectiveMethodCallUtil {
       Object instance,
       Class<?>[] parameterClasses,
       Object[] parameterObjects)
-      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException,
+      throws InvocationTargetException,
+          IllegalAccessException,
+          NoSuchMethodException,
           ClassNotFoundException {
     Class<?> baseClass = Class.forName(className);
     Method method = baseClass.getMethod(methodName, parameterClasses);

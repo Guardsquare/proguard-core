@@ -23,7 +23,10 @@ import proguard.classfile.visitor.MemberNameFilter;
  */
 public class DebugStackTop {
   public static void main(String[] args)
-      throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+      throws IOException,
+          ClassNotFoundException,
+          NoSuchMethodException,
+          InvocationTargetException,
           IllegalAccessException {
     // Load the example class into a ClassPool.
     // The example has a method "foo(String)" which

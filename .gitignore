@@ -5,3 +5,4 @@ build
 /docs/md/api/
 /docs/html/
 /venv/
+.kotlin/sessions/

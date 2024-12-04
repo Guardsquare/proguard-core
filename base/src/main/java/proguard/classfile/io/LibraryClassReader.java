@@ -641,7 +641,7 @@ public class LibraryClassReader implements ClassVisitor, MemberVisitor, Constant
     @Override
     public void visitAnnotationElementValue(
         Clazz clazz, Annotation annotation, AnnotationElementValue annotationElementValue) {
-      skipAnnotationRemainingBytes(/* readTypeIndex = */ true, clazz, new Annotation());
+      skipAnnotationRemainingBytes(/* readTypeIndex= */ true, clazz, new Annotation());
     }
 
     @Override
