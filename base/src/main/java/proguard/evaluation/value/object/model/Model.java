@@ -1,4 +1,4 @@
-package proguard.evaluation.value.object;
+package proguard.evaluation.value.object.model;
 
 import org.jetbrains.annotations.NotNull;
 import proguard.evaluation.MethodResult;

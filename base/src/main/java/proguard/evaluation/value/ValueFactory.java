@@ -26,6 +26,7 @@ import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.value.object.AnalyzedObject;
+import proguard.evaluation.value.object.model.Model;
 
 /** This interface provides methods to create {@link Value} instances. */
 public interface ValueFactory {
@@ -116,7 +117,7 @@ public interface ValueFactory {
    * null</code>.
    *
    * <p>The object wrapped by {@link AnalyzedObject} is either the value of the reference during
-   * execution or a {@link proguard.evaluation.value.object.Model} of it.
+   * execution or a {@link Model} of it.
    */
   default ReferenceValue createReferenceValue(
       Clazz referencedClass,
@@ -169,7 +170,7 @@ public interface ValueFactory {
    * </code>, the ReferenceValue represents <code>null</code>.
    *
    * <p>The object wrapped by {@link AnalyzedObject} is either the value of the reference during
-   * execution or a {@link proguard.evaluation.value.object.Model} of it.
+   * execution or a {@link Model} of it.
    */
   default ReferenceValue createReferenceValue(
       Clazz referencedClass,
@@ -225,7 +226,7 @@ public interface ValueFactory {
    * ReferenceValue represents <code>null</code>.
    *
    * <p>The object wrapped by {@link AnalyzedObject} is either the value of the reference during
-   * execution or a {@link proguard.evaluation.value.object.Model} of it.
+   * execution or a {@link Model} of it.
    */
   default ReferenceValue createReferenceValueForId(
       Clazz referencedClass,

@@ -1,4 +1,4 @@
-package proguard.evaluation.value.object;
+package proguard.evaluation.value.object.model;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -15,7 +15,7 @@ public class ArrayModel implements Model {
   private final Value[] values;
   private final String type;
 
-  ArrayModel(Value[] values, String type) {
+  public ArrayModel(Value[] values, String type) {
 
     this.values = values;
     this.type = type;

@@ -21,7 +21,7 @@ import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.ParticularValueFactory
-import proguard.evaluation.value.`object`.ClassModel
+import proguard.evaluation.value.`object`.model.ClassModel
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.RequiresJavaVersion

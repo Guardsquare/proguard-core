@@ -22,7 +22,7 @@ import proguard.classfile.constant.ClassConstant;
 import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.ValueFactory;
 import proguard.evaluation.value.object.AnalyzedObjectFactory;
-import proguard.evaluation.value.object.ClassModel;
+import proguard.evaluation.value.object.model.ClassModel;
 
 /**
  * This {@link ConstantValueFactory} creates <code>java.lang.Class</code> {@link ReferenceValue}

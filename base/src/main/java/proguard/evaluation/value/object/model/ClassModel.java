@@ -1,4 +1,4 @@
-package proguard.evaluation.value.object;
+package proguard.evaluation.value.object.model;
 
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -7,11 +7,23 @@ import proguard.classfile.Clazz;
 import proguard.evaluation.MethodResult;
 import proguard.evaluation.ValueCalculator;
 import proguard.evaluation.executor.MethodExecutionInfo;
+import proguard.evaluation.value.object.model.reflective.ModelHelper;
+import proguard.evaluation.value.object.model.reflective.ModeledInstanceMethod;
+import proguard.evaluation.value.object.model.reflective.ReflectiveModel;
 
 /** A {@link Model} to track specific Clazz constants. */
-public class ClassModel implements Model {
+public class ClassModel implements ReflectiveModel<ClassModel> {
 
   private final Clazz clazz;
+
+  /**
+   * Mandatory no-argument constructor.
+   *
+   * @see ModelHelper#getDummyObject(Class)
+   */
+  private ClassModel() {
+    this.clazz = null;
+  }
 
   public ClassModel(Clazz clazz) {
     this.clazz = clazz;
@@ -31,17 +43,23 @@ public class ClassModel implements Model {
   }
 
   @Override
-  public MethodResult invoke(
-      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
-    throw new UnsupportedOperationException(
-        "Instance method invocation is not supported in ClassModel");
-  }
-
-  @Override
   public MethodResult invokeStatic(
       MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
     throw new UnsupportedOperationException(
         "Static method invocation is not supported in ClassModel");
+  }
+
+  /** Models {@link Class#getSuperclass()}. */
+  @ModeledInstanceMethod(name = "getSuperclass", descriptor = "()Ljava/lang/Class;")
+  private MethodResult getSuperclass(ModelHelper.MethodExecutionContext context) {
+    if (clazz == null) {
+      return MethodResult.invalidResult();
+    }
+    Clazz superClass = clazz.getSuperClass();
+    if (superClass == null) {
+      return MethodResult.invalidResult();
+    }
+    return ModelHelper.createDefaultReturnResult(context, new ClassModel(clazz.getSuperClass()));
   }
 
   @Override

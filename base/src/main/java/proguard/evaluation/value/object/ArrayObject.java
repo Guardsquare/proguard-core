@@ -2,6 +2,8 @@ package proguard.evaluation.value.object;
 
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import proguard.evaluation.value.object.model.ArrayModel;
+import proguard.evaluation.value.object.model.Model;
 
 /** A {@link AnalyzedObject} which models arrays with a {@link ArrayModel}. */
 class ArrayObject implements AnalyzedObject {

@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.InitializedClassUtil;
+import proguard.evaluation.value.object.model.Model;
 
 /**
  * A class wrapping values calculated during an analysis.

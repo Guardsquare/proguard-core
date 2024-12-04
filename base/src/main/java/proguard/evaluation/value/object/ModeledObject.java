@@ -2,6 +2,7 @@ package proguard.evaluation.value.object;
 
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import proguard.evaluation.value.object.model.Model;
 
 /**
  * A {@link AnalyzedObject} wrapping a {@link Model}. This can be used to track a model of a value

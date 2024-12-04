@@ -28,6 +28,7 @@ import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.JavaVersionConstants;
 import proguard.classfile.TypeConstants;
 import proguard.classfile.VersionConstants;
+import proguard.evaluation.value.Value;
 
 /**
  * Utility methods for:
@@ -725,6 +726,28 @@ public class ClassUtil {
     int index2 = internalClassName.lastIndexOf(TypeConstants.INNER_CLASS_SEPARATOR);
 
     return internalClassName.substring(Math.max(index1, index2) + 1);
+  }
+
+  /**
+   * The internal primitive type computational type.
+   *
+   * @param internalPrimitiveType an internal primitive type (e.g., "Z")
+   * @return the int representing the type internally (from the constants in {@link Value}).
+   */
+  public static int internalPrimitiveTypeToComputationalType(String internalPrimitiveType) {
+    switch (internalPrimitiveType) {
+      case "I":
+      case "Z":
+        return Value.TYPE_INTEGER;
+      case "J":
+        return Value.TYPE_LONG;
+      case "D":
+        return Value.TYPE_DOUBLE;
+      case "F":
+        return Value.TYPE_FLOAT;
+      default:
+        return Value.TYPE_UNKNOWN;
+    }
   }
 
   /**

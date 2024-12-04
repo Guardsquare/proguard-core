@@ -23,7 +23,7 @@ import proguard.evaluation.MethodResult;
 import proguard.evaluation.ValueCalculator;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
-import proguard.evaluation.value.object.ClassModel;
+import proguard.evaluation.value.object.model.ClassModel;
 import proguard.exception.ProguardCoreException;
 
 /**

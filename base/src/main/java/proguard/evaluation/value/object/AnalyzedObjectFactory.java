@@ -9,6 +9,8 @@ import proguard.classfile.util.ClassUtil;
 import proguard.classfile.util.InitializedClassUtil;
 import proguard.evaluation.value.ParticularReferenceValue;
 import proguard.evaluation.value.Value;
+import proguard.evaluation.value.object.model.ArrayModel;
+import proguard.evaluation.value.object.model.Model;
 
 /** Factory methods to create {@link AnalyzedObject}. */
 public class AnalyzedObjectFactory {

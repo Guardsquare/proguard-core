@@ -12,12 +12,17 @@
 
 - `InstructionSequenceMatcher` now supports matching of primitive array constants.
 - Support propagation of extra specified taints in `JvmTaintTransferRelation`.
+- Introduce `ReflectiveModel` and `ReflectiveModelExecutor` to simplify the creation and analysis of `Model`s.
 
 ### API improvements
 
 - Rename `CallVisitor` to `CallHandler` and add extra parameters to handle calls accounting for more data.
 - Add `ClassUtil.isClassInitializer(String)` and `ClassUtil.isInstanceInitializer(String)`.
 - Extend `MemberCollectionFilter` to accept a `Set` of any subtype of `Member`.
+
+### API changes
+
+- Move classes related to `Model` to the `proguard.evaluation.value.object.model` package.
 
 ## Version 9.1.6
 

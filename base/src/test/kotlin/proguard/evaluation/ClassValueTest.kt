@@ -9,7 +9,7 @@ import proguard.classfile.attribute.visitor.AttributeNameFilter
 import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.ParticularValueFactory
-import proguard.evaluation.value.`object`.ClassModel
+import proguard.evaluation.value.`object`.model.ClassModel
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 

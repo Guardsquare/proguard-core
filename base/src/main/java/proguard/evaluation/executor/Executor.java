@@ -24,6 +24,7 @@ import proguard.evaluation.ExecutingInvocationUnit;
 import proguard.evaluation.MethodResult;
 import proguard.evaluation.ValueCalculator;
 import proguard.evaluation.value.Value;
+import proguard.evaluation.value.object.model.Model;
 
 /**
  * This abstract class specifies a modular component which can be added to a {@link
@@ -39,11 +40,10 @@ public interface Executor {
    *
    * @param methodData Information about the called method.
    * @param valueCalculator a function mapping the result of a method invocation (can be an Object
-   *     with the result if the executor calculates a real value or a {@link
-   *     proguard.evaluation.value.object.Model}) to the appropriate {@link Value} used by the
-   *     analysis. Should also be used to create values of unknown value since the executor might be
-   *     able to provide additional information on them even if the value itself is not known (e.g.,
-   *     on the identifier of the returned value).
+   *     with the result if the executor calculates a real value or a {@link Model}) to the
+   *     appropriate {@link Value} used by the analysis. Should also be used to create values of
+   *     unknown value since the executor might be able to provide additional information on them
+   *     even if the value itself is not known (e.g., on the identifier of the returned value).
    * @return The result of the method call, including information on the returned value or values or
    *     arguments on which side effects happened during the method execution. If the executor is
    *     not able to provide any additional information for any reason the returned value should be

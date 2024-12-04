@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.value.Value;
-import proguard.evaluation.value.object.Model;
+import proguard.evaluation.value.object.model.Model;
 
 /**
  * This functional interface can be used to specify a way of creating {@link Value}s given a series

@@ -75,7 +75,7 @@ import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 import proguard.evaluation.value.object.AnalyzedObject;
 import proguard.evaluation.value.object.AnalyzedObjectFactory;
-import proguard.evaluation.value.object.Model;
+import proguard.evaluation.value.object.model.Model;
 import proguard.util.PartialEvaluatorUtils;
 
 /**
