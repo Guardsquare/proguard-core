@@ -16,73 +16,92 @@ import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
 /**
- * This utility class finds the offset of the invocation to the current or super class constructor after visiting
- * an <init> method.
+ * This utility class finds the offset of the invocation to the current or super class constructor
+ * after visiting an <init> method.
  *
  * @author Kymeng Tang
  */
-
 public class ConstructorInvocationOffsetFinder implements MemberVisitor {
-    private int initOffset = -1;
+  private int initOffset = -1;
 
-    public int getConstructorCallOffset() {
-        assert initOffset != -1 :
-            "The constructor invocation offset is being requested before visiting any <init> member " +
-            "after instantiation or resetting.";
-        return initOffset;
-    }
+  public int getConstructorCallOffset() {
+    assert initOffset != -1
+        : "The constructor invocation offset is being requested before visiting any <init> member "
+            + "after instantiation or resetting.";
+    return initOffset;
+  }
 
-    public void reset() {
-        this.initOffset = -1;
-    }
+  public void reset() {
+    this.initOffset = -1;
+  }
 
-    // MemberVisitor implementation
+  // MemberVisitor implementation
+  @Override
+  public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+    assert programMethod.getName(programClass).equals(ClassConstants.METHOD_NAME_INIT)
+        : this.getClass().getName()
+            + " only supports constructor but "
+            + programClass.getName()
+            + "."
+            + programMethod.getName(programClass)
+            + programMethod.getDescriptor(programClass)
+            + " is being visited.";
+
+    assert initOffset == -1
+        : "This instance of "
+            + this.getClass().getName()
+            + " has already visited an <init> member; "
+            + "To avoid overriding the previously found offset, please store the return value of "
+            + "getConstructorCallOffset(), and call reset() method.";
+
+    programMethod.attributesAccept(
+        programClass, new AttributeNameFilter(Attribute.CODE, new ConstructorOffsetFinderImpl()));
+  }
+
+  private class ConstructorOffsetFinderImpl
+      implements AttributeVisitor, InstructionVisitor, ConstantVisitor {
+    // AttributeVisitor implementation
     @Override
-    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
-        assert programMethod.getName(programClass).equals(ClassConstants.METHOD_NAME_INIT) :
-            this.getClass().getName() + " only supports constructor but " + programClass.getName() +
-            "." + programMethod.getName(programClass) + programMethod.getDescriptor(programClass) +
-            " is being visited.";
+    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
-        assert initOffset == -1 :
-            "This instance of " + this.getClass().getName() + " has already visited an <init> member; " +
-            "To avoid overriding the previously found offset, please store the return value of " +
-            "getConstructorCallOffset(), and call reset() method.";
-
-        programMethod.attributesAccept(programClass,
-            new AttributeNameFilter(Attribute.CODE,
-            new ConstructorOffsetFinderImpl()));
+    @Override
+    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+      codeAttribute.accept(
+          clazz,
+          method,
+          new AllInstructionVisitor(
+              new InstructionOpCodeFilter(new int[] {Instruction.OP_INVOKESPECIAL}, this)));
     }
 
-    private class ConstructorOffsetFinderImpl implements AttributeVisitor, InstructionVisitor, ConstantVisitor {
-        // AttributeVisitor implementation
-        @Override
-        public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+    // InstructionVisitor implementation
+    @Override
+    public void visitAnyInstruction(
+        Clazz clazz,
+        Method method,
+        CodeAttribute codeAttribute,
+        int offset,
+        Instruction instruction) {}
 
-        @Override
-        public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
-            codeAttribute.accept(clazz, method,
-                new AllInstructionVisitor(
-                new InstructionOpCodeFilter(new int[] {Instruction.OP_INVOKESPECIAL}, this)));
-        }
+    @Override
+    public void visitConstantInstruction(
+        Clazz clazz,
+        Method method,
+        CodeAttribute codeAttribute,
+        int offset,
+        ConstantInstruction constantInstruction) {
+      clazz.constantPoolEntryAccept(
+          constantInstruction.constantIndex,
+          new ConstantVisitor() {
+            @Override
+            public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-        // InstructionVisitor implementation
-        @Override
-        public void visitAnyInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, Instruction instruction) {}
-
-        @Override
-        public void visitConstantInstruction(Clazz clazz, Method method, CodeAttribute codeAttribute, int offset, ConstantInstruction constantInstruction) {
-            clazz.constantPoolEntryAccept(constantInstruction.constantIndex, new ConstantVisitor() {
-                @Override
-                public void visitAnyConstant(Clazz clazz, Constant constant) {}
-
-                @Override
-                public void visitMethodrefConstant(Clazz clazz, MethodrefConstant methodrefConstant) {
-                    if (methodrefConstant.getName(clazz).equals(ClassConstants.METHOD_NAME_INIT)) {
-                        initOffset = offset;
-                    }
-                }
-            });
-        }
+            @Override
+            public void visitMethodrefConstant(Clazz clazz, MethodrefConstant methodrefConstant) {
+              if (methodrefConstant.getName(clazz).equals(ClassConstants.METHOD_NAME_INIT)) {
+                initOffset = offset;
+              }
+            }
+          });
     }
+  }
 }
