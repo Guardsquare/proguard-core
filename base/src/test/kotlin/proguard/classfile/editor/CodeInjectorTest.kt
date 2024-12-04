@@ -69,17 +69,22 @@ class CodeInjectorTest : BehaviorSpec({
                 val renderedMethod = StringWriter()
                 targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
 
-                renderedMethod.toString() shouldContain Regex("""
+                renderedMethod.toString() shouldContain Regex(
+                    """
                     \s*\[0\] invokestatic #\d+ = Methodref\(InjectContent\.log\(\)V\)
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
 
         When("Injecting InjectContent.logPrimitive(...) into static method InjectTarget.main()") {
             val targetMethod = injectTargetClass.findMethod("main", "([Ljava/lang/String;)V") as ProgramMethod
             CodeInjector()
-                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logPrimitive", "(ID)V"),
-                    ConstantPrimitive(99), ConstantPrimitive(42.24)
+                .injectInvokeStatic(
+                    injectContentClass,
+                    injectContentClass.findMethod("logPrimitive", "(ID)V"),
+                    ConstantPrimitive(99),
+                    ConstantPrimitive(42.24),
                 )
                 .into(injectTargetClass, targetMethod)
                 .at(FirstBlock())
@@ -89,19 +94,23 @@ class CodeInjectorTest : BehaviorSpec({
                 val renderedMethod = StringWriter()
                 targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
 
-                renderedMethod.toString() shouldContain Regex("""
+                renderedMethod.toString() shouldContain Regex(
+                    """
                     \s*\[0\] bipush 99
                     \s*\[\d+\] ldc2_w #\d+ = Double\(42.24\)
                     \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logPrimitive\(ID\)V\)
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
 
         When("Injecting InjectContent.logString(...) into static method InjectTarget.main()") {
             val targetMethod = injectTargetClass.findMethod("main", "([Ljava/lang/String;)V") as ProgramMethod
             CodeInjector()
-                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logString", "(Ljava/lang/String;)V"),
-                    ConstantString("foo")
+                .injectInvokeStatic(
+                    injectContentClass,
+                    injectContentClass.findMethod("logString", "(Ljava/lang/String;)V"),
+                    ConstantString("foo"),
                 )
                 .into(injectTargetClass, targetMethod)
                 .at(FirstBlock())
@@ -111,18 +120,24 @@ class CodeInjectorTest : BehaviorSpec({
                 val renderedMethod = StringWriter()
                 targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
 
-                renderedMethod.toString() shouldContain Regex("""
+                renderedMethod.toString() shouldContain Regex(
+                    """
                     \s*\[0\] ldc #\d+ = String\("foo"\)
                     \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logString\(Ljava/lang/String;\)V\)
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
 
         When("Injecting InjectContent.logMixed(...) into static method InjectTarget.main()") {
             val targetMethod = injectTargetClass.findMethod("main", "([Ljava/lang/String;)V") as ProgramMethod
             CodeInjector()
-                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
-                    ConstantString("bar"), ConstantPrimitive(1), ConstantPrimitive(12.49)
+                .injectInvokeStatic(
+                    injectContentClass,
+                    injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
+                    ConstantString("bar"),
+                    ConstantPrimitive(1),
+                    ConstantPrimitive(12.49),
                 )
                 .into(injectTargetClass, targetMethod)
                 .at(FirstBlock())
@@ -132,20 +147,26 @@ class CodeInjectorTest : BehaviorSpec({
                 val renderedMethod = StringWriter()
                 targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
 
-                renderedMethod.toString() shouldContain Regex("""
+                renderedMethod.toString() shouldContain Regex(
+                    """
                     \s*\[0\] ldc #\d+ = String\("bar"\)
                     \s*\[\d+\] iconst_1
                     \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
                     \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
 
         When("Injecting InjectContent.logMixed(...) into instance method InjectTarget.instanceMethod()") {
             val instanceMethod = injectTargetClass.findMethod("instanceMethod", "()I") as ProgramMethod
             CodeInjector()
-                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
-                    ConstantString("bar"), ConstantPrimitive(1), ConstantPrimitive(12.49)
+                .injectInvokeStatic(
+                    injectContentClass,
+                    injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
+                    ConstantString("bar"),
+                    ConstantPrimitive(1),
+                    ConstantPrimitive(12.49),
                 )
                 .into(injectTargetClass, injectTargetClass.findMethod("instanceMethod", "()I") as ProgramMethod)
                 .at(FirstBlock())
@@ -155,20 +176,26 @@ class CodeInjectorTest : BehaviorSpec({
                 val renderedMethod = StringWriter()
                 instanceMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
 
-                renderedMethod.toString() shouldContain Regex("""
+                renderedMethod.toString() shouldContain Regex(
+                    """
                     \s*\[0\] ldc #\d+ = String\("bar"\)
                     \s*\[\d+\] iconst_1
                     \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
                     \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
 
         When("Injecting InjectContent.logMixed(...) into InjectTarget's default constructor") {
             val defaultConstructor = injectTargetClass.findMethod(ClassConstants.METHOD_NAME_INIT, ClassConstants.METHOD_TYPE_INIT) as ProgramMethod
             CodeInjector()
-                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
-                    ConstantString("bar"), ConstantPrimitive(1), ConstantPrimitive(12.49)
+                .injectInvokeStatic(
+                    injectContentClass,
+                    injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
+                    ConstantString("bar"),
+                    ConstantPrimitive(1),
+                    ConstantPrimitive(12.49),
                 )
                 .into(injectTargetClass, defaultConstructor)
                 .at(FirstBlock())
@@ -178,22 +205,28 @@ class CodeInjectorTest : BehaviorSpec({
                 val renderedMethod = StringWriter()
                 defaultConstructor.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
 
-                renderedMethod.toString() shouldContain Regex("""
+                renderedMethod.toString() shouldContain Regex(
+                    """
                     \s*\[0\] aload_0 v0
                     \s*\[1\] invokespecial #1 = Methodref\(java/lang/Object.<init>\(\)V\)
                     \s*\[\d+\] ldc #\d+ = String\("bar"\)
                     \s*\[\d+\] iconst_1
                     \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
                     \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
 
         When("Injecting InjectContent.logMixed(...) into InjectTarget's delegated constructor") {
             val delegatedConstructor = injectTargetClass.findMethod(ClassConstants.METHOD_NAME_INIT, "(IF)V") as ProgramMethod
             CodeInjector()
-                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
-                    ConstantString("bar"), ConstantPrimitive(1), ConstantPrimitive(12.49)
+                .injectInvokeStatic(
+                    injectContentClass,
+                    injectContentClass.findMethod("logMixed", "(Ljava/lang/String;ID)V"),
+                    ConstantString("bar"),
+                    ConstantPrimitive(1),
+                    ConstantPrimitive(12.49),
                 )
                 .into(injectTargetClass, delegatedConstructor)
                 .at(FirstBlock())
@@ -203,7 +236,8 @@ class CodeInjectorTest : BehaviorSpec({
                 val renderedMethod = StringWriter()
                 delegatedConstructor.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
 
-                renderedMethod.toString() shouldContain Regex("""
+                renderedMethod.toString() shouldContain Regex(
+                    """
                     \s*\[0\] aload_0 v0
                     \s*\[1\] iload_1 v1
                     \s*\[2\] invokespecial #\d+ = Methodref\(InjectionTarget.<init>\(I\)V\)
@@ -211,7 +245,8 @@ class CodeInjectorTest : BehaviorSpec({
                     \s*\[\d+\] iconst_1
                     \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
                     \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
     }
