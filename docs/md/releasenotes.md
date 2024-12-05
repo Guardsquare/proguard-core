@@ -1,5 +1,9 @@
 ## Version 9.1.7
 
+### Kotlin support
+
+- Update Kotlin dependency to 2.1.0.
+
 ### Bugfixes
 
 - Make sure injected initialization methods in interfaces have the correct access flags.
