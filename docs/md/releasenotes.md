@@ -19,6 +19,7 @@
 ### API changes
 
 - Move classes related to `Model` to the `proguard.evaluation.value.object.model` package.
+- `StringSharer` now uses a string pool to share strings, instead of traversing references.
 
 ## Version 9.1.6
 

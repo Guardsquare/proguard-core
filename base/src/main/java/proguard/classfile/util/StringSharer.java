@@ -17,8 +17,9 @@
  */
 package proguard.classfile.util;
 
+import java.util.HashMap;
+import java.util.Map;
 import proguard.classfile.*;
-import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
@@ -26,6 +27,7 @@ import proguard.classfile.kotlin.KotlinClassKindMetadata;
 import proguard.classfile.kotlin.KotlinMetadata;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.visitor.ClassVisitor;
+import proguard.classfile.visitor.MemberVisitor;
 
 /**
  * This {@link ClassVisitor} shares strings in the class files that it visits.
@@ -33,10 +35,21 @@ import proguard.classfile.visitor.ClassVisitor;
  * @author Eric Lafortune
  */
 public class StringSharer
-    implements ClassVisitor, ConstantVisitor, AttributeVisitor, KotlinMetadataVisitor {
-  // A fields acting as an argument for the visitor methods.
-  private String name;
-  private String type;
+    implements ClassVisitor,
+        MemberVisitor,
+        ConstantVisitor,
+        AttributeVisitor,
+        KotlinMetadataVisitor {
+  // We share strings using a string pool to ensure that all duplicates are removed.
+  private final Map<String, String> stringPool;
+
+  public StringSharer() {
+    stringPool = new HashMap<>();
+  }
+
+  public StringSharer(int initialStringPoolCapacity) {
+    stringPool = new HashMap<>(initialStringPoolCapacity);
+  }
 
   // Implementations for ClassVisitor.
 
@@ -51,138 +64,73 @@ public class StringSharer
     // Replace name strings in the constant pool by shared strings.
     programClass.constantPoolEntriesAccept(this);
 
-    // Replace attribute name strings in the constant pool by internalized
-    // strings.
-    programClass.attributesAccept(this);
-
     // Replace strings in Kotlin metadata.
     programClass.kotlinMetadataAccept(this);
   }
 
   @Override
   public void visitLibraryClass(LibraryClass libraryClass) {
-    // Replace the super class name string by the shared name string.
-    Clazz superClass = libraryClass.superClass;
-    if (superClass != null) {
-      libraryClass.superClassName = superClass.getName();
-    }
+    // Replace the super class name string with copies from the string pool.
+    libraryClass.superClassName = getFromStringPool(libraryClass.superClassName);
 
-    // Replace the interface name strings by the shared name strings.
+    // Replace the interface name strings with copies from the string pool.
     if (libraryClass.interfaceNames != null) {
       String[] interfaceNames = libraryClass.interfaceNames;
-      Clazz[] interfaceClasses = libraryClass.interfaceClasses;
 
       for (int index = 0; index < interfaceNames.length; index++) {
-        // Keep a reference to the interface class.
-        Clazz interfaceClass = interfaceClasses[index];
-        if (interfaceClass != null) {
-          interfaceNames[index] = interfaceClass.getName();
-        }
+        interfaceNames[index] = getFromStringPool(interfaceNames[index]);
       }
     }
+
+    // Share member names and descriptors.
+    libraryClass.fieldsAccept(this);
+    libraryClass.methodsAccept(this);
 
     // Replace strings in Kotlin metadata.
     libraryClass.kotlinMetadataAccept(this);
   }
 
+  // Implementations for MemberVisitor.
+
+  @Override
+  public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {
+    // Replace the name and descriptor with copies from the string pool.
+    libraryMember.name = getFromStringPool(libraryMember.name);
+    libraryMember.descriptor = getFromStringPool(libraryMember.descriptor);
+  }
+
   // Implementations for ConstantVisitor.
 
+  @Override
   public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
-  public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
-    Member referencedMember = stringConstant.referencedMember;
-    if (referencedMember != null) {
-      Clazz referencedClass = stringConstant.referencedClass;
-
-      // Put the actual class member's name in the class pool.
-      name = referencedMember.getName(referencedClass);
-      clazz.constantPoolEntryAccept(stringConstant.u2stringIndex, this);
-    }
-  }
-
-  public void visitFieldrefConstant(Clazz clazz, FieldrefConstant fieldrefConstant) {
-    Field referencedField = fieldrefConstant.referencedField;
-    if (referencedField != null) {
-      Clazz referencedClass = fieldrefConstant.referencedClass;
-
-      // Put the actual class field's name and type strings in the class
-      // pool.
-      name = referencedField.getName(referencedClass);
-      type = referencedField.getDescriptor(referencedClass);
-      clazz.constantPoolEntryAccept(fieldrefConstant.u2nameAndTypeIndex, this);
-    }
-  }
-
-  public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant) {
-    Method referencedMethod = anyMethodrefConstant.referencedMethod;
-    if (referencedMethod != null) {
-      Clazz referencedClass = anyMethodrefConstant.referencedClass;
-
-      // Put the actual class method's name and type strings in the class
-      // pool.
-      name = referencedMethod.getName(referencedClass);
-      type = referencedMethod.getDescriptor(referencedClass);
-      clazz.constantPoolEntryAccept(anyMethodrefConstant.u2nameAndTypeIndex, this);
-    }
-  }
-
-  public void visitNameAndTypeConstant(Clazz clazz, NameAndTypeConstant nameAndTypeConstant) {
-    if (name != null) {
-      // Put the actual class member's name and type strings in the class
-      // pool.
-      clazz.constantPoolEntryAccept(nameAndTypeConstant.u2nameIndex, this);
-      name = type;
-      clazz.constantPoolEntryAccept(nameAndTypeConstant.u2descriptorIndex, this);
-    }
-  }
-
-  public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
-    Clazz referencedClass = classConstant.referencedClass;
-    if (referencedClass != null) {
-      // Put the actual class's name string in the class pool.
-      name = referencedClass.getName();
-      clazz.constantPoolEntryAccept(classConstant.u2nameIndex, this);
-    }
-  }
-
+  @Override
   public void visitUtf8Constant(Clazz clazz, Utf8Constant utf8Constant) {
-    // Do we have a new string to put into this constant?
-    if (name != null) {
-      // Replace the string, if it's actually the same.
-      if (name.equals(utf8Constant.getString())) {
-        utf8Constant.setString(name);
-      }
-
-      name = null;
-    }
-  }
-
-  // Implementations for AttributeVisitor.
-
-  public void visitAnyAttribute(Clazz clazz, Attribute attribute) {
-    // Put the internalized attribute's name string in the class pool.
-    name = attribute.getAttributeName(clazz).intern();
-    clazz.constantPoolEntryAccept(attribute.u2attributeNameIndex, this);
+    // Replace the string with a copy from the string pool.
+    utf8Constant.setString(getFromStringPool(utf8Constant.getString()));
   }
 
   // Implementations for KotlinMetadataVisitor.
 
+  @Override
   public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
+  @Override
   public void visitKotlinClassMetadata(
       Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata) {
-    if (kotlinClassKindMetadata.referencedClass != null) {
-      kotlinClassKindMetadata.className = kotlinClassKindMetadata.referencedClass.getName();
-    }
+    kotlinClassKindMetadata.className = getFromStringPool(kotlinClassKindMetadata.className);
+    kotlinClassKindMetadata.companionObjectName =
+        getFromStringPool(kotlinClassKindMetadata.companionObjectName);
+    kotlinClassKindMetadata.anonymousObjectOriginName =
+        getFromStringPool(kotlinClassKindMetadata.anonymousObjectOriginName);
+  }
 
-    if (kotlinClassKindMetadata.referencedCompanionField != null) {
-      kotlinClassKindMetadata.companionObjectName =
-          kotlinClassKindMetadata.referencedCompanionField.getName(clazz);
-    }
-
-    if (kotlinClassKindMetadata.anonymousObjectOriginClass != null) {
-      kotlinClassKindMetadata.anonymousObjectOriginName =
-          kotlinClassKindMetadata.anonymousObjectOriginClass.getName();
-    }
+  /**
+   * Adds the given string to the string pool if it isn't already present, and returns a copy of the
+   * string from the string pool.
+   */
+  private String getFromStringPool(String newString) {
+    String existingString = stringPool.putIfAbsent(newString, newString);
+    return existingString != null ? existingString : newString;
   }
 }
