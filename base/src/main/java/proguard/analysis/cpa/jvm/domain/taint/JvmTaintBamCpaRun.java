@@ -23,39 +23,24 @@ import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_BAM_CPA_RUN_EXPAND_O
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_BAM_CPA_RUN_HEAP_MODEL_INVALID;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TAINT_BAM_CPA_RUN_INTRAPROCEDURAL_CPA_HEAP_MODEL_UNSUPPORTED;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
-import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
-import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
-import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.domain.reference.CompositeHeapJvmAbstractState;
-import proguard.analysis.cpa.jvm.domain.reference.CompositeHeapTransferRelation;
-import proguard.analysis.cpa.jvm.domain.reference.JvmCompositeHeapExpandOperator;
-import proguard.analysis.cpa.jvm.domain.reference.JvmCompositeHeapReduceOperator;
-import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
-import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceExpandOperator;
-import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceReduceOperator;
-import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceTransferRelation;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.analysis.cpa.jvm.state.heap.JvmForgetfulHeapAbstractState;
-import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode;
-import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapPrincipalAbstractState;
 import proguard.analysis.cpa.jvm.util.JvmBamCpaRun;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
@@ -72,12 +57,8 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
   private final MethodSignature mainMethodSignature;
   private final MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
       staticFieldMapAbstractStateFactory;
-  private final MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>
-      principalHeapMapAbstractStateFactory;
   private final MapAbstractStateFactory<String, SetAbstractState<Reference>>
       principalHeapNodeMapAbstractStateFactory;
-  private final MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
-      followerHeapMapAbstractStateFactory;
   private final MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
       followerHeapNodeMapAbstractStateFactory;
   private final Map<MethodSignature, JvmTaintTransformer> taintTransformers;
@@ -117,12 +98,8 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
       boolean reduceHeap,
       MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
           staticFieldMapAbstractStateFactory,
-      MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>
-          principalHeapMapAbstractStateFactory,
       MapAbstractStateFactory<String, SetAbstractState<Reference>>
           principalHeapNodeMapAbstractStateFactory,
-      MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
-          followerHeapMapAbstractStateFactory,
       MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
           followerHeapNodeMapAbstractStateFactory,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
@@ -131,9 +108,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     this.taintSources = taintSources;
     this.mainMethodSignature = mainMethodSignature;
     this.staticFieldMapAbstractStateFactory = staticFieldMapAbstractStateFactory;
-    this.principalHeapMapAbstractStateFactory = principalHeapMapAbstractStateFactory;
     this.principalHeapNodeMapAbstractStateFactory = principalHeapNodeMapAbstractStateFactory;
-    this.followerHeapMapAbstractStateFactory = followerHeapMapAbstractStateFactory;
     this.followerHeapNodeMapAbstractStateFactory = followerHeapNodeMapAbstractStateFactory;
     this.taintTransformers = taintTransformers;
     this.extraTaintPropagationLocations = extraTaintPropagationLocations;
@@ -146,18 +121,6 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     switch (heapModel) {
       case FORGETFUL:
         return new JvmTaintCpa(taintSources, taintTransformers, extraTaintPropagationLocations);
-      case TREE:
-      case TAINT_TREE:
-        AbstractDomain abstractDomain = new DelegateAbstractDomain<CompositeHeapJvmAbstractState>();
-        return new SimpleCpa(
-            abstractDomain,
-            new CompositeHeapTransferRelation(
-                Arrays.asList(
-                    new JvmReferenceTransferRelation(),
-                    new JvmTaintTransferRelation(
-                        JvmTaintCpa.createSourcesMap(taintSources), taintTransformers))),
-            new MergeJoinOperator(abstractDomain),
-            new StopJoinOperator(abstractDomain));
       default:
         throw new ProguardCoreException.Builder(
                 "Heap model %s is not supported by %s",
@@ -170,12 +133,6 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
   @Override
   public ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> createReduceOperator() {
     switch (heapModel) {
-      case TREE:
-      case TAINT_TREE:
-        return new JvmCompositeHeapReduceOperator(
-            Arrays.asList(
-                new JvmReferenceReduceOperator(reduceHeap),
-                new JvmTaintReduceOperator(reduceHeap)));
       case FORGETFUL:
         return new JvmTaintReduceOperator(reduceHeap, JvmTaintCpa.createSourcesMap(taintSources));
       default:
@@ -191,10 +148,6 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     switch (heapModel) {
       case FORGETFUL:
         return jvmExpandOperator;
-      case TREE:
-      case TAINT_TREE:
-        return new JvmCompositeHeapExpandOperator(
-            Arrays.asList(new JvmReferenceExpandOperator(cfa, reduceHeap), jvmExpandOperator));
       default:
         throw new ProguardCoreException.Builder(
                 "Heap model %s is not supported by %s",
@@ -220,37 +173,6 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
                     new JvmFrameAbstractState<>(),
                     new JvmForgetfulHeapAbstractState<>(SetAbstractState.bottom),
                     staticFieldMapAbstractStateFactory.createMapAbstractState()));
-      case TREE:
-      case TAINT_TREE:
-        JvmReferenceAbstractState principalState =
-            new JvmReferenceAbstractState(
-                cfa.getFunctionEntryNode(mainMethodSignature),
-                new JvmFrameAbstractState<>(),
-                new JvmTreeHeapPrincipalAbstractState(
-                    principalHeapMapAbstractStateFactory, principalHeapNodeMapAbstractStateFactory),
-                principalHeapNodeMapAbstractStateFactory.createMapAbstractState());
-        return (Collection<OuterAbstractStateT>)
-            Collections.singleton(
-                new CompositeHeapJvmAbstractState(
-                    Arrays.asList(
-                        principalState,
-                        new JvmTaintAbstractState(
-                            cfa.getFunctionEntryNode(mainMethodSignature),
-                            new JvmFrameAbstractState<>(),
-                            heapModel == HeapModel.TAINT_TREE
-                                ? new JvmTaintTreeHeapFollowerAbstractState(
-                                    principalState,
-                                    SetAbstractState.bottom,
-                                    followerHeapMapAbstractStateFactory.createMapAbstractState(),
-                                    followerHeapMapAbstractStateFactory,
-                                    followerHeapNodeMapAbstractStateFactory)
-                                : new JvmBasicTaintTreeHeapFollowerAbstractState(
-                                    principalState,
-                                    SetAbstractState.bottom,
-                                    followerHeapMapAbstractStateFactory.createMapAbstractState(),
-                                    followerHeapMapAbstractStateFactory,
-                                    followerHeapNodeMapAbstractStateFactory),
-                            staticFieldMapAbstractStateFactory.createMapAbstractState()))));
       default:
         throw new ProguardCoreException.Builder(
                 "Invalid heap model: %s", ANALYSIS_JVM_TAINT_BAM_CPA_RUN_HEAP_MODEL_INVALID)
@@ -269,12 +191,8 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     protected Set<? extends JvmTaintSource> taintSources = Collections.emptySet();
     protected MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
         staticFieldMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
-    protected MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>
-        principalHeapMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
     protected MapAbstractStateFactory<String, SetAbstractState<Reference>>
         principalHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
-    protected MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
-        followerHeapMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
     protected MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
         followerHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
 
@@ -302,9 +220,7 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
           abortOperator,
           reduceHeap,
           staticFieldMapAbstractStateFactory,
-          principalHeapMapAbstractStateFactory,
           principalHeapNodeMapAbstractStateFactory,
-          followerHeapMapAbstractStateFactory,
           followerHeapNodeMapAbstractStateFactory,
           taintTransformers,
           extraTaintPropagationLocations);
@@ -356,17 +272,6 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
     }
 
     /**
-     * Sets the map abstract state factory used for constructing the mapping from references to
-     * objects in the principal heap model.
-     */
-    public Builder setPrincipalHeapMapAbstractStateFactory(
-        MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>
-            principalHeapMapAbstractStateFactory) {
-      this.principalHeapMapAbstractStateFactory = principalHeapMapAbstractStateFactory;
-      return this;
-    }
-
-    /**
      * Sets the map abstract state factory used for constructing the mapping from fields to values
      * in the principal heap model.
      */
@@ -374,17 +279,6 @@ public class JvmTaintBamCpaRun<OuterAbstractStateT extends AbstractState>
         MapAbstractStateFactory<String, SetAbstractState<Reference>>
             principalHeapNodeMapAbstractStateFactory) {
       this.principalHeapNodeMapAbstractStateFactory = principalHeapNodeMapAbstractStateFactory;
-      return this;
-    }
-
-    /**
-     * Sets the map abstract state factory used for constructing the mapping from references to
-     * objects in the follower heap model.
-     */
-    public Builder setFollowerHeapMapAbstractStateFactory(
-        MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
-            followerHeapMapAbstractStateFactory) {
-      this.followerHeapMapAbstractStateFactory = followerHeapMapAbstractStateFactory;
       return this;
     }
 

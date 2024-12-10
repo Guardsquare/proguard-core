@@ -26,10 +26,6 @@ package proguard.analysis.cpa.jvm.state.heap;
 public enum HeapModel {
   /** a singleton heap model */
   FORGETFUL,
-  /** a heap model representing objects as reference graphs */
-  TREE,
   /** A shallow heap models objects as atomic abstract states. */
-  SHALLOW,
-  /** a taint tree heap model allowing to taint whole objects */
-  TAINT_TREE
+  SHALLOW
 }

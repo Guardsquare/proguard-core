@@ -34,9 +34,6 @@ import proguard.analysis.cpa.jvm.operators.JvmDefaultExpandOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
-import proguard.analysis.cpa.jvm.util.HeapUtil;
-import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
-import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.Signature;
 import proguard.classfile.instruction.Instruction;
@@ -106,43 +103,7 @@ public class JvmTaintExpandOperator
                   fqn -> fqnToValue.merge(fqn, newValue, SetAbstractState::join));
             });
     fqnToValue.forEach((fqn, value) -> result.setStatic(fqn, value, SetAbstractState.bottom));
-    if (!(result.getHeap() instanceof JvmTaintTreeHeapFollowerAbstractState)) {
-      return result;
-    }
-    // taint heap
-    JvmTaintTreeHeapFollowerAbstractState expandedHeap =
-        (JvmTaintTreeHeapFollowerAbstractState)
-            ((JvmTaintAbstractState) expandedInitialState).getHeap();
-    // taint static references
-    fqnToValue.forEach(
-        (key, value) ->
-            result.setObjectTaint(
-                expandedHeap.getReferenceAbstractState(new JvmStaticFieldLocation(key)), value));
-    // taint arguments
-    String descriptor = call.getTarget().descriptor.toString();
-    int parameterSize = call.getJvmArgumentSize();
-    Map<Integer, SetAbstractState<JvmTaintSource>> argToValue = new HashMap<>();
-    detectedSources.stream()
-        .filter(s -> !s.taintsArgs.isEmpty())
-        .forEach(
-            s -> {
-              SetAbstractState<JvmTaintSource> newValue = new SetAbstractState<>(s);
-              s.taintsArgs.forEach(a -> argToValue.merge(a, newValue, SetAbstractState::join));
-            });
-    argToValue.forEach(
-        (a, value) ->
-            result.setObjectTaint(
-                HeapUtil.getArgumentReference(
-                    expandedHeap, parameterSize, descriptor, call.isStatic(), a - 1),
-                value));
-    // taint the calling instance
-    List<JvmTaintSource> sourcesTaintingThis =
-        detectedSources.stream().filter(s -> s.taintsThis).collect(Collectors.toList());
-    if (!sourcesTaintingThis.isEmpty()) {
-      result.setObjectTaint(
-          expandedHeap.getReferenceAbstractState(new JvmStackLocation(parameterSize - 1)),
-          new SetAbstractState<>(sourcesTaintingThis));
-    }
+
     return result;
   }
 

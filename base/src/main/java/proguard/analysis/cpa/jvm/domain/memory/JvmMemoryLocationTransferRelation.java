@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.bam.BamCache;
@@ -40,7 +39,6 @@ import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
-import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.interfaces.Precision;
@@ -53,10 +51,7 @@ import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmUnknownCfaNode;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState.StackEntry;
-import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceAbstractState;
-import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
-import proguard.analysis.cpa.jvm.state.heap.tree.JvmTreeHeapFollowerAbstractState;
 import proguard.analysis.cpa.jvm.util.ConstantLookupVisitor;
 import proguard.analysis.cpa.jvm.util.InstructionClassifier;
 import proguard.analysis.cpa.jvm.witness.JvmHeapLocation;
@@ -112,11 +107,11 @@ import proguard.exception.ProguardCoreException;
  * </ul>
  *
  * <p>The value of the successor memory location is guaranteed to be greater than the threshold
- * (e.g. if {@link AbstractStateT} is a {@link
- * proguard.analysis.cpa.domain.taint.TaintAbstractState} we can set the threshold to {@link
- * proguard.analysis.cpa.domain.taint.TaintAbstractState#bottom} to guarantee we don't calculate a
- * successor if the taint is not propagated anymore). Thus, the threshold defines the cut-off of the
- * traces generated with {@link JvmMemoryLocationTransferRelation}.
+ * (e.g. if {@link AbstractStateT} is a {@link proguard.analysis.cpa.defaults.SetAbstractState} we
+ * can set the threshold to {@link proguard.analysis.cpa.defaults.SetAbstractState#bottom} to
+ * guarantee we don't calculate a successor if the taint is not propagated anymore). Thus, the
+ * threshold defines the cut-off of the traces generated with {@link
+ * JvmMemoryLocationTransferRelation}.
  *
  * @param <AbstractStateT> The type of the values of the traced analysis.
  */
@@ -267,17 +262,7 @@ public class JvmMemoryLocationTransferRelation<
                       .getMemoryLocation()
                       .extractValueOrDefault(returnJvmAbstractState, threshold);
 
-              boolean hasDirectPredecessor = !value.isLessOrEqual(threshold);
-              boolean hasIndirectPredecessor =
-                  returnJvmAbstractState.getHeap() instanceof JvmTreeHeapFollowerAbstractState
-                      && !returnJvmAbstractState
-                          .getFieldOrDefault(
-                              state.getLocationDependentMemoryLocation().getMemoryLocation(),
-                              "",
-                              threshold)
-                          .isLessOrEqual(threshold);
-
-              if (!hasDirectPredecessor && !hasIndirectPredecessor) // end of trace
+              if (value.isLessOrEqual(threshold)) // end of trace
               {
                 continue;
               }
@@ -299,28 +284,14 @@ public class JvmMemoryLocationTransferRelation<
                         calleeExitNode.getSignature(),
                         state.getSourceReachedSet(),
                         intraproceduralParentState.get()));
-                (hasDirectPredecessor
-                        ? Stream.of(state.getLocationDependentMemoryLocation().getMemoryLocation())
-                        : hasIndirectPredecessor
-                            ? Stream.of(
-                                new JvmHeapLocation(
-                                    ((JvmTreeHeapFollowerAbstractState<AbstractStateT>)
-                                            returnJvmAbstractState.getHeap())
-                                        .getReferenceAbstractState(
-                                            state
-                                                .getLocationDependentMemoryLocation()
-                                                .getMemoryLocation()),
-                                    ""))
-                            : Stream.<JvmMemoryLocation>of())
-                    .map(
-                        l ->
-                            new JvmMemoryLocationAbstractState(
-                                l,
-                                calleeExitNode,
-                                (ProgramLocationDependentReachedSet)
-                                    calleeAbstraction.getReachedSet(),
-                                callStack))
-                    .forEach(successors::add);
+                JvmMemoryLocation successorLocation =
+                    state.getLocationDependentMemoryLocation().getMemoryLocation();
+                successors.add(
+                    new JvmMemoryLocationAbstractState(
+                        successorLocation,
+                        calleeExitNode,
+                        (ProgramLocationDependentReachedSet) calleeAbstraction.getReachedSet(),
+                        callStack));
                 interproceduralSuccessorFound = true;
               }
             } else {
@@ -612,18 +583,6 @@ public class JvmMemoryLocationTransferRelation<
     for (JvmMemoryLocation location : successorMemoryLocations) {
       if (!location.extractValueOrDefault(parentState, threshold).isLessOrEqual(threshold)) {
         resultMemoryLocations.add(location);
-        continue;
-      }
-      if (!(parentState.getHeap() instanceof JvmTreeHeapFollowerAbstractState)) {
-        continue;
-      }
-      JvmMemoryLocation heapLocation =
-          new JvmHeapLocation(
-              ((JvmTreeHeapFollowerAbstractState<AbstractStateT>) parentState.getHeap())
-                  .getReferenceAbstractState(location),
-              "");
-      if (!heapLocation.extractValueOrDefault(parentState, threshold).isLessOrEqual(threshold)) {
-        resultMemoryLocations.add(heapLocation);
       }
     }
     return resultMemoryLocations.stream()
@@ -695,25 +654,6 @@ public class JvmMemoryLocationTransferRelation<
         CodeAttribute codeAttribute,
         int offset,
         SimpleInstruction simpleInstruction) {
-      if (simpleInstruction.opcode >= Instruction.OP_IASTORE
-          && simpleInstruction.opcode <= Instruction.OP_SASTORE
-          && memoryLocation instanceof JvmHeapLocation) {
-        // only stack instructions affect heap locations
-        answer.add(memoryLocation);
-        if (((JvmAbstractState<AbstractStateT>) parentState.getStateByName(StateNames.Jvm))
-                .getHeap()
-            instanceof JvmTreeHeapFollowerAbstractState) {
-          SetAbstractState<Reference> arrayReference =
-              ((JvmReferenceAbstractState) parentState.getStateByName(StateNames.Reference))
-                  .peek(simpleInstruction.isCategory2() ? 3 : 2);
-          JvmHeapLocation heapLocation = (JvmHeapLocation) memoryLocation;
-          if (heapLocation.reference.stream().anyMatch(arrayReference::contains)
-              && heapLocation.field.equals("[]")) {
-            answer.add(new JvmStackLocation(0));
-          }
-        }
-        return;
-      }
       if (!(memoryLocation instanceof JvmStackLocation)
           || InstructionClassifier.isReturn(simpleInstruction.opcode)) {
         // non-stack locations aren't affected by simple instructions
@@ -772,15 +712,6 @@ public class JvmMemoryLocationTransferRelation<
           {
             answer.add(new JvmStackLocation(0));
             answer.add(new JvmStackLocation(1));
-            if (((JvmAbstractState<AbstractStateT>) parentState.getStateByName(StateNames.Jvm))
-                    .getHeap()
-                instanceof JvmTreeHeapFollowerAbstractState) {
-              answer.add(
-                  new JvmHeapLocation(
-                      ((JvmReferenceAbstractState) parentState.getStateByName(StateNames.Reference))
-                          .peek(1),
-                      "[]"));
-            }
             break;
           }
         default: // arithmetic and literal instructions
@@ -876,19 +807,6 @@ public class JvmMemoryLocationTransferRelation<
             constantLookupVisitor.isStatic = false;
             clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
             answer.addAll(backtraceStackLocation(memoryLocation, constantInstruction, clazz));
-            if (memoryLocation instanceof JvmStackLocation
-                && !isStackLocationTooDeep(
-                    (JvmStackLocation) memoryLocation, constantInstruction, clazz)
-                && ((JvmAbstractState<AbstractStateT>) parentState.getStateByName(StateNames.Jvm))
-                        .getHeap()
-                    instanceof JvmTreeHeapFollowerAbstractState) {
-              // if the heap model is nontrivial, backtrace to the heap location
-              answer.add(
-                  new JvmHeapLocation(
-                      ((JvmReferenceAbstractState) parentState.getStateByName(StateNames.Reference))
-                          .peek(),
-                      constantLookupVisitor.result));
-            }
             break;
           }
         case Instruction.OP_PUTFIELD:
@@ -903,36 +821,7 @@ public class JvmMemoryLocationTransferRelation<
                           + 1));
               break;
             }
-            if (!(memoryLocation instanceof JvmHeapLocation)) {
-              answer.add(memoryLocation);
-              break;
-            }
-            JvmHeapLocation heapLocation = (JvmHeapLocation) memoryLocation;
-            if (!constantLookupVisitor.result.equals(heapLocation.field)
-                || !(((JvmAbstractState<AbstractStateT>) parentState.getStateByName(StateNames.Jvm))
-                        .getHeap()
-                    instanceof JvmTreeHeapFollowerAbstractState)) {
-              answer.add(memoryLocation);
-              break;
-            }
-            SetAbstractState<Reference> reference =
-                ((JvmReferenceAbstractState) parentState.getStateByName(StateNames.Reference))
-                    .peek(constantLookupVisitor.resultSize);
-            SetAbstractState<Reference> referenceIntersection =
-                heapLocation.reference.stream()
-                    .filter(reference::contains)
-                    .collect(Collectors.toCollection(SetAbstractState::new));
-            if (referenceIntersection.size() == 0
-                || reference.size() != 1
-                || constantLookupVisitor.result.endsWith("[]")) {
-              answer.add(memoryLocation);
-            }
-            if (referenceIntersection.size() > 0) {
-              answer.add(new JvmStackLocation(0));
-              if (constantLookupVisitor.resultSize > 1) {
-                answer.add(new JvmStackLocation(1));
-              }
-            }
+            answer.add(memoryLocation);
             break;
           }
         case Instruction.OP_INVOKESTATIC:
@@ -948,7 +837,7 @@ public class JvmMemoryLocationTransferRelation<
                   ((JvmAbstractState<AbstractStateT>) parentState.getStateByName(StateNames.Jvm))
                       .getProgramLocation()));
           break;
-        case Instruction.OP_NEW: // TODO creating objects on the heap is not yet modeled
+        case Instruction.OP_NEW:
         case Instruction.OP_NEWARRAY:
         case Instruction.OP_ANEWARRAY:
         case Instruction.OP_MULTIANEWARRAY:

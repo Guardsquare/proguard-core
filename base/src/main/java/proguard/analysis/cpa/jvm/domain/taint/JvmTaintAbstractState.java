@@ -49,14 +49,6 @@ public class JvmTaintAbstractState extends JvmAbstractState<SetAbstractState<Jvm
     super(programLocation, frame, heap, staticFields);
   }
 
-  /** Adds transitively taints from {@code value} to all fields of {@code object}. */
-  public <T> void setObjectTaint(T object, SetAbstractState<JvmTaintSource> value) {
-    if (!(heap instanceof JvmTaintTreeHeapFollowerAbstractState)) {
-      return;
-    }
-    ((JvmTaintTreeHeapFollowerAbstractState) heap).taintObject(object, value);
-  }
-
   // implementations for LatticeAbstractState
 
   @Override

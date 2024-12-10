@@ -48,7 +48,6 @@ import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
 import proguard.analysis.cpa.jvm.domain.reference.Reference;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
-import proguard.analysis.cpa.jvm.state.heap.tree.HeapNode;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory;
 import proguard.analysis.cpa.state.MapAbstractStateFactory;
@@ -122,12 +121,8 @@ public class JvmTaintMemoryLocationBamCpaRun
       boolean reduceHeap,
       MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
           staticFieldMapAbstractStateFactory,
-      MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>
-          principalHeapMapAbstractStateFactory,
       MapAbstractStateFactory<String, SetAbstractState<Reference>>
           principalHeapNodeMapAbstractStateFactory,
-      MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
-          followerHeapMapAbstractStateFactory,
       MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
           followerHeapNodeMapAbstractStateFactory,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
@@ -142,9 +137,7 @@ public class JvmTaintMemoryLocationBamCpaRun
             abortOperator,
             reduceHeap,
             staticFieldMapAbstractStateFactory,
-            principalHeapMapAbstractStateFactory,
             principalHeapNodeMapAbstractStateFactory,
-            followerHeapMapAbstractStateFactory,
             followerHeapNodeMapAbstractStateFactory,
             taintTransformers,
             extraTaintPropagationLocations),
@@ -329,12 +322,8 @@ public class JvmTaintMemoryLocationBamCpaRun
     private boolean reduceHeap = true;
     private MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
         staticFieldMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
-    private MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>
-        principalHeapMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
     private MapAbstractStateFactory<String, SetAbstractState<Reference>>
         principalHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
-    private MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
-        followerHeapMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
     private MapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>>
         followerHeapNodeMapAbstractStateFactory = HashMapAbstractStateFactory.getInstance();
 
@@ -362,9 +351,7 @@ public class JvmTaintMemoryLocationBamCpaRun
           memoryLocationAbortOperator,
           reduceHeap,
           staticFieldMapAbstractStateFactory,
-          principalHeapMapAbstractStateFactory,
           principalHeapNodeMapAbstractStateFactory,
-          followerHeapMapAbstractStateFactory,
           followerHeapNodeMapAbstractStateFactory,
           taintTransformers,
           extraTaintPropagationLocations);
@@ -439,17 +426,6 @@ public class JvmTaintMemoryLocationBamCpaRun
     }
 
     /**
-     * Sets the map abstract state factory used for constructing the mapping from references to
-     * objects in the principal heap model.
-     */
-    public Builder setPrincipalHeapMapAbstractStateFactory(
-        MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<Reference>>>
-            principalHeapMapAbstractStateFactory) {
-      this.principalHeapMapAbstractStateFactory = principalHeapMapAbstractStateFactory;
-      return this;
-    }
-
-    /**
      * Sets the map abstract state factory used for constructing the mapping from fields to values
      * in the principal heap model.
      */
@@ -457,17 +433,6 @@ public class JvmTaintMemoryLocationBamCpaRun
         MapAbstractStateFactory<String, SetAbstractState<Reference>>
             principalHeapNodeMapAbstractStateFactory) {
       this.principalHeapNodeMapAbstractStateFactory = principalHeapNodeMapAbstractStateFactory;
-      return this;
-    }
-
-    /**
-     * Sets the map abstract state factory used for constructing the mapping from references to
-     * objects in the follower heap model.
-     */
-    public Builder setFollowerHeapMapAbstractStateFactory(
-        MapAbstractStateFactory<Reference, HeapNode<SetAbstractState<JvmTaintSource>>>
-            followerHeapMapAbstractStateFactory) {
-      this.followerHeapMapAbstractStateFactory = followerHeapMapAbstractStateFactory;
       return this;
     }
 

@@ -25,7 +25,8 @@
 There are several changes to the dataflow analysis code with the objective of eliminating unnecessary abstraction and 
 make its usage easier. This includes:
 - Remove `MemoryLocation`, use `JvmMemoryLocation` instead.
-- Make `JvmMemoryLocation` independent of the type of value contained in the analysis' state. The type of the value now needs only to be provided when calling `extractValueOrDefault`. 
+- Make `JvmMemoryLocation` independent of the type of value contained in the analysis' state. The type of the value now needs only to be provided when calling `extractValueOrDefault`.
+- Remove all code related to the tree heap model for taint analysis.
 
 ## Version 9.1.6
 

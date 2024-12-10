@@ -34,11 +34,9 @@ import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
-import proguard.analysis.cpa.jvm.util.HeapUtil;
 import proguard.analysis.cpa.jvm.witness.JvmLocalVariableLocation;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
-import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
@@ -141,44 +139,6 @@ public class JvmTaintTransferRelation
                   fqn -> fqnToValue.merge(fqn, newValue, SetAbstractState::join));
             });
     fqnToValue.forEach((fqn, value) -> state.setStatic(fqn, value, getAbstractDefault()));
-
-    // taint heap
-    if (!(state.getHeap() instanceof JvmTaintTreeHeapFollowerAbstractState)) {
-      return;
-    }
-    JvmTaintAbstractState taintAbstractState = (JvmTaintAbstractState) state;
-    JvmTaintTreeHeapFollowerAbstractState treeHeap =
-        (JvmTaintTreeHeapFollowerAbstractState) taintAbstractState.getHeap();
-    // taint static fields
-    fqnToValue.forEach(
-        (key, value) ->
-            taintAbstractState.setObjectTaint(
-                treeHeap.getReferenceAbstractState(new JvmStaticFieldLocation(key)), value));
-    // taint arguments
-    String descriptor = call.getTarget().descriptor.toString();
-    int parameterSize = call.getJvmArgumentSize();
-    Map<Integer, SetAbstractState<JvmTaintSource>> argToValue = new HashMap<>();
-    detectedSources.stream()
-        .filter(s -> !s.taintsArgs.isEmpty())
-        .forEach(
-            s -> {
-              SetAbstractState<JvmTaintSource> newValue = new SetAbstractState<>(s);
-              s.taintsArgs.forEach(a -> argToValue.merge(a, newValue, SetAbstractState::join));
-            });
-    argToValue.forEach(
-        (a, value) ->
-            taintAbstractState.setObjectTaint(
-                HeapUtil.getArgumentReference(
-                    treeHeap, parameterSize, descriptor, call.isStatic(), a - 1),
-                value));
-    // taint the calling instance
-    List<JvmTaintSource> sourcesTaintingThis =
-        detectedSources.stream().filter(s -> s.taintsThis).collect(Collectors.toList());
-    if (!sourcesTaintingThis.isEmpty()) {
-      taintAbstractState.setObjectTaint(
-          treeHeap.getReferenceAbstractState(new JvmStackLocation(parameterSize - 1)),
-          new SetAbstractState<>(sourcesTaintingThis));
-    }
   }
 
   @Override

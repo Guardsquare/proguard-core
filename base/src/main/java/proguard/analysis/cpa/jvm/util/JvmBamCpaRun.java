@@ -20,7 +20,6 @@ package proguard.analysis.cpa.jvm.util;
 
 import static proguard.exception.ErrorId.ANALYSIS_JVM_BAM_CPA_RUN_UNSUPPORTED_HEAP_MODEL;
 
-import java.util.Arrays;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.BamCpaRun;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
@@ -33,8 +32,6 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.domain.reference.JvmCompositeHeapReduceOperator;
-import proguard.analysis.cpa.jvm.domain.reference.JvmReferenceReduceOperator;
 import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.heap.HeapModel;
 import proguard.classfile.MethodSignature;
@@ -102,10 +99,6 @@ public abstract class JvmBamCpaRun<
     switch (heapModel) {
       case FORGETFUL:
         return jvmReduceOperator;
-      case TREE:
-      case TAINT_TREE:
-        return new JvmCompositeHeapReduceOperator(
-            Arrays.asList(new JvmReferenceReduceOperator(reduceHeap), jvmReduceOperator));
       default:
         throw new ProguardCoreException.Builder(
                 "Heap model %s is not supported by %s",
