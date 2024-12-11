@@ -72,7 +72,6 @@ ProGuard core comes with a short [manual](https://guardsquare.github.io/proguard
 [API documentation](https://guardsquare.github.io/proguard-core/api/).
 
 ## ❓ Getting Help
-If you have **usage or general questions** please ask them in the <a href="https://community.guardsquare.com/?utm_source=github&utm_medium=site-link&utm_campaign=github-community">**Guardsquare Community**.</a>  
 Please use <a href="https://github.com/guardsquare/proguard-core/issues">**the issue tracker**</a> to report actual **bugs 🐛, crashes**, etc.
 <br />
 <br />
