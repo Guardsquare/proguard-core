@@ -8,6 +8,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldNotBeInstanceOf
 import proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING
 import proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING_BUILDER
+import proguard.classfile.ClassPool
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.util.ClassUtil
 import proguard.classfile.visitor.AllMethodVisitor
@@ -32,13 +33,12 @@ import proguard.testutils.ClassPoolBuilder.Companion.libraryClassPool
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
 import proguard.testutils.findMethod
-import java.lang.ClassCastException
 
 private val javaLangString = libraryClassPool.getClass("java/lang/String")
 private val javaLangStringBuilder = libraryClassPool.getClass("java/lang/StringBuilder")
 private val valueFactory = ParticularValueFactory(DetailedArrayValueFactory(ParticularReferenceValueFactory()), ParticularReferenceValueFactory())
 private val stringExecutor = StringReflectionExecutor(libraryClassPool)
-private val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+private val invocationUnit = ExecutingInvocationUnit.Builder(ClassPool(), libraryClassPool).build(valueFactory)
 private fun Int.toValue(): Value =
     valueFactory.createIntegerValue(this)
 
@@ -68,27 +68,27 @@ private fun Any?.toValue(id: Int? = null): Value = when (this) {
 }
 
 private fun stringLength(string: Value): MethodExecutionInfo {
-    return MethodExecutionInfo(javaLangString, javaLangString.findMethod("length"), null, string)
+    return MethodExecutionInfo(ClassPool(), libraryClassPool, javaLangString, javaLangString.findMethod("length"), null, string)
 }
 
 private fun stringConcat(string1: Value, string2: Value): MethodExecutionInfo {
-    return MethodExecutionInfo(javaLangString, javaLangString.findMethod("concat"), null, string1, string2)
+    return MethodExecutionInfo(ClassPool(), libraryClassPool, javaLangString, javaLangString.findMethod("concat"), null, string1, string2)
 }
 
 private fun stringBuilderAppend(stringBuilder: Value, string: Value): MethodExecutionInfo {
-    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("append"), null, stringBuilder, string)
+    return MethodExecutionInfo(ClassPool(), libraryClassPool, javaLangStringBuilder, javaLangStringBuilder.findMethod("append"), null, stringBuilder, string)
 }
 
 private fun stringBuilderToString(stringBuilder: Value): MethodExecutionInfo {
-    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("toString"), null, stringBuilder)
+    return MethodExecutionInfo(ClassPool(), libraryClassPool, javaLangStringBuilder, javaLangStringBuilder.findMethod("toString"), null, stringBuilder)
 }
 
 private fun stringBuilderLength(stringBuilder: Value): MethodExecutionInfo {
-    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("length"), null, stringBuilder)
+    return MethodExecutionInfo(ClassPool(), libraryClassPool, javaLangStringBuilder, javaLangStringBuilder.findMethod("length"), null, stringBuilder)
 }
 
 private fun stringBuilderSubstring(stringBuilder: Value, length: Value): MethodExecutionInfo {
-    return MethodExecutionInfo(javaLangStringBuilder, javaLangStringBuilder.findMethod("substring", "(I)Ljava/lang/String;"), null, stringBuilder, length)
+    return MethodExecutionInfo(ClassPool(), libraryClassPool, javaLangStringBuilder, javaLangStringBuilder.findMethod("substring", "(I)Ljava/lang/String;"), null, stringBuilder, length)
 }
 
 private fun unknownString(): ReferenceValue =
@@ -122,7 +122,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
         }
 
         "Static valueOf(I)" {
-            val valueOf = MethodExecutionInfo(javaLangString, javaLangString.findMethod("valueOf", "(I)Ljava/lang/String;"), null, 1.toValue())
+            val valueOf = MethodExecutionInfo(ClassPool(), libraryClassPool, javaLangString, javaLangString.findMethod("valueOf", "(I)Ljava/lang/String;"), null, 1.toValue())
             val result = invocationUnit.executeMethod(stringExecutor, valueOf).returnValue
             result.shouldBeInstanceOf<ParticularReferenceValue>()
             result.internalType() shouldBe TYPE_JAVA_LANG_STRING
@@ -273,7 +273,7 @@ class ExecutingInvocationUnitTest : FreeSpec({
     "Check resilience against incorrect instance types" - {
         val stringBufferClazz = libraryClassPool.getClass("java/lang/StringBuffer")
         val stringBuilderValue = valueFactory.createReferenceValue(TYPE_JAVA_LANG_STRING_BUILDER, javaLangStringBuilder, false, false) as IdentifiedReferenceValue
-        val executionInfo = MethodExecutionInfo(stringBufferClazz, stringBufferClazz.findMethod("toString"), null, stringBuilderValue)
+        val executionInfo = MethodExecutionInfo(ClassPool(), libraryClassPool, stringBufferClazz, stringBufferClazz.findMethod("toString"), null, stringBuilderValue)
 
         "No class cast exception for incorrect instance type" {
             shouldNotThrow<ClassCastException> {

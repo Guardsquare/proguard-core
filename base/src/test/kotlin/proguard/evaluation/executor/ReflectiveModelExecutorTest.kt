@@ -50,11 +50,11 @@ class ReflectiveModelExecutorTest : BehaviorSpec({
             val particularValueEvaluator = PartialEvaluator.Builder.create()
                 .setValueFactory(particularValueFactory)
                 .setInvocationUnit(
-                    ExecutingInvocationUnit.Builder()
+                    ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool)
                         .setEnableSameInstanceIdApproximation(true)
                         .useDefaultStringReflectionExecutor(true)
                         .addExecutor(executorBuilder)
-                        .build(particularValueFactory, libraryClassPool),
+                        .build(particularValueFactory),
                 )
                 .setEvaluateAllCode(true)
                 .stopAnalysisAfterNEvaluations(50)

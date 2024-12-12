@@ -102,6 +102,8 @@ import proguard.util.PartialEvaluatorUtils;
  */
 public class ExecutingInvocationUnit extends BasicInvocationUnit {
   private static final Logger log = LogManager.getLogger(ExecutingInvocationUnit.class);
+  @NotNull private final ClassPool programClassPool;
+  @NotNull private final ClassPool libraryClassPool;
   @Nullable private Value[] parameters;
   private final boolean enableSameInstanceIdApproximation;
 
@@ -110,19 +112,30 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
 
   /** Creates an {@link ExecutingInvocationUnit}. */
   protected ExecutingInvocationUnit(
+      @NotNull ClassPool programClassPool,
+      @NotNull ClassPool libraryClassPool,
       ValueFactory valueFactory,
       boolean enableSameInstanceIdApproximation,
       List<Executor> registeredExecutors) {
     super(valueFactory);
+    this.programClassPool = programClassPool;
+    this.libraryClassPool = libraryClassPool;
     this.enableSameInstanceIdApproximation = enableSameInstanceIdApproximation;
     this.executorLookup = new ExecutorLookup(registeredExecutors);
   }
 
   /** Builds an {@link ExecutingInvocationUnit}. */
   public static class Builder {
+    @NotNull private final ClassPool programClassPool;
+    @NotNull private final ClassPool libraryClassPool;
     protected boolean enableSameInstanceIdApproximation = false;
     protected boolean useDefaultStringReflectionExecutor = true;
     protected List<Executor.Builder<?>> registeredExecutorBuilders = new ArrayList<>();
+
+    public Builder(@NotNull ClassPool programClassPool, @NotNull ClassPool libraryClassPool) {
+      this.programClassPool = programClassPool;
+      this.libraryClassPool = libraryClassPool;
+    }
 
     /**
      * For methods that are not supported by any executor, decide, whether a method with matching
@@ -186,17 +199,9 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      * Build the {@link ExecutingInvocationUnit} defined by this builder instance.
      *
      * @param valueFactory The {@link ValueFactory} responsible for creating result values.
-     * @param libraryClassPool The library class pool. Can be null if
-     *     `useDefaultStringReflectionExecutor` is set to false.
      * @return The built {@link ExecutingInvocationUnit}
      */
-    public ExecutingInvocationUnit build(
-        ValueFactory valueFactory, @Nullable ClassPool libraryClassPool) {
-      if (useDefaultStringReflectionExecutor && libraryClassPool == null) {
-        throw new IllegalStateException(
-            "Need to set a valid library class pool to use the default string executor");
-      }
-
+    public ExecutingInvocationUnit build(ValueFactory valueFactory) {
       List<Executor> registeredExecutors = new ArrayList<>();
 
       if (useDefaultStringReflectionExecutor) {
@@ -208,7 +213,11 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
           .forEach(registeredExecutors::add);
 
       return new ExecutingInvocationUnit(
-          valueFactory, enableSameInstanceIdApproximation, registeredExecutors);
+          programClassPool,
+          libraryClassPool,
+          valueFactory,
+          enableSameInstanceIdApproximation,
+          registeredExecutors);
     }
 
     /**
@@ -227,7 +236,11 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
           .forEach(registeredExecutors::add);
 
       return new ExecutingInvocationUnit(
-          valueFactory, enableSameInstanceIdApproximation, registeredExecutors);
+          programClassPool,
+          libraryClassPool,
+          valueFactory,
+          enableSameInstanceIdApproximation,
+          registeredExecutors);
     }
   }
 
@@ -279,7 +292,11 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
 
     MethodExecutionInfo methodInfo =
         new MethodExecutionInfo(
-            anyMethodrefConstant, null, parameters == null ? new Value[0] : parameters);
+            programClassPool,
+            libraryClassPool,
+            anyMethodrefConstant,
+            null,
+            parameters == null ? new Value[0] : parameters);
     Executor executor = executorLookup.lookupExecutor(methodInfo);
 
     MethodResult result = executeMethod(executor, methodInfo);
@@ -372,7 +389,8 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    * @return The method result value.
    */
   public MethodResult executeMethod(ConcreteCall call, Value... parameters) {
-    MethodExecutionInfo methodInfo = new MethodExecutionInfo(call, parameters);
+    MethodExecutionInfo methodInfo =
+        new MethodExecutionInfo(programClassPool, libraryClassPool, call, parameters);
     Executor executor = executorLookup.lookupExecutor(methodInfo);
     return executeMethod(executor, methodInfo);
   }

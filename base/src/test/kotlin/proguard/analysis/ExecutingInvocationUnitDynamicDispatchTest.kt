@@ -30,7 +30,7 @@ class ExecutingInvocationUnitDynamicDispatchTest : FunSpec({
 
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
         val valueFactory: ValueFactory = ParticularValueFactory(ArrayReferenceValueFactory(), ParticularReferenceValueFactory())
-        val invocationUnit = ExecutingInvocationUnit.Builder().setEnableSameInstanceIdApproximation(true).build(valueFactory, libraryClassPool)
+        val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).setEnableSameInstanceIdApproximation(true).build(valueFactory)
         val partialEvaluator = PartialEvaluator(
             valueFactory,
             invocationUnit,

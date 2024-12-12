@@ -24,7 +24,7 @@ import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link Executor} provides an implementation for {@link Executor#getMethodResult} which
- * resolves a number of simple {@link Class} and {@link ClassLoader} API methods.
+ * resolves a number of simple {@link Class} API methods.
  */
 public class JavaReflectionApiExecutor implements Executor {
 
@@ -39,13 +39,7 @@ public class JavaReflectionApiExecutor implements Executor {
     this.libraryClassPool = libraryClassPool;
 
     supportedMethodSignatures =
-        new HashSet<>(
-            Arrays.asList(
-                CLASSLOADER_LOAD_CLASS_SIGNATURE,
-                CLASSLOADER_LOAD_CLASS_SIGNATURE2,
-                CLASSLOADER_FIND_LOADED_CLASS_SIGNATURE,
-                CLASS_FOR_NAME_SIGNATURE,
-                CLASS_FOR_NAME_SIGNATURE2));
+        new HashSet<>(Arrays.asList(CLASS_FOR_NAME_SIGNATURE, CLASS_FOR_NAME_SIGNATURE2));
 
     ClassVisitor getClassSignatureCollector =
         clazz ->
@@ -62,11 +56,7 @@ public class JavaReflectionApiExecutor implements Executor {
     MethodSignature target = methodExecutionInfo.getSignature();
 
     // Handling these signatures requires the class name (String).
-    if (target.equals(CLASS_FOR_NAME_SIGNATURE)
-        || target.equals(CLASS_FOR_NAME_SIGNATURE2)
-        || target.equals(CLASSLOADER_LOAD_CLASS_SIGNATURE)
-        || target.equals(CLASSLOADER_LOAD_CLASS_SIGNATURE2)
-        || target.equals(CLASSLOADER_FIND_LOADED_CLASS_SIGNATURE)) {
+    if (target.equals(CLASS_FOR_NAME_SIGNATURE) || target.equals(CLASS_FOR_NAME_SIGNATURE2)) {
       Value className = methodExecutionInfo.getParameters().get(0);
       if (!className.isParticular()) return MethodResult.invalidResult();
 

@@ -6,6 +6,7 @@ import proguard.analysis.cpa.defaults.HashMapAbstractState
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState
+import proguard.classfile.ClassPool
 import proguard.classfile.MethodSignature
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.value.BasicValueFactory
@@ -17,7 +18,7 @@ class JvmValueAbstractStateTest : FreeSpec({
         val valueFactory = BasicValueFactory()
         val a = JvmValueAbstractState(
             valueFactory,
-            ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool),
+            ExecutingInvocationUnit.Builder(ClassPool(), libraryClassPool).build(valueFactory),
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),
@@ -25,7 +26,7 @@ class JvmValueAbstractStateTest : FreeSpec({
         )
         val b = JvmValueAbstractState(
             valueFactory,
-            ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool),
+            ExecutingInvocationUnit.Builder(ClassPool(), libraryClassPool).build(valueFactory),
             programLocation,
             JvmFrameAbstractState(),
             JvmShallowHeapAbstractState(HashMapAbstractState(), JvmCfaNode::class.java, ValueAbstractState.UNKNOWN),

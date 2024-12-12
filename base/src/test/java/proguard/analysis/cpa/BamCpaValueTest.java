@@ -241,7 +241,10 @@ public class BamCpaValueTest {
         (MethodSignature) Signature.of(clazz, clazz.findMethod("main", null));
     JvmValueBamCpaRun bamCpaRun =
         new JvmValueBamCpaRun.Builder(
-                cfa, mainSignature, ClassPoolBuilder.Companion.getLibraryClassPool())
+                programClassPool,
+                ClassPoolBuilder.Companion.getLibraryClassPool(),
+                cfa,
+                mainSignature)
             .build();
     bamCpaRun.execute();
     return bamCpaRun.getCpa().getCache();

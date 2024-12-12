@@ -15,7 +15,7 @@ import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
 fun runCpa(cfa: JvmCfa, mainSignature: MethodSignature, libraryClassPool: ClassPool): BamCache<MethodSignature> {
-    val bamCpaRun = JvmValueBamCpaRun.Builder(cfa, mainSignature, libraryClassPool).setReduceHeap(true).build()
+    val bamCpaRun = JvmValueBamCpaRun.Builder(ClassPool(), libraryClassPool, cfa, mainSignature).setReduceHeap(true).build()
     bamCpaRun.execute()
     return bamCpaRun.cpa.cache
 }

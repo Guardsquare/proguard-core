@@ -122,21 +122,27 @@ public class JvmValueBamCpaRun
 
   public static class Builder extends JvmBamCpaRun.Builder {
 
+    private final ClassPool programClassPool;
+    private final ClassPool libraryClassPool;
     private MethodSignature mainSignature;
     private ValueFactory valueFactory;
     private TransferRelationFactory transferRelationFactory;
     private MapAbstractState<String, ValueAbstractState> staticFields =
         new HashMapAbstractState<>();
-    private ClassPool libraryClassPool;
 
-    public Builder(JvmCfa cfa, MethodSignature mainSignature, ClassPool libraryClassPool) {
+    public Builder(
+        ClassPool programClassPool,
+        ClassPool libraryClassPool,
+        JvmCfa cfa,
+        MethodSignature mainSignature) {
+      this.programClassPool = programClassPool;
+      this.libraryClassPool = libraryClassPool;
       super.heapModel = HeapModel.SHALLOW;
       super.maxCallStackDepth = 10;
       super.cfa = cfa;
       this.valueFactory = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
       this.mainSignature = mainSignature;
       this.transferRelationFactory = Builder::defaultTransferRelationFactory;
-      this.libraryClassPool = libraryClassPool;
     }
 
     private static JvmValueTransferRelation defaultTransferRelationFactory(
@@ -151,9 +157,9 @@ public class JvmValueBamCpaRun
           mainSignature,
           valueFactory,
           transferRelationFactory,
-          new ExecutingInvocationUnit.Builder()
+          new ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool)
               .setEnableSameInstanceIdApproximation(true)
-              .build(valueFactory, libraryClassPool),
+              .build(valueFactory),
           maxCallStackDepth,
           heapModel,
           staticFields,

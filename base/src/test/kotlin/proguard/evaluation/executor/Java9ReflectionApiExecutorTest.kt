@@ -55,11 +55,11 @@ class Java9ReflectionApiExecutorTest : BehaviorSpec({
             val particularValueEvaluator = PartialEvaluator.Builder.create()
                 .setValueFactory(particularValueFactory)
                 .setInvocationUnit(
-                    ExecutingInvocationUnit.Builder()
+                    ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool)
                         .setEnableSameInstanceIdApproximation(true)
                         .useDefaultStringReflectionExecutor(true)
                         .addExecutor(JavaReflectionApiExecutor.Builder(programClassPool, libraryClassPool))
-                        .build(particularValueFactory, libraryClassPool),
+                        .build(particularValueFactory),
                 )
                 .setEvaluateAllCode(true)
                 .stopAnalysisAfterNEvaluations(50)

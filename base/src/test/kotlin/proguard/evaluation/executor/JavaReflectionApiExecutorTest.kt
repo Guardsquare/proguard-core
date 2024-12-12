@@ -20,6 +20,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.executor.model.ClassLoaderModelExecutor
 import proguard.evaluation.executor.model.ClassModelExecutor
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.ParticularValueFactory
@@ -79,12 +80,13 @@ class JavaReflectionApiExecutorTest : BehaviorSpec({
             val particularValueEvaluator = PartialEvaluator.Builder.create()
                 .setValueFactory(particularValueFactory)
                 .setInvocationUnit(
-                    ExecutingInvocationUnit.Builder()
+                    ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool)
                         .setEnableSameInstanceIdApproximation(true)
                         .useDefaultStringReflectionExecutor(true)
                         .addExecutor(JavaReflectionApiExecutor.Builder(programClassPool, libraryClassPool))
                         .addExecutor(ClassModelExecutor.Builder(programClassPool, libraryClassPool))
-                        .build(particularValueFactory, libraryClassPool),
+                        .addExecutor(ClassLoaderModelExecutor.Builder(programClassPool, libraryClassPool))
+                        .build(particularValueFactory),
                 )
                 .setEvaluateAllCode(true)
                 .stopAnalysisAfterNEvaluations(50)
@@ -168,11 +170,11 @@ class JavaReflectionApiExecutorTest : BehaviorSpec({
             val particularValueEvaluator = PartialEvaluator.Builder.create()
                 .setValueFactory(particularValueFactory)
                 .setInvocationUnit(
-                    ExecutingInvocationUnit.Builder()
+                    ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool)
                         .setEnableSameInstanceIdApproximation(true)
                         .useDefaultStringReflectionExecutor(true)
-                        .addExecutor(JavaReflectionApiExecutor.Builder(programClassPool, libraryClassPool))
-                        .build(particularValueFactory, libraryClassPool),
+                        .addExecutor(ClassLoaderModelExecutor.Builder(programClassPool, libraryClassPool))
+                        .build(particularValueFactory),
                 )
                 .setEvaluateAllCode(true)
                 .stopAnalysisAfterNEvaluations(50)

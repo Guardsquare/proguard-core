@@ -46,7 +46,7 @@ class DetailedArrayTest : FreeSpec({
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -102,7 +102,7 @@ class DetailedArrayTest : FreeSpec({
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -166,7 +166,7 @@ class DetailedArrayTest : FreeSpec({
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -220,7 +220,7 @@ class DetailedArrayTest : FreeSpec({
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -306,7 +306,7 @@ class DetailedArrayTest : FreeSpec({
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -340,7 +340,7 @@ class DetailedArrayTest : FreeSpec({
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -374,7 +374,7 @@ class DetailedArrayTest : FreeSpec({
 
             val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-            val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+            val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
             val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
             val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
@@ -468,7 +468,7 @@ class DetailedArrayTest : FreeSpec({
 
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(code, javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"))
 
-        val invocationUnit = ExecutingInvocationUnit.Builder().build(valueFactory, libraryClassPool)
+        val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).build(valueFactory)
         val partialEvaluator = PartialEvaluator(valueFactory, invocationUnit, false)
 
         "IdentifiedArrayReference generalize maintains id" {

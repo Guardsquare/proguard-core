@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import proguard.analysis.datastructure.CodeLocation;
 import proguard.analysis.datastructure.callgraph.ConcreteCall;
+import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.MethodSignature;
@@ -49,6 +50,8 @@ import proguard.evaluation.value.Value;
  * extract additional information.
  */
 public class MethodExecutionInfo {
+  private final @NotNull ClassPool programClassPool;
+  private final @NotNull ClassPool libraryClassPool;
   private final MethodSignature signature;
   private final CodeLocation caller;
   private final boolean isConstructor;
@@ -57,29 +60,40 @@ public class MethodExecutionInfo {
   private final Clazz returnClass;
   private final List<Clazz> parametersClasses;
   private final @Nullable ReferenceValue instance;
+
   /** NB: the calling instance is not included in the parameters. */
   private final List<Value> parameters;
+
   /** Lazily initialized field, available inside the executors. */
   private @Nullable MethodSignature resolvedTargetSignature = null;
 
   /**
    * Constructs a MethodExecutionInfo.
    *
+   * @param programClassPool The program class pool.
+   * @param libraryClassPool The library class pool.
    * @param clazz The referenced class.
    * @param method The referenced method.
    * @param caller The code location of the call site. May be null.
    * @param parameters The parameters of the call, calling instance included.
    */
   public MethodExecutionInfo(
+      @NotNull ClassPool programClassPool,
+      @NotNull ClassPool libraryClassPool,
       @NotNull Clazz clazz,
       @NotNull Method method,
       @Nullable CodeLocation caller,
       @NotNull Value... parameters) {
+    Objects.requireNonNull(programClassPool);
+    Objects.requireNonNull(libraryClassPool);
     Objects.requireNonNull(clazz);
     Objects.requireNonNull(method);
     Objects.requireNonNull(parameters);
-    targetClass = clazz;
-    signature = (MethodSignature) Signature.of(clazz, method);
+
+    this.programClassPool = programClassPool;
+    this.libraryClassPool = libraryClassPool;
+    this.targetClass = clazz;
+    this.signature = (MethodSignature) Signature.of(clazz, method);
     this.caller = caller;
 
     isConstructor = signature.method.equals(METHOD_NAME_INIT);
@@ -124,8 +138,14 @@ public class MethodExecutionInfo {
    * @param parameters The parameters of the call, calling instance included.
    */
   public MethodExecutionInfo(
-      AnyMethodrefConstant anyMethodrefConstant, CodeLocation caller, Value... parameters) {
+      ClassPool programClassPool,
+      ClassPool libraryClassPool,
+      AnyMethodrefConstant anyMethodrefConstant,
+      CodeLocation caller,
+      Value... parameters) {
     this(
+        programClassPool,
+        libraryClassPool,
         anyMethodrefConstant.referencedClass,
         anyMethodrefConstant.referencedMethod,
         caller,
@@ -138,8 +158,18 @@ public class MethodExecutionInfo {
    * @param call the concrete call.
    * @param parameters The parameters of the call, calling instance included.
    */
-  public MethodExecutionInfo(ConcreteCall call, Value... parameters) {
-    this(call.getTargetClass(), call.getTargetMethod(), call.caller, parameters);
+  public MethodExecutionInfo(
+      ClassPool programClassPool,
+      ClassPool libraryClassPool,
+      ConcreteCall call,
+      Value... parameters) {
+    this(
+        programClassPool,
+        libraryClassPool,
+        call.getTargetClass(),
+        call.getTargetMethod(),
+        call.caller,
+        parameters);
   }
 
   /** Get the method signature of the method */
@@ -310,5 +340,13 @@ public class MethodExecutionInfo {
   public void setResolvedTargetSignature(@NotNull MethodSignature resolvedTargetSignature) {
     Objects.requireNonNull(resolvedTargetSignature);
     this.resolvedTargetSignature = resolvedTargetSignature;
+  }
+
+  public @NotNull ClassPool getProgramClassPool() {
+    return programClassPool;
+  }
+
+  public @NotNull ClassPool getLibraryClassPool() {
+    return libraryClassPool;
   }
 }

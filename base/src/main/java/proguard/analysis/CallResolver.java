@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -100,8 +101,8 @@ import proguard.util.PartialEvaluatorUtils;
  * calls happening at runtime. This makes it a complete but potentially unsound analysis.
  *
  * <p>In addition to resolving the call target, this analyzer also reconstructs the corresponding
- * arguments and the return value. All of the collected information is wrapped in a {@link Call}
- * object and passed to subscribed {@link CallHandler}s.
+ * arguments and the return value. All the collected information is wrapped in a {@link Call} object
+ * and passed to subscribed {@link CallHandler}s.
  */
 public class CallResolver implements AttributeVisitor, ClassVisitor, InstructionVisitor {
 
@@ -127,7 +128,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
    * Only calculates the type of values on the stack or in variables, but is capable of handling
    * cases where this type may be different depending on the actual control flow path taken during
    * runtime. Needed for resolving all possible call targets of virtual calls that depend on the
-   * type of the this pointer during runtime.
+   * type of this pointer during runtime.
    */
   private final PartialEvaluator multiTypeValueEvaluator;
 
@@ -205,7 +206,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
    * @param clearCallValuesAfterVisit If true, {@link Call#clearValues()} will be called after
    *     {@link CallHandler#handleCall(Call, TracedStack, TracedVariables)}. This makes it possible
    *     to analyze arguments and the return value of calls while still adding them to a {@link
-   *     CallGraph} afterwards, as call graph analysis itself usually only requires the call
+   *     CallGraph} afterward, as call graph analysis itself usually only requires the call
    *     locations and their targets, not the arguments or return value.
    * @param useDominatorAnalysis If true, a dominator analysis is carried out using the {@link
    *     DominatorCalculator} for each method, in order to be able to fill the {@link
@@ -286,7 +287,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     ValueFactory particularValueFactory =
         new ParticularValueFactory(arrayValueFactory, new ParticularReferenceValueFactory());
     InvocationUnit particularValueInvocationUnit =
-        executingInvocationUnitBuilder.build(particularValueFactory, libraryClassPool);
+        executingInvocationUnitBuilder.build(particularValueFactory);
     particularValueEvaluator =
         PartialEvaluator.Builder.create()
             .setValueFactory(particularValueFactory)
@@ -753,7 +754,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     String name = ref.getName(location.clazz);
     String descriptor = ref.getType(location.clazz);
 
-    // Estimate the runtime type of the this pointer: Intraprocedural analysis performed by the
+    // Estimate the runtime type of this pointer: Intraprocedural analysis performed by the
     // partial evaluator.
     int argumentCount = ClassUtil.internalMethodParameterSize(descriptor, false);
     Value thisPtr =
@@ -864,16 +865,17 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     private Set<MethodSignature> interestingMethods;
     private Set<Predicate<Call>> interestingCallPredicates;
 
-    private ExecutingInvocationUnit.Builder executingInvocationUnitBuilder =
-        new ExecutingInvocationUnit.Builder();
+    private ExecutingInvocationUnit.Builder executingInvocationUnitBuilder;
 
     public Builder(
         ClassPool programClassPool,
         ClassPool libraryClassPool,
         CallGraph callGraph,
         CallHandler... visitors) {
-      this.programClassPool = programClassPool;
-      this.libraryClassPool = libraryClassPool;
+      this.programClassPool = Objects.requireNonNull(programClassPool);
+      this.libraryClassPool = Objects.requireNonNull(libraryClassPool);
+      this.executingInvocationUnitBuilder =
+          new ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool);
       this.callGraph = callGraph;
       this.callHandlers = visitors;
     }
@@ -881,7 +883,7 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     /**
      * If true, {@link Call#clearValues()} will be called after {@link CallHandler#handleCall(Call,
      * TracedStack, TracedVariables)}. This makes it possible to analyze arguments and the return
-     * value of calls while still adding them to a {@link CallGraph} afterwards, as call graph
+     * value of calls while still adding them to a {@link CallGraph} afterward, as call graph
      * analysis itself usually only requires the call locations and their targets, not the arguments
      * or return value.
      */
