@@ -82,6 +82,7 @@ class JavaReflectionApiExecutorTest : BehaviorSpec({
                         .setEnableSameInstanceIdApproximation(true)
                         .useDefaultStringReflectionExecutor(true)
                         .addExecutor(JavaReflectionApiExecutor.Builder(programClassPool, libraryClassPool))
+                        .addExecutor(ClassModelExecutor.Builder(programClassPool, libraryClassPool))
                         .build(particularValueFactory, libraryClassPool),
                 )
                 .setEvaluateAllCode(true)

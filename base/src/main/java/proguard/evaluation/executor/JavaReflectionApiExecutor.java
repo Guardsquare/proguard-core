@@ -1,12 +1,8 @@
 package proguard.evaluation.executor;
 
 import static proguard.classfile.ClassConstants.*;
-import static proguard.classfile.util.ClassUtil.canonicalClassName;
-import static proguard.classfile.util.ClassUtil.externalClassName;
-import static proguard.classfile.util.ClassUtil.externalPackageName;
 import static proguard.classfile.util.ClassUtil.internalClassName;
 import static proguard.classfile.util.ClassUtil.internalClassNameFromType;
-import static proguard.classfile.util.ClassUtil.internalSimpleClassName;
 import static proguard.exception.ErrorId.EVALUATION_JAVA_REFLECTION_EXECUTOR;
 
 import java.util.Arrays;
@@ -45,12 +41,6 @@ public class JavaReflectionApiExecutor implements Executor {
     supportedMethodSignatures =
         new HashSet<>(
             Arrays.asList(
-                CLASS_GET_NAME_SIGNATURE,
-                CLASS_GET_SIMPLE_NAME_SIGNATURE,
-                CLASS_GET_TYPE_NAME_SIGNATURE,
-                CLASS_GET_PACKAGE_NAME_SIGNATURE,
-                CLASS_GET_SUPERCLASS_SIGNATURE,
-                CLASS_GET_CANONICAL_NAME_SIGNATURE,
                 CLASSLOADER_LOAD_CLASS_SIGNATURE,
                 CLASSLOADER_LOAD_CLASS_SIGNATURE2,
                 CLASSLOADER_FIND_LOADED_CLASS_SIGNATURE,
@@ -100,43 +90,6 @@ public class JavaReflectionApiExecutor implements Executor {
       if (clazz.isPresent()) {
         return createResult(methodExecutionInfo, valueCalculator, new ClassModel(clazz.get()));
       }
-    }
-
-    // Handling these signatures requires a modeled class (ClassModel) instance.
-    if (target.equals(CLASS_GET_NAME_SIGNATURE)
-        || target.equals(CLASS_GET_TYPE_NAME_SIGNATURE)
-        || target.equals(CLASS_GET_SIMPLE_NAME_SIGNATURE)
-        || target.equals(CLASS_GET_CANONICAL_NAME_SIGNATURE)
-        || target.equals(CLASS_GET_PACKAGE_NAME_SIGNATURE)
-        || target.equals(CLASS_GET_SUPERCLASS_SIGNATURE)) {
-      Value instance = methodExecutionInfo.getInstanceNonStatic();
-      if (!(instance instanceof TypedReferenceValue)) return MethodResult.invalidResult();
-
-      TypedReferenceValue typedInstance = (TypedReferenceValue) instance;
-      if (!typedInstance.isParticular() || typedInstance.isNull() == Value.ALWAYS)
-        return MethodResult.invalidResult();
-
-      ClassModel modeledValue =
-          (ClassModel) typedInstance.referenceValue().getValue().getModeledValue();
-
-      // TODO(T32172): workaround for certain problematic cases of `ClassModel(null)`.
-      if (modeledValue.getClazz() == null) return MethodResult.invalidResult();
-
-      String externalClassName = externalClassName(modeledValue.getClazz().getName());
-
-      Object concreteValue = null;
-      if (target.equals(CLASS_GET_NAME_SIGNATURE) || target.equals(CLASS_GET_TYPE_NAME_SIGNATURE)) {
-        concreteValue = externalClassName;
-      } else if (target.equals(CLASS_GET_SIMPLE_NAME_SIGNATURE)) {
-        concreteValue = internalSimpleClassName(modeledValue.getClazz().getName());
-      } else if (target.equals(CLASS_GET_CANONICAL_NAME_SIGNATURE)) {
-        concreteValue = canonicalClassName(externalClassName);
-      } else if (target.equals(CLASS_GET_PACKAGE_NAME_SIGNATURE)) {
-        concreteValue = externalPackageName(externalClassName);
-      } else if (target.equals(CLASS_GET_SUPERCLASS_SIGNATURE)) {
-        concreteValue = new ClassModel(modeledValue.getClazz().getSuperClass());
-      }
-      return createResult(methodExecutionInfo, valueCalculator, concreteValue);
     }
 
     throw new ProguardCoreException(
