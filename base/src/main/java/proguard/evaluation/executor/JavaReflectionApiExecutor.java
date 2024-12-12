@@ -5,7 +5,6 @@ import static proguard.classfile.util.ClassUtil.internalClassName;
 import static proguard.classfile.util.ClassUtil.internalClassNameFromType;
 import static proguard.exception.ErrorId.EVALUATION_JAVA_REFLECTION_EXECUTOR;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -31,15 +30,12 @@ public class JavaReflectionApiExecutor implements Executor {
   private final ClassPool programClassPool;
   private final ClassPool libraryClassPool;
 
-  private final Set<MethodSignature> supportedMethodSignatures;
+  private final Set<MethodSignature> supportedMethodSignatures = new HashSet<>();
 
   /** Private constructor reserved for the static {@link Builder}. */
   private JavaReflectionApiExecutor(ClassPool programClassPool, ClassPool libraryClassPool) {
     this.programClassPool = programClassPool;
     this.libraryClassPool = libraryClassPool;
-
-    supportedMethodSignatures =
-        new HashSet<>(Arrays.asList(CLASS_FOR_NAME_SIGNATURE, CLASS_FOR_NAME_SIGNATURE2));
 
     ClassVisitor getClassSignatureCollector =
         clazz ->
@@ -54,19 +50,6 @@ public class JavaReflectionApiExecutor implements Executor {
   public MethodResult getMethodResult(
       MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
     MethodSignature target = methodExecutionInfo.getSignature();
-
-    // Handling these signatures requires the class name (String).
-    if (target.equals(CLASS_FOR_NAME_SIGNATURE) || target.equals(CLASS_FOR_NAME_SIGNATURE2)) {
-      Value className = methodExecutionInfo.getParameters().get(0);
-      if (!className.isParticular()) return MethodResult.invalidResult();
-
-      Optional<Clazz> clazz =
-          findReferencedClazz((String) className.referenceValue().getValue().getPreciseValue());
-      if (clazz.isPresent()) {
-        return createResult(methodExecutionInfo, valueCalculator, new ClassModel(clazz.get()));
-      }
-      return MethodResult.invalidResult();
-    }
 
     // Handling these signatures only requires the type of the instance.
     if (METHOD_NAME_OBJECT_GET_CLASS.equals(target.getMethodName())) {

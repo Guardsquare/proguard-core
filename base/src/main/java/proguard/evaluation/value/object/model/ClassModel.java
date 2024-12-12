@@ -1,15 +1,20 @@
 package proguard.evaluation.value.object.model;
 
 import java.util.Objects;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 import proguard.classfile.util.ClassUtil;
 import proguard.evaluation.MethodResult;
 import proguard.evaluation.ValueCalculator;
 import proguard.evaluation.executor.MethodExecutionInfo;
+import proguard.evaluation.value.Value;
 import proguard.evaluation.value.object.model.reflective.ModelHelper;
 import proguard.evaluation.value.object.model.reflective.ModeledInstanceMethod;
+import proguard.evaluation.value.object.model.reflective.ModeledStaticMethod;
 import proguard.evaluation.value.object.model.reflective.ReflectiveModel;
 
 /** A {@link Model} to track specific Clazz constants. */
@@ -47,13 +52,6 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
       MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
     throw new UnsupportedOperationException(
         "Constructors invocation is not supported in ClassModel");
-  }
-
-  @Override
-  public MethodResult invokeStatic(
-      MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
-    throw new UnsupportedOperationException(
-        "Static method invocation is not supported in ClassModel");
   }
 
   // Supported method implementations.
@@ -106,6 +104,44 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
     return ModelHelper.createDefaultReturnResult(context, new ClassModel(clazz.getSuperClass()));
   }
 
+  /** Models {@link Class#forName(String)}. */
+  @ModeledStaticMethod(name = "forName", descriptor = "(Ljava/lang/String;)Ljava/lang/Class;")
+  MethodResult forName(ModelHelper.MethodExecutionContext context, Value classNameValue) {
+    if (!classNameValue.isParticular()) return MethodResult.invalidResult();
+
+    Optional<Clazz> clazz =
+        findReferencedClazz(
+            (String) classNameValue.referenceValue().getValue().getPreciseValue(),
+            context.getExecutionInfo().getProgramClassPool(),
+            context.getExecutionInfo().getLibraryClassPool());
+    if (clazz.isPresent())
+      return ModelHelper.createDefaultReturnResult(context, new ClassModel(clazz.get()));
+
+    return MethodResult.invalidResult();
+  }
+
+  /** Models {@link Class#forName(String, boolean, ClassLoader)}. */
+  @ModeledStaticMethod(
+      name = "forName",
+      descriptor = "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;")
+  MethodResult forName(
+      ModelHelper.MethodExecutionContext context,
+      Value classNameValue,
+      Value initializeValue,
+      Value classLoaderValue) {
+    if (!classNameValue.isParticular()) return MethodResult.invalidResult();
+
+    Optional<Clazz> clazz =
+        findReferencedClazz(
+            (String) classNameValue.referenceValue().getValue().getPreciseValue(),
+            context.getExecutionInfo().getProgramClassPool(),
+            context.getExecutionInfo().getLibraryClassPool());
+    if (clazz.isPresent())
+      return ModelHelper.createDefaultReturnResult(context, new ClassModel(clazz.get()));
+
+    return MethodResult.invalidResult();
+  }
+
   // Object overrides.
 
   @Override
@@ -124,5 +160,25 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
   @Override
   public String toString() {
     return String.format("ClassModel{%s}", clazz.getName());
+  }
+
+  // Private helper methods.
+
+  /**
+   * Retrieves the class with the given name from the class pools.
+   *
+   * @param className Name of the class.
+   * @return An {@link Optional <Clazz>} containing the {@link Clazz} with the given name, or empty
+   *     if it was not in the class pools.
+   */
+  private Optional<Clazz> findReferencedClazz(
+      @Nullable String className, ClassPool programClassPool, ClassPool libraryClassPool) {
+    if (className == null) return Optional.empty();
+
+    className = ClassUtil.internalClassName(className);
+    Clazz result = programClassPool.getClass(className);
+    return (result != null)
+        ? Optional.of(result)
+        : Optional.ofNullable(libraryClassPool.getClass(className));
   }
 }
