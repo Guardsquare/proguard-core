@@ -20,6 +20,7 @@ import proguard.classfile.visitor.NamedMethodVisitor
 import proguard.evaluation.ExecutingInvocationUnit
 import proguard.evaluation.PartialEvaluator
 import proguard.evaluation.ParticularReferenceValueFactory
+import proguard.evaluation.executor.model.ClassModelExecutor
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.`object`.model.ClassModel

@@ -1,8 +1,10 @@
-package proguard.evaluation.executor;
+package proguard.evaluation.executor.model;
 
 import java.util.Collections;
 import java.util.HashSet;
 import proguard.classfile.ClassPool;
+import proguard.evaluation.executor.Executor;
+import proguard.evaluation.executor.ReflectiveModelExecutor;
 import proguard.evaluation.value.object.model.ClassModel;
 import proguard.util.BasicHierarchyProvider;
 
