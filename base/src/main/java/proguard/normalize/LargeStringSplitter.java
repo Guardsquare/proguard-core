@@ -29,13 +29,16 @@ public class LargeStringSplitter implements ClassVisitor, InstructionVisitor, Co
   private final ClassPool programClassPool, libraryClassPool;
 
   private final CodeAttributeEditor codeAttributeEditor;
+  private final ConstantPoolShrinker constantPoolShrinker;
 
   private int offset;
+  private boolean classModified = false;
 
   public LargeStringSplitter(ClassPool programClassPool, ClassPool libraryClassPool) {
     this.programClassPool = programClassPool;
     this.libraryClassPool = libraryClassPool;
     this.codeAttributeEditor = new CodeAttributeEditor();
+    this.constantPoolShrinker = new ConstantPoolShrinker();
   }
 
   // Implementations for ClassVisitor.
@@ -45,11 +48,14 @@ public class LargeStringSplitter implements ClassVisitor, InstructionVisitor, Co
 
   @Override
   public void visitProgramClass(ProgramClass programClass) {
+    classModified = false;
     programClass.accept(
         new MultiClassVisitor(
             new AllMethodVisitor(
-                new AllAttributeVisitor(new PeepholeEditor(codeAttributeEditor, this))),
-            new ConstantPoolShrinker()));
+                new AllAttributeVisitor(new PeepholeEditor(codeAttributeEditor, this)))));
+    if (classModified) {
+      programClass.accept(constantPoolShrinker);
+    }
   }
 
   // Implementations for InstructionVisitor.
@@ -110,6 +116,7 @@ public class LargeStringSplitter implements ClassVisitor, InstructionVisitor, Co
           ClassConstants.METHOD_NAME_TOSTRING,
           ClassConstants.METHOD_TYPE_TOSTRING);
       codeAttributeEditor.replaceInstruction(offset, ____.__());
+      classModified = true;
     }
   }
 
