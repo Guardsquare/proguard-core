@@ -19,7 +19,6 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 import proguard.classfile.visitor.AllMethodVisitor;
 import proguard.classfile.visitor.ClassVisitor;
-import proguard.classfile.visitor.MultiClassVisitor;
 import proguard.util.StringUtil;
 
 /** This class visitor splits any strings longer than 65535 bytes into smaller strings. */
@@ -50,7 +49,7 @@ public class LargeStringSplitter implements ClassVisitor, InstructionVisitor, Co
   public void visitProgramClass(ProgramClass programClass) {
     classModified = false;
     programClass.accept(
-        new MultiClassVisitor(
+        new LargeStringClassConstantClassFilter(
             new AllMethodVisitor(
                 new AllAttributeVisitor(new PeepholeEditor(codeAttributeEditor, this)))));
     if (classModified) {
@@ -153,5 +152,47 @@ public class LargeStringSplitter implements ClassVisitor, InstructionVisitor, Co
       end += 1;
     }
     return end;
+  }
+
+  /**
+   * A {@link ClassVisitor} that delegates to the given delegate {@link ClassVisitor} if the class
+   * contains a string constant pool entry with size greater the 65,535 bytes.
+   */
+  private static class LargeStringClassConstantClassFilter
+      implements ClassVisitor, ConstantVisitor {
+
+    private final ClassVisitor acceptedVisitor;
+    private boolean found;
+
+    private LargeStringClassConstantClassFilter(ClassVisitor acceptedVisitor) {
+      this.acceptedVisitor = acceptedVisitor;
+    }
+
+    // Implementations for ClassVisitor.
+
+    @Override
+    public void visitAnyClass(Clazz clazz) {}
+
+    @Override
+    public void visitProgramClass(ProgramClass programClass) {
+      found = false;
+      programClass.constantPoolEntriesAccept(this);
+    }
+
+    // Implementations for ConstantVisitor
+
+    @Override
+    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+
+    @Override
+    public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
+      if (found) return; // We already found one, no need to check again.
+
+      String fullString = stringConstant.getString(clazz);
+      if (StringUtil.getModifiedUtf8Length(fullString) > MAX_STRING_SIZE) {
+        clazz.accept(acceptedVisitor);
+        found = true;
+      }
+    }
   }
 }
