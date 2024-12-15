@@ -159,26 +159,7 @@ public class CodeInjector {
               target.clazz,
               new AllAttributeVisitor(
                   new AttributeNameFilter(
-                      Attribute.CODE,
-                      new AttributeVisitor() {
-                        @Override
-                        public void visitCodeAttribute(
-                            Clazz clazz, Method method, CodeAttribute codeAttribute) {
-                          editor.reset(codeAttribute.u4codeLength);
-                          InjectStrategy.InjectLocation[] injectLocations =
-                              injectStrategy.getAllSuitableInjectionLocation(
-                                  (ProgramClass) clazz, (ProgramMethod) method);
-                          for (InjectStrategy.InjectLocation location : injectLocations) {
-                            final BiConsumer<Integer, Instruction[]> inserter =
-                                location.shouldInjectBefore()
-                                    ? editor::insertBeforeOffset
-                                    : editor::insertAfterInstruction;
-
-                            inserter.accept(location.getOffset(), code.instructions());
-                          }
-                          codeAttribute.accept(clazz, method, editor);
-                        }
-                      })));
+                      Attribute.CODE, new InstructionInjector(editor, code, injectStrategy))));
         });
   }
 
@@ -204,6 +185,38 @@ public class CodeInjector {
   }
 
   // Internal utility classes
+  private static class InstructionInjector implements AttributeVisitor {
+    private final CodeAttributeEditor editor;
+    private final InstructionSequenceBuilder code;
+    private final InjectStrategy injectStrategy;
+
+    private InstructionInjector(
+        CodeAttributeEditor editor,
+        InstructionSequenceBuilder code,
+        InjectStrategy injectStrategy) {
+      this.editor = editor;
+      this.code = code;
+      this.injectStrategy = injectStrategy;
+    }
+
+    @Override
+    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+      editor.reset(codeAttribute.u4codeLength);
+      InjectStrategy.InjectLocation[] injectLocations =
+          injectStrategy.getAllSuitableInjectionLocation(
+              (ProgramClass) clazz, (ProgramMethod) method);
+      for (InjectStrategy.InjectLocation location : injectLocations) {
+        final BiConsumer<Integer, Instruction[]> inserter =
+            location.shouldInjectBefore()
+                ? editor::insertBeforeOffset
+                : editor::insertAfterInstruction;
+
+        inserter.accept(location.getOffset(), code.instructions());
+      }
+      codeAttribute.accept(clazz, method, editor);
+    }
+  }
+
   private static class ClassMethodPair {
     public Clazz clazz;
     public Method method;
