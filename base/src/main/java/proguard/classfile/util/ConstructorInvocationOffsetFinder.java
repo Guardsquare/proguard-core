@@ -1,6 +1,10 @@
 package proguard.classfile.util;
 
-import proguard.classfile.*;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AttributeNameFilter;
