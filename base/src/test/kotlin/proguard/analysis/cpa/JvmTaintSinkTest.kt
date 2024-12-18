@@ -5,9 +5,9 @@ import io.kotest.matchers.shouldBe
 import proguard.analysis.CallResolver
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
+import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.analysis.datastructure.callgraph.Call
 import proguard.analysis.datastructure.callgraph.CallGraph
 import proguard.classfile.ClassPool
@@ -88,15 +88,13 @@ class JvmTaintSinkTest : FreeSpec({
 
     "Call filter selects the correct call" {
 
-        val taintMemoryLocationCpaRun = JvmTaintMemoryLocationBamCpaRun
-            .Builder()
-            .setCfa(interproceduralCfa)
-            .setMainSignature(mainSignature)
-            .setTaintSources(setOf(taintSourceReturn))
-            .setTaintSinks(setOf(taintSinkArgumentLast))
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn), setOf(taintSinkArgumentLast))
             .build()
+        val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
 
-        val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+        interproceduralCfa.clear()
+
+        val traces = result.extractLinearTraces()
         traces.size shouldBe 1
         getSinkCall(traces.first()) shouldBe callGraph.incoming[taintSinkArgumentLastSignature]!!.maxBy { it.caller.offset }
     }

@@ -25,26 +25,29 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import proguard.analysis.cpa.defaults.CpaRun;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
-import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.classfile.MethodSignature;
 
 /**
- * This interfaces containts helper methods for {@link CpaRun}s producing witness traces.
+ * This interface contains helper methods for producing witness traces.
  *
- * @author Dmitry Ivanov
+ * @param <T> The type of the states contained in the JVM state. e.g., for taint analysis this would
+ *     be a {@link proguard.analysis.cpa.defaults.SetAbstractState} containing the taints and for
+ *     value analysis a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState}.
  */
-public interface TraceExtractor {
+public interface TraceExtractor<T extends LatticeAbstractState<T>> {
 
   /** Returns a set of linear witness traces. */
-  default Set<List<BamLocationDependentJvmMemoryLocation>> extractLinearTraces() {
-    Set<List<BamLocationDependentJvmMemoryLocation>> result = new HashSet<>();
-    for (BamLocationDependentJvmMemoryLocation<?> l : getEndPoints()) {
-      List<BamLocationDependentJvmMemoryLocation> trace = new ArrayList<>();
-      trace.add(l);
+  default Set<List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>>>
+      extractLinearTraces() {
+    Set<List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>>> result = new HashSet<>();
+    for (BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>> endpoint : getEndPoints()) {
+      List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>> trace = new ArrayList<>();
+      trace.add(endpoint);
       traceExtractionIteration(result, trace);
     }
     return result.stream().map(this::removeDuplicateProgramLocations).collect(Collectors.toSet());
@@ -54,47 +57,52 @@ public interface TraceExtractor {
    * Returns endpoints or the extracted traces. Its output should be used for constructing initial
    * states for memory location CPAs.
    */
-  Collection<BamLocationDependentJvmMemoryLocation<?>> getEndPoints();
+  Collection<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>> getEndPoints();
 
   /** Returns the reached set of a trace extracting memory location CPA. */
   ProgramLocationDependentReachedSet<
-          JvmCfaNode, JvmCfaEdge, JvmMemoryLocationAbstractState<?>, MethodSignature>
-      getOutputReachedSet();
+          JvmCfaNode,
+          JvmCfaEdge,
+          JvmMemoryLocationAbstractState<JvmAbstractState<T>>,
+          MethodSignature>
+      getTraceReconstructionReachedSet();
 
   default void traceExtractionIteration(
-      Set<List<BamLocationDependentJvmMemoryLocation>> result,
-      List<BamLocationDependentJvmMemoryLocation> currentTrace) {
-    BamLocationDependentJvmMemoryLocation currentNode = currentTrace.get(currentTrace.size() - 1);
-    List<JvmMemoryLocationAbstractState> currentStates = new ArrayList<>();
-    for (AbstractState s : getOutputReachedSet().getReached(currentNode.getProgramLocation())) {
-      if (((JvmMemoryLocationAbstractState) s)
-          .getLocationDependentMemoryLocation()
-          .equals(currentNode)) {
-        currentStates.add((JvmMemoryLocationAbstractState) s);
+      Set<List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>>> result,
+      List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>> currentTrace) {
+    BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>> currentNode =
+        currentTrace.get(currentTrace.size() - 1);
+    List<JvmMemoryLocationAbstractState<JvmAbstractState<T>>> currentStates = new ArrayList<>();
+    for (JvmMemoryLocationAbstractState<JvmAbstractState<T>> state :
+        getTraceReconstructionReachedSet().getReached(currentNode.getProgramLocation())) {
+      if (state.getLocationDependentMemoryLocation().equals(currentNode)) {
+        currentStates.add(state);
       }
     }
 
-    for (JvmMemoryLocationAbstractState currentState : currentStates) {
-      Set<BamLocationDependentJvmMemoryLocation> sourceLocations =
+    for (JvmMemoryLocationAbstractState<JvmAbstractState<T>> currentState : currentStates) {
+      Set<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>> sourceLocations =
           currentState.getSourceLocations();
 
-      if (sourceLocations.size() == 0) {
+      if (sourceLocations.isEmpty()) {
         result.add(currentTrace);
       }
-      for (BamLocationDependentJvmMemoryLocation l : sourceLocations) {
-        if (currentTrace.contains(l)) {
+      for (BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>> location : sourceLocations) {
+        if (currentTrace.contains(location)) {
           continue;
         }
-        List<BamLocationDependentJvmMemoryLocation> trace = new ArrayList<>(currentTrace);
-        trace.add(l);
+        List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>> trace =
+            new ArrayList<>(currentTrace);
+        trace.add(location);
         traceExtractionIteration(result, trace);
       }
     }
   }
 
-  default List<BamLocationDependentJvmMemoryLocation> removeDuplicateProgramLocations(
-      List<BamLocationDependentJvmMemoryLocation> trace) {
-    List<BamLocationDependentJvmMemoryLocation> result = new ArrayList<>();
+  default List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>>
+      removeDuplicateProgramLocations(
+          List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>> trace) {
+    List<BamLocationDependentJvmMemoryLocation<JvmAbstractState<T>>> result = new ArrayList<>();
     result.add(trace.get(0));
     for (int i = 1; i < trace.size(); i++) {
       // remove irrelevant nodes

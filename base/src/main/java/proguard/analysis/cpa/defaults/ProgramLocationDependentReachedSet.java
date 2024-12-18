@@ -100,12 +100,12 @@ public final class ProgramLocationDependentReachedSet<
   }
 
   @Override
-  public Collection<? extends AbstractState> getReached(AbstractState abstractState) {
+  public Collection<AbstractStateT> getReached(AbstractState abstractState) {
     return getReached(((AbstractStateT) abstractState).getProgramLocation());
   }
 
   /** Returns a collection of abstract states belonging to the given {@code location}. */
-  public Collection<? extends AbstractState> getReached(CfaNodeT location) {
+  public Collection<AbstractStateT> getReached(CfaNodeT location) {
     return locationToStates.getOrDefault(location, Collections.emptySet());
   }
 }

@@ -25,6 +25,7 @@ import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StopSepOperator;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
@@ -41,26 +42,36 @@ import proguard.classfile.MethodSignature;
 public class JvmMemoryLocationCpa<AbstractStateT extends LatticeAbstractState<AbstractStateT>>
     extends SimpleCpa {
 
+  private final AbortOperator abortOperator;
+
   public JvmMemoryLocationCpa(
       AbstractStateT threshold,
       BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
-      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
+      AbortOperator abortOperator) {
     this(
         threshold,
         bamCpa,
         new DelegateAbstractDomain<JvmMemoryLocationAbstractState>(),
-        extraTaintPropagationLocations);
+        extraTaintPropagationLocations,
+        abortOperator);
   }
 
   private JvmMemoryLocationCpa(
       AbstractStateT threshold,
       BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
       AbstractDomain abstractDomain,
-      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
+      AbortOperator abortOperator) {
     super(
         abstractDomain,
         new JvmMemoryLocationTransferRelation<>(threshold, bamCpa, extraTaintPropagationLocations),
         new JvmMemoryLocationMergeJoinOperator(abstractDomain),
         new StopSepOperator(abstractDomain));
+    this.abortOperator = abortOperator;
+  }
+
+  public AbortOperator getAbortOperator() {
+    return abortOperator;
   }
 }

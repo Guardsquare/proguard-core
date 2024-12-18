@@ -20,25 +20,19 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet
 import proguard.analysis.cpa.defaults.SetAbstractState
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintBamCpaRun
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
-import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.jvm.witness.JvmLocalVariableLocation
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation
-import proguard.analysis.cpa.state.HashMapAbstractStateFactory
+import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.classfile.MethodSignature
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 
 class JvmTaintPropagationThroughConstructorsTest : FunSpec({
-    val jvmTaintBamCpaRunBuilder = JvmTaintBamCpaRun.Builder()
-        .setStaticFieldMapAbstractStateFactory(HashMapAbstractStateFactory.getInstance())
 
     val taintSource = JvmTaintSource(
         MethodSignature(
@@ -49,6 +43,16 @@ class JvmTaintPropagationThroughConstructorsTest : FunSpec({
         false,
         true,
         setOf(),
+        setOf(),
+    )
+    val sink = JvmInvokeTaintSink(
+        MethodSignature(
+            "Test",
+            "sink",
+            "(Ljava/lang/String;)V",
+        ),
+        false,
+        setOf(1),
         setOf(),
     )
 
@@ -127,24 +131,21 @@ class JvmTaintPropagationThroughConstructorsTest : FunSpec({
 
         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("test") }.findFirst().get().signature
-        val location = interproceduralCfa.getFunctionNode(mainSignature, 22)
         val callToInit = interproceduralCfa.getFunctionNode(mainSignature, 17).leavingEdges
             .filterIsInstance<JvmCallCfaEdge>().first().call
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(mainSignature)
-            .setTaintSources(setOf(taintSource))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSource), setOf(sink))
             .setMaxCallStackDepth(10)
             .setExtraTaintPropagationLocations(mapOf(callToInit to setOf(JvmStackLocation(0))))
             .build()
-        val abstractStates =
-            (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(
-                location,
-            )
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+
         interproceduralCfa.clear()
 
-        abstractStates.size shouldBe 1
-        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
             taintSource,
         )
     }
@@ -226,22 +227,19 @@ class JvmTaintPropagationThroughConstructorsTest : FunSpec({
             .filter { it.signature.fqn.contains("test") }.findFirst().get().signature
         val callToInit = interproceduralCfa.getFunctionNode(mainSignature, 18).leavingEdges
             .filterIsInstance<JvmCallCfaEdge>().first().call
-        val location = interproceduralCfa.getFunctionNode(mainSignature, 22)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(mainSignature)
-            .setTaintSources(setOf(taintSource))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSource), setOf(sink))
             .setMaxCallStackDepth(10)
             .setExtraTaintPropagationLocations(mapOf(callToInit to setOf(JvmLocalVariableLocation(2))))
             .build()
-        val abstractStates =
-            (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(
-                location,
-            )
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+
         interproceduralCfa.clear()
 
-        abstractStates.size shouldBe 1
-        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
             taintSource,
         )
     }

@@ -58,7 +58,6 @@ public class JvmInvokeTaintSink extends JvmTaintSink {
    * @param takesArgs a set of sensitive arguments
    * @param takesGlobals a set of sensitive global variables
    */
-  @Deprecated
   public JvmInvokeTaintSink(
       Signature signature,
       boolean takesInstance,

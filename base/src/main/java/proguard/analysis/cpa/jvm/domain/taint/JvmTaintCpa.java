@@ -61,6 +61,8 @@ public class JvmTaintCpa extends SimpleCpa {
    * @param sources a set of taint sources
    * @param taintTransformers a mapping from method signature to a transformer object applied to the
    *     taint state when that method is invoked
+   * @param extraTaintPropagationLocations a mapping from a specific method call to any jvm state
+   *     location that is tainted as a result of the call
    */
   public JvmTaintCpa(
       Set<? extends JvmTaintSource> sources,
@@ -79,15 +81,18 @@ public class JvmTaintCpa extends SimpleCpa {
    * @param signaturesToSources a mapping from method signature to taint sources
    * @param taintTransformers a mapping from method signature to a transformer object applied to the
    *     taint state when that method is invoked
+   * @param extraTaintPropagationLocations a mapping from a specific method call to any jvm state
+   *     location that is tainted as a result of the call
    */
   public JvmTaintCpa(
       Map<Signature, Set<JvmTaintSource>> signaturesToSources,
-      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
+      Map<MethodSignature, JvmTaintTransformer> taintTransformers,
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this(
         signaturesToSources,
         new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(),
         taintTransformers,
-        Collections.emptyMap());
+        extraTaintPropagationLocations);
   }
 
   private JvmTaintCpa(

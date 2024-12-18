@@ -23,12 +23,12 @@ import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.defaults.SetAbstractState
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmReturnTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintMemoryLocationBamCpaRun
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
 import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.analysis.cpa.state.LimitedHashMapAbstractStateFactory
+import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
@@ -96,8 +96,6 @@ class TraceExtractorTest : StringSpec({
     )
     val taintSinkReturn = JvmReturnTaintSink(MethodSignature("A", "sink", "(Ljava/lang/String;)Ljava/lang/String;"))
 
-    val jvmTaintMemoryLocationBamCpaRunBuilder = JvmTaintMemoryLocationBamCpaRun.Builder().setReduceHeap(false)
-
     listOf(
         HashMapAbstractStateFactory.getInstance(),
         DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
@@ -105,7 +103,6 @@ class TraceExtractorTest : StringSpec({
     ).forEach { staticFieldMapAbstractStateFactory ->
 
         val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"
-        jvmTaintMemoryLocationBamCpaRunBuilder.setStaticFieldMapAbstractStateFactory(staticFieldMapAbstractStateFactory)
 
         "Simple interprocedural flows are reconstructed$testNameSuffix" {
             val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
@@ -139,14 +136,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -193,14 +188,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -248,13 +241,13 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1, taintSourceReturn2))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
+            interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
+
             interproceduralCfa.clear()
 
             /*
@@ -321,14 +314,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceStatic))
-                .setTaintSinks(setOf(taintSinkStatic))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(taintSinkStatic))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -374,14 +365,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -422,14 +411,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -475,14 +462,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -524,14 +509,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -572,14 +555,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgumentLong))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentLong))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -620,14 +601,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgumentMultiple))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentMultiple))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -676,14 +655,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             /*
         Bytecode of main:
@@ -752,14 +729,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -805,14 +780,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -856,14 +829,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1, taintSourceReturn2))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             /*
         Bytecode of main:
@@ -950,14 +921,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1, taintSourceReturn2))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             /*
         Bytecode of main:
@@ -1031,14 +1000,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1, taintSourceReturn2))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             /*
         Bytecode of main:
@@ -1117,14 +1084,12 @@ class TraceExtractorTest : StringSpec({
                 ).programClassPool,
             )
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkArgument))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             /*
         Bytecode of main:
@@ -1196,14 +1161,12 @@ class TraceExtractorTest : StringSpec({
                 [1] areturn
              */
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturn1))
-                .setTaintSinks(setOf(taintSinkReturn))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkReturn))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(
@@ -1262,14 +1225,12 @@ class TraceExtractorTest : StringSpec({
                 [0] return
              */
             val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-            val taintMemoryLocationCpaRun = jvmTaintMemoryLocationBamCpaRunBuilder
-                .setCfa(interproceduralCfa)
-                .setMainSignature(mainSignature)
-                .setTaintSources(setOf(taintSourceReturnDouble))
-                .setTaintSinks(setOf(taintSinkArgumentDouble))
+
+            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturnDouble), setOf(taintSinkArgumentDouble))
                 .build()
-            val traces = taintMemoryLocationCpaRun.extractLinearTraces()
+            val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
             interproceduralCfa.clear()
+            val traces = result.extractLinearTraces()
 
             traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
                 listOf(

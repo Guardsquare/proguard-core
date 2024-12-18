@@ -41,7 +41,7 @@ import proguard.evaluation.value.ParticularValueFactory;
 import proguard.evaluation.value.ValueFactory;
 
 /**
- * Helper class to analyze constant values in a program inter-procedurally.
+ * Helper class to analyze values (e.g., function parameters) in a program inter-procedurally.
  *
  * <p>The analyzer can be configured in several ways via {@link ValueAnalyzer.Builder}.
  *
@@ -49,7 +49,7 @@ import proguard.evaluation.value.ValueFactory;
  * configured analysis starting from a given method in the program.
  *
  * <p>The same analyzer can be used to analyze several methods in sequence, in this case the
- * analysis {@link BamCache} will be shared between the sequential analysis making them potentially
+ * analysis {@link BamCache} will be shared between the sequential analyses making them potentially
  * avoid recalculating the results when a method is called again with known parameters.
  *
  * <p>This might sometimes not be the desired behavior, since the cache might take a lot of memory.

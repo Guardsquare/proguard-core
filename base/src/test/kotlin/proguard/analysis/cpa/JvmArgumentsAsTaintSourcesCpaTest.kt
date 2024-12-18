@@ -20,15 +20,11 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet
 import proguard.analysis.cpa.defaults.SetAbstractState
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintBamCpaRun
+import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
-import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.util.CfaUtil
-import proguard.analysis.cpa.state.HashMapAbstractStateFactory
+import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
@@ -76,8 +72,16 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         setOf(),
     )
 
-    val jvmTaintBamCpaRunBuilder = JvmTaintBamCpaRun.Builder()
-        .setStaticFieldMapAbstractStateFactory(HashMapAbstractStateFactory.getInstance())
+    val sink = JvmInvokeTaintSink(
+        MethodSignature(
+            "A",
+            "sink",
+            "(Ljava/lang/String;)V",
+        ),
+        false,
+        setOf(1),
+        setOf(),
+    )
 
     test("Taints arguments static") {
         val programClassPool = ClassPoolBuilder.fromSource(
@@ -109,21 +113,16 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         )
         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-        val location = interproceduralCfa.getFunctionNode(mainSignature, 11)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(mainSignature)
-            .setTaintSources(setOf(taintSourceTaintsArgs1))
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsArgs1), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
-        val abstractStates =
-            (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(
-                location,
-            )
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
         interproceduralCfa.clear()
 
-        abstractStates.size shouldBe 1
-        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        (result.endpoints.first().extractFirstValue(SetAbstractState.bottom)) shouldBe setOf(
             taintSourceTaintsArgs1,
         )
     }
@@ -161,21 +160,16 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         )
         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-        val location = interproceduralCfa.getFunctionNode(mainSignature, 14)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(mainSignature)
-            .setTaintSources(setOf(taintSourceTaintsTwoArgs2, taintSourceTaintsTwoArgs1))
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsTwoArgs2, taintSourceTaintsTwoArgs1), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
-        val abstractStates =
-            (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(
-                location,
-            )
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
         interproceduralCfa.clear()
 
-        abstractStates.size shouldBe 1
-        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        (result.endpoints.first().extractFirstValue(SetAbstractState.bottom)) shouldBe setOf(
             taintSourceTaintsTwoArgs2,
             taintSourceTaintsTwoArgs1,
         )
@@ -208,27 +202,17 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         )
         val entrySignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("source") }.findFirst().get().signature
-        val passToSinkSignature = interproceduralCfa.functionEntryNodes.stream()
-            .filter { it.signature.fqn.contains("passToSink") }.findFirst().get().signature
-        val location = interproceduralCfa.getFunctionNode(passToSinkSignature, 2)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(entrySignature)
-            .setTaintSources(setOf(taintSourceTaintsArgs1))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsArgs1), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
-
-        taintCpaRun.execute()
-        val cache = taintCpaRun.cpa.cache
-        val cacheEntries = cache.get(passToSinkSignature).first()
+        val result = taintAnalyzer.analyze(entrySignature).taintAnalysisResult
         interproceduralCfa.clear()
 
-        val reached =
-            (cacheEntries.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>).getReached(
-                location,
-            )
-        reached.size shouldBe 1
-        (reached.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        (result.endpoints.first().extractFirstValue(SetAbstractState.bottom)) shouldBe setOf(
             taintSourceTaintsArgs1,
         )
     }
@@ -260,37 +244,28 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             programClassPool,
         )
-        val sourceSignature = interproceduralCfa!!.functionEntryNodes.stream()
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("source") }.findFirst().get().signature
-        val locationTainted = interproceduralCfa.getFunctionNode(sourceSignature, 5)
-        val locationNotTainted = interproceduralCfa.getFunctionNode(sourceSignature, 9)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(sourceSignature)
-            .setTaintSources(setOf(taintSourceTaintsArgs1))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsArgs1), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-        taintCpaRun.execute()
-        val cache = taintCpaRun.cpa.cache
-        val cacheEntries = cache.get(sourceSignature).first()
+        val locationTainted = interproceduralCfa.getFunctionNode(mainSignature, 5)
+        val locationNotTainted = interproceduralCfa.getFunctionNode(mainSignature, 9)
+
         interproceduralCfa.clear()
 
-        val reachedTainted =
-            (cacheEntries.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>).getReached(
-                locationTainted,
-            )
-        reachedTainted.size shouldBe 1
-        (reachedTainted.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        val endpointsTainted = result.endpoints.filter { endpoint -> endpoint.programLocation == locationTainted }
+        endpointsTainted.size shouldBe 1
+        val endpointTainted = endpointsTainted[0]
+        result.endpointToTriggeredSinks[endpointTainted] shouldBe setOf(sink)
+        (endpointTainted.extractFirstValue(SetAbstractState.bottom)) shouldBe setOf(
             taintSourceTaintsArgs1,
         )
 
-        val reachedNotTainted =
-            (cacheEntries.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>).getReached(
-                locationNotTainted,
-            )
-        reachedNotTainted.size shouldBe 1
-        (reachedNotTainted.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf()
+        result.endpoints.filter { endpoint -> endpoint.programLocation == locationNotTainted }.size shouldBe 0
     }
 
     test("Tainted argument gets cleared by intermediate call") {
@@ -319,27 +294,16 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
             programClassPool,
         )
-        val sourceSignature = interproceduralCfa!!.functionEntryNodes.stream()
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("source") }.findFirst().get().signature
-        val locationTainted = interproceduralCfa.getFunctionNode(sourceSignature, 5)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(sourceSignature)
-            .setTaintSources(setOf(taintSourceTaintsArgs1))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsArgs1), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
-
-        taintCpaRun.execute()
-        val cache = taintCpaRun.cpa.cache
-        val cacheEntries = cache.get(sourceSignature).first()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
         interproceduralCfa.clear()
 
-        val reachedTainted =
-            (cacheEntries.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>).getReached(
-                locationTainted,
-            )
-        reachedTainted.size shouldBe 1
-        (reachedTainted.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf()
+        result.endpoints.size shouldBe 0
     }
 
     test("Tainted argument does not get cleared by intermediate call") {
@@ -370,25 +334,19 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         )
         val sourceSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("source") }.findFirst().get().signature
-        val locationTainted = interproceduralCfa.getFunctionNode(sourceSignature, 6)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(sourceSignature)
-            .setTaintSources(setOf(taintSourceTaintsArgs1))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsArgs1), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
-
-        taintCpaRun.execute()
-        val cache = taintCpaRun.cpa.cache
-        val cacheEntries = cache.get(sourceSignature).first()
+        val result = taintAnalyzer.analyze(sourceSignature).taintAnalysisResult
         interproceduralCfa.clear()
 
-        val reachedTainted =
-            (cacheEntries.reachedSet as ProgramLocationDependentReachedSet<JvmCfaNode, *, *, *>).getReached(
-                locationTainted,
-            )
-        reachedTainted.size shouldBe 1
-        (reachedTainted.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(taintSourceTaintsArgs1)
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        (result.endpoints.first().extractFirstValue(SetAbstractState.bottom)) shouldBe setOf(
+            taintSourceTaintsArgs1,
+        )
     }
 
     test("Sources from tainted arguments combine upon merge") {
@@ -427,21 +385,17 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         )
         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-        val location = interproceduralCfa.getFunctionNode(mainSignature, 22)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(mainSignature)
-            .setTaintSources(setOf(taintSourceTaintsArgs1, taintSourceTaintsArgs2))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsArgs1, taintSourceTaintsArgs2), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
-        val abstractStates =
-            (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(
-                location,
-            )
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
         interproceduralCfa.clear()
 
-        abstractStates.size shouldBe 1
-        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        (result.endpoints.first().extractFirstValue(SetAbstractState.bottom)) shouldBe setOf(
             taintSourceTaintsArgs1,
             taintSourceTaintsArgs2,
         )
@@ -479,21 +433,17 @@ class JvmArgumentsAsTaintSourcesCpaTest : FunSpec({
         )
         val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
             .filter { it.signature.fqn.contains("main") }.findFirst().get().signature
-        val location = interproceduralCfa.getFunctionNode(mainSignature, 17)
-        val taintCpaRun = jvmTaintBamCpaRunBuilder
-            .setCfa(interproceduralCfa)
-            .setMainSignature(mainSignature)
-            .setTaintSources(setOf(taintSourceTaintsArgs1, taintSourceTaintsArgs2))
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceTaintsArgs1, taintSourceTaintsArgs2), setOf(sink))
             .setMaxCallStackDepth(10)
             .build()
-        val abstractStates =
-            (taintCpaRun.execute() as ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, JvmAbstractState<SetAbstractState<JvmTaintSource>>, MethodSignature>).getReached(
-                location,
-            )
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
         interproceduralCfa.clear()
 
-        abstractStates.size shouldBe 1
-        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        (result.endpoints.first().extractFirstValue(SetAbstractState.bottom)) shouldBe setOf(
             taintSourceTaintsArgs2,
         )
     }
