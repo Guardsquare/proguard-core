@@ -7,6 +7,7 @@ import io.kotest.matchers.types.shouldNotBeInstanceOf
 import proguard.analysis.cpa.bam.BamCache
 import proguard.analysis.cpa.jvm.cfa.JvmCfa
 import proguard.analysis.cpa.jvm.util.CfaUtil
+import proguard.analysis.cpa.util.ValueAnalyzer
 import proguard.classfile.ClassPool
 import proguard.classfile.MethodSignature
 import proguard.evaluation.value.ParticularReferenceValue
@@ -14,10 +15,8 @@ import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
-fun runCpa(cfa: JvmCfa, mainSignature: MethodSignature, libraryClassPool: ClassPool): BamCache<MethodSignature> {
-    val bamCpaRun = JvmValueBamCpaRun.Builder(ClassPool(), libraryClassPool, cfa, mainSignature).setReduceHeap(true).build()
-    bamCpaRun.execute()
-    return bamCpaRun.cpa.cache
+fun runCpa(cfa: JvmCfa, mainSignature: MethodSignature, programClassPool: ClassPool, libraryClassPool: ClassPool): BamCache<MethodSignature> {
+    return ValueAnalyzer.Builder(cfa, programClassPool, libraryClassPool).build().analyze(mainSignature).resultCache
 }
 
 fun getLastState(cache: BamCache<MethodSignature>, mainSignature: MethodSignature): JvmValueAbstractState {
@@ -62,7 +61,7 @@ class CpaValueTest : FreeSpec({
         val cfa: JvmCfa = CfaUtil.createInterproceduralCfa(programClassPool)
         val mainSignature = MethodSignature("Test", "main", "([Ljava/lang/String;)V")
 
-        val cache = runCpa(cfa, mainSignature, libraryClassPool)
+        val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
         val last = getLastState(cache, mainSignature)
 
         "Then there should be two fields in the JvmValueAbstractState" {
@@ -91,7 +90,7 @@ class CpaValueTest : FreeSpec({
         val cfa: JvmCfa = CfaUtil.createInterproceduralCfa(programClassPool, libraryClassPool)
 
         val mainSignature = MethodSignature("Test", "test", "()V")
-        val cache = runCpa(cfa, mainSignature, libraryClassPool)
+        val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
         val last = getLastState(cache, mainSignature)
 
         "Correct string value" {
@@ -154,7 +153,7 @@ class CpaValueTest : FreeSpec({
 
         "Simple successful checkcast (same class)" - {
             val mainSignature = MethodSignature("Test", "castOk", "()Ljava/lang/String;")
-            val cache = runCpa(cfa, mainSignature, libraryClassPool)
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
             val last = getLastState(cache, mainSignature)
 
             val value = last.frame.operandStack[0].value
@@ -164,7 +163,7 @@ class CpaValueTest : FreeSpec({
 
         "Successful checkcast (interface)" - {
             val mainSignature = MethodSignature("Test", "castInterface", "()Ljava/lang/String;")
-            val cache = runCpa(cfa, mainSignature, libraryClassPool)
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
             val last = getLastState(cache, mainSignature)
 
             val value = last.frame.operandStack[0].value
@@ -174,7 +173,7 @@ class CpaValueTest : FreeSpec({
 
         "Unsuccessful cast" {
             val mainSignature = MethodSignature("Test", "castNotOk", "()Ljava/lang/String;")
-            val cache = runCpa(cfa, mainSignature, libraryClassPool)
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
             val last = getLastState(cache, mainSignature)
 
             val value = last.frame.operandStack[0].value

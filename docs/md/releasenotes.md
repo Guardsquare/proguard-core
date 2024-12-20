@@ -27,6 +27,7 @@ make its usage easier. This includes:
 - Remove `MemoryLocation`, use `JvmMemoryLocation` instead.
 - Make `JvmMemoryLocation` independent of the type of value contained in the analysis' state. The type of the value now needs only to be provided when calling `extractValueOrDefault`.
 - Remove all code related to the tree heap model for taint analysis.
+- Remove `JvmValueBamCpaRun` in order to simplify the utility code to run the analysis. `ValueAnalyzer` is the direct replacement, this class has the same behavior as `JvmValueBamCpaRun`, as long as `analyze` is called only once.
 
 ## Version 9.1.6
 

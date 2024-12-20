@@ -8,6 +8,7 @@ import proguard.analysis.cpa.bam.BamCache
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState
 import proguard.analysis.cpa.jvm.util.CfaUtil
+import proguard.analysis.cpa.util.ValueAnalyzer
 import proguard.classfile.MethodSignature
 import proguard.classfile.ProgramClass
 import proguard.classfile.Signature
@@ -63,9 +64,7 @@ class BamOperatorsTest : FreeSpec({
         }
         val clazz = programClassPool.getClass(className) as ProgramClass
         val mainSignature = Signature.of(clazz, clazz.findMethod("main", null)) as MethodSignature
-        val bamCpaRun = JvmValueBamCpaRun.Builder(programClassPool, libraryClassPool, cfa, mainSignature).setReduceHeap(true).build()
-        bamCpaRun.execute()
-        return bamCpaRun.cpa.cache
+        return ValueAnalyzer.Builder(cfa, programClassPool, libraryClassPool).build().analyze(mainSignature).resultCache
     }
 
     "Bam operators test" - {

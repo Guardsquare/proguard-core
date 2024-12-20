@@ -25,8 +25,8 @@ import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.value.JvmValueAbstractState;
-import proguard.analysis.cpa.jvm.domain.value.JvmValueBamCpaRun;
 import proguard.analysis.cpa.jvm.util.CfaUtil;
+import proguard.analysis.cpa.util.ValueAnalyzer;
 import proguard.classfile.ClassPool;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
@@ -46,7 +46,7 @@ public class BamCpaValueTest {
 
   @Test
   public void testSimpleStringBuilder() {
-    BamCache<MethodSignature> cache = runBamCpa("SimpleStringBuilder");
+    BamCache<MethodSignature> cache = runBamCpa("SimpleStringBuilder").getResultCache();
 
     ProgramLocationDependentReachedSet reachedSet =
         (ProgramLocationDependentReachedSet)
@@ -68,7 +68,7 @@ public class BamCpaValueTest {
 
   @Test
   public void testSimpleStringInterprocedural() {
-    BamCache<MethodSignature> cache = runBamCpa("SimpleStringInterprocedural");
+    BamCache<MethodSignature> cache = runBamCpa("SimpleStringInterprocedural").getResultCache();
 
     ProgramLocationDependentReachedSet fooReachedSet =
         (ProgramLocationDependentReachedSet)
@@ -95,7 +95,7 @@ public class BamCpaValueTest {
 
   @Test
   public void testApiKeyInterprocedural() {
-    BamCache<MethodSignature> cache = runBamCpa("TestApiCall");
+    BamCache<MethodSignature> cache = runBamCpa("TestApiCall").getResultCache();
 
     ProgramLocationDependentReachedSet fooReachedSet =
         (ProgramLocationDependentReachedSet)
@@ -128,7 +128,7 @@ public class BamCpaValueTest {
   public void testStringBuilderLoop() {
     // this doesn't include any interprocedural analysis, just checking the code with a loop is
     // terminating correctly
-    BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoop");
+    BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoop").getResultCache();
 
     ProgramLocationDependentReachedSet reachedSet =
         (ProgramLocationDependentReachedSet)
@@ -151,7 +151,7 @@ public class BamCpaValueTest {
 
   @Test
   public void testSimpleRecursive() {
-    BamCache<MethodSignature> cache = runBamCpa("SimpleInterproceduralRecursive");
+    BamCache<MethodSignature> cache = runBamCpa("SimpleInterproceduralRecursive").getResultCache();
 
     ProgramLocationDependentReachedSet mainReachedSet =
         (ProgramLocationDependentReachedSet)
@@ -172,7 +172,7 @@ public class BamCpaValueTest {
 
   @Test
   public void testStringBuilderLoopReassign() {
-    BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoopReassign");
+    BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoopReassign").getResultCache();
     ProgramLocationDependentReachedSet reachedSet =
         (ProgramLocationDependentReachedSet)
             cache
@@ -221,7 +221,7 @@ public class BamCpaValueTest {
         .get();
   }
 
-  private static BamCache<MethodSignature> runBamCpa(String className) {
+  private static ValueAnalyzer.ValueAnalysisResult runBamCpa(String className) {
     ClassPool programClassPool = getProgramClassPool(className);
     JvmCfa cfa =
         CfaUtil.createInterproceduralCfa(
@@ -239,15 +239,11 @@ public class BamCpaValueTest {
     ProgramClass clazz = (ProgramClass) programClassPool.getClass(className);
     MethodSignature mainSignature =
         (MethodSignature) Signature.of(clazz, clazz.findMethod("main", null));
-    JvmValueBamCpaRun bamCpaRun =
-        new JvmValueBamCpaRun.Builder(
-                programClassPool,
-                ClassPoolBuilder.Companion.getLibraryClassPool(),
-                cfa,
-                mainSignature)
+    ValueAnalyzer valueAnalyzer =
+        new ValueAnalyzer.Builder(
+                cfa, programClassPool, ClassPoolBuilder.Companion.getLibraryClassPool())
             .build();
-    bamCpaRun.execute();
-    return bamCpaRun.getCpa().getCache();
+    return valueAnalyzer.analyze(mainSignature);
   }
 
   private static ClassPool getProgramClassPool(String className) {

@@ -219,6 +219,11 @@ public class BamTransferRelation<
     return maxCallStackDepth;
   }
 
+  /** Returns the operator used to stop the analysis prematurely. */
+  public AbortOperator getAbortOperator() {
+    return abortOperator;
+  }
+
   /** Returns the wrapped domain-dependent intra-procedural CPA. */
   public CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> getWrappedCpa() {
     return wrappedCpa;
