@@ -59,7 +59,6 @@ import proguard.analysis.cpa.jvm.witness.JvmLocalVariableLocation;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStaticFieldLocation;
-import proguard.analysis.cpa.util.StateNames;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
@@ -254,8 +253,7 @@ public class JvmMemoryLocationTransferRelation<
               }
 
               JvmAbstractState<AbstractStateT> returnJvmAbstractState =
-                  (JvmAbstractState<AbstractStateT>)
-                      returnState.get().getStateByName(StateNames.Jvm);
+                  (JvmAbstractState<AbstractStateT>) returnState.get();
               AbstractStateT value =
                   state
                       .getLocationDependentMemoryLocation()
@@ -334,8 +332,7 @@ public class JvmMemoryLocationTransferRelation<
         successors.addAll(
             getSuccessorsFromMemoryLocations(
                 intraproceduralSuccessorMemoryLocations,
-                (JvmAbstractState<AbstractStateT>)
-                    intraproceduralParentState.get().getStateByName(StateNames.Jvm),
+                (JvmAbstractState<AbstractStateT>) intraproceduralParentState.get(),
                 state.getSourceReachedSet(),
                 state.copyStack()));
       }
@@ -366,8 +363,7 @@ public class JvmMemoryLocationTransferRelation<
                   ci ->
                       getSuccessorsFromMemoryLocations(
                               Collections.singletonList(callerMemoryLocation.get()),
-                              (JvmAbstractState<AbstractStateT>)
-                                  ci.state.getStateByName(StateNames.Jvm),
+                              (JvmAbstractState<AbstractStateT>) ci.state,
                               ci.reachedSet,
                               new LinkedList<>())
                           .stream()
@@ -380,8 +376,7 @@ public class JvmMemoryLocationTransferRelation<
           successors.addAll(
               getSuccessorsFromMemoryLocations(
                   Collections.singletonList(callerMemoryLocation.get()),
-                  (JvmAbstractState<AbstractStateT>)
-                      currentEntry.callerState.getStateByName(StateNames.Jvm),
+                  (JvmAbstractState<AbstractStateT>) currentEntry.callerState,
                   currentEntry.reachedSet,
                   successorStack));
         }
@@ -834,8 +829,7 @@ public class JvmMemoryLocationTransferRelation<
                   memoryLocation,
                   constantInstruction,
                   clazz,
-                  ((JvmAbstractState<AbstractStateT>) parentState.getStateByName(StateNames.Jvm))
-                      .getProgramLocation()));
+                  ((JvmAbstractState<AbstractStateT>) parentState).getProgramLocation()));
           break;
         case Instruction.OP_NEW:
         case Instruction.OP_NEWARRAY:

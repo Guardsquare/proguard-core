@@ -217,8 +217,7 @@ public class TaintAnalyzerResult {
                       .asCollection()
                       .forEach(
                           state ->
-                              ((JvmAbstractState<SetAbstractState<JvmTaintSource>>)
-                                      state.getStateByName(StateNames.Jvm))
+                              ((JvmAbstractState<SetAbstractState<JvmTaintSource>>) state)
                                   .getProgramLocation()
                                   .getLeavingEdges()
                                   .forEach(
@@ -267,8 +266,7 @@ public class TaintAnalyzerResult {
                       .filter(
                           memoryLocation ->
                               isStateTaintedForMemoryLocation(
-                                  (JvmAbstractState<SetAbstractState<JvmTaintSource>>)
-                                      state.getStateByName(StateNames.Jvm),
+                                  (JvmAbstractState<SetAbstractState<JvmTaintSource>>) state,
                                   memoryLocation,
                                   sinkToMemoryLocations.getKey()))
                       .forEach(

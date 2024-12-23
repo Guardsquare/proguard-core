@@ -33,14 +33,6 @@ public interface AbstractState {
   /** Creates a copy of itself. */
   AbstractState copy();
 
-  /**
-   * Returns an abstract state for a given {@param name} if the state is composite, returns {@code
-   * self} otherwise.
-   */
-  default AbstractState getStateByName(String name) {
-    return this;
-  }
-
   // overrides for Object
 
   @Override
