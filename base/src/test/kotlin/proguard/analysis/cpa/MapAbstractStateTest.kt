@@ -20,69 +20,58 @@ package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import proguard.analysis.cpa.defaults.DifferentialMapAbstractState
 import proguard.analysis.cpa.defaults.HashMapAbstractState
-import proguard.analysis.cpa.defaults.LimitedHashMapAbstractState
 import proguard.testutils.cpa.IntegerAbstractState
-import java.util.Optional
 
 class MapAbstractStateTest : FreeSpec({
+    val stateEmpty = HashMapAbstractState<Int, IntegerAbstractState>()
+    val state1 = HashMapAbstractState<Int, IntegerAbstractState>()
+    val state2 = HashMapAbstractState<Int, IntegerAbstractState>()
+    val state3 = HashMapAbstractState<Int, IntegerAbstractState>()
+    val stateLarge = HashMapAbstractState<Int, IntegerAbstractState>()
 
-    listOf(
-        { HashMapAbstractState<Int, IntegerAbstractState>() },
-        { DifferentialMapAbstractState() },
-        { LimitedHashMapAbstractState { _, _, _ -> Optional.empty() } },
-    ).forEach { supplier ->
+    state1[1] = IntegerAbstractState(1)
+    state1[2] = IntegerAbstractState(2)
 
-        val stateEmpty = supplier.invoke()
-        val state1 = supplier.invoke()
-        val state2 = supplier.invoke()
-        val state3 = supplier.invoke()
-        val stateLarge = supplier.invoke()
+    state2[2] = IntegerAbstractState(5)
+    state2[3] = IntegerAbstractState(3)
 
-        state1[1] = IntegerAbstractState(1)
-        state1[2] = IntegerAbstractState(2)
+    state3[1] = IntegerAbstractState(1)
+    state3[2] = IntegerAbstractState(1)
 
-        state2[2] = IntegerAbstractState(5)
-        state2[3] = IntegerAbstractState(3)
+    stateLarge[1] = IntegerAbstractState(5)
+    stateLarge[2] = IntegerAbstractState(5)
+    stateLarge[3] = IntegerAbstractState(5)
 
-        state3[1] = IntegerAbstractState(1)
-        state3[2] = IntegerAbstractState(1)
+    "Empty map is the neutral element" {
+        stateEmpty.join(state1) shouldBe state1
+        state1.join(stateEmpty) shouldBe state1
+    }
 
-        stateLarge[1] = IntegerAbstractState(5)
-        stateLarge[2] = IntegerAbstractState(5)
-        stateLarge[3] = IntegerAbstractState(5)
+    "Arbitrary maps are correctly joined" {
+        state1.join(state2) shouldBe mapOf(
+            1 to IntegerAbstractState(1),
+            2 to IntegerAbstractState(5),
+            3 to IntegerAbstractState(3),
+        )
+    }
 
-        "Empty map is the neutral element" {
-            stateEmpty.join(state1) shouldBe state1
-            state1.join(stateEmpty) shouldBe state1
-        }
+    "Comparison is reflexive" {
+        state1.isLessOrEqual(state1) shouldBe true
+    }
 
-        "Arbitrary maps are correctly joined" {
-            state1.join(state2) shouldBe mapOf(
-                1 to IntegerAbstractState(1),
-                2 to IntegerAbstractState(5),
-                3 to IntegerAbstractState(3),
-            )
-        }
+    "Comparison is antisymmetric" {
+        state1.isLessOrEqual(stateLarge) shouldBe true
+        stateLarge.isLessOrEqual(state1) shouldBe false
+    }
 
-        "Comparison is reflexive" {
-            state1.isLessOrEqual(state1) shouldBe true
-        }
+    "Empty map is the bottom" {
+        stateEmpty.isLessOrEqual(state1) shouldBe true
+        state1.isLessOrEqual(stateEmpty) shouldBe false
+    }
 
-        "Comparison is antisymmetric" {
-            state1.isLessOrEqual(stateLarge) shouldBe true
-            stateLarge.isLessOrEqual(state1) shouldBe false
-        }
-
-        "Empty map is the bottom" {
-            stateEmpty.isLessOrEqual(state1) shouldBe true
-            state1.isLessOrEqual(stateEmpty) shouldBe false
-        }
-
-        "Comparison of maps with the same key sets is pointwise" {
-            state1.isLessOrEqual(state3) shouldBe false
-            state3.isLessOrEqual(state1) shouldBe true
-        }
+    "Comparison of maps with the same key sets is pointwise" {
+        state1.isLessOrEqual(state3) shouldBe false
+        state3.isLessOrEqual(state1) shouldBe true
     }
 })

@@ -42,8 +42,6 @@ import proguard.exception.ProguardCoreException;
  * This {@link ReduceOperator} simulates the JVM behavior on a method call. It takes a clone of the
  * caller {@link JvmAbstractState}, creates an empty stack and a local variables array with the
  * callee arguments.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT>>
     implements ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>,

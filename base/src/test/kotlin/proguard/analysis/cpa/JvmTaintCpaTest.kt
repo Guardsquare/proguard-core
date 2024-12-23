@@ -26,8 +26,6 @@ import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintTransformer
 import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.util.CfaUtil
-import proguard.analysis.cpa.state.DifferentialMapAbstractStateFactory
-import proguard.analysis.cpa.state.HashMapAbstractStateFactory
 import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.classfile.MethodSignature
 import proguard.testutils.ClassPoolBuilder
@@ -75,19 +73,12 @@ class JvmTaintCpaTest : FreeSpec({
         setOf(),
     )
 
-    listOf(
-        HashMapAbstractStateFactory.getInstance(),
-        DifferentialMapAbstractStateFactory<String, SetAbstractState<JvmTaintSource>> { false },
-    ).forEach { staticFieldMapAbstractStateFactory ->
-
-        val testNameSuffix = " for static fields ${staticFieldMapAbstractStateFactory.javaClass.simpleName}"
-
-        "Simple flow is detected$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Simple flow is detected" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
 
@@ -107,34 +98,34 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
-                .setMaxCallStackDepth(0)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
+            .setMaxCallStackDepth(0)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceReturn1,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceReturn1,
+        )
+    }
 
-        "Taint can be overwritten$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Taint can be overwritten" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
 
@@ -155,29 +146,29 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
-                .setMaxCallStackDepth(0)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
+            .setMaxCallStackDepth(0)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpoints.size shouldBe 0
-        }
+        result.endpoints.size shouldBe 0
+    }
 
-        "Taints combine upon merge$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Taints combine upon merge" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                     
@@ -209,35 +200,35 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(sink))
-                .setMaxCallStackDepth(0)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(sink))
+            .setMaxCallStackDepth(0)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceReturn1,
-                taintSourceReturn2,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceReturn1,
+            taintSourceReturn2,
+        )
+    }
 
-        "Taint propagates along loops$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Taint propagates along loops" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                     
@@ -267,35 +258,35 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(sink))
-                .setMaxCallStackDepth(0)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(sink))
+            .setMaxCallStackDepth(0)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceReturn1,
-                taintSourceReturn2,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceReturn1,
+            taintSourceReturn2,
+        )
+    }
 
-        "Taint propagates through static fields$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Taint propagates through static fields" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A {
 
                     public static String s;
@@ -315,34 +306,34 @@ class JvmTaintCpaTest : FreeSpec({
                     {
                     }
                 }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(sink))
-                .setMaxCallStackDepth(0)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(sink))
+            .setMaxCallStackDepth(0)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceStatic,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceStatic,
+        )
+    }
 
-        "Taint flows through the return value of a non-tainting function$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Taint flows through the return value of a non-tainting function" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                     
@@ -367,34 +358,34 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
-                .setMaxCallStackDepth(-1)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
+            .setMaxCallStackDepth(-1)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceReturn1,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceReturn1,
+        )
+    }
 
-        "Taint flows through static field tainted in a function call$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Taint flows through static field tainted in a function call" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                         static String s;
@@ -419,34 +410,34 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
-                .setMaxCallStackDepth(-1)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
+            .setMaxCallStackDepth(-1)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceReturn1,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceReturn1,
+        )
+    }
 
-        "Recursive function analysis converges$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Recursive function analysis converges" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                     
@@ -478,34 +469,34 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
-                .setMaxCallStackDepth(-1)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(sink))
+            .setMaxCallStackDepth(-1)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceReturn1,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceReturn1,
+        )
+    }
 
-        "Merging works interprocedurally$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Merging works interprocedurally" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                     
@@ -542,35 +533,35 @@ class JvmTaintCpaTest : FreeSpec({
                             return null;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(sink))
-                .setMaxCallStackDepth(-1)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(sink))
+            .setMaxCallStackDepth(-1)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceReturn1,
-                taintSourceReturn2,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceReturn1,
+            taintSourceReturn2,
+        )
+    }
 
-        "Tail recursion analysis converges$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Tail recursion analysis converges" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                     
@@ -604,34 +595,34 @@ class JvmTaintCpaTest : FreeSpec({
                             return;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(sink))
-                .setMaxCallStackDepth(-1)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(sink))
+            .setMaxCallStackDepth(-1)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            interproceduralCfa.clear()
+        interproceduralCfa.clear()
 
-            result.endpointToTriggeredSinks.size shouldBe 1
-            result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
-            result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
-                taintSourceStatic,
-            )
-        }
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom) shouldBe setOf(
+            taintSourceStatic,
+        )
+    }
 
-        "Category 2 taint sources taint only top of the stack$testNameSuffix" {
-            val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
-                ClassPoolBuilder.fromSource(
-                    JavaSource(
-                        "A.java",
-                        """
+    "Category 2 taint sources taint only top of the stack" {
+        val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPool(
+            ClassPoolBuilder.fromSource(
+                JavaSource(
+                    "A.java",
+                    """
                     class A
                     {
                     
@@ -645,26 +636,25 @@ class JvmTaintCpaTest : FreeSpec({
                             return 0.0;
                         }
                     }
-                        """.trimIndent(),
-                    ),
-                    javacArguments = listOf("-source", "1.8", "-target", "1.8"),
-                ).programClassPool,
-            )
-            val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+                    """.trimIndent(),
+                ),
+                javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+            ).programClassPool,
+        )
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
 
-            val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturnDouble), setOf())
-                .setMaxCallStackDepth(-1)
-                .build()
-            val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturnDouble), setOf())
+            .setMaxCallStackDepth(-1)
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
 
-            val location = interproceduralCfa.getFunctionNode(mainSignature, 3)
+        val location = interproceduralCfa.getFunctionNode(mainSignature, 3)
 
-            val abstractStates = result.mainMethodReachedSet.getReached(location)
-            interproceduralCfa.clear()
-            abstractStates.size shouldBe 1
-            (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(taintSourceReturnDouble)
-            (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek(1) shouldBe setOf()
-        }
+        val abstractStates = result.mainMethodReachedSet.getReached(location)
+        interproceduralCfa.clear()
+        abstractStates.size shouldBe 1
+        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek() shouldBe setOf(taintSourceReturnDouble)
+        (abstractStates.first() as JvmAbstractState<SetAbstractState<JvmTaintSource>>).peek(1) shouldBe setOf()
     }
 
     "Sanitizing transformer breaks the dataflow" - {

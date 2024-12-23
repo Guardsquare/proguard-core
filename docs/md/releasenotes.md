@@ -30,6 +30,7 @@ make its usage easier. This includes:
 - Remove `JvmValueBamCpaRun` in order to simplify the utility code to run the analysis. `ValueAnalyzer` is the direct replacement, this class has the same behavior as `JvmValueBamCpaRun`, as long as `analyze` is called only once.
 - Remove `JvmTaintMemoryLocationBamCpaRun` in order to simplify the utility code to run the analysis. `TaintAnalyzer` is the direct replacement, this class has the same behavior as `JvmTaintMemoryLocationBamCpaRun`, as long as `analyze` is called only once.
 - Remove the `CpaRun` infrastructure.
+- Remove `MapAbstractStateFactory`, `WrapperTransferRelation`, and other classes that were only used with the tree heap model.
 
 ## Version 9.1.6
 
