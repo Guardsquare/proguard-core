@@ -84,7 +84,7 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
   MethodResult getPackageName(ModelHelper.MethodExecutionContext context) {
     if (clazz == null) return MethodResult.invalidResult();
     return ModelHelper.createDefaultReturnResult(
-        context, ClassUtil.externalPackageName(clazz.getName()));
+        context, ClassUtil.externalPackageName(ClassUtil.externalClassName(clazz.getName())));
   }
 
   /** Models {@link Class#getTypeName()}. */
