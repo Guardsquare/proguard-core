@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	id 'distribution'
@@ -51,7 +53,7 @@ allprojects {
 		}
 	}
 
-	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+	tasks.withType(KotlinCompile).configureEach {
 		kotlinOptions {
 			jvmTarget = '1.8'
 			freeCompilerArgs = [
@@ -59,7 +61,7 @@ allprojects {
 			]
 		}
 	}
-	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
+	tasks.withType(KotlinCompilationTask.class)
 			.configureEach {
 				compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_7
 			}
@@ -89,7 +91,7 @@ javadoc {
 	options.addStringOption('Xdoclint:none', '-quiet')
 }
 
-task buildDocumentation(type: Exec) {
+def buildDocumentation = tasks.register("buildDocumentation", Exec) {
 	dependsOn javadoc
 	inputs.dir 'docs/md'
 	inputs.file 'docs/mkdocs.yml'
