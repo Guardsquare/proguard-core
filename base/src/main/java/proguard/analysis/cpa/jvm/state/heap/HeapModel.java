@@ -18,11 +18,7 @@
 
 package proguard.analysis.cpa.jvm.state.heap;
 
-/**
- * An enumeration of supported heap models.
- *
- * @author Dmitry Ivanov
- */
+/** An enumeration of supported heap models. */
 public enum HeapModel {
   /** a singleton heap model */
   FORGETFUL,

@@ -23,9 +23,9 @@ import java.util.Collection;
 /**
  * The {@link StopOperator} decides if {@link Algorithm} should stop.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public interface StopOperator {
+public interface StopOperator<StateT extends AbstractState> {
 
   /**
    * The operator may decide based on the (generalized under the given {@code precision})
@@ -33,8 +33,5 @@ public interface StopOperator {
    * reachedAbstractStates}. Otherwise, it can return {@code true} if sufficient information is
    * collected, e.g., a safety property is violated.
    */
-  boolean stop(
-      AbstractState abstractState,
-      Collection<? extends AbstractState> reachedAbstractStates,
-      Precision precision);
+  boolean stop(StateT abstractState, Collection<StateT> reachedAbstractStates, Precision precision);
 }

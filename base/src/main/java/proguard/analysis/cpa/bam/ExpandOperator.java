@@ -18,22 +18,21 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.CfaEdge;
-import proguard.analysis.cpa.interfaces.CfaNode;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.Signature;
 
 /**
  * This operator is used to recover the information discarded when entering a procedure block
  * depending on the domain-specific analysis.
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface ExpandOperator<
-    CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-    CfaEdgeT extends CfaEdge<CfaNodeT>,
-    SignatureT extends Signature> {
+public interface ExpandOperator<ContentT extends LatticeAbstractState<ContentT>> {
 
   /**
    * Reconstructs the state of the caller of a procedure using the information of the expanded
@@ -47,9 +46,9 @@ public interface ExpandOperator<
    * @return The state of the caller after the procedure call, eventually with some collisions of
    *     identifiers that need the {@link RebuildOperator} to be solved
    */
-  AbstractState expand(
-      AbstractState expandedInitialState,
-      AbstractState reducedExitState,
-      CfaNodeT blockEntryNode,
+  JvmAbstractState<ContentT> expand(
+      JvmAbstractState<ContentT> expandedInitialState,
+      JvmAbstractState<ContentT> reducedExitState,
+      JvmCfaNode blockEntryNode,
       Call call);
 }

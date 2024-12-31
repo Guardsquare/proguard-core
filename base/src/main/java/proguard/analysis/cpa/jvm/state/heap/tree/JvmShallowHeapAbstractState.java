@@ -34,8 +34,6 @@ import proguard.exception.ProguardCoreException;
 /**
  * A shallow heap models objects as atomic abstract states thus having only one level of depth.
  * Object fields are not modeled. References of wrong types are ignored.
- *
- * @author Dmitry Ivanov
  */
 public class JvmShallowHeapAbstractState<ReferenceT, StateT extends LatticeAbstractState<StateT>>
     implements JvmHeapAbstractState<StateT> {

@@ -18,9 +18,13 @@
 
 package proguard.analysis.cpa.bam;
 
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.Waitlist;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * A block abstraction is a summary of the analysis of a procedure call, represented by the set of
@@ -28,12 +32,18 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  * save these abstractions in a cache and retrieve them when the same procedure is called with the
  * same entry {@link AbstractState}.
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BlockAbstraction {
+public class BlockAbstraction<ContentT extends LatticeAbstractState<ContentT>> {
 
-  private final ReachedSet reachedSet;
-  private final Waitlist waitlist;
+  /* FIXME It should be possible for the cache to contain any type of reached set. At the moment
+   *   JvmMemoryLocationCpa, its states, and its transfer relation, assume that the reached set needs to be
+   *   ProgramLocationDependentReachedSet, so it makes sense to make this behavior explicit.
+   */
+  private final ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet;
+  private final Waitlist<JvmAbstractState<ContentT>> waitlist;
 
   /**
    * Create a new block abstraction.
@@ -41,18 +51,20 @@ public class BlockAbstraction {
    * @param reachedSet a collection of discovered states
    * @param waitlist a collection of states of the block that need to be analyzed
    */
-  public BlockAbstraction(ReachedSet reachedSet, Waitlist waitlist) {
+  public BlockAbstraction(
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet,
+      Waitlist<JvmAbstractState<ContentT>> waitlist) {
     this.reachedSet = reachedSet;
     this.waitlist = waitlist;
   }
 
   /** Returns the {@link ReachedSet} of the block abstraction. */
-  public ReachedSet getReachedSet() {
+  public ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> getReachedSet() {
     return reachedSet;
   }
 
   /** Returns the {@link Waitlist} of the block abstraction. */
-  public Waitlist getWaitlist() {
+  public Waitlist<JvmAbstractState<ContentT>> getWaitlist() {
     return waitlist;
   }
 }

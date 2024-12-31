@@ -23,44 +23,44 @@ import java.util.Set;
 import proguard.analysis.cpa.bam.BamCpa;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StopSepOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.MethodSignature;
 
 /**
  * The {@link JvmMemoryLocationCpa} backtraces memory locations. See {@see
  * JvmMemoryLocationTransferRelation} for details.
  *
- * @param <AbstractStateT> The type of the values of the traced analysis.
+ * @param <ContentT> The content of the jvm states for the traced analysis. For example, this can be
+ *     a {@link SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmMemoryLocationCpa<AbstractStateT extends LatticeAbstractState<AbstractStateT>>
-    extends SimpleCpa {
+public class JvmMemoryLocationCpa<ContentT extends LatticeAbstractState<ContentT>>
+    extends SimpleCpa<JvmMemoryLocationAbstractState<ContentT>> {
 
   private final AbortOperator abortOperator;
 
   public JvmMemoryLocationCpa(
-      AbstractStateT threshold,
-      BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
+      ContentT threshold,
+      BamCpa<ContentT> bamCpa,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
       AbortOperator abortOperator) {
     this(
         threshold,
         bamCpa,
-        new DelegateAbstractDomain<JvmMemoryLocationAbstractState>(),
+        new DelegateAbstractDomain<JvmMemoryLocationAbstractState<ContentT>>(),
         extraTaintPropagationLocations,
         abortOperator);
   }
 
   private JvmMemoryLocationCpa(
-      AbstractStateT threshold,
-      BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
-      AbstractDomain abstractDomain,
+      ContentT threshold,
+      BamCpa<ContentT> bamCpa,
+      AbstractDomain<JvmMemoryLocationAbstractState<ContentT>> abstractDomain,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
       AbortOperator abortOperator) {
     super(

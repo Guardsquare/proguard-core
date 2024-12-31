@@ -25,15 +25,14 @@ import proguard.analysis.cpa.interfaces.Precision;
 /**
  * This {@link MergeOperator} does not weaken the input {@link AbstractState}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public final class MergeSepOperator implements MergeOperator {
+public final class MergeSepOperator<StateT extends AbstractState> implements MergeOperator<StateT> {
 
   // implementations for MergeOperator
 
   @Override
-  public AbstractState merge(
-      AbstractState abstractState1, AbstractState abstractState2, Precision precision) {
+  public StateT merge(StateT abstractState1, StateT abstractState2, Precision precision) {
     return abstractState2;
   }
 }

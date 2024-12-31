@@ -18,22 +18,18 @@
 
 package proguard.analysis.cpa.interfaces;
 
-import proguard.classfile.Signature;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 
 /**
- * If an {@link AbstractState} is program location-specific, it should implement {@link
+ * If an {@link AbstractState} is program location-specific (i.e., is associated to a specific node
+ * from the {@link proguard.analysis.cpa.defaults.Cfa}), it should implement {@link
  * ProgramLocationDependent}.
- *
- * @author Dmitry Ivanov
  */
-public interface ProgramLocationDependent<
-    CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-    CfaEdgeT extends CfaEdge<CfaNodeT>,
-    SignatureT extends Signature> {
+public interface ProgramLocationDependent {
 
   /** Returns the program location. */
-  CfaNodeT getProgramLocation();
+  JvmCfaNode getProgramLocation();
 
   /** Sets the program location. */
-  void setProgramLocation(CfaNodeT programLocation);
+  void setProgramLocation(JvmCfaNode programLocation);
 }

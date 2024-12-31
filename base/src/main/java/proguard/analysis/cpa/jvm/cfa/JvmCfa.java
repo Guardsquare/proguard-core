@@ -51,8 +51,6 @@ import proguard.classfile.MethodSignature;
  *
  * <p>A unique {@link JvmUnknownCfaNode} node is used for instructions the successor of which is
  * unknown.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmCfa extends Cfa<JvmCfaNode, JvmCfaEdge, MethodSignature> {
 

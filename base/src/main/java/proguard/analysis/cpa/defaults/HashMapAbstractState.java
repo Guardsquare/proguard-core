@@ -24,8 +24,6 @@ import java.util.Map;
 /**
  * This {@link HashMapAbstractState} represents a map to {@link LatticeAbstractState}s with the
  * semilattice operators lifted to the map.
- *
- * @author Dmitry Ivanov
  */
 public class HashMapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
     extends HashMap<KeyT, AbstractSpaceT> implements MapAbstractState<KeyT, AbstractSpaceT> {

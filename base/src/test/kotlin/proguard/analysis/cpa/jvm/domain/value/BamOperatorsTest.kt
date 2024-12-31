@@ -5,7 +5,6 @@ import io.kotest.matchers.collections.shouldExist
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.analysis.cpa.bam.BamCache
-import proguard.analysis.cpa.interfaces.ProgramLocationDependent
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.util.ValueAnalyzer
@@ -53,7 +52,7 @@ class BamOperatorsTest : FreeSpec({
         javacArguments = mutableListOf("-source", "1.8", "-target", "1.8"),
     )
 
-    fun runBamCpa(className: String): BamCache<MethodSignature> {
+    fun runBamCpa(className: String): BamCache<ValueAbstractState> {
         val cfa = CfaUtil.createInterproceduralCfa(programClassPool, libraryClassPool)
         if (debug) {
             try {
@@ -77,7 +76,7 @@ class BamOperatorsTest : FreeSpec({
 
         "State reduced correctly" - {
 
-            val entryState = fooReachedSet.asCollection().find { (it as ProgramLocationDependent<*, *, *>).programLocation.offset == 0 } as JvmValueAbstractState
+            val entryState = fooReachedSet.asCollection().find { it.programLocation.offset == 0 } as JvmValueAbstractState
 
             "Correct parameters" {
                 (entryState.getVariableOrDefault(0, ValueAbstractState.UNKNOWN).value as ParticularReferenceValue).value() shouldBe "World!"
@@ -103,7 +102,7 @@ class BamOperatorsTest : FreeSpec({
 
         "State expanded correctly" - {
 
-            val exitState = mainReachedSet.asCollection().find { (it as ProgramLocationDependent<*, *, *>).programLocation.offset == -1 } as JvmValueAbstractState
+            val exitState = mainReachedSet.asCollection().find { it.programLocation.offset == -1 } as JvmValueAbstractState
 
             "All variables available" {
                 (exitState.getVariableOrDefault(1, ValueAbstractState.UNKNOWN).value as ParticularReferenceValue).value().toString() shouldBe "Hello"

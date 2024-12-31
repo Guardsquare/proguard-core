@@ -24,8 +24,6 @@ import proguard.classfile.attribute.CodeAttribute;
 /**
  * An edge representing an assumption on a JVM branch instruction that can be either taken or not
  * taken.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmAssumeCfaEdge extends JvmInstructionCfaEdge {
 

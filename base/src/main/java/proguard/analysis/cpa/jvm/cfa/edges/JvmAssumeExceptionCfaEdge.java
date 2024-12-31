@@ -23,8 +23,6 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 /**
  * An edge representing an assumption on a JVM exception of a specific type that can be either
  * caught or not caught.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmAssumeExceptionCfaEdge extends JvmCfaEdge {
 

@@ -33,7 +33,6 @@ import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.StopOperator;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.value.JvmCfaReferenceValueFactory;
 import proguard.analysis.cpa.jvm.domain.value.JvmValueAbstractState;
@@ -69,9 +68,7 @@ public class CpaValueTest {
 
   @Test
   public void testSimpleString() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("SimpleString");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet = runCpa("SimpleString");
     JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
     ParticularReferenceValue value =
         (ParticularReferenceValue) lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
@@ -85,9 +82,7 @@ public class CpaValueTest {
 
   @Test
   public void testSimpleDouble() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("SimpleDouble");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet = runCpa("SimpleDouble");
     JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
 
     ParticularDoubleValue value =
@@ -108,9 +103,7 @@ public class CpaValueTest {
 
   @Test
   public void testSimpleString2() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("SimpleString2");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet = runCpa("SimpleString2");
     JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
     ParticularReferenceValue value =
         (ParticularReferenceValue) lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
@@ -124,9 +117,8 @@ public class CpaValueTest {
 
   @Test
   public void testJoinTwoDifferentValues() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("JoinTestDifferentValues");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("JoinTestDifferentValues");
     JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
     Value valueInVarSlot1 = lastAbstractState.getFrame().getLocalVariables().get(1).getValue();
     assertInstanceOf(TypedReferenceValue.class, valueInVarSlot1);
@@ -135,9 +127,8 @@ public class CpaValueTest {
 
   @Test
   public void testJoinTwoSameValues() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("JoinTestSameValues");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("JoinTestSameValues");
     JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
     ParticularReferenceValue value =
         (ParticularReferenceValue)
@@ -149,9 +140,8 @@ public class CpaValueTest {
 
   @Test
   public void testSimpleStringBuilder() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("SimpleStringBuilder");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("SimpleStringBuilder");
     JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
     Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
     ReferenceValue stackTop =
@@ -172,9 +162,8 @@ public class CpaValueTest {
 
   @Test
   public void testSimpleStringBuffer() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("SimpleStringBuffer");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("SimpleStringBuffer");
     JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
     Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
     ReferenceValue stackTop =
@@ -197,9 +186,8 @@ public class CpaValueTest {
   public void testSimpleStringConcat() {
     // In this example a known integer constant value is used
     // as an operand to String.substring.
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("SimpleStringConcat");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("SimpleStringConcat");
     JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
     Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
     ReferenceValue stackTop =
@@ -223,9 +211,8 @@ public class CpaValueTest {
     // In this example, a second StringBuilder is introduced by the compiler
     // for the string concatenation. The second StringBuilder is not stored in a local
     // variable.
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("StringSubString");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("StringSubString");
     JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
     Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
     ReferenceValue stackTop =
@@ -246,9 +233,8 @@ public class CpaValueTest {
 
   @Test
   public void testStringBuilderBranch() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("StringBuilderBranch");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("StringBuilderBranch");
     JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
     ReferenceValue stackTop =
         printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
@@ -270,9 +256,7 @@ public class CpaValueTest {
 
   @Test
   public void testSimpleSwitch() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("SimpleSwitch");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet = runCpa("SimpleSwitch");
     JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
     Value value = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
     assertInstanceOf(TypedReferenceValue.class, value);
@@ -288,9 +272,8 @@ public class CpaValueTest {
 
   @Test
   public void testStringBuilderLoopNested() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("StringBuilderLoopNested");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("StringBuilderLoopNested");
 
     // Parameter to System.out.println is a typed String but
     // the actual value is unknown.
@@ -305,9 +288,8 @@ public class CpaValueTest {
 
   @Test
   public void testStringBuilderLoop() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("StringBuilderLoop");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("StringBuilderLoop");
 
     // Parameter to System.out.println is a typed String but the actual value is unknown.
     JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
@@ -321,9 +303,8 @@ public class CpaValueTest {
 
   @Test
   public void testUnsupportedClass() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("UnsupportedClass");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("UnsupportedClass");
     JvmValueAbstractState lastAbstractState = getLastAbstractState(reachedSet);
     assertInstanceOf(
         UnknownReferenceValue.class, lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue());
@@ -338,9 +319,8 @@ public class CpaValueTest {
   /** Tests that the reached set order is deterministic */
   @Test
   public void testControlFlowDeterminism() {
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = runCpa("ControlFlowDeterminism");
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        runCpa("ControlFlowDeterminism");
     List<Integer> expected =
         Arrays.asList(
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 177, 180, 182, 185, 241, -1, 16, 19, 22, 144,
@@ -356,26 +336,19 @@ public class CpaValueTest {
   }
 
   private static JvmValueAbstractState getLastAbstractState(
-      ProgramLocationDependentReachedSet<
-              JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-          reachedSet) {
+      ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet) {
     return reachedSet.asCollection().stream()
         .max(Comparator.comparingInt(it -> it.getProgramLocation().getOffset()))
         .get();
   }
 
   private static JvmValueAbstractState getPrintlnCall(
-      ProgramLocationDependentReachedSet<
-              JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-          reachedSet) {
+      ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet) {
     return getMethodCall(reachedSet, "println");
   }
 
   private static JvmValueAbstractState getMethodCall(
-      ProgramLocationDependentReachedSet<
-              JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-          reachedSet,
-      String methodName) {
+      ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet, String methodName) {
     return reachedSet.asCollection().stream()
         .filter(
             it ->
@@ -385,9 +358,8 @@ public class CpaValueTest {
         .get();
   }
 
-  private static ProgramLocationDependentReachedSet<
-          JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-      runCpa(String className) {
+  private static ProgramLocationDependentReachedSet<JvmValueAbstractState> runCpa(
+      String className) {
     ClassPool programClassPool = getProgramClassPool(className);
     JvmHeapAbstractState<ValueAbstractState> heap =
         new JvmShallowHeapAbstractState<>(new HashMapAbstractState<>(), JvmCfaNode.class, UNKNOWN);
@@ -434,9 +406,8 @@ public class CpaValueTest {
 
     Waitlist waitlist = new DepthFirstWaitlist();
     waitlist.add(initialStates);
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-        reachedSet = new ProgramLocationDependentReachedSet<>();
+    ProgramLocationDependentReachedSet<JvmValueAbstractState> reachedSet =
+        new ProgramLocationDependentReachedSet<>();
     new CpaAlgorithm(
             new SimpleCpa(
                 abstractDomain,

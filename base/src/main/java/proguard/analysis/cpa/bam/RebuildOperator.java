@@ -18,14 +18,14 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * This operator is used to avoid collision of program identifiers when returning from a procedure
  * call. This operator does not compute any abstraction, but just performs simple operations as
  * renaming variables, depending on the domain.
- *
- * @author Carlo Alberto Pozzoli
  */
 public interface RebuildOperator {
 
@@ -34,7 +34,12 @@ public interface RebuildOperator {
    *
    * @param predecessorCallState the state of the caller at the moment of the procedure call
    * @param expandedOutputState the output of {@link ExpandOperator}
+   * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+   *     SetAbstractState} of taints for taint analysis or a {@link
+   *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
    * @return The state of the caller after the procedure call
    */
-  AbstractState rebuild(AbstractState predecessorCallState, AbstractState expandedOutputState);
+  <ContentT extends LatticeAbstractState<ContentT>> JvmAbstractState<ContentT> rebuild(
+      JvmAbstractState<ContentT> predecessorCallState,
+      JvmAbstractState<ContentT> expandedOutputState);
 }

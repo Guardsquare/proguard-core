@@ -28,30 +28,37 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
-import proguard.classfile.Signature;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.classfile.MethodSignature;
 
 /**
  * A simple implementation of {@link BamCache} where the cache is implemented as a {@link HashMap}.
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BamCacheImpl<SignatureT extends Signature> implements BamCache<SignatureT> {
+public class BamCacheImpl<ContentT extends LatticeAbstractState<ContentT>>
+    implements BamCache<ContentT> {
 
   private static final Logger log = LogManager.getLogger(BamCacheImpl.class);
 
-  private final Map<SignatureT, Map<HashKey, BlockAbstraction>> cache = new HashMap<>();
+  private final Map<MethodSignature, Map<HashKey, BlockAbstraction<ContentT>>> cache =
+      new HashMap<>();
   private int size = 0;
 
   // Implementations for BamCache
 
   @Override
   public void put(
-      AbstractState stateKey,
+      JvmAbstractState<ContentT> stateKey,
       Precision precisionKey,
-      SignatureT blockKey,
-      BlockAbstraction blockAbstraction) {
+      MethodSignature blockKey,
+      BlockAbstraction<ContentT> blockAbstraction) {
     if (cache
             .computeIfAbsent(blockKey, k -> new HashMap<>())
             .put(getHashKey(stateKey, precisionKey), blockAbstraction)
@@ -62,19 +69,20 @@ public class BamCacheImpl<SignatureT extends Signature> implements BamCache<Sign
   }
 
   @Override
-  public BlockAbstraction get(AbstractState stateKey, Precision precisionKey, SignatureT blockKey) {
+  public BlockAbstraction<ContentT> get(
+      JvmAbstractState<ContentT> stateKey, Precision precisionKey, MethodSignature blockKey) {
     return cache
         .getOrDefault(blockKey, Collections.emptyMap())
         .get(getHashKey(stateKey, precisionKey));
   }
 
   @Override
-  public Collection<BlockAbstraction> get(SignatureT blockKey) {
+  public Collection<BlockAbstraction<ContentT>> get(MethodSignature blockKey) {
     return cache.getOrDefault(blockKey, Collections.emptyMap()).values();
   }
 
   @Override
-  public Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey) {
+  public Collection<BlockAbstraction<ContentT>> get(Precision precision, MethodSignature blockKey) {
     return cache.getOrDefault(blockKey, Collections.emptyMap()).entrySet().stream()
         .filter(e -> e.getKey().precisionKey.equals(precision))
         .map(Entry::getValue)
@@ -82,7 +90,7 @@ public class BamCacheImpl<SignatureT extends Signature> implements BamCache<Sign
   }
 
   @Override
-  public Collection<BlockAbstraction> values() {
+  public Collection<BlockAbstraction<ContentT>> values() {
     return cache.values().stream()
         .map(Map::values)
         .flatMap(Collection::stream)
@@ -95,7 +103,7 @@ public class BamCacheImpl<SignatureT extends Signature> implements BamCache<Sign
   }
 
   @Override
-  public Set<SignatureT> getAllMethods() {
+  public Set<MethodSignature> getAllMethods() {
     return Collections.unmodifiableSet(cache.keySet());
   }
 

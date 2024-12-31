@@ -23,33 +23,33 @@ import java.util.Collection;
 /**
  * The {@link Waitlist} stores the {@link AbstractState}s the {@link Algorithm} needs to process.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The states contained in the waitlist.
  */
-public interface Waitlist extends Iterable<AbstractState> {
+public interface Waitlist<StateT extends AbstractState> {
 
   /** Adds an abstract state. */
-  void add(AbstractState state);
+  void add(StateT state);
 
   /** Adds multiple abstract states. */
-  void addAll(Collection<? extends AbstractState> abstractStates);
+  void addAll(Collection<? extends StateT> abstractStates);
 
   /** Empties the waitlist. */
   void clear();
 
   /** Checks whether the abstract state is present. */
-  boolean contains(AbstractState abstractState);
+  boolean contains(StateT abstractState);
 
   /** Checks whether the waitlist is empty. */
   boolean isEmpty();
 
   /** Remove the next abstract state and return it. */
-  AbstractState pop();
+  StateT pop();
 
   /** Removes an abstract state. */
-  boolean remove(AbstractState abstractState);
+  boolean remove(StateT abstractState);
 
   /** Removes multiple abstract states. */
-  void removeAll(Collection<?> abstractStates);
+  void removeAll(Collection<? extends StateT> abstractStates);
 
   /** Returns the size of the waitlist. */
   int size();

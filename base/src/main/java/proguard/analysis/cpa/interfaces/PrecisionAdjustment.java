@@ -24,8 +24,6 @@ import proguard.analysis.cpa.defaults.PrecisionAdjustmentResult;
 /**
  * {@link PrecisionAdjustment} allows adjusting the {@link Algorithm} {@link Precision} based of the
  * reached abstract states. The evolution and the interpretation of {@link Precision} are arbitrary.
- *
- * @author Dmitry Ivanov
  */
 public interface PrecisionAdjustment {
 
@@ -33,8 +31,8 @@ public interface PrecisionAdjustment {
    * Returns a new {@link AbstractState} and {@link Precision} for the given reached abstract
    * states.
    */
-  PrecisionAdjustmentResult prec(
-      AbstractState abstractState,
+  <AbstractStateT extends AbstractState> PrecisionAdjustmentResult<AbstractStateT> prec(
+      AbstractStateT abstractState,
       Precision precision,
-      Collection<? extends AbstractState> reachedAbstractStates);
+      Collection<? extends AbstractStateT> reachedAbstractStates);
 }

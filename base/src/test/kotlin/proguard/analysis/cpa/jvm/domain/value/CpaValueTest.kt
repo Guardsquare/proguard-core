@@ -15,11 +15,11 @@ import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 
-fun runCpa(cfa: JvmCfa, mainSignature: MethodSignature, programClassPool: ClassPool, libraryClassPool: ClassPool): BamCache<MethodSignature> {
+fun runCpa(cfa: JvmCfa, mainSignature: MethodSignature, programClassPool: ClassPool, libraryClassPool: ClassPool): BamCache<ValueAbstractState> {
     return ValueAnalyzer.Builder(cfa, programClassPool, libraryClassPool).build().analyze(mainSignature).resultCache
 }
 
-fun getLastState(cache: BamCache<MethodSignature>, mainSignature: MethodSignature): JvmValueAbstractState {
+fun getLastState(cache: BamCache<ValueAbstractState>, mainSignature: MethodSignature): JvmValueAbstractState {
     return cache
         .get(mainSignature)
         .map { it.reachedSet.asCollection().maxBy { (it as JvmValueAbstractState).programLocation.offset } }

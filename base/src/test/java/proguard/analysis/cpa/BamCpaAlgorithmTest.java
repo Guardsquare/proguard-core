@@ -58,10 +58,9 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.StopOperator;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.operators.JvmDefaultExpandOperator;
-import proguard.analysis.cpa.jvm.operators.JvmDefaultReduceOperator;
+import proguard.analysis.cpa.jvm.operators.DefaultExpandOperator;
+import proguard.analysis.cpa.jvm.operators.DefaultReduceOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmForgetfulHeapAbstractState;
@@ -111,18 +110,19 @@ public class BamCpaAlgorithmTest {
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
 
-    AbstractDomain abstractDomain = new DelegateAbstractDomain<ExpressionAbstractState>();
-    ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
-        transferRelation = new ExpressionTransferRelation();
-    MergeOperator mergeOperator = new MergeJoinOperator(abstractDomain);
-    StopOperator stopOperator = new StopSepOperator(abstractDomain);
+    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
+        new DelegateAbstractDomain<>();
+    ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
+        new ExpressionTransferRelation();
+    MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
+        new MergeJoinOperator<>(abstractDomain);
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
+        new StopSepOperator<>(abstractDomain);
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
-    ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> reduceOperator =
-        new JvmDefaultReduceOperator<>();
-    ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> expandOperator =
-        new JvmDefaultExpandOperator<>(cfa);
+    ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
+    ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
-    CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> wrappedCpa =
+    CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
             abstractDomain,
             transferRelation,
@@ -141,10 +141,9 @@ public class BamCpaAlgorithmTest {
             .get();
     MethodSignature mainSignature = MethodSignature.computeIfAbsent(clazzA, mainMethod);
 
-    BamCache<MethodSignature> cache = new BamCacheImpl<>();
+    BamCache<ExpressionAbstractState> cache = new BamCacheImpl<>();
 
-    BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa =
-        new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
+    BamCpa<ExpressionAbstractState> bamCpa = new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
 
     JvmCfaNode node = cfa.getFunctionEntryNode(mainSignature);
 
@@ -157,14 +156,13 @@ public class BamCpaAlgorithmTest {
                     Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>());
 
-    ReachedSet reached =
-        new ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
+    ReachedSet<JvmAbstractState<ExpressionAbstractState>> reached =
+        new ProgramLocationDependentReachedSet<>();
     reached.add(emptyState);
-    Waitlist waitlist = new BreadthFirstWaitlist();
+    Waitlist<JvmAbstractState<ExpressionAbstractState>> waitlist = new BreadthFirstWaitlist<>();
     waitlist.add(emptyState);
 
-    new CpaAlgorithm(bamCpa).run(reached, waitlist);
+    new CpaAlgorithm<>(bamCpa).run(reached, waitlist);
 
     assertEquals(cfa.getFunctionNodes(mainSignature).size(), reached.asCollection().size());
 
@@ -173,12 +171,7 @@ public class BamCpaAlgorithmTest {
     // tests usage of static field in another method
     List<AbstractState> returnStates8 =
         reached.asCollection().stream()
-            .filter(
-                s ->
-                    ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) s)
-                            .getProgramLocation()
-                            .getOffset()
-                        == 8)
+            .filter(s -> ((ProgramLocationDependent) s).getProgramLocation().getOffset() == 8)
             .collect(Collectors.toList());
     assertEquals(1, returnStates8.size());
     AbstractState returnState8 = returnStates8.get(0);
@@ -231,12 +224,7 @@ public class BamCpaAlgorithmTest {
     // tests rebuild with non empty stack
     List<AbstractState> returnStates26 =
         reached.asCollection().stream()
-            .filter(
-                s ->
-                    ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) s)
-                            .getProgramLocation()
-                            .getOffset()
-                        == 26)
+            .filter(s -> ((ProgramLocationDependent) s).getProgramLocation().getOffset() == 26)
             .collect(Collectors.toList());
     assertEquals(1, returnStates26.size());
     AbstractState returnState26 = returnStates26.get(0);
@@ -300,18 +288,19 @@ public class BamCpaAlgorithmTest {
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
 
-    AbstractDomain abstractDomain = new DelegateAbstractDomain<ExpressionAbstractState>();
-    ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
-        transferRelation = new ExpressionTransferRelation();
-    MergeOperator mergeOperator = new MergeJoinOperator(abstractDomain);
-    StopOperator stopOperator = new StopSepOperator(abstractDomain);
+    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
+        new DelegateAbstractDomain<>();
+    ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
+        new ExpressionTransferRelation();
+    MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
+        new MergeJoinOperator<>(abstractDomain);
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
+        new StopSepOperator<>(abstractDomain);
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
-    ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> reduceOperator =
-        new JvmDefaultReduceOperator<>();
-    ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> expandOperator =
-        new JvmDefaultExpandOperator<>(cfa);
+    ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
+    ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
-    CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> wrappedCpa =
+    CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
             abstractDomain,
             transferRelation,
@@ -330,15 +319,15 @@ public class BamCpaAlgorithmTest {
             .get();
     MethodSignature mainSignature = MethodSignature.computeIfAbsent(clazzA, mainMethod);
 
-    BamCache<MethodSignature> cache = new BamCacheImpl<>();
+    BamCache<ExpressionAbstractState> cache = new BamCacheImpl<>();
 
-    BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa =
+    BamCpa<ExpressionAbstractState> bamCpa =
         new BamCpa<>(wrappedCpa, cfa, mainSignature, cache, 3, NeverAbortOperator.INSTANCE);
 
     JvmCfaNode node = cfa.getFunctionEntryNode(mainSignature);
 
     JvmAbstractState<ExpressionAbstractState> emptyState =
-        new JvmAbstractState<ExpressionAbstractState>(
+        new JvmAbstractState<>(
             node,
             new JvmFrameAbstractState<>(),
             new JvmForgetfulHeapAbstractState<>(
@@ -346,14 +335,13 @@ public class BamCpaAlgorithmTest {
                     Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>());
 
-    ReachedSet reached =
-        new ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
+    ReachedSet<JvmAbstractState<ExpressionAbstractState>> reached =
+        new ProgramLocationDependentReachedSet<>();
     reached.add(emptyState);
-    Waitlist waitlist = new BreadthFirstWaitlist();
+    Waitlist<JvmAbstractState<ExpressionAbstractState>> waitlist = new BreadthFirstWaitlist<>();
     waitlist.add(emptyState);
 
-    new CpaAlgorithm(bamCpa).run(reached, waitlist);
+    new CpaAlgorithm<>(bamCpa).run(reached, waitlist);
 
     assertEquals(cfa.getFunctionNodes(mainSignature).size(), reached.asCollection().size());
 
@@ -361,12 +349,7 @@ public class BamCpaAlgorithmTest {
     // to sum function
     List<AbstractState> returnStates =
         reached.asCollection().stream()
-            .filter(
-                s ->
-                    ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) s)
-                            .getProgramLocation()
-                            .getOffset()
-                        == 5)
+            .filter(s -> ((ProgramLocationDependent) s).getProgramLocation().getOffset() == 5)
             .collect(Collectors.toList());
     assertEquals(1, returnStates.size());
     AbstractState returnState = returnStates.get(0);
@@ -463,18 +446,19 @@ public class BamCpaAlgorithmTest {
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
-    AbstractDomain abstractDomain = new DelegateAbstractDomain<ExpressionAbstractState>();
-    ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
-        transferRelation = new ExpressionTransferRelation();
-    MergeOperator mergeOperator = new MergeJoinOperator(abstractDomain);
-    StopOperator stopOperator = new StopSepOperator(abstractDomain);
+    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
+        new DelegateAbstractDomain<>();
+    ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
+        new ExpressionTransferRelation();
+    MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
+        new MergeJoinOperator<>(abstractDomain);
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
+        new StopSepOperator<>(abstractDomain);
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
-    ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> reduceOperator =
-        new JvmDefaultReduceOperator<>();
-    ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> expandOperator =
-        new JvmDefaultExpandOperator<>(cfa);
+    ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
+    ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
-    CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> wrappedCpa =
+    CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
             abstractDomain,
             transferRelation,
@@ -493,15 +477,14 @@ public class BamCpaAlgorithmTest {
             .get();
     MethodSignature mainSignature = MethodSignature.computeIfAbsent(clazzA, mainMethod);
 
-    BamCache<MethodSignature> cache = new BamCacheImpl<>();
+    BamCache<ExpressionAbstractState> cache = new BamCacheImpl<>();
 
-    BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa =
-        new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
+    BamCpa<ExpressionAbstractState> bamCpa = new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
 
     JvmCfaNode node = cfa.getFunctionEntryNode(mainSignature);
 
     JvmAbstractState<ExpressionAbstractState> emptyState =
-        new JvmAbstractState<ExpressionAbstractState>(
+        new JvmAbstractState<>(
             node,
             new JvmFrameAbstractState<>(),
             new JvmForgetfulHeapAbstractState<>(
@@ -509,14 +492,13 @@ public class BamCpaAlgorithmTest {
                     Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>());
 
-    ReachedSet reached =
-        new ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
+    ReachedSet<JvmAbstractState<ExpressionAbstractState>> reached =
+        new ProgramLocationDependentReachedSet<>();
     reached.add(emptyState);
-    Waitlist waitlist = new BreadthFirstWaitlist();
+    Waitlist<JvmAbstractState<ExpressionAbstractState>> waitlist = new BreadthFirstWaitlist<>();
     waitlist.add(emptyState);
 
-    new CpaAlgorithm(bamCpa).run(reached, waitlist);
+    new CpaAlgorithm<>(bamCpa).run(reached, waitlist);
 
     assertEquals(2, reached.asCollection().size());
     // the return location is not reached, only the function call (offset 0) and the exception exit
@@ -547,18 +529,19 @@ public class BamCpaAlgorithmTest {
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
-    AbstractDomain abstractDomain = new DelegateAbstractDomain<ExpressionAbstractState>();
-    ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
-        transferRelation = new ExpressionTransferRelation();
-    MergeOperator mergeOperator = new MergeJoinOperator(abstractDomain);
-    StopOperator stopOperator = new StopSepOperator(abstractDomain);
+    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
+        new DelegateAbstractDomain<JvmAbstractState<ExpressionAbstractState>>();
+    ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
+        new ExpressionTransferRelation();
+    MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
+        new MergeJoinOperator<>(abstractDomain);
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
+        new StopSepOperator<>(abstractDomain);
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
-    ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> reduceOperator =
-        new JvmDefaultReduceOperator<>();
-    ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> expandOperator =
-        new JvmDefaultExpandOperator<>(cfa);
+    ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
+    ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
-    CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> wrappedCpa =
+    CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
             abstractDomain,
             transferRelation,
@@ -577,15 +560,14 @@ public class BamCpaAlgorithmTest {
             .get();
     MethodSignature mainSignature = MethodSignature.computeIfAbsent(clazzA, mainMethod);
 
-    BamCache<MethodSignature> cache = new BamCacheImpl<>();
+    BamCache<ExpressionAbstractState> cache = new BamCacheImpl<>();
 
-    BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa =
-        new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
+    BamCpa<ExpressionAbstractState> bamCpa = new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
 
     JvmCfaNode node = cfa.getFunctionEntryNode(mainSignature);
 
     JvmAbstractState<ExpressionAbstractState> emptyState =
-        new JvmAbstractState<ExpressionAbstractState>(
+        new JvmAbstractState<>(
             node,
             new JvmFrameAbstractState<>(),
             new JvmForgetfulHeapAbstractState<>(
@@ -593,14 +575,13 @@ public class BamCpaAlgorithmTest {
                     Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>());
 
-    ReachedSet reached =
-        new ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
+    ReachedSet<JvmAbstractState<ExpressionAbstractState>> reached =
+        new ProgramLocationDependentReachedSet<>();
     reached.add(emptyState);
-    Waitlist waitlist = new BreadthFirstWaitlist();
+    Waitlist<JvmAbstractState<ExpressionAbstractState>> waitlist = new BreadthFirstWaitlist<>();
     waitlist.add(emptyState);
 
-    new CpaAlgorithm(bamCpa).run(reached, waitlist);
+    new CpaAlgorithm<>(bamCpa).run(reached, waitlist);
 
     // all the nodes of the cfa are reached (included the catch node) and the exception output node
     assertEquals(1, cfa.getFunctionCatchNodes(mainSignature).size());
@@ -610,7 +591,7 @@ public class BamCpaAlgorithmTest {
         reached.asCollection().size());
     assertTrue(
         reached.asCollection().stream()
-            .map(r -> ((JvmAbstractState<ExpressionAbstractState>) r).getProgramLocation())
+            .map(JvmAbstractState::getProgramLocation)
             .anyMatch(JvmCfaNode::isExceptionExitNode));
   }
 
@@ -634,18 +615,19 @@ public class BamCpaAlgorithmTest {
     // create just intra-procedural CFA, all inter-procedural call edges are missing
     cfa = CfaUtil.createIntraproceduralCfaFromClassPool(programClassPool);
 
-    AbstractDomain abstractDomain = new DelegateAbstractDomain<ExpressionAbstractState>();
-    ProgramLocationDependentTransferRelation<JvmCfaNode, JvmCfaEdge, MethodSignature>
-        transferRelation = new ExpressionTransferRelation();
-    MergeOperator mergeOperator = new MergeJoinOperator(abstractDomain);
-    StopOperator stopOperator = new StopSepOperator(abstractDomain);
+    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
+        new DelegateAbstractDomain<JvmAbstractState<ExpressionAbstractState>>();
+    ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
+        new ExpressionTransferRelation();
+    MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
+        new MergeJoinOperator<>(abstractDomain);
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
+        new StopSepOperator<>(abstractDomain);
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
-    ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> reduceOperator =
-        new JvmDefaultReduceOperator<>();
-    ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> expandOperator =
-        new JvmDefaultExpandOperator<>(cfa);
+    ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
+    ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
-    CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> wrappedCpa =
+    CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
             abstractDomain,
             transferRelation,
@@ -664,10 +646,9 @@ public class BamCpaAlgorithmTest {
             .get();
     MethodSignature mainSignature = MethodSignature.computeIfAbsent(clazzA, mainMethod);
 
-    BamCache<MethodSignature> cache = new BamCacheImpl<>();
+    BamCache<ExpressionAbstractState> cache = new BamCacheImpl<>();
 
-    BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa =
-        new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
+    BamCpa<ExpressionAbstractState> bamCpa = new BamCpa<>(wrappedCpa, cfa, mainSignature, cache);
 
     JvmCfaNode node = cfa.getFunctionEntryNode(mainSignature);
 
@@ -680,14 +661,13 @@ public class BamCpaAlgorithmTest {
                     Collections.singleton(new ValueExpression(UNKNOWN_VALUE)))),
             new HashMapAbstractState<>());
 
-    ReachedSet reached =
-        new ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmAbstractState<ExpressionAbstractState>, MethodSignature>();
+    ReachedSet<JvmAbstractState<ExpressionAbstractState>> reached =
+        new ProgramLocationDependentReachedSet<>();
     reached.add(emptyState);
-    Waitlist waitlist = new BreadthFirstWaitlist();
+    Waitlist<JvmAbstractState<ExpressionAbstractState>> waitlist = new BreadthFirstWaitlist<>();
     waitlist.add(emptyState);
 
-    new CpaAlgorithm(bamCpa).run(reached, waitlist);
+    new CpaAlgorithm<>(bamCpa).run(reached, waitlist);
 
     assertEquals(cfa.getFunctionNodes(mainSignature).size(), reached.asCollection().size());
   }

@@ -27,17 +27,16 @@ import proguard.analysis.cpa.interfaces.StopOperator;
  * This {@link StopOperator} always returns true, i.e., it can be used for a single pass of the
  * analysis.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public final class StopAlwaysOperator implements StopOperator {
+public final class StopAlwaysOperator<StateT extends AbstractState>
+    implements StopOperator<StateT> {
 
   // implementations for StopOperator
 
   @Override
   public boolean stop(
-      AbstractState abstractState,
-      Collection<? extends AbstractState> reachedAbstractStates,
-      Precision precision) {
+      StateT abstractState, Collection<StateT> reachedAbstractStates, Precision precision) {
     return true;
   }
 }

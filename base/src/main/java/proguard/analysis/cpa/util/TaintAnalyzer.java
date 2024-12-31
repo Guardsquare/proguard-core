@@ -21,15 +21,13 @@ import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintCpa;
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintExpandOperator;
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintReduceOperator;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSink;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintTransformer;
+import proguard.analysis.cpa.jvm.domain.taint.TaintExpandOperator;
+import proguard.analysis.cpa.jvm.domain.taint.TaintReduceOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmForgetfulHeapAbstractState;
@@ -80,23 +78,22 @@ import proguard.classfile.Signature;
  */
 public class TaintAnalyzer {
 
-  private final Function<MethodSignature, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature>>
-      cpaCreator;
-  private final Function<MethodSignature, JvmAbstractState<SetAbstractState<TaintSource>>>
+  private final Function<MethodSignature, BamCpa<SetAbstractState<JvmTaintSource>>> cpaCreator;
+  private final Function<MethodSignature, JvmAbstractState<SetAbstractState<JvmTaintSource>>>
       initialStateCreator;
   private final Function<
-          BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature>,
-          JvmMemoryLocationCpa<SetAbstractState<TaintSource>>>
+          BamCpa<SetAbstractState<JvmTaintSource>>,
+          JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>>>
       memoryCpaCreator;
   private final Collection<? extends JvmTaintSink> taintSinks;
 
   private TaintAnalyzer(
-      Function<MethodSignature, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature>> cpaCreator,
-      Function<MethodSignature, JvmAbstractState<SetAbstractState<TaintSource>>>
+      Function<MethodSignature, BamCpa<SetAbstractState<JvmTaintSource>>> cpaCreator,
+      Function<MethodSignature, JvmAbstractState<SetAbstractState<JvmTaintSource>>>
           initialStateCreator,
       Function<
-              BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature>,
-              JvmMemoryLocationCpa<SetAbstractState<TaintSource>>>
+              BamCpa<SetAbstractState<JvmTaintSource>>,
+              JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>>>
           memoryCpaCreator,
       Collection<? extends JvmTaintSink> taintSinks) {
     this.cpaCreator = cpaCreator;
@@ -119,18 +116,16 @@ public class TaintAnalyzer {
    * @return the result of the analysis.
    */
   public TaintAnalyzerResult analyze(MethodSignature mainSignature) {
-    BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> taintCpa = cpaCreator.apply(mainSignature);
-    CpaAlgorithm cpaAlgorithm = new CpaAlgorithm(taintCpa);
+    BamCpa<SetAbstractState<JvmTaintSource>> taintCpa = cpaCreator.apply(mainSignature);
+    CpaAlgorithm<JvmAbstractState<SetAbstractState<JvmTaintSource>>> cpaAlgorithm =
+        new CpaAlgorithm<>(taintCpa);
 
-    Waitlist waitList = new BreadthFirstWaitlist();
-    ProgramLocationDependentReachedSet<
-            JvmCfaNode,
-            JvmCfaEdge,
-            JvmAbstractState<SetAbstractState<TaintSource>>,
-            MethodSignature>
+    Waitlist<JvmAbstractState<SetAbstractState<JvmTaintSource>>> waitList =
+        new BreadthFirstWaitlist<>();
+    ProgramLocationDependentReachedSet<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
         reachedSet = new ProgramLocationDependentReachedSet<>();
 
-    JvmAbstractState<SetAbstractState<TaintSource>> initialState =
+    JvmAbstractState<SetAbstractState<JvmTaintSource>> initialState =
         initialStateCreator.apply(mainSignature);
     waitList.add(initialState);
     reachedSet.add(initialState);
@@ -174,17 +169,18 @@ public class TaintAnalyzer {
     public TaintAnalyzer build() {
       Map<Signature, Set<JvmTaintSource>> sourcesMap = JvmTaintCpa.createSourcesMap(taintSources);
 
-      ConfigurableProgramAnalysis intraproceduralCpa =
-          new JvmTaintCpa(sourcesMap, taintTransformers, extraTaintPropagationLocations);
+      ConfigurableProgramAnalysis<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
+          intraproceduralCpa =
+              new JvmTaintCpa(sourcesMap, taintTransformers, extraTaintPropagationLocations);
 
       boolean reduceHeap = false;
-      CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> interproceduralCpa =
+      CpaWithBamOperators<SetAbstractState<JvmTaintSource>> interproceduralCpa =
           new CpaWithBamOperators<>(
               intraproceduralCpa,
-              new JvmTaintReduceOperator(reduceHeap, sourcesMap),
-              new JvmTaintExpandOperator(cfa, sourcesMap, reduceHeap),
+              new TaintReduceOperator(reduceHeap, sourcesMap),
+              new TaintExpandOperator(cfa, sourcesMap, reduceHeap),
               new NoOpRebuildOperator());
-      BamCache<MethodSignature> cache = new BamCacheImpl<>();
+      BamCache<SetAbstractState<JvmTaintSource>> cache = new BamCacheImpl<>();
 
       return new TaintAnalyzer(
           mainMethodSignature ->
@@ -199,11 +195,11 @@ public class TaintAnalyzer {
               new JvmAbstractState<>(
                   cfa.getFunctionEntryNode(mainMethodSignature),
                   new JvmFrameAbstractState<>(),
-                  new JvmForgetfulHeapAbstractState<SetAbstractState<TaintSource>>(
+                  new JvmForgetfulHeapAbstractState<SetAbstractState<JvmTaintSource>>(
                       SetAbstractState.bottom),
                   new HashMapAbstractState<>()),
           taintBamCpa ->
-              new JvmMemoryLocationCpa<SetAbstractState<TaintSource>>(
+              new JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>>(
                   SetAbstractState.bottom,
                   taintBamCpa,
                   extraTaintPropagationLocations,

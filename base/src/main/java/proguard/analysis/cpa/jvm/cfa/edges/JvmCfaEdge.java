@@ -22,11 +22,7 @@ import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.classfile.MethodSignature;
 
-/**
- * Default implementation of {@link CfaEdge} for JVM instructions.
- *
- * @author Carlo Alberto Pozzoli
- */
+/** Default implementation of {@link CfaEdge} for JVM instructions. */
 public abstract class JvmCfaEdge implements CfaEdge<JvmCfaNode> {
 
   private JvmCfaNode source;

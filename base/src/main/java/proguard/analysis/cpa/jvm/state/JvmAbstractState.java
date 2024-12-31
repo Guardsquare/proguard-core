@@ -22,28 +22,25 @@ import java.util.List;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.classfile.Clazz;
-import proguard.classfile.MethodSignature;
 
 /**
  * The {@link JvmAbstractState} consists of the method frame {@link JvmFrameAbstractState} and the
  * heap {@link JvmHeapAbstractState}.
  *
- * @param <StateT> The type of the states contained in the JVM state. e.g., for taint analysis this
- *     would be a {@link proguard.analysis.cpa.defaults.SetAbstractState} containing the taints and
- *     for value analysis a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState}.
+ * @param <ContentT> The type of the states contained in the JVM state. e.g., for taint analysis
+ *     this would be a {@link proguard.analysis.cpa.defaults.SetAbstractState} containing the taints
+ *     and for value analysis a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState}.
  */
-public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
-    implements LatticeAbstractState<JvmAbstractState<StateT>>,
-        ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature> {
+public class JvmAbstractState<ContentT extends LatticeAbstractState<ContentT>>
+    implements LatticeAbstractState<JvmAbstractState<ContentT>>, ProgramLocationDependent {
   public static final String DEFAULT_FIELD = "";
 
-  protected final JvmFrameAbstractState<StateT> frame;
-  protected final JvmHeapAbstractState<StateT> heap;
-  protected final MapAbstractState<String, StateT> staticFields;
+  protected final JvmFrameAbstractState<ContentT> frame;
+  protected final JvmHeapAbstractState<ContentT> heap;
+  protected final MapAbstractState<String, ContentT> staticFields;
   protected JvmCfaNode programLocation;
   protected static final JvmCfaNode topLocation = new JvmCfaNode(null, -1, null);
 
@@ -57,9 +54,9 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    */
   public JvmAbstractState(
       JvmCfaNode programLocation,
-      JvmFrameAbstractState<StateT> frame,
-      JvmHeapAbstractState<StateT> heap,
-      MapAbstractState<String, StateT> staticFields) {
+      JvmFrameAbstractState<ContentT> frame,
+      JvmHeapAbstractState<ContentT> heap,
+      MapAbstractState<String, ContentT> staticFields) {
     this.programLocation = programLocation;
     this.frame = frame;
     this.heap = heap;
@@ -69,8 +66,8 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
   // implementations for LatticeAbstractState
 
   @Override
-  public JvmAbstractState<StateT> join(JvmAbstractState<StateT> abstractState) {
-    JvmAbstractState<StateT> answer =
+  public JvmAbstractState<ContentT> join(JvmAbstractState<ContentT> abstractState) {
+    JvmAbstractState<ContentT> answer =
         new JvmAbstractState<>(
             programLocation.equals(abstractState.programLocation) ? programLocation : topLocation,
             frame.join(abstractState.frame),
@@ -80,7 +77,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
   }
 
   @Override
-  public boolean isLessOrEqual(JvmAbstractState<StateT> abstractState) {
+  public boolean isLessOrEqual(JvmAbstractState<ContentT> abstractState) {
     return (programLocation.equals(abstractState.programLocation)
             || abstractState.programLocation.equals(topLocation))
         && frame.isLessOrEqual(abstractState.frame)
@@ -103,7 +100,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
   // implementations for AbstractState
 
   @Override
-  public JvmAbstractState<StateT> copy() {
+  public JvmAbstractState<ContentT> copy() {
     return new JvmAbstractState<>(programLocation, frame.copy(), heap.copy(), staticFields.copy());
   }
 
@@ -115,7 +112,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
     if (!(obj instanceof JvmAbstractState)) {
       return false;
     }
-    JvmAbstractState<StateT> other = (JvmAbstractState<StateT>) obj;
+    JvmAbstractState<ContentT> other = (JvmAbstractState<ContentT>) obj;
     return programLocation.equals(other.programLocation)
         && frame.equals(other.frame)
         && heap.equals(other.heap)
@@ -130,12 +127,12 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
   }
 
   /** Returns the top element of the operand stack. */
-  public StateT peek() {
+  public ContentT peek() {
     return peek(0);
   }
 
   /** Returns the {@code index}th element from the top of the operand stack. */
-  public StateT peek(int index) {
+  public ContentT peek(int index) {
     return frame.peek(index);
   }
 
@@ -143,7 +140,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Returns the top element of the operand stack or returns {@code defaultState} if the stack is
    * empty.
    */
-  public StateT peekOrDefault(StateT defaultState) {
+  public ContentT peekOrDefault(ContentT defaultState) {
     return peekOrDefault(0, defaultState);
   }
 
@@ -151,12 +148,12 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Returns the {@code index}th element from the top of the operand stack or returns {@code
    * defaultState} if the stack does not have enough elements.
    */
-  public StateT peekOrDefault(int index, StateT defaultState) {
+  public ContentT peekOrDefault(int index, ContentT defaultState) {
     return frame.peekOrDefault(index, defaultState);
   }
 
   /** Removes the top element of the operand stack end returns it. */
-  public StateT pop() {
+  public ContentT pop() {
     return frame.pop();
   }
 
@@ -164,12 +161,12 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Removes the top element of the operand stack end returns it. Returns {@code defaultState} if
    * the stack is empty.
    */
-  public StateT popOrDefault(StateT defaultState) {
+  public ContentT popOrDefault(ContentT defaultState) {
     return frame.popOrDefault(defaultState);
   }
 
   /** Inserts {@code state} to the top of the operand stack and returns it. */
-  public StateT push(StateT state) {
+  public ContentT push(ContentT state) {
     return frame.push(state);
   }
 
@@ -177,7 +174,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Consequentially inserts elements of {@code states} to the top of the operand stack and returns
    * {@code states}.
    */
-  public List<StateT> pushAll(List<StateT> states) {
+  public List<ContentT> pushAll(List<ContentT> states) {
     states.forEach(frame::push);
     return states;
   }
@@ -191,7 +188,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Returns an abstract state at the {@code index}th position of the variable array or {@code
    * defaultState} if there is no entry.
    */
-  public StateT getVariableOrDefault(int index, StateT defaultState) {
+  public ContentT getVariableOrDefault(int index, ContentT defaultState) {
     return frame.getVariableOrDefault(index, defaultState);
   }
 
@@ -199,7 +196,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Sets the {@code index}th position of the variable array to {@code state} and returns {@code
    * state}. If the array has to be extended, the added cells are padded with {@code defaultState}.
    */
-  public StateT setVariable(int index, StateT state, StateT defaultState) {
+  public ContentT setVariable(int index, ContentT state, ContentT defaultState) {
     return frame.setVariable(index, state, defaultState);
   }
 
@@ -207,14 +204,14 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Returns an abstract state representing the static field {@code fqn} or {@code defaultState} if
    * there is no entry.
    */
-  public StateT getStaticOrDefault(String fqn, StateT defaultState) {
+  public ContentT getStaticOrDefault(String fqn, ContentT defaultState) {
     return staticFields.getOrDefault(fqn, defaultState);
   }
 
   /**
    * Sets the static field {@code fqn} to {@code value}, unless the value is {@code defaultState}.
    */
-  public void setStatic(String fqn, StateT value, StateT defaultState) {
+  public void setStatic(String fqn, ContentT value, ContentT defaultState) {
     if (value.equals(defaultState)) {
       return;
     }
@@ -225,7 +222,7 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Returns an abstract state representing the field {@code descriptor} of the {@code object} or
    * {@code defaultState} if there is no entry.
    */
-  public <T> StateT getFieldOrDefault(T object, String descriptor, StateT defaultValue) {
+  public <T> ContentT getFieldOrDefault(T object, String descriptor, ContentT defaultValue) {
     return heap.getFieldOrDefault(object, descriptor, defaultValue);
   }
 
@@ -233,49 +230,49 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Returns an abstract state representing the default field of the {@code object} or {@code
    * defaultState} if there is no entry.
    */
-  public <T> StateT getFieldOrDefault(T object, StateT defaultValue) {
+  public <T> ContentT getFieldOrDefault(T object, ContentT defaultValue) {
     return this.getFieldOrDefault(object, DEFAULT_FIELD, defaultValue);
   }
 
   /** Sets the field {@code descriptor} of the {@code object} to {@code value}. */
-  public <T> void setField(T object, String descriptor, StateT value) {
+  public <T> void setField(T object, String descriptor, ContentT value) {
     heap.setField(object, descriptor, value);
   }
 
   /** Sets the default field of the {@code object} to {@code value}. */
-  public <T> void setField(T object, StateT value) {
+  public <T> void setField(T object, ContentT value) {
     this.setField(object, DEFAULT_FIELD, value);
   }
 
   /** Returns the frame abstract state. */
-  public JvmFrameAbstractState<StateT> getFrame() {
+  public JvmFrameAbstractState<ContentT> getFrame() {
     return this.frame;
   }
 
   /** Returns the static field table abstract state. */
-  public MapAbstractState<String, StateT> getStaticFields() {
+  public MapAbstractState<String, ContentT> getStaticFields() {
     return staticFields;
   }
 
   /** Returns the heap abstract state. */
-  public JvmHeapAbstractState<StateT> getHeap() {
+  public JvmHeapAbstractState<ContentT> getHeap() {
     return heap;
   }
 
   /**
    * Returns an abstract state for a new array for the given {@code type} and {@code dimentions}.
    */
-  public StateT newArray(String type, List<StateT> dimensions) {
+  public ContentT newArray(String type, List<ContentT> dimensions) {
     return heap.newArray(type, dimensions, programLocation);
   }
 
   /** Returns an abstract state for a new object of the given {@code className}. */
-  public StateT newObject(String className) {
+  public ContentT newObject(String className) {
     return heap.newObject(className, programLocation);
   }
 
   /** Returns an abstract state for a new object of the given {@link Clazz}. */
-  public StateT newObject(Clazz clazz) {
+  public ContentT newObject(Clazz clazz) {
     return heap.newObject(clazz, programLocation);
   }
 
@@ -283,12 +280,12 @@ public class JvmAbstractState<StateT extends LatticeAbstractState<StateT>>
    * Returns an abstract state for the {@code array} element at the given {@code index} or the
    * {@code abstractDefault} if there is no information available.
    */
-  public <T> StateT getArrayElementOrDefault(T array, StateT index, StateT abstractDefault) {
+  public <T> ContentT getArrayElementOrDefault(T array, ContentT index, ContentT abstractDefault) {
     return heap.getArrayElementOrDefault(array, index, abstractDefault);
   }
 
   /** Sets the {@code array} element at the given {@code index} to the {@code value}. */
-  public <T> void setArrayElement(T array, StateT index, StateT value) {
+  public <T> void setArrayElement(T array, ContentT index, ContentT value) {
     heap.setArrayElement(array, index, value);
   }
 }

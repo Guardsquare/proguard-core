@@ -75,8 +75,6 @@ import proguard.exception.ProguardCoreException;
  * and then acts similarly to an {@link
  * proguard.classfile.instruction.visitor.AllInstructionVisitor}. The visitor visits all the
  * instructions of the {@link CodeAttribute} and creates the CFA for the current method.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmIntraproceduralCfaFillerAllInstructionVisitor implements AttributeVisitor {
 
@@ -194,8 +192,6 @@ public class JvmIntraproceduralCfaFillerAllInstructionVisitor implements Attribu
    * <p>The edge from the previously visited instruction is linked to the current instruction if the
    * control flows from one to the other (e.g. the previous edge is linked if it represents an iadd
    * instruction but not if it represents a goto instruction).
-   *
-   * @author Carlo Alberto Pozzoli
    */
   private static class JvmIntraproceduralCfaFillerVisitor implements InstructionVisitor {
 

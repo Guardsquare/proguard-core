@@ -18,31 +18,31 @@
 
 package proguard.analysis.cpa.bam;
 
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.CfaEdge;
-import proguard.analysis.cpa.interfaces.CfaNode;
-import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.Signature;
 
 /**
  * This {@link ReduceOperator} returns the original {@link AbstractState} without performing any
  * reduction.
+ *
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class NoOpReduceOperator<
-        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-        CfaEdgeT extends CfaEdge<CfaNodeT>,
-        SignatureT extends Signature>
-    implements ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> {
+public class NoOpReduceOperator<ContentT extends LatticeAbstractState<ContentT>>
+    implements ReduceOperator<ContentT> {
 
   // Implementations for ReduceOperator
 
   @Override
-  public AbstractState reduceImpl(
-      AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call) {
-    AbstractState result = expandedInitialState.copy();
-    ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) result)
-        .setProgramLocation(blockEntryNode);
+  public JvmAbstractState<ContentT> reduceImpl(
+      JvmAbstractState<ContentT> expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
+    JvmAbstractState<ContentT> result = expandedInitialState.copy();
+    result.setProgramLocation(blockEntryNode);
     return result;
   }
 }

@@ -20,11 +20,7 @@ package proguard.analysis.cpa.interfaces;
 
 import proguard.analysis.datastructure.callgraph.Call;
 
-/**
- * This interface must be implemented by edges representing a procedure call.
- *
- * @author Carlo Alberto Pozzoli
- */
+/** This interface must be implemented by edges representing a procedure call. */
 public interface CallEdge {
 
   /** Get the information about the procedure call represented by the edge. */

@@ -18,39 +18,36 @@
 
 package proguard.analysis.cpa.jvm.operators;
 
-import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_REDUCE_OPERATOR_STATE_UNSUPPORTED;
-
 import java.util.ListIterator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ListAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StackAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
-import proguard.analysis.cpa.jvm.state.JvmAbstractStateFactory;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.MethodSignature;
 import proguard.classfile.util.ClassUtil;
-import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link ReduceOperator} simulates the JVM behavior on a method call. It takes a clone of the
  * caller {@link JvmAbstractState}, creates an empty stack and a local variables array with the
  * callee arguments.
+ *
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT>>
-    implements ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>,
-        JvmAbstractStateFactory<StateT> {
+public class DefaultReduceOperator<ContentT extends LatticeAbstractState<ContentT>>
+    implements ReduceOperator<ContentT> {
 
   private final boolean reduceHeap;
 
   /** Create the default reduce operator for the JVM. */
-  public JvmDefaultReduceOperator() {
+  public DefaultReduceOperator() {
     this(true);
   }
 
@@ -59,31 +56,22 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
    *
    * @param reduceHeap whether reduction of the heap is performed
    */
-  public JvmDefaultReduceOperator(boolean reduceHeap) {
+  public DefaultReduceOperator(boolean reduceHeap) {
     this.reduceHeap = reduceHeap;
   }
 
   // Implementations for ReduceOperator
 
   @Override
-  public JvmAbstractState<StateT> reduceImpl(
-      AbstractState expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
+  public JvmAbstractState<ContentT> reduceImpl(
+      JvmAbstractState<ContentT> expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
 
-    if (!(expandedInitialState instanceof JvmAbstractState)) {
-      throw new ProguardCoreException.Builder(
-              "The operator works on JVM states, states of type %s are not supported",
-              ANALYSIS_JVM_DEFAULT_REDUCE_OPERATOR_STATE_UNSUPPORTED)
-          .errorParameters(expandedInitialState.getClass().getName())
-          .build();
-    }
-
-    JvmAbstractState<StateT> initialJvmState =
-        (JvmAbstractState<StateT>) expandedInitialState.copy();
+    JvmAbstractState<ContentT> initialJvmState = expandedInitialState.copy();
     initialJvmState.setProgramLocation(blockEntryNode);
 
-    ListAbstractState<StateT> localVariables = new ListAbstractState<>();
-    StackAbstractState<StateT> callStack = new StackAbstractState<>();
-    JvmFrameAbstractState<StateT> frame = new JvmFrameAbstractState<>(localVariables, callStack);
+    ListAbstractState<ContentT> localVariables = new ListAbstractState<>();
+    StackAbstractState<ContentT> callStack = new StackAbstractState<>();
+    JvmFrameAbstractState<ContentT> frame = new JvmFrameAbstractState<>(localVariables, callStack);
 
     int i = 0;
     if (call.getTarget().descriptor.argumentTypes != null) {
@@ -100,7 +88,7 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
         String type = iterator.previous();
         int size = ClassUtil.internalTypeSize(type);
 
-        StateT state = initialJvmState.peek(i++);
+        ContentT state = initialJvmState.peek(i++);
 
         localVariables.set(argSize - size, state, null);
 
@@ -114,16 +102,16 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
       }
     }
 
-    MapAbstractState<String, StateT> staticFields = initialJvmState.getStaticFields();
+    MapAbstractState<String, ContentT> staticFields = initialJvmState.getStaticFields();
     reduceStaticFields(staticFields);
 
     if (!call.isStatic()) {
-      StateT state = initialJvmState.peek(i++);
+      ContentT state = initialJvmState.peek(i);
 
       localVariables.set(0, state, null);
     }
 
-    JvmHeapAbstractState<StateT> heap = initialJvmState.getHeap();
+    JvmHeapAbstractState<ContentT> heap = initialJvmState.getHeap();
     if (reduceHeap) {
       reduceHeap(heap, frame, initialJvmState.getStaticFields());
     }
@@ -138,7 +126,7 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
    * @param staticFields the static fields map that is modified by this method by performing
    *     reduction
    */
-  protected void reduceStaticFields(MapAbstractState<String, StateT> staticFields) {}
+  protected void reduceStaticFields(MapAbstractState<String, ContentT> staticFields) {}
 
   /**
    * Reduces the heap state. The default implementation doesn't perform any reduction.
@@ -148,7 +136,15 @@ public class JvmDefaultReduceOperator<StateT extends LatticeAbstractState<StateT
    * @param reducedStaticFields the static fields after reduction has been performed on them
    */
   protected void reduceHeap(
-      JvmHeapAbstractState<StateT> heap,
-      JvmFrameAbstractState<StateT> reducedFrame,
-      MapAbstractState<String, StateT> reducedStaticFields) {}
+      JvmHeapAbstractState<ContentT> heap,
+      JvmFrameAbstractState<ContentT> reducedFrame,
+      MapAbstractState<String, ContentT> reducedStaticFields) {}
+
+  protected JvmAbstractState<ContentT> createJvmAbstractState(
+      JvmCfaNode programLocation,
+      JvmFrameAbstractState<ContentT> frame,
+      JvmHeapAbstractState<ContentT> heap,
+      MapAbstractState<String, ContentT> staticFields) {
+    return new JvmAbstractState<>(programLocation, frame, heap, staticFields);
+  }
 }

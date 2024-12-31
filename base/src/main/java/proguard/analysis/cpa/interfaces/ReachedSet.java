@@ -23,25 +23,28 @@ import java.util.Collection;
 /**
  * The {@link ReachedSet} stores reached {@code State}s discovered by the {@link Algorithm}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The states contained in the reached set.
  */
-public interface ReachedSet {
+public interface ReachedSet<StateT extends AbstractState> {
 
   /** Adds an abstract state. */
-  boolean add(AbstractState abstractState);
+  boolean add(StateT abstractState);
 
   /** Adds multiple abstract states. */
-  boolean addAll(Collection<? extends AbstractState> abstractStates);
+  boolean addAll(Collection<? extends StateT> abstractStates);
 
   /** Removes an abstract state. */
-  boolean remove(AbstractState abstractState);
+  boolean remove(StateT abstractState);
 
   /** Removes multiple abstract states. */
-  boolean removeAll(Collection<?> abstractStates);
+  boolean removeAll(Collection<? extends StateT> abstractStates);
 
   /** Returns a collection representation of itself. */
-  Collection<? extends AbstractState> asCollection();
+  Collection<StateT> asCollection();
 
   /** Returns a collection of abstract states mergeable with the {@code abstractState}. */
-  Collection<? extends AbstractState> getReached(AbstractState abstractState);
+  Collection<StateT> getReached(StateT abstractState);
+
+  /** Empties the reached set. */
+  void clear();
 }

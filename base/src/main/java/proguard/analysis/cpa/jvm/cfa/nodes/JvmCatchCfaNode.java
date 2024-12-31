@@ -27,8 +27,6 @@ import proguard.classfile.MethodSignature;
  * A {@link JvmCfaNode} representing the beginning of a catch or finally block.
  *
  * <p>The finally blocks are identified by catch type 0.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmCatchCfaNode extends JvmCfaNode {
 

@@ -23,11 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import proguard.classfile.instruction.Instruction;
 
-/**
- * Util for operations involving {@link Instruction}.
- *
- * @author Carlo Alberto Pozzoli
- */
+/** Util for operations involving {@link Instruction}. */
 public class InstructionClassifier {
 
   private static final Set<Byte> returnInstructions =

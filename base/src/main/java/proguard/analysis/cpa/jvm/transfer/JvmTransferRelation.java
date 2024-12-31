@@ -23,18 +23,18 @@ import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
 import static proguard.classfile.util.ClassUtil.isExtendable;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_CONSTANT_INSTRUCTION_VISITOR_OPCODE_UNSUPPORTED;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_INSTRUCTION_PUSH_COUNT_HIGHER_THAN_TWO;
-import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_STATE_UNSUPPORTED;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_UNEXPECTED_UNKNOWN_SIGNATURE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import proguard.analysis.CallResolver;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentForwardTransferRelation;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
@@ -77,23 +77,25 @@ import proguard.exception.ProguardCoreException;
  * containing the information about the value in the most significant bits and a default abstract
  * state in the least significant bits of the big-endian notation.
  *
- * @author Dmitry Ivanov
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<StateT>>
-    implements ProgramLocationDependentForwardTransferRelation<
-        JvmCfaNode, JvmCfaEdge, MethodSignature> {
+public abstract class JvmTransferRelation<ContentT extends LatticeAbstractState<ContentT>>
+    implements ProgramLocationDependentForwardTransferRelation<ContentT> {
 
-  // implementations for ProgramLocationDependentTransferRelation
-  public AbstractState generateEdgeAbstractSuccessor(
-      AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
-    if (!(abstractState instanceof JvmAbstractState)) {
-      throw new ProguardCoreException.Builder(
-              "%s does not support %s", ANALYSIS_JVM_TRANSFER_RELATION_STATE_UNSUPPORTED)
-          .errorParameters(getClass().getName(), abstractState.getClass().getName())
-          .build();
-    }
-    JvmAbstractState<StateT> state = (JvmAbstractState<StateT>) abstractState;
-    JvmAbstractState<StateT> successor = state.copy();
+  // Implementations for ProgramLocationDependentTransferRelation
+
+  @Override
+  public Collection<JvmAbstractState<ContentT>> generateEdgeAbstractSuccessors(
+      JvmAbstractState<ContentT> abstractState, JvmCfaEdge edge, Precision precision) {
+    return wrapAbstractSuccessorInCollection(
+        generateEdgeAbstractSuccessor(abstractState, edge, precision));
+  }
+
+  public JvmAbstractState<ContentT> generateEdgeAbstractSuccessor(
+      JvmAbstractState<ContentT> abstractState, JvmCfaEdge edge, Precision precision) {
+    JvmAbstractState<ContentT> successor = abstractState.copy();
 
     if (edge instanceof JvmCallCfaEdge) {
       // successor location is the intraprocedural successor node after method invocation
@@ -104,10 +106,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         Instruction instruction = ((JvmInstructionCfaEdge) edge).getInstruction();
         boolean isInterproceduralInvoke =
             InstructionClassifier.isInvoke(instruction.opcode)
-                && !((JvmAbstractState<?>) abstractState)
-                    .getProgramLocation()
-                    .getLeavingInterproceduralEdges()
-                    .isEmpty();
+                && !abstractState.getProgramLocation().getLeavingInterproceduralEdges().isEmpty();
         if (isInterproceduralInvoke) {
           // If we have at least one JvmCallCfaEdge we produce the successor(s) for the method
           // invocation
@@ -116,7 +115,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         }
         successor =
             getAbstractSuccessorForInstruction(
-                successor, instruction, state.getProgramLocation().getClazz(), precision);
+                successor, instruction, abstractState.getProgramLocation().getClazz(), precision);
       }
       successor.setProgramLocation(edge.getTarget());
     }
@@ -125,8 +124,8 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
   }
 
   /** Returns the result of applying {@code instruction} to the {@code abstractState}. */
-  protected JvmAbstractState<StateT> getAbstractSuccessorForInstruction(
-      JvmAbstractState<StateT> abstractState,
+  protected JvmAbstractState<ContentT> getAbstractSuccessorForInstruction(
+      JvmAbstractState<ContentT> abstractState,
       Instruction instruction,
       Clazz clazz,
       Precision precision) {
@@ -138,20 +137,21 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
    * Calculates the result of the instruction application. The default implementation computes join
    * over its arguments.
    */
-  protected StateT calculateArithmeticInstruction(Instruction instruction, List<StateT> operands) {
-    return operands.stream().reduce(getAbstractDefault(), StateT::join);
+  protected ContentT calculateArithmeticInstruction(
+      Instruction instruction, List<ContentT> operands) {
+    return operands.stream().reduce(getAbstractDefault(), ContentT::join);
   }
 
   /**
    * Returns the abstract state of the incremented input {@code state} by {@code value}. The default
    * implementation computes the join.
    */
-  protected StateT computeIncrement(StateT state, int value) {
+  protected ContentT computeIncrement(ContentT state, int value) {
     return state.join(getAbstractIntegerConstant(value));
   }
 
   /** Returns an abstract representation of a byte constant {@code b}. */
-  public StateT getAbstractByteConstant(byte b) {
+  public ContentT getAbstractByteConstant(byte b) {
     return getAbstractDefault();
   }
 
@@ -159,51 +159,51 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
    * Returns a default abstract state. In case of lattice abstract domains, it should be the bottom
    * element.
    */
-  public abstract StateT getAbstractDefault();
+  public abstract ContentT getAbstractDefault();
 
   /** Returns an abstract representation of a double constant {@code d}. */
-  public List<StateT> getAbstractDoubleConstant(double d) {
+  public List<ContentT> getAbstractDoubleConstant(double d) {
     return Arrays.asList(getAbstractDefault(), getAbstractDefault());
   }
 
   /** Returns an abstract representation of a float constant {@code f}. */
-  public StateT getAbstractFloatConstant(float f) {
+  public ContentT getAbstractFloatConstant(float f) {
     return getAbstractDefault();
   }
 
   /** Returns an abstract representation of an integer constant {@code i}. */
-  public StateT getAbstractIntegerConstant(int i) {
+  public ContentT getAbstractIntegerConstant(int i) {
     return getAbstractDefault();
   }
 
   /** Returns an abstract representation of a long constant {@code l}. */
-  public List<StateT> getAbstractLongConstant(long l) {
+  public List<ContentT> getAbstractLongConstant(long l) {
     return Arrays.asList(getAbstractDefault(), getAbstractDefault());
   }
 
   /** Returns an abstract representation of a null reference. */
-  public StateT getAbstractNull() {
+  public ContentT getAbstractNull() {
     return getAbstractDefault();
   }
 
   /** Returns an abstract representation of a short constant {@code s}. */
-  public StateT getAbstractShortConstant(short s) {
+  public ContentT getAbstractShortConstant(short s) {
     return getAbstractDefault();
   }
 
   /** Returns an abstract representation of a reference value {@code object}. */
-  public StateT getAbstractReferenceValue(String className) {
+  public ContentT getAbstractReferenceValue(String className) {
     return getAbstractDefault();
   }
 
   /** Returns an abstract representation of a reference value {@code object}. */
-  public StateT getAbstractReferenceValue(
+  public ContentT getAbstractReferenceValue(
       String className, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull) {
     return getAbstractDefault();
   }
 
   /** Returns an abstract representation of a reference value {@code object}. */
-  public StateT getAbstractReferenceValue(
+  public ContentT getAbstractReferenceValue(
       String className,
       Clazz referencedClazz,
       boolean mayBeExtension,
@@ -216,14 +216,14 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
   }
 
   /** Pops the arguments from the operand stack and passes them to {@code invokeMethod}. */
-  protected void processCall(JvmAbstractState<StateT> state, Call call) {
-    Deque<StateT> operands = new LinkedList<>();
+  protected void processCall(JvmAbstractState<ContentT> state, Call call) {
+    Deque<ContentT> operands = new LinkedList<>();
     if (call.getTarget().descriptor.argumentTypes != null) {
       List<String> argumentTypes = call.getTarget().descriptor.argumentTypes;
       for (int i = argumentTypes.size() - 1; i >= 0; i--) {
         boolean isCategory2 = ClassUtil.isInternalCategory2Type(argumentTypes.get(i));
         if (isCategory2) {
-          StateT higherByte = state.pop();
+          ContentT higherByte = state.pop();
           operands.offerFirst(state.pop());
           operands.offerFirst(higherByte);
         } else {
@@ -234,29 +234,29 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
     if (!call.isStatic()) {
       operands.offerFirst(state.pop());
     }
-    invokeMethod(state, call, (List<StateT>) operands);
+    invokeMethod(state, call, (List<ContentT>) operands);
   }
 
   /** The default implementation computes join over its arguments. */
-  public void invokeMethod(JvmAbstractState<StateT> state, Call call, List<StateT> operands) {
+  public void invokeMethod(JvmAbstractState<ContentT> state, Call call, List<ContentT> operands) {
     int pushCount =
         ClassUtil.internalTypeSize(
             call.getTarget().descriptor.returnType == null
                 ? "?"
                 : call.getTarget().descriptor.returnType);
-    StateT answerContent = operands.stream().reduce(getAbstractDefault(), StateT::join);
+    ContentT answerContent = operands.stream().reduce(getAbstractDefault(), ContentT::join);
     for (int i = 0; i < pushCount; i++) {
       state.push(answerContent);
     }
   }
 
   /** Returns an abstract state representing the result of the {@code instanceof} operation. */
-  protected StateT isInstanceOf(StateT state, String type) {
+  protected ContentT isInstanceOf(ContentT state, String type) {
     return getAbstractDefault();
   }
 
   /** Returns an abstract state representing the result of the {@code checkcast} operation. */
-  protected StateT handleCheckCast(StateT state, String typeName) {
+  protected ContentT handleCheckCast(ContentT state, String typeName) {
     // Default behavior: ignore the instruction, checkcast leaves the object reference where it is
     return state;
   }
@@ -268,12 +268,12 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
    */
   protected class InstructionAbstractInterpreter implements InstructionVisitor {
 
-    protected final JvmAbstractState<StateT> abstractState;
+    protected final JvmAbstractState<ContentT> abstractState;
     protected final ConstantLookupVisitor constantLookupVisitor = new ConstantLookupVisitor();
     private final LdcConstantValueStatePusher constantValueStatePusher =
         new LdcConstantValueStatePusher();
 
-    public InstructionAbstractInterpreter(JvmAbstractState<StateT> abstractState) {
+    public InstructionAbstractInterpreter(JvmAbstractState<ContentT> abstractState) {
       this.abstractState = abstractState;
     }
 
@@ -319,7 +319,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         case Instruction.OP_CALOAD:
         case Instruction.OP_SALOAD:
           {
-            StateT index = abstractState.pop();
+            ContentT index = abstractState.pop();
             abstractState.push(
                 abstractState.getArrayElementOrDefault(
                     abstractState.pop(), index, getAbstractDefault()));
@@ -328,8 +328,8 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         case Instruction.OP_LALOAD:
         case Instruction.OP_DALOAD:
           {
-            StateT index = abstractState.pop();
-            StateT array = abstractState.pop();
+            ContentT index = abstractState.pop();
+            ContentT array = abstractState.pop();
             abstractState.push(getAbstractDefault());
             abstractState.push(
                 abstractState.getArrayElementOrDefault(array, index, getAbstractDefault()));
@@ -342,17 +342,17 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         case Instruction.OP_CASTORE:
         case Instruction.OP_SASTORE:
           {
-            StateT value = abstractState.pop();
-            StateT index = abstractState.pop();
+            ContentT value = abstractState.pop();
+            ContentT index = abstractState.pop();
             abstractState.setArrayElement(abstractState.pop(), index, value);
             break;
           }
         case Instruction.OP_LASTORE:
         case Instruction.OP_DASTORE:
           {
-            StateT value = abstractState.pop();
+            ContentT value = abstractState.pop();
             abstractState.pop();
-            StateT index = abstractState.pop();
+            ContentT index = abstractState.pop();
             abstractState.setArrayElement(abstractState.pop(), index, value);
             break;
           }
@@ -376,8 +376,8 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           break;
         case Instruction.OP_DUP_X1:
           {
-            StateT state1 = abstractState.pop();
-            StateT state2 = abstractState.pop();
+            ContentT state1 = abstractState.pop();
+            ContentT state2 = abstractState.pop();
             abstractState.push(state1);
             abstractState.push(state2);
             abstractState.push(state1);
@@ -385,9 +385,9 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           }
         case Instruction.OP_DUP_X2:
           {
-            StateT state1 = abstractState.pop();
-            StateT state2 = abstractState.pop();
-            StateT state3 = abstractState.pop();
+            ContentT state1 = abstractState.pop();
+            ContentT state2 = abstractState.pop();
+            ContentT state3 = abstractState.pop();
             abstractState.push(state1);
             abstractState.push(state3);
             abstractState.push(state2);
@@ -396,17 +396,17 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           }
         case Instruction.OP_DUP2:
           {
-            StateT state1 = abstractState.peek();
-            StateT state2 = abstractState.peek(1);
+            ContentT state1 = abstractState.peek();
+            ContentT state2 = abstractState.peek(1);
             abstractState.push(state2);
             abstractState.push(state1);
             break;
           }
         case Instruction.OP_DUP2_X1:
           {
-            StateT state1 = abstractState.pop();
-            StateT state2 = abstractState.pop();
-            StateT state3 = abstractState.pop();
+            ContentT state1 = abstractState.pop();
+            ContentT state2 = abstractState.pop();
+            ContentT state3 = abstractState.pop();
             abstractState.push(state2);
             abstractState.push(state1);
             abstractState.push(state3);
@@ -416,10 +416,10 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           }
         case Instruction.OP_DUP2_X2:
           {
-            StateT state1 = abstractState.pop();
-            StateT state2 = abstractState.pop();
-            StateT state3 = abstractState.pop();
-            StateT state4 = abstractState.pop();
+            ContentT state1 = abstractState.pop();
+            ContentT state2 = abstractState.pop();
+            ContentT state3 = abstractState.pop();
+            ContentT state4 = abstractState.pop();
             abstractState.push(state2);
             abstractState.push(state1);
             abstractState.push(state4);
@@ -430,8 +430,8 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           }
         case Instruction.OP_SWAP:
           {
-            StateT state1 = abstractState.pop();
-            StateT state2 = abstractState.pop();
+            ContentT state1 = abstractState.pop();
+            ContentT state2 = abstractState.pop();
             abstractState.push(state1);
             abstractState.push(state2);
             break;
@@ -446,22 +446,22 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
         case Instruction.OP_IRETURN:
           break;
         case Instruction.OP_ATHROW:
-          StateT exceptionState = abstractState.pop();
+          ContentT exceptionState = abstractState.pop();
           abstractState.clearOperandStack();
           abstractState.push(exceptionState);
           break;
         case Instruction.OP_ARRAYLENGTH:
-          StateT array = abstractState.pop();
+          abstractState.pop();
           abstractState.push(getAbstractDefault());
           break;
         default: // arithmetic instructions
           {
-            List<StateT> operands = new ArrayList<>(simpleInstruction.stackPopCount(clazz));
+            List<ContentT> operands = new ArrayList<>(simpleInstruction.stackPopCount(clazz));
             // long shift instruction have to be considered separately because they have a category2
             // and a category1 parameter
             if (InstructionClassifier.isLongShift(simpleInstruction.opcode)) {
               operands.add(abstractState.pop());
-              StateT higherByte = abstractState.pop();
+              ContentT higherByte = abstractState.pop();
               operands.add(abstractState.pop());
               operands.add(higherByte);
             } else {
@@ -471,7 +471,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
                           / (simpleInstruction.isCategory2() ? 2 : 1);
                   i++) {
                 if (simpleInstruction.isCategory2()) {
-                  StateT higherByte = abstractState.pop();
+                  ContentT higherByte = abstractState.pop();
                   operands.add(abstractState.pop());
                   operands.add(higherByte);
                 } else {
@@ -564,7 +564,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           {
             constantLookupVisitor.isStatic = true;
             clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-            StateT value = abstractState.pop();
+            ContentT value = abstractState.pop();
             if (constantLookupVisitor.resultSize > 1) {
               abstractState.pop();
             }
@@ -575,7 +575,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           {
             constantLookupVisitor.isStatic = false;
             clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-            StateT result =
+            ContentT result =
                 abstractState.getFieldOrDefault(
                     abstractState.pop(), constantLookupVisitor.result, getAbstractDefault());
             if (constantLookupVisitor.resultSize > 1) {
@@ -588,7 +588,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           {
             constantLookupVisitor.isStatic = false;
             clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
-            StateT value = abstractState.pop();
+            ContentT value = abstractState.pop();
             if (constantLookupVisitor.resultSize > 1) {
               abstractState.pop();
             }
@@ -649,7 +649,7 @@ public abstract class JvmTransferRelation<StateT extends LatticeAbstractState<St
           break;
         case Instruction.OP_MULTIANEWARRAY:
           {
-            List<StateT> dimensions = new ArrayList<>(constantInstruction.constant);
+            List<ContentT> dimensions = new ArrayList<>(constantInstruction.constant);
             for (int i = 0; i < constantInstruction.stackPopCount(clazz); i++) {
               dimensions.add(abstractState.pop());
             }

@@ -23,8 +23,6 @@ import java.util.ArrayList;
 /**
  * This {@link ListAbstractState} represents a list of {@link LatticeAbstractState}s with the
  * semilattice operators lifted to the list.
- *
- * @author Dmitry Ivanov
  */
 public class ListAbstractState<AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
     extends ArrayList<AbstractSpaceT>

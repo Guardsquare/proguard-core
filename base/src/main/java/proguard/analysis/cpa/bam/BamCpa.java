@@ -19,17 +19,17 @@
 package proguard.analysis.cpa.bam;
 
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
-import proguard.analysis.cpa.defaults.Cfa;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
-import proguard.analysis.cpa.interfaces.CfaEdge;
-import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.StopOperator;
-import proguard.classfile.Signature;
+import proguard.analysis.cpa.jvm.cfa.JvmCfa;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.classfile.MethodSignature;
 
 /**
  * A {@link ConfigurableProgramAnalysis} for inter-procedural analysis using block abstraction
@@ -43,16 +43,16 @@ import proguard.classfile.Signature;
  * its transfer relation (see {@link BamTransferRelation} for details) that is able to extend the
  * analysis of the wrapped CPA to the inter-procedural level.
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT>> The content of the jvm states produced by the transfer relation. For example,
+ *     this can be a {@link proguard.analysis.cpa.defaults.SetAbstractState} of taints for taint
+ *     analysis or a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value
+ *     analysis.
  */
-public class BamCpa<
-        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-        CfaEdgeT extends CfaEdge<CfaNodeT>,
-        SignatureT extends Signature>
-    implements ConfigurableProgramAnalysis {
+public class BamCpa<ContentT extends LatticeAbstractState<ContentT>>
+    implements ConfigurableProgramAnalysis<JvmAbstractState<ContentT>> {
 
-  private final CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa;
-  private final BamTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> bamTransferRelation;
+  private final CpaWithBamOperators<ContentT> wrappedCpa;
+  private final BamTransferRelation<ContentT> bamTransferRelation;
 
   /**
    * Create a BamCpa with default transfer relation.
@@ -63,10 +63,10 @@ public class BamCpa<
    * @param cache a cache for the block abstractions
    */
   public BamCpa(
-      CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa,
-      Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa,
-      SignatureT mainFunction,
-      BamCache<SignatureT> cache) {
+      CpaWithBamOperators<ContentT> wrappedCpa,
+      JvmCfa cfa,
+      MethodSignature mainFunction,
+      BamCache<ContentT> cache) {
     this(wrappedCpa, cfa, mainFunction, cache, -1, NeverAbortOperator.INSTANCE);
   }
 
@@ -83,10 +83,10 @@ public class BamCpa<
    * @param abortOperator an abort operator used for computing block abstractions
    */
   public BamCpa(
-      CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa,
-      Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa,
-      SignatureT mainFunction,
-      BamCache<SignatureT> cache,
+      CpaWithBamOperators<ContentT> wrappedCpa,
+      JvmCfa cfa,
+      MethodSignature mainFunction,
+      BamCache<ContentT> cache,
       int maxCallStackDepth,
       AbortOperator abortOperator) {
     this.wrappedCpa = wrappedCpa;
@@ -101,7 +101,7 @@ public class BamCpa<
    *
    * @param transferRelation The transfer relation of the BamCpa
    */
-  public BamCpa(BamTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> transferRelation) {
+  public BamCpa(BamTransferRelation<ContentT> transferRelation) {
     this.wrappedCpa = transferRelation.getWrappedCpa();
     this.bamTransferRelation = transferRelation;
   }
@@ -110,25 +110,25 @@ public class BamCpa<
 
   /** Returns the abstract domain of the wrapped CPA. */
   @Override
-  public AbstractDomain getAbstractDomain() {
+  public AbstractDomain<JvmAbstractState<ContentT>> getAbstractDomain() {
     return wrappedCpa.getAbstractDomain();
   }
 
   /** Returns the BAM transfer relation, more details in {@link BamTransferRelation}. */
   @Override
-  public BamTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> getTransferRelation() {
+  public BamTransferRelation<ContentT> getTransferRelation() {
     return bamTransferRelation;
   }
 
   /** Returns the merge operator of the wrapped CPA. */
   @Override
-  public MergeOperator getMergeOperator() {
+  public MergeOperator<JvmAbstractState<ContentT>> getMergeOperator() {
     return wrappedCpa.getMergeOperator();
   }
 
   /** Returns the stop operator of the wrapped CPA. */
   @Override
-  public StopOperator getStopOperator() {
+  public StopOperator<JvmAbstractState<ContentT>> getStopOperator() {
     return wrappedCpa.getStopOperator();
   }
 
@@ -139,12 +139,12 @@ public class BamCpa<
   }
 
   /** Returns the reduce operator of the wrapped CPA. */
-  public ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> getReduceOperator() {
+  public ReduceOperator<ContentT> getReduceOperator() {
     return wrappedCpa.getReduceOperator();
   }
 
   /** Returns the expand operator of the wrapped CPA. */
-  public ExpandOperator<CfaNodeT, CfaEdgeT, SignatureT> getExpandOperator() {
+  public ExpandOperator<ContentT> getExpandOperator() {
     return wrappedCpa.getExpandOperator();
   }
 
@@ -154,12 +154,12 @@ public class BamCpa<
   }
 
   /** Returns the BAM cache used by the CPA. */
-  public BamCache<SignatureT> getCache() {
+  public BamCache<ContentT> getCache() {
     return bamTransferRelation.getCache();
   }
 
   /** Returns the CFA used by the CPA. */
-  public Cfa<CfaNodeT, CfaEdgeT, SignatureT> getCfa() {
+  public JvmCfa getCfa() {
     return bamTransferRelation.getCfa();
   }
 }

@@ -26,10 +26,10 @@ import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
  * This is the result of {@link PrecisionAdjustment}, namely an {@link AbstractState} and {@link
  * Precision}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public class PrecisionAdjustmentResult {
-  private final AbstractState abstractState;
+public class PrecisionAdjustmentResult<StateT extends AbstractState> {
+  private final StateT abstractState;
   private final Precision precision;
 
   /**
@@ -38,13 +38,13 @@ public class PrecisionAdjustmentResult {
    * @param abstractState abstract state
    * @param precision precision
    */
-  public PrecisionAdjustmentResult(AbstractState abstractState, Precision precision) {
+  public PrecisionAdjustmentResult(StateT abstractState, Precision precision) {
     this.abstractState = abstractState;
     this.precision = precision;
   }
 
   /** Returns the abstract state. */
-  public AbstractState getAbstractState() {
+  public StateT getAbstractState() {
     return abstractState;
   }
 

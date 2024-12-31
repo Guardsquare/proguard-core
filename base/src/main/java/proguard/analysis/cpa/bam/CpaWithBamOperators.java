@@ -18,11 +18,11 @@
 
 package proguard.analysis.cpa.bam;
 
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.CfaEdge;
-import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.Precision;
@@ -30,7 +30,7 @@ import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentTransferRelation;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.StopOperator;
-import proguard.classfile.Signature;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * A domain dependent analysis that can be wrapped with a {@link BamCpa} to be extended
@@ -47,16 +47,15 @@ import proguard.classfile.Signature;
  * <p>- The rebuild operator avoids collision of program identifiers while returning from a
  * procedure call (e.g. renaming variables).
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class CpaWithBamOperators<
-        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-        CfaEdgeT extends CfaEdge<CfaNodeT>,
-        SignatureT extends Signature>
-    extends SimpleCpa {
+public class CpaWithBamOperators<ContentT extends LatticeAbstractState<ContentT>>
+    extends SimpleCpa<JvmAbstractState<ContentT>> {
 
-  private final ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> reduce;
-  private final ExpandOperator<CfaNodeT, CfaEdgeT, SignatureT> expand;
+  private final ReduceOperator<ContentT> reduce;
+  private final ExpandOperator<ContentT> expand;
   private final RebuildOperator rebuild;
 
   /**
@@ -78,13 +77,13 @@ public class CpaWithBamOperators<
    *     procedure call
    */
   public CpaWithBamOperators(
-      AbstractDomain abstractDomain,
-      ProgramLocationDependentTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> transferRelation,
-      MergeOperator merge,
-      StopOperator stop,
+      AbstractDomain<JvmAbstractState<ContentT>> abstractDomain,
+      ProgramLocationDependentTransferRelation<ContentT> transferRelation,
+      MergeOperator<JvmAbstractState<ContentT>> merge,
+      StopOperator<JvmAbstractState<ContentT>> stop,
       PrecisionAdjustment precisionAdjustment,
-      ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> reduce,
-      ExpandOperator<CfaNodeT, CfaEdgeT, SignatureT> expand,
+      ReduceOperator<ContentT> reduce,
+      ExpandOperator<ContentT> expand,
       RebuildOperator rebuild) {
     super(abstractDomain, transferRelation, merge, stop, precisionAdjustment);
     this.reduce = reduce;
@@ -104,9 +103,9 @@ public class CpaWithBamOperators<
    *     procedure call
    */
   public CpaWithBamOperators(
-      ConfigurableProgramAnalysis intraproceduralCpa,
-      ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> reduce,
-      ExpandOperator<CfaNodeT, CfaEdgeT, SignatureT> expand,
+      ConfigurableProgramAnalysis<JvmAbstractState<ContentT>> intraproceduralCpa,
+      ReduceOperator<ContentT> reduce,
+      ExpandOperator<ContentT> expand,
       RebuildOperator rebuild) {
     super(
         intraproceduralCpa.getAbstractDomain(),
@@ -120,12 +119,12 @@ public class CpaWithBamOperators<
   }
 
   /** Returns the {@link ReduceOperator}. */
-  public ReduceOperator<CfaNodeT, CfaEdgeT, SignatureT> getReduceOperator() {
+  public ReduceOperator<ContentT> getReduceOperator() {
     return reduce;
   }
 
   /** Returns the {@link ExpandOperator}. */
-  public ExpandOperator<CfaNodeT, CfaEdgeT, SignatureT> getExpandOperator() {
+  public ExpandOperator<ContentT> getExpandOperator() {
     return expand;
   }
 

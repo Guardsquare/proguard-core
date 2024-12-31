@@ -18,20 +18,21 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.CfaEdge;
-import proguard.analysis.cpa.interfaces.CfaNode;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
-import proguard.classfile.Signature;
 
 /**
  * This operator is used to discard unnecessary information when entering a procedure block
  * depending on the domain-specific analysis (e.g. local variables, caller stack).
+ *
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface ReduceOperator<
-    CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-    CfaEdgeT extends CfaEdge<CfaNodeT>,
-    SignatureT extends Signature> {
+public interface ReduceOperator<ContentT extends LatticeAbstractState<ContentT>> {
 
   /**
    * Accumulates the reduction procedure by calling the method to create the initial state of the
@@ -44,9 +45,9 @@ public interface ReduceOperator<
    * @param call the information of the call to the procedure
    * @return The entry state of the called procedure
    */
-  default AbstractState reduce(
-      AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call) {
-    AbstractState state = reduceImpl(expandedInitialState, blockEntryNode, call);
+  default JvmAbstractState<ContentT> reduce(
+      JvmAbstractState<ContentT> expandedInitialState, JvmCfaNode blockEntryNode, Call call) {
+    JvmAbstractState<ContentT> state = reduceImpl(expandedInitialState, blockEntryNode, call);
     return onMethodEntry(state, call.isStatic());
   }
 
@@ -59,7 +60,8 @@ public interface ReduceOperator<
    * @param call the information of the call to the procedure
    * @return The entry state of the called procedure
    */
-  AbstractState reduceImpl(AbstractState expandedInitialState, CfaNodeT blockEntryNode, Call call);
+  JvmAbstractState<ContentT> reduceImpl(
+      JvmAbstractState<ContentT> expandedInitialState, JvmCfaNode blockEntryNode, Call call);
 
   /**
    * Performs additional operations on the reduced state (i.e. on the method entry state). Does
@@ -70,7 +72,8 @@ public interface ReduceOperator<
    * @param isStatic is the called method static
    * @return the state after performing additional operations or untouched state by default
    */
-  default AbstractState onMethodEntry(AbstractState reducedState, boolean isStatic) {
+  default JvmAbstractState<ContentT> onMethodEntry(
+      JvmAbstractState<ContentT> reducedState, boolean isStatic) {
     return reducedState;
   }
 }

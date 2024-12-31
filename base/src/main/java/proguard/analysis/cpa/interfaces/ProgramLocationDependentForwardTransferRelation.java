@@ -19,22 +19,25 @@
 package proguard.analysis.cpa.interfaces;
 
 import java.util.List;
-import proguard.classfile.Signature;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * An interface for {@link TransferRelation}s that depend on the {@link
  * proguard.analysis.cpa.defaults.Cfa} location for which the successor can be defined for the
  * leaving edges of the current location.
  *
- * @author James Hamilton
+ * @param <ContentT>> The content of the jvm states produced by the transfer relation. For example,
+ *     this can be a {@link proguard.analysis.cpa.defaults.SetAbstractState} of taints for taint
+ *     analysis or a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value
+ *     analysis.
  */
 public interface ProgramLocationDependentForwardTransferRelation<
-        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-        CfaEdgeT extends CfaEdge<CfaNodeT>,
-        SignatureT extends Signature>
-    extends ProgramLocationDependentTransferRelation<CfaNodeT, CfaEdgeT, SignatureT> {
+        ContentT extends LatticeAbstractState<ContentT>>
+    extends ProgramLocationDependentTransferRelation<ContentT> {
   @Override
-  default List<CfaEdgeT> getEdges(ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state) {
+  default List<JvmCfaEdge> getEdges(JvmAbstractState<ContentT> state) {
     return state.getProgramLocation().getLeavingEdges();
   }
 }

@@ -19,8 +19,6 @@
 package proguard.analysis.cpa.jvm.operators;
 
 import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_EXIT_NODE_EXPECTED;
-import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_EXIT_STATE_UNSUPPORTED;
-import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_INITIAL_STATE_UNSUPPORTED;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_MISSING_EXPECTED_CATCH_NODE_EXPECTED;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_RETURN_INSTRUCTION_EXPECTED;
 
@@ -30,14 +28,14 @@ import java.util.List;
 import java.util.Optional;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.defaults.MapAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmInstructionCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
-import proguard.analysis.cpa.jvm.state.JvmAbstractStateFactory;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
 import proguard.analysis.cpa.jvm.util.InstructionClassifier;
@@ -66,11 +64,12 @@ import proguard.exception.ProguardCoreException;
  * exception. The abstract successor location is either the first applicable catch node of the
  * caller, if exists, or the exception exit node of the caller.
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT>>
-    implements ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature>,
-        JvmAbstractStateFactory<StateT> {
+public class DefaultExpandOperator<ContentT extends LatticeAbstractState<ContentT>>
+    implements ExpandOperator<ContentT> {
 
   private final JvmCfa cfa;
   private final boolean expandHeap;
@@ -80,7 +79,7 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
    *
    * @param cfa the control flow automaton of the analyzed program
    */
-  public JvmDefaultExpandOperator(JvmCfa cfa) {
+  public DefaultExpandOperator(JvmCfa cfa) {
     this(cfa, true);
   }
 
@@ -90,7 +89,7 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
    * @param cfa the control flow automaton of the analyzed program
    * @param expandHeap whether expansion of the heap is performed
    */
-  public JvmDefaultExpandOperator(JvmCfa cfa, boolean expandHeap) {
+  public DefaultExpandOperator(JvmCfa cfa, boolean expandHeap) {
     this.cfa = cfa;
     this.expandHeap = expandHeap;
   }
@@ -98,29 +97,12 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
   // Implementations for ExpandOperator
 
   @Override
-  public JvmAbstractState<StateT> expand(
-      AbstractState expandedInitialState,
-      AbstractState reducedExitState,
+  public JvmAbstractState<ContentT> expand(
+      JvmAbstractState<ContentT> expandedInitialState,
+      JvmAbstractState<ContentT> reducedExitState,
       JvmCfaNode blockEntryNode,
       Call call) {
-
-    if (!(expandedInitialState instanceof JvmAbstractState)) {
-      throw new ProguardCoreException.Builder(
-              "The operator works on JVM states, states of type %s are not supported",
-              ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_INITIAL_STATE_UNSUPPORTED)
-          .errorParameters(expandedInitialState.getClass().getName())
-          .build();
-    }
-
-    if (!(reducedExitState instanceof JvmAbstractState)) {
-      throw new ProguardCoreException.Builder(
-              "The operator works on JVM states, states of type %s are not supported",
-              ANALYSIS_JVM_DEFAULT_EXPAND_OPERATOR_EXIT_STATE_UNSUPPORTED)
-          .errorParameters(reducedExitState.getClass().getName())
-          .build();
-    }
-
-    JvmCfaNode exitNode = ((JvmAbstractState<StateT>) reducedExitState).getProgramLocation();
+    JvmCfaNode exitNode = reducedExitState.getProgramLocation();
 
     // expand return exit location
     if (exitNode.isReturnExitNode()) {
@@ -136,17 +118,17 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
               .get()
               .getTarget();
 
-      JvmAbstractState<StateT> returnState =
+      JvmAbstractState<ContentT> returnState =
           createJvmAbstractState(
               nextNode,
-              ((JvmAbstractState<StateT>) expandedInitialState).getFrame().copy(),
-              ((JvmAbstractState<StateT>) reducedExitState).getHeap().copy(),
-              ((JvmAbstractState<StateT>) reducedExitState).getStaticFields().copy());
+              expandedInitialState.getFrame().copy(),
+              reducedExitState.getHeap().copy(),
+              reducedExitState.getStaticFields().copy());
 
       // pop the arguments of the invoke instruction from the initial state stack
       int elementsToPop = call.getJvmArgumentSize();
       for (int i = 0; i < elementsToPop; i++) {
-        StateT top = returnState.pop();
+        returnState.pop();
       }
 
       // push the return value on the caller stack
@@ -164,8 +146,7 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
       returnState.pushAll(calculateReturnValues(reducedExitState, returnInstruction, call));
 
       if (expandHeap) {
-        expandHeap(
-            returnState.getHeap(), ((JvmAbstractState<StateT>) expandedInitialState).getHeap());
+        expandHeap(returnState.getHeap(), expandedInitialState.getHeap());
       }
 
       return returnState;
@@ -176,21 +157,18 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
       CallerExceptionHandlerFinder finder = new CallerExceptionHandlerFinder(call, cfa);
       call.caller.member.accept(call.caller.clazz, new AllAttributeVisitor(finder));
 
-      JvmHeapAbstractState<StateT> heap = ((JvmAbstractState<StateT>) reducedExitState).getHeap();
+      JvmHeapAbstractState<ContentT> heap = reducedExitState.getHeap();
       if (expandHeap) {
-        expandHeap(heap, ((JvmAbstractState<StateT>) expandedInitialState).getHeap());
+        expandHeap(heap, expandedInitialState.getHeap());
       }
 
-      JvmAbstractState<StateT> returnState =
-          createJvmAbstractState(
-              finder.nextNode,
-              new JvmFrameAbstractState<>(
-                  ((JvmAbstractState<StateT>) expandedInitialState).getFrame().getLocalVariables(),
-                  ((JvmAbstractState<StateT>) reducedExitState).getFrame().getOperandStack()),
-              heap,
-              ((JvmAbstractState<StateT>) reducedExitState).getStaticFields());
-
-      return returnState;
+      return createJvmAbstractState(
+          finder.nextNode,
+          new JvmFrameAbstractState<>(
+              expandedInitialState.getFrame().getLocalVariables(),
+              reducedExitState.getFrame().getOperandStack()),
+          heap,
+          reducedExitState.getStaticFields());
     }
 
     throw new ProguardCoreException.Builder(
@@ -201,12 +179,12 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
   }
 
   /** Calculates the returned state. Can be overridden to handle special behavior. */
-  protected List<StateT> calculateReturnValues(
-      AbstractState reducedExitState, Instruction returnInstruction, Call call) {
-    List<StateT> returnValues = new ArrayList<>();
+  protected List<ContentT> calculateReturnValues(
+      JvmAbstractState<ContentT> reducedExitState, Instruction returnInstruction, Call call) {
+    List<ContentT> returnValues = new ArrayList<>();
 
     for (int i = 0; i < returnInstruction.stackPopCount(null); i++) {
-      StateT returnByte = ((JvmAbstractState<StateT>) reducedExitState).peek(i);
+      ContentT returnByte = reducedExitState.peek(i);
       returnValues.add(0, returnByte);
     }
 
@@ -214,11 +192,11 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
   }
 
   protected void expandHeap(
-      JvmHeapAbstractState<StateT> heap, JvmHeapAbstractState<StateT> callerHeap) {
+      JvmHeapAbstractState<ContentT> heap, JvmHeapAbstractState<ContentT> callerHeap) {
     heap.expand(callerHeap);
   }
 
-  private class CallerExceptionHandlerFinder implements AttributeVisitor {
+  private static class CallerExceptionHandlerFinder implements AttributeVisitor {
 
     private final Call call;
     private final JvmCfa cfa;
@@ -262,5 +240,13 @@ public class JvmDefaultExpandOperator<StateT extends LatticeAbstractState<StateT
         nextNode = cfa.getFunctionExceptionExitNode((MethodSignature) call.caller.signature, clazz);
       }
     }
+  }
+
+  protected JvmAbstractState<ContentT> createJvmAbstractState(
+      JvmCfaNode programLocation,
+      JvmFrameAbstractState<ContentT> frame,
+      JvmHeapAbstractState<ContentT> heap,
+      MapAbstractState<String, ContentT> staticFields) {
+    return new JvmAbstractState<>(programLocation, frame, heap, staticFields);
   }
 }

@@ -35,8 +35,6 @@ import proguard.classfile.Signature;
  * A {@link Cfa} is a control flow automaton with nodes {@code <CfaNodeT>} and edges {@code
  * <CfaEdgeT>}. It can be used for different programming languages with functions identified by
  * {@code <SignatureT>}.
- *
- * @author Carlo Alberto Pozzoli
  */
 public abstract class Cfa<
     CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,

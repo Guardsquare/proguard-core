@@ -19,12 +19,10 @@ import java.util.Comparator;
 import org.junit.jupiter.api.Test;
 import proguard.analysis.cpa.bam.BamCache;
 import proguard.analysis.cpa.bam.BlockAbstraction;
-import proguard.analysis.cpa.defaults.DefaultReachedSet;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.domain.value.JvmValueAbstractState;
+import proguard.analysis.cpa.jvm.domain.value.ValueAbstractState;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.util.CfaUtil;
 import proguard.analysis.cpa.util.ValueAnalyzer;
 import proguard.classfile.ClassPool;
@@ -46,17 +44,16 @@ public class BamCpaValueTest {
 
   @Test
   public void testSimpleStringBuilder() {
-    BamCache<MethodSignature> cache = runBamCpa("SimpleStringBuilder").getResultCache();
+    BamCache<ValueAbstractState> cache = runBamCpa("SimpleStringBuilder").getResultCache();
 
-    ProgramLocationDependentReachedSet reachedSet =
-        (ProgramLocationDependentReachedSet)
-            cache
-                .get(new MethodSignature("SimpleStringBuilder", "main", "([Ljava/lang/String;)V"))
-                .stream()
-                .findFirst()
-                .map(BlockAbstraction::getReachedSet)
-                .orElse(new DefaultReachedSet());
-    JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+    ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet =
+        cache
+            .get(new MethodSignature("SimpleStringBuilder", "main", "([Ljava/lang/String;)V"))
+            .stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new ProgramLocationDependentReachedSet<>());
+    JvmAbstractState<ValueAbstractState> printlnCall = getPrintlnCall(reachedSet);
     Value stringBuilder = printlnCall.getVariableOrDefault(1, UNKNOWN).getValue();
     ReferenceValue stackTop =
         printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
@@ -68,25 +65,22 @@ public class BamCpaValueTest {
 
   @Test
   public void testSimpleStringInterprocedural() {
-    BamCache<MethodSignature> cache = runBamCpa("SimpleStringInterprocedural").getResultCache();
+    BamCache<ValueAbstractState> cache = runBamCpa("SimpleStringInterprocedural").getResultCache();
 
-    ProgramLocationDependentReachedSet fooReachedSet =
-        (ProgramLocationDependentReachedSet)
-            cache
-                .get(
-                    new MethodSignature(
-                        "SimpleStringInterprocedural", "foo", "(Ljava/lang/String;)V"))
-                .stream()
-                .findFirst()
-                .map(BlockAbstraction::getReachedSet)
-                .orElse(new DefaultReachedSet());
+    ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> fooReachedSet =
+        cache
+            .get(new MethodSignature("SimpleStringInterprocedural", "foo", "(Ljava/lang/String;)V"))
+            .stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new ProgramLocationDependentReachedSet<>());
 
-    JvmValueAbstractState lastAbstractState = getLastAbstractState(fooReachedSet);
+    JvmAbstractState<ValueAbstractState> lastAbstractState = getLastAbstractState(fooReachedSet);
     ParticularReferenceValue value =
         (ParticularReferenceValue) lastAbstractState.getVariableOrDefault(0, UNKNOWN).getValue();
     assertEquals("Hello World", value.value(), "Hello World should be in local variable slot 0");
 
-    JvmValueAbstractState printlnCall = getPrintlnCall(fooReachedSet);
+    JvmAbstractState<ValueAbstractState> printlnCall = getPrintlnCall(fooReachedSet);
     ReferenceValue stackTop =
         printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
     Object stackTopValue = stackTop.value();
@@ -95,18 +89,15 @@ public class BamCpaValueTest {
 
   @Test
   public void testApiKeyInterprocedural() {
-    BamCache<MethodSignature> cache = runBamCpa("TestApiCall").getResultCache();
+    BamCache<ValueAbstractState> cache = runBamCpa("TestApiCall").getResultCache();
 
-    ProgramLocationDependentReachedSet fooReachedSet =
-        (ProgramLocationDependentReachedSet)
-            cache
-                .get(new MethodSignature("TestApiCall", "callAPI", "(Ljava/lang/String;)V"))
-                .stream()
-                .findFirst()
-                .map(BlockAbstraction::getReachedSet)
-                .orElse(new DefaultReachedSet());
+    ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> fooReachedSet =
+        cache.get(new MethodSignature("TestApiCall", "callAPI", "(Ljava/lang/String;)V")).stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new ProgramLocationDependentReachedSet<>());
 
-    JvmValueAbstractState lastAbstractState = getLastAbstractState(fooReachedSet);
+    JvmAbstractState<ValueAbstractState> lastAbstractState = getLastAbstractState(fooReachedSet);
     ParticularReferenceValue local0 =
         (ParticularReferenceValue) lastAbstractState.getVariableOrDefault(0, UNKNOWN).getValue();
     assertEquals("yeKIPAyM", local0.value(), "yekIPAyM should be in local variable slot 0");
@@ -117,7 +108,7 @@ public class BamCpaValueTest {
     assertInstanceOf(
         StringBuilder.class, local1.value(), "A StringBuilder should be in local variable slot 1");
 
-    JvmValueAbstractState printlnCall = getMethodCall(fooReachedSet, "call");
+    JvmAbstractState<ValueAbstractState> printlnCall = getMethodCall(fooReachedSet, "call");
     ReferenceValue stackTop =
         printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
     Object stackTopValue = stackTop.value();
@@ -128,19 +119,18 @@ public class BamCpaValueTest {
   public void testStringBuilderLoop() {
     // this doesn't include any interprocedural analysis, just checking the code with a loop is
     // terminating correctly
-    BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoop").getResultCache();
+    BamCache<ValueAbstractState> cache = runBamCpa("StringBuilderLoop").getResultCache();
 
-    ProgramLocationDependentReachedSet reachedSet =
-        (ProgramLocationDependentReachedSet)
-            cache
-                .get(new MethodSignature("StringBuilderLoop", "main", "([Ljava/lang/String;)V"))
-                .stream()
-                .findFirst()
-                .map(BlockAbstraction::getReachedSet)
-                .orElse(new DefaultReachedSet());
+    ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet =
+        cache
+            .get(new MethodSignature("StringBuilderLoop", "main", "([Ljava/lang/String;)V"))
+            .stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new ProgramLocationDependentReachedSet<>());
 
     // Parameter to System.out.println is a typed String but the actual value is unknown.
-    JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+    JvmAbstractState<ValueAbstractState> printlnCall = getPrintlnCall(reachedSet);
     ReferenceValue stackTop =
         printlnCall.getFrame().getOperandStack().peek().getValue().referenceValue();
     assertInstanceOf(TypedReferenceValue.class, stackTop, "The value should be correctly tracked");
@@ -151,20 +141,20 @@ public class BamCpaValueTest {
 
   @Test
   public void testSimpleRecursive() {
-    BamCache<MethodSignature> cache = runBamCpa("SimpleInterproceduralRecursive").getResultCache();
+    BamCache<ValueAbstractState> cache =
+        runBamCpa("SimpleInterproceduralRecursive").getResultCache();
 
-    ProgramLocationDependentReachedSet mainReachedSet =
-        (ProgramLocationDependentReachedSet)
-            cache
-                .get(
-                    new MethodSignature(
-                        "SimpleInterproceduralRecursive", "main", "([Ljava/lang/String;)V"))
-                .stream()
-                .findFirst()
-                .map(BlockAbstraction::getReachedSet)
-                .orElse(new DefaultReachedSet());
+    ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> mainReachedSet =
+        cache
+            .get(
+                new MethodSignature(
+                    "SimpleInterproceduralRecursive", "main", "([Ljava/lang/String;)V"))
+            .stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new ProgramLocationDependentReachedSet<>());
 
-    JvmValueAbstractState lastAbstractState = getLastAbstractState(mainReachedSet);
+    JvmAbstractState<ValueAbstractState> lastAbstractState = getLastAbstractState(mainReachedSet);
     Value local1 = lastAbstractState.getVariableOrDefault(1, UNKNOWN).getValue();
     assertTrue(local1 instanceof TypedReferenceValue);
     assertFalse(local1 instanceof ParticularReferenceValue);
@@ -172,45 +162,36 @@ public class BamCpaValueTest {
 
   @Test
   public void testStringBuilderLoopReassign() {
-    BamCache<MethodSignature> cache = runBamCpa("StringBuilderLoopReassign").getResultCache();
-    ProgramLocationDependentReachedSet reachedSet =
-        (ProgramLocationDependentReachedSet)
-            cache
-                .get(
-                    new MethodSignature(
-                        "StringBuilderLoopReassign", "main", "([Ljava/lang/String;)V"))
-                .stream()
-                .findFirst()
-                .map(BlockAbstraction::getReachedSet)
-                .orElse(new DefaultReachedSet());
+    BamCache<ValueAbstractState> cache = runBamCpa("StringBuilderLoopReassign").getResultCache();
+    ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet =
+        cache
+            .get(new MethodSignature("StringBuilderLoopReassign", "main", "([Ljava/lang/String;)V"))
+            .stream()
+            .findFirst()
+            .map(BlockAbstraction::getReachedSet)
+            .orElse(new ProgramLocationDependentReachedSet<>());
     // Parameter to System.out.println is a typed String but the actual value is unknown.
-    JvmValueAbstractState printlnCall = getPrintlnCall(reachedSet);
+    JvmAbstractState<ValueAbstractState> printlnCall = getPrintlnCall(reachedSet);
     Value stackTop = printlnCall.getFrame().getOperandStack().peek().getValue();
     assertInstanceOf(TypedReferenceValue.class, stackTop, "The value should be correctly tracked");
     assertFalse(stackTop.isParticular());
     assertEquals(TYPE_JAVA_LANG_STRING, stackTop.internalType());
   }
 
-  private static JvmValueAbstractState getLastAbstractState(
-      ProgramLocationDependentReachedSet<
-              JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-          reachedSet) {
+  private static JvmAbstractState<ValueAbstractState> getLastAbstractState(
+      ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet) {
     return reachedSet.asCollection().stream()
         .max(Comparator.comparingInt(it -> it.getProgramLocation().getOffset()))
         .get();
   }
 
-  private static JvmValueAbstractState getPrintlnCall(
-      ProgramLocationDependentReachedSet<
-              JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-          reachedSet) {
+  private static JvmAbstractState<ValueAbstractState> getPrintlnCall(
+      ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet) {
     return getMethodCall(reachedSet, "println");
   }
 
-  private static JvmValueAbstractState getMethodCall(
-      ProgramLocationDependentReachedSet<
-              JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>
-          reachedSet,
+  private static JvmAbstractState<ValueAbstractState> getMethodCall(
+      ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet,
       String methodName) {
     return reachedSet.asCollection().stream()
         .filter(

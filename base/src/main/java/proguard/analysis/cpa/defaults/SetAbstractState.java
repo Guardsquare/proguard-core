@@ -22,11 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
-/**
- * This {@link SetAbstractState} represents a set with the subset ordering.
- *
- * @author Dmitry Ivanov
- */
+/** This {@link SetAbstractState} represents a set with the subset ordering. */
 public class SetAbstractState<T> extends HashSet<T>
     implements LatticeAbstractState<SetAbstractState<T>> {
 

@@ -24,22 +24,22 @@ import proguard.analysis.cpa.defaults.NeverAbortOperator;
  * This interface wraps the main CPA algorithm parametrized by the {@link ReachedSet}, the {@link
  * Waitlist}, and the {@link AbortOperator}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public interface Algorithm {
+public interface Algorithm<StateT extends AbstractState> {
 
   /**
    * Launches the algorithm updating the {@code reachedSet} and the {@code waitlist}. A proper
    * selection of parameters allows resuming the algorithm from a saved state. The {@code
    * abortOperator} determines whether the analysis should end prematurely.
    */
-  void run(ReachedSet reachedSet, Waitlist waitlist, AbortOperator abortOperator);
+  void run(ReachedSet<StateT> reachedSet, Waitlist<StateT> waitlist, AbortOperator abortOperator);
 
   /**
    * Launches the algorithm updating the {@code reachedSet} and the {@code waitlist}. A proper
    * selection of parameters allows resuming the algorithm from a saved state.
    */
-  default void run(ReachedSet reachedSet, Waitlist waitlist) {
+  default void run(ReachedSet<StateT> reachedSet, Waitlist<StateT> waitlist) {
     run(reachedSet, waitlist, NeverAbortOperator.INSTANCE);
   }
 }

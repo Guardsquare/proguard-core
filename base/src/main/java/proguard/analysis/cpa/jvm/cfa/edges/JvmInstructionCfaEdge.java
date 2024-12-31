@@ -27,8 +27,6 @@ import proguard.classfile.instruction.InstructionFactory;
  * A {@link JvmCfaEdge} the operation of which is defined by an instruction.
  *
  * <p>An instruction is identified by a code attribute and an offset and generated on the fly.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmInstructionCfaEdge extends JvmCfaEdge {
 

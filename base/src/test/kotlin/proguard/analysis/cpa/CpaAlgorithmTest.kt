@@ -43,18 +43,18 @@ class CpaAlgorithmTest : FreeSpec({
     val transferRelation = BoundedAdditiveTransferRelation(2, 10)
 
     val mergeJoinOperator = MergeJoinOperator(abstractDomain)
-    val mergeSepOperator = MergeSepOperator()
+    val mergeSepOperator = MergeSepOperator<IntegerAbstractState>()
 
-    val stopAlwaysOperator = StopAlwaysOperator()
-    val stopContainedOperator = StopContainedOperator()
+    val stopAlwaysOperator = StopAlwaysOperator<IntegerAbstractState>()
+    val stopContainedOperator = StopContainedOperator<IntegerAbstractState>()
     val stopSepOperator = StopSepOperator(abstractDomain)
 
     val precisionAdjustment = StaticPrecisionAdjustment()
 
     "Reachability set up works as expected" {
-        val waitlist = DepthFirstWaitlist()
+        val waitlist = DepthFirstWaitlist<IntegerAbstractState>()
         waitlist.add(IntegerAbstractState(0))
-        val reachedset = DefaultReachedSet()
+        val reachedset = DefaultReachedSet<IntegerAbstractState>()
         CpaAlgorithm(
             SimpleCpa(
                 abstractDomain,
@@ -65,7 +65,7 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // the test should return all states reachable from 0
-        reachedset shouldBe setOf(
+        reachedset.asCollection() shouldBe setOf(
             IntegerAbstractState(2),
             IntegerAbstractState(4),
             IntegerAbstractState(6),
@@ -74,7 +74,7 @@ class CpaAlgorithmTest : FreeSpec({
         )
 
         val orderedReachedSet: MutableList<AbstractState> = ArrayList()
-        reachedset.forEach { orderedReachedSet.add(it) }
+        reachedset.asCollection().forEach { orderedReachedSet.add(it) }
 
         // the order of the elements should be deterministic
         orderedReachedSet shouldBe listOf(
@@ -87,9 +87,9 @@ class CpaAlgorithmTest : FreeSpec({
     }
 
     "Merging works as expected" {
-        val waitlist = DepthFirstWaitlist()
+        val waitlist = DepthFirstWaitlist<IntegerAbstractState>()
         waitlist.add(IntegerAbstractState(0))
-        val reachedset = DefaultReachedSet()
+        val reachedset = DefaultReachedSet<IntegerAbstractState>()
         CpaAlgorithm(
             SimpleCpa(
                 abstractDomain,
@@ -100,13 +100,13 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // the test should return the join of all states reachable from 0
-        reachedset shouldBe setOf(IntegerAbstractState(10))
+        reachedset.asCollection() shouldBe setOf(IntegerAbstractState(10))
     }
 
     "Always stopping only merges the reached states" {
-        val waitlist = DepthFirstWaitlist()
+        val waitlist = DepthFirstWaitlist<IntegerAbstractState>()
         waitlist.add(IntegerAbstractState(0))
-        val reachedset = DefaultReachedSet()
+        val reachedset = DefaultReachedSet<IntegerAbstractState>()
         reachedset.add(IntegerAbstractState(0))
         CpaAlgorithm(
             SimpleCpa(
@@ -118,7 +118,7 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // the algorithm iterates until the join of the newly reached state with previous reached states converges
-        reachedset shouldBe setOf(IntegerAbstractState(10))
+        reachedset.asCollection() shouldBe setOf(IntegerAbstractState(10))
 
         waitlist.clear()
         waitlist.add(IntegerAbstractState(0))
@@ -134,7 +134,7 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // since merging does not generate a new state, the newly reached states are not added because of always stopping
-        reachedset shouldBe setOf(IntegerAbstractState(0))
+        reachedset.asCollection() shouldBe setOf(IntegerAbstractState(0))
 
         waitlist.clear()
         waitlist.add(IntegerAbstractState(0))
@@ -149,13 +149,13 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // if there were no reached states, there is nothing we can add as the result of the join
-        reachedset shouldBe setOf()
+        reachedset.asCollection() shouldBe setOf()
     }
 
     "Separate stopping runs until the new states are covered by the reached ones" {
-        val waitlist = DepthFirstWaitlist()
+        val waitlist = DepthFirstWaitlist<IntegerAbstractState>()
         waitlist.add(IntegerAbstractState(0))
-        val reachedset = DefaultReachedSet()
+        val reachedset = DefaultReachedSet<IntegerAbstractState>()
         reachedset.add(IntegerAbstractState(20))
         CpaAlgorithm(
             SimpleCpa(
@@ -167,7 +167,7 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // 20 covers all reachable states from 0, hence the reached set remains the same
-        reachedset shouldBe setOf(IntegerAbstractState(20))
+        reachedset.asCollection() shouldBe setOf(IntegerAbstractState(20))
 
         waitlist.clear()
         waitlist.add(IntegerAbstractState(0))
@@ -183,7 +183,7 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // here, the algorithm runs until 10 is reached as it covers all other reachable states
-        reachedset shouldBe setOf(
+        reachedset.asCollection() shouldBe setOf(
             IntegerAbstractState(0),
             IntegerAbstractState(2),
             IntegerAbstractState(4),
@@ -194,9 +194,9 @@ class CpaAlgorithmTest : FreeSpec({
     }
 
     "Equality stopping runs until the new states are included by the reached ones" {
-        val waitlist = DepthFirstWaitlist()
+        val waitlist = DepthFirstWaitlist<IntegerAbstractState>()
         waitlist.add(IntegerAbstractState(0))
-        val reachedset = DefaultReachedSet()
+        val reachedset = DefaultReachedSet<IntegerAbstractState>()
         reachedset.add(IntegerAbstractState(20))
         CpaAlgorithm(
             SimpleCpa(
@@ -208,7 +208,7 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // 20 covers all other states but is not equal to them, hence the reached set is updated until it converges in the common meaning
-        reachedset shouldBe setOf(
+        reachedset.asCollection() shouldBe setOf(
             IntegerAbstractState(2),
             IntegerAbstractState(4),
             IntegerAbstractState(6),
@@ -231,7 +231,7 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist)
         // here, the result coincides with the stopSepOperator because there is no state covering others but unequal to them
-        reachedset shouldBe setOf(
+        reachedset.asCollection() shouldBe setOf(
             IntegerAbstractState(0),
             IntegerAbstractState(2),
             IntegerAbstractState(4),
@@ -242,9 +242,9 @@ class CpaAlgorithmTest : FreeSpec({
     }
 
     "Abort operator terminates the analysis" {
-        val waitlist = DepthFirstWaitlist()
+        val waitlist = DepthFirstWaitlist<IntegerAbstractState>()
         waitlist.add(IntegerAbstractState(0))
-        val reachedset = DefaultReachedSet()
+        val reachedset = DefaultReachedSet<IntegerAbstractState>()
         val abortOperator = ControllableAbortOperator()
         abortOperator.abort = true
         CpaAlgorithm(
@@ -257,6 +257,6 @@ class CpaAlgorithmTest : FreeSpec({
             ),
         ).run(reachedset, waitlist, abortOperator)
         // the test should return all states reachable from 0
-        reachedset shouldBe setOf()
+        reachedset.asCollection() shouldBe setOf()
     }
 })

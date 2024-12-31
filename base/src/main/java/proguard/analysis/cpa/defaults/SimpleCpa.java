@@ -31,13 +31,14 @@ import proguard.analysis.cpa.interfaces.TransferRelation;
 /**
  * The {@link SimpleCpa} is a {@link ConfigurableProgramAnalysis} wrapping its components.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public class SimpleCpa implements ConfigurableProgramAnalysis {
-  private final AbstractDomain abstractDomain;
-  private final TransferRelation transferRelation;
-  private final MergeOperator mergeOperator;
-  private final StopOperator stopOperator;
+public class SimpleCpa<StateT extends AbstractState>
+    implements ConfigurableProgramAnalysis<StateT> {
+  private final AbstractDomain<StateT> abstractDomain;
+  private final TransferRelation<StateT> transferRelation;
+  private final MergeOperator<StateT> mergeOperator;
+  private final StopOperator<StateT> stopOperator;
   private final PrecisionAdjustment precisionAdjustment;
 
   /**
@@ -52,10 +53,10 @@ public class SimpleCpa implements ConfigurableProgramAnalysis {
    *     {@link ReachedSet} based on the content of the latter
    */
   public SimpleCpa(
-      AbstractDomain abstractDomain,
-      TransferRelation transferRelation,
-      MergeOperator mergeOperator,
-      StopOperator stopOperator) {
+      AbstractDomain<StateT> abstractDomain,
+      TransferRelation<StateT> transferRelation,
+      MergeOperator<StateT> mergeOperator,
+      StopOperator<StateT> stopOperator) {
     this(
         abstractDomain,
         transferRelation,
@@ -78,10 +79,10 @@ public class SimpleCpa implements ConfigurableProgramAnalysis {
    *     currently processed {@link AbstractState} considering the {@link ReachedSet} content
    */
   public SimpleCpa(
-      AbstractDomain abstractDomain,
-      TransferRelation transferRelation,
-      MergeOperator mergeOperator,
-      StopOperator stopOperator,
+      AbstractDomain<StateT> abstractDomain,
+      TransferRelation<StateT> transferRelation,
+      MergeOperator<StateT> mergeOperator,
+      StopOperator<StateT> stopOperator,
       PrecisionAdjustment precisionAdjustment) {
     this.abstractDomain = abstractDomain;
     this.transferRelation = transferRelation;
@@ -93,22 +94,22 @@ public class SimpleCpa implements ConfigurableProgramAnalysis {
   // implementations for ConfigurableProgramAnalysis
 
   @Override
-  public AbstractDomain getAbstractDomain() {
+  public AbstractDomain<StateT> getAbstractDomain() {
     return abstractDomain;
   }
 
   @Override
-  public TransferRelation getTransferRelation() {
+  public TransferRelation<StateT> getTransferRelation() {
     return transferRelation;
   }
 
   @Override
-  public MergeOperator getMergeOperator() {
+  public MergeOperator<StateT> getMergeOperator() {
     return mergeOperator;
   }
 
   @Override
-  public StopOperator getStopOperator() {
+  public StopOperator<StateT> getStopOperator() {
     return stopOperator;
   }
 

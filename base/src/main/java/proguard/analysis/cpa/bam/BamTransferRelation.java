@@ -18,8 +18,6 @@
 
 package proguard.analysis.cpa.bam;
 
-import static proguard.exception.ErrorId.ANALYSIS_BAM_TRANSFER_RELATION_STATE_NOT_LOCATION_DEPENDENT;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,32 +26,32 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.Cfa;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StopSepOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.CallEdge;
-import proguard.analysis.cpa.interfaces.CfaEdge;
-import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.Precision;
-import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentTransferRelation;
 import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.StopOperator;
 import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.interfaces.Waitlist;
+import proguard.analysis.cpa.jvm.cfa.JvmCfa;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
 import proguard.analysis.datastructure.callgraph.SymbolicCall;
 import proguard.classfile.AccessConstants;
+import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
-import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link TransferRelation} extends an analysis inter-procedurally. The transfer relation
@@ -61,26 +59,25 @@ import proguard.exception.ProguardCoreException;
  * https://dl.acm.org/doi/pdf/10.1145/3368089.3409718}. On a high level the task of this
  * domain-independent transfer relation is to extend the intra-procedural domain-dependent transfer
  * relation of a {@link CpaWithBamOperators} inter-procedurally. For more details on how the
- * transfer relation works see {@link BamTransferRelation#generateAbstractSuccessors(AbstractState,
- * Precision)}.
+ * transfer relation works see {@link
+ * BamTransferRelation#generateAbstractSuccessors(JvmAbstractState, Precision)}.
+ *
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BamTransferRelation<
-        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-        CfaEdgeT extends CfaEdge<CfaNodeT>,
-        SignatureT extends Signature>
-    implements TransferRelation {
+public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>>
+    implements TransferRelation<JvmAbstractState<ContentT>> {
 
-  private static final Logger log = LogManager.getLogger(BamTransferRelation.class);
-  private final CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa;
-  // TODO: maybe we don't need the cfa
-  private final Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa;
+  private final CpaWithBamOperators<ContentT> wrappedCpa;
+  private final JvmCfa cfa;
   private final Stack<StackEntry> stack = new Stack<>();
-  private boolean fixedPointReached = false;
-  private final CfaNodeT mainLocation;
-  private final BamCache<SignatureT> cache;
-  private int maxCallStackDepth = -1;
-  private final StopOperator fixedPointStopOperator;
+  private final JvmCfaNode mainLocation;
+  private final BamCache<ContentT> cache;
+  private final int maxCallStackDepth;
+  private final StopOperator<JvmAbstractState<ContentT>> fixedPointStopOperator;
   private final AbortOperator abortOperator;
+  private boolean fixedPointReached = false;
 
   /**
    * Create a BAM transfer relation with an unlimited call stack.
@@ -91,10 +88,10 @@ public class BamTransferRelation<
    * @param cache a cache for the block abstractions
    */
   public BamTransferRelation(
-      CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa,
-      Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa,
-      SignatureT mainFunction,
-      BamCache<SignatureT> cache) {
+      CpaWithBamOperators<ContentT> wrappedCpa,
+      JvmCfa cfa,
+      MethodSignature mainFunction,
+      BamCache<ContentT> cache) {
     this(wrappedCpa, cfa, mainFunction, cache, -1, NeverAbortOperator.INSTANCE);
   }
 
@@ -112,17 +109,17 @@ public class BamTransferRelation<
    * @param abortOperator an abort operator used for computing block abstractions
    */
   public BamTransferRelation(
-      CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> wrappedCpa,
-      Cfa<CfaNodeT, CfaEdgeT, SignatureT> cfa,
-      SignatureT mainFunction,
-      BamCache<SignatureT> cache,
+      CpaWithBamOperators<ContentT> wrappedCpa,
+      JvmCfa cfa,
+      MethodSignature mainFunction,
+      BamCache<ContentT> cache,
       int maxCallStackDepth,
       AbortOperator abortOperator) {
     this.wrappedCpa = wrappedCpa;
     this.cfa = cfa;
     this.mainLocation = cfa.getFunctionEntryNode(mainFunction);
     this.cache = cache;
-    this.fixedPointStopOperator = new StopSepOperator(wrappedCpa.getAbstractDomain());
+    this.fixedPointStopOperator = new StopSepOperator<>(wrappedCpa.getAbstractDomain());
     this.maxCallStackDepth = maxCallStackDepth;
     this.abortOperator = abortOperator;
   }
@@ -148,7 +145,7 @@ public class BamTransferRelation<
    * intra-procedural transfer relation instead of being analyzed by the applyBlockAbstraction
    * algorithm. The result of the block abstraction on the intra-procedural level is simply
    * generating a successor (or successors in case there are multiple call edges, e.g. for unknown
-   * runtime type of an object) abstract state that has as location the next node of the {@link
+   * runtime type of the instance) abstract state that has as location the next node of the {@link
    * Cfa}. The recursion can be limited at a maximum call stack size. The intra-procedural transfer
    * relation is also applied in case the max call stack size is reached.
    *
@@ -159,31 +156,23 @@ public class BamTransferRelation<
    * this case the transfer relation returns with no successors.
    */
   @Override
-  public Collection<? extends AbstractState> generateAbstractSuccessors(
-      AbstractState abstractState, Precision precision) {
-    if (!(abstractState instanceof ProgramLocationDependent)) {
-      throw new ProguardCoreException.Builder(
-              "The abstract state of type " + AbstractState.class + " is not location dependent",
-              ANALYSIS_BAM_TRANSFER_RELATION_STATE_NOT_LOCATION_DEPENDENT)
-          .build();
-    }
-
-    CfaNodeT currentLocation =
-        ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) abstractState)
-            .getProgramLocation();
-    Collection<AbstractState> abstractSuccessors = new ArrayList<>();
+  public Collection<JvmAbstractState<ContentT>> generateAbstractSuccessors(
+      JvmAbstractState<ContentT> abstractState, Precision precision) {
+    JvmCfaNode currentLocation = abstractState.getProgramLocation();
+    Collection<JvmAbstractState<ContentT>> abstractSuccessors = new ArrayList<>();
 
     // executed only on the first call
     if (stack.isEmpty() && currentLocation.equals(mainLocation)) {
-      abstractSuccessors.addAll(fixedPoint(abstractState, currentLocation, precision));
+      abstractSuccessors.addAll(fixedPoint(abstractState, precision));
     }
     // call location
-    else if (currentLocation.getLeavingEdges().stream().anyMatch(e -> e instanceof CallEdge)) {
+    else if (currentLocation.getLeavingEdges().stream()
+        .anyMatch(JvmCallCfaEdge.class::isInstance)) {
       // there might be multiple calls, in this case we generate successors for all of them and
       // eventually let the merge operator handle the results
-      for (CfaEdgeT callEdge :
+      for (JvmCfaEdge callEdge :
           currentLocation.getLeavingEdges().stream()
-              .filter(e -> e instanceof CallEdge)
+              .filter(JvmCallCfaEdge.class::isInstance)
               .collect(Collectors.toList())) {
         // if the call target is an unknown node (i.e., either the method code of a symbolic call is
         // not available or a library call is excluded from the analysis)
@@ -192,8 +181,7 @@ public class BamTransferRelation<
         if ((maxCallStackDepth < 0 || stack.size() < maxCallStackDepth)
             && !callEdge.getTarget().isUnknownNode()) {
           abstractSuccessors.addAll(
-              applyBlockAbstraction(
-                  abstractState, precision, (CfaEdge<CfaNodeT> & CallEdge) callEdge));
+              applyBlockAbstraction(abstractState, precision, (JvmCallCfaEdge) callEdge));
         } else {
           abstractSuccessors.addAll(
               ((ProgramLocationDependentTransferRelation) wrappedCpa.getTransferRelation())
@@ -225,40 +213,40 @@ public class BamTransferRelation<
   }
 
   /** Returns the wrapped domain-dependent intra-procedural CPA. */
-  public CpaWithBamOperators<CfaNodeT, CfaEdgeT, SignatureT> getWrappedCpa() {
+  public CpaWithBamOperators<ContentT> getWrappedCpa() {
     return wrappedCpa;
   }
 
   /**
-   * By default the {@link Waitlist} used by the applyBlockAbstraction algorithm is a {@link
+   * By default, the {@link Waitlist} used by the applyBlockAbstraction algorithm is a {@link
    * BreadthFirstWaitlist}, this method can be overridden to provide a different waitlist.
    */
-  protected Waitlist getWaitlist() {
-    return new BreadthFirstWaitlist();
+  protected Waitlist<JvmAbstractState<ContentT>> getWaitlist() {
+    return new BreadthFirstWaitlist<>();
   }
 
   /**
-   * By default the {@link ReachedSet} used by the applyBlockAbstraction algorithm is a {@link
+   * By default, the {@link ReachedSet} used by the applyBlockAbstraction algorithm is a {@link
    * ProgramLocationDependentReachedSet}, this method can be overridden to provide a different
    * reached set.
    */
-  protected ReachedSet getReachedSet() {
+  protected ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> getReachedSet() {
     return new ProgramLocationDependentReachedSet<>();
   }
 
   /** Returns BAM cache storing analysis result for various method calls. */
-  public BamCache<SignatureT> getCache() {
+  public BamCache<ContentT> getCache() {
     return cache;
   }
 
   /** Returns the CFA used by the transfer relation. */
-  public Cfa<CfaNodeT, CfaEdgeT, SignatureT> getCfa() {
+  public JvmCfa getCfa() {
     return cfa;
   }
 
-  private Collection<? extends AbstractState> fixedPoint(
-      AbstractState entryState, CfaNodeT currentLocation, Precision precision) {
-    Collection<? extends AbstractState> blockResult = Collections.emptyList();
+  private Collection<JvmAbstractState<ContentT>> fixedPoint(
+      JvmAbstractState<ContentT> entryState, Precision precision) {
+    Collection<JvmAbstractState<ContentT>> blockResult = Collections.emptyList();
 
     while (!fixedPointReached) {
       fixedPointReached = true;
@@ -268,33 +256,31 @@ public class BamTransferRelation<
     return blockResult;
   }
 
-  private <CfaCallEdgeT extends CfaEdge<CfaNodeT> & CallEdge>
-      Collection<? extends AbstractState> applyBlockAbstraction(
-          AbstractState callState, Precision precision, CfaCallEdgeT callEdge) {
+  private Collection<JvmAbstractState<ContentT>> applyBlockAbstraction(
+      JvmAbstractState<ContentT> callState, Precision precision, JvmCallCfaEdge callEdge) {
 
-    ReachedSet reached = getReachedSet();
-    Waitlist waitlist = getWaitlist();
+    ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reached = getReachedSet();
+    Waitlist<JvmAbstractState<ContentT>> waitlist = getWaitlist();
     Call call = callEdge == null ? null : callEdge.getCall();
-    CfaNodeT entryNode =
+    JvmCfaNode entryNode =
         call != null
             ? cfa.getFunctionEntryNode(callEdge.getTarget().getSignature())
-            : ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) callState)
-                .getProgramLocation();
-    SignatureT currentFunction = entryNode.getSignature();
+            : callState.getProgramLocation();
+    MethodSignature currentFunction = entryNode.getSignature();
 
     // TODO: maybe we can have a better way to identify that the function was called from fixedPoint
     // than having a null call
     // apply the reduce operator to the entry state (i.e. discard information not relevant in the
     // called procedure context (e.g. local variables of the caller)
     // this step is not necessary if we are calculating the block abstraction of the main method
-    AbstractState reducedEntryState =
+    JvmAbstractState<ContentT> reducedEntryState =
         call != null
             ? wrappedCpa
                 .getReduceOperator()
                 .reduce(callState, cfa.getFunctionEntryNode(currentFunction), call)
             : wrappedCpa.getReduceOperator().onMethodEntry(callState, isCallStatic(callState));
 
-    Optional<AbstractState> previousCall =
+    Optional<JvmAbstractState<ContentT>> previousCall =
         stack.stream()
             .filter(
                 x ->
@@ -309,7 +295,8 @@ public class BamTransferRelation<
     if (previousCall.isPresent()) {
       // if this is not the first call, get from the cache the result of the unrolling of the
       // recursive procedure that has been already calculated
-      BlockAbstraction cacheEntry = cache.get(previousCall.get(), precision, currentFunction);
+      BlockAbstraction<ContentT> cacheEntry =
+          cache.get(previousCall.get(), precision, currentFunction);
       if (cacheEntry != null) {
         reached = cacheEntry.getReachedSet();
       }
@@ -320,7 +307,8 @@ public class BamTransferRelation<
       }
     } else {
       // get previously calculated results from the cache
-      BlockAbstraction cacheEntry = cache.get(reducedEntryState, precision, currentFunction);
+      BlockAbstraction<ContentT> cacheEntry =
+          cache.get(reducedEntryState, precision, currentFunction);
 
       if (cacheEntry != null) {
         // TODO: these might be different waitlist/reached set types if the cache is initialized
@@ -340,7 +328,7 @@ public class BamTransferRelation<
       // the BAM CPA
       // n.b. if the procedure has been already analyzed completely for the input the CPA algorithm
       // will return immediately
-      new CpaAlgorithm(
+      new CpaAlgorithm<>(
               this,
               wrappedCpa.getMergeOperator(),
               wrappedCpa.getStopOperator(),
@@ -357,7 +345,7 @@ public class BamTransferRelation<
           stack.peek().incompleteCallStates.add(callState);
         }
 
-        for (AbstractState incompleteCallState : stackEntry.incompleteCallStates) {
+        for (JvmAbstractState<ContentT> incompleteCallState : stackEntry.incompleteCallStates) {
           waitlist.add(incompleteCallState);
         }
       }
@@ -368,12 +356,11 @@ public class BamTransferRelation<
       // is not covered by one already calculated)
       if (cacheEntry != null) {
         // TODO: as above, we might want to add all instead of copying
-        ReachedSet reachedOld = cacheEntry.getReachedSet();
+        ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedOld =
+            cacheEntry.getReachedSet();
 
-        for (AbstractState reachedState : reached.asCollection()) {
-          CfaNodeT reachedLocation =
-              ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) reachedState)
-                  .getProgramLocation();
+        for (JvmAbstractState<ContentT> reachedState : reached.asCollection()) {
+          JvmCfaNode reachedLocation = reachedState.getProgramLocation();
           if (reachedLocation.getSignature().equals(currentFunction)
               && reachedLocation.isExitNode()
               && !(fixedPointStopOperator.stop(reachedState, reachedOld.asCollection(), null))) {
@@ -387,10 +374,10 @@ public class BamTransferRelation<
       }
 
       cache.put(
-          reducedEntryState, precision, currentFunction, new BlockAbstraction(reached, waitlist));
+          reducedEntryState, precision, currentFunction, new BlockAbstraction<>(reached, waitlist));
     }
 
-    Collection<? extends AbstractState> exitStates = reached.asCollection();
+    Collection<JvmAbstractState<ContentT>> exitStates = reached.asCollection();
     // TODO: as before, maybe we can have a better way to identify that the function was called from
     // fixedPoint
     if (call != null) {
@@ -398,11 +385,7 @@ public class BamTransferRelation<
       // operators.
       exitStates =
           exitStates.stream()
-              .filter(
-                  e ->
-                      ((ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) e)
-                          .getProgramLocation()
-                          .isExitNode())
+              .filter(e -> e.getProgramLocation().isExitNode())
               .map(e -> wrappedCpa.getExpandOperator().expand(callState, e, entryNode, call))
               .map(e -> wrappedCpa.getRebuildOperator().rebuild(callState, e))
               .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -411,15 +394,8 @@ public class BamTransferRelation<
     return exitStates;
   }
 
-  private boolean isCallStatic(AbstractState callState) {
-    if (!(callState instanceof ProgramLocationDependent)) {
-      throw new ProguardCoreException.Builder(
-              "The abstract state of type " + AbstractState.class + " is not location dependent",
-              ANALYSIS_BAM_TRANSFER_RELATION_STATE_NOT_LOCATION_DEPENDENT)
-          .build();
-    }
-    JvmCfaNode programLocation =
-        (JvmCfaNode) ((ProgramLocationDependent) callState).getProgramLocation();
+  private boolean isCallStatic(JvmAbstractState<ContentT> callState) {
+    JvmCfaNode programLocation = callState.getProgramLocation();
     String methodName = programLocation.getSignature().getMethodName();
     String descriptor = String.valueOf(programLocation.getSignature().getDescriptor());
     return (programLocation.getClazz().findMethod(methodName, descriptor).getAccessFlags()
@@ -429,11 +405,11 @@ public class BamTransferRelation<
 
   private class StackEntry {
 
-    public final SignatureT function;
-    public final AbstractState entryState;
-    public final Set<AbstractState> incompleteCallStates = new LinkedHashSet<>();
+    public final Signature function;
+    public final JvmAbstractState<ContentT> entryState;
+    public final Set<JvmAbstractState<ContentT>> incompleteCallStates = new LinkedHashSet<>();
 
-    public StackEntry(SignatureT function, AbstractState entryState) {
+    public StackEntry(Signature function, JvmAbstractState<ContentT> entryState) {
       this.function = function;
       this.entryState = entryState;
     }

@@ -24,8 +24,6 @@ import proguard.classfile.Signature;
 /**
  * A node for {@link proguard.analysis.cpa.defaults.Cfa} parametrized by its edges {@code CfaEdgeT}.
  * A CFA node corresponds to a program point before the instruction at a specific offset.
- *
- * @author Dmitry Ivanov
  */
 public interface CfaNode<CfaEdgeT extends CfaEdge, SignatureT extends Signature> {
 

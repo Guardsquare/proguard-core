@@ -18,11 +18,7 @@
 
 package proguard.analysis.cpa.interfaces;
 
-/**
- * An {@link AbstractState} contains information about the program state.
- *
- * @author Dmitry Ivanov
- */
+/** An {@link AbstractState} contains information about the program state. */
 public interface AbstractState {
 
   /** Returns the {@link Precision} used by the {@link PrecisionAdjustment}. */

@@ -26,8 +26,6 @@ import proguard.classfile.Signature;
 /**
  * A {@link TaintSource} specifies a method which can taint any (subset) of the following: the
  * instance, the return value, the argument objects, or static fields.
- *
- * @author Dmitry Ivanov
  */
 public class TaintSource {
 

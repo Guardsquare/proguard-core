@@ -29,8 +29,6 @@ import proguard.analysis.cpa.defaults.StackAbstractState;
  * and the local variable array as the {@link ListAbstractState}. This abstract state does not
  * restrict the way one models values, i.e., one abstract state may correspond to a byte sequence of
  * arbitrary length.
- *
- * @author Dmitry Ivanov
  */
 public class JvmFrameAbstractState<StateT extends LatticeAbstractState<StateT>>
     implements LatticeAbstractState<JvmFrameAbstractState<StateT>> {

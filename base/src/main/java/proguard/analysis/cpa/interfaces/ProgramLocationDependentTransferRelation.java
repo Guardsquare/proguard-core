@@ -18,35 +18,35 @@
 
 package proguard.analysis.cpa.interfaces;
 
-import static proguard.exception.ErrorId.ANALYSIS_PROGRAM_LOCATION_DEPENDENT_TRANSFER_RELATION_STATE_UNSUPPORTED;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import proguard.classfile.Signature;
-import proguard.exception.ProguardCoreException;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * An interface for {@link TransferRelation}s that depend on the {@link
  * proguard.analysis.cpa.defaults.Cfa} location for which the successor can be defined for the edges
  * of the current location.
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT>> The content of the jvm states produced by the transfer relation. For example,
+ *     this can be a {@link proguard.analysis.cpa.defaults.SetAbstractState} of taints for taint
+ *     analysis or a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value
+ *     analysis.
  */
 public interface ProgramLocationDependentTransferRelation<
-        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-        CfaEdgeT extends CfaEdge<CfaNodeT>,
-        SignatureT extends Signature>
-    extends TransferRelation {
+        ContentT extends LatticeAbstractState<ContentT>>
+    extends TransferRelation<JvmAbstractState<ContentT>> {
 
   /** Computes the successor states for the CFA {@code edge}. */
-  Collection<? extends AbstractState> generateEdgeAbstractSuccessors(
-      AbstractState abstractState, CfaEdgeT edge, Precision precision);
+  Collection<JvmAbstractState<ContentT>> generateEdgeAbstractSuccessors(
+      JvmAbstractState<ContentT> abstractState, JvmCfaEdge edge, Precision precision);
 
-  default Collection<? extends AbstractState> wrapAbstractSuccessorInCollection(
-      AbstractState abstractState) {
+  default Collection<JvmAbstractState<ContentT>> wrapAbstractSuccessorInCollection(
+      JvmAbstractState<ContentT> abstractState) {
     if (abstractState == null) {
       return Collections.emptyList();
     }
@@ -55,20 +55,11 @@ public interface ProgramLocationDependentTransferRelation<
   // implementations for TransferRelation
 
   @Override
-  default Collection<? extends AbstractState> generateAbstractSuccessors(
-      AbstractState abstractState, Precision precision) {
-    if (!(abstractState instanceof ProgramLocationDependent)) {
-      throw new ProguardCoreException.Builder(
-              "%s does not support %s",
-              ANALYSIS_PROGRAM_LOCATION_DEPENDENT_TRANSFER_RELATION_STATE_UNSUPPORTED)
-          .errorParameters(getClass().getName(), abstractState.getClass().getName())
-          .build();
-    }
-    ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state =
-        (ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>) abstractState;
-    Set<AbstractState> successors = new LinkedHashSet<>();
-    for (CfaEdgeT edge : getEdges(state)) {
-      Collection<? extends AbstractState> edgeSuccessors =
+  default Collection<JvmAbstractState<ContentT>> generateAbstractSuccessors(
+      JvmAbstractState<ContentT> abstractState, Precision precision) {
+    Set<JvmAbstractState<ContentT>> successors = new LinkedHashSet<>();
+    for (JvmCfaEdge edge : getEdges(abstractState)) {
+      Collection<JvmAbstractState<ContentT>> edgeSuccessors =
           generateEdgeAbstractSuccessors(abstractState, edge, precision);
       if (edgeSuccessors != null) {
         successors.addAll(edgeSuccessors);
@@ -77,5 +68,5 @@ public interface ProgramLocationDependentTransferRelation<
     return successors;
   }
 
-  List<CfaEdgeT> getEdges(ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT> state);
+  List<JvmCfaEdge> getEdges(JvmAbstractState<ContentT> state);
 }

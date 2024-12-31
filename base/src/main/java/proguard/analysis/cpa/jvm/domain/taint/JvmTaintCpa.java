@@ -40,7 +40,7 @@ import proguard.classfile.Signature;
  * The {@link JvmTaintCpa} computes abstract states containing {@link JvmTaintSource}s which can
  * reach the given code location.
  */
-public class JvmTaintCpa extends SimpleCpa {
+public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<JvmTaintSource>>> {
 
   /**
    * Create a taint CPA.
@@ -50,7 +50,7 @@ public class JvmTaintCpa extends SimpleCpa {
   public JvmTaintCpa(Set<? extends JvmTaintSource> sources) {
     this(
         createSourcesMap(sources),
-        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(),
+        new DelegateAbstractDomain<>(),
         Collections.emptyMap(),
         Collections.emptyMap());
   }
@@ -70,7 +70,7 @@ public class JvmTaintCpa extends SimpleCpa {
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this(
         createSourcesMap(sources),
-        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(),
+        new DelegateAbstractDomain<>(),
         taintTransformers,
         extraTaintPropagationLocations);
   }
@@ -90,21 +90,21 @@ public class JvmTaintCpa extends SimpleCpa {
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this(
         signaturesToSources,
-        new DelegateAbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>>(),
+        new DelegateAbstractDomain<>(),
         taintTransformers,
         extraTaintPropagationLocations);
   }
 
   private JvmTaintCpa(
       Map<Signature, Set<JvmTaintSource>> sources,
-      AbstractDomain abstractDomain,
+      AbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>> abstractDomain,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     super(
         abstractDomain,
         new JvmTaintTransferRelation(sources, taintTransformers, extraTaintPropagationLocations),
-        new MergeJoinOperator(abstractDomain),
-        new StopJoinOperator(abstractDomain));
+        new MergeJoinOperator<>(abstractDomain),
+        new StopJoinOperator<>(abstractDomain));
   }
 
   /**

@@ -18,8 +18,9 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
-import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.Precision;
 
@@ -27,30 +28,35 @@ import proguard.analysis.cpa.interfaces.Precision;
  * This {@link MergeOperator} applies the join operator to its arguments sharing the same memory
  * location.
  *
- * @author Dmitry Ivanov
+ * @param <ContentT> The content of the jvm states for the traced analysis. For example, this can be
+ *     a {@link SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public final class JvmMemoryLocationMergeJoinOperator implements MergeOperator {
-  private final AbstractDomain abstractDomain;
+public final class JvmMemoryLocationMergeJoinOperator<
+        ContentT extends LatticeAbstractState<ContentT>>
+    implements MergeOperator<JvmMemoryLocationAbstractState<ContentT>> {
+  private final AbstractDomain<JvmMemoryLocationAbstractState<ContentT>> abstractDomain;
 
   /**
    * Create a merge operator from an abstract domain defining the join operator.
    *
    * @param abstractDomain abstract domain
    */
-  public JvmMemoryLocationMergeJoinOperator(AbstractDomain abstractDomain) {
+  public JvmMemoryLocationMergeJoinOperator(
+      AbstractDomain<JvmMemoryLocationAbstractState<ContentT>> abstractDomain) {
     this.abstractDomain = abstractDomain;
   }
 
   // implementations for MergeOperator
 
   @Override
-  public AbstractState merge(
-      AbstractState abstractState1, AbstractState abstractState2, Precision precision) {
-    if (!((JvmMemoryLocationAbstractState) abstractState1)
+  public JvmMemoryLocationAbstractState<ContentT> merge(
+      JvmMemoryLocationAbstractState<ContentT> abstractState1,
+      JvmMemoryLocationAbstractState<ContentT> abstractState2,
+      Precision precision) {
+    if (!abstractState1
         .getLocationDependentMemoryLocation()
-        .equals(
-            ((JvmMemoryLocationAbstractState) abstractState2)
-                .getLocationDependentMemoryLocation())) {
+        .equals(abstractState2.getLocationDependentMemoryLocation())) {
       return abstractState2;
     }
     return abstractDomain.join(abstractState1, abstractState2);

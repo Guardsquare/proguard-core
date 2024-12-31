@@ -34,11 +34,7 @@ import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.exception.ProguardCoreException;
 
-/**
- * An {@link AbstractState} for tracking JVM values.
- *
- * @author James Hamilton
- */
+/** An {@link AbstractState} for tracking JVM values. */
 public class ValueAbstractState implements LatticeAbstractState<ValueAbstractState> {
 
   private static final Logger logger = LogManager.getLogger(ValueAbstractState.class);

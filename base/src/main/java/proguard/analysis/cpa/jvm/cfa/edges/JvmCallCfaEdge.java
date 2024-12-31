@@ -26,8 +26,6 @@ import proguard.classfile.MethodSignature;
 /**
  * A {@link JvmCfaEdge} representing a call to another method, linking to the first node of the
  * called method.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmCallCfaEdge extends JvmCfaEdge implements CallEdge {
 

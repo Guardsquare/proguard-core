@@ -16,14 +16,9 @@ import proguard.analysis.cpa.bam.BlockAbstraction;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
-import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
-import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
-import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState;
 import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationCpa;
@@ -63,20 +58,16 @@ import proguard.classfile.Signature;
  */
 public class TaintAnalyzerResult {
   private final TaintAnalysisResult taintAnalysisResult;
-  private final JvmMemoryLocationCpa<SetAbstractState<TaintSource>> traceReconstructionCpa;
+  private final JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>> traceReconstructionCpa;
   // lazy initialization, created only when requested
-  private @Nullable TraceExtractor<SetAbstractState<TaintSource>> traceExtractor;
+  private @Nullable TraceExtractor<SetAbstractState<JvmTaintSource>> traceExtractor;
 
   /* package private */ TaintAnalyzerResult(
-      BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> executedTaintCpa,
-      ProgramLocationDependentReachedSet<
-              JvmCfaNode,
-              JvmCfaEdge,
-              JvmAbstractState<SetAbstractState<TaintSource>>,
-              MethodSignature>
+      BamCpa<SetAbstractState<JvmTaintSource>> executedTaintCpa,
+      ProgramLocationDependentReachedSet<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
           mainMethodReachedSet,
       Collection<? extends JvmTaintSink> taintSinks,
-      JvmMemoryLocationCpa<SetAbstractState<TaintSource>> traceReconstructionCpa) {
+      JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>> traceReconstructionCpa) {
 
     this.taintAnalysisResult =
         new TaintAnalysisResult(executedTaintCpa, mainMethodReachedSet, taintSinks);
@@ -103,7 +94,7 @@ public class TaintAnalyzerResult {
    * once for the last call of {@link TaintAnalyzer#analyze(MethodSignature)}, since doing otherwise
    * would result in computing the same traces all over again.
    */
-  public TraceExtractor<SetAbstractState<TaintSource>> getTraceReconstructionResult() {
+  public TraceExtractor<SetAbstractState<JvmTaintSource>> getTraceReconstructionResult() {
     if (traceExtractor == null) {
       // This triggers the witness trace analysis
       traceExtractor = new TraceReconstructionResult(traceReconstructionCpa, taintAnalysisResult);
@@ -119,26 +110,19 @@ public class TaintAnalyzerResult {
   public static class TaintAnalysisResult {
 
     private final ProgramLocationDependentReachedSet<
-            JvmCfaNode,
-            JvmCfaEdge,
-            JvmAbstractState<SetAbstractState<TaintSource>>,
-            MethodSignature>
+            JvmAbstractState<SetAbstractState<JvmTaintSource>>>
         mainMethodReachedSet;
-    private final BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> executedTaintCpa;
+    private final BamCpa<SetAbstractState<JvmTaintSource>> executedTaintCpa;
     private final Collection<? extends JvmTaintSink> taintSinks;
     // This field is lazy and initialized the first time endpoints are requested
     private @Nullable Map<
-            BamLocationDependentJvmMemoryLocation<JvmAbstractState<SetAbstractState<TaintSource>>>,
+            BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>,
             List<JvmTaintSink>>
         endpointToTriggeredSinks = null;
 
     private TaintAnalysisResult(
-        BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> executedTaintCpa,
-        ProgramLocationDependentReachedSet<
-                JvmCfaNode,
-                JvmCfaEdge,
-                JvmAbstractState<SetAbstractState<TaintSource>>,
-                MethodSignature>
+        BamCpa<SetAbstractState<JvmTaintSource>> executedTaintCpa,
+        ProgramLocationDependentReachedSet<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
             mainMethodReachedSet,
         Collection<? extends JvmTaintSink> taintSinks) {
       this.executedTaintCpa = executedTaintCpa;
@@ -146,15 +130,11 @@ public class TaintAnalyzerResult {
       this.taintSinks = taintSinks;
     }
 
-    public BamCache<MethodSignature> getTaintResultCache() {
+    public BamCache<SetAbstractState<JvmTaintSource>> getTaintResultCache() {
       return executedTaintCpa.getCache();
     }
 
-    public ProgramLocationDependentReachedSet<
-            JvmCfaNode,
-            JvmCfaEdge,
-            JvmAbstractState<SetAbstractState<TaintSource>>,
-            MethodSignature>
+    public ProgramLocationDependentReachedSet<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
         getMainMethodReachedSet() {
       return mainMethodReachedSet;
     }
@@ -167,8 +147,7 @@ public class TaintAnalyzerResult {
      * same {@link TaintAnalyzer} performs several runs, it's better to get the endpoints only after
      * all runs have been executed.
      */
-    public Collection<
-            BamLocationDependentJvmMemoryLocation<JvmAbstractState<SetAbstractState<TaintSource>>>>
+    public Collection<BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>>
         getEndpoints() {
       if (endpointToTriggeredSinks == null) {
         this.endpointToTriggeredSinks = calculateEndpointsMapping(executedTaintCpa, taintSinks);
@@ -185,7 +164,7 @@ public class TaintAnalyzerResult {
      * all runs have been executed.
      */
     public Map<
-            BamLocationDependentJvmMemoryLocation<JvmAbstractState<SetAbstractState<TaintSource>>>,
+            BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>,
             List<JvmTaintSink>>
         getEndpointToTriggeredSinks() {
       if (endpointToTriggeredSinks == null) {
@@ -195,14 +174,13 @@ public class TaintAnalyzerResult {
     }
 
     private Map<
-            BamLocationDependentJvmMemoryLocation<JvmAbstractState<SetAbstractState<TaintSource>>>,
+            BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>,
             List<JvmTaintSink>>
         calculateEndpointsMapping(
-            BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> executedTaintCpa,
+            BamCpa<SetAbstractState<JvmTaintSource>> executedTaintCpa,
             Collection<? extends JvmTaintSink> taintSinks) {
       Map<
-              BamLocationDependentJvmMemoryLocation<
-                  JvmAbstractState<SetAbstractState<TaintSource>>>,
+              BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>,
               List<JvmTaintSink>>
           endpointToSinks = new HashMap<>();
       Map<Signature, Map<JvmTaintSink, Set<JvmMemoryLocation>>> fqnToSinkLocations =
@@ -217,7 +195,7 @@ public class TaintAnalyzerResult {
                       .asCollection()
                       .forEach(
                           state ->
-                              ((JvmAbstractState<SetAbstractState<JvmTaintSource>>) state)
+                              state
                                   .getProgramLocation()
                                   .getLeavingEdges()
                                   .forEach(
@@ -246,13 +224,13 @@ public class TaintAnalyzerResult {
      *     of tainted sink locations new states are added here
      */
     private void createEndpointsForEdgeIfTainted(
-        ReachedSet reachedSet,
-        AbstractState state,
+        ProgramLocationDependentReachedSet<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
+            reachedSet,
+        JvmAbstractState<SetAbstractState<JvmTaintSource>> state,
         JvmCfaEdge edge,
         Map<Signature, Map<JvmTaintSink, Set<JvmMemoryLocation>>> signatureToSinkLocations,
         Map<
-                BamLocationDependentJvmMemoryLocation<
-                    JvmAbstractState<SetAbstractState<TaintSource>>>,
+                BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>,
                 List<JvmTaintSink>>
             endPointToSinks) {
       signatureToSinkLocations
@@ -266,9 +244,7 @@ public class TaintAnalyzerResult {
                       .filter(
                           memoryLocation ->
                               isStateTaintedForMemoryLocation(
-                                  (JvmAbstractState<SetAbstractState<JvmTaintSource>>) state,
-                                  memoryLocation,
-                                  sinkToMemoryLocations.getKey()))
+                                  state, memoryLocation, sinkToMemoryLocations.getKey()))
                       .forEach(
                           memoryLocation ->
                               createAndAddEndpoint(
@@ -292,22 +268,18 @@ public class TaintAnalyzerResult {
      *     state is added here
      */
     private void createAndAddEndpoint(
-        ReachedSet reachedSet,
-        AbstractState state,
+        ProgramLocationDependentReachedSet<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
+            reachedSet,
+        JvmAbstractState<SetAbstractState<JvmTaintSource>> state,
         JvmMemoryLocation taintLocation,
         JvmTaintSink sink,
         Map<
-                BamLocationDependentJvmMemoryLocation<
-                    JvmAbstractState<SetAbstractState<TaintSource>>>,
+                BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>,
                 List<JvmTaintSink>>
             endPointToSinks) {
-      BamLocationDependentJvmMemoryLocation<JvmAbstractState<SetAbstractState<TaintSource>>>
-          memoryLocation =
-              new BamLocationDependentJvmMemoryLocation(
-                  taintLocation,
-                  ((ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>) state)
-                      .getProgramLocation(),
-                  (ProgramLocationDependentReachedSet) reachedSet);
+      BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>> memoryLocation =
+          new BamLocationDependentJvmMemoryLocation<>(
+              taintLocation, state.getProgramLocation(), reachedSet);
       endPointToSinks.computeIfAbsent(memoryLocation, x -> new ArrayList<>()).add(sink);
     }
 
@@ -329,18 +301,15 @@ public class TaintAnalyzerResult {
    * <p>The witness traces are computed when a {@link TraceReconstructionResult} is initialized.
    */
   private static class TraceReconstructionResult
-      implements TraceExtractor<SetAbstractState<TaintSource>> {
+      implements TraceExtractor<SetAbstractState<JvmTaintSource>> {
 
     private final ProgramLocationDependentReachedSet<
-            JvmCfaNode,
-            JvmCfaEdge,
-            JvmMemoryLocationAbstractState<JvmAbstractState<SetAbstractState<TaintSource>>>,
-            MethodSignature>
+            JvmMemoryLocationAbstractState<SetAbstractState<JvmTaintSource>>>
         traceReconstructionReachedSet;
     private final TaintAnalysisResult taintAnalysisResult;
 
     private TraceReconstructionResult(
-        JvmMemoryLocationCpa<SetAbstractState<TaintSource>> traceReconstructionCpa,
+        JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>> traceReconstructionCpa,
         TaintAnalysisResult taintAnalysisResult) {
       this.traceReconstructionReachedSet =
           runTraceReconstruction(traceReconstructionCpa, taintAnalysisResult);
@@ -348,29 +317,24 @@ public class TaintAnalyzerResult {
     }
 
     private ProgramLocationDependentReachedSet<
-            JvmCfaNode,
-            JvmCfaEdge,
-            JvmMemoryLocationAbstractState<JvmAbstractState<SetAbstractState<TaintSource>>>,
-            MethodSignature>
+            JvmMemoryLocationAbstractState<SetAbstractState<JvmTaintSource>>>
         runTraceReconstruction(
-            JvmMemoryLocationCpa<SetAbstractState<TaintSource>> traceCpa,
+            JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>> traceCpa,
             TaintAnalyzerResult.TaintAnalysisResult taintAnalysisResult) {
-      CpaAlgorithm cpaAlgorithm = new CpaAlgorithm(traceCpa);
+      CpaAlgorithm<JvmMemoryLocationAbstractState<SetAbstractState<JvmTaintSource>>> cpaAlgorithm =
+          new CpaAlgorithm<>(traceCpa);
 
-      Waitlist waitlist = new BreadthFirstWaitlist();
+      Waitlist<JvmMemoryLocationAbstractState<SetAbstractState<JvmTaintSource>>> waitlist =
+          new BreadthFirstWaitlist<>();
       ProgramLocationDependentReachedSet<
-              JvmCfaNode,
-              JvmCfaEdge,
-              JvmMemoryLocationAbstractState<JvmAbstractState<SetAbstractState<TaintSource>>>,
-              MethodSignature>
+              JvmMemoryLocationAbstractState<SetAbstractState<JvmTaintSource>>>
           reachedSet = new ProgramLocationDependentReachedSet<>();
 
-      List<JvmMemoryLocationAbstractState<JvmAbstractState<SetAbstractState<TaintSource>>>>
-          initialStates =
-              // This triggers the endpoints computation, unless they are already available
-              taintAnalysisResult.getEndpoints().stream()
-                  .map(JvmMemoryLocationAbstractState::new)
-                  .collect(Collectors.toList());
+      List<JvmMemoryLocationAbstractState<SetAbstractState<JvmTaintSource>>> initialStates =
+          // This triggers the endpoints computation, unless they are already available
+          taintAnalysisResult.getEndpoints().stream()
+              .map(JvmMemoryLocationAbstractState::new)
+              .collect(Collectors.toList());
 
       waitlist.addAll(initialStates);
       reachedSet.addAll(initialStates);
@@ -384,8 +348,7 @@ public class TaintAnalyzerResult {
 
     /** Get locations where sinks have been triggered by a valid source. */
     @Override
-    public Collection<
-            BamLocationDependentJvmMemoryLocation<JvmAbstractState<SetAbstractState<TaintSource>>>>
+    public Collection<BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>>
         getEndPoints() {
       return taintAnalysisResult.getEndpoints();
     }
@@ -396,10 +359,7 @@ public class TaintAnalyzerResult {
      */
     @Override
     public ProgramLocationDependentReachedSet<
-            JvmCfaNode,
-            JvmCfaEdge,
-            JvmMemoryLocationAbstractState<JvmAbstractState<SetAbstractState<TaintSource>>>,
-            MethodSignature>
+            JvmMemoryLocationAbstractState<SetAbstractState<JvmTaintSource>>>
         getTraceReconstructionReachedSet() {
       return traceReconstructionReachedSet;
     }

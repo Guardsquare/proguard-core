@@ -39,21 +39,21 @@ package proguard.analysis.cpa.interfaces;
  *
  * <p>All CPA components should be side effect free, i.e., not modify their arguments.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public interface ConfigurableProgramAnalysis {
+public interface ConfigurableProgramAnalysis<StateT extends AbstractState> {
 
   /** Returns the abstract domain of this CPA. */
-  AbstractDomain getAbstractDomain();
+  AbstractDomain<StateT> getAbstractDomain();
 
   /** Returns the transfer relation of this CPA. */
-  TransferRelation getTransferRelation();
+  TransferRelation<StateT> getTransferRelation();
 
   /** Returns the merge operator of this CPA. */
-  MergeOperator getMergeOperator();
+  MergeOperator<StateT> getMergeOperator();
 
   /** Returns the stop operator of this CPA. */
-  StopOperator getStopOperator();
+  StopOperator<StateT> getStopOperator();
 
   /** Returns the precision adjustment of this CPA. */
   PrecisionAdjustment getPrecisionAdjustment();

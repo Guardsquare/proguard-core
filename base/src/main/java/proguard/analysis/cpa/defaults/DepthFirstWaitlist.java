@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.defaults;
 
-import java.util.LinkedHashSet;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Waitlist;
 
@@ -26,19 +25,14 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  * This {@link Waitlist} pops the last element, i.e., performs a depth first traversal over the
  * {@link Cfa}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The states contained in the waitlist.
  */
-public class DepthFirstWaitlist extends AbstractWaitlist<LinkedHashSet<AbstractState>> {
-
-  public DepthFirstWaitlist() {
-    super(new LinkedHashSet<>());
-  }
-
+public class DepthFirstWaitlist<StateT extends AbstractState> extends AbstractWaitlist<StateT> {
   // implementations for AbstractWaitlist
 
   @Override
-  public AbstractState pop() {
-    AbstractState result = waitlist.stream().skip(waitlist.size() - 1).findFirst().get();
+  public StateT pop() {
+    StateT result = waitlist.stream().skip(waitlist.size() - 1).findFirst().get();
     waitlist.remove(result);
     return result;
   }

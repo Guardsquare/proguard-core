@@ -19,7 +19,6 @@
 package proguard.analysis.cpa.defaults;
 
 import proguard.analysis.cpa.interfaces.AbstractDomain;
-import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
  * This delegator passes all the {@link AbstractDomain} operators to the {@link
@@ -27,21 +26,20 @@ import proguard.analysis.cpa.interfaces.AbstractState;
  * in the domain specific code. Abstract domains defined with {@link LatticeAbstractState} should be
  * passed as {@link DelegateAbstractDomain}s to the CPA algorithm.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public class DelegateAbstractDomain<LatticeAbstractStateT extends LatticeAbstractState>
-    implements AbstractDomain {
+public class DelegateAbstractDomain<StateT extends LatticeAbstractState<StateT>>
+    implements AbstractDomain<StateT> {
 
   // implementations for AbstractDomain
 
   @Override
-  public AbstractState join(AbstractState abstractState1, AbstractState abstractState2) {
-    return ((LatticeAbstractStateT) abstractState1).join((LatticeAbstractStateT) abstractState2);
+  public StateT join(StateT abstractState1, StateT abstractState2) {
+    return abstractState1.join(abstractState2);
   }
 
   @Override
-  public boolean isLessOrEqual(AbstractState abstractState1, AbstractState abstractState2) {
-    return ((LatticeAbstractStateT) abstractState1)
-        .isLessOrEqual((LatticeAbstractStateT) abstractState2);
+  public boolean isLessOrEqual(StateT abstractState1, StateT abstractState2) {
+    return abstractState1.isLessOrEqual(abstractState2);
   }
 }

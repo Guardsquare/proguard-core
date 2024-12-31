@@ -27,10 +27,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
-import proguard.analysis.cpa.jvm.operators.JvmDefaultExpandOperator;
+import proguard.analysis.cpa.jvm.operators.DefaultExpandOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
@@ -40,13 +39,10 @@ import proguard.classfile.instruction.Instruction;
 
 /**
  * This {@link proguard.analysis.cpa.bam.ExpandOperator} inherits all the functionalities of a
- * {@link JvmDefaultExpandOperator} and in addition taints the return values if the called function
- * is a source.
- *
- * @author Carlo Alberto Pozzoli
+ * {@link DefaultExpandOperator} and in addition taints the return values if the called function is
+ * a source.
  */
-public class JvmTaintExpandOperator
-    extends JvmDefaultExpandOperator<SetAbstractState<JvmTaintSource>> {
+public class TaintExpandOperator extends DefaultExpandOperator<SetAbstractState<JvmTaintSource>> {
 
   private final Map<Signature, Set<JvmTaintSource>> signaturesToSources;
 
@@ -57,7 +53,7 @@ public class JvmTaintExpandOperator
    * @param signaturesToSources a mapping from method signatures to their {@link JvmTaintSource}
    * @param expandHeap whether expansion of the heap is performed
    */
-  public JvmTaintExpandOperator(
+  public TaintExpandOperator(
       JvmCfa cfa, Map<Signature, Set<JvmTaintSource>> signaturesToSources, boolean expandHeap) {
     super(cfa, expandHeap);
     this.signaturesToSources = signaturesToSources;
@@ -69,22 +65,20 @@ public class JvmTaintExpandOperator
    * @param cfa the control flow automaton of the analyzed program.
    * @param signaturesToSources a mapping from method signatures to their {@link JvmTaintSource}
    */
-  public JvmTaintExpandOperator(
-      JvmCfa cfa, Map<Signature, Set<JvmTaintSource>> signaturesToSources) {
+  public TaintExpandOperator(JvmCfa cfa, Map<Signature, Set<JvmTaintSource>> signaturesToSources) {
     this(cfa, signaturesToSources, true);
   }
 
-  // implementations for JvmDefaultExpandOperator
+  // implementations for DefaultExpandOperator
 
   @Override
-  public JvmTaintAbstractState expand(
-      AbstractState expandedInitialState,
-      AbstractState reducedExitState,
+  public JvmAbstractState<SetAbstractState<JvmTaintSource>> expand(
+      JvmAbstractState<SetAbstractState<JvmTaintSource>> expandedInitialState,
+      JvmAbstractState<SetAbstractState<JvmTaintSource>> reducedExitState,
       JvmCfaNode blockEntryNode,
       Call call) {
-    JvmTaintAbstractState result =
-        (JvmTaintAbstractState)
-            super.expand(expandedInitialState, reducedExitState, blockEntryNode, call);
+    JvmAbstractState<SetAbstractState<JvmTaintSource>> result =
+        super.expand(expandedInitialState, reducedExitState, blockEntryNode, call);
     List<JvmTaintSource> detectedSources =
         signaturesToSources.getOrDefault(call.getTarget(), Collections.emptySet()).stream()
             .filter(s -> s.callMatcher.map(m -> m.test(call)).orElse(true))
@@ -113,7 +107,9 @@ public class JvmTaintExpandOperator
    */
   @Override
   protected List<SetAbstractState<JvmTaintSource>> calculateReturnValues(
-      AbstractState reducedExitState, Instruction returnInstruction, Call call) {
+      JvmAbstractState<SetAbstractState<JvmTaintSource>> reducedExitState,
+      Instruction returnInstruction,
+      Call call) {
     List<JvmTaintSource> detectedSources =
         signaturesToSources.getOrDefault(call.getTarget(), Collections.emptySet()).stream()
             .filter(s -> s.callMatcher.map(m -> m.test(call)).orElse(true))
@@ -129,8 +125,7 @@ public class JvmTaintExpandOperator
     SetAbstractState<JvmTaintSource> answerContent = new SetAbstractState<>(detectedSources);
     int returnSize = returnInstruction.stackPopCount(null);
     for (int i = 0; i < returnSize; i++) {
-      SetAbstractState<JvmTaintSource> returnByte =
-          ((JvmAbstractState<SetAbstractState<JvmTaintSource>>) reducedExitState).peek(i);
+      SetAbstractState<JvmTaintSource> returnByte = reducedExitState.peek(i);
       answerContent = answerContent.join(returnByte);
     }
 
@@ -148,12 +143,12 @@ public class JvmTaintExpandOperator
   // implementations for JvmAbstractStateFactory
 
   @Override
-  public JvmTaintAbstractState createJvmAbstractState(
+  protected JvmAbstractState<SetAbstractState<JvmTaintSource>> createJvmAbstractState(
       JvmCfaNode programLocation,
       JvmFrameAbstractState<SetAbstractState<JvmTaintSource>> frame,
       JvmHeapAbstractState<SetAbstractState<JvmTaintSource>> heap,
       MapAbstractState<String, SetAbstractState<JvmTaintSource>> staticFields) {
-    return new JvmTaintAbstractState(programLocation, frame, heap, staticFields);
+    return new JvmAbstractState<>(programLocation, frame, heap, staticFields);
   }
 
   /** Returns the mapping from fqns to taint sources. */

@@ -21,11 +21,7 @@ package proguard.analysis.cpa.defaults;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
-/**
- * This {@link AbortOperator} never terminates the analysis prematurely.
- *
- * @author Dmitry Ivanov
- */
+/** This {@link AbortOperator} never terminates the analysis prematurely. */
 public final class NeverAbortOperator implements AbortOperator {
 
   public static final NeverAbortOperator INSTANCE = new NeverAbortOperator();

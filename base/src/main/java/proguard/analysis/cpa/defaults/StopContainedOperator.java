@@ -27,17 +27,16 @@ import proguard.analysis.cpa.interfaces.StopOperator;
  * This {@link StopOperator} returns true if the reached set contains the input {@link
  * AbstractState}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public final class StopContainedOperator implements StopOperator {
+public final class StopContainedOperator<StateT extends AbstractState>
+    implements StopOperator<StateT> {
 
   // implementations for StopOperator
 
   @Override
   public boolean stop(
-      AbstractState abstractState,
-      Collection<? extends AbstractState> reachedAbstractStates,
-      Precision precision) {
+      StateT abstractState, Collection<StateT> reachedAbstractStates, Precision precision) {
     return reachedAbstractStates.contains(abstractState);
   }
 }

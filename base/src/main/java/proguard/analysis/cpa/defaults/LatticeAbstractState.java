@@ -21,11 +21,7 @@ package proguard.analysis.cpa.defaults;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 
-/**
- * The {@link LatticeAbstractState} is an {@link AbstractDomain} with concrete interfaces.
- *
- * @author Dmitry Ivanov
- */
+/** The {@link LatticeAbstractState} is an {@link AbstractDomain} with concrete interfaces. */
 public interface LatticeAbstractState<AbstractStateT extends LatticeAbstractState<AbstractStateT>>
     extends AbstractState {
 

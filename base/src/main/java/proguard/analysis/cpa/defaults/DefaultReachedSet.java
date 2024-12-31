@@ -19,6 +19,8 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ReachedSet;
@@ -26,24 +28,46 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 /**
  * This is a {@link LinkedHashSet}-based implementation of the {@link ReachedSet}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The states contained in the reached set.
  */
-public final class DefaultReachedSet extends LinkedHashSet<AbstractState> implements ReachedSet {
+public final class DefaultReachedSet<StateT extends AbstractState> implements ReachedSet<StateT> {
+
+  HashSet<StateT> reachedSet = new LinkedHashSet<>();
 
   // implementations for ReachedSet
 
   @Override
-  public boolean remove(AbstractState state) {
-    return super.remove(state);
+  public boolean add(StateT abstractState) {
+    return reachedSet.add(abstractState);
   }
 
   @Override
-  public Collection<AbstractState> asCollection() {
-    return this;
+  public boolean addAll(Collection<? extends StateT> abstractStates) {
+    return reachedSet.addAll(abstractStates);
   }
 
   @Override
-  public Collection<AbstractState> getReached(AbstractState abstractState) {
+  public boolean remove(StateT state) {
+    return reachedSet.remove(state);
+  }
+
+  @Override
+  public boolean removeAll(Collection<? extends StateT> abstractStates) {
+    return reachedSet.removeAll(abstractStates);
+  }
+
+  @Override
+  public Collection<StateT> asCollection() {
+    return Collections.unmodifiableSet(reachedSet);
+  }
+
+  @Override
+  public Collection<StateT> getReached(StateT abstractState) {
     return asCollection();
+  }
+
+  @Override
+  public void clear() {
+    reachedSet.clear();
   }
 }

@@ -27,8 +27,6 @@ import proguard.classfile.Clazz;
 /**
  * The {@link JvmHeapAbstractState} provides the interfaces for heap operations over objects and
  * arrays.
- *
- * @author Dmitry Ivanov
  */
 public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT>>
     extends LatticeAbstractState<JvmHeapAbstractState<StateT>> {

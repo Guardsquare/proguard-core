@@ -41,14 +41,14 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  * {@link Algorithm}. The algorithm computes the set of reached states based on the initial content
  * of the waitlist.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public class CpaAlgorithm implements Algorithm {
+public class CpaAlgorithm<StateT extends AbstractState> implements Algorithm<StateT> {
 
   private static final Logger log = LogManager.getLogger(CpaAlgorithm.class);
-  private final TransferRelation transferRelation;
-  private final MergeOperator mergeOperator;
-  private final StopOperator stopOperator;
+  private final TransferRelation<StateT> transferRelation;
+  private final MergeOperator<StateT> mergeOperator;
+  private final StopOperator<StateT> stopOperator;
   private final PrecisionAdjustment precisionAdjustment;
 
   /**
@@ -57,7 +57,7 @@ public class CpaAlgorithm implements Algorithm {
    * @param cpa a CPA instance wrapping the transfer relation, the merge, and the stop operator, and
    *     the precision adjustment
    */
-  public CpaAlgorithm(ConfigurableProgramAnalysis cpa) {
+  public CpaAlgorithm(ConfigurableProgramAnalysis<StateT> cpa) {
     this(
         cpa.getTransferRelation(),
         cpa.getMergeOperator(),
@@ -77,9 +77,9 @@ public class CpaAlgorithm implements Algorithm {
    *     currently processed {@link AbstractState} considering the {@link ReachedSet} content
    */
   public CpaAlgorithm(
-      TransferRelation transferRelation,
-      MergeOperator mergeOperator,
-      StopOperator stopOperator,
+      TransferRelation<StateT> transferRelation,
+      MergeOperator<StateT> mergeOperator,
+      StopOperator<StateT> stopOperator,
       PrecisionAdjustment precisionAdjustment) {
     this.transferRelation = transferRelation;
     this.mergeOperator = mergeOperator;
@@ -88,38 +88,39 @@ public class CpaAlgorithm implements Algorithm {
   }
 
   /**
-   * Algorithm from the paper is parametrized with the reached set and the waitlist. Thus one can
+   * Algorithm from the paper is parametrized with the reached set and the waitlist. Thus, one can
    * select the start point of the algorithm (e.g., for resuming the analysis). The {@code
    * abortOperator} determines whether the analysis should end prematurely.
    */
   @Override
-  public void run(ReachedSet reachedSet, Waitlist waitlist, AbortOperator abortOperator) {
+  public void run(
+      ReachedSet<StateT> reachedSet, Waitlist<StateT> waitlist, AbortOperator abortOperator) {
     while (!waitlist.isEmpty()) {
-      AbstractState currentState = waitlist.pop();
+      StateT currentState = waitlist.pop();
       try {
         if (abortOperator.abort(currentState)) {
           return;
         }
         Precision currentPrecision = currentState.getPrecision();
-        PrecisionAdjustmentResult precisionAdjustmentResult =
+        PrecisionAdjustmentResult<StateT> precisionAdjustmentResult =
             precisionAdjustment.prec(
                 currentState, currentPrecision, reachedSet.getReached(currentState));
         currentState = precisionAdjustmentResult.getAbstractState();
         currentPrecision = currentState.getPrecision();
 
-        for (AbstractState successorState :
+        for (StateT successorState :
             transferRelation.generateAbstractSuccessors(currentState, currentPrecision)) {
-          Set<AbstractState> gen =
+          Set<StateT> gen =
               new LinkedHashSet<>(); // abstract states to be added to the waitlist and reached set
-          Set<AbstractState> kill =
+          Set<StateT> kill =
               new LinkedHashSet<>(); // abstract states to be removed from the waitlist and reached
           // set
-          for (AbstractState reachedState :
+          for (StateT reachedState :
               reachedSet.getReached(
                   successorState)) // iterate only over the reached sets which may be merged with
           // the successor state
           {
-            AbstractState mergedState =
+            StateT mergedState =
                 mergeOperator.merge(successorState, reachedState, successorState.getPrecision());
             if (!mergedState.equals(reachedState)) {
               gen.add(mergedState);

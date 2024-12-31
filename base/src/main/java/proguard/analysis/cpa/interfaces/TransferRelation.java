@@ -24,14 +24,13 @@ import java.util.Collection;
  * The {@link TransferRelation} computes the successor {@link AbstractState}s for the {@link
  * Algorithm}.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of states of the analysis, produced by the transfer relation.
  */
-public interface TransferRelation {
+public interface TransferRelation<StateT extends AbstractState> {
 
   /**
    * Returns abstract successor states of the {@code abstractState} under the selected {@code
    * precision}.
    */
-  Collection<? extends AbstractState> generateAbstractSuccessors(
-      AbstractState abstractState, Precision precision);
+  Collection<StateT> generateAbstractSuccessors(StateT abstractState, Precision precision);
 }

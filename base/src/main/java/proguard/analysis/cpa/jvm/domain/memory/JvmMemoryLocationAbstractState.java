@@ -25,10 +25,11 @@ import java.util.Set;
 import proguard.analysis.cpa.bam.BamLocationDependent;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.classfile.MethodSignature;
 
@@ -36,26 +37,25 @@ import proguard.classfile.MethodSignature;
  * This {@link AbstractState} consists of a {@link BamLocationDependentJvmMemoryLocation} with a set
  * of sources contributed into its value and the call stack that generated it.
  *
- * @param <AbstractStateT> The type of the abstract states in the BAM cache.
- * @author Dmitry Ivanov
+ * @param <ContentT> The content of the jvm states for the traced analysis. For example, this can be
+ *     a {@link SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmMemoryLocationAbstractState<
-        AbstractStateT extends
-            AbstractState & ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>>
-    implements LatticeAbstractState<JvmMemoryLocationAbstractState<AbstractStateT>>,
-        ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>,
-        BamLocationDependent<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature> {
+public class JvmMemoryLocationAbstractState<ContentT extends LatticeAbstractState<ContentT>>
+    implements LatticeAbstractState<JvmMemoryLocationAbstractState<ContentT>>,
+        ProgramLocationDependent,
+        BamLocationDependent<ContentT> {
 
-  public static final JvmMemoryLocationAbstractState top = new JvmMemoryLocationAbstractState();
-  private final BamLocationDependentJvmMemoryLocation<AbstractStateT>
-      locationDependentMemoryLocation;
-  private final Set<BamLocationDependentJvmMemoryLocation<AbstractStateT>> sourceLocations;
+  private static final JvmMemoryLocationAbstractState<?> top =
+      new JvmMemoryLocationAbstractState<>();
+  private final BamLocationDependentJvmMemoryLocation<ContentT> locationDependentMemoryLocation;
+  private final Set<BamLocationDependentJvmMemoryLocation<ContentT>> sourceLocations;
   // LinkedList is used here because the data structure needs to support both stack operations and
   // an equals operator that compares all the members (which is not a case for ArrayDeque)
-  private final LinkedList<StackEntry> callStack;
+  private final LinkedList<StackEntry<ContentT>> callStack;
 
   private JvmMemoryLocationAbstractState() {
-    this((BamLocationDependentJvmMemoryLocation) null, null, null);
+    this((BamLocationDependentJvmMemoryLocation<ContentT>) null, null, null);
   }
 
   /**
@@ -65,7 +65,7 @@ public class JvmMemoryLocationAbstractState<
    *     location coming from a specific reached set.
    */
   public JvmMemoryLocationAbstractState(
-      BamLocationDependentJvmMemoryLocation<AbstractStateT> locationDependentMemoryLocation) {
+      BamLocationDependentJvmMemoryLocation<ContentT> locationDependentMemoryLocation) {
     this(locationDependentMemoryLocation, new HashSet<>(), new LinkedList<>());
   }
 
@@ -80,8 +80,7 @@ public class JvmMemoryLocationAbstractState<
   public JvmMemoryLocationAbstractState(
       JvmMemoryLocation memoryLocation,
       JvmCfaNode programLocation,
-      ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-          sourceReachedSet) {
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet) {
     this(memoryLocation, programLocation, sourceReachedSet, new HashSet<>());
   }
 
@@ -97,9 +96,8 @@ public class JvmMemoryLocationAbstractState<
   public JvmMemoryLocationAbstractState(
       JvmMemoryLocation memoryLocation,
       JvmCfaNode programLocation,
-      ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-          sourceReachedSet,
-      Set<BamLocationDependentJvmMemoryLocation<AbstractStateT>> sourceLocations) {
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet,
+      Set<BamLocationDependentJvmMemoryLocation<ContentT>> sourceLocations) {
     this(memoryLocation, programLocation, sourceReachedSet, sourceLocations, new LinkedList<>());
   }
 
@@ -115,9 +113,8 @@ public class JvmMemoryLocationAbstractState<
   public JvmMemoryLocationAbstractState(
       JvmMemoryLocation memoryLocation,
       JvmCfaNode programLocation,
-      ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-          sourceReachedSet,
-      LinkedList<StackEntry> callStack) {
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet,
+      LinkedList<StackEntry<ContentT>> callStack) {
     this(memoryLocation, programLocation, sourceReachedSet, new HashSet<>(), callStack);
   }
 
@@ -134,10 +131,9 @@ public class JvmMemoryLocationAbstractState<
   public JvmMemoryLocationAbstractState(
       JvmMemoryLocation memoryLocation,
       JvmCfaNode programLocation,
-      ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-          sourceReachedSet,
-      Set<BamLocationDependentJvmMemoryLocation<AbstractStateT>> sourceLocations,
-      LinkedList<StackEntry> callStack) {
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet,
+      Set<BamLocationDependentJvmMemoryLocation<ContentT>> sourceLocations,
+      LinkedList<StackEntry<ContentT>> callStack) {
     this(
         new BamLocationDependentJvmMemoryLocation<>(
             memoryLocation, programLocation, sourceReachedSet),
@@ -146,16 +142,15 @@ public class JvmMemoryLocationAbstractState<
   }
 
   private JvmMemoryLocationAbstractState(
-      BamLocationDependentJvmMemoryLocation<AbstractStateT> locationDependentMemoryLocation,
-      Set<BamLocationDependentJvmMemoryLocation<AbstractStateT>> sourceLocations,
-      LinkedList<StackEntry> callStack) {
+      BamLocationDependentJvmMemoryLocation<ContentT> locationDependentMemoryLocation,
+      Set<BamLocationDependentJvmMemoryLocation<ContentT>> sourceLocations,
+      LinkedList<StackEntry<ContentT>> callStack) {
     this.locationDependentMemoryLocation = locationDependentMemoryLocation;
     this.sourceLocations = sourceLocations;
     this.callStack = callStack;
   }
 
-  public BamLocationDependentJvmMemoryLocation<AbstractStateT>
-      getLocationDependentMemoryLocation() {
+  public BamLocationDependentJvmMemoryLocation<ContentT> getLocationDependentMemoryLocation() {
     return locationDependentMemoryLocation;
   }
 
@@ -163,7 +158,7 @@ public class JvmMemoryLocationAbstractState<
    * Returns the information of the caller, null if the caller of the method the state belongs to is
    * unknown.
    */
-  public StackEntry peekCallStack() {
+  public StackEntry<ContentT> peekCallStack() {
     return callStack.peek();
   }
 
@@ -173,14 +168,15 @@ public class JvmMemoryLocationAbstractState<
   }
 
   /** Returns a shallow copy of the call stack. */
-  public LinkedList<StackEntry> copyStack() {
+  public LinkedList<StackEntry<ContentT>> copyStack() {
     return new LinkedList<>(callStack);
   }
 
   // implementations for LatticeAbstractState
 
   @Override
-  public JvmMemoryLocationAbstractState join(JvmMemoryLocationAbstractState abstractState) {
+  public JvmMemoryLocationAbstractState<ContentT> join(
+      JvmMemoryLocationAbstractState<ContentT> abstractState) {
     // FIXME: There is a bug in the definition of this lattice. The join operation does not do
     //        anything with the callStack, but the comparison operations use them. Therefore,
     //        the standard semi-lattice invariants do not hold. Specifically, the bug is, that
@@ -188,16 +184,16 @@ public class JvmMemoryLocationAbstractState<
     //        or B <= M might not hold.
     if (!locationDependentMemoryLocation.equals(abstractState.locationDependentMemoryLocation)) {
       // FIXME: if this condition is ever triggered, the analysis will crash with an NPE
-      return top;
+      return top();
     }
-    JvmMemoryLocationAbstractState result = copy();
+    JvmMemoryLocationAbstractState<ContentT> result = copy();
     result.sourceLocations.addAll(abstractState.sourceLocations);
     return equals(result) ? this : result;
   }
 
   @Override
-  public boolean isLessOrEqual(JvmMemoryLocationAbstractState<AbstractStateT> abstractState) {
-    return abstractState == top
+  public boolean isLessOrEqual(JvmMemoryLocationAbstractState<ContentT> abstractState) {
+    return abstractState == top()
         || locationDependentMemoryLocation.equals(abstractState.locationDependentMemoryLocation)
             && callStack.equals(abstractState.callStack)
             && abstractState.sourceLocations.containsAll(sourceLocations);
@@ -216,34 +212,31 @@ public class JvmMemoryLocationAbstractState<
   }
 
   @Override
-  public ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-      getSourceReachedSet() {
+  public ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> getSourceReachedSet() {
     return locationDependentMemoryLocation.getSourceReachedSet();
   }
 
   @Override
   public void setSourceReachedSet(
-      ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-          sourceReachedSet) {
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet) {
     locationDependentMemoryLocation.setSourceReachedSet(sourceReachedSet);
   }
 
   /** Adds a source location to the source set. */
-  public void addSourceLocation(
-      BamLocationDependentJvmMemoryLocation<AbstractStateT> sourceLocation) {
+  public void addSourceLocation(BamLocationDependentJvmMemoryLocation<ContentT> sourceLocation) {
     sourceLocations.add(sourceLocation);
   }
 
   /** Returns the source set. */
-  public Set<BamLocationDependentJvmMemoryLocation<AbstractStateT>> getSourceLocations() {
+  public Set<BamLocationDependentJvmMemoryLocation<ContentT>> getSourceLocations() {
     return sourceLocations;
   }
 
   // implementations for AbstractState
 
   @Override
-  public JvmMemoryLocationAbstractState copy() {
-    return new JvmMemoryLocationAbstractState(
+  public JvmMemoryLocationAbstractState<ContentT> copy() {
+    return new JvmMemoryLocationAbstractState<>(
         locationDependentMemoryLocation.copy(), new HashSet<>(sourceLocations), callStack);
   }
 
@@ -252,7 +245,7 @@ public class JvmMemoryLocationAbstractState<
     if (!(obj instanceof JvmMemoryLocationAbstractState)) {
       return false;
     }
-    JvmMemoryLocationAbstractState other = (JvmMemoryLocationAbstractState) obj;
+    JvmMemoryLocationAbstractState<?> other = (JvmMemoryLocationAbstractState<?>) obj;
     return Objects.equals(locationDependentMemoryLocation, other.locationDependentMemoryLocation)
         && Objects.equals(callStack, other.callStack)
         && Objects.equals(sourceLocations, other.sourceLocations);
@@ -263,17 +256,23 @@ public class JvmMemoryLocationAbstractState<
     return Objects.hash(locationDependentMemoryLocation);
   }
 
-  /** An entry of the call stack of the state. */
-  public static class StackEntry {
+  /**
+   * An entry of the call stack of the state.
+   *
+   * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+   *     SetAbstractState} of taints for taint analysis or a {@link
+   *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
+   */
+  public static class StackEntry<ContentT extends LatticeAbstractState<ContentT>> {
 
     public final MethodSignature signature;
-    public final ProgramLocationDependentReachedSet reachedSet;
-    public final AbstractState callerState;
+    public final ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet;
+    public final JvmAbstractState<ContentT> callerState;
 
     public StackEntry(
         MethodSignature signature,
-        ProgramLocationDependentReachedSet reachedSet,
-        AbstractState callerState) {
+        ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet,
+        JvmAbstractState<ContentT> callerState) {
       this.signature = signature;
       this.reachedSet = reachedSet;
       this.callerState = callerState;
@@ -290,10 +289,26 @@ public class JvmMemoryLocationAbstractState<
         return false;
       }
 
-      StackEntry other = (StackEntry) obj;
-      return reachedSet == other.reachedSet
+      StackEntry<?> other = (StackEntry<?>) obj;
+      return Objects.equals(reachedSet, other.reachedSet)
           && Objects.equals(signature, other.signature)
           && Objects.equals(callerState, other.callerState);
     }
+  }
+
+  /**
+   * Get the top state of the semi lattice for the given content type.
+   *
+   * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+   *     SetAbstractState} of taints for taint analysis or a {@link
+   *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
+   */
+  public static <ContentT extends LatticeAbstractState<ContentT>>
+      JvmMemoryLocationAbstractState<ContentT> top() {
+    // top behaves the same for all contents, so we can safely convert a unique top state
+    @SuppressWarnings("unchecked")
+    JvmMemoryLocationAbstractState<ContentT> topParametrized =
+        (JvmMemoryLocationAbstractState<ContentT>) top;
+    return topParametrized;
   }
 }

@@ -24,14 +24,14 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.domain.value.JvmCfaReferenceValueFactory;
 import proguard.analysis.cpa.jvm.domain.value.JvmValueAbstractState;
-import proguard.analysis.cpa.jvm.domain.value.JvmValueExpandOperator;
-import proguard.analysis.cpa.jvm.domain.value.JvmValueReduceOperator;
 import proguard.analysis.cpa.jvm.domain.value.JvmValueTransferRelation;
 import proguard.analysis.cpa.jvm.domain.value.ValueAbstractState;
+import proguard.analysis.cpa.jvm.domain.value.ValueExpandOperator;
+import proguard.analysis.cpa.jvm.domain.value.ValueReduceOperator;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
 import proguard.analysis.cpa.jvm.state.heap.tree.JvmShallowHeapAbstractState;
 import proguard.classfile.ClassPool;
@@ -63,12 +63,11 @@ import proguard.evaluation.value.ValueFactory;
  */
 public class ValueAnalyzer {
 
-  private final Function<MethodSignature, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature>>
-      cpaCreator;
+  private final Function<MethodSignature, BamCpa<ValueAbstractState>> cpaCreator;
   private final Function<MethodSignature, JvmValueAbstractState> initialStateCreator;
 
   private ValueAnalyzer(
-      Function<MethodSignature, BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature>> cpaCreator,
+      Function<MethodSignature, BamCpa<ValueAbstractState>> cpaCreator,
       Function<MethodSignature, JvmValueAbstractState> initialStateCreator) {
     this.cpaCreator = cpaCreator;
     this.initialStateCreator = initialStateCreator;
@@ -88,13 +87,12 @@ public class ValueAnalyzer {
    * @return the result of the analysis.
    */
   public ValueAnalysisResult analyze(MethodSignature mainSignature) {
-    BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> cpa = cpaCreator.apply(mainSignature);
+    BamCpa<ValueAbstractState> cpa = cpaCreator.apply(mainSignature);
     CpaAlgorithm cpaAlgorithm = new CpaAlgorithm(cpa);
 
-    Waitlist waitList = new DepthFirstWaitlist();
-    ReachedSet reachedSet =
-        new ProgramLocationDependentReachedSet<
-            JvmCfaNode, JvmCfaEdge, JvmValueAbstractState, MethodSignature>();
+    Waitlist<JvmAbstractState<ValueAbstractState>> waitList = new DepthFirstWaitlist<>();
+    ReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet =
+        new ProgramLocationDependentReachedSet<>();
 
     JvmValueAbstractState initialState = initialStateCreator.apply(mainSignature);
     waitList.add(initialState);
@@ -119,9 +117,9 @@ public class ValueAnalyzer {
    * ValueAnalysisResult} will also be updated).
    */
   public static class ValueAnalysisResult {
-    private final BamCache<MethodSignature> resultCache;
+    private final BamCache<ValueAbstractState> resultCache;
 
-    private ValueAnalysisResult(BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> executedCpa) {
+    private ValueAnalysisResult(BamCpa<ValueAbstractState> executedCpa) {
       resultCache = executedCpa.getCache();
     }
 
@@ -132,7 +130,7 @@ public class ValueAnalyzer {
      * <p>While initially this is the only way to access the results, direct access to the cache is
      * discouraged as soon as more fine-grained access to the result is available.
      */
-    public BamCache<MethodSignature> getResultCache() {
+    public BamCache<ValueAbstractState> getResultCache() {
       return resultCache;
     }
   }
@@ -148,7 +146,7 @@ public class ValueAnalyzer {
     private final JvmCfa cfa;
     private int maxCallStackDepth = 10;
     private AbortOperator abortOperator = NeverAbortOperator.INSTANCE;
-    private ExecutingInvocationUnit.Builder invocationUnitBuilder;
+    private final ExecutingInvocationUnit.Builder invocationUnitBuilder;
 
     /**
      * Create a builder for a {@link ValueAnalyzer} using a default {@link ExecutingInvocationUnit}.
@@ -182,26 +180,27 @@ public class ValueAnalyzer {
     public ValueAnalyzer build() {
       ValueFactory valueFactory = new ParticularValueFactory(new JvmCfaReferenceValueFactory(cfa));
       ExecutingInvocationUnit invocationUnit = invocationUnitBuilder.build(valueFactory);
-      TransferRelation valueTransferRelation =
+      TransferRelation<JvmAbstractState<ValueAbstractState>> valueTransferRelation =
           new JvmValueTransferRelation(valueFactory, invocationUnit);
 
-      DelegateAbstractDomain<ValueAbstractState> abstractDomain = new DelegateAbstractDomain<>();
-      ConfigurableProgramAnalysis intraproceduralCpa =
-          new SimpleCpa(
+      DelegateAbstractDomain<JvmAbstractState<ValueAbstractState>> abstractDomain =
+          new DelegateAbstractDomain<>();
+      ConfigurableProgramAnalysis<JvmAbstractState<ValueAbstractState>> intraproceduralCpa =
+          new SimpleCpa<>(
               abstractDomain,
               valueTransferRelation,
-              new MergeJoinOperator(abstractDomain),
-              new StopJoinOperator(abstractDomain),
+              new MergeJoinOperator<>(abstractDomain),
+              new StopJoinOperator<>(abstractDomain),
               new StaticPrecisionAdjustment());
 
       boolean reduceHeap = true;
-      CpaWithBamOperators<JvmCfaNode, JvmCfaEdge, MethodSignature> interProceduralCpa =
+      CpaWithBamOperators<ValueAbstractState> interProceduralCpa =
           new CpaWithBamOperators<>(
               intraproceduralCpa,
-              new JvmValueReduceOperator(valueFactory, invocationUnit, reduceHeap),
-              new JvmValueExpandOperator(valueFactory, invocationUnit, cfa, reduceHeap),
+              new ValueReduceOperator(valueFactory, invocationUnit, reduceHeap),
+              new ValueExpandOperator(valueFactory, invocationUnit, cfa, reduceHeap),
               new NoOpRebuildOperator());
-      BamCache<MethodSignature> cache = new BamCacheImpl<>();
+      BamCache<ValueAbstractState> cache = new BamCacheImpl<>();
 
       return new ValueAnalyzer(
           mainMethodSignature ->

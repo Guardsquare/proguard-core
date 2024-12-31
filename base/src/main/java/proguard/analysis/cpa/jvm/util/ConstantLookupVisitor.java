@@ -28,8 +28,6 @@ import proguard.classfile.util.ClassUtil;
  * This {@link ConstantVisitor} is used for field operations and the {@code instanceOf} predicate.
  * The {@link #result} stores the fully qualified name for either a class or a field. The {@link
  * #resultSize} is the size of the referenced type in bytes.
- *
- * @author Dmitry Ivanov
  */
 public class ConstantLookupVisitor implements ConstantVisitor {
   public String result = null;

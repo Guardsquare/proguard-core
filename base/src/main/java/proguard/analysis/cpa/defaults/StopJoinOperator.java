@@ -28,17 +28,17 @@ import proguard.analysis.cpa.interfaces.StopOperator;
  * This {@link StopOperator} returns true if the input state is less or equal than join over the
  * reached set.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public final class StopJoinOperator implements StopOperator {
-  private final AbstractDomain abstractDomain;
+public final class StopJoinOperator<StateT extends AbstractState> implements StopOperator<StateT> {
+  private final AbstractDomain<StateT> abstractDomain;
 
   /**
    * Create a join operator from the abstract domain defining the join operator.
    *
    * @param abstractDomain abstract domain
    */
-  public StopJoinOperator(AbstractDomain abstractDomain) {
+  public StopJoinOperator(AbstractDomain<StateT> abstractDomain) {
     this.abstractDomain = abstractDomain;
   }
 
@@ -46,9 +46,7 @@ public final class StopJoinOperator implements StopOperator {
 
   @Override
   public boolean stop(
-      AbstractState abstractState,
-      Collection<? extends AbstractState> reachedAbstractStates,
-      Precision precision) {
+      StateT abstractState, Collection<StateT> reachedAbstractStates, Precision precision) {
     if (reachedAbstractStates
         .isEmpty()) // since we may have no bottom in the lattice, we have to process the case of an
     // empty reached set separately
@@ -58,7 +56,6 @@ public final class StopJoinOperator implements StopOperator {
     return abstractDomain.isLessOrEqual(
         abstractState,
         reachedAbstractStates.stream()
-            .map(state -> (AbstractState) state)
             .reduce(reachedAbstractStates.iterator().next(), abstractDomain::join));
   }
 }

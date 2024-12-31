@@ -21,16 +21,16 @@ package proguard.analysis.cpa.interfaces;
 /**
  * The {@link AbstractDomain} defines a semilattice over {@link AbstractState}s.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the analyzed states.
  */
-public interface AbstractDomain {
+public interface AbstractDomain<StateT extends AbstractState> {
 
   /**
    * Computes the join over two abstract states. To guarantee the correct behavior of the algorithm
    * implementations must have no side effects.
    */
-  AbstractState join(AbstractState abstractState1, AbstractState abstractState2);
+  StateT join(StateT abstractState1, StateT abstractState2);
 
   /** Compares two abstract states. */
-  boolean isLessOrEqual(AbstractState abstractState1, AbstractState abstractState2);
+  boolean isLessOrEqual(StateT abstractState1, StateT abstractState2);
 }

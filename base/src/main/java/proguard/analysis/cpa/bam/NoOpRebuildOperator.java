@@ -18,21 +18,22 @@
 
 package proguard.analysis.cpa.bam;
 
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * This {@link RebuildOperator} returns the original {@link AbstractState} without performing any
  * rebuilding.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class NoOpRebuildOperator implements RebuildOperator {
 
   // Implementations for RebuildOperator
 
   @Override
-  public AbstractState rebuild(
-      AbstractState predecessorCallState, AbstractState expandedOutputState) {
+  public <ContentT extends LatticeAbstractState<ContentT>> JvmAbstractState<ContentT> rebuild(
+      JvmAbstractState<ContentT> predecessorCallState,
+      JvmAbstractState<ContentT> expandedOutputState) {
     return expandedOutputState;
   }
 }

@@ -18,22 +18,17 @@
 
 package proguard.testutils.cpa
 
-import proguard.analysis.cpa.interfaces.AbstractState
 import proguard.analysis.cpa.interfaces.Precision
 import proguard.analysis.cpa.interfaces.TransferRelation
 
 class BoundedAdditiveTransferRelation(
     private val step: Int,
     private val cap: Int,
-) : TransferRelation {
+) : TransferRelation<IntegerAbstractState> {
     override fun generateAbstractSuccessors(
-        abstractState: AbstractState?,
+        abstractState: IntegerAbstractState,
         precision: Precision?,
-    ): MutableCollection<out AbstractState> {
-        if (abstractState is IntegerAbstractState) {
-            return mutableListOf(IntegerAbstractState(minOf(abstractState.v + step, cap)))
-        } else {
-            throw IllegalArgumentException()
-        }
+    ): MutableCollection<out IntegerAbstractState> {
+        return mutableListOf(IntegerAbstractState(minOf(abstractState.v + step, cap)))
     }
 }

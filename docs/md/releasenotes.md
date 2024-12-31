@@ -1,3 +1,15 @@
+## Version 9.1.8
+
+### API changes for the dataflow analysis code
+This is a continuation of the API changes started in release 9.1.7.
+- Remove `JvmValueBamCpaRun` in order to simplify the utility code to run the analysis. `ValueAnalyzer` is the direct replacement, this class has the same behavior as `JvmValueBamCpaRun`, as long as `analyze` is called only once.
+- Remove `JvmTaintMemoryLocationBamCpaRun` in order to simplify the utility code to run the analysis. `TaintAnalyzer` is the direct replacement, this class has the same behavior as `JvmTaintMemoryLocationBamCpaRun`, as long as `analyze` is called only once.
+- Remove the `CpaRun` infrastructure.
+- Remove `MapAbstractStateFactory`, `WrapperTransferRelation`, and other classes that were only used with the tree heap model.
+- Remove `StateNames` and `getStateByName`.
+- Refactor several classes taking generic parameters for `CfaEdge`, `CfaNode`, and `Signature`, to not use the generic parameters anymore. They now default to `JvmCfaEdge`, `JvmCfaNode`, and `MethodSignature`.
+- Refactor CPA reached set, waitlist, operators, and all their dependant classes to be parametrized by the type of abstract states of the dataflow analysis. This allows to make the code safe at compile time and avoid unnecessary casts.
+
 ## Version 9.1.7
 
 ### Bugfixes
@@ -27,11 +39,6 @@ make its usage easier. This includes:
 - Remove `MemoryLocation`, use `JvmMemoryLocation` instead.
 - Make `JvmMemoryLocation` independent of the type of value contained in the analysis' state. The type of the value now needs only to be provided when calling `extractValueOrDefault`.
 - Remove all code related to the tree heap model for taint analysis.
-- Remove `JvmValueBamCpaRun` in order to simplify the utility code to run the analysis. `ValueAnalyzer` is the direct replacement, this class has the same behavior as `JvmValueBamCpaRun`, as long as `analyze` is called only once.
-- Remove `JvmTaintMemoryLocationBamCpaRun` in order to simplify the utility code to run the analysis. `TaintAnalyzer` is the direct replacement, this class has the same behavior as `JvmTaintMemoryLocationBamCpaRun`, as long as `analyze` is called only once.
-- Remove the `CpaRun` infrastructure.
-- Remove `MapAbstractStateFactory`, `WrapperTransferRelation`, and other classes that were only used with the tree heap model.
-- Remove `StateNames` and `getStateByName`.
 
 ## Version 9.1.6
 

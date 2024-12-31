@@ -21,11 +21,7 @@ package proguard.analysis.cpa.jvm.cfa.edges;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.classfile.attribute.CodeAttribute;
 
-/**
- * An edge representing an assumption that a case of a switch statement is taken.
- *
- * @author Carlo Alberto Pozzoli
- */
+/** An edge representing an assumption that a case of a switch statement is taken. */
 public class JvmAssumeCaseCfaEdge extends JvmInstructionCfaEdge {
 
   private final int assumedCase;

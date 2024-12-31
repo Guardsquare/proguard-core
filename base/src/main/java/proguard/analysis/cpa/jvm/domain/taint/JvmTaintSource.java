@@ -30,8 +30,6 @@ import proguard.classfile.Signature;
  * A {@link JvmTaintSource} specifies a method which can taint any (subset) of the following: the
  * instance, the return value, the argument objects, or static fields. The {@link #callMatcher}
  * decides whether the call (already filtered by its {@link Signature}) should trigger this source.
- *
- * @author Dmitry Ivanov
  */
 public class JvmTaintSource extends TaintSource {
 

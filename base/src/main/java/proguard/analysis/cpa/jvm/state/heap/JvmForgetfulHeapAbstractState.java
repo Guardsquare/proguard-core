@@ -25,8 +25,6 @@ import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 /**
  * This is a forgetful stub heap implementation. It does not change and always returns the default
  * value.
- *
- * @author Dmitry Ivanov
  */
 public class JvmForgetfulHeapAbstractState<StateT extends LatticeAbstractState<StateT>>
     implements JvmHeapAbstractState<StateT> {

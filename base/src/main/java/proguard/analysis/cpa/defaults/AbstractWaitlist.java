@@ -19,10 +19,7 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.function.Consumer;
-import org.jetbrains.annotations.NotNull;
+import java.util.LinkedHashSet;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Waitlist;
 
@@ -30,30 +27,21 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  * This is a base class for {@link Waitlist}s parametrized by the carrier {@code CollectionT}. It
  * delegates all the {@link Waitlist} interfaces to its carrier collection.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The states contained in the waitlist.
+ * @param <CollectionT> The collection backing the waitlist.
  */
-public abstract class AbstractWaitlist<CollectionT extends Collection<AbstractState>>
-    implements Waitlist {
-  protected final CollectionT waitlist;
-
-  /**
-   * Create a waitlist from a carrier collection.
-   *
-   * @param waitList the carrier collection
-   */
-  protected AbstractWaitlist(CollectionT waitList) {
-    this.waitlist = waitList;
-  }
+public abstract class AbstractWaitlist<StateT extends AbstractState> implements Waitlist<StateT> {
+  protected final Collection<StateT> waitlist = new LinkedHashSet<>();
 
   // implementations for Waitlist
 
   @Override
-  public void add(AbstractState abstractState) {
+  public void add(StateT abstractState) {
     waitlist.add(abstractState);
   }
 
   @Override
-  public void addAll(Collection<? extends AbstractState> abstractStates) {
+  public void addAll(Collection<? extends StateT> abstractStates) {
     waitlist.addAll(abstractStates);
   }
 
@@ -63,7 +51,7 @@ public abstract class AbstractWaitlist<CollectionT extends Collection<AbstractSt
   }
 
   @Override
-  public boolean contains(AbstractState abstractState) {
+  public boolean contains(StateT abstractState) {
     return waitlist.contains(abstractState);
   }
 
@@ -73,35 +61,17 @@ public abstract class AbstractWaitlist<CollectionT extends Collection<AbstractSt
   }
 
   @Override
-  public boolean remove(AbstractState abstractState) {
+  public boolean remove(StateT abstractState) {
     return waitlist.remove(abstractState);
   }
 
   @Override
-  public void removeAll(Collection<?> abstractStates) {
+  public void removeAll(Collection<? extends StateT> abstractStates) {
     waitlist.removeAll(abstractStates);
   }
 
   @Override
   public int size() {
     return waitlist.size();
-  }
-
-  // implementations for Iterable
-
-  @NotNull
-  @Override
-  public Iterator<AbstractState> iterator() {
-    return waitlist.iterator();
-  }
-
-  @Override
-  public void forEach(Consumer<? super AbstractState> action) {
-    waitlist.forEach(action);
-  }
-
-  @Override
-  public Spliterator<AbstractState> spliterator() {
-    return waitlist.spliterator();
   }
 }

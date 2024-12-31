@@ -18,11 +18,7 @@
 
 package proguard.analysis.cpa.jvm.cfa.nodes;
 
-/**
- * A unique node for an entire CFA representing an unknown code location.
- *
- * @author Carlo Alberto Pozzoli
- */
+/** A unique node for an entire CFA representing an unknown code location. */
 public class JvmUnknownCfaNode extends JvmCfaNode {
 
   public static final JvmUnknownCfaNode INSTANCE = new JvmUnknownCfaNode();

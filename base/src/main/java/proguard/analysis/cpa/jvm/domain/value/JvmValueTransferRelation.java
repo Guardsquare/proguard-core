@@ -7,15 +7,11 @@ import static proguard.classfile.util.ClassUtil.isInternalCategory2Type;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_VALUE_TRANSFER_RELATION_INCORRECT_PARAMETER_COUNT;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import proguard.analysis.cpa.defaults.StackAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.Precision;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
 import proguard.analysis.datastructure.CodeLocation;
@@ -307,12 +303,5 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
 
     IdentifiedReferenceValue identifiedReferenceValue = (IdentifiedReferenceValue) result;
     state.setField(identifiedReferenceValue.id, new ValueAbstractState(identifiedReferenceValue));
-  }
-
-  @Override
-  public Collection<? extends AbstractState> generateEdgeAbstractSuccessors(
-      AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
-    return wrapAbstractSuccessorInCollection(
-        generateEdgeAbstractSuccessor(abstractState, edge, precision));
   }
 }

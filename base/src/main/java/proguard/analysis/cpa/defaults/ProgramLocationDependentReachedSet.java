@@ -25,44 +25,43 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.CfaEdge;
 import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.interfaces.ReachedSet;
-import proguard.classfile.Signature;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
  * This {@link ReachedSet} stores {@link ProgramLocationDependent} {@link AbstractState}s. It
  * assumes the analysis does merge the {@link AbstractState}s belonging to different {@link
  * CfaNode}s and stores them in separate bins.
  *
- * @author Dmitry Ivanov
+ * @param <StateT> The type of the {@link ProgramLocationDependent} abstract states contained in the
+ *     reached set. Typically, a {@link JvmAbstractState}, but might be a different type of state
+ *     depending on the analysis (e.g., might contain {@link
+ *     proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState} for taint trace
+ *     analysis).
  */
 public final class ProgramLocationDependentReachedSet<
-        CfaNodeT extends CfaNode<CfaEdgeT, SignatureT>,
-        CfaEdgeT extends CfaEdge<CfaNodeT>,
-        AbstractStateT extends
-            AbstractState & ProgramLocationDependent<CfaNodeT, CfaEdgeT, SignatureT>,
-        SignatureT extends Signature>
-    implements ReachedSet {
+        StateT extends AbstractState & ProgramLocationDependent>
+    implements ReachedSet<StateT> {
 
-  private Map<CfaNodeT, Set<AbstractStateT>> locationToStates = new LinkedHashMap<>();
+  private final Map<JvmCfaNode, Set<StateT>> locationToStates = new LinkedHashMap<>();
 
   // implementations for ReachedSet
 
   @Override
-  public boolean add(AbstractState abstractState) {
-    AbstractStateT state = (AbstractStateT) abstractState;
+  public boolean add(StateT abstractState) {
     return locationToStates
-        .computeIfAbsent(state.getProgramLocation(), x -> new LinkedHashSet<>())
-        .add(state);
+        .computeIfAbsent(abstractState.getProgramLocation(), x -> new LinkedHashSet<>())
+        .add(abstractState);
   }
 
   @Override
-  public boolean addAll(Collection<? extends AbstractState> abstractStates) {
+  public boolean addAll(Collection<? extends StateT> abstractStates) {
     boolean result = false;
 
-    for (AbstractState state : abstractStates) {
+    for (StateT state : abstractStates) {
       result |= add(state);
     }
 
@@ -70,25 +69,25 @@ public final class ProgramLocationDependentReachedSet<
   }
 
   @Override
-  public boolean remove(AbstractState abstractState) {
-    AbstractStateT state = (AbstractStateT) abstractState;
-    CfaNodeT location = state.getProgramLocation();
-    return locationToStates.containsKey(location) && locationToStates.get(location).remove(state);
+  public boolean remove(StateT abstractState) {
+    JvmCfaNode location = abstractState.getProgramLocation();
+    return locationToStates.containsKey(location)
+        && locationToStates.get(location).remove(abstractState);
   }
 
   @Override
-  public boolean removeAll(Collection<?> abstractStates) {
+  public boolean removeAll(Collection<? extends StateT> abstractStates) {
     boolean result = false;
 
-    for (Object state : abstractStates) {
-      result |= remove((AbstractState) state);
+    for (StateT state : abstractStates) {
+      result |= remove(state);
     }
 
     return result;
   }
 
   @Override
-  public Collection<AbstractStateT> asCollection() {
+  public Collection<StateT> asCollection() {
     int initialSize = locationToStates.values().size();
     return locationToStates.values().stream()
         .reduce(
@@ -100,12 +99,17 @@ public final class ProgramLocationDependentReachedSet<
   }
 
   @Override
-  public Collection<AbstractStateT> getReached(AbstractState abstractState) {
-    return getReached(((AbstractStateT) abstractState).getProgramLocation());
+  public Collection<StateT> getReached(StateT abstractState) {
+    return getReached((abstractState.getProgramLocation()));
   }
 
   /** Returns a collection of abstract states belonging to the given {@code location}. */
-  public Collection<AbstractStateT> getReached(CfaNodeT location) {
+  public Collection<StateT> getReached(JvmCfaNode location) {
     return locationToStates.getOrDefault(location, Collections.emptySet());
+  }
+
+  @Override
+  public void clear() {
+    locationToStates.clear();
   }
 }

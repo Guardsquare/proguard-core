@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.jvm.domain.taint;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -29,9 +28,7 @@ import proguard.analysis.cpa.defaults.ListAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StackAbstractState;
 import proguard.analysis.cpa.domain.taint.TaintSource;
-import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation;
 import proguard.analysis.cpa.jvm.witness.JvmLocalVariableLocation;
@@ -272,13 +269,6 @@ public class JvmTaintTransferRelation
           super.visitConstantInstruction(clazz, method, codeAttribute, offset, constantInstruction);
       }
     }
-  }
-
-  @Override
-  public Collection<? extends AbstractState> generateEdgeAbstractSuccessors(
-      AbstractState abstractState, JvmCfaEdge edge, Precision precision) {
-    return wrapAbstractSuccessorInCollection(
-        generateEdgeAbstractSuccessor(abstractState, edge, precision));
   }
 
   /** If relevant, taints locations which should become tainted after the call is invoked. */

@@ -5,31 +5,26 @@ import java.util.Optional;
 import proguard.analysis.cpa.bam.BamLocationDependent;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
-import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
-import proguard.classfile.MethodSignature;
 
 /**
  * This class wraps a {@link JvmMemoryLocation} adding information on its program location and
  * source reached set.
  *
- * @param <AbstractStateT> The type of the abstract states in the BAM cache.
+ * @param <ContentT> The content of the jvm states for the traced analysis, contained in the BAM
+ *     cache. For example, this can be a {@link SetAbstractState} of taints for taint analysis or a
+ *     {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BamLocationDependentJvmMemoryLocation<
-        AbstractStateT extends
-            AbstractState & ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>>
-    implements ProgramLocationDependent<JvmCfaNode, JvmCfaEdge, MethodSignature>,
-        BamLocationDependent<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature> {
+public class BamLocationDependentJvmMemoryLocation<ContentT extends LatticeAbstractState<ContentT>>
+    implements ProgramLocationDependent, BamLocationDependent<ContentT> {
 
   private final JvmMemoryLocation memoryLocation;
   private JvmCfaNode programLocation;
-  private ProgramLocationDependentReachedSet<
-          JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-      sourceReachedSet;
+  private ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet;
 
   public BamLocationDependentJvmMemoryLocation(JvmMemoryLocation memoryLocation) {
     this(memoryLocation, null, null);
@@ -38,8 +33,7 @@ public class BamLocationDependentJvmMemoryLocation<
   public BamLocationDependentJvmMemoryLocation(
       JvmMemoryLocation memoryLocation,
       JvmCfaNode programLocation,
-      ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-          sourceReachedSet) {
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet) {
     this.memoryLocation = memoryLocation;
     this.programLocation = programLocation;
     this.sourceReachedSet = sourceReachedSet;
@@ -49,7 +43,7 @@ public class BamLocationDependentJvmMemoryLocation<
     return memoryLocation;
   }
 
-  public BamLocationDependentJvmMemoryLocation<AbstractStateT> copy() {
+  public BamLocationDependentJvmMemoryLocation<ContentT> copy() {
     return new BamLocationDependentJvmMemoryLocation<>(
         memoryLocation, programLocation, sourceReachedSet);
   }
@@ -68,15 +62,14 @@ public class BamLocationDependentJvmMemoryLocation<
    *     this object of the first state (there is usually only one state anyway, but this is
    *     analysis-dependent) for that program location.
    */
-  public <T extends LatticeAbstractState<T>> T extractFirstValue(T defaultValue) {
-    Optional<AbstractStateT> firstReachedState =
+  public ContentT extractFirstValue(ContentT defaultValue) {
+    Optional<JvmAbstractState<ContentT>> firstReachedState =
         sourceReachedSet.getReached(programLocation).stream().findFirst();
     if (!firstReachedState.isPresent()) {
       return defaultValue;
     }
-    // FIXME will get rid of AbstractStateT in favor of JvmAbstractState and remove this unsafe cast
-    return memoryLocation.extractValueOrDefault(
-        (JvmAbstractState<T>) firstReachedState.get(), defaultValue);
+
+    return memoryLocation.extractValueOrDefault(firstReachedState.get(), defaultValue);
   }
 
   // Implementations for ProgramLocationDependent
@@ -94,15 +87,13 @@ public class BamLocationDependentJvmMemoryLocation<
   // Implementations for BamLocationDependent
 
   @Override
-  public ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-      getSourceReachedSet() {
+  public ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> getSourceReachedSet() {
     return sourceReachedSet;
   }
 
   @Override
   public void setSourceReachedSet(
-      ProgramLocationDependentReachedSet<JvmCfaNode, JvmCfaEdge, AbstractStateT, MethodSignature>
-          sourceReachedSet) {
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> sourceReachedSet) {
     this.sourceReachedSet = sourceReachedSet;
   }
 
@@ -114,8 +105,8 @@ public class BamLocationDependentJvmMemoryLocation<
       return false;
     }
 
-    BamLocationDependentJvmMemoryLocation other = (BamLocationDependentJvmMemoryLocation) obj;
-    return sourceReachedSet == other.sourceReachedSet
+    BamLocationDependentJvmMemoryLocation<?> other = (BamLocationDependentJvmMemoryLocation<?>) obj;
+    return Objects.equals(sourceReachedSet, other.sourceReachedSet)
         && programLocation == other.programLocation
         && Objects.equals(memoryLocation, other.memoryLocation);
   }

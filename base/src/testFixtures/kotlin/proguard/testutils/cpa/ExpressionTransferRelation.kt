@@ -18,9 +18,6 @@
 
 package proguard.testutils.cpa
 
-import proguard.analysis.cpa.interfaces.AbstractState
-import proguard.analysis.cpa.interfaces.Precision
-import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge
 import proguard.analysis.cpa.jvm.state.JvmAbstractState
 import proguard.analysis.cpa.jvm.transfer.JvmTransferRelation
 import proguard.analysis.datastructure.callgraph.Call
@@ -143,9 +140,5 @@ class ExpressionTransferRelation : JvmTransferRelation<ExpressionAbstractState>(
 
     override fun getAbstractByteConstant(b: Byte): ExpressionAbstractState {
         return ExpressionAbstractState(setOf(ValueExpression(ParticularIntegerValue(b.toInt()))))
-    }
-
-    override fun generateEdgeAbstractSuccessors(abstractState: AbstractState?, edge: JvmCfaEdge?, precision: Precision?): Collection<AbstractState> {
-        return wrapAbstractSuccessorInCollection(generateEdgeAbstractSuccessor(abstractState, edge, precision))
     }
 }

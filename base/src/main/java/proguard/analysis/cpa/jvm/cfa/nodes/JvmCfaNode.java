@@ -35,8 +35,6 @@ import proguard.classfile.MethodSignature;
 /**
  * A node representing a code location of a JVM method identified by a {@link MethodSignature} and
  * an offset.
- *
- * @author Carlo Alberto Pozzoli
  */
 public class JvmCfaNode implements CfaNode<JvmCfaEdge, MethodSignature> {
 

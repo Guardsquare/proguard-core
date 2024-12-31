@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
-import static proguard.exception.ErrorId.ANALYSIS_JVM_MEMORY_LOCATION_TRANSFER_RELATION_STATE_UNSUPPORTED;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_MEMORY_LOCATION_TRANSFER_RELATION_TYPE_UNSUPPORTED;
 
 import java.util.ArrayList;
@@ -39,6 +38,7 @@ import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.interfaces.Precision;
@@ -62,7 +62,6 @@ import proguard.analysis.datastructure.callgraph.Call;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
-import proguard.classfile.MethodSignature;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.BranchInstruction;
 import proguard.classfile.instruction.ConstantInstruction;
@@ -105,24 +104,24 @@ import proguard.exception.ProguardCoreException;
  * </ul>
  *
  * <p>The value of the successor memory location is guaranteed to be greater than the threshold
- * (e.g. if {@link AbstractStateT} is a {@link proguard.analysis.cpa.defaults.SetAbstractState} we
- * can set the threshold to {@link proguard.analysis.cpa.defaults.SetAbstractState#bottom} to
- * guarantee we don't calculate a successor if the taint is not propagated anymore). Thus, the
- * threshold defines the cut-off of the traces generated with {@link
- * JvmMemoryLocationTransferRelation}.
+ * (e.g. if {@link ContentT} is a {@link proguard.analysis.cpa.defaults.SetAbstractState} we can set
+ * the threshold to {@link proguard.analysis.cpa.defaults.SetAbstractState#bottom} to guarantee we
+ * don't calculate a successor if the taint is not propagated anymore). Thus, the threshold defines
+ * the cut-off of the traces generated with {@link JvmMemoryLocationTransferRelation}.
  *
- * @param <AbstractStateT> The type of the values of the traced analysis.
+ * @param <ContentT> The content of the jvm states for the traced analysis. For example, this can be
+ *     a {@link SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmMemoryLocationTransferRelation<
-        AbstractStateT extends LatticeAbstractState<AbstractStateT>>
-    implements TransferRelation {
+public class JvmMemoryLocationTransferRelation<ContentT extends LatticeAbstractState<ContentT>>
+    implements TransferRelation<JvmMemoryLocationAbstractState<ContentT>> {
 
   private static final Logger log = LogManager.getLogger(JvmMemoryLocationTransferRelation.class);
-  private final AbstractStateT threshold;
+  private final ContentT threshold;
   private final JvmCfa cfa;
-  private final BamCache<MethodSignature> cache;
-  private final ReduceOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> tracedCpaReduceOperator;
-  private final ExpandOperator<JvmCfaNode, JvmCfaEdge, MethodSignature> tracedCpaExpandOperator;
+  private final BamCache<ContentT> cache;
+  private final ReduceOperator<ContentT> tracedCpaReduceOperator;
+  private final ExpandOperator<ContentT> tracedCpaExpandOperator;
   /**
    * Maps calls to locations which should become tainted after the call is invoked. For example, it
    * maps constructor calls to the locations in local variables array or on stack, to which the
@@ -137,11 +136,11 @@ public class JvmMemoryLocationTransferRelation<
    * @param bamCpa the BAM cpa that was used to calculate the results in the cache
    */
   public JvmMemoryLocationTransferRelation(
-      AbstractStateT threshold,
-      BamCpa<JvmCfaNode, JvmCfaEdge, MethodSignature> bamCpa,
+      ContentT threshold,
+      BamCpa<ContentT> bamCpa,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this.threshold = threshold;
-    this.cfa = (JvmCfa) bamCpa.getCfa();
+    this.cfa = bamCpa.getCfa();
     this.cache = bamCpa.getCache();
     this.tracedCpaReduceOperator = bamCpa.getReduceOperator();
     this.tracedCpaExpandOperator = bamCpa.getExpandOperator();
@@ -151,22 +150,15 @@ public class JvmMemoryLocationTransferRelation<
   // implementations for TransferRelation
 
   @Override
-  public Collection<? extends AbstractState> generateAbstractSuccessors(
-      AbstractState abstractState, Precision precision) {
-    if (!(abstractState instanceof JvmMemoryLocationAbstractState)) {
-      throw new ProguardCoreException.Builder(
-              "%s does not support %s",
-              ANALYSIS_JVM_MEMORY_LOCATION_TRANSFER_RELATION_STATE_UNSUPPORTED)
-          .errorParameters(getClass().getName(), abstractState.getClass().getName())
-          .build();
-    }
+  public Collection<JvmMemoryLocationAbstractState<ContentT>> generateAbstractSuccessors(
+      JvmMemoryLocationAbstractState<ContentT> abstractState, Precision precision) {
 
-    JvmMemoryLocationAbstractState state = (JvmMemoryLocationAbstractState) abstractState.copy();
+    JvmMemoryLocationAbstractState<ContentT> state = abstractState.copy();
 
     JvmCfaNode programLocation = state.getProgramLocation();
     Collection<JvmCfaEdge> intraproceduralEdges = programLocation.getEnteringIntraproceduralEdges();
 
-    List<JvmMemoryLocationAbstractState> successors = new ArrayList<>();
+    List<JvmMemoryLocationAbstractState<ContentT>> successors = new ArrayList<>();
 
     if (!intraproceduralEdges.isEmpty()) // backtrace instructions and method calls
     {
@@ -174,7 +166,7 @@ public class JvmMemoryLocationTransferRelation<
 
         JvmCfaNode intraproceduralParentNode = edge.getSource();
 
-        Optional<AbstractState> intraproceduralParentState =
+        Optional<JvmAbstractState<ContentT>> intraproceduralParentState =
             getAnalysisAbstractState(state.getSourceReachedSet(), intraproceduralParentNode);
         if (!intraproceduralParentState.isPresent()) {
           continue;
@@ -200,7 +192,7 @@ public class JvmMemoryLocationTransferRelation<
         if (!(state.getLocationDependentMemoryLocation().getMemoryLocation()
             instanceof JvmLocalVariableLocation)) // local variables aren't preserved across methods
         {
-          AbstractState currentState =
+          JvmAbstractState<ContentT> currentState =
               getAnalysisAbstractState(state.getSourceReachedSet(), programLocation).get();
 
           for (JvmCallCfaEdge callEdge :
@@ -210,8 +202,8 @@ public class JvmMemoryLocationTransferRelation<
             if (state.callStackContains(
                 callEdge
                     .getTarget()
-                    .getSignature())) // skip the interprocedural call in case of recursion TODO
-            // handle recursion
+                    .getSignature())) // skip the interprocedural call in case of recursion
+            // TODO handle recursion
             {
               shouldAnalyzeIntraproceduralCallEdge = true;
               continue;
@@ -219,10 +211,10 @@ public class JvmMemoryLocationTransferRelation<
 
             // apply the BAM reduce operator to find the entry state of the callee and retrieve its
             // block abstraction from the cache
-            AbstractState reducedEntryState =
+            JvmAbstractState<ContentT> reducedEntryState =
                 tracedCpaReduceOperator.reduce(
                     intraproceduralParentState.get(), callEdge.getTarget(), callEdge.getCall());
-            BlockAbstraction calleeAbstraction =
+            BlockAbstraction<ContentT> calleeAbstraction =
                 cache.get(reducedEntryState, precision, callEdge.getTarget().getSignature());
             if (calleeAbstraction != null) {
               if (state.getLocationDependentMemoryLocation().getMemoryLocation()
@@ -231,9 +223,9 @@ public class JvmMemoryLocationTransferRelation<
                     (JvmStackLocation)
                         state.getLocationDependentMemoryLocation().getMemoryLocation();
                 int index = stackLocation.getIndex();
-                if (!(index
-                    <= ClassUtil.internalTypeSize(
-                        callEdge.getTarget().getSignature().descriptor.returnType))) {
+                if (index
+                    > ClassUtil.internalTypeSize(
+                        callEdge.getTarget().getSignature().descriptor.returnType)) {
                   continue;
                 }
               }
@@ -241,23 +233,18 @@ public class JvmMemoryLocationTransferRelation<
               JvmCfaNode calleeExitNode =
                   cfa.getFunctionReturnExitNode(
                       callEdge.getTarget().getSignature(), callEdge.getTarget().getClazz());
-              Optional<AbstractState> returnState =
-                  getAnalysisAbstractState(
-                      (ProgramLocationDependentReachedSet) calleeAbstraction.getReachedSet(),
-                      calleeExitNode);
+              Optional<JvmAbstractState<ContentT>> returnState =
+                  getAnalysisAbstractState(calleeAbstraction.getReachedSet(), calleeExitNode);
 
               if (!returnState.isPresent()) {
                 shouldAnalyzeIntraproceduralCallEdge = true;
                 continue;
               }
-
-              JvmAbstractState<AbstractStateT> returnJvmAbstractState =
-                  (JvmAbstractState<AbstractStateT>) returnState.get();
-              AbstractStateT value =
+              ContentT value =
                   state
                       .getLocationDependentMemoryLocation()
                       .getMemoryLocation()
-                      .extractValueOrDefault(returnJvmAbstractState, threshold);
+                      .extractValueOrDefault(returnState.get(), threshold);
 
               if (value.isLessOrEqual(threshold)) // end of trace
               {
@@ -266,28 +253,26 @@ public class JvmMemoryLocationTransferRelation<
 
               // apply the expand operator to the exit node of the callee to check if it resulted in
               // the current state
-              if (((LatticeAbstractState)
-                      tracedCpaExpandOperator.expand(
-                          intraproceduralParentState.get(),
-                          returnState.get(),
-                          callEdge.getTarget(),
-                          callEdge.getCall()))
-                  .isLessOrEqual((LatticeAbstractState) currentState)) {
-                JvmMemoryLocation parentLocation =
-                    state.getLocationDependentMemoryLocation().getMemoryLocation();
-                LinkedList<StackEntry> callStack = state.copyStack();
+              if (tracedCpaExpandOperator
+                  .expand(
+                      intraproceduralParentState.get(),
+                      returnState.get(),
+                      callEdge.getTarget(),
+                      callEdge.getCall())
+                  .isLessOrEqual(currentState)) {
+                LinkedList<StackEntry<ContentT>> callStack = state.copyStack();
                 callStack.push(
-                    new StackEntry(
+                    new StackEntry<>(
                         calleeExitNode.getSignature(),
                         state.getSourceReachedSet(),
                         intraproceduralParentState.get()));
                 JvmMemoryLocation successorLocation =
                     state.getLocationDependentMemoryLocation().getMemoryLocation();
                 successors.add(
-                    new JvmMemoryLocationAbstractState(
+                    new JvmMemoryLocationAbstractState<>(
                         successorLocation,
                         calleeExitNode,
-                        (ProgramLocationDependentReachedSet) calleeAbstraction.getReachedSet(),
+                        calleeAbstraction.getReachedSet(),
                         callStack));
                 interproceduralSuccessorFound = true;
               }
@@ -319,8 +304,7 @@ public class JvmMemoryLocationTransferRelation<
                   ((JvmInstructionCfaEdge) edge).getInstruction(),
                   state.getProgramLocation().getClazz(),
                   state.getProgramLocation().getSignature().getReferencedMethod(),
-                  state.getProgramLocation().getOffset(),
-                  precision));
+                  state.getProgramLocation().getOffset()));
         } else if (edge
             instanceof JvmAssumeExceptionCfaEdge) // the catch edge preserves the memory location
         {
@@ -331,7 +315,7 @@ public class JvmMemoryLocationTransferRelation<
         successors.addAll(
             getSuccessorsFromMemoryLocations(
                 intraproceduralSuccessorMemoryLocations,
-                (JvmAbstractState<AbstractStateT>) intraproceduralParentState.get(),
+                intraproceduralParentState.get(),
                 state.getSourceReachedSet(),
                 state.copyStack()));
       }
@@ -339,14 +323,14 @@ public class JvmMemoryLocationTransferRelation<
 
     if (programLocation.isEntryNode()) // backtrace from entry node to caller
     {
-      StackEntry currentEntry = state.peekCallStack();
+      StackEntry<ContentT> currentEntry = state.peekCallStack();
       Optional<JvmMemoryLocation> callerMemoryLocation = createCallerLocation(state);
 
       if (callerMemoryLocation.isPresent()) {
         if (currentEntry == null) // caller unknown
         {
           // the tracked analysis' entry state of the currently analyzed method
-          Optional<AbstractState> calledState =
+          Optional<JvmAbstractState<ContentT>> calledState =
               getAnalysisAbstractState(state.getSourceReachedSet(), programLocation);
           if (!calledState.isPresent()) {
             return Collections.emptyList();
@@ -359,23 +343,23 @@ public class JvmMemoryLocationTransferRelation<
                       getCallersInfo((JvmCallCfaEdge) callEdge, programLocation, calledState.get()))
               .flatMap(Collection::stream)
               .forEach(
-                  ci ->
+                  callerInfo ->
                       getSuccessorsFromMemoryLocations(
                               Collections.singletonList(callerMemoryLocation.get()),
-                              (JvmAbstractState<AbstractStateT>) ci.state,
-                              ci.reachedSet,
+                              callerInfo.state,
+                              callerInfo.reachedSet,
                               new LinkedList<>())
                           .stream()
                           .findFirst()
                           .ifPresent(successors::add));
-        } else // entered method call while backtracing another method, the caller is known
+        } else // entered method call while backtracking another method, the caller is known
         {
-          LinkedList<StackEntry> successorStack = state.copyStack();
+          LinkedList<StackEntry<ContentT>> successorStack = state.copyStack();
           successorStack.pop();
           successors.addAll(
               getSuccessorsFromMemoryLocations(
                   Collections.singletonList(callerMemoryLocation.get()),
-                  (JvmAbstractState<AbstractStateT>) currentEntry.callerState,
+                  currentEntry.callerState,
                   currentEntry.reachedSet,
                   successorStack));
         }
@@ -383,11 +367,10 @@ public class JvmMemoryLocationTransferRelation<
     }
 
     successors.forEach(
-        s ->
-            ((JvmMemoryLocationAbstractState) abstractState)
-                .addSourceLocation(
-                    s.getLocationDependentMemoryLocation())); // this has side effects on the
-    // entry abstract state
+        successor ->
+            abstractState.addSourceLocation(
+                // This has side effects on the entry abstract state
+                successor.getLocationDependentMemoryLocation()));
     return successors;
   }
 
@@ -444,10 +427,10 @@ public class JvmMemoryLocationTransferRelation<
    * Gets from the BAM cache the abstract state of the analysis that's being traced for a certain
    * location. Will return an empty optional if the state is not found.
    */
-  private Optional<AbstractState> getAnalysisAbstractState(
-      ProgramLocationDependentReachedSet reachedSet, JvmCfaNode location) {
-    // TODO generalize for analyses that admit more than one abstract state for each location
-    Collection<AbstractState> states = reachedSet.getReached(location);
+  private Optional<JvmAbstractState<ContentT>> getAnalysisAbstractState(
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet,
+      JvmCfaNode location) {
+    Collection<JvmAbstractState<ContentT>> states = reachedSet.getReached(location);
     if (states.isEmpty()) {
       // this is not necessarily an error, for example might happen if the analysis being traced was
       // not completed
@@ -461,13 +444,12 @@ public class JvmMemoryLocationTransferRelation<
   }
 
   private List<JvmMemoryLocation> getSuccessorMemoryLocationsForInstruction(
-      JvmMemoryLocationAbstractState abstractState,
-      AbstractState parentState,
+      JvmMemoryLocationAbstractState<ContentT> abstractState,
+      JvmAbstractState<ContentT> parentState,
       Instruction instruction,
       Clazz clazz,
       Method method,
-      int offset,
-      Precision precision) {
+      int offset) {
     List<JvmMemoryLocation> answer = new ArrayList<>();
     instruction.accept(
         clazz,
@@ -486,37 +468,36 @@ public class JvmMemoryLocationTransferRelation<
    * cache entry of the caller method add the state to the return collection if it reduces into the
    * called abstract state).
    */
-  private Collection<CallerInfo> getCallersInfo(
+  private Collection<CallerInfo<ContentT>> getCallersInfo(
       JvmCallCfaEdge callEdge, JvmCfaNode calledLocation, AbstractState calledState) {
     JvmCfaNode callerLocation = callEdge.getSource();
-    Collection<BlockAbstraction> callerCacheEntries = cache.get(callerLocation.getSignature());
+    Collection<BlockAbstraction<ContentT>> callerCacheEntries =
+        cache.get(callerLocation.getSignature());
 
-    List<CallerInfo> callerInfos = new ArrayList<>();
+    List<CallerInfo<ContentT>> callerInfos = new ArrayList<>();
 
-    for (BlockAbstraction cacheEntry : callerCacheEntries) {
-      Optional<AbstractState> callerState =
-          ((ProgramLocationDependentReachedSet) cacheEntry.getReachedSet())
-              .getReached(callerLocation).stream().findFirst();
+    for (BlockAbstraction<ContentT> cacheEntry : callerCacheEntries) {
+      Optional<JvmAbstractState<ContentT>> callerState =
+          cacheEntry.getReachedSet().getReached(callerLocation).stream().findFirst();
 
       if (callerState.isPresent()
           && tracedCpaReduceOperator
               .reduce(callerState.get(), calledLocation, callEdge.getCall())
               .equals(calledState)) {
-        callerInfos.add(
-            new CallerInfo(
-                (ProgramLocationDependentReachedSet) cacheEntry.getReachedSet(),
-                callerState.get()));
+        callerInfos.add(new CallerInfo<>(cacheEntry.getReachedSet(), callerState.get()));
       }
     }
 
     return callerInfos;
   }
 
-  private static class CallerInfo {
-    public final ProgramLocationDependentReachedSet reachedSet;
-    public final AbstractState state;
+  private static class CallerInfo<ContentT extends LatticeAbstractState<ContentT>> {
+    public final ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet;
+    public final JvmAbstractState<ContentT> state;
 
-    public CallerInfo(ProgramLocationDependentReachedSet reachedSet, AbstractState state) {
+    public CallerInfo(
+        ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet,
+        JvmAbstractState<ContentT> state) {
       this.reachedSet = reachedSet;
       this.state = state;
     }
@@ -524,7 +505,7 @@ public class JvmMemoryLocationTransferRelation<
 
   /** Returns the stack location before a method is called. */
   private Optional<JvmMemoryLocation> createCallerLocation(
-      JvmMemoryLocationAbstractState currentState) {
+      JvmMemoryLocationAbstractState<ContentT> currentState) {
     JvmMemoryLocation memoryLocation =
         currentState.getLocationDependentMemoryLocation().getMemoryLocation();
 
@@ -567,11 +548,11 @@ public class JvmMemoryLocationTransferRelation<
   }
 
   /** Returns a successor state for each successor memory location above the threshold. */
-  private Collection<JvmMemoryLocationAbstractState> getSuccessorsFromMemoryLocations(
+  private Collection<JvmMemoryLocationAbstractState<ContentT>> getSuccessorsFromMemoryLocations(
       List<JvmMemoryLocation> successorMemoryLocations,
-      JvmAbstractState<AbstractStateT> parentState,
-      ProgramLocationDependentReachedSet successorsReachedSet,
-      LinkedList<StackEntry> callStack) {
+      JvmAbstractState<ContentT> parentState,
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> successorsReachedSet,
+      LinkedList<StackEntry<ContentT>> callStack) {
     List<JvmMemoryLocation> resultMemoryLocations = new ArrayList<>();
     for (JvmMemoryLocation location : successorMemoryLocations) {
       if (!location.extractValueOrDefault(parentState, threshold).isLessOrEqual(threshold)) {
@@ -580,9 +561,9 @@ public class JvmMemoryLocationTransferRelation<
     }
     return resultMemoryLocations.stream()
         .map(
-            l ->
-                new JvmMemoryLocationAbstractState(
-                    l, parentState.getProgramLocation(), successorsReachedSet, callStack))
+            location ->
+                new JvmMemoryLocationAbstractState<>(
+                    location, parentState.getProgramLocation(), successorsReachedSet, callStack))
         .collect(Collectors.toList());
   }
 
@@ -612,11 +593,6 @@ public class JvmMemoryLocationTransferRelation<
     return result;
   }
 
-  private boolean isStackLocationTooDeep(
-      JvmStackLocation stackLocation, Instruction instruction, Clazz clazz) {
-    return stackLocation.index >= instruction.stackPushCount(clazz);
-  }
-
   /**
    * This {@link InstructionVisitor} performs generic operations (e.g., loads, stores) parametrized
    * by the specific behavior of {@link JvmMemoryLocationTransferRelation} for instruction
@@ -626,13 +602,13 @@ public class JvmMemoryLocationTransferRelation<
 
     private final List<JvmMemoryLocation> answer;
     private final JvmMemoryLocation memoryLocation;
-    private final AbstractState parentState;
+    private final JvmAbstractState<ContentT> parentState;
     private final ConstantLookupVisitor constantLookupVisitor = new ConstantLookupVisitor();
 
     public InstructionAbstractInterpreter(
         List<JvmMemoryLocation> answer,
         JvmMemoryLocation memoryLocation,
-        AbstractState parentState) {
+        JvmAbstractState<ContentT> parentState) {
       this.answer = answer;
       this.memoryLocation = memoryLocation;
       this.parentState = parentState;
@@ -824,10 +800,7 @@ public class JvmMemoryLocationTransferRelation<
         case Instruction.OP_INVOKEINTERFACE:
           answer.addAll(
               processCall(
-                  memoryLocation,
-                  constantInstruction,
-                  clazz,
-                  ((JvmAbstractState<AbstractStateT>) parentState).getProgramLocation()));
+                  memoryLocation, constantInstruction, clazz, parentState.getProgramLocation()));
           break;
         case Instruction.OP_NEW:
         case Instruction.OP_NEWARRAY:
@@ -856,6 +829,11 @@ public class JvmMemoryLocationTransferRelation<
         int offset,
         SwitchInstruction switchInstruction) {
       answer.addAll(backtraceStackLocation(memoryLocation, switchInstruction, clazz));
+    }
+
+    private boolean isStackLocationTooDeep(
+        JvmStackLocation stackLocation, Instruction instruction, Clazz clazz) {
+      return stackLocation.index >= instruction.stackPushCount(clazz);
     }
   }
 }

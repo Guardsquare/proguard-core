@@ -21,8 +21,12 @@ package proguard.analysis.cpa.bam;
 import java.util.Collection;
 import java.util.Set;
 import proguard.analysis.cpa.defaults.Cfa;
+import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
+import proguard.analysis.cpa.jvm.state.JvmAbstractState;
+import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
 
 /**
@@ -35,42 +39,45 @@ import proguard.classfile.Signature;
  * the corresponding {@link Precision}, and the {@link Signature} of the function the block belongs
  * to.
  *
- * @author Carlo Alberto Pozzoli
+ * @param <ContentT> The content of the jvm states. For example, this can be a {@link
+ *     SetAbstractState} of taints for taint analysis or a {@link
+ *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface BamCache<SignatureT extends Signature> {
+public interface BamCache<ContentT extends LatticeAbstractState<ContentT>> {
 
   /** Adds the block abstraction identified by the provided keys to the cache. */
   void put(
-      AbstractState stateKey,
+      JvmAbstractState<ContentT> stateKey,
       Precision precisionKey,
-      SignatureT blockKey,
-      BlockAbstraction blockAbstraction);
+      MethodSignature blockKey,
+      BlockAbstraction<ContentT> blockAbstraction);
 
   /**
    * Gets the block abstraction identified by the provided keys from the cache.
    *
    * @return The requested block abstraction, null in case of cache-miss.
    */
-  BlockAbstraction get(AbstractState stateKey, Precision precisionKey, SignatureT blockKey);
+  BlockAbstraction<ContentT> get(
+      JvmAbstractState<ContentT> stateKey, Precision precisionKey, MethodSignature blockKey);
 
   /**
    * Returns a collection of all the cache entries for a specified method, empty in case there are
    * not such entries.
    */
-  Collection<BlockAbstraction> get(SignatureT blockKey);
+  Collection<BlockAbstraction<ContentT>> get(MethodSignature blockKey);
 
   /**
    * Returns a collection of all the cache entries for a specified method with a certain precision,
    * empty in case there are not such entries.
    */
-  Collection<BlockAbstraction> get(Precision precision, SignatureT blockKey);
+  Collection<BlockAbstraction<ContentT>> get(Precision precision, MethodSignature blockKey);
 
   /** Returns block abstractions stored in the cache. */
-  Collection<BlockAbstraction> values();
+  Collection<BlockAbstraction<ContentT>> values();
 
   /** Returns the size of the cache. */
   int size();
 
   /** Returns a set of all the methods that have an entry in the cache. */
-  Set<SignatureT> getAllMethods();
+  Set<MethodSignature> getAllMethods();
 }

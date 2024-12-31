@@ -26,8 +26,6 @@ import proguard.exception.ProguardCoreException;
 /**
  * This {@link StackAbstractState} represents a stack of {@link LatticeAbstractState}s with the
  * semilattice operators lifted to the stack.
- *
- * @author Dmitry Ivanov
  */
 public class StackAbstractState<AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
     extends Stack<AbstractSpaceT>

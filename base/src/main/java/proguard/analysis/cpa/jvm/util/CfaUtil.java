@@ -44,11 +44,7 @@ import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.visitor.AllMethodVisitor;
 
-/**
- * This is a util class for creating {@link Cfa}s.
- *
- * @author Dmitry Ivanov
- */
+/** This is a util class for creating {@link Cfa}s. */
 public class CfaUtil {
 
   /**
