@@ -54,7 +54,6 @@ import proguard.analysis.cpa.jvm.domain.memory.JvmMemoryLocationAbstractState.St
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.util.ConstantLookupVisitor;
 import proguard.analysis.cpa.jvm.util.InstructionClassifier;
-import proguard.analysis.cpa.jvm.witness.JvmHeapLocation;
 import proguard.analysis.cpa.jvm.witness.JvmLocalVariableLocation;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.cpa.jvm.witness.JvmStackLocation;
@@ -554,8 +553,7 @@ public class JvmMemoryLocationTransferRelation<
 
       return Optional.of(
           new JvmStackLocation(parameterSize - argumentLocation.index - (isCategory2 ? 2 : 1)));
-    } else if (memoryLocation instanceof JvmStaticFieldLocation
-        || memoryLocation instanceof JvmHeapLocation) {
+    } else if (memoryLocation instanceof JvmStaticFieldLocation) {
       return Optional.of(memoryLocation);
     } else if (memoryLocation instanceof JvmStackLocation) {
       return Optional.empty();
