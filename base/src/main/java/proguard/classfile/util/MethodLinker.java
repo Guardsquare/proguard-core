@@ -19,7 +19,9 @@ package proguard.classfile.util;
 
 import static proguard.classfile.instruction.Instruction.OP_INVOKESTATIC;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
@@ -132,10 +134,17 @@ public class MethodLinker implements ClassVisitor, MemberVisitor {
    * @return The last method in the linked list.
    */
   public static Member lastMember(Member member) {
+    List<Member> chain = new ArrayList<>();
     Member lastMember = member;
     while (lastMember.getProcessingInfo() != null
         && lastMember.getProcessingInfo() instanceof Member) {
+      chain.add(lastMember);
       lastMember = (Member) lastMember.getProcessingInfo();
+    }
+
+    // Point every member in the chain directly to the last element to save time in the future
+    for (Member relatedMember : chain) {
+      relatedMember.setProcessingInfo(lastMember);
     }
 
     return lastMember;
@@ -149,6 +158,9 @@ public class MethodLinker implements ClassVisitor, MemberVisitor {
    */
   public static Processable lastProcessable(Processable processable) {
     Processable lastProcessable = processable;
+    if (lastProcessable instanceof Member) {
+      lastProcessable = lastMember((Member) lastProcessable);
+    }
     while (lastProcessable.getProcessingInfo() != null
         && lastProcessable.getProcessingInfo() instanceof Processable) {
       lastProcessable = (Processable) lastProcessable.getProcessingInfo();
