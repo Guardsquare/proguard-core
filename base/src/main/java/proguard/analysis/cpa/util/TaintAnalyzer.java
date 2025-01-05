@@ -186,12 +186,11 @@ public class TaintAnalyzer {
               new JvmAbstractState<>(
                   cfa.getFunctionEntryNode(mainMethodSignature),
                   new JvmFrameAbstractState<>(),
-                  new JvmForgetfulHeapAbstractState<SetAbstractState<JvmTaintSource>>(
-                      SetAbstractState.bottom),
+                  new JvmForgetfulHeapAbstractState<>(SetAbstractState.bottom()),
                   new HashMapAbstractState<>()),
           taintBamCpa ->
-              new JvmMemoryLocationCpa<SetAbstractState<JvmTaintSource>>(
-                  SetAbstractState.bottom,
+              new JvmMemoryLocationCpa<>(
+                  SetAbstractState.bottom(),
                   taintBamCpa,
                   extraTaintPropagationLocations,
                   memoryLocationAbortOperator),

@@ -92,8 +92,8 @@ public class TaintReduceOperator extends DefaultReduceOperator<SetAbstractState<
       int index,
       JvmTaintSource source) {
     SetAbstractState<JvmTaintSource> oldState =
-        frame.getLocalVariables().getOrDefault(index, SetAbstractState.bottom);
+        frame.getLocalVariables().getOrDefault(index, SetAbstractState.bottom());
     SetAbstractState<JvmTaintSource> newState = oldState.join(new SetAbstractState<>(source));
-    frame.getLocalVariables().set(index, newState, SetAbstractState.bottom);
+    frame.getLocalVariables().set(index, newState, SetAbstractState.bottom());
   }
 }

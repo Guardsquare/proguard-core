@@ -26,7 +26,7 @@ import java.util.HashSet;
 public class SetAbstractState<T> extends HashSet<T>
     implements LatticeAbstractState<SetAbstractState<T>> {
 
-  public static SetAbstractState bottom = new SetAbstractState();
+  private static final SetAbstractState<?> bottom = new SetAbstractState<>();
 
   /**
    * Create a set abstract state from its elements.
@@ -66,6 +66,17 @@ public class SetAbstractState<T> extends HashSet<T>
 
   @Override
   public SetAbstractState<T> copy() {
-    return (SetAbstractState<T>) super.clone();
+    // A clone of a set contains the same elements, so the cast is safe
+    @SuppressWarnings("unchecked")
+    SetAbstractState<T> result = (SetAbstractState<T>) super.clone();
+    return result;
+  }
+
+  public static <T> SetAbstractState<T> bottom() {
+    // The bottom state is empty, thus behaves the same for all content types, so we can safely
+    // convert a unique bottom state.
+    @SuppressWarnings("unchecked")
+    SetAbstractState<T> result = (SetAbstractState<T>) bottom;
+    return result;
   }
 }

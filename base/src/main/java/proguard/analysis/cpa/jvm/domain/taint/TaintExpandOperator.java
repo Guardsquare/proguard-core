@@ -96,7 +96,7 @@ public class TaintExpandOperator extends DefaultExpandOperator<SetAbstractState<
               s.taintsGlobals.forEach(
                   fqn -> fqnToValue.merge(fqn, newValue, SetAbstractState::join));
             });
-    fqnToValue.forEach((fqn, value) -> result.setStatic(fqn, value, SetAbstractState.bottom));
+    fqnToValue.forEach((fqn, value) -> result.setStatic(fqn, value, SetAbstractState.bottom()));
 
     return result;
   }
@@ -131,7 +131,7 @@ public class TaintExpandOperator extends DefaultExpandOperator<SetAbstractState<
 
     // pad to meet the return type size and append the abstract state
     for (int i = returnSize; i > 1; i--) {
-      returnValues.add(SetAbstractState.bottom);
+      returnValues.add(SetAbstractState.bottom());
     }
     if (returnSize > 0) {
       returnValues.add(answerContent);

@@ -69,12 +69,6 @@ public class JvmTaintTransferRelation
 
   public JvmTaintTransferRelation(
       Map<Signature, Set<JvmTaintSource>> taintSources,
-      Map<MethodSignature, JvmTaintTransformer> taintTransformers) {
-    this(taintSources, taintTransformers, Collections.emptyMap());
-  }
-
-  public JvmTaintTransferRelation(
-      Map<Signature, Set<JvmTaintSource>> taintSources,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     this.taintSources = taintSources;
@@ -140,7 +134,7 @@ public class JvmTaintTransferRelation
 
   @Override
   public SetAbstractState<JvmTaintSource> getAbstractDefault() {
-    return SetAbstractState.bottom;
+    return SetAbstractState.bottom();
   }
 
   @Override
@@ -283,8 +277,8 @@ public class JvmTaintTransferRelation
           ListAbstractState<SetAbstractState<JvmTaintSource>> localVariables =
               state.getFrame().getLocalVariables();
           SetAbstractState<JvmTaintSource> newState =
-              localVariables.getOrDefault(index, SetAbstractState.bottom).join(answerContent);
-          localVariables.set(index, newState, SetAbstractState.bottom);
+              localVariables.getOrDefault(index, SetAbstractState.bottom()).join(answerContent);
+          localVariables.set(index, newState, SetAbstractState.bottom());
         } else if (location instanceof JvmStackLocation) {
           int index = ((JvmStackLocation) location).index;
           StackAbstractState<SetAbstractState<JvmTaintSource>> stack =

@@ -210,7 +210,7 @@ public class TaintAnalyzerResult {
     }
 
     /**
-     * Creates a endpoint (entry point of the {@link JvmMemoryLocationCpa}) for each tainted
+     * Creates an endpoint (entry point of the {@link JvmMemoryLocationCpa}) for each tainted
      * location of a sink.
      *
      * @param reachedSet A reached set containing the abstraction for one (or multiple if the entry
@@ -287,7 +287,7 @@ public class TaintAnalyzerResult {
         JvmMemoryLocation memoryLocation,
         JvmTaintSink sink) {
       SetAbstractState<JvmTaintSource> extractedState =
-          memoryLocation.extractValueOrDefault(state, SetAbstractState.bottom);
+          memoryLocation.extractValueOrDefault(state, SetAbstractState.bottom());
 
       return extractedState.stream().anyMatch(sink.isValidForSource);
     }

@@ -115,7 +115,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceReturn1,
         )
     }
@@ -217,7 +217,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceReturn1,
             taintSourceReturn2,
         )
@@ -275,7 +275,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceReturn1,
             taintSourceReturn2,
         )
@@ -323,7 +323,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceStatic,
         )
     }
@@ -375,7 +375,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceReturn1,
         )
     }
@@ -427,7 +427,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceReturn1,
         )
     }
@@ -486,7 +486,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceReturn1,
         )
     }
@@ -550,7 +550,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceReturn1,
             taintSourceReturn2,
         )
@@ -612,7 +612,7 @@ class JvmTaintCpaTest : FreeSpec({
         result.endpointToTriggeredSinks.size shouldBe 1
         result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
         result.endpoints.size shouldBe 1
-        result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
             taintSourceStatic,
         )
     }
@@ -698,7 +698,7 @@ class JvmTaintCpaTest : FreeSpec({
             result.endpointToTriggeredSinks.size shouldBe 1
             result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
             result.endpoints.size shouldBe 1
-            result.endpoints.first().extractFirstValue(SetAbstractState.bottom as SetAbstractState<JvmTaintSource>) shouldBe setOf(
+            result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
                 taintSourceReturn1,
             )
         }
