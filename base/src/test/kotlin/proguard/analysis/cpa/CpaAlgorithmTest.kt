@@ -27,6 +27,7 @@ import proguard.analysis.cpa.defaults.DelegateAbstractDomain
 import proguard.analysis.cpa.defaults.DepthFirstWaitlist
 import proguard.analysis.cpa.defaults.MergeJoinOperator
 import proguard.analysis.cpa.defaults.MergeSepOperator
+import proguard.analysis.cpa.defaults.NeverAbortOperator
 import proguard.analysis.cpa.defaults.SimpleCpa
 import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment
 import proguard.analysis.cpa.defaults.StopAlwaysOperator
@@ -62,6 +63,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeSepOperator,
                 stopContainedOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // the test should return all states reachable from 0
@@ -97,6 +99,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeJoinOperator,
                 stopContainedOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // the test should return the join of all states reachable from 0
@@ -115,6 +118,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeJoinOperator,
                 stopAlwaysOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // the algorithm iterates until the join of the newly reached state with previous reached states converges
@@ -131,6 +135,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeSepOperator,
                 stopAlwaysOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // since merging does not generate a new state, the newly reached states are not added because of always stopping
@@ -146,6 +151,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeJoinOperator,
                 stopAlwaysOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // if there were no reached states, there is nothing we can add as the result of the join
@@ -164,6 +170,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeSepOperator,
                 stopSepOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // 20 covers all reachable states from 0, hence the reached set remains the same
@@ -180,6 +187,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeSepOperator,
                 stopSepOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // here, the algorithm runs until 10 is reached as it covers all other reachable states
@@ -205,6 +213,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeSepOperator,
                 stopContainedOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // 20 covers all other states but is not equal to them, hence the reached set is updated until it converges in the common meaning
@@ -228,6 +237,7 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeSepOperator,
                 stopContainedOperator,
                 precisionAdjustment,
+                NeverAbortOperator.INSTANCE,
             ),
         ).run(reachedset, waitlist)
         // here, the result coincides with the stopSepOperator because there is no state covering others but unequal to them
@@ -254,8 +264,9 @@ class CpaAlgorithmTest : FreeSpec({
                 mergeSepOperator,
                 stopContainedOperator,
                 precisionAdjustment,
+                abortOperator,
             ),
-        ).run(reachedset, waitlist, abortOperator)
+        ).run(reachedset, waitlist)
         // the test should return all states reachable from 0
         reachedset.asCollection() shouldBe setOf()
     }

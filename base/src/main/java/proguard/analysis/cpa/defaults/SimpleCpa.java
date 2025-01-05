@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.defaults;
 
+import org.jetbrains.annotations.NotNull;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
@@ -40,6 +42,7 @@ public class SimpleCpa<StateT extends AbstractState>
   private final MergeOperator<StateT> mergeOperator;
   private final StopOperator<StateT> stopOperator;
   private final PrecisionAdjustment precisionAdjustment;
+  private final AbortOperator abortOperator;
 
   /**
    * Create a simple CPA with a static precision adjustment.
@@ -62,7 +65,8 @@ public class SimpleCpa<StateT extends AbstractState>
         transferRelation,
         mergeOperator,
         stopOperator,
-        new StaticPrecisionAdjustment());
+        new StaticPrecisionAdjustment(),
+        NeverAbortOperator.INSTANCE);
   }
 
   /**
@@ -77,44 +81,52 @@ public class SimpleCpa<StateT extends AbstractState>
    *     {@link ReachedSet} based on the content of the latter
    * @param precisionAdjustment a precision adjustment selecting the {@link Precision} for the
    *     currently processed {@link AbstractState} considering the {@link ReachedSet} content
+   * @param abortOperator an operator used to terminate the analysis prematurely.
    */
   public SimpleCpa(
       AbstractDomain<StateT> abstractDomain,
       TransferRelation<StateT> transferRelation,
       MergeOperator<StateT> mergeOperator,
       StopOperator<StateT> stopOperator,
-      PrecisionAdjustment precisionAdjustment) {
+      PrecisionAdjustment precisionAdjustment,
+      AbortOperator abortOperator) {
     this.abstractDomain = abstractDomain;
     this.transferRelation = transferRelation;
     this.mergeOperator = mergeOperator;
     this.stopOperator = stopOperator;
     this.precisionAdjustment = precisionAdjustment;
+    this.abortOperator = abortOperator;
   }
 
   // implementations for ConfigurableProgramAnalysis
 
   @Override
-  public AbstractDomain<StateT> getAbstractDomain() {
+  public @NotNull AbstractDomain<StateT> getAbstractDomain() {
     return abstractDomain;
   }
 
   @Override
-  public TransferRelation<StateT> getTransferRelation() {
+  public @NotNull TransferRelation<StateT> getTransferRelation() {
     return transferRelation;
   }
 
   @Override
-  public MergeOperator<StateT> getMergeOperator() {
+  public @NotNull MergeOperator<StateT> getMergeOperator() {
     return mergeOperator;
   }
 
   @Override
-  public StopOperator<StateT> getStopOperator() {
+  public @NotNull StopOperator<StateT> getStopOperator() {
     return stopOperator;
   }
 
   @Override
-  public PrecisionAdjustment getPrecisionAdjustment() {
+  public @NotNull PrecisionAdjustment getPrecisionAdjustment() {
     return precisionAdjustment;
+  }
+
+  @Override
+  public @NotNull AbortOperator getAbortOperator() {
+    return abortOperator;
   }
 }

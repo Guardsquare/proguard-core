@@ -16,7 +16,6 @@ import proguard.analysis.cpa.bam.BlockAbstraction;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
-import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation;
@@ -339,10 +338,7 @@ public class TaintAnalyzerResult {
       waitlist.addAll(initialStates);
       reachedSet.addAll(initialStates);
 
-      // TODO: move abortOperator to the ConfigurableProgramAnalysis interface
-      AbortOperator abortOperator = traceCpa.getAbortOperator();
-
-      cpaAlgorithm.run(reachedSet, waitlist, abortOperator);
+      cpaAlgorithm.run(reachedSet, waitlist);
       return reachedSet;
     }
 

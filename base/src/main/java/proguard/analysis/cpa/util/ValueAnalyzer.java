@@ -88,7 +88,7 @@ public class ValueAnalyzer {
    */
   public ValueAnalysisResult analyze(MethodSignature mainSignature) {
     BamCpa<ValueAbstractState> cpa = cpaCreator.apply(mainSignature);
-    CpaAlgorithm cpaAlgorithm = new CpaAlgorithm(cpa);
+    CpaAlgorithm<JvmAbstractState<ValueAbstractState>> cpaAlgorithm = new CpaAlgorithm<>(cpa);
 
     Waitlist<JvmAbstractState<ValueAbstractState>> waitList = new DepthFirstWaitlist<>();
     ReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet =
@@ -98,10 +98,7 @@ public class ValueAnalyzer {
     waitList.add(initialState);
     reachedSet.add(initialState);
 
-    // TODO: move abortOperator to the ConfigurableProgramAnalysis interface
-    AbortOperator abortOperator = cpa.getTransferRelation().getAbortOperator();
-
-    cpaAlgorithm.run(reachedSet, waitList, abortOperator);
+    cpaAlgorithm.run(reachedSet, waitList);
     return new ValueAnalysisResult(cpa);
   }
 
@@ -191,7 +188,8 @@ public class ValueAnalyzer {
               valueTransferRelation,
               new MergeJoinOperator<>(abstractDomain),
               new StopJoinOperator<>(abstractDomain),
-              new StaticPrecisionAdjustment());
+              new StaticPrecisionAdjustment(),
+              NeverAbortOperator.INSTANCE);
 
       boolean reduceHeap = true;
       CpaWithBamOperators<ValueAbstractState> interProceduralCpa =
@@ -204,13 +202,7 @@ public class ValueAnalyzer {
 
       return new ValueAnalyzer(
           mainMethodSignature ->
-              new BamCpa<>(
-                  interProceduralCpa,
-                  cfa,
-                  mainMethodSignature,
-                  cache,
-                  maxCallStackDepth,
-                  abortOperator),
+              new BamCpa<>(interProceduralCpa, cfa, mainMethodSignature, cache, maxCallStackDepth),
           mainMethodSignature ->
               new JvmValueAbstractState(
                   valueFactory,

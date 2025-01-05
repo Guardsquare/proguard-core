@@ -20,6 +20,7 @@ package proguard.analysis.cpa.jvm.domain.memory;
 
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import proguard.analysis.cpa.bam.BamCpa;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
@@ -71,7 +72,7 @@ public class JvmMemoryLocationCpa<ContentT extends LatticeAbstractState<ContentT
     this.abortOperator = abortOperator;
   }
 
-  public AbortOperator getAbortOperator() {
+  public @NotNull AbortOperator getAbortOperator() {
     return abortOperator;
   }
 }

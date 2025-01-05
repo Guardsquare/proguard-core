@@ -19,6 +19,7 @@
 package proguard.analysis.cpa.bam;
 
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
@@ -85,7 +86,13 @@ public class CpaWithBamOperators<ContentT extends LatticeAbstractState<ContentT>
       ReduceOperator<ContentT> reduce,
       ExpandOperator<ContentT> expand,
       RebuildOperator rebuild) {
-    super(abstractDomain, transferRelation, merge, stop, precisionAdjustment);
+    super(
+        abstractDomain,
+        transferRelation,
+        merge,
+        stop,
+        precisionAdjustment,
+        NeverAbortOperator.INSTANCE);
     this.reduce = reduce;
     this.expand = expand;
     this.rebuild = rebuild;
@@ -112,7 +119,8 @@ public class CpaWithBamOperators<ContentT extends LatticeAbstractState<ContentT>
         intraproceduralCpa.getTransferRelation(),
         intraproceduralCpa.getMergeOperator(),
         intraproceduralCpa.getStopOperator(),
-        intraproceduralCpa.getPrecisionAdjustment());
+        intraproceduralCpa.getPrecisionAdjustment(),
+        NeverAbortOperator.INSTANCE);
     this.reduce = reduce;
     this.expand = expand;
     this.rebuild = rebuild;

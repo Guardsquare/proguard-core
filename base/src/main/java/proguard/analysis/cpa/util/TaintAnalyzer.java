@@ -130,10 +130,7 @@ public class TaintAnalyzer {
     waitList.add(initialState);
     reachedSet.add(initialState);
 
-    // TODO: move abortOperator to the ConfigurableProgramAnalysis interface
-    AbortOperator abortOperator = taintCpa.getTransferRelation().getAbortOperator();
-
-    cpaAlgorithm.run(reachedSet, waitList, abortOperator);
+    cpaAlgorithm.run(reachedSet, waitList);
 
     return new TaintAnalyzerResult(
         taintCpa, reachedSet, taintSinks, memoryCpaCreator.apply(taintCpa));
@@ -184,13 +181,7 @@ public class TaintAnalyzer {
 
       return new TaintAnalyzer(
           mainMethodSignature ->
-              new BamCpa<>(
-                  interproceduralCpa,
-                  cfa,
-                  mainMethodSignature,
-                  cache,
-                  maxCallStackDepth,
-                  abortOperator),
+              new BamCpa<>(interproceduralCpa, cfa, mainMethodSignature, cache, maxCallStackDepth),
           mainMethodSignature ->
               new JvmAbstractState<>(
                   cfa.getFunctionEntryNode(mainMethodSignature),

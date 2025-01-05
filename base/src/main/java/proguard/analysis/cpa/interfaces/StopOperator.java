@@ -21,7 +21,8 @@ package proguard.analysis.cpa.interfaces;
 import java.util.Collection;
 
 /**
- * The {@link StopOperator} decides if {@link Algorithm} should stop.
+ * The {@link StopOperator} decides if {@link proguard.analysis.cpa.algorithms.CpaAlgorithm} should
+ * stop.
  *
  * @param <StateT> The type of the analyzed states.
  */

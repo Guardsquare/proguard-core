@@ -23,6 +23,7 @@ import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.DepthFirstWaitlist;
 import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
@@ -414,7 +415,8 @@ public class CpaValueTest {
                 transferRelation,
                 mergeJoinOperator,
                 stopOperator,
-                precisionAdjustment))
+                precisionAdjustment,
+                NeverAbortOperator.INSTANCE))
         .run(reachedSet, waitlist);
     return reachedSet;
   }

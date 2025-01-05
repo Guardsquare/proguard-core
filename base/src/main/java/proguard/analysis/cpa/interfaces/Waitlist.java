@@ -21,7 +21,8 @@ package proguard.analysis.cpa.interfaces;
 import java.util.Collection;
 
 /**
- * The {@link Waitlist} stores the {@link AbstractState}s the {@link Algorithm} needs to process.
+ * The {@link Waitlist} stores the {@link AbstractState}s the {@link
+ * proguard.analysis.cpa.algorithms.CpaAlgorithm} needs to process.
  *
  * @param <StateT> The states contained in the waitlist.
  */

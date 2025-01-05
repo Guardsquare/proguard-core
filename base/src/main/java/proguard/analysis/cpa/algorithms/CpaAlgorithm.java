@@ -23,33 +23,24 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.defaults.PrecisionAdjustmentResult;
-import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
-import proguard.analysis.cpa.interfaces.Algorithm;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
-import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.Precision;
-import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.ReachedSet;
-import proguard.analysis.cpa.interfaces.StopOperator;
-import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.interfaces.Waitlist;
 
 /**
  * This is the <a
  * href="https://www.sosy-lab.org/research/pub/2018-JAR.A_Unifying_View_on_SMT-Based_Software_Verification.pdf">CPA+</a>
- * {@link Algorithm}. The algorithm computes the set of reached states based on the initial content
- * of the waitlist.
+ * algorithm. The algorithm computes the set of reached states based on the initial content of the
+ * waitlist.
  *
  * @param <StateT> The type of the analyzed states.
  */
-public class CpaAlgorithm<StateT extends AbstractState> implements Algorithm<StateT> {
+public class CpaAlgorithm<StateT extends AbstractState> {
 
   private static final Logger log = LogManager.getLogger(CpaAlgorithm.class);
-  private final TransferRelation<StateT> transferRelation;
-  private final MergeOperator<StateT> mergeOperator;
-  private final StopOperator<StateT> stopOperator;
-  private final PrecisionAdjustment precisionAdjustment;
+  private final ConfigurableProgramAnalysis<StateT> cpa;
 
   /**
    * Create an algorithm to run the specified CPA.
@@ -58,58 +49,29 @@ public class CpaAlgorithm<StateT extends AbstractState> implements Algorithm<Sta
    *     the precision adjustment
    */
   public CpaAlgorithm(ConfigurableProgramAnalysis<StateT> cpa) {
-    this(
-        cpa.getTransferRelation(),
-        cpa.getMergeOperator(),
-        cpa.getStopOperator(),
-        cpa.getPrecisionAdjustment());
+    this.cpa = cpa;
   }
 
   /**
-   * Create a CPA algorithm from CPA components.
-   *
-   * @param transferRelation a transfer relation specifying how successor states are computed
-   * @param mergeOperator a merge operator defining how (and whether) the older {@link
-   *     AbstractState} should be updated with the newly discovered {@link AbstractState}
-   * @param stopOperator a stop operator deciding whether the successor state should be added to the
-   *     {@link ReachedSet} based on the content of the latter
-   * @param precisionAdjustment a precision adjustment selecting the {@link Precision} for the
-   *     currently processed {@link AbstractState} considering the {@link ReachedSet} content
+   * Launches the algorithm updating the {@code reachedSet} and the {@code waitlist}. A proper
+   * selection of parameters allows resuming the algorithm from a saved state.
    */
-  public CpaAlgorithm(
-      TransferRelation<StateT> transferRelation,
-      MergeOperator<StateT> mergeOperator,
-      StopOperator<StateT> stopOperator,
-      PrecisionAdjustment precisionAdjustment) {
-    this.transferRelation = transferRelation;
-    this.mergeOperator = mergeOperator;
-    this.stopOperator = stopOperator;
-    this.precisionAdjustment = precisionAdjustment;
-  }
-
-  /**
-   * Algorithm from the paper is parametrized with the reached set and the waitlist. Thus, one can
-   * select the start point of the algorithm (e.g., for resuming the analysis). The {@code
-   * abortOperator} determines whether the analysis should end prematurely.
-   */
-  @Override
-  public void run(
-      ReachedSet<StateT> reachedSet, Waitlist<StateT> waitlist, AbortOperator abortOperator) {
+  public void run(ReachedSet<StateT> reachedSet, Waitlist<StateT> waitlist) {
     while (!waitlist.isEmpty()) {
       StateT currentState = waitlist.pop();
       try {
-        if (abortOperator.abort(currentState)) {
+        if (cpa.getAbortOperator().abort(currentState)) {
           return;
         }
         Precision currentPrecision = currentState.getPrecision();
         PrecisionAdjustmentResult<StateT> precisionAdjustmentResult =
-            precisionAdjustment.prec(
-                currentState, currentPrecision, reachedSet.getReached(currentState));
+            cpa.getPrecisionAdjustment()
+                .prec(currentState, currentPrecision, reachedSet.getReached(currentState));
         currentState = precisionAdjustmentResult.getAbstractState();
         currentPrecision = currentState.getPrecision();
 
         for (StateT successorState :
-            transferRelation.generateAbstractSuccessors(currentState, currentPrecision)) {
+            cpa.getTransferRelation().generateAbstractSuccessors(currentState, currentPrecision)) {
           Set<StateT> gen =
               new LinkedHashSet<>(); // abstract states to be added to the waitlist and reached set
           Set<StateT> kill =
@@ -121,7 +83,8 @@ public class CpaAlgorithm<StateT extends AbstractState> implements Algorithm<Sta
           // the successor state
           {
             StateT mergedState =
-                mergeOperator.merge(successorState, reachedState, successorState.getPrecision());
+                cpa.getMergeOperator()
+                    .merge(successorState, reachedState, successorState.getPrecision());
             if (!mergedState.equals(reachedState)) {
               gen.add(mergedState);
               kill.add(reachedState);
@@ -131,10 +94,11 @@ public class CpaAlgorithm<StateT extends AbstractState> implements Algorithm<Sta
           reachedSet.removeAll(kill);
           waitlist.addAll(gen);
           waitlist.removeAll(kill);
-          if (!stopOperator.stop(
-              successorState,
-              reachedSet.getReached(successorState),
-              successorState.getPrecision())) {
+          if (!cpa.getStopOperator()
+              .stop(
+                  successorState,
+                  reachedSet.getReached(successorState),
+                  successorState.getPrecision())) {
             waitlist.add(successorState);
             reachedSet.add(successorState);
           }

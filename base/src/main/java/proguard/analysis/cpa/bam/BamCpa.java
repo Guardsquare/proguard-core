@@ -18,15 +18,16 @@
 
 package proguard.analysis.cpa.bam;
 
+import org.jetbrains.annotations.NotNull;
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.StopOperator;
+import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.classfile.MethodSignature;
@@ -67,7 +68,7 @@ public class BamCpa<ContentT extends LatticeAbstractState<ContentT>>
       JvmCfa cfa,
       MethodSignature mainFunction,
       BamCache<ContentT> cache) {
-    this(wrappedCpa, cfa, mainFunction, cache, -1, NeverAbortOperator.INSTANCE);
+    this(wrappedCpa, cfa, mainFunction, cache, -1);
   }
 
   /**
@@ -80,62 +81,53 @@ public class BamCpa<ContentT extends LatticeAbstractState<ContentT>>
    * @param cache a cache for the block abstractions
    * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally. 0 means
    *     intra-procedural analysis. < 0 means no maximum depth.
-   * @param abortOperator an abort operator used for computing block abstractions
    */
   public BamCpa(
       CpaWithBamOperators<ContentT> wrappedCpa,
       JvmCfa cfa,
       MethodSignature mainFunction,
       BamCache<ContentT> cache,
-      int maxCallStackDepth,
-      AbortOperator abortOperator) {
+      int maxCallStackDepth) {
     this.wrappedCpa = wrappedCpa;
     this.bamTransferRelation =
-        new BamTransferRelation<>(
-            wrappedCpa, cfa, mainFunction, cache, maxCallStackDepth, abortOperator);
-  }
-
-  /**
-   * Create a BamCpa with a specific transfer relation. Use this constructor if a custom transfer
-   * relation is needed (e.g. with different internal waitlist/reached set implementations).
-   *
-   * @param transferRelation The transfer relation of the BamCpa
-   */
-  public BamCpa(BamTransferRelation<ContentT> transferRelation) {
-    this.wrappedCpa = transferRelation.getWrappedCpa();
-    this.bamTransferRelation = transferRelation;
+        new BamTransferRelation<>(this, cfa, mainFunction, cache, maxCallStackDepth);
   }
 
   // Implementations for ConfigurableProgramAnalysis
 
   /** Returns the abstract domain of the wrapped CPA. */
   @Override
-  public AbstractDomain<JvmAbstractState<ContentT>> getAbstractDomain() {
+  public @NotNull AbstractDomain<JvmAbstractState<ContentT>> getAbstractDomain() {
     return wrappedCpa.getAbstractDomain();
   }
 
   /** Returns the BAM transfer relation, more details in {@link BamTransferRelation}. */
   @Override
-  public BamTransferRelation<ContentT> getTransferRelation() {
+  public @NotNull BamTransferRelation<ContentT> getTransferRelation() {
     return bamTransferRelation;
   }
 
   /** Returns the merge operator of the wrapped CPA. */
   @Override
-  public MergeOperator<JvmAbstractState<ContentT>> getMergeOperator() {
+  public @NotNull MergeOperator<JvmAbstractState<ContentT>> getMergeOperator() {
     return wrappedCpa.getMergeOperator();
   }
 
   /** Returns the stop operator of the wrapped CPA. */
   @Override
-  public StopOperator<JvmAbstractState<ContentT>> getStopOperator() {
+  public @NotNull StopOperator<JvmAbstractState<ContentT>> getStopOperator() {
     return wrappedCpa.getStopOperator();
   }
 
   /** Returns the precision adjustment of the wrapped CPA. */
   @Override
-  public PrecisionAdjustment getPrecisionAdjustment() {
+  public @NotNull PrecisionAdjustment getPrecisionAdjustment() {
     return wrappedCpa.getPrecisionAdjustment();
+  }
+
+  @Override
+  public @NotNull AbortOperator getAbortOperator() {
+    return wrappedCpa.getAbortOperator();
   }
 
   /** Returns the reduce operator of the wrapped CPA. */
@@ -161,5 +153,16 @@ public class BamCpa<ContentT extends LatticeAbstractState<ContentT>>
   /** Returns the CFA used by the CPA. */
   public JvmCfa getCfa() {
     return bamTransferRelation.getCfa();
+  }
+
+  /**
+   * Returns the transfer relation of the interprocedural CPA wrapped by the BamCpa.
+   *
+   * <p>This transfer relation is used to analyze all non-call instructions and call instructions
+   * that cannot be analyzed inter-procedurally (e.g., because their code is not available or
+   * because the maximum analysis depth has been reached).
+   */
+  public TransferRelation<JvmAbstractState<ContentT>> getIntraproceduralTransferRelation() {
+    return wrappedCpa.getTransferRelation();
   }
 }

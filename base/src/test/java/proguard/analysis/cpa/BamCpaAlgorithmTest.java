@@ -44,7 +44,6 @@ import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
-import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
 import proguard.analysis.cpa.defaults.StopSepOperator;
@@ -321,8 +320,7 @@ public class BamCpaAlgorithmTest {
 
     BamCache<ExpressionAbstractState> cache = new BamCacheImpl<>();
 
-    BamCpa<ExpressionAbstractState> bamCpa =
-        new BamCpa<>(wrappedCpa, cfa, mainSignature, cache, 3, NeverAbortOperator.INSTANCE);
+    BamCpa<ExpressionAbstractState> bamCpa = new BamCpa<>(wrappedCpa, cfa, mainSignature, cache, 3);
 
     JvmCfaNode node = cfa.getFunctionEntryNode(mainSignature);
 

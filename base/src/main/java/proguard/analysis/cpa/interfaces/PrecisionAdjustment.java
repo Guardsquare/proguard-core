@@ -22,8 +22,9 @@ import java.util.Collection;
 import proguard.analysis.cpa.defaults.PrecisionAdjustmentResult;
 
 /**
- * {@link PrecisionAdjustment} allows adjusting the {@link Algorithm} {@link Precision} based of the
- * reached abstract states. The evolution and the interpretation of {@link Precision} are arbitrary.
+ * {@link PrecisionAdjustment} allows adjusting the {@link
+ * proguard.analysis.cpa.algorithms.CpaAlgorithm} {@link Precision} based of the reached abstract
+ * states. The evolution and the interpretation of {@link Precision} are arbitrary.
  */
 public interface PrecisionAdjustment {
 

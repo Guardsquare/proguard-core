@@ -21,7 +21,8 @@ package proguard.analysis.cpa.interfaces;
 import java.util.Collection;
 
 /**
- * The {@link ReachedSet} stores reached {@code State}s discovered by the {@link Algorithm}.
+ * The {@link ReachedSet} stores reached {@code State}s discovered by the {@link
+ * proguard.analysis.cpa.algorithms.CpaAlgorithm}.
  *
  * @param <StateT> The states contained in the reached set.
  */

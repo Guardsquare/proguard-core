@@ -18,6 +18,8 @@
 
 package proguard.analysis.cpa.interfaces;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * {@link ConfigurableProgramAnalysis} consists of {@link AbstractDomain}, {@link TransferRelation},
  * {@link MergeOperator}, {@link StopOperator}, and {@link PrecisionAdjustment}.
@@ -44,17 +46,25 @@ package proguard.analysis.cpa.interfaces;
 public interface ConfigurableProgramAnalysis<StateT extends AbstractState> {
 
   /** Returns the abstract domain of this CPA. */
+  @NotNull
   AbstractDomain<StateT> getAbstractDomain();
 
   /** Returns the transfer relation of this CPA. */
+  @NotNull
   TransferRelation<StateT> getTransferRelation();
 
   /** Returns the merge operator of this CPA. */
+  @NotNull
   MergeOperator<StateT> getMergeOperator();
 
   /** Returns the stop operator of this CPA. */
+  @NotNull
   StopOperator<StateT> getStopOperator();
 
   /** Returns the precision adjustment of this CPA. */
+  @NotNull
   PrecisionAdjustment getPrecisionAdjustment();
+
+  @NotNull
+  AbortOperator getAbortOperator();
 }

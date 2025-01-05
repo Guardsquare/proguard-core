@@ -30,11 +30,9 @@ import proguard.analysis.cpa.algorithms.CpaAlgorithm;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.Cfa;
 import proguard.analysis.cpa.defaults.LatticeAbstractState;
-import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StopSepOperator;
-import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentTransferRelation;
@@ -69,30 +67,27 @@ import proguard.classfile.Signature;
 public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>>
     implements TransferRelation<JvmAbstractState<ContentT>> {
 
-  private final CpaWithBamOperators<ContentT> wrappedCpa;
+  private final BamCpa<ContentT> bamCpa;
   private final JvmCfa cfa;
   private final Stack<StackEntry> stack = new Stack<>();
   private final JvmCfaNode mainLocation;
   private final BamCache<ContentT> cache;
   private final int maxCallStackDepth;
   private final StopOperator<JvmAbstractState<ContentT>> fixedPointStopOperator;
-  private final AbortOperator abortOperator;
   private boolean fixedPointReached = false;
 
   /**
    * Create a BAM transfer relation with an unlimited call stack.
    *
-   * @param wrappedCpa a wrapped CPA with BAM operators
-   * @param cfa a control flow automaton
-   * @param mainFunction the signature of the main function of an analyzed program
-   * @param cache a cache for the block abstractions
+   * @param bamCpa a BAM cpa. It wraps a CPA that is called recursively when a method call is
+   *     analyzed.
+   * @param cfa a control flow automaton.
+   * @param mainFunction the signature of the main function of an analyzed program.
+   * @param cache a cache for the block abstractions.
    */
   public BamTransferRelation(
-      CpaWithBamOperators<ContentT> wrappedCpa,
-      JvmCfa cfa,
-      MethodSignature mainFunction,
-      BamCache<ContentT> cache) {
-    this(wrappedCpa, cfa, mainFunction, cache, -1, NeverAbortOperator.INSTANCE);
+      BamCpa<ContentT> bamCpa, JvmCfa cfa, MethodSignature mainFunction, BamCache<ContentT> cache) {
+    this(bamCpa, cfa, mainFunction, cache, -1);
   }
 
   /**
@@ -100,28 +95,26 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
    * meets its size limit the method call analysis is delegated to the wrapped intra-procedural
    * transfer relation.
    *
-   * @param wrappedCpa a wrapped CPA with BAM operators
-   * @param cfa a control flow automaton
-   * @param mainFunction the signature of the main function of an analyzed program
-   * @param cache a cache for the block abstractions
+   * @param bamCpa a BAM cpa. It wraps a CPA that is called recursively when a method call is
+   *     analyzed.
+   * @param cfa a control flow automaton.
+   * @param mainFunction the signature of the main function of an analyzed program.
+   * @param cache a cache for the block abstractions.
    * @param maxCallStackDepth maximum depth of the call stack analyzed inter-procedurally. 0 means
    *     intra-procedural analysis. < 0 means no maximum depth.
-   * @param abortOperator an abort operator used for computing block abstractions
    */
   public BamTransferRelation(
-      CpaWithBamOperators<ContentT> wrappedCpa,
+      BamCpa<ContentT> bamCpa,
       JvmCfa cfa,
       MethodSignature mainFunction,
       BamCache<ContentT> cache,
-      int maxCallStackDepth,
-      AbortOperator abortOperator) {
-    this.wrappedCpa = wrappedCpa;
+      int maxCallStackDepth) {
+    this.bamCpa = bamCpa;
     this.cfa = cfa;
     this.mainLocation = cfa.getFunctionEntryNode(mainFunction);
     this.cache = cache;
-    this.fixedPointStopOperator = new StopSepOperator<>(wrappedCpa.getAbstractDomain());
+    this.fixedPointStopOperator = new StopSepOperator<>(bamCpa.getAbstractDomain());
     this.maxCallStackDepth = maxCallStackDepth;
-    this.abortOperator = abortOperator;
   }
 
   // implementations for TransferRelation
@@ -184,7 +177,8 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
               applyBlockAbstraction(abstractState, precision, (JvmCallCfaEdge) callEdge));
         } else {
           abstractSuccessors.addAll(
-              ((ProgramLocationDependentTransferRelation) wrappedCpa.getTransferRelation())
+              ((ProgramLocationDependentTransferRelation)
+                      bamCpa.getIntraproceduralTransferRelation())
                   .generateEdgeAbstractSuccessors(abstractState, callEdge, precision));
         }
       }
@@ -194,27 +188,12 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
     // intra-procedural transfer relation does not produce successors
     else {
       abstractSuccessors.addAll(
-          wrappedCpa.getTransferRelation().generateAbstractSuccessors(abstractState, precision));
+          bamCpa
+              .getIntraproceduralTransferRelation()
+              .generateAbstractSuccessors(abstractState, precision));
     }
 
     return abstractSuccessors;
-  }
-
-  /**
-   * Returns the maximal call stack depth. If negative the maximum call stack depth is unlimited.
-   */
-  public int getMaxCallStackDepth() {
-    return maxCallStackDepth;
-  }
-
-  /** Returns the operator used to stop the analysis prematurely. */
-  public AbortOperator getAbortOperator() {
-    return abortOperator;
-  }
-
-  /** Returns the wrapped domain-dependent intra-procedural CPA. */
-  public CpaWithBamOperators<ContentT> getWrappedCpa() {
-    return wrappedCpa;
   }
 
   /**
@@ -275,17 +254,17 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
     // this step is not necessary if we are calculating the block abstraction of the main method
     JvmAbstractState<ContentT> reducedEntryState =
         call != null
-            ? wrappedCpa
+            ? bamCpa
                 .getReduceOperator()
                 .reduce(callState, cfa.getFunctionEntryNode(currentFunction), call)
-            : wrappedCpa.getReduceOperator().onMethodEntry(callState, isCallStatic(callState));
+            : bamCpa.getReduceOperator().onMethodEntry(callState, isCallStatic(callState));
 
     Optional<JvmAbstractState<ContentT>> previousCall =
         stack.stream()
             .filter(
                 x ->
                     x.function.equals(currentFunction)
-                        && wrappedCpa
+                        && bamCpa
                             .getAbstractDomain()
                             .isLessOrEqual(reducedEntryState, x.entryState))
             .map(x -> x.entryState)
@@ -328,12 +307,7 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
       // the BAM CPA
       // n.b. if the procedure has been already analyzed completely for the input the CPA algorithm
       // will return immediately
-      new CpaAlgorithm<>(
-              this,
-              wrappedCpa.getMergeOperator(),
-              wrappedCpa.getStopOperator(),
-              wrappedCpa.getPrecisionAdjustment())
-          .run(reached, waitlist, abortOperator);
+      new CpaAlgorithm<>(bamCpa).run(reached, waitlist);
 
       StackEntry stackEntry = stack.pop();
 
@@ -386,8 +360,8 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
       exitStates =
           exitStates.stream()
               .filter(e -> e.getProgramLocation().isExitNode())
-              .map(e -> wrappedCpa.getExpandOperator().expand(callState, e, entryNode, call))
-              .map(e -> wrappedCpa.getRebuildOperator().rebuild(callState, e))
+              .map(e -> bamCpa.getExpandOperator().expand(callState, e, entryNode, call))
+              .map(e -> bamCpa.getRebuildOperator().rebuild(callState, e))
               .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 

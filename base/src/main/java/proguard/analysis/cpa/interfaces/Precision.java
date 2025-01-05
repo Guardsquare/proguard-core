@@ -18,5 +18,8 @@
 
 package proguard.analysis.cpa.interfaces;
 
-/** {@link Precision} parametrizes the analysis accuracy of the {@link Algorithm}. */
+/**
+ * {@link Precision} parametrizes the analysis accuracy of the {@link
+ * proguard.analysis.cpa.algorithms.CpaAlgorithm}.
+ */
 public interface Precision {}
