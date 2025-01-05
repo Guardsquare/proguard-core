@@ -1,6 +1,5 @@
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -14,7 +13,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface BamLocationDependent<ContentT extends LatticeAbstractState<ContentT>> {
+public interface BamLocationDependent<ContentT extends AbstractState<ContentT>> {
 
   /** Returns the reached set the abstract state belongs to. */
   ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> getSourceReachedSet();

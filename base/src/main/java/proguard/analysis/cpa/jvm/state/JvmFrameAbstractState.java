@@ -20,9 +20,9 @@ package proguard.analysis.cpa.jvm.state;
 
 import java.util.List;
 import java.util.Objects;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ListAbstractState;
 import proguard.analysis.cpa.defaults.StackAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
  * The {@link JvmFrameAbstractState} combines the operand stack as the {@link StackAbstractState}
@@ -30,8 +30,8 @@ import proguard.analysis.cpa.defaults.StackAbstractState;
  * restrict the way one models values, i.e., one abstract state may correspond to a byte sequence of
  * arbitrary length.
  */
-public class JvmFrameAbstractState<StateT extends LatticeAbstractState<StateT>>
-    implements LatticeAbstractState<JvmFrameAbstractState<StateT>> {
+public class JvmFrameAbstractState<StateT extends AbstractState<StateT>>
+    implements AbstractState<JvmFrameAbstractState<StateT>> {
 
   protected final ListAbstractState<StateT> localVariables;
   protected final StackAbstractState<StateT> operandStack;
@@ -53,7 +53,7 @@ public class JvmFrameAbstractState<StateT extends LatticeAbstractState<StateT>>
     this.operandStack = operandStack;
   }
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   public JvmFrameAbstractState<StateT> join(JvmFrameAbstractState<StateT> abstractState) {
@@ -74,9 +74,7 @@ public class JvmFrameAbstractState<StateT extends LatticeAbstractState<StateT>>
 
   @Override
   public JvmFrameAbstractState<StateT> copy() {
-    return new JvmFrameAbstractState<>(
-        (ListAbstractState<StateT>) localVariables.copy(),
-        (StackAbstractState<StateT>) operandStack.copy());
+    return new JvmFrameAbstractState<>(localVariables.copy(), operandStack.copy());
   }
 
   @Override
@@ -84,7 +82,7 @@ public class JvmFrameAbstractState<StateT extends LatticeAbstractState<StateT>>
     if (!(obj instanceof JvmFrameAbstractState)) {
       return false;
     }
-    JvmFrameAbstractState<StateT> other = (JvmFrameAbstractState) obj;
+    JvmFrameAbstractState<?> other = (JvmFrameAbstractState<?>) obj;
     return localVariables.equals(other.localVariables) && operandStack.equals(other.operandStack);
   }
 

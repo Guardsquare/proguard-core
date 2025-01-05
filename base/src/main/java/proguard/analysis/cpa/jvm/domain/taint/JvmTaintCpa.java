@@ -23,13 +23,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.domain.taint.TaintSource;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.datastructure.callgraph.Call;
@@ -48,11 +46,7 @@ public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<Jvm
    * @param sources a set of taint sources
    */
   public JvmTaintCpa(Set<? extends JvmTaintSource> sources) {
-    this(
-        createSourcesMap(sources),
-        new DelegateAbstractDomain<>(),
-        Collections.emptyMap(),
-        Collections.emptyMap());
+    this(createSourcesMap(sources), Collections.emptyMap(), Collections.emptyMap());
   }
 
   /**
@@ -68,11 +62,7 @@ public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<Jvm
       Set<? extends JvmTaintSource> sources,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
-    this(
-        createSourcesMap(sources),
-        new DelegateAbstractDomain<>(),
-        taintTransformers,
-        extraTaintPropagationLocations);
+    this(createSourcesMap(sources), taintTransformers, extraTaintPropagationLocations);
   }
 
   /**
@@ -88,23 +78,11 @@ public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<Jvm
       Map<Signature, Set<JvmTaintSource>> signaturesToSources,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
-    this(
-        signaturesToSources,
-        new DelegateAbstractDomain<>(),
-        taintTransformers,
-        extraTaintPropagationLocations);
-  }
-
-  private JvmTaintCpa(
-      Map<Signature, Set<JvmTaintSource>> sources,
-      AbstractDomain<JvmAbstractState<SetAbstractState<JvmTaintSource>>> abstractDomain,
-      Map<MethodSignature, JvmTaintTransformer> taintTransformers,
-      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
     super(
-        abstractDomain,
-        new JvmTaintTransferRelation(sources, taintTransformers, extraTaintPropagationLocations),
-        new MergeJoinOperator<>(abstractDomain),
-        new StopJoinOperator<>(abstractDomain));
+        new JvmTaintTransferRelation(
+            signaturesToSources, taintTransformers, extraTaintPropagationLocations),
+        new MergeJoinOperator<>(),
+        new StopJoinOperator<>());
   }
 
   /**

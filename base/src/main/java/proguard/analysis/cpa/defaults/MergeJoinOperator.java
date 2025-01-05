@@ -18,7 +18,7 @@
 
 package proguard.analysis.cpa.defaults;
 
-import proguard.analysis.cpa.interfaces.AbstractDomain;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.Precision;
 
@@ -27,23 +27,13 @@ import proguard.analysis.cpa.interfaces.Precision;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public final class MergeJoinOperator<StateT extends LatticeAbstractState<StateT>>
+public final class MergeJoinOperator<StateT extends AbstractState<StateT>>
     implements MergeOperator<StateT> {
-  private final AbstractDomain<StateT> abstractDomain;
-
-  /**
-   * Create a merge operator from an abstract domain defining the join operator.
-   *
-   * @param abstractDomain abstract domain
-   */
-  public MergeJoinOperator(AbstractDomain<StateT> abstractDomain) {
-    this.abstractDomain = abstractDomain;
-  }
 
   // implementations for MergeOperator
 
   @Override
   public StateT merge(StateT abstractState1, StateT abstractState2, Precision precision) {
-    return abstractDomain.join(abstractState1, abstractState2);
+    return abstractState1.join(abstractState2);
   }
 }

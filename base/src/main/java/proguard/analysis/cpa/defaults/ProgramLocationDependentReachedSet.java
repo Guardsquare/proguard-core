@@ -43,7 +43,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *     analysis).
  */
 public final class ProgramLocationDependentReachedSet<
-        StateT extends AbstractState & ProgramLocationDependent>
+        StateT extends AbstractState<StateT> & ProgramLocationDependent>
     implements ReachedSet<StateT> {
 
   private final Map<JvmCfaNode, Set<StateT>> locationToStates = new LinkedHashMap<>();

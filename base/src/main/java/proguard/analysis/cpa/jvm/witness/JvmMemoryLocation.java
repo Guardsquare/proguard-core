@@ -18,7 +18,7 @@
 
 package proguard.analysis.cpa.jvm.witness;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
@@ -39,7 +39,7 @@ public abstract class JvmMemoryLocation {
    *     would be a {@link proguard.analysis.cpa.defaults.SetAbstractState} containing the taints
    *     and for value analysis a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState}.
    */
-  public abstract <T extends LatticeAbstractState<T>> T extractValueOrDefault(
+  public abstract <T extends AbstractState<T>> T extractValueOrDefault(
       JvmAbstractState<T> jvmState, T defaultValue);
 
   // implementations for Object

@@ -27,9 +27,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import proguard.analysis.cpa.bam.ExpandOperator;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.CallEdge;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
@@ -68,7 +68,7 @@ import proguard.exception.ProguardCoreException;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class DefaultExpandOperator<ContentT extends LatticeAbstractState<ContentT>>
+public class DefaultExpandOperator<ContentT extends AbstractState<ContentT>>
     implements ExpandOperator<ContentT> {
 
   private final JvmCfa cfa;

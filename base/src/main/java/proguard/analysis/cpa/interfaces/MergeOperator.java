@@ -24,7 +24,7 @@ package proguard.analysis.cpa.interfaces;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public interface MergeOperator<StateT extends AbstractState> {
+public interface MergeOperator<StateT extends AbstractState<StateT>> {
 
   /**
    * The operator uses the {@code abstractState1} to weaken {@code abstractState2} depending on

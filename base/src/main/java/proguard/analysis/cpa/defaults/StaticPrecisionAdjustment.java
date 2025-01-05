@@ -29,10 +29,11 @@ public final class StaticPrecisionAdjustment implements PrecisionAdjustment {
   // implementations for PrecisionAdjustment
 
   @Override
-  public <AbstractStateT extends AbstractState> PrecisionAdjustmentResult<AbstractStateT> prec(
-      AbstractStateT abstractState,
-      Precision precision,
-      Collection<? extends AbstractStateT> reachedAbstractStates) {
+  public <AbstractStateT extends AbstractState<AbstractStateT>>
+      PrecisionAdjustmentResult<AbstractStateT> prec(
+          AbstractStateT abstractState,
+          Precision precision,
+          Collection<? extends AbstractStateT> reachedAbstractStates) {
     return new PrecisionAdjustmentResult<>(abstractState, precision);
   }
 }

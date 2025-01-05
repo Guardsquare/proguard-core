@@ -20,12 +20,13 @@ package proguard.analysis.cpa.defaults;
 
 import java.util.HashMap;
 import java.util.Map;
+import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * This {@link HashMapAbstractState} represents a map to {@link LatticeAbstractState}s with the
- * semilattice operators lifted to the map.
+ * This {@link HashMapAbstractState} represents a map to {@link AbstractState}s with the semilattice
+ * operators lifted to the map.
  */
-public class HashMapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
+public class HashMapAbstractState<KeyT, AbstractSpaceT extends AbstractState<AbstractSpaceT>>
     extends HashMap<KeyT, AbstractSpaceT> implements MapAbstractState<KeyT, AbstractSpaceT> {
 
   /** Create an empty hash map abstract state. */

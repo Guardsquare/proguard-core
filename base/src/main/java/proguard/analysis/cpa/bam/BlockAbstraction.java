@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -36,7 +35,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BlockAbstraction<ContentT extends LatticeAbstractState<ContentT>> {
+public class BlockAbstraction<ContentT extends AbstractState<ContentT>> {
 
   /* FIXME It should be possible for the cache to contain any type of reached set. At the moment
    *   JvmMemoryLocationCpa, its states, and its transfer relation, assume that the reached set needs to be

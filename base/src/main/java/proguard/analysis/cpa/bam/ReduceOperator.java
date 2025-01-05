@@ -18,8 +18,8 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
@@ -32,7 +32,7 @@ import proguard.analysis.datastructure.callgraph.Call;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface ReduceOperator<ContentT extends LatticeAbstractState<ContentT>> {
+public interface ReduceOperator<ContentT extends AbstractState<ContentT>> {
 
   /**
    * Accumulates the reduction procedure by calling the method to create the initial state of the

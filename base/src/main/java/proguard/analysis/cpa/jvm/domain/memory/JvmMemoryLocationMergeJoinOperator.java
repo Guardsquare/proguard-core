@@ -18,9 +18,8 @@
 
 package proguard.analysis.cpa.jvm.domain.memory;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.Precision;
 
@@ -32,20 +31,8 @@ import proguard.analysis.cpa.interfaces.Precision;
  *     a {@link SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public final class JvmMemoryLocationMergeJoinOperator<
-        ContentT extends LatticeAbstractState<ContentT>>
+public final class JvmMemoryLocationMergeJoinOperator<ContentT extends AbstractState<ContentT>>
     implements MergeOperator<JvmMemoryLocationAbstractState<ContentT>> {
-  private final AbstractDomain<JvmMemoryLocationAbstractState<ContentT>> abstractDomain;
-
-  /**
-   * Create a merge operator from an abstract domain defining the join operator.
-   *
-   * @param abstractDomain abstract domain
-   */
-  public JvmMemoryLocationMergeJoinOperator(
-      AbstractDomain<JvmMemoryLocationAbstractState<ContentT>> abstractDomain) {
-    this.abstractDomain = abstractDomain;
-  }
 
   // implementations for MergeOperator
 
@@ -59,6 +46,6 @@ public final class JvmMemoryLocationMergeJoinOperator<
         .equals(abstractState2.getLocationDependentMemoryLocation())) {
       return abstractState2;
     }
-    return abstractDomain.join(abstractState1, abstractState2);
+    return abstractState1.join(abstractState2);
   }
 }

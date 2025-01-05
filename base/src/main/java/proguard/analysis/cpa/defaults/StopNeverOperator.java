@@ -30,7 +30,8 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public final class StopNeverOperator<StateT extends AbstractState> implements StopOperator<StateT> {
+public final class StopNeverOperator<StateT extends AbstractState<StateT>>
+    implements StopOperator<StateT> {
 
   // implementations for StopOperator
 

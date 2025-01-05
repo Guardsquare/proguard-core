@@ -36,7 +36,6 @@ import proguard.analysis.cpa.bam.BamCpa;
 import proguard.analysis.cpa.bam.BlockAbstraction;
 import proguard.analysis.cpa.bam.ExpandOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -113,7 +112,7 @@ import proguard.exception.ProguardCoreException;
  *     a {@link SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmMemoryLocationTransferRelation<ContentT extends LatticeAbstractState<ContentT>>
+public class JvmMemoryLocationTransferRelation<ContentT extends AbstractState<ContentT>>
     implements TransferRelation<JvmMemoryLocationAbstractState<ContentT>> {
 
   private static final Logger log = LogManager.getLogger(JvmMemoryLocationTransferRelation.class);
@@ -469,7 +468,7 @@ public class JvmMemoryLocationTransferRelation<ContentT extends LatticeAbstractS
    * called abstract state).
    */
   private Collection<CallerInfo<ContentT>> getCallersInfo(
-      JvmCallCfaEdge callEdge, JvmCfaNode calledLocation, AbstractState calledState) {
+      JvmCallCfaEdge callEdge, JvmCfaNode calledLocation, JvmAbstractState<ContentT> calledState) {
     JvmCfaNode callerLocation = callEdge.getSource();
     Collection<BlockAbstraction<ContentT>> callerCacheEntries =
         cache.get(callerLocation.getSignature());
@@ -491,7 +490,7 @@ public class JvmMemoryLocationTransferRelation<ContentT extends LatticeAbstractS
     return callerInfos;
   }
 
-  private static class CallerInfo<ContentT extends LatticeAbstractState<ContentT>> {
+  private static class CallerInfo<ContentT extends AbstractState<ContentT>> {
     public final ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet;
     public final JvmAbstractState<ContentT> state;
 

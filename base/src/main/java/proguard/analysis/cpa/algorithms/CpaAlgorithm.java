@@ -37,7 +37,7 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public class CpaAlgorithm<StateT extends AbstractState> {
+public class CpaAlgorithm<StateT extends AbstractState<StateT>> {
 
   private static final Logger log = LogManager.getLogger(CpaAlgorithm.class);
   private final ConfigurableProgramAnalysis<StateT> cpa;

@@ -18,11 +18,11 @@
 
 package proguard.testutils.cpa
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState
+import proguard.analysis.cpa.interfaces.AbstractState
 
 class ExpressionAbstractState(
     var values: Set<JvmExpression>,
-) : LatticeAbstractState<ExpressionAbstractState> {
+) : AbstractState<ExpressionAbstractState> {
 
     override fun join(abstractState: ExpressionAbstractState?): ExpressionAbstractState {
         if (abstractState == null) {

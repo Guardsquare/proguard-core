@@ -26,7 +26,7 @@ import java.util.Collection;
  *
  * @param <StateT> The states contained in the waitlist.
  */
-public interface Waitlist<StateT extends AbstractState> {
+public interface Waitlist<StateT extends AbstractState<StateT>> {
 
   /** Adds an abstract state. */
   void add(StateT state);

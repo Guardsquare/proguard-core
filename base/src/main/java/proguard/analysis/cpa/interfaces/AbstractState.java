@@ -18,8 +18,17 @@
 
 package proguard.analysis.cpa.interfaces;
 
-/** An {@link AbstractState} contains information about the program state. */
-public interface AbstractState {
+/**
+ * An {@link AbstractState} contains information about the program state.
+ *
+ * <p>Abstract states are meant as part of a join-semilattice representing the domain of the
+ * analysis and implement operations over this set. In particular the states should be able to
+ * determine whether they are below another state in the partial order and to calculate the least
+ * upper bound on the semilattice when another state is provided (i.e., join operation).
+ *
+ * @param <StateT> recursive generic type of the abstract state.
+ */
+public interface AbstractState<StateT extends AbstractState<StateT>> {
 
   /** Returns the {@link Precision} used by the {@link PrecisionAdjustment}. */
   default Precision getPrecision() {
@@ -27,7 +36,7 @@ public interface AbstractState {
   }
 
   /** Creates a copy of itself. */
-  AbstractState copy();
+  StateT copy();
 
   // overrides for Object
 
@@ -36,4 +45,21 @@ public interface AbstractState {
 
   @Override
   int hashCode();
+
+  /**
+   * Computes a join over itself and another abstract state {@code abstractState} (i.e., finds the
+   * least upper bound on the semilattice).
+   */
+  StateT join(StateT abstractState);
+
+  /**
+   * Compares itself to the {@code abstractState} (i.e., compare the states on the partial order
+   * provided by the domain of the analysis).
+   */
+  boolean isLessOrEqual(StateT abstractState);
+
+  /** Strictly compares itself to the {@code abstractState}. */
+  default boolean isLess(StateT abstractStateT) {
+    return isLessOrEqual(abstractStateT) && !equals(abstractStateT);
+  }
 }

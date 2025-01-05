@@ -26,7 +26,7 @@ import java.util.Collection;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public interface StopOperator<StateT extends AbstractState> {
+public interface StopOperator<StateT extends AbstractState<StateT>> {
 
   /**
    * The operator may decide based on the (generalized under the given {@code precision})

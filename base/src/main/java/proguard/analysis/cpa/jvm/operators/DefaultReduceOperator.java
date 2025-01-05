@@ -20,11 +20,11 @@ package proguard.analysis.cpa.jvm.operators;
 
 import java.util.ListIterator;
 import proguard.analysis.cpa.bam.ReduceOperator;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ListAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StackAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.state.JvmFrameAbstractState;
@@ -41,7 +41,7 @@ import proguard.classfile.util.ClassUtil;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class DefaultReduceOperator<ContentT extends LatticeAbstractState<ContentT>>
+public class DefaultReduceOperator<ContentT extends AbstractState<ContentT>>
     implements ReduceOperator<ContentT> {
 
   private final boolean reduceHeap;

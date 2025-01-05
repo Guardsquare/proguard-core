@@ -28,7 +28,7 @@ import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public class PrecisionAdjustmentResult<StateT extends AbstractState> {
+public class PrecisionAdjustmentResult<StateT extends AbstractState<StateT>> {
   private final StateT abstractState;
   private final Precision precision;
 

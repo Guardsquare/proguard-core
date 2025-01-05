@@ -32,8 +32,9 @@ public interface PrecisionAdjustment {
    * Returns a new {@link AbstractState} and {@link Precision} for the given reached abstract
    * states.
    */
-  <AbstractStateT extends AbstractState> PrecisionAdjustmentResult<AbstractStateT> prec(
-      AbstractStateT abstractState,
-      Precision precision,
-      Collection<? extends AbstractStateT> reachedAbstractStates);
+  <AbstractStateT extends AbstractState<AbstractStateT>>
+      PrecisionAdjustmentResult<AbstractStateT> prec(
+          AbstractStateT abstractState,
+          Precision precision,
+          Collection<? extends AbstractStateT> reachedAbstractStates);
 }

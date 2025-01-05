@@ -20,7 +20,7 @@ package proguard.analysis.cpa.jvm.state.heap;
 
 import java.util.List;
 import java.util.Set;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.classfile.Clazz;
 
@@ -28,10 +28,10 @@ import proguard.classfile.Clazz;
  * The {@link JvmHeapAbstractState} provides the interfaces for heap operations over objects and
  * arrays.
  */
-public interface JvmHeapAbstractState<StateT extends LatticeAbstractState<StateT>>
-    extends LatticeAbstractState<JvmHeapAbstractState<StateT>> {
+public interface JvmHeapAbstractState<StateT extends AbstractState<StateT>>
+    extends AbstractState<JvmHeapAbstractState<StateT>> {
 
-  // overrides for LatticeAbstractState
+  // overrides for AbstractState
 
   @Override
   JvmHeapAbstractState<StateT> copy();

@@ -19,8 +19,8 @@
 package proguard.analysis.cpa.jvm.state;
 
 import java.util.List;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.MapAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.heap.JvmHeapAbstractState;
@@ -34,8 +34,8 @@ import proguard.classfile.Clazz;
  *     this would be a {@link proguard.analysis.cpa.defaults.SetAbstractState} containing the taints
  *     and for value analysis a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState}.
  */
-public class JvmAbstractState<ContentT extends LatticeAbstractState<ContentT>>
-    implements LatticeAbstractState<JvmAbstractState<ContentT>>, ProgramLocationDependent {
+public class JvmAbstractState<ContentT extends AbstractState<ContentT>>
+    implements AbstractState<JvmAbstractState<ContentT>>, ProgramLocationDependent {
   public static final String DEFAULT_FIELD = "";
 
   protected final JvmFrameAbstractState<ContentT> frame;
@@ -63,7 +63,7 @@ public class JvmAbstractState<ContentT extends LatticeAbstractState<ContentT>>
     this.staticFields = staticFields;
   }
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   public JvmAbstractState<ContentT> join(JvmAbstractState<ContentT> abstractState) {

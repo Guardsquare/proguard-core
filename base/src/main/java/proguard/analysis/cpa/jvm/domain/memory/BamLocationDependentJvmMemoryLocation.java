@@ -3,9 +3,9 @@ package proguard.analysis.cpa.jvm.domain.memory;
 import java.util.Objects;
 import java.util.Optional;
 import proguard.analysis.cpa.bam.BamLocationDependent;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
@@ -19,7 +19,7 @@ import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
  *     cache. For example, this can be a {@link SetAbstractState} of taints for taint analysis or a
  *     {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BamLocationDependentJvmMemoryLocation<ContentT extends LatticeAbstractState<ContentT>>
+public class BamLocationDependentJvmMemoryLocation<ContentT extends AbstractState<ContentT>>
     implements ProgramLocationDependent, BamLocationDependent<ContentT> {
 
   private final JvmMemoryLocation memoryLocation;

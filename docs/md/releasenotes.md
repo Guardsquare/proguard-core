@@ -10,6 +10,7 @@ This is a continuation of the API changes started in release 9.1.7.
 - Refactor several classes taking generic parameters for `CfaEdge`, `CfaNode`, and `Signature`, to not use the generic parameters anymore. They now default to `JvmCfaEdge`, `JvmCfaNode`, and `MethodSignature`.
 - Refactor CPA reached set, waitlist, operators, and all their dependant classes to be parametrized by the type of abstract states of the dataflow analysis. This allows to make the code safe at compile time and avoid unnecessary casts.
 - Move `AbortOperator` from being a parameter of `CpaAlgorithm#run` to the `ConfigurableProgramAnalysis` interface.
+- Move functionalities of `LatticeAbstractState` to `AbstractState`. Remove `AbstractDomain` since the abstract states can now perform directly the `isLessOrEqual` and `join` operations without the need of delegation.
 
 ## Version 9.1.7
 

@@ -18,10 +18,11 @@
 
 package proguard.testutils.cpa
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState
+import proguard.analysis.cpa.interfaces.AbstractState
 import kotlin.math.max
 
-class IntegerAbstractState(val v: Int) : LatticeAbstractState<IntegerAbstractState> {
+class IntegerAbstractState(val v: Int) :
+    AbstractState<IntegerAbstractState> {
     override fun join(abstractState: IntegerAbstractState?): IntegerAbstractState {
         return if (abstractState != null) IntegerAbstractState(max(v, abstractState.v)) else this
     }

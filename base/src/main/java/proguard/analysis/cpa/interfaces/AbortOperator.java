@@ -28,5 +28,5 @@ public interface AbortOperator {
    * The operator receives a newly discovered abstract state and returns whether the analysis should
    * terminate.
    */
-  boolean abort(AbstractState abstractState);
+  boolean abort(AbstractState<?> abstractState);
 }

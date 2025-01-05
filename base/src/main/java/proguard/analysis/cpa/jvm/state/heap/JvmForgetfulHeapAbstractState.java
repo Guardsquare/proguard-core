@@ -19,14 +19,14 @@
 package proguard.analysis.cpa.jvm.state.heap;
 
 import java.util.List;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 
 /**
  * This is a forgetful stub heap implementation. It does not change and always returns the default
  * value.
  */
-public class JvmForgetfulHeapAbstractState<StateT extends LatticeAbstractState<StateT>>
+public class JvmForgetfulHeapAbstractState<StateT extends AbstractState<StateT>>
     implements JvmHeapAbstractState<StateT> {
 
   private final StateT defaultValue;
@@ -68,7 +68,7 @@ public class JvmForgetfulHeapAbstractState<StateT extends LatticeAbstractState<S
     return defaultValue;
   }
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   public JvmForgetfulHeapAbstractState<StateT> join(JvmHeapAbstractState<StateT> abstractState) {

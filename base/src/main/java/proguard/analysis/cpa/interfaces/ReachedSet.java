@@ -26,7 +26,7 @@ import java.util.Collection;
  *
  * @param <StateT> The states contained in the reached set.
  */
-public interface ReachedSet<StateT extends AbstractState> {
+public interface ReachedSet<StateT extends AbstractState<StateT>> {
 
   /** Adds an abstract state. */
   boolean add(StateT abstractState);

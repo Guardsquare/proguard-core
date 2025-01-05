@@ -26,7 +26,7 @@ import java.util.Collection;
  *
  * @param <StateT> The type of states of the analysis, produced by the transfer relation.
  */
-public interface TransferRelation<StateT extends AbstractState> {
+public interface TransferRelation<StateT extends AbstractState<StateT>> {
 
   /**
    * Returns abstract successor states of the {@code abstractState} under the selected {@code

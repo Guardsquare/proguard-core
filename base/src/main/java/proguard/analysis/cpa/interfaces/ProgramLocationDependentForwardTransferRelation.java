@@ -19,7 +19,6 @@
 package proguard.analysis.cpa.interfaces;
 
 import java.util.List;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
@@ -34,7 +33,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *     analysis.
  */
 public interface ProgramLocationDependentForwardTransferRelation<
-        ContentT extends LatticeAbstractState<ContentT>>
+        ContentT extends AbstractState<ContentT>>
     extends ProgramLocationDependentTransferRelation<ContentT> {
   @Override
   default List<JvmCfaEdge> getEdges(JvmAbstractState<ContentT> state) {

@@ -33,8 +33,8 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import proguard.analysis.CallResolver;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentForwardTransferRelation;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCallCfaEdge;
@@ -81,7 +81,7 @@ import proguard.exception.ProguardCoreException;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public abstract class JvmTransferRelation<ContentT extends LatticeAbstractState<ContentT>>
+public abstract class JvmTransferRelation<ContentT extends AbstractState<ContentT>>
     implements ProgramLocationDependentForwardTransferRelation<ContentT> {
 
   // Implementations for ProgramLocationDependentTransferRelation

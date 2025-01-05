@@ -21,10 +21,10 @@ package proguard.analysis.cpa.defaults;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import proguard.analysis.cpa.interfaces.AbstractState;
 
 /** This {@link SetAbstractState} represents a set with the subset ordering. */
-public class SetAbstractState<T> extends HashSet<T>
-    implements LatticeAbstractState<SetAbstractState<T>> {
+public class SetAbstractState<T> extends HashSet<T> implements AbstractState<SetAbstractState<T>> {
 
   private static final SetAbstractState<?> bottom = new SetAbstractState<>();
 
@@ -46,7 +46,7 @@ public class SetAbstractState<T> extends HashSet<T>
     super(c);
   }
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   public SetAbstractState<T> join(SetAbstractState<T> abstractState) {

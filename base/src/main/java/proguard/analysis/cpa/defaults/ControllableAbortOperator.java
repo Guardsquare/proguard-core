@@ -32,7 +32,7 @@ public class ControllableAbortOperator implements AbortOperator {
   // implementations for AbortOperator
 
   @Override
-  public boolean abort(AbstractState abstractState) {
+  public boolean abort(AbstractState<?> abstractState) {
     return abort;
   }
 }

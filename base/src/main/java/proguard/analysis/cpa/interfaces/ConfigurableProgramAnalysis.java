@@ -21,11 +21,8 @@ package proguard.analysis.cpa.interfaces;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link ConfigurableProgramAnalysis} consists of {@link AbstractDomain}, {@link TransferRelation},
- * {@link MergeOperator}, {@link StopOperator}, and {@link PrecisionAdjustment}.
- *
- * <p>The {@link AbstractDomain} is a join-semilattice of {@link AbstractState}s. It defines the
- * abstraction level of the analysis.
+ * {@link ConfigurableProgramAnalysis} consists of a {@link TransferRelation}, {@link
+ * MergeOperator}, {@link StopOperator}, and {@link PrecisionAdjustment}.
  *
  * <p>The {@link TransferRelation} specifies how successor states are computed in the {@link
  * proguard.analysis.cpa.algorithms.CpaAlgorithm}.
@@ -43,11 +40,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public interface ConfigurableProgramAnalysis<StateT extends AbstractState> {
-
-  /** Returns the abstract domain of this CPA. */
-  @NotNull
-  AbstractDomain<StateT> getAbstractDomain();
+public interface ConfigurableProgramAnalysis<StateT extends AbstractState<StateT>> {
 
   /** Returns the transfer relation of this CPA. */
   @NotNull

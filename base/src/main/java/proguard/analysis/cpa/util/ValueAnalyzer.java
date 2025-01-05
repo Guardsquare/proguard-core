@@ -9,7 +9,6 @@ import proguard.analysis.cpa.bam.BamCacheImpl;
 import proguard.analysis.cpa.bam.BamCpa;
 import proguard.analysis.cpa.bam.CpaWithBamOperators;
 import proguard.analysis.cpa.bam.NoOpRebuildOperator;
-import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.DepthFirstWaitlist;
 import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
@@ -180,14 +179,11 @@ public class ValueAnalyzer {
       TransferRelation<JvmAbstractState<ValueAbstractState>> valueTransferRelation =
           new JvmValueTransferRelation(valueFactory, invocationUnit);
 
-      DelegateAbstractDomain<JvmAbstractState<ValueAbstractState>> abstractDomain =
-          new DelegateAbstractDomain<>();
       ConfigurableProgramAnalysis<JvmAbstractState<ValueAbstractState>> intraproceduralCpa =
           new SimpleCpa<>(
-              abstractDomain,
               valueTransferRelation,
-              new MergeJoinOperator<>(abstractDomain),
-              new StopJoinOperator<>(abstractDomain),
+              new MergeJoinOperator<>(),
+              new StopJoinOperator<>(),
               new StaticPrecisionAdjustment(),
               NeverAbortOperator.INSTANCE);
 

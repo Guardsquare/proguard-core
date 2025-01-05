@@ -41,14 +41,11 @@ import proguard.analysis.cpa.bam.NoOpRebuildOperator;
 import proguard.analysis.cpa.bam.RebuildOperator;
 import proguard.analysis.cpa.bam.ReduceOperator;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
-import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
 import proguard.analysis.cpa.defaults.HashMapAbstractState;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
 import proguard.analysis.cpa.defaults.StopSepOperator;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
-import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependent;
@@ -109,21 +106,17 @@ public class BamCpaAlgorithmTest {
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
 
-    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
-        new DelegateAbstractDomain<>();
     ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
         new ExpressionTransferRelation();
     MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
-        new MergeJoinOperator<>(abstractDomain);
-    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
-        new StopSepOperator<>(abstractDomain);
+        new MergeJoinOperator<>();
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator = new StopSepOperator<>();
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
     ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
     ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
     CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
-            abstractDomain,
             transferRelation,
             mergeOperator,
             stopOperator,
@@ -168,14 +161,15 @@ public class BamCpaAlgorithmTest {
     // test result foo function call:
     // tests call of static method
     // tests usage of static field in another method
-    List<AbstractState> returnStates8 =
+    List<JvmAbstractState<ExpressionAbstractState>> returnStates8 =
         reached.asCollection().stream()
             .filter(s -> ((ProgramLocationDependent) s).getProgramLocation().getOffset() == 8)
             .collect(Collectors.toList());
     assertEquals(1, returnStates8.size());
-    AbstractState returnState8 = returnStates8.get(0);
+    JvmAbstractState<ExpressionAbstractState> returnState8 = returnStates8.get(0);
 
-    HashMapAbstractState<String, ExpressionAbstractState> staticFields = new HashMapAbstractState();
+    HashMapAbstractState<String, ExpressionAbstractState> staticFields =
+        new HashMapAbstractState<>();
     staticFields.put(
         "A.a:I",
         new ExpressionAbstractState(
@@ -221,12 +215,12 @@ public class BamCpaAlgorithmTest {
     // tests call to instance method
     // tests double argument
     // tests rebuild with non empty stack
-    List<AbstractState> returnStates26 =
+    List<JvmAbstractState<ExpressionAbstractState>> returnStates26 =
         reached.asCollection().stream()
             .filter(s -> ((ProgramLocationDependent) s).getProgramLocation().getOffset() == 26)
             .collect(Collectors.toList());
     assertEquals(1, returnStates26.size());
-    AbstractState returnState26 = returnStates26.get(0);
+    JvmAbstractState<ExpressionAbstractState> returnState26 = returnStates26.get(0);
 
     JvmAbstractState<ExpressionAbstractState> expected26 =
         new JvmAbstractState<>(
@@ -287,21 +281,17 @@ public class BamCpaAlgorithmTest {
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
 
-    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
-        new DelegateAbstractDomain<>();
     ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
         new ExpressionTransferRelation();
     MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
-        new MergeJoinOperator<>(abstractDomain);
-    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
-        new StopSepOperator<>(abstractDomain);
+        new MergeJoinOperator<>();
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator = new StopSepOperator<>();
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
     ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
     ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
     CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
-            abstractDomain,
             transferRelation,
             mergeOperator,
             stopOperator,
@@ -345,14 +335,15 @@ public class BamCpaAlgorithmTest {
 
     // test result of recursive calls with a max call stack limited to 3 (main function and 2 calls
     // to sum function
-    List<AbstractState> returnStates =
+    List<JvmAbstractState<ExpressionAbstractState>> returnStates =
         reached.asCollection().stream()
             .filter(s -> ((ProgramLocationDependent) s).getProgramLocation().getOffset() == 5)
             .collect(Collectors.toList());
     assertEquals(1, returnStates.size());
-    AbstractState returnState = returnStates.get(0);
+    JvmAbstractState<ExpressionAbstractState> returnState = returnStates.get(0);
 
-    HashMapAbstractState<String, ExpressionAbstractState> staticFields = new HashMapAbstractState();
+    HashMapAbstractState<String, ExpressionAbstractState> staticFields =
+        new HashMapAbstractState<>();
     staticFields.put(
         "A.a",
         new ExpressionAbstractState(
@@ -444,21 +435,18 @@ public class BamCpaAlgorithmTest {
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
-    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
-        new DelegateAbstractDomain<>();
+
     ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
         new ExpressionTransferRelation();
     MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
-        new MergeJoinOperator<>(abstractDomain);
-    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
-        new StopSepOperator<>(abstractDomain);
+        new MergeJoinOperator<>();
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator = new StopSepOperator<>();
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
     ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
     ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
     CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
-            abstractDomain,
             transferRelation,
             mergeOperator,
             stopOperator,
@@ -527,21 +515,18 @@ public class BamCpaAlgorithmTest {
                 true)
             .getProgramClassPool();
     cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
-    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
-        new DelegateAbstractDomain<JvmAbstractState<ExpressionAbstractState>>();
+
     ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
         new ExpressionTransferRelation();
     MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
-        new MergeJoinOperator<>(abstractDomain);
-    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
-        new StopSepOperator<>(abstractDomain);
+        new MergeJoinOperator<>();
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator = new StopSepOperator<>();
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
     ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
     ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
     CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
-            abstractDomain,
             transferRelation,
             mergeOperator,
             stopOperator,
@@ -613,21 +598,17 @@ public class BamCpaAlgorithmTest {
     // create just intra-procedural CFA, all inter-procedural call edges are missing
     cfa = CfaUtil.createIntraproceduralCfaFromClassPool(programClassPool);
 
-    AbstractDomain<JvmAbstractState<ExpressionAbstractState>> abstractDomain =
-        new DelegateAbstractDomain<JvmAbstractState<ExpressionAbstractState>>();
     ProgramLocationDependentTransferRelation<ExpressionAbstractState> transferRelation =
         new ExpressionTransferRelation();
     MergeOperator<JvmAbstractState<ExpressionAbstractState>> mergeOperator =
-        new MergeJoinOperator<>(abstractDomain);
-    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator =
-        new StopSepOperator<>(abstractDomain);
+        new MergeJoinOperator<>();
+    StopOperator<JvmAbstractState<ExpressionAbstractState>> stopOperator = new StopSepOperator<>();
     PrecisionAdjustment precisionAdjustment = new StaticPrecisionAdjustment();
     ReduceOperator<ExpressionAbstractState> reduceOperator = new DefaultReduceOperator<>();
     ExpandOperator<ExpressionAbstractState> expandOperator = new DefaultExpandOperator<>(cfa);
     RebuildOperator rebuildOperator = new NoOpRebuildOperator();
     CpaWithBamOperators<ExpressionAbstractState> wrappedCpa =
         new CpaWithBamOperators<>(
-            abstractDomain,
             transferRelation,
             mergeOperator,
             stopOperator,

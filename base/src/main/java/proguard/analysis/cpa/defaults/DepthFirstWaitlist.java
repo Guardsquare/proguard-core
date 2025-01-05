@@ -27,7 +27,8 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  *
  * @param <StateT> The states contained in the waitlist.
  */
-public class DepthFirstWaitlist<StateT extends AbstractState> extends AbstractWaitlist<StateT> {
+public class DepthFirstWaitlist<StateT extends AbstractState<StateT>>
+    extends AbstractWaitlist<StateT> {
   // implementations for AbstractWaitlist
 
   @Override

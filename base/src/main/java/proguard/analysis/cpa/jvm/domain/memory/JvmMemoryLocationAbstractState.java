@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Set;
 import proguard.analysis.cpa.bam.BamLocationDependent;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
@@ -41,8 +40,8 @@ import proguard.classfile.MethodSignature;
  *     a {@link SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmMemoryLocationAbstractState<ContentT extends LatticeAbstractState<ContentT>>
-    implements LatticeAbstractState<JvmMemoryLocationAbstractState<ContentT>>,
+public class JvmMemoryLocationAbstractState<ContentT extends AbstractState<ContentT>>
+    implements AbstractState<JvmMemoryLocationAbstractState<ContentT>>,
         ProgramLocationDependent,
         BamLocationDependent<ContentT> {
 
@@ -172,7 +171,7 @@ public class JvmMemoryLocationAbstractState<ContentT extends LatticeAbstractStat
     return new LinkedList<>(callStack);
   }
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   public JvmMemoryLocationAbstractState<ContentT> join(
@@ -263,7 +262,7 @@ public class JvmMemoryLocationAbstractState<ContentT extends LatticeAbstractStat
    *     SetAbstractState} of taints for taint analysis or a {@link
    *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
    */
-  public static class StackEntry<ContentT extends LatticeAbstractState<ContentT>> {
+  public static class StackEntry<ContentT extends AbstractState<ContentT>> {
 
     public final MethodSignature signature;
     public final ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedSet;
@@ -303,7 +302,7 @@ public class JvmMemoryLocationAbstractState<ContentT extends LatticeAbstractStat
    *     SetAbstractState} of taints for taint analysis or a {@link
    *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
    */
-  public static <ContentT extends LatticeAbstractState<ContentT>>
+  public static <ContentT extends AbstractState<ContentT>>
       JvmMemoryLocationAbstractState<ContentT> top() {
     // top behaves the same for all contents, so we can safely convert a unique top state
     @SuppressWarnings("unchecked")

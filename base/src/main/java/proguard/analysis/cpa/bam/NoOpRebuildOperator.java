@@ -18,7 +18,6 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
@@ -31,7 +30,7 @@ public class NoOpRebuildOperator implements RebuildOperator {
   // Implementations for RebuildOperator
 
   @Override
-  public <ContentT extends LatticeAbstractState<ContentT>> JvmAbstractState<ContentT> rebuild(
+  public <ContentT extends AbstractState<ContentT>> JvmAbstractState<ContentT> rebuild(
       JvmAbstractState<ContentT> predecessorCallState,
       JvmAbstractState<ContentT> expandedOutputState) {
     return expandedOutputState;

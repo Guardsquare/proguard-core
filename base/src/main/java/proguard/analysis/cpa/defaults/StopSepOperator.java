@@ -19,7 +19,6 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.Collection;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.StopOperator;
@@ -30,25 +29,14 @@ import proguard.analysis.cpa.interfaces.StopOperator;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public final class StopSepOperator<StateT extends AbstractState> implements StopOperator<StateT> {
-
-  private final AbstractDomain<StateT> abstractDomain;
-
-  /**
-   * Create a join operator from the abstract domain defining the join operator.
-   *
-   * @param abstractDomain abstract domain
-   */
-  public StopSepOperator(AbstractDomain<StateT> abstractDomain) {
-    this.abstractDomain = abstractDomain;
-  }
+public final class StopSepOperator<StateT extends AbstractState<StateT>>
+    implements StopOperator<StateT> {
 
   // implementations for StopOperator
 
   @Override
   public boolean stop(
       StateT abstractState, Collection<StateT> reachedAbstractStates, Precision precision) {
-    return reachedAbstractStates.stream()
-        .anyMatch(reachedState -> abstractDomain.isLessOrEqual(abstractState, reachedState));
+    return reachedAbstractStates.stream().anyMatch(abstractState::isLessOrEqual);
   }
 }

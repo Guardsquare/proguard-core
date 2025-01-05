@@ -19,7 +19,7 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.Collection;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
+import java.util.Iterator;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.StopOperator;
@@ -30,32 +30,24 @@ import proguard.analysis.cpa.interfaces.StopOperator;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public final class StopJoinOperator<StateT extends AbstractState> implements StopOperator<StateT> {
-  private final AbstractDomain<StateT> abstractDomain;
-
-  /**
-   * Create a join operator from the abstract domain defining the join operator.
-   *
-   * @param abstractDomain abstract domain
-   */
-  public StopJoinOperator(AbstractDomain<StateT> abstractDomain) {
-    this.abstractDomain = abstractDomain;
-  }
+public final class StopJoinOperator<StateT extends AbstractState<StateT>>
+    implements StopOperator<StateT> {
 
   // implementations for StopOperator
 
   @Override
   public boolean stop(
       StateT abstractState, Collection<StateT> reachedAbstractStates, Precision precision) {
-    if (reachedAbstractStates
-        .isEmpty()) // since we may have no bottom in the lattice, we have to process the case of an
-    // empty reached set separately
-    {
+    if (reachedAbstractStates.isEmpty()) {
       return false;
     }
-    return abstractDomain.isLessOrEqual(
-        abstractState,
-        reachedAbstractStates.stream()
-            .reduce(reachedAbstractStates.iterator().next(), abstractDomain::join));
+
+    Iterator<StateT> reachedStatesIterator = reachedAbstractStates.iterator();
+    StateT joinedReachedStates = reachedStatesIterator.next();
+    while (reachedStatesIterator.hasNext()) {
+      joinedReachedStates = joinedReachedStates.join(reachedStatesIterator.next());
+    }
+
+    return abstractState.isLessOrEqual(joinedReachedStates);
   }
 }

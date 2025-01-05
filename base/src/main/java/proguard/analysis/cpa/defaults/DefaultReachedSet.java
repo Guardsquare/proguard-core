@@ -30,7 +30,8 @@ import proguard.analysis.cpa.interfaces.ReachedSet;
  *
  * @param <StateT> The states contained in the reached set.
  */
-public final class DefaultReachedSet<StateT extends AbstractState> implements ReachedSet<StateT> {
+public final class DefaultReachedSet<StateT extends AbstractState<StateT>>
+    implements ReachedSet<StateT> {
 
   HashSet<StateT> reachedSet = new LinkedHashSet<>();
 

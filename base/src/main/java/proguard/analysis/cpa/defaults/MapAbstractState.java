@@ -18,12 +18,12 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.Map;
+import proguard.analysis.cpa.interfaces.AbstractState;
 
-public interface MapAbstractState<KeyT, AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
-    extends Map<KeyT, AbstractSpaceT>,
-        LatticeAbstractState<MapAbstractState<KeyT, AbstractSpaceT>> {
+public interface MapAbstractState<KeyT, AbstractSpaceT extends AbstractState<AbstractSpaceT>>
+    extends Map<KeyT, AbstractSpaceT>, AbstractState<MapAbstractState<KeyT, AbstractSpaceT>> {
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   default MapAbstractState<KeyT, AbstractSpaceT> join(

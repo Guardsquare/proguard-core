@@ -21,7 +21,6 @@ package proguard.analysis.cpa.bam;
 import java.util.Collection;
 import java.util.Set;
 import proguard.analysis.cpa.defaults.Cfa;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
@@ -43,7 +42,7 @@ import proguard.classfile.Signature;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface BamCache<ContentT extends LatticeAbstractState<ContentT>> {
+public interface BamCache<ContentT extends AbstractState<ContentT>> {
 
   /** Adds the block abstraction identified by the provided keys to the cache. */
   void put(

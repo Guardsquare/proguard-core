@@ -27,7 +27,8 @@ import proguard.analysis.cpa.interfaces.Precision;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public final class MergeSepOperator<StateT extends AbstractState> implements MergeOperator<StateT> {
+public final class MergeSepOperator<StateT extends AbstractState<StateT>>
+    implements MergeOperator<StateT> {
 
   // implementations for MergeOperator
 

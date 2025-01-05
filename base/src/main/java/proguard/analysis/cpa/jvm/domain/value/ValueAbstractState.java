@@ -27,7 +27,6 @@ import static proguard.exception.ErrorId.ANALYSIS_VALUE_ABSTRACT_STATE_CONDITION
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.evaluation.value.IdentifiedReferenceValue;
 import proguard.evaluation.value.TypedReferenceValue;
@@ -35,7 +34,7 @@ import proguard.evaluation.value.Value;
 import proguard.exception.ProguardCoreException;
 
 /** An {@link AbstractState} for tracking JVM values. */
-public class ValueAbstractState implements LatticeAbstractState<ValueAbstractState> {
+public class ValueAbstractState implements AbstractState<ValueAbstractState> {
 
   private static final Logger logger = LogManager.getLogger(ValueAbstractState.class);
   public static final ValueAbstractState UNKNOWN = new ValueAbstractState(UNKNOWN_VALUE);
@@ -78,7 +77,7 @@ public class ValueAbstractState implements LatticeAbstractState<ValueAbstractSta
   }
 
   @Override
-  public AbstractState copy() {
+  public ValueAbstractState copy() {
     return new ValueAbstractState(value);
   }
 

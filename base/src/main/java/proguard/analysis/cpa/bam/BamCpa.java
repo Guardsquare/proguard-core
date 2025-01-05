@@ -20,9 +20,8 @@ package proguard.analysis.cpa.bam;
 
 import org.jetbrains.annotations.NotNull;
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
 import proguard.analysis.cpa.interfaces.PrecisionAdjustment;
@@ -49,7 +48,7 @@ import proguard.classfile.MethodSignature;
  *     analysis or a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value
  *     analysis.
  */
-public class BamCpa<ContentT extends LatticeAbstractState<ContentT>>
+public class BamCpa<ContentT extends AbstractState<ContentT>>
     implements ConfigurableProgramAnalysis<JvmAbstractState<ContentT>> {
 
   private final CpaWithBamOperators<ContentT> wrappedCpa;
@@ -94,12 +93,6 @@ public class BamCpa<ContentT extends LatticeAbstractState<ContentT>>
   }
 
   // Implementations for ConfigurableProgramAnalysis
-
-  /** Returns the abstract domain of the wrapped CPA. */
-  @Override
-  public @NotNull AbstractDomain<JvmAbstractState<ContentT>> getAbstractDomain() {
-    return wrappedCpa.getAbstractDomain();
-  }
 
   /** Returns the BAM transfer relation, more details in {@link BamTransferRelation}. */
   @Override

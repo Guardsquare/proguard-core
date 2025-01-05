@@ -18,8 +18,8 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
@@ -39,7 +39,7 @@ public interface RebuildOperator {
    *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
    * @return The state of the caller after the procedure call
    */
-  <ContentT extends LatticeAbstractState<ContentT>> JvmAbstractState<ContentT> rebuild(
+  <ContentT extends AbstractState<ContentT>> JvmAbstractState<ContentT> rebuild(
       JvmAbstractState<ContentT> predecessorCallState,
       JvmAbstractState<ContentT> expandedOutputState);
 }

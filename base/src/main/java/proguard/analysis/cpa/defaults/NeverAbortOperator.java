@@ -31,7 +31,7 @@ public final class NeverAbortOperator implements AbortOperator {
   // implementations for AbortOperator
 
   @Override
-  public boolean abort(AbstractState abstractState) {
+  public boolean abort(AbstractState<?> abstractState) {
     return false;
   }
 }

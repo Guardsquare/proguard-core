@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import proguard.analysis.cpa.algorithms.CpaAlgorithm;
 import proguard.analysis.cpa.defaults.BreadthFirstWaitlist;
 import proguard.analysis.cpa.defaults.Cfa;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StopSepOperator;
@@ -64,7 +63,7 @@ import proguard.classfile.Signature;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>>
+public class BamTransferRelation<ContentT extends AbstractState<ContentT>>
     implements TransferRelation<JvmAbstractState<ContentT>> {
 
   private final BamCpa<ContentT> bamCpa;
@@ -113,7 +112,7 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
     this.cfa = cfa;
     this.mainLocation = cfa.getFunctionEntryNode(mainFunction);
     this.cache = cache;
-    this.fixedPointStopOperator = new StopSepOperator<>(bamCpa.getAbstractDomain());
+    this.fixedPointStopOperator = new StopSepOperator<>();
     this.maxCallStackDepth = maxCallStackDepth;
   }
 
@@ -264,9 +263,7 @@ public class BamTransferRelation<ContentT extends LatticeAbstractState<ContentT>
             .filter(
                 x ->
                     x.function.equals(currentFunction)
-                        && bamCpa
-                            .getAbstractDomain()
-                            .isLessOrEqual(reducedEntryState, x.entryState))
+                        && reducedEntryState.isLessOrEqual(x.entryState))
             .map(x -> x.entryState)
             .findFirst();
 

@@ -20,7 +20,6 @@ package proguard.analysis.cpa.defaults;
 
 import org.jetbrains.annotations.NotNull;
 import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
@@ -35,9 +34,8 @@ import proguard.analysis.cpa.interfaces.TransferRelation;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public class SimpleCpa<StateT extends AbstractState>
+public class SimpleCpa<StateT extends AbstractState<StateT>>
     implements ConfigurableProgramAnalysis<StateT> {
-  private final AbstractDomain<StateT> abstractDomain;
   private final TransferRelation<StateT> transferRelation;
   private final MergeOperator<StateT> mergeOperator;
   private final StopOperator<StateT> stopOperator;
@@ -56,12 +54,10 @@ public class SimpleCpa<StateT extends AbstractState>
    *     {@link ReachedSet} based on the content of the latter
    */
   public SimpleCpa(
-      AbstractDomain<StateT> abstractDomain,
       TransferRelation<StateT> transferRelation,
       MergeOperator<StateT> mergeOperator,
       StopOperator<StateT> stopOperator) {
     this(
-        abstractDomain,
         transferRelation,
         mergeOperator,
         stopOperator,
@@ -84,13 +80,11 @@ public class SimpleCpa<StateT extends AbstractState>
    * @param abortOperator an operator used to terminate the analysis prematurely.
    */
   public SimpleCpa(
-      AbstractDomain<StateT> abstractDomain,
       TransferRelation<StateT> transferRelation,
       MergeOperator<StateT> mergeOperator,
       StopOperator<StateT> stopOperator,
       PrecisionAdjustment precisionAdjustment,
       AbortOperator abortOperator) {
-    this.abstractDomain = abstractDomain;
     this.transferRelation = transferRelation;
     this.mergeOperator = mergeOperator;
     this.stopOperator = stopOperator;
@@ -99,11 +93,6 @@ public class SimpleCpa<StateT extends AbstractState>
   }
 
   // implementations for ConfigurableProgramAnalysis
-
-  @Override
-  public @NotNull AbstractDomain<StateT> getAbstractDomain() {
-    return abstractDomain;
-  }
 
   @Override
   public @NotNull TransferRelation<StateT> getTransferRelation() {

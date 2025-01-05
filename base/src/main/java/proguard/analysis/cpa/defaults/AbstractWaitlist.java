@@ -28,9 +28,9 @@ import proguard.analysis.cpa.interfaces.Waitlist;
  * delegates all the {@link Waitlist} interfaces to its carrier collection.
  *
  * @param <StateT> The states contained in the waitlist.
- * @param <CollectionT> The collection backing the waitlist.
  */
-public abstract class AbstractWaitlist<StateT extends AbstractState> implements Waitlist<StateT> {
+public abstract class AbstractWaitlist<StateT extends AbstractState<StateT>>
+    implements Waitlist<StateT> {
   protected final Collection<StateT> waitlist = new LinkedHashSet<>();
 
   // implementations for Waitlist

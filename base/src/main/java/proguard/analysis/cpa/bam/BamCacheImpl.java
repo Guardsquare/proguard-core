@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.Precision;
@@ -42,12 +41,11 @@ import proguard.classfile.MethodSignature;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class BamCacheImpl<ContentT extends LatticeAbstractState<ContentT>>
-    implements BamCache<ContentT> {
+public class BamCacheImpl<ContentT extends AbstractState<ContentT>> implements BamCache<ContentT> {
 
   private static final Logger log = LogManager.getLogger(BamCacheImpl.class);
 
-  private final Map<MethodSignature, Map<HashKey, BlockAbstraction<ContentT>>> cache =
+  private final Map<MethodSignature, Map<HashKey<ContentT>, BlockAbstraction<ContentT>>> cache =
       new HashMap<>();
   private int size = 0;
 
@@ -107,17 +105,18 @@ public class BamCacheImpl<ContentT extends LatticeAbstractState<ContentT>>
     return Collections.unmodifiableSet(cache.keySet());
   }
 
-  private HashKey getHashKey(AbstractState stateKey, Precision precisionKey) {
-    return new HashKey(stateKey, precisionKey);
+  private HashKey<ContentT> getHashKey(
+      JvmAbstractState<ContentT> stateKey, Precision precisionKey) {
+    return new HashKey<>(stateKey, precisionKey);
   }
 
   /**
    * The key of the cache is created from the three parameters that define a block abstraction. The
    * equals and hashCode methods are overridden to guarantee the correct behavior of the hash map.
    */
-  private static class HashKey {
+  private static class HashKey<ContentT extends AbstractState<ContentT>> {
 
-    private final AbstractState stateKey;
+    private final JvmAbstractState<ContentT> stateKey;
     private final Precision precisionKey;
 
     /**
@@ -126,13 +125,13 @@ public class BamCacheImpl<ContentT extends LatticeAbstractState<ContentT>>
      * @param stateKey the entry abstract state of a method
      * @param precisionKey a precision
      */
-    public HashKey(AbstractState stateKey, Precision precisionKey) {
+    public HashKey(JvmAbstractState<ContentT> stateKey, Precision precisionKey) {
       this.stateKey = stateKey;
       this.precisionKey = precisionKey;
     }
 
     /** Returns the entry state of the block that composes the key. */
-    public AbstractState getStateKey() {
+    public JvmAbstractState<ContentT> getStateKey() {
       return stateKey;
     }
 
@@ -151,7 +150,7 @@ public class BamCacheImpl<ContentT extends LatticeAbstractState<ContentT>>
       if (!(o instanceof HashKey)) {
         return false;
       }
-      HashKey other = (HashKey) o;
+      HashKey<?> other = (HashKey<?>) o;
       return Objects.equals(stateKey, other.stateKey)
           && Objects.equals(precisionKey, other.precisionKey);
     }

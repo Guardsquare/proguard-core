@@ -22,13 +22,11 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import proguard.analysis.cpa.bam.BamCpa;
-import proguard.analysis.cpa.defaults.DelegateAbstractDomain;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
 import proguard.analysis.cpa.defaults.StopSepOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.datastructure.callgraph.Call;
 
@@ -40,7 +38,7 @@ import proguard.analysis.datastructure.callgraph.Call;
  *     a {@link SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class JvmMemoryLocationCpa<ContentT extends LatticeAbstractState<ContentT>>
+public class JvmMemoryLocationCpa<ContentT extends AbstractState<ContentT>>
     extends SimpleCpa<JvmMemoryLocationAbstractState<ContentT>> {
 
   private final AbortOperator abortOperator;
@@ -50,28 +48,14 @@ public class JvmMemoryLocationCpa<ContentT extends LatticeAbstractState<ContentT
       BamCpa<ContentT> bamCpa,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
       AbortOperator abortOperator) {
-    this(
-        threshold,
-        bamCpa,
-        new DelegateAbstractDomain<JvmMemoryLocationAbstractState<ContentT>>(),
-        extraTaintPropagationLocations,
-        abortOperator);
-  }
-
-  private JvmMemoryLocationCpa(
-      ContentT threshold,
-      BamCpa<ContentT> bamCpa,
-      AbstractDomain<JvmMemoryLocationAbstractState<ContentT>> abstractDomain,
-      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
-      AbortOperator abortOperator) {
     super(
-        abstractDomain,
         new JvmMemoryLocationTransferRelation<>(threshold, bamCpa, extraTaintPropagationLocations),
-        new JvmMemoryLocationMergeJoinOperator(abstractDomain),
-        new StopSepOperator(abstractDomain));
+        new JvmMemoryLocationMergeJoinOperator<>(),
+        new StopSepOperator<>());
     this.abortOperator = abortOperator;
   }
 
+  @Override
   public @NotNull AbortOperator getAbortOperator() {
     return abortOperator;
   }

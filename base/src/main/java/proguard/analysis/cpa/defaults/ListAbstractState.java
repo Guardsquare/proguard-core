@@ -19,14 +19,15 @@
 package proguard.analysis.cpa.defaults;
 
 import java.util.ArrayList;
+import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
- * This {@link ListAbstractState} represents a list of {@link LatticeAbstractState}s with the
- * semilattice operators lifted to the list.
+ * This {@link ListAbstractState} represents a list of {@link
+ * proguard.analysis.cpa.interfaces.AbstractState}s with the semilattice operators lifted to the
+ * list.
  */
-public class ListAbstractState<AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
-    extends ArrayList<AbstractSpaceT>
-    implements LatticeAbstractState<ListAbstractState<AbstractSpaceT>> {
+public class ListAbstractState<AbstractSpaceT extends AbstractState<AbstractSpaceT>>
+    extends ArrayList<AbstractSpaceT> implements AbstractState<ListAbstractState<AbstractSpaceT>> {
 
   /** Create a list abstract state with initial capacity 0. */
   public ListAbstractState() {
@@ -42,7 +43,7 @@ public class ListAbstractState<AbstractSpaceT extends LatticeAbstractState<Abstr
     super(initalCapacity);
   }
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   public ListAbstractState<AbstractSpaceT> join(ListAbstractState<AbstractSpaceT> abstractState) {

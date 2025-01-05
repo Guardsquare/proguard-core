@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 
 /**
  * This interface contains helper methods for producing witness traces.
@@ -36,7 +36,7 @@ import proguard.analysis.cpa.defaults.SetAbstractState;
  *     a {@link SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface TraceExtractor<ContentT extends LatticeAbstractState<ContentT>> {
+public interface TraceExtractor<ContentT extends AbstractState<ContentT>> {
 
   /** Returns a set of linear witness traces. */
   default Set<List<BamLocationDependentJvmMemoryLocation<ContentT>>> extractLinearTraces() {

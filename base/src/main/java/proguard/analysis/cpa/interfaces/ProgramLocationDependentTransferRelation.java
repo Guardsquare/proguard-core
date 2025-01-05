@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.jvm.cfa.edges.JvmCfaEdge;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
@@ -37,8 +36,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *     analysis or a {@link proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value
  *     analysis.
  */
-public interface ProgramLocationDependentTransferRelation<
-        ContentT extends LatticeAbstractState<ContentT>>
+public interface ProgramLocationDependentTransferRelation<ContentT extends AbstractState<ContentT>>
     extends TransferRelation<JvmAbstractState<ContentT>> {
 
   /** Computes the successor states for the CFA {@code edge}. */

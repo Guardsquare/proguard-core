@@ -18,11 +18,9 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
-import proguard.analysis.cpa.interfaces.AbstractDomain;
 import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
 import proguard.analysis.cpa.interfaces.MergeOperator;
@@ -52,7 +50,7 @@ import proguard.analysis.cpa.jvm.state.JvmAbstractState;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public class CpaWithBamOperators<ContentT extends LatticeAbstractState<ContentT>>
+public class CpaWithBamOperators<ContentT extends AbstractState<ContentT>>
     extends SimpleCpa<JvmAbstractState<ContentT>> {
 
   private final ReduceOperator<ContentT> reduce;
@@ -78,7 +76,6 @@ public class CpaWithBamOperators<ContentT extends LatticeAbstractState<ContentT>
    *     procedure call
    */
   public CpaWithBamOperators(
-      AbstractDomain<JvmAbstractState<ContentT>> abstractDomain,
       ProgramLocationDependentTransferRelation<ContentT> transferRelation,
       MergeOperator<JvmAbstractState<ContentT>> merge,
       StopOperator<JvmAbstractState<ContentT>> stop,
@@ -86,13 +83,7 @@ public class CpaWithBamOperators<ContentT extends LatticeAbstractState<ContentT>
       ReduceOperator<ContentT> reduce,
       ExpandOperator<ContentT> expand,
       RebuildOperator rebuild) {
-    super(
-        abstractDomain,
-        transferRelation,
-        merge,
-        stop,
-        precisionAdjustment,
-        NeverAbortOperator.INSTANCE);
+    super(transferRelation, merge, stop, precisionAdjustment, NeverAbortOperator.INSTANCE);
     this.reduce = reduce;
     this.expand = expand;
     this.rebuild = rebuild;
@@ -115,7 +106,6 @@ public class CpaWithBamOperators<ContentT extends LatticeAbstractState<ContentT>
       ExpandOperator<ContentT> expand,
       RebuildOperator rebuild) {
     super(
-        intraproceduralCpa.getAbstractDomain(),
         intraproceduralCpa.getTransferRelation(),
         intraproceduralCpa.getMergeOperator(),
         intraproceduralCpa.getStopOperator(),

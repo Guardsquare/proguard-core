@@ -18,8 +18,8 @@
 
 package proguard.analysis.cpa.bam;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.datastructure.callgraph.Call;
@@ -32,7 +32,7 @@ import proguard.analysis.datastructure.callgraph.Call;
  *     SetAbstractState} of taints for taint analysis or a {@link
  *     proguard.analysis.cpa.jvm.domain.value.ValueAbstractState} for value analysis.
  */
-public interface ExpandOperator<ContentT extends LatticeAbstractState<ContentT>> {
+public interface ExpandOperator<ContentT extends AbstractState<ContentT>> {
 
   /**
    * Reconstructs the state of the caller of a procedure using the information of the expanded

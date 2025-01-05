@@ -29,7 +29,7 @@ import proguard.analysis.cpa.interfaces.StopOperator;
  *
  * @param <StateT> The type of the analyzed states.
  */
-public final class StopContainedOperator<StateT extends AbstractState>
+public final class StopContainedOperator<StateT extends AbstractState<StateT>>
     implements StopOperator<StateT> {
 
   // implementations for StopOperator

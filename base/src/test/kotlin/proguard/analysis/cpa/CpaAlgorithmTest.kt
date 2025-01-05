@@ -23,7 +23,6 @@ import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.algorithms.CpaAlgorithm
 import proguard.analysis.cpa.defaults.ControllableAbortOperator
 import proguard.analysis.cpa.defaults.DefaultReachedSet
-import proguard.analysis.cpa.defaults.DelegateAbstractDomain
 import proguard.analysis.cpa.defaults.DepthFirstWaitlist
 import proguard.analysis.cpa.defaults.MergeJoinOperator
 import proguard.analysis.cpa.defaults.MergeSepOperator
@@ -33,22 +32,19 @@ import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment
 import proguard.analysis.cpa.defaults.StopAlwaysOperator
 import proguard.analysis.cpa.defaults.StopContainedOperator
 import proguard.analysis.cpa.defaults.StopSepOperator
-import proguard.analysis.cpa.interfaces.AbstractState
 import proguard.testutils.cpa.BoundedAdditiveTransferRelation
 import proguard.testutils.cpa.IntegerAbstractState
 
 class CpaAlgorithmTest : FreeSpec({
 
-    val abstractDomain = DelegateAbstractDomain<IntegerAbstractState>()
-
     val transferRelation = BoundedAdditiveTransferRelation(2, 10)
 
-    val mergeJoinOperator = MergeJoinOperator(abstractDomain)
+    val mergeJoinOperator = MergeJoinOperator<IntegerAbstractState>()
     val mergeSepOperator = MergeSepOperator<IntegerAbstractState>()
 
     val stopAlwaysOperator = StopAlwaysOperator<IntegerAbstractState>()
     val stopContainedOperator = StopContainedOperator<IntegerAbstractState>()
-    val stopSepOperator = StopSepOperator(abstractDomain)
+    val stopSepOperator = StopSepOperator<IntegerAbstractState>()
 
     val precisionAdjustment = StaticPrecisionAdjustment()
 
@@ -58,7 +54,6 @@ class CpaAlgorithmTest : FreeSpec({
         val reachedset = DefaultReachedSet<IntegerAbstractState>()
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,
@@ -75,7 +70,7 @@ class CpaAlgorithmTest : FreeSpec({
             IntegerAbstractState(10),
         )
 
-        val orderedReachedSet: MutableList<AbstractState> = ArrayList()
+        val orderedReachedSet: MutableList<IntegerAbstractState> = ArrayList()
         reachedset.asCollection().forEach { orderedReachedSet.add(it) }
 
         // the order of the elements should be deterministic
@@ -94,7 +89,6 @@ class CpaAlgorithmTest : FreeSpec({
         val reachedset = DefaultReachedSet<IntegerAbstractState>()
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeJoinOperator,
                 stopContainedOperator,
@@ -113,7 +107,6 @@ class CpaAlgorithmTest : FreeSpec({
         reachedset.add(IntegerAbstractState(0))
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeJoinOperator,
                 stopAlwaysOperator,
@@ -130,7 +123,6 @@ class CpaAlgorithmTest : FreeSpec({
         reachedset.add(IntegerAbstractState(0))
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeSepOperator,
                 stopAlwaysOperator,
@@ -146,7 +138,6 @@ class CpaAlgorithmTest : FreeSpec({
         reachedset.clear()
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeJoinOperator,
                 stopAlwaysOperator,
@@ -165,7 +156,6 @@ class CpaAlgorithmTest : FreeSpec({
         reachedset.add(IntegerAbstractState(20))
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeSepOperator,
                 stopSepOperator,
@@ -182,7 +172,6 @@ class CpaAlgorithmTest : FreeSpec({
         reachedset.add(IntegerAbstractState(0))
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeSepOperator,
                 stopSepOperator,
@@ -208,7 +197,6 @@ class CpaAlgorithmTest : FreeSpec({
         reachedset.add(IntegerAbstractState(20))
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,
@@ -232,7 +220,6 @@ class CpaAlgorithmTest : FreeSpec({
         reachedset.add(IntegerAbstractState(0))
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,
@@ -259,7 +246,6 @@ class CpaAlgorithmTest : FreeSpec({
         abortOperator.abort = true
         CpaAlgorithm(
             SimpleCpa(
-                abstractDomain,
                 transferRelation,
                 mergeSepOperator,
                 stopContainedOperator,

@@ -21,17 +21,17 @@ package proguard.analysis.cpa.defaults;
 import static proguard.exception.ErrorId.ANALYSIS_STACK_STATE_OPERAND_STACK_INDEX_OUT_OF_BOUNDS;
 
 import java.util.Stack;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.exception.ProguardCoreException;
 
 /**
- * This {@link StackAbstractState} represents a stack of {@link LatticeAbstractState}s with the
- * semilattice operators lifted to the stack.
+ * This {@link StackAbstractState} represents a stack of {@link AbstractState}s with the semilattice
+ * operators lifted to the stack.
  */
-public class StackAbstractState<AbstractSpaceT extends LatticeAbstractState<AbstractSpaceT>>
-    extends Stack<AbstractSpaceT>
-    implements LatticeAbstractState<StackAbstractState<AbstractSpaceT>> {
+public class StackAbstractState<AbstractSpaceT extends AbstractState<AbstractSpaceT>>
+    extends Stack<AbstractSpaceT> implements AbstractState<StackAbstractState<AbstractSpaceT>> {
 
-  // implementations for LatticeAbstractState
+  // implementations for AbstractState
 
   @Override
   public StackAbstractState<AbstractSpaceT> join(StackAbstractState<AbstractSpaceT> abstractState) {

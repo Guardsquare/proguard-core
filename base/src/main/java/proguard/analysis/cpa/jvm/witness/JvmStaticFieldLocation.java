@@ -18,7 +18,7 @@
 
 package proguard.analysis.cpa.jvm.witness;
 
-import proguard.analysis.cpa.defaults.LatticeAbstractState;
+import proguard.analysis.cpa.interfaces.AbstractState;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 
 /**
@@ -40,7 +40,7 @@ public class JvmStaticFieldLocation extends JvmMemoryLocation {
   // implementations for MemoryLocation
 
   @Override
-  public <T extends LatticeAbstractState<T>> T extractValueOrDefault(
+  public <T extends AbstractState<T>> T extractValueOrDefault(
       JvmAbstractState<T> jvmState, T defaultValue) {
     return jvmState.getStaticOrDefault(fqn, defaultValue);
   }
