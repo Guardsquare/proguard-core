@@ -138,6 +138,17 @@ public class ParticularReferenceValue extends IdentifiedReferenceValue {
   @Override
   public ReferenceValue generalize(ParticularReferenceValue other) {
     if (this.equal(other) == ALWAYS) {
+      // FIXME: This code breaks the semi-lattice properties of Values needed for reliable
+      //  convergence in the partial evaluator. Specifically, the generalize operation
+      //  should be commutative, but it is not. The following should hold:
+      //    a.generalize(b)  ==   b.generalize(a)
+      //  Possible solution to this problem could be to deterministically pick one of the two
+      //  values and return that one (e.g. the lower ID). Most importantly though, whatever
+      //  is implemented here must also be implemented in the IdentifiedReferenceValue's
+      //  generalize() method and all possible combinations of Values must be tested.
+      //
+      //  Note: A fix for the problem was not implemented, because it changes the semantics
+      //  of the analysis. Anything that we change here could potentially affect users of PGC.
       return other;
     }
 

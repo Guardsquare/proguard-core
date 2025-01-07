@@ -7,6 +7,7 @@
 
 package proguard
 
+import io.kotest.assertions.shouldFail
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContain
@@ -16,6 +17,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.ClassConstants
+import proguard.classfile.ProgramClass
 import proguard.classfile.VersionConstants.CLASS_VERSION_1_8
 import proguard.classfile.editor.ClassBuilder
 import proguard.evaluation.BasicInvocationUnit
@@ -39,6 +41,17 @@ import proguard.util.MethodWithStack
 import proguard.util.PartialEvaluatorHelper
 
 class ParticularReferenceTest : FreeSpec({
+
+    "generalize() is commutative" - {
+        val clazz = ProgramClass()
+        val a = ParticularReferenceValue(clazz, ParticularReferenceValueFactory(), 1, AnalyzedObjectFactory.createPrecise("value"))
+        val b = ParticularReferenceValue(clazz, ParticularReferenceValueFactory(), 2, AnalyzedObjectFactory.createPrecise("value"))
+
+        // FIXME: This should ideally pass, but it's a known bug. See {@link ParticularReferenceValue#generalize()} for details.
+        shouldFail {
+            a.generalize(b) shouldBe b.generalize(a)
+        }
+    }
 
     "Simple empty value in Constructor" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(

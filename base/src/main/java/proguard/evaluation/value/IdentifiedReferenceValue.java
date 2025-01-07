@@ -84,6 +84,8 @@ public class IdentifiedReferenceValue extends TypedReferenceValue {
   // IdentifiedReferenceValue arguments.
 
   public ReferenceValue generalize(IdentifiedReferenceValue other) {
+    // FIXME: The commutative property of semi-lattice is broken by the following
+    // if statement. See ParticularReferenceValue's generalize() for more details.
     if (this.equals(other)) return this;
 
     if (Objects.equals(this.type, other.type)
