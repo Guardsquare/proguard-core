@@ -18,9 +18,11 @@
 
 package proguard.evaluation.value;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import proguard.classfile.Clazz;
 
@@ -43,6 +45,11 @@ public class MultiTypedReferenceValue extends ReferenceValue {
   public final boolean mayBeUnknown;
 
   public MultiTypedReferenceValue(Set<TypedReferenceValue> potentialTypes, boolean mayBeUnknown) {
+    if (potentialTypes.isEmpty()) {
+      throw new IllegalArgumentException(
+          "MultiTypedReferenceValue created with an empty set of types as its input. This is unexpected and the code would crash if not fixed.");
+    }
+
     this.mayBeUnknown = mayBeUnknown;
     this.potentialTypes.addAll(potentialTypes);
     generalizedType = generalize(potentialTypes);
@@ -189,8 +196,24 @@ public class MultiTypedReferenceValue extends ReferenceValue {
       return this;
     }
 
-    Set<TypedReferenceValue> newPotentialTypes = new HashSet<>(this.potentialTypes);
-    newPotentialTypes.addAll(other.potentialTypes);
+    // Merge the two potential sets whilst honoring mayBeNull and mayBeExtension flags
+    HashMap<String, TypedReferenceValue> typesToValues = new HashMap<>();
+    final Consumer<TypedReferenceValue> mergedPotentialTypes =
+        (TypedReferenceValue toAdd) -> {
+          typesToValues.compute(
+              toAdd.type,
+              (unused, old) ->
+                  old == null
+                      ? toAdd
+                      : new TypedReferenceValue(
+                          toAdd.type,
+                          toAdd.referencedClass,
+                          toAdd.mayBeExtension || old.mayBeExtension,
+                          toAdd.mayBeNull || old.mayBeNull));
+        };
+    this.potentialTypes.forEach(mergedPotentialTypes);
+    other.potentialTypes.forEach(mergedPotentialTypes);
+    Set<TypedReferenceValue> newPotentialTypes = new HashSet<>(typesToValues.values());
 
     // If the null type is in the potential types, we remove it and set maybeNull to true for all
     // other contained potential types

@@ -431,6 +431,23 @@ class MultiTypeTest : FreeSpec({
                 referenced.type shouldBe "[LA;"
                 referenced.referencedClass shouldBe classPool.getClass("A")
             }
+            "Commutative" {
+                val a = MultiTypedReferenceValue(
+                    mutableSetOf(
+                        TypedReferenceValue("A", null, true, false),
+                    ),
+                    false,
+                )
+
+                val b = MultiTypedReferenceValue(
+                    mutableSetOf(
+                        TypedReferenceValue("A", null, false, true),
+                    ),
+                    false,
+                )
+
+                a.generalize(b) shouldBe b.generalize(a)
+            }
         }
         "Null check" {
             multiNull.isNull shouldBe Value.ALWAYS

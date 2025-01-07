@@ -67,7 +67,7 @@ class CallResolverExcessiveComplexityTest : FunSpec({
                 .setUseDominatorAnalysis(true)
                 .setEvaluateAllCode(false)
                 .setIncludeSubClasses(true)
-                .setMaxPartialEvaluations(50)
+                .setMaxPartialEvaluations(1)
                 .build()
 
         withTestLogger { outputStream ->
