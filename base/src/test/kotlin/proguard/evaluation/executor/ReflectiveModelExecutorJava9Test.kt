@@ -26,10 +26,9 @@ import proguard.evaluation.value.`object`.model.ClassModel
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.RequiresJavaVersion
-import java.util.ArrayList
 
 @RequiresJavaVersion(9)
-class Java9ReflectionApiExecutorTest : BehaviorSpec({
+class ReflectiveModelExecutorJava9Test : BehaviorSpec({
     Given("A method which uses various ways to access class details") {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
@@ -47,7 +46,7 @@ class Java9ReflectionApiExecutorTest : BehaviorSpec({
             javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
 
-        When("It is partially evaluated with a JavaReflectionExecutor") {
+        When("It is partially evaluated with a ClassModel executor") {
             val particularValueFactory = ParticularValueFactory(
                 ArrayReferenceValueFactory(),
                 ParticularReferenceValueFactory(),
@@ -59,7 +58,6 @@ class Java9ReflectionApiExecutorTest : BehaviorSpec({
                     ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool)
                         .setEnableSameInstanceIdApproximation(true)
                         .useDefaultStringReflectionExecutor(true)
-                        .addExecutor(JavaReflectionApiExecutor.Builder(programClassPool, libraryClassPool))
                         .addExecutor(ClassModelExecutor.Builder(programClassPool, libraryClassPool))
                         .build(particularValueFactory),
                 )

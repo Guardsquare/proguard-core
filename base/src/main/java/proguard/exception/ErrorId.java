@@ -121,7 +121,8 @@ public final class ErrorId {
       ANALYSIS_JVM_TRANSFER_RELATION_CONSTANT_INSTRUCTION_VISITOR_OPCODE_UNSUPPORTED = 9_044;
   public static final int ANALYSIS_JVM_DEFAULT_REDUCE_OPERATOR_STATE_UNSUPPORTED = 9_045;
   public static final int ANALYSIS_JVM_TREE_HEAP_STATE_INCOMPATIBLE = 9_046;
-  public static final int EVALUATION_JAVA_REFLECTION_EXECUTOR = 9_047;
+
+  public static final int OBJECT_GET_CLASS_EXECUTOR_UNSUPPORTED_SIGNATURE = 9_047;
 
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}

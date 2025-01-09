@@ -3,7 +3,7 @@ package proguard.evaluation.executor;
 import static proguard.classfile.ClassConstants.*;
 import static proguard.classfile.util.ClassUtil.internalClassName;
 import static proguard.classfile.util.ClassUtil.internalClassNameFromType;
-import static proguard.exception.ErrorId.EVALUATION_JAVA_REFLECTION_EXECUTOR;
+import static proguard.exception.ErrorId.OBJECT_GET_CLASS_EXECUTOR_UNSUPPORTED_SIGNATURE;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -23,9 +23,12 @@ import proguard.exception.ProguardCoreException;
 
 /**
  * This {@link Executor} provides an implementation for {@link Executor#getMethodResult} which
- * resolves a number of simple {@link Class} API methods.
+ * resolves all types of <code>'Object'.getClass</code> {@link Class} calls based on the classes in
+ * the class pools.
+ *
+ * <p>For example <code>classA.getClass()</code> and <code>classB.getClass()</code>
  */
-public class JavaReflectionApiExecutor implements Executor {
+public class ObjectGetClassExecutor implements Executor {
 
   private final ClassPool programClassPool;
   private final ClassPool libraryClassPool;
@@ -33,7 +36,7 @@ public class JavaReflectionApiExecutor implements Executor {
   private final Set<MethodSignature> supportedMethodSignatures = new HashSet<>();
 
   /** Private constructor reserved for the static {@link Builder}. */
-  private JavaReflectionApiExecutor(ClassPool programClassPool, ClassPool libraryClassPool) {
+  private ObjectGetClassExecutor(ClassPool programClassPool, ClassPool libraryClassPool) {
     this.programClassPool = programClassPool;
     this.libraryClassPool = libraryClassPool;
 
@@ -49,26 +52,22 @@ public class JavaReflectionApiExecutor implements Executor {
   @Override
   public MethodResult getMethodResult(
       MethodExecutionInfo methodExecutionInfo, ValueCalculator valueCalculator) {
-    MethodSignature target = methodExecutionInfo.getSignature();
+    if (!METHOD_NAME_OBJECT_GET_CLASS.equals(methodExecutionInfo.getSignature().getMethodName()))
+      throw new ProguardCoreException(
+          OBJECT_GET_CLASS_EXECUTOR_UNSUPPORTED_SIGNATURE,
+          String.format(
+              "%s is not a supported method signature.", methodExecutionInfo.getSignature()));
 
-    // Handling these signatures only requires the type of the instance.
-    if (METHOD_NAME_OBJECT_GET_CLASS.equals(target.getMethodName())) {
-      Value instance = methodExecutionInfo.getInstanceNonStatic();
-      if (!(instance instanceof TypedReferenceValue)) return MethodResult.invalidResult();
-      TypedReferenceValue typedInstance = (TypedReferenceValue) instance;
+    Value instance = methodExecutionInfo.getInstanceNonStatic();
+    if (!(instance instanceof TypedReferenceValue)) return MethodResult.invalidResult();
+    TypedReferenceValue typedInstance = (TypedReferenceValue) instance;
 
-      if (typedInstance.getType() == null) return MethodResult.invalidResult();
-      Optional<Clazz> clazz =
-          findReferencedClazz(internalClassNameFromType(typedInstance.getType()));
-      if (clazz.isPresent()) {
-        return createResult(methodExecutionInfo, valueCalculator, new ClassModel(clazz.get()));
-      }
+    if (typedInstance.getType() == null) return MethodResult.invalidResult();
+    Optional<Clazz> clazz = findReferencedClazz(internalClassNameFromType(typedInstance.getType()));
+    if (clazz.isPresent()) {
+      return createResult(methodExecutionInfo, valueCalculator, new ClassModel(clazz.get()));
     }
-
-    throw new ProguardCoreException(
-        EVALUATION_JAVA_REFLECTION_EXECUTOR,
-        String.format(
-            "%s is not a supported method signature.", methodExecutionInfo.getSignature()));
+    return MethodResult.invalidResult();
   }
 
   @Override
@@ -113,12 +112,12 @@ public class JavaReflectionApiExecutor implements Executor {
 
   // Builder class.
 
-  /** Builder for {@link JavaReflectionApiExecutor}. */
-  public static class Builder implements Executor.Builder<JavaReflectionApiExecutor> {
+  /** Builder for {@link ObjectGetClassExecutor}. */
+  public static class Builder implements Executor.Builder<ObjectGetClassExecutor> {
     private final ClassPool programClassPool;
     private final ClassPool libraryClassPool;
 
-    private JavaReflectionApiExecutor javaReflectionApiExecutor = null;
+    private ObjectGetClassExecutor objectGetClassExecutor = null;
 
     public Builder(@NotNull ClassPool programClassPool, @NotNull ClassPool libraryClassPool) {
       this.programClassPool = programClassPool;
@@ -126,12 +125,11 @@ public class JavaReflectionApiExecutor implements Executor {
     }
 
     @Override
-    public JavaReflectionApiExecutor build() {
-      if (javaReflectionApiExecutor == null) {
-        javaReflectionApiExecutor =
-            new JavaReflectionApiExecutor(programClassPool, libraryClassPool);
+    public ObjectGetClassExecutor build() {
+      if (objectGetClassExecutor == null) {
+        objectGetClassExecutor = new ObjectGetClassExecutor(programClassPool, libraryClassPool);
       }
-      return javaReflectionApiExecutor;
+      return objectGetClassExecutor;
     }
   }
 }
