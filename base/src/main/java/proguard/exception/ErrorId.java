@@ -83,6 +83,8 @@ public final class ErrorId {
 
   public static final int OBJECT_GET_CLASS_EXECUTOR_UNSUPPORTED_SIGNATURE = 9_047;
 
+  public static final int SIGNATURE_AST_INVALID_STRUCTURE = 10_000;
+
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}
 }

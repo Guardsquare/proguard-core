@@ -20,6 +20,10 @@ This is a continuation of the API changes started in release 9.1.7.
 - Move `AbortOperator` from being a parameter of `CpaAlgorithm#run` to the `ConfigurableProgramAnalysis` interface.
 - Move functionalities of `LatticeAbstractState` to `AbstractState`. Remove `AbstractDomain` since the abstract states can now perform directly the `isLessOrEqual` and `join` operations without the need of delegation.
 
+### Improved
+
+- Add a method signature and descriptor parser in the new package `proguard.classfile.attribute.signature`.
+
 ## Version 9.1.7
 
 ### Bugfixes

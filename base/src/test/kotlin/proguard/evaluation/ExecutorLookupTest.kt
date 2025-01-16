@@ -13,7 +13,7 @@ import java.util.stream.Collectors
 class ExecutorLookupTest : FunSpec({
 
     val signatures = listOf(
-        MethodSignature("A", "a", MethodDescriptor("V()")),
+        MethodSignature("A", "a", MethodDescriptor("()V")),
     )
 
     test("Method lookup works correctly") {
@@ -51,7 +51,7 @@ class ExecutorLookupTest : FunSpec({
             MethodSignature(
                 "A",
                 "a",
-                MethodDescriptor("V()"),
+                MethodDescriptor("()V"),
             ),
         ) shouldBe true
     }
