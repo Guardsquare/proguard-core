@@ -1,5 +1,9 @@
 ## Version 9.1.8
 
+### Improved
+
+- Improve runtime of `BamTransferRelation`.
+
 ### API changes for the dataflow analysis code
 This is a continuation of the API changes started in release 9.1.7.
 - Remove `JvmValueBamCpaRun` in order to simplify the utility code to run the analysis. `ValueAnalyzer` is the direct replacement, this class has the same behavior as `JvmValueBamCpaRun`, as long as `analyze` is called only once.

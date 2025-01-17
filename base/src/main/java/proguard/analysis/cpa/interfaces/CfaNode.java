@@ -18,7 +18,10 @@
 
 package proguard.analysis.cpa.interfaces;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import proguard.classfile.Signature;
 
 /**
@@ -29,6 +32,10 @@ public interface CfaNode<CfaEdgeT extends CfaEdge, SignatureT extends Signature>
 
   int RETURN_EXIT_NODE_OFFSET = -1;
   int EXCEPTION_EXIT_NODE_OFFSET = -2;
+  List<Integer> EXIT_NODES_OFFSET =
+      Collections.unmodifiableList(
+          Stream.of(RETURN_EXIT_NODE_OFFSET, EXCEPTION_EXIT_NODE_OFFSET)
+              .collect(Collectors.toList()));
 
   /** Returns a list of leaving edges. */
   List<CfaEdgeT> getLeavingEdges();

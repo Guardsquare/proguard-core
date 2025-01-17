@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
@@ -33,6 +34,7 @@ import proguard.analysis.cpa.defaults.ProgramLocationDependentReachedSet;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StopSepOperator;
 import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.interfaces.CfaNode;
 import proguard.analysis.cpa.interfaces.Precision;
 import proguard.analysis.cpa.interfaces.ProgramLocationDependentTransferRelation;
 import proguard.analysis.cpa.interfaces.ReachedSet;
@@ -330,11 +332,9 @@ public class BamTransferRelation<ContentT extends AbstractState<ContentT>>
         ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reachedOld =
             cacheEntry.getReachedSet();
 
-        for (JvmAbstractState<ContentT> reachedState : reached.asCollection()) {
-          JvmCfaNode reachedLocation = reachedState.getProgramLocation();
-          if (reachedLocation.getSignature().equals(currentFunction)
-              && reachedLocation.isExitNode()
-              && !(fixedPointStopOperator.stop(reachedState, reachedOld.asCollection(), null))) {
+        for (JvmAbstractState<ContentT> exitState : getExitStates(reached, cfa, currentFunction)) {
+          Collection<JvmAbstractState<ContentT>> oldExitStates = reachedOld.getReached(exitState);
+          if (!(fixedPointStopOperator.stop(exitState, oldExitStates, null))) {
             if (!stack.isEmpty()) {
               stack.peek().incompleteCallStates.add(callState);
             }
@@ -348,21 +348,33 @@ public class BamTransferRelation<ContentT extends AbstractState<ContentT>>
           reducedEntryState, precision, currentFunction, new BlockAbstraction<>(reached, waitlist));
     }
 
-    Collection<JvmAbstractState<ContentT>> exitStates = reached.asCollection();
-    // TODO: as before, maybe we can have a better way to identify that the function was called from
-    // fixedPoint
+    Collection<JvmAbstractState<ContentT>> exitStates;
+
+    // This condition tells whether the entry method is being analyzed or not
     if (call != null) {
       // reconstruct the next state of the caller procedure applying the expand and reduce
       // operators.
       exitStates =
-          exitStates.stream()
-              .filter(e -> e.getProgramLocation().isExitNode())
+          getExitStates(reached, cfa, currentFunction).stream()
               .map(e -> bamCpa.getExpandOperator().expand(callState, e, entryNode, call))
               .map(e -> bamCpa.getRebuildOperator().rebuild(callState, e))
               .collect(Collectors.toCollection(LinkedHashSet::new));
+    } else {
+      exitStates = reached.asCollection();
     }
 
     return exitStates;
+  }
+
+  private Collection<JvmAbstractState<ContentT>> getExitStates(
+      ProgramLocationDependentReachedSet<JvmAbstractState<ContentT>> reached,
+      JvmCfa cfa,
+      MethodSignature currentMethod) {
+    List<JvmAbstractState<ContentT>> result = new ArrayList<>();
+    for (int offset : CfaNode.EXIT_NODES_OFFSET) {
+      result.addAll(reached.getReached(cfa.getFunctionNode(currentMethod, offset)));
+    }
+    return result;
   }
 
   private boolean isCallStatic(JvmAbstractState<ContentT> callState) {
