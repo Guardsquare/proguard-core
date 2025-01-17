@@ -31,6 +31,7 @@ import proguard.classfile.AccessConstants;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
+import proguard.classfile.Field;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryField;
 import proguard.classfile.LibraryMethod;
@@ -63,6 +64,9 @@ import proguard.classfile.attribute.annotation.EnumConstantElementValue;
 import proguard.classfile.attribute.annotation.ParameterAnnotationsAttribute;
 import proguard.classfile.attribute.annotation.visitor.AnnotationVisitor;
 import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
+import proguard.classfile.attribute.signature.ClassSignatureGrammar;
+import proguard.classfile.attribute.signature.MethodSignatureGrammar;
+import proguard.classfile.attribute.signature.TypeSignatureGrammar;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.attribute.visitor.InnerClassesInfoVisitor;
 import proguard.classfile.attribute.visitor.LocalVariableInfoVisitor;
@@ -1277,90 +1281,36 @@ public class ClassReferenceInitializer
 
   /** A small utility class used to clean up invalid signatures. */
   private class InvalidSignatureCleaner implements AttributeVisitor {
-    /**
-     * Perform some sanity checks on the Signature and whether it follows the JVM specification.
-     * TODO: T4517
-     */
-    private boolean isValidClassSignature(Clazz clazz, String signature) {
-      try {
-        // Loop through the signature to if it can be parsed.
-        new DescriptorClassEnumeration(signature).classCount();
-
-        // Then check whether the listed types are as expected.
-        InternalTypeEnumeration internalTypeEnumeration = new InternalTypeEnumeration(signature);
-
-        if (!internalTypeEnumeration.hasMoreTypes()) {
-          return false;
-        }
-
-        String superName = clazz.getSuperName();
-        String signSuperName =
-            ClassUtil.internalClassNameFromClassSignature(internalTypeEnumeration.nextType());
-        if (superName != null && !signSuperName.startsWith(superName)) {
-          return false;
-        }
-
-        // We are assuming interfaces in the descriptor occur in the same order as they are defined
-        // on the class file level. While this is very likely in the vast majority of cases, it
-        // doesn't seem like the JVM actually checks for this. TODO: see T4517.
-        for (int i = 0; i < clazz.getInterfaceCount(); i++) {
-          if (!internalTypeEnumeration.hasMoreTypes()) {
-            return false;
-          }
-
-          String intfName = clazz.getInterfaceName(i);
-          String signIntfName =
-              ClassUtil.internalClassNameFromClassSignature(internalTypeEnumeration.nextType());
-          if (!signIntfName.startsWith(intfName)) {
-            return false;
-          }
-        }
-
-        return !internalTypeEnumeration.hasMoreTypes();
-      } catch (Exception corruptedSignature) {
-        return false;
-      }
-    }
-
-    /** Return false if the given signature is invalid. */
-    private boolean isValidSignature(String signature) {
-      try {
-        DescriptorClassEnumeration enumeration = new DescriptorClassEnumeration(signature);
-
-        // Calling 'classCount()' will parse the entire signature.
-        enumeration.classCount();
-        return true;
-      } catch (Exception e) {
-        return false;
-      }
-    }
-
     // Implementations for AttributeVisitor.
 
     @Override
     public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
     @Override
-    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute) {
-      if (!isValidClassSignature(clazz, signatureAttribute.getSignature(clazz))) {
+    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute attibute) {
+      if (ClassSignatureGrammar.parse(attibute.getSignature(clazz)) == null) {
         clazz.accept(new NamedAttributeDeleter(Attribute.SIGNATURE));
       }
     }
 
     @Override
     public void visitSignatureAttribute(
-        Clazz clazz,
-        RecordComponentInfo recordComponentInfo,
-        SignatureAttribute signatureAttribute) {
-      if (!isValidSignature(signatureAttribute.getSignature(clazz))) {
+        Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute attribute) {
+      if (ClassSignatureGrammar.parse(attribute.getSignature(clazz)) == null) {
         recordComponentInfo.attributesAccept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
       }
     }
 
     @Override
-    public void visitSignatureAttribute(
-        Clazz clazz, Member member, SignatureAttribute signatureAttribute) {
-      if (!isValidSignature(signatureAttribute.getSignature(clazz))) {
+    public void visitSignatureAttribute(Clazz clazz, Member member, SignatureAttribute attribute) {
+      boolean invalid = false;
+      if (member instanceof Field) {
+        invalid = TypeSignatureGrammar.parse(attribute.getSignature(clazz)) == null;
+      } else if (member instanceof Method) {
+        invalid = MethodSignatureGrammar.parse(attribute.getSignature(clazz)) == null;
+      }
+
+      if (invalid) {
         member.accept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
       }
     }
