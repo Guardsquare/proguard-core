@@ -25,6 +25,7 @@ This is a continuation of the API changes started in release 9.1.7.
 
 - Fix semi-lattice properties of `MultiTypedReferenceValue`'s `generalize()` method
 - Fix integers potentially being used as reference identifier during interprocedural value analysis. This could result in the analysis not reaching a fixed point.
+- Fix `JvmTaintTransferRelation#propagateExtraTaints` propagating taint incorrectly if the stack contains more than one element.
 
 ## Version 9.1.7
 

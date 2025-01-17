@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.defaults.ListAbstractState;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.StackAbstractState;
@@ -48,6 +50,8 @@ import proguard.classfile.util.ClassUtil;
 /** The {@link JvmTaintTransferRelation} is parametrized by a set of {@link TaintSource} methods. */
 public class JvmTaintTransferRelation
     extends JvmTransferRelation<SetAbstractState<JvmTaintSource>> {
+
+  private final Logger log = LogManager.getLogger(JvmTaintTransferRelation.class);
 
   private final Map<Signature, Set<JvmTaintSource>> taintSources;
   private final Map<MethodSignature, JvmTaintTransformer> taintTransformers;
@@ -280,9 +284,16 @@ public class JvmTaintTransferRelation
               localVariables.getOrDefault(index, SetAbstractState.bottom()).join(answerContent);
           localVariables.set(index, newState, SetAbstractState.bottom());
         } else if (location instanceof JvmStackLocation) {
-          int index = ((JvmStackLocation) location).index;
           StackAbstractState<SetAbstractState<JvmTaintSource>> stack =
               state.getFrame().getOperandStack();
+          // NB JvmStackLocation counts from the top of the stack
+          int index = stack.size() - 1 - ((JvmStackLocation) location).index;
+          if (index < 0) {
+            log.warn(
+                "Stack index < 0 in for call {}, is an extra taint propagator for the call misconfigured?",
+                state.getProgramLocation().getSignature());
+            return;
+          }
           stack.set(index, stack.get(index).join(answerContent));
         }
       }

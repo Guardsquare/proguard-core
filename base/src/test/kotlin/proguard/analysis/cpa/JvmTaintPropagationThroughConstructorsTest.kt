@@ -153,6 +153,104 @@ class JvmTaintPropagationThroughConstructorsTest : FunSpec({
     /**
      *       [0] invokestatic #20 = Methodref(Test.source()Ljava/lang/String;)
      *       [3] astore_1 v1
+     *       [4] iconst_0
+     *       [5] new #22 = Class(java/lang/String)
+     *       [8] dup
+     *       [9] aload_1 v1
+     *       [10] getstatic #28 = Fieldref(java/nio/charset/StandardCharsets.UTF_8 Ljava/nio/charset/Charset;)
+     *       [13] invokevirtual #32 = Methodref(java/lang/String.getBytes(Ljava/nio/charset/Charset;)[B)
+     *       [16] iconst_1
+     *       [17] iconst_2
+     *       [18] invokespecial #35 = Methodref(java/lang/String.<init>([BII)V)
+     *       [21] astore_2 v2
+     *       [22] pop
+     *       [23] aload_2 v2
+     *       [24] invokestatic #39 = Methodref(Test.sink(Ljava/lang/String;)V)
+     *       [27] return
+     */
+    test("Taint propagation through constructor via tainting top of the stack when the stack is not empty") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            AssemblerSource(
+                "Test.jbc",
+                """
+                version 1.8;
+                class Test extends java.lang.Object [
+                    SourceFile "Test.java";
+                ] {
+                
+                    void <init>() {
+                        line 2
+                            aload_0
+                            invokespecial java.lang.Object#void <init>()
+                            return
+                    }
+                
+                    public void test() {
+                        line 5
+                            invokestatic #java.lang.String source()
+                            astore_1
+                        line 6
+                            iconst_0
+                            new java.lang.String
+                            dup
+                            aload_1
+                            getstatic java.nio.charset.StandardCharsets#java.nio.charset.Charset UTF_8
+                            invokevirtual java.lang.String#byte[] getBytes(java.nio.charset.Charset)
+                            iconst_1
+                            iconst_2
+                            invokespecial java.lang.String#void <init>(byte[],int,int)
+                            astore_2
+                            pop
+                        line 7
+                            aload_2
+                            invokestatic #void sink(java.lang.String)
+                        line 8
+                            return
+                    }
+                
+                    public static void sink(java.lang.String) {
+                        line 10
+                            return
+                    }
+                
+                    public static java.lang.String source() {
+                        line 13
+                            ldc "tainted"
+                            areturn
+                    }
+                
+                }
+                """.trimIndent(),
+            ),
+        )
+        val interproceduralCfa = CfaUtil.createInterproceduralCfa(
+            programClassPool,
+        )
+
+        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream()
+            .filter { it.signature.fqn.contains("test") }.findFirst().get().signature
+        val callToInit = interproceduralCfa.getFunctionNode(mainSignature, 18).leavingEdges
+            .filterIsInstance<JvmCallCfaEdge>().first().call
+
+        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSource), setOf(sink))
+            .setMaxCallStackDepth(10)
+            .setExtraTaintPropagationLocations(mapOf(callToInit to setOf(JvmStackLocation(0))))
+            .build()
+        val result = taintAnalyzer.analyze(mainSignature).taintAnalysisResult
+
+        interproceduralCfa.clear()
+
+        result.endpointToTriggeredSinks.size shouldBe 1
+        result.endpointToTriggeredSinks.values.first() shouldBe listOf(sink)
+        result.endpoints.size shouldBe 1
+        result.endpoints.first().extractFirstValue(SetAbstractState.bottom()) shouldBe setOf(
+            taintSource,
+        )
+    }
+
+    /**
+     *       [0] invokestatic #20 = Methodref(Test.source()Ljava/lang/String;)
+     *       [3] astore_1 v1
      *       [4] new #22 = Class(java/lang/String)
      *       [7] astore_2 v2
      *       [8] aload_2 v2
