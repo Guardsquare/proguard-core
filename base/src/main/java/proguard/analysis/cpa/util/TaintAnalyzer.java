@@ -168,7 +168,8 @@ public class TaintAnalyzer {
 
       ConfigurableProgramAnalysis<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
           intraproceduralCpa =
-              new JvmTaintCpa(sourcesMap, taintTransformers, extraTaintPropagationLocations);
+              new JvmTaintCpa(
+                  sourcesMap, taintTransformers, extraTaintPropagationLocations, abortOperator);
 
       boolean reduceHeap = false;
       CpaWithBamOperators<SetAbstractState<JvmTaintSource>> interproceduralCpa =

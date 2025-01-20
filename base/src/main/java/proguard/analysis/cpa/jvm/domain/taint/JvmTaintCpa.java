@@ -24,10 +24,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import proguard.analysis.cpa.defaults.MergeJoinOperator;
+import proguard.analysis.cpa.defaults.NeverAbortOperator;
 import proguard.analysis.cpa.defaults.SetAbstractState;
 import proguard.analysis.cpa.defaults.SimpleCpa;
+import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
 import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.domain.taint.TaintSource;
+import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.jvm.state.JvmAbstractState;
 import proguard.analysis.cpa.jvm.witness.JvmMemoryLocation;
 import proguard.analysis.datastructure.callgraph.Call;
@@ -46,23 +49,11 @@ public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<Jvm
    * @param sources a set of taint sources
    */
   public JvmTaintCpa(Set<? extends JvmTaintSource> sources) {
-    this(createSourcesMap(sources), Collections.emptyMap(), Collections.emptyMap());
-  }
-
-  /**
-   * Create a taint CPA.
-   *
-   * @param sources a set of taint sources
-   * @param taintTransformers a mapping from method signature to a transformer object applied to the
-   *     taint state when that method is invoked
-   * @param extraTaintPropagationLocations a mapping from a specific method call to any jvm state
-   *     location that is tainted as a result of the call
-   */
-  public JvmTaintCpa(
-      Set<? extends JvmTaintSource> sources,
-      Map<MethodSignature, JvmTaintTransformer> taintTransformers,
-      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
-    this(createSourcesMap(sources), taintTransformers, extraTaintPropagationLocations);
+    this(
+        createSourcesMap(sources),
+        Collections.emptyMap(),
+        Collections.emptyMap(),
+        NeverAbortOperator.INSTANCE);
   }
 
   /**
@@ -73,16 +64,20 @@ public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<Jvm
    *     taint state when that method is invoked
    * @param extraTaintPropagationLocations a mapping from a specific method call to any jvm state
    *     location that is tainted as a result of the call
+   * @param abortOperator an operator used to stop the analysis prematurely.
    */
   public JvmTaintCpa(
       Map<Signature, Set<JvmTaintSource>> signaturesToSources,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
-      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations) {
+      Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
+      AbortOperator abortOperator) {
     super(
         new JvmTaintTransferRelation(
             signaturesToSources, taintTransformers, extraTaintPropagationLocations),
         new MergeJoinOperator<>(),
-        new StopJoinOperator<>());
+        new StopJoinOperator<>(),
+        new StaticPrecisionAdjustment(),
+        abortOperator);
   }
 
   /**

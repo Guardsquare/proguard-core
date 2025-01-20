@@ -129,10 +129,15 @@ public class TaintAnalyzerResult {
       this.taintSinks = taintSinks;
     }
 
+    /**
+     * Returns the analysis cache, containing the analyzed taints for each reached method invocation
+     * with unique tainted parameters.
+     */
     public BamCache<SetAbstractState<JvmTaintSource>> getTaintResultCache() {
       return executedTaintCpa.getCache();
     }
 
+    /** Returns the reached states for the entry method of the analysis. */
     public ProgramLocationDependentReachedSet<JvmAbstractState<SetAbstractState<JvmTaintSource>>>
         getMainMethodReachedSet() {
       return mainMethodReachedSet;

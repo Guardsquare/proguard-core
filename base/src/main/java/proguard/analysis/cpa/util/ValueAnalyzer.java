@@ -19,7 +19,6 @@ import proguard.analysis.cpa.defaults.StaticPrecisionAdjustment;
 import proguard.analysis.cpa.defaults.StopJoinOperator;
 import proguard.analysis.cpa.interfaces.AbortOperator;
 import proguard.analysis.cpa.interfaces.ConfigurableProgramAnalysis;
-import proguard.analysis.cpa.interfaces.ReachedSet;
 import proguard.analysis.cpa.interfaces.TransferRelation;
 import proguard.analysis.cpa.interfaces.Waitlist;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
@@ -90,7 +89,7 @@ public class ValueAnalyzer {
     CpaAlgorithm<JvmAbstractState<ValueAbstractState>> cpaAlgorithm = new CpaAlgorithm<>(cpa);
 
     Waitlist<JvmAbstractState<ValueAbstractState>> waitList = new DepthFirstWaitlist<>();
-    ReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet =
+    ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>> reachedSet =
         new ProgramLocationDependentReachedSet<>();
 
     JvmValueAbstractState initialState = initialStateCreator.apply(mainSignature);
@@ -98,7 +97,7 @@ public class ValueAnalyzer {
     reachedSet.add(initialState);
 
     cpaAlgorithm.run(reachedSet, waitList);
-    return new ValueAnalysisResult(cpa);
+    return new ValueAnalysisResult(cpa, reachedSet);
   }
 
   /**
@@ -114,9 +113,15 @@ public class ValueAnalyzer {
    */
   public static class ValueAnalysisResult {
     private final BamCache<ValueAbstractState> resultCache;
+    private final ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>>
+        mainMethodReachedSet;
 
-    private ValueAnalysisResult(BamCpa<ValueAbstractState> executedCpa) {
-      resultCache = executedCpa.getCache();
+    private ValueAnalysisResult(
+        BamCpa<ValueAbstractState> executedCpa,
+        ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>>
+            mainMethodReachedSet) {
+      this.resultCache = executedCpa.getCache();
+      this.mainMethodReachedSet = mainMethodReachedSet;
     }
 
     /**
@@ -128,6 +133,12 @@ public class ValueAnalyzer {
      */
     public BamCache<ValueAbstractState> getResultCache() {
       return resultCache;
+    }
+
+    /** Returns the reached states for the entry method of the analysis. */
+    public ProgramLocationDependentReachedSet<JvmAbstractState<ValueAbstractState>>
+        getMainMethodReachedSet() {
+      return mainMethodReachedSet;
     }
   }
 
@@ -185,7 +196,7 @@ public class ValueAnalyzer {
               new MergeJoinOperator<>(),
               new StopJoinOperator<>(),
               new StaticPrecisionAdjustment(),
-              NeverAbortOperator.INSTANCE);
+              abortOperator);
 
       boolean reduceHeap = true;
       CpaWithBamOperators<ValueAbstractState> interProceduralCpa =

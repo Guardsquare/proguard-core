@@ -110,7 +110,7 @@ public class CpaWithBamOperators<ContentT extends AbstractState<ContentT>>
         intraproceduralCpa.getMergeOperator(),
         intraproceduralCpa.getStopOperator(),
         intraproceduralCpa.getPrecisionAdjustment(),
-        NeverAbortOperator.INSTANCE);
+        intraproceduralCpa.getAbortOperator());
     this.reduce = reduce;
     this.expand = expand;
     this.rebuild = rebuild;
