@@ -24,6 +24,7 @@ import proguard.classfile.editor.InstructionSequenceReplacer;
 import proguard.classfile.instruction.*;
 import proguard.evaluation.*;
 import proguard.evaluation.value.*;
+import proguard.util.PartialEvaluatorUtils;
 
 /**
  * This class finds sequences of instructions that correspond to primitive array initializations.
@@ -93,9 +94,14 @@ public class ArrayInitializationMatcher {
       SimpleInstruction newArrayInstruction) {
     array = null;
 
-    TracedStack stackBefore = partialEvaluator.getStackBefore(newArrayOffset);
+    Value stackBeforeValue =
+        PartialEvaluatorUtils.getStackBefore(partialEvaluator, newArrayOffset, 0);
 
-    IntegerValue integerValue = stackBefore.getTop(0).integerValue();
+    if (stackBeforeValue == null) {
+      return false;
+    }
+
+    IntegerValue integerValue = stackBeforeValue.integerValue();
 
     if (!integerValue.isParticular()) {
       return false;
