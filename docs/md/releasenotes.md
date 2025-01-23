@@ -3,6 +3,7 @@
 ### Improved
 
 - Improve runtime of `BamTransferRelation`.
+- Add a method signature and descriptor parser in the new package `proguard.classfile.attribute.signature`.
 
 ### Kotlin support
 
@@ -20,9 +21,10 @@ This is a continuation of the API changes started in release 9.1.7.
 - Move `AbortOperator` from being a parameter of `CpaAlgorithm#run` to the `ConfigurableProgramAnalysis` interface.
 - Move functionalities of `LatticeAbstractState` to `AbstractState`. Remove `AbstractDomain` since the abstract states can now perform directly the `isLessOrEqual` and `join` operations without the need of delegation.
 
-### Improved
+### Bugfixes
 
-- Add a method signature and descriptor parser in the new package `proguard.classfile.attribute.signature`.
+- Fix semi-lattice properties of `MultiTypedReferenceValue`'s `generalize()` method
+
 
 ## Version 9.1.7
 
