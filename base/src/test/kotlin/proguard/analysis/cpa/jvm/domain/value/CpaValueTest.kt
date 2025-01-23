@@ -1,15 +1,17 @@
 package proguard.analysis.cpa.jvm.domain.value
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldNotBeInstanceOf
 import proguard.analysis.cpa.bam.BamCache
 import proguard.analysis.cpa.jvm.cfa.JvmCfa
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.util.ValueAnalyzer
 import proguard.classfile.ClassPool
 import proguard.classfile.MethodSignature
+import proguard.evaluation.value.IdentifiedReferenceValue
 import proguard.evaluation.value.ParticularReferenceValue
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
@@ -26,9 +28,9 @@ fun getLastState(cache: BamCache<ValueAbstractState>, mainSignature: MethodSigna
         .single() as JvmValueAbstractState
 }
 
-class CpaValueTest : FreeSpec({
+class CpaValueTest : BehaviorSpec({
 
-    "Given overloaded fields with different types" - {
+    Given("Code using overloaded fields with different types") {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             AssemblerSource(
                 "Test.jbc",
@@ -61,15 +63,17 @@ class CpaValueTest : FreeSpec({
         val cfa: JvmCfa = CfaUtil.createInterproceduralCfa(programClassPool)
         val mainSignature = MethodSignature("Test", "main", "([Ljava/lang/String;)V")
 
-        val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
-        val last = getLastState(cache, mainSignature)
+        When("The value analysis is run on the code") {
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
 
-        "Then there should be two fields in the JvmValueAbstractState" {
-            last.staticFields.size shouldBe 2
+            Then("There analyzed return state contains two fields") {
+                val last = getLastState(cache, mainSignature)
+                last.staticFields.size shouldBe 2
+            }
         }
     }
 
-    "Executed method taking category2 value" - {
+    Given("Code calling a method taking a category 2 parameter") {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Test.java",
@@ -89,18 +93,19 @@ class CpaValueTest : FreeSpec({
         )
         val cfa: JvmCfa = CfaUtil.createInterproceduralCfa(programClassPool, libraryClassPool)
 
-        val mainSignature = MethodSignature("Test", "test", "()V")
-        val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
-        val last = getLastState(cache, mainSignature)
-
-        "Correct string value" {
-            val value = last.frame.localVariables[1].value
-            value.shouldBeInstanceOf<ParticularReferenceValue>()
-            value.referenceValue().value.preciseValue shouldBe "1"
+        When("The value analysis is run on the code") {
+            val mainSignature = MethodSignature("Test", "test", "()V")
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
+            Then("The the analyzed return state contains the correct string") {
+                val last = getLastState(cache, mainSignature)
+                val value = last.frame.localVariables[1].value
+                value.shouldBeInstanceOf<ParticularReferenceValue>()
+                value.referenceValue().value.preciseValue shouldBe "1"
+            }
         }
     }
 
-    "Checkcast instruction handled correctly in value analysis" - {
+    Given("Code using the checkcast instruction") {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             AssemblerSource(
                 "Test.jbc",
@@ -151,33 +156,76 @@ class CpaValueTest : FreeSpec({
         )
         val cfa: JvmCfa = CfaUtil.createInterproceduralCfa(programClassPool, libraryClassPool)
 
-        "Simple successful checkcast (same class)" - {
+        When("The analysis is run on code doing a simple cast on the same class") {
             val mainSignature = MethodSignature("Test", "castOk", "()Ljava/lang/String;")
             val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
-            val last = getLastState(cache, mainSignature)
 
-            val value = last.frame.operandStack[0].value
-            value.shouldBeInstanceOf<ParticularReferenceValue>()
-            value.referenceValue().value.preciseValue shouldBe "foo"
+            Then("The analyzed return state contains the correct string") {
+                val last = getLastState(cache, mainSignature)
+                val value = last.frame.operandStack[0].value
+                value.shouldBeInstanceOf<ParticularReferenceValue>()
+                value.referenceValue().value.preciseValue shouldBe "foo"
+            }
         }
 
-        "Successful checkcast (interface)" - {
+        When("The analysis is run on code doing a simple cast on an interface") {
             val mainSignature = MethodSignature("Test", "castInterface", "()Ljava/lang/String;")
             val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
-            val last = getLastState(cache, mainSignature)
 
-            val value = last.frame.operandStack[0].value
-            value.shouldBeInstanceOf<ParticularReferenceValue>()
-            value.referenceValue().value.preciseValue shouldBe "foo"
+            Then("The analyzed return state contains the correct string") {
+                val last = getLastState(cache, mainSignature)
+                val value = last.frame.operandStack[0].value
+                value.shouldBeInstanceOf<ParticularReferenceValue>()
+                value.referenceValue().value.preciseValue shouldBe "foo"
+            }
         }
 
-        "Unsuccessful cast" {
+        When("The analysis is run on code doing an invalid cast") {
             val mainSignature = MethodSignature("Test", "castNotOk", "()Ljava/lang/String;")
             val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
-            val last = getLastState(cache, mainSignature)
 
-            val value = last.frame.operandStack[0].value
-            value.shouldNotBeInstanceOf<ParticularReferenceValue>()
+            Then("The analyzed return state does not contain a known value") {
+                // At the moment the correct behavior of throwing a ClassCastException is not handled by the analysis.
+                // Instead, the analysis just cleans the known value.
+                val last = getLastState(cache, mainSignature)
+                val value = last.frame.operandStack[0].value
+                value.shouldNotBeInstanceOf<ParticularReferenceValue>()
+            }
+        }
+    }
+
+    Given("Code containing an analyzed method with an unknown parameter") {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Test.java",
+                """
+                    import java.util.Random;
+                    class Test
+                    {
+
+                        public static String test()
+                        {
+                            return "Hello".substring(new Random().nextInt(5));
+                        }
+                    }
+                """.trimIndent(),
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+        )
+        val cfa = CfaUtil.createInterproceduralCfa(
+            programClassPool,
+            libraryClassPool,
+        )
+        When("The value analysis is run on the code") {
+            val mainSignature = MethodSignature("Test", "test", "()Ljava/lang/String;")
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
+
+            Then("The analyzed return value is identified and the reference id is a CFA node") {
+                val last = getLastState(cache, mainSignature)
+                val ret = last.frame.operandStack[0].value
+                ret.shouldBeInstanceOf<IdentifiedReferenceValue>()
+                ret.id.shouldBeInstanceOf<JvmCfaNode>()
+            }
         }
     }
 })

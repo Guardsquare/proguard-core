@@ -19,8 +19,6 @@
 package proguard.analysis.cpa.jvm.transfer;
 
 import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_STRING;
-import static proguard.classfile.util.ClassUtil.internalTypeFromClassName;
-import static proguard.classfile.util.ClassUtil.isExtendable;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_CONSTANT_INSTRUCTION_VISITOR_OPCODE_UNSUPPORTED;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_INSTRUCTION_PUSH_COUNT_HIGHER_THAN_TWO;
 import static proguard.exception.ErrorId.ANALYSIS_JVM_TRANSFER_RELATION_UNEXPECTED_UNKNOWN_SIGNATURE;
@@ -188,17 +186,6 @@ public abstract class JvmTransferRelation<ContentT extends AbstractState<Content
 
   /** Returns an abstract representation of a short constant {@code s}. */
   public ContentT getAbstractShortConstant(short s) {
-    return getAbstractDefault();
-  }
-
-  /** Returns an abstract representation of a reference value {@code object}. */
-  public ContentT getAbstractReferenceValue(String className) {
-    return getAbstractDefault();
-  }
-
-  /** Returns an abstract representation of a reference value {@code object}. */
-  public ContentT getAbstractReferenceValue(
-      String className, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull) {
     return getAbstractDefault();
   }
 
@@ -741,12 +728,7 @@ public abstract class JvmTransferRelation<ContentT extends AbstractState<Content
 
       @Override
       public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
-        abstractState.push(
-            getAbstractReferenceValue(
-                internalTypeFromClassName(classConstant.getName(clazz)),
-                classConstant.referencedClass,
-                isExtendable(classConstant.referencedClass),
-                true));
+        abstractState.push(getAbstractDefault());
       }
     }
   }

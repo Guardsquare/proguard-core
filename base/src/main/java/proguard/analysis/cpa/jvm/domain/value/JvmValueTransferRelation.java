@@ -91,19 +91,6 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
   }
 
   @Override
-  public ValueAbstractState getAbstractReferenceValue(String className) {
-    return getAbstractReferenceValue(className, null, true, true);
-  }
-
-  @Override
-  public ValueAbstractState getAbstractReferenceValue(
-      String internalType, Clazz referencedClazz, boolean mayBeExtension, boolean mayBeNull) {
-    return new ValueAbstractState(
-        valueFactory.createReferenceValue(
-            internalType, referencedClazz, mayBeExtension, mayBeNull));
-  }
-
-  @Override
   public ValueAbstractState getAbstractReferenceValue(
       String internalType,
       Clazz referencedClazz,
@@ -253,7 +240,8 @@ public class JvmValueTransferRelation extends JvmTransferRelation<ValueAbstractS
               ClassUtil.internalMethodReturnType(returnType),
               referencedClassesExtractor.getReturnClass(),
               ClassUtil.isExtendable(referencedClassesExtractor.getReturnClass()),
-              true);
+              true,
+              call.caller);
       pushReturnValue(state, result, returnType);
     }
   }

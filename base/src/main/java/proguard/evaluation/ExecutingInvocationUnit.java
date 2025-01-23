@@ -459,7 +459,8 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
             methodInfo.getReturnType(),
             methodInfo.getReturnClass(),
             isExtendable(methodInfo.getReturnClass()),
-            newInstanceId));
+            newInstanceId,
+            methodInfo.getCaller()));
     return resultBuilder.build();
   }
 
@@ -504,7 +505,8 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     }
 
     if (!isParticular) {
-      return createNonParticularValue(type, referencedClass, valueMayBeExtension, valueId);
+      return createNonParticularValue(
+          type, referencedClass, valueMayBeExtension, valueId, callerLocation);
     }
 
     if (ClassUtil.isInternalPrimitiveType(type)) {
@@ -572,7 +574,11 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    * @return The non-particular {@link Value} corresponding to the given parameters.
    */
   private @NotNull Value createNonParticularValue(
-      String type, Clazz referencedClass, boolean valueMayBeExtension, @Nullable Object valueId) {
+      String type,
+      Clazz referencedClass,
+      boolean valueMayBeExtension,
+      @Nullable Object valueId,
+      @Nullable CodeLocation callerLocation) {
 
     if (type.charAt(0) == VOID) {
       throw new IllegalStateException("A value should not be created for void type");
@@ -585,6 +591,11 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     if (valueId != null) {
       return valueFactory.createReferenceValueForId(
           type, referencedClass, valueMayBeExtension, true, valueId);
+    }
+
+    if (callerLocation != null) {
+      return valueFactory.createReferenceValue(
+          type, referencedClass, valueMayBeExtension, true, callerLocation);
     }
 
     return valueFactory.createValue(type, referencedClass, valueMayBeExtension, true);

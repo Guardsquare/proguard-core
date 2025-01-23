@@ -28,7 +28,12 @@ import proguard.evaluation.value.object.AnalyzedObjectFactory;
  */
 public class ParticularReferenceValueFactory extends TypedReferenceValueFactory {
 
+  /**
+   * Deprecated, use {@link ParticularReferenceValueFactory#createReferenceValue(String, Clazz,
+   * boolean, boolean, CodeLocation)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -37,6 +42,17 @@ public class ParticularReferenceValueFactory extends TypedReferenceValueFactory 
       Clazz creationClass,
       Method creationMethod,
       int creationOffset) {
+    return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      CodeLocation creationLocation) {
+    checkCreationLocation(creationLocation);
     return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
   }
 

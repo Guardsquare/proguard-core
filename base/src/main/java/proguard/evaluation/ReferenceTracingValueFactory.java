@@ -247,7 +247,12 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
         valueFactory.createReferenceValue(referencedClass, mayBeExtension, mayBeNull, value));
   }
 
+  /**
+   * Deprecated, use {@link ReferenceTracingValueFactory#createReferenceValue(String, Clazz,
+   * boolean, boolean, CodeLocation)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -256,6 +261,17 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
       Clazz creationClass,
       Method creationMethod,
       int creationOffset) {
+    return trace(
+        valueFactory.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull));
+  }
+
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      CodeLocation creationLocation) {
     return trace(
         valueFactory.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull));
   }

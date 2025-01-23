@@ -28,10 +28,13 @@ import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import proguard.analysis.cpa.interfaces.AbstractState;
+import proguard.analysis.cpa.jvm.cfa.nodes.JvmCfaNode;
 import proguard.evaluation.value.IdentifiedReferenceValue;
+import proguard.evaluation.value.ReferenceValue;
 import proguard.evaluation.value.TypedReferenceValue;
 import proguard.evaluation.value.Value;
 import proguard.exception.ProguardCoreException;
+import proguard.util.PartialEvaluatorUtils;
 
 /** An {@link AbstractState} for tracking JVM values. */
 public class ValueAbstractState implements AbstractState<ValueAbstractState> {
@@ -41,6 +44,14 @@ public class ValueAbstractState implements AbstractState<ValueAbstractState> {
   private Value value;
 
   public ValueAbstractState(Value value) {
+    // Ids are assigned by JvmValueTransferRelation, any other type of id (e.g., an Integer, as
+    // usually used by PartialEvaluator) would break the state space of the analysis
+    if (value instanceof ReferenceValue
+        && value.isSpecific()
+        && !(PartialEvaluatorUtils.getIdFromSpecificReferenceValue((ReferenceValue) value)
+            instanceof JvmCfaNode)) {
+      throw new IllegalStateException("The value analysis supports only JvmCfaNode identifiers");
+    }
     this.value = value;
   }
 

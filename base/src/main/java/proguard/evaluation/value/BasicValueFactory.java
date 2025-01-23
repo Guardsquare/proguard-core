@@ -143,7 +143,12 @@ public class BasicValueFactory implements ValueFactory {
         value.getType(), referencedClass, mayBeExtension, mayBeNull, valueContent);
   }
 
+  /**
+   * Deprecated, use {@link BasicValueFactory#createReferenceValue(String, Clazz, boolean, boolean,
+   * CodeLocation)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -153,6 +158,24 @@ public class BasicValueFactory implements ValueFactory {
       Method creationMethod,
       int creationOffset) {
     return createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      CodeLocation creationLocation) {
+    checkCreationLocation(creationLocation);
+    return createReferenceValue(
+        type,
+        referencedClass,
+        mayBeExtension,
+        mayBeNull,
+        creationLocation.clazz,
+        (Method) creationLocation.member,
+        creationLocation.offset);
   }
 
   /**

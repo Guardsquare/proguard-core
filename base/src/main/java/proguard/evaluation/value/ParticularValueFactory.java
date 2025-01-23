@@ -166,7 +166,12 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
         referencedClass, mayBeExtension, mayBeNull, value);
   }
 
+  /**
+   * Deprecated, use {@link ParticularValueFactory#createReferenceValue(String, Clazz, boolean,
+   * boolean, CodeLocation)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -183,6 +188,18 @@ public class ParticularValueFactory extends BasicValueFactory implements ValueFa
         creationClass,
         creationMethod,
         creationOffset);
+  }
+
+  @Override
+  public ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean mayBeNull,
+      CodeLocation creationLocation) {
+    checkCreationLocation(creationLocation);
+    return referenceValueFactory.createReferenceValue(
+        type, referencedClass, mayBeExtension, mayBeNull, creationLocation);
   }
 
   /**

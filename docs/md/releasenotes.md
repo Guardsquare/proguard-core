@@ -31,6 +31,7 @@ This is a continuation of the API changes started in release 9.1.7.
 ### Bugfixes
 
 - Make sure injected initialization methods in interfaces have the correct access flags.
+- Fix integers potentially being used as reference identifier during interprocedural value analysis. This could result in the analysis not reaching a fixed point.
 
 ### Improved
 

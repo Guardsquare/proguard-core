@@ -94,7 +94,12 @@ public class IdentifiedValueFactory extends ParticularValueFactory {
     return this.createReferenceValue(type, referencedClass, mayBeExtension, mayBeNull);
   }
 
+  /**
+   * Deprecated, use {@link IdentifiedValueFactory#createReferenceValue(String, Clazz, boolean,
+   * boolean, CodeLocation)}
+   */
   @Override
+  @Deprecated
   public ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,

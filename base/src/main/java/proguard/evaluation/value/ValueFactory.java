@@ -134,7 +134,11 @@ public interface ValueFactory {
    * Creates a new ReferenceValue that represents the given type, created at the specified code
    * location. The type must be an internal class name or an array type. If the type is <code>null
    * </code>, the ReferenceValue represents <code>null</code>.
+   *
+   * <p>Deprecated, use {@link ValueFactory#createReferenceValue(String, Clazz, boolean, boolean,
+   * CodeLocation)}
    */
+  @Deprecated
   ReferenceValue createReferenceValue(
       String type,
       Clazz referencedClass,
@@ -143,6 +147,18 @@ public interface ValueFactory {
       Clazz creationClass,
       Method creationMethod,
       int creationOffset);
+
+  /**
+   * Creates a new ReferenceValue that represents the given type, created at the specified code
+   * location. The type must be an internal class name or an array type. If the type is <code>null
+   * </code>, the ReferenceValue represents <code>null</code>.
+   */
+  ReferenceValue createReferenceValue(
+      String type,
+      Clazz referencedClass,
+      boolean mayBeExtension,
+      boolean maybeNull,
+      CodeLocation creationLocation);
 
   /**
    * Creates a new ReferenceValue that represents the given type, created at the specified code

@@ -31,15 +31,14 @@ public class JvmCfaReferenceValueFactory extends ParticularReferenceValueFactory
       Clazz referencedClass,
       boolean mayBeExtension,
       boolean mayBeNull,
-      Clazz creationClass,
-      Method creationMethod,
-      int creationOffset) {
+      CodeLocation creationLocation) {
     return createReferenceValueForId(
         type,
         referencedClass,
         mayBeExtension,
         mayBeNull,
-        cfa.getFunctionNode(creationClass, creationMethod, creationOffset));
+        cfa.getFunctionNode(
+            creationLocation.clazz, (Method) creationLocation.member, creationLocation.offset));
   }
 
   @Override
