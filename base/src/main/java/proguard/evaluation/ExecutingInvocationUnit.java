@@ -539,6 +539,30 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
         throw new IllegalStateException(
             "Modeled arrays are not supported by ExecutingInvocationUnit");
       }
+      /* WARNING: Hacky way to check whether we are running from value analysis (i.e., ValueAnalyzer),
+      while callerLocation is null when running from PartialEvaluator.
+      */
+      if (callerLocation != null) {
+        /* FIXME: This is a very hacky fix, improve me whenever there's time for it.
+         *
+         * Value analysis currently does not expect integers as IDs. This code, when used together with JvmCfaReferenceValueFactory
+         * (used by "ValueAnalyzer") prevents Integers from being emitted, therefore
+         * preventing state space explosion when unexpected IDs can't be merged in the semi-lattice of value-analysis.
+         *
+         * This abuses the fact that arrays are not supported in value analysis, and therefore we can create just an ordinary
+         * identified reference value without changing the analysis results.
+         *
+         * While this is not fully correct (arrays are supposed to be tracked as IdentifiedArrayReferenceValue,
+         * not IdentifiedReferenceValue), in practice "ExecutingInvocationUnit#createNonParticularValue"
+         * currently has no special treatment for arrays, so there are already some analyzed array resulting in a
+         * IdentifiedReferenceValue.
+         *
+         * A better solution would consist in adding to ValueFactory overloads of createArrayReferenceValue taking a
+         * CodeLocation parameter and overriding them in JvmCfaReferenceValueFactory.
+         */
+        return valueFactory.createReferenceValue(
+            type, referencedClass, false, false, callerLocation);
+      }
       return valueFactory.createArrayReferenceValue(
           // This method expects the type of the content of the array
           type.substring(1),

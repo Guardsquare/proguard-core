@@ -228,4 +228,78 @@ class CpaValueTest : BehaviorSpec({
             }
         }
     }
+
+    Given("Code containing an analyzed method returning an array") {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Test.java",
+                """
+                    class Test
+                    {
+                        public static byte[] test()
+                        {
+                            return "Hello".getBytes();
+                        }
+                    }
+                """.trimIndent(),
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+        )
+        val cfa = CfaUtil.createInterproceduralCfa(
+            programClassPool,
+            libraryClassPool,
+        )
+        When("The value analysis is run on the code") {
+            val mainSignature = MethodSignature("Test", "test", "()[B")
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
+
+            Then("The analyzed return value is identified and the reference id is a CFA node") {
+                val last = getLastState(cache, mainSignature)
+                val ret = last.frame.operandStack[0].value
+                // This is checking the current behavior, but it would be more correct to have an IdentifiedArrayReferenceValue
+                ret.shouldBeInstanceOf<IdentifiedReferenceValue>()
+                ret.type shouldBe "[B"
+                ret.id.shouldBeInstanceOf<JvmCfaNode>()
+            }
+        }
+    }
+
+    Given("Code containing an analyzed method with an unknown parameter and returning an array") {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            JavaSource(
+                "Test.java",
+                """
+                    import java.io.UnsupportedEncodingException;
+                    import java.util.Random;
+                    class Test
+                    {
+
+                        public static byte[] test() throws UnsupportedEncodingException
+                        {
+                            String charset = new Random().nextBoolean() ? "UTF-8" : "UTF-16";
+                            return "Hello".getBytes(charset);
+                        }
+                    }
+                """.trimIndent(),
+            ),
+            javacArguments = listOf("-source", "1.8", "-target", "1.8"),
+        )
+        val cfa = CfaUtil.createInterproceduralCfa(
+            programClassPool,
+            libraryClassPool,
+        )
+        When("The value analysis is run on the code") {
+            val mainSignature = MethodSignature("Test", "test", "()[B")
+            val cache = runCpa(cfa, mainSignature, programClassPool, libraryClassPool)
+
+            Then("The analyzed return value is identified and the reference id is a CFA node") {
+                val last = getLastState(cache, mainSignature)
+                val ret = last.frame.operandStack[0].value
+                // This is checking the current behavior, but it would be more correct to have an IdentifiedArrayReferenceValue
+                ret.shouldBeInstanceOf<IdentifiedReferenceValue>()
+                ret.type shouldBe "[B"
+                ret.id.shouldBeInstanceOf<JvmCfaNode>()
+            }
+        }
+    }
 })
