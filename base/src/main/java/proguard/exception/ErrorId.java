@@ -85,6 +85,8 @@ public final class ErrorId {
 
   public static final int SIGNATURE_AST_INVALID_STRUCTURE = 10_000;
 
+  public static final int CLASSFILE_NULL_VALUES = 11_000;
+
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}
 }

@@ -21,6 +21,8 @@ import java.util.List;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.*;
 import proguard.classfile.kotlin.visitor.*;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 import proguard.util.*;
 
 public class KotlinPropertyMetadata extends SimpleProcessable {
@@ -93,6 +95,12 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinTypeVisitor kotlinTypeVisitor) {
+    if (type == null) {
+      throw new ProguardCoreException.Builder(
+              "Property type is null in class %s.", ErrorId.CLASSFILE_NULL_VALUES)
+          .errorParameters(clazz.getName())
+          .build();
+    }
     kotlinTypeVisitor.visitPropertyType(clazz, kotlinDeclarationContainerMetadata, this, type);
   }
 
@@ -120,6 +128,12 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinValueParameterVisitor kotlinValueParameterVisitor) {
+    if (setterParameters == null) {
+      throw new ProguardCoreException.Builder(
+              "Setter parameters are null in class %s.", ErrorId.CLASSFILE_NULL_VALUES)
+          .errorParameters(clazz.getName())
+          .build();
+    }
     for (KotlinValueParameterMetadata setterParameter : setterParameters) {
       setterParameter.accept(
           clazz, kotlinDeclarationContainerMetadata, this, kotlinValueParameterVisitor);
@@ -130,6 +144,12 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinTypeParameterVisitor kotlinTypeParameterVisitor) {
+    if (typeParameters == null) {
+      throw new ProguardCoreException.Builder(
+              "Type parameters are null in class %s.", ErrorId.CLASSFILE_NULL_VALUES)
+          .errorParameters(clazz.getName())
+          .build();
+    }
     for (KotlinTypeParameterMetadata typeParameter : typeParameters) {
       typeParameter.accept(
           clazz, kotlinDeclarationContainerMetadata, this, kotlinTypeParameterVisitor);
