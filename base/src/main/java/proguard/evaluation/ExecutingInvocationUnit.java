@@ -106,6 +106,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
   @NotNull private final ClassPool libraryClassPool;
   @Nullable private Value[] parameters;
   private final boolean enableSameInstanceIdApproximation;
+  private final boolean allowNonFinalConstants;
 
   /** Data structure for mapping method signatures onto responsible executors. */
   private final ExecutorLookup executorLookup;
@@ -116,11 +117,13 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
       @NotNull ClassPool libraryClassPool,
       ValueFactory valueFactory,
       boolean enableSameInstanceIdApproximation,
+      boolean allowNonFinalConstants,
       List<Executor> registeredExecutors) {
     super(valueFactory);
     this.programClassPool = programClassPool;
     this.libraryClassPool = libraryClassPool;
     this.enableSameInstanceIdApproximation = enableSameInstanceIdApproximation;
+    this.allowNonFinalConstants = allowNonFinalConstants;
     this.executorLookup = new ExecutorLookup(registeredExecutors);
   }
 
@@ -130,6 +133,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     @NotNull private final ClassPool libraryClassPool;
     protected boolean enableSameInstanceIdApproximation = false;
     protected boolean useDefaultStringReflectionExecutor = true;
+    private boolean allowNonFinalConstants = false;
     protected List<Executor.Builder<?>> registeredExecutorBuilders = new ArrayList<>();
 
     public Builder(@NotNull ClassPool programClassPool, @NotNull ClassPool libraryClassPool) {
@@ -146,6 +150,18 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
      */
     public Builder setEnableSameInstanceIdApproximation(boolean enableSameInstanceIdApproximation) {
       this.enableSameInstanceIdApproximation = enableSameInstanceIdApproximation;
+      return this;
+    }
+
+    /**
+     * By default, the ExecutingInvocationUnit will read constant value attributes from static final
+     * fields. This method allows for reading constant value attributes from non-final static fields
+     * as well.
+     *
+     * @param allowNonFinalConstants whether reading from non-final constants should be enabled.
+     */
+    public Builder setAllowNonFinalConstants(boolean allowNonFinalConstants) {
+      this.allowNonFinalConstants = allowNonFinalConstants;
       return this;
     }
 
@@ -217,6 +233,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
           libraryClassPool,
           valueFactory,
           enableSameInstanceIdApproximation,
+          allowNonFinalConstants,
           registeredExecutors);
     }
 
@@ -240,6 +257,7 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
           libraryClassPool,
           valueFactory,
           enableSameInstanceIdApproximation,
+          allowNonFinalConstants,
           registeredExecutors);
     }
   }
@@ -720,7 +738,8 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     // get values from static final fields
     FieldValueGetterVisitor constantVisitor = new FieldValueGetterVisitor();
     fieldrefConstant.referencedFieldAccept(
-        new MemberAccessFilter(STATIC | FINAL, 0, constantVisitor));
+        new MemberAccessFilter(
+            allowNonFinalConstants ? STATIC : STATIC | FINAL, 0, constantVisitor));
 
     return constantVisitor.value == null
         ? super.getFieldValue(clazz, fieldrefConstant, type)
