@@ -1,4 +1,4 @@
-package proguard.classfile.attribute.signature;
+package proguard.classfile.attribute.signature.grammars;
 
 import static proguard.classfile.attribute.signature.parsing.Combinators.chain;
 import static proguard.classfile.attribute.signature.parsing.Combinators.optional;

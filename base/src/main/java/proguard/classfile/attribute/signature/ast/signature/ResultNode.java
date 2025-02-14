@@ -4,12 +4,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import proguard.classfile.attribute.signature.ast.ASTStructureException;
 import proguard.classfile.attribute.signature.ast.descriptor.VoidDescriptorNode;
+import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
  */
 public class ResultNode {
-  private @Nullable JavaTypeSignatureNode javaType;
+  private @Nullable TypeSignatureNode javaType;
   private @Nullable VoidDescriptorNode voidDescriptor;
 
   public ResultNode(@NotNull VoidDescriptorNode voidDescriptor) {
@@ -20,7 +21,7 @@ public class ResultNode {
     this.voidDescriptor = voidDescriptor;
   }
 
-  public ResultNode(@NotNull JavaTypeSignatureNode signature) {
+  public ResultNode(@NotNull TypeSignatureNode signature) {
     if (signature == null) {
       throw new ASTStructureException("Argument must not be null.");
     }
@@ -37,16 +38,20 @@ public class ResultNode {
     this.javaType = null;
   }
 
-  public @Nullable JavaTypeSignatureNode getJavaType() {
+  public @Nullable TypeSignatureNode getJavaType() {
     return javaType;
   }
 
-  public void changeToJavaType(@NotNull JavaTypeSignatureNode node) {
+  public void changeToJavaType(@NotNull TypeSignatureNode node) {
     if (node == null) {
       throw new ASTStructureException("Argument must not be null.");
     }
     this.javaType = node;
     this.voidDescriptor = null;
+  }
+
+  public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
+    return visitor.visit(this, arg);
   }
 
   @Override

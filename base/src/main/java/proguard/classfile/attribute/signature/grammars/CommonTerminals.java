@@ -1,4 +1,4 @@
-package proguard.classfile.attribute.signature;
+package proguard.classfile.attribute.signature.grammars;
 
 import java.io.EOFException;
 import proguard.classfile.attribute.signature.ast.descriptor.BaseTypeNode;

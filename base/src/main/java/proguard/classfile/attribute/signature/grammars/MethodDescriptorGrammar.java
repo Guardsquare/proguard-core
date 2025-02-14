@@ -1,6 +1,6 @@
-package proguard.classfile.attribute.signature;
+package proguard.classfile.attribute.signature.grammars;
 
-import static proguard.classfile.attribute.signature.FieldDescriptorGrammar.FIELD_TYPE;
+import static proguard.classfile.attribute.signature.grammars.FieldDescriptorGrammar.FIELD_TYPE;
 import static proguard.classfile.attribute.signature.parsing.Combinators.chain;
 import static proguard.classfile.attribute.signature.parsing.Combinators.oneOf;
 import static proguard.classfile.attribute.signature.parsing.Combinators.repeat;

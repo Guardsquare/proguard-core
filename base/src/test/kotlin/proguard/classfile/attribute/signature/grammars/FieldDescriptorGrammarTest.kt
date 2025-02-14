@@ -1,4 +1,4 @@
-package proguard.classfile.attribute.signature
+package proguard.classfile.attribute.signature.grammars
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull

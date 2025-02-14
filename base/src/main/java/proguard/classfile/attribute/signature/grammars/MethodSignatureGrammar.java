@@ -1,6 +1,6 @@
-package proguard.classfile.attribute.signature;
+package proguard.classfile.attribute.signature.grammars;
 
-import static proguard.classfile.attribute.signature.CommonTerminals.VOID_DESCRIPTOR;
+import static proguard.classfile.attribute.signature.grammars.CommonTerminals.VOID_DESCRIPTOR;
 import static proguard.classfile.attribute.signature.parsing.Combinators.chain;
 import static proguard.classfile.attribute.signature.parsing.Combinators.oneOf;
 import static proguard.classfile.attribute.signature.parsing.Combinators.optional;
@@ -11,10 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import proguard.classfile.attribute.signature.ast.signature.JavaTypeSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.MethodSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.ResultNode;
 import proguard.classfile.attribute.signature.ast.signature.ThrowsSignatureNode;
+import proguard.classfile.attribute.signature.ast.signature.TypeSignatureNode;
 import proguard.classfile.attribute.signature.parsing.Parser;
 
 /**
@@ -26,7 +26,7 @@ import proguard.classfile.attribute.signature.parsing.Parser;
  *     grammar</a>
  */
 public final class MethodSignatureGrammar {
-  static final Parser<List<JavaTypeSignatureNode>> METHOD_SIGNATURE_ARGS =
+  static final Parser<List<TypeSignatureNode>> METHOD_SIGNATURE_ARGS =
       chain(
           fixedChar('('),
           repeat(TypeSignatureGrammar.JAVA_TYPE_SIGNATURE),

@@ -1,6 +1,6 @@
-package proguard.classfile.attribute.signature;
+package proguard.classfile.attribute.signature.grammars;
 
-import static proguard.classfile.attribute.signature.CommonTerminals.BASE_TYPE;
+import static proguard.classfile.attribute.signature.grammars.CommonTerminals.BASE_TYPE;
 import static proguard.classfile.attribute.signature.parsing.Combinators.chain;
 import static proguard.classfile.attribute.signature.parsing.Combinators.oneOf;
 import static proguard.classfile.attribute.signature.parsing.Combinators.optional;
@@ -17,11 +17,11 @@ import proguard.classfile.attribute.signature.ast.signature.AnyTypeArgumentNode;
 import proguard.classfile.attribute.signature.ast.signature.ArrayTypeSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.BoundedTypeArgumentNode;
 import proguard.classfile.attribute.signature.ast.signature.ClassTypeSignatureNode;
-import proguard.classfile.attribute.signature.ast.signature.JavaTypeSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.PackageSpecifierNode;
 import proguard.classfile.attribute.signature.ast.signature.ReferenceTypeSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.SimpleClassTypeSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.TypeArgumentNode;
+import proguard.classfile.attribute.signature.ast.signature.TypeSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.TypeVariableSignatureNode;
 import proguard.classfile.attribute.signature.ast.signature.WildcardIndicatorNode;
 import proguard.classfile.attribute.signature.parsing.LazyParser;
@@ -92,10 +92,10 @@ public final class TypeSignatureGrammar {
           fixedChar(';'),
           (nothing, identifier, nothing2) -> new TypeVariableSignatureNode(identifier));
 
-  static final Parser<JavaTypeSignatureNode> JAVA_TYPE_SIGNATURE =
+  static final Parser<TypeSignatureNode> JAVA_TYPE_SIGNATURE =
       oneOf(
-          REFERENCE_TYPE_SIGNATURE.map(JavaTypeSignatureNode::new),
-          BASE_TYPE.map(JavaTypeSignatureNode::new));
+          REFERENCE_TYPE_SIGNATURE.map(TypeSignatureNode::new),
+          BASE_TYPE.map(TypeSignatureNode::new));
   static final Parser<ArrayTypeSignatureNode> ARRAY_TYPE_SIGNATURE =
       chain(
           fixedChar('['),
@@ -128,7 +128,7 @@ public final class TypeSignatureGrammar {
    * @param input The string to parse.
    * @return A parsed out result, or null if not valid type signature.
    */
-  public static @Nullable JavaTypeSignatureNode parse(@NotNull String input) {
+  public static @Nullable TypeSignatureNode parse(@NotNull String input) {
     return JAVA_TYPE_SIGNATURE.parse(input);
   }
 }

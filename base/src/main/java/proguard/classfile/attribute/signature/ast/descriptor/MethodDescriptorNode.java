@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.attribute.signature.ast.ASTStructureException;
+import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
@@ -38,6 +39,10 @@ public class MethodDescriptorNode {
       throw new ASTStructureException("Argument must not be null.");
     }
     this.returnDescriptor = returnDescriptor;
+  }
+
+  public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
+    return visitor.visit(this, arg);
   }
 
   @Override
