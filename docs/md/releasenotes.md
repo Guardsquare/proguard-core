@@ -1,3 +1,9 @@
+## Version 9.1.9
+
+### Improved
+
+- Improve performance of `MethodLinker` in situations with large number of linked methods in a chain.
+
 ## Version 9.1.8
 
 ### Improved
