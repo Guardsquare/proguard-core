@@ -69,6 +69,9 @@ public class ConstantPoolShrinker
   private int[] constantIndexMap = new int[ClassEstimates.TYPICAL_CONSTANT_POOL_SIZE];
   private final ConstantPoolRemapper constantPoolRemapper = new ConstantPoolRemapper();
 
+  private final BootstrapMethodInfoMarker bootstrapMethodInfoMarker =
+      new BootstrapMethodInfoMarker(this);
+
   // Implementations for ClassVisitor.
 
   @Override
@@ -134,21 +137,11 @@ public class ConstantPoolShrinker
   }
 
   public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant) {
-    markAsUsed(dynamicConstant);
-
-    markConstant(clazz, dynamicConstant.u2nameAndTypeIndex);
-
-    // Mark the bootstrap methods attribute.
-    clazz.attributesAccept(this);
+    dynamicConstant.accept(clazz, bootstrapMethodInfoMarker);
   }
 
   public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
-    markAsUsed(invokeDynamicConstant);
-
-    markConstant(clazz, invokeDynamicConstant.u2nameAndTypeIndex);
-
-    // Mark the bootstrap methods attribute.
-    clazz.attributesAccept(this);
+    invokeDynamicConstant.accept(clazz, bootstrapMethodInfoMarker);
   }
 
   public void visitMethodHandleConstant(Clazz clazz, MethodHandleConstant methodHandleConstant) {
@@ -680,5 +673,73 @@ public class ConstantPoolShrinker
     Arrays.fill(constantPool, counter, length, null);
 
     return counter;
+  }
+
+  /**
+   * <a href="https://github.com/Guardsquare/proguard-core/issues/135">#135</a> An InvokeDynamic
+   * constant can reference a bootstrap method that reference a dynamic constant when compiling a
+   * pattern matching switch in java >=21. If we trigger a visit of the full bootstrap methods
+   * attribute when visiting these constants, it would cause an infinite loop. Say for example, you
+   * are visiting the invokedynamic instruction:
+   *
+   * <ol>
+   *   <li>Mark the invoke dynamic constant, trigger a visit of the boostrap methods attribute.
+   *   <li>Visit the boostrap method arguments, which can reference a dynamic constant.
+   *   <li>Visit the dynamic constant, which would trigger a visit of the boostrap methods attribute
+   *       once again, causing the loop.
+   * </ol>
+   *
+   * To prevent this, this helper class marks the bootstrap methods attribute, and then visits
+   * <b>only</b> the boostrap method referenced by the constant, preventing the loop.
+   */
+  private class BootstrapMethodInfoMarker implements AttributeVisitor, ConstantVisitor {
+    private final ConstantPoolShrinker constantPoolShrinker;
+
+    private int bootstrapMethodAttributeIndex;
+
+    public BootstrapMethodInfoMarker(ConstantPoolShrinker constantPoolShrinker) {
+      this.constantPoolShrinker = constantPoolShrinker;
+    }
+
+    // Implementations for AttributeVisitor.
+
+    @Override
+    public void visitBootstrapMethodsAttribute(
+        Clazz clazz, BootstrapMethodsAttribute bootstrapMethodsAttribute) {
+      markConstant(clazz, bootstrapMethodsAttribute.u2attributeNameIndex);
+      bootstrapMethodsAttribute.bootstrapMethodEntryAccept(
+          clazz, bootstrapMethodAttributeIndex, constantPoolShrinker);
+    }
+
+    @Override
+    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
+
+    // Implementations for ConstantVisitor.
+
+    @Override
+    public void visitAnyConstant(Clazz clazz, Constant constant) {}
+
+    @Override
+    public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant) {
+      markAsUsed(dynamicConstant);
+
+      markConstant(clazz, dynamicConstant.u2nameAndTypeIndex);
+
+      // mark the bootstrap method attribute and the boostrap method referenced by the constant
+      bootstrapMethodAttributeIndex = dynamicConstant.u2bootstrapMethodAttributeIndex;
+      clazz.attributesAccept(this);
+    }
+
+    @Override
+    public void visitInvokeDynamicConstant(
+        Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
+      markAsUsed(invokeDynamicConstant);
+
+      markConstant(clazz, invokeDynamicConstant.u2nameAndTypeIndex);
+
+      // mark the bootstrap method attribute and the boostrap method referenced by the constant
+      bootstrapMethodAttributeIndex = invokeDynamicConstant.u2bootstrapMethodAttributeIndex;
+      clazz.attributesAccept(this);
+    }
   }
 }
