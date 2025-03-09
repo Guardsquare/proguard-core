@@ -1,5 +1,9 @@
 ## Version 9.1.10
 
+### Java support
+
+- Update maximum supported Java class version to 68.65535 (Java 24).
+
 ## Version 9.1.9
 
 ### Improved
