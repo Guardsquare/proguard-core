@@ -1,5 +1,7 @@
 package proguard.classfile.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.attribute.Attribute;
@@ -10,9 +12,6 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.instruction.visitor.AllInstructionVisitor;
 import proguard.classfile.instruction.visitor.InstructionOpCodeFilter;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This utility class finds the offset of a provided list of opcode in the code attributes.
