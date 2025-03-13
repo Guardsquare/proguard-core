@@ -2,6 +2,9 @@ package proguard.classfile.util.inject.location;
 
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeNameFilter;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.util.OpcodeOffsetFinder;
 
@@ -53,7 +56,9 @@ public class LastBlocks implements InjectStrategy {
   @Override
   public InjectLocation[] getAllSuitableInjectionLocation(
       ProgramClass targetClass, ProgramMethod targetMethod) {
-    targetMethod.accept(targetClass, offsetFinder);
+    targetMethod.accept(
+        targetClass,
+        new AllAttributeVisitor(new AttributeNameFilter(Attribute.CODE, offsetFinder)));
 
     return offsetFinder.getFoundOffsets().stream()
         .map(offset -> new InjectLocation(offset, true))
