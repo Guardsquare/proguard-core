@@ -4,6 +4,10 @@
 
 - Update maximum supported Java class version to 68.65535 (Java 24).
 
+### Bugfixes
+
+- Prevent `StackOverflowError` in ConstantPoolShrinker when visiting a pattern matching switch in java >= 21. 
+
 ## Version 9.1.9
 
 ### Improved
