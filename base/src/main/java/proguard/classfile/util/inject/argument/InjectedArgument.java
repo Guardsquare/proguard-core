@@ -1,7 +1,7 @@
 package proguard.classfile.util.inject.argument;
 
 /**
- * This interface defines api for modeling arguments to be passed to the method invocation
+ * This interface defines an API for modeling arguments to be passed to the method invocation
  * instructions that are injected by {@link proguard.classfile.util.inject.CodeInjector}.
  *
  * @author Kymeng Tang

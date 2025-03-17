@@ -17,9 +17,8 @@ public class FirstBlock implements InjectStrategy {
    * offset is right after the `invokespecial` to the constructor of the current class or its super
    * class.
    *
-   * @param targetClass The class holding the method in which a method invocation shall be injected
-   *     into.
-   * @param targetMethod the target method to have a method invocation injected into.
+   * @param targetClass The class holding the method in which a method invocation will be injected.
+   * @param targetMethod The target method to have a method invocation injected into.
    * @return An InjectLocation instance indicating the first offset suitable for injection.
    */
   @Override
@@ -40,9 +39,8 @@ public class FirstBlock implements InjectStrategy {
    * offset is right after the `invokespecial` to the constructor of the current class or its super
    * class.
    *
-   * @param targetClass The class holding the method in which a method invocation shall be injected
-   *     into.
-   * @param targetMethod the target method to have a method invocation injected into.
+   * @param targetClass The class holding the method in which a method invocation will be injected.
+   * @param targetMethod The target method to have a method invocation injected into.
    * @return An array of one InjectLocation instance indicating the first offset suitable for
    *     injection.
    */

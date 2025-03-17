@@ -1,5 +1,6 @@
-package proguard.classfile.editor
+package proguard.classfile.editor.util
 
+import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.string.shouldContain
 import proguard.classfile.ClassConstants
@@ -16,6 +17,8 @@ import java.io.PrintWriter
 import java.io.StringWriter
 
 class CodeInjectorTest : BehaviorSpec({
+    isolationMode = IsolationMode.InstancePerLeaf
+
     Given("a class targeted for injection and a class holding the injection content") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
@@ -42,13 +45,13 @@ class CodeInjectorTest : BehaviorSpec({
                         System.out.println("log called");
                     }
                     public static void logPrimitive(int intData, double doubleData) {
-                        System.out.println(String.format("log param: %d:int, %d:double", intData, doubleData));
+                        System.out.printf("log param: %d:int, %f:double%n", intData, doubleData);
                     } 
                     public static void logString(String stringData) {
-                        System.out.println(String.format("log param: %s:String", stringData));
+                        System.out.printf("log param: %s:String%n", stringData);
                     } 
                     public static void logMixed(String stringData, int intData, double doubleData) {
-                        System.out.println(String.format("log param: %s:String, %d:intData, %d:doubleData", stringData, intData, doubleData));
+                        System.out.printf("log param: %s:String, %d:intData, %f:doubleData%n", stringData, intData, doubleData);
                     } 
                 }
                 """.trimIndent(),
@@ -71,7 +74,7 @@ class CodeInjectorTest : BehaviorSpec({
 
                 renderedMethod.toString() shouldContain Regex(
                     """
-                    \s*\[0\] invokestatic #\d+ = Methodref\(InjectContent\.log\(\)V\)
+                    \s*\[0] invokestatic #\d+ = Methodref\(InjectContent\.log\(\)V\)
                     """.trimIndent(),
                 )
             }
@@ -96,9 +99,9 @@ class CodeInjectorTest : BehaviorSpec({
 
                 renderedMethod.toString() shouldContain Regex(
                     """
-                    \s*\[0\] bipush 99
-                    \s*\[\d+\] ldc2_w #\d+ = Double\(42.24\)
-                    \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logPrimitive\(ID\)V\)
+                    \s*\[0] bipush 99
+                    \s*\[\d+] ldc2_w #\d+ = Double\(42.24\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logPrimitive\(ID\)V\)
                     """.trimIndent(),
                 )
             }
@@ -122,8 +125,8 @@ class CodeInjectorTest : BehaviorSpec({
 
                 renderedMethod.toString() shouldContain Regex(
                     """
-                    \s*\[0\] ldc #\d+ = String\("foo"\)
-                    \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logString\(Ljava/lang/String;\)V\)
+                    \s*\[0] ldc #\d+ = String\("foo"\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logString\(Ljava/lang/String;\)V\)
                     """.trimIndent(),
                 )
             }
@@ -149,10 +152,10 @@ class CodeInjectorTest : BehaviorSpec({
 
                 renderedMethod.toString() shouldContain Regex(
                     """
-                    \s*\[0\] ldc #\d+ = String\("bar"\)
-                    \s*\[\d+\] iconst_1
-                    \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
-                    \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
+                    \s*\[0] ldc #\d+ = String\("bar"\)
+                    \s*\[\d+] iconst_1
+                    \s*\[\d+] ldc2_w #\d+ = Double\(12.49\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
                     """.trimIndent(),
                 )
             }
@@ -178,10 +181,10 @@ class CodeInjectorTest : BehaviorSpec({
 
                 renderedMethod.toString() shouldContain Regex(
                     """
-                    \s*\[0\] ldc #\d+ = String\("bar"\)
-                    \s*\[\d+\] iconst_1
-                    \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
-                    \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
+                    \s*\[0] ldc #\d+ = String\("bar"\)
+                    \s*\[\d+] iconst_1
+                    \s*\[\d+] ldc2_w #\d+ = Double\(12.49\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
                     """.trimIndent(),
                 )
             }
@@ -207,12 +210,12 @@ class CodeInjectorTest : BehaviorSpec({
 
                 renderedMethod.toString() shouldContain Regex(
                     """
-                    \s*\[0\] aload_0 v0
-                    \s*\[1\] invokespecial #1 = Methodref\(java/lang/Object.<init>\(\)V\)
-                    \s*\[\d+\] ldc #\d+ = String\("bar"\)
-                    \s*\[\d+\] iconst_1
-                    \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
-                    \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
+                    \s*\[0] aload_0 v0
+                    \s*\[1] invokespecial #1 = Methodref\(java/lang/Object.<init>\(\)V\)
+                    \s*\[\d+] ldc #\d+ = String\("bar"\)
+                    \s*\[\d+] iconst_1
+                    \s*\[\d+] ldc2_w #\d+ = Double\(12.49\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
                     """.trimIndent(),
                 )
             }
@@ -238,13 +241,13 @@ class CodeInjectorTest : BehaviorSpec({
 
                 renderedMethod.toString() shouldContain Regex(
                     """
-                    \s*\[0\] aload_0 v0
-                    \s*\[1\] iload_1 v1
-                    \s*\[2\] invokespecial #\d+ = Methodref\(InjectionTarget.<init>\(I\)V\)
-                    \s*\[\d+\] ldc #\d+ = String\("bar"\)
-                    \s*\[\d+\] iconst_1
-                    \s*\[\d+\] ldc2_w #\d+ = Double\(12.49\)
-                    \s*\[\d+\] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
+                    \s*\[0] aload_0 v0
+                    \s*\[1] iload_1 v1
+                    \s*\[2] invokespecial #\d+ = Methodref\(InjectionTarget.<init>\(I\)V\)
+                    \s*\[\d+] ldc #\d+ = String\("bar"\)
+                    \s*\[\d+] iconst_1
+                    \s*\[\d+] ldc2_w #\d+ = Double\(12.49\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
                     """.trimIndent(),
                 )
             }

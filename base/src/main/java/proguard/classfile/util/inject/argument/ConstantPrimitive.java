@@ -3,7 +3,7 @@ package proguard.classfile.util.inject.argument;
 import proguard.classfile.util.ClassUtil;
 
 /**
- * A model representing a constant value of primitive typed argument to be passed to the method
+ * A model representing a constant value of a primitive type argument to be passed to the method
  * invocation instructions that are injected by {@link proguard.classfile.util.inject.CodeInjector}.
  *
  * @author Kymeng Tang

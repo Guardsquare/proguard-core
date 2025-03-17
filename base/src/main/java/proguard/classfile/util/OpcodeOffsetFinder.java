@@ -14,13 +14,13 @@ import proguard.classfile.instruction.visitor.InstructionOpCodeFilter;
 import proguard.classfile.instruction.visitor.InstructionVisitor;
 
 /**
- * This utility class finds the offset of a provided list of opcode in the code attributes.
+ * This utility class finds the offset of a provided list of opcodes in the code attributes.
  *
  * @author Kymeng Tang
  */
 public class OpcodeOffsetFinder implements AttributeVisitor, InstructionVisitor, ConstantVisitor {
-  private final List<Integer> foundOffsets = new ArrayList<>();
   private final int[] targetOpcodes;
+  private final List<Integer> foundOffsets = new ArrayList<>();
 
   public OpcodeOffsetFinder(int[] targetOpcodes) {
     this.targetOpcodes = targetOpcodes;
@@ -31,10 +31,11 @@ public class OpcodeOffsetFinder implements AttributeVisitor, InstructionVisitor,
   }
 
   public void reset() {
-    this.foundOffsets.clear();
+    foundOffsets.clear();
   }
 
-  // AttributeVisitor implementation
+  // Implementations for AttributeVisitor.
+
   @Override
   public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
@@ -44,7 +45,8 @@ public class OpcodeOffsetFinder implements AttributeVisitor, InstructionVisitor,
         clazz, method, new AllInstructionVisitor(new InstructionOpCodeFilter(targetOpcodes, this)));
   }
 
-  // InstructionVisitor implementation
+  // Implementations for InstructionVisitor.
+
   @Override
   public void visitAnyInstruction(
       Clazz clazz,

@@ -1,17 +1,9 @@
 package proguard.classfile.util.inject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import proguard.classfile.AccessConstants;
-import proguard.classfile.ClassConstants;
-import proguard.classfile.Clazz;
-import proguard.classfile.Method;
-import proguard.classfile.ProgramClass;
-import proguard.classfile.ProgramMethod;
+import proguard.classfile.*;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
@@ -26,10 +18,10 @@ import proguard.classfile.util.inject.argument.InjectedArgument;
 import proguard.classfile.util.inject.location.InjectStrategy;
 
 /**
- * This utility class allow for injecting a method invocation instruction optionally with arguments
- * modeled by instances of classes implementing {@link InjectedArgument} interface to the specified
- * target method at an offset determined by the implementation of the {@link InjectStrategy}
- * interface.
+ * This utility class allows for injecting a method invocation instruction, optionally with
+ * arguments modeled by instances of classes implementing the {@link InjectedArgument} interface, to
+ * the specified target method at an offset determined by the implementation of the {@link
+ * InjectStrategy} interface.
  *
  * <p>Example usage: new CodeInjector() .injectInvokeStatic(logUtilClass, logDebugMethod, new
  * ConstantPrimitive<Integer>(1), new ConstantString("Hello world")) .into(MainProgramClass,
@@ -46,19 +38,18 @@ public class CodeInjector {
   /**
    * Specify the static method to be invoked.
    *
-   * @param clazz The class in which the static method belongs to.
+   * @param clazz The class containing the static method to be invoked.
    * @param method The method to be invoked.
    */
   public CodeInjector injectInvokeStatic(Clazz clazz, Method method) {
     assert content == null
-        : "The injection content: `"
+        : "The injection content `"
             + renderInjectionContent(content.clazz, content.method, arguments)
-            + "` "
-            + "has already been specified.";
+            + "` has already been specified.";
 
     assert (method.getAccessFlags() & AccessConstants.STATIC) != 0
             && !method.getName(clazz).equals(ClassConstants.METHOD_NAME_CLINIT)
-        : "The method to be injected must be a (non-class initializer) static method.";
+        : "The method to be invoked must be a (non-class initializer) static method.";
 
     content = new ClassMethodPair(clazz, method);
     return this;
@@ -67,9 +58,9 @@ public class CodeInjector {
   /**
    * Specify the static method to be invoked.
    *
-   * @param clazz The class in which the static method belongs to.
+   * @param clazz The class containing the static method to be invoked.
    * @param method The method to be invoked.
-   * @param arguments a list of arguments to be passed to the method to be invoked.
+   * @param arguments A list of arguments to be passed to the method to be invoked.
    */
   public CodeInjector injectInvokeStatic(
       Clazz clazz, Method method, InjectedArgument... arguments) {
@@ -85,8 +76,8 @@ public class CodeInjector {
 
       assert expectedType.equals(provided.getInternalType())
           : String.format(
-              "Provided argument: `%s` doesn't match the expected parameter type: %s for method: ",
-              argumentsIterator,
+              "Provided argument `%s` doesn't match the expected parameter type `%s` for method: %s",
+              provided.getInternalType(),
               expectedType,
               renderMethodSignature(content.clazz, content.method));
     }
@@ -96,29 +87,28 @@ public class CodeInjector {
   }
 
   /**
-   * Specify the method where a static method invocation shall be injected into.
+   * Specify the method where a static method invocation will be injected into.
    *
-   * @param programClass The program class that has the method where a static method invocation
-   *     shall be injected into.
-   * @param programMethod the method where a static method invocation shall be injected into.
+   * @param programClass The program class that has the method where a static method invocation will
+   *     be injected into.
+   * @param programMethod The method where a static method invocation will be injected into.
    */
   public CodeInjector into(ProgramClass programClass, ProgramMethod programMethod) {
     assert targets == null : "The injection target has already been specified.";
 
-    targets = Arrays.asList(new ClassMethodPair(programClass, programMethod));
+    targets = Collections.singletonList(new ClassMethodPair(programClass, programMethod));
     return this;
   }
 
   /**
    * Specify the location in which the invoke instruction should be injected into.
    *
-   * @param injectStrategy The implementation of InjectStrategy interface which determine the offset
-   *     to inject the invoke instruction.
-   * @return
+   * @param injectStrategy The implementation of the InjectStrategy interface which determines the
+   *     offset to inject the invoke instruction.
    */
   public CodeInjector at(InjectStrategy injectStrategy) {
     assert this.injectStrategy == null
-        : "The injection strategy: " + injectStrategy + " has already been specified.";
+        : "The injection strategy " + injectStrategy + " has already been specified.";
 
     this.injectStrategy = injectStrategy;
     return this;
@@ -126,7 +116,7 @@ public class CodeInjector {
 
   /**
    * Apply the invoke instruction in accordance to the specifications provided via the
-   * `.injectInvokeStatic(...)`, `.into(...)` and `at(...)` method.
+   * `.injectInvokeStatic(...)`, `.into(...)` and `.at(...)` methods.
    */
   public void commit() {
     assert content != null
@@ -163,7 +153,28 @@ public class CodeInjector {
         });
   }
 
-  // Internal utility methods
+  public boolean readyToCommit() {
+    return content != null && targets != null && injectStrategy != null;
+  }
+
+  public List<ClassMethodPair> getTargets() {
+    return targets;
+  }
+
+  public ClassMethodPair getContent() {
+    return content;
+  }
+
+  public InjectStrategy getInjectStrategy() {
+    return injectStrategy;
+  }
+
+  public List<InjectedArgument> getArguments() {
+    return arguments;
+  }
+
+  // Internal utility methods.
+
   private static String renderMethodSignature(Clazz clazz, Method method) {
     return ClassUtil.externalFullMethodDescription(
         clazz.getName(),
@@ -174,17 +185,16 @@ public class CodeInjector {
 
   private static String renderInjectionContent(
       Clazz clazz, Method method, List<InjectedArgument> arguments) {
-    return new StringBuilder()
-        .append(clazz.getName())
-        .append(method.getName(clazz))
-        .append("(")
-        .append(arguments.stream().map(Object::toString).collect(Collectors.joining(",")))
-        .append("):")
-        .append(ClassUtil.externalMethodReturnType(method.getDescriptor(clazz)))
-        .toString();
+    return clazz.getName()
+        + method.getName(clazz)
+        + "("
+        + arguments.stream().map(Object::toString).collect(Collectors.joining(","))
+        + "):"
+        + ClassUtil.externalMethodReturnType(method.getDescriptor(clazz));
   }
 
-  // Internal utility classes
+  // Internal utility classes.
+
   private static class InstructionInjector implements AttributeVisitor {
     private final CodeAttributeEditor editor;
     private final InstructionSequenceBuilder code;
@@ -217,13 +227,31 @@ public class CodeInjector {
     }
   }
 
-  private static class ClassMethodPair {
+  public static class ClassMethodPair {
     public Clazz clazz;
     public Method method;
 
     public ClassMethodPair(Clazz clazz, Method method) {
       this.clazz = clazz;
       this.method = method;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ClassMethodPair that = (ClassMethodPair) o;
+      return Objects.equals(clazz, that.clazz) && Objects.equals(method, that.method);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(clazz, method);
+    }
+
+    @Override
+    public String toString() {
+      return clazz.getName() + "." + method.getName(clazz) + method.getDescriptor(clazz);
     }
   }
 }

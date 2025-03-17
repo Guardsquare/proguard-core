@@ -16,7 +16,7 @@ public class ConstantString implements InjectedArgument {
   }
 
   public String getConstant() {
-    return this.constantString;
+    return constantString;
   }
 
   @Override

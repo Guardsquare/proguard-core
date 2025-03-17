@@ -10,7 +10,7 @@ import proguard.classfile.util.OpcodeOffsetFinder;
 
 /**
  * An implementation of the InjectStrategy interface to find the potential last blocks of a method.
- * The last block of a method is defined as the offset of return and throw opcode within a method.
+ * The last block of a method is defined as the offset of return or throw opcodes within a method.
  */
 public class LastBlocks implements InjectStrategy {
   private final OpcodeOffsetFinder offsetFinder =
@@ -28,9 +28,8 @@ public class LastBlocks implements InjectStrategy {
   /**
    * Find the first offset of return or throw instructions to inject a method invocation.
    *
-   * @param targetClass The class holding the method in which a method invocation shall be injected
-   *     into.
-   * @param targetMethod the target method to have a method invocation injected into.
+   * @param targetClass The class holding the method in which a method invocation will be injected.
+   * @param targetMethod The target method to have a method invocation injected into.
    * @return An InjectLocation instance indicating the first offset suitable for injection.
    */
   @Override
@@ -39,7 +38,7 @@ public class LastBlocks implements InjectStrategy {
     InjectLocation[] foundOffsets = this.getAllSuitableInjectionLocation(targetClass, targetMethod);
 
     assert foundOffsets.length > 0
-        : "No return nor throw opcodes found; are you visiting an abstract method?";
+        : "No return or throw opcodes found; are you visiting an abstract method?";
 
     return foundOffsets[0];
   }
@@ -47,9 +46,8 @@ public class LastBlocks implements InjectStrategy {
   /**
    * Find offsets of return or throw instructions to inject a method invocation.
    *
-   * @param targetClass The class holding the method in which a method invocation shall be injected
-   *     into.
-   * @param targetMethod the target method to have a method invocation injected into.
+   * @param targetClass The class holding the method in which a method invocation will be injected.
+   * @param targetMethod The target method to have a method invocation injected into.
    * @return An array of one InjectLocation instance indicating the first offset suitable for
    *     injection.
    */
