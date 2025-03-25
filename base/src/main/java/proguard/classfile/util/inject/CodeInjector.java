@@ -141,8 +141,14 @@ public class CodeInjector {
               new InstructionSequenceBuilder((ProgramClass) target.clazz);
 
           arguments.forEach(
-              argument ->
-                  code.pushPrimitiveOrString(argument.getValue(), argument.getInternalType()));
+              argument -> {
+                Object value = argument.getValue();
+                if (value.getClass().isArray()) {
+                  code.pushPrimitiveOrStringArray(argument.getInternalType(), (Object[]) value);
+                } else {
+                  code.pushPrimitiveOrString(value, argument.getInternalType());
+                }
+              });
           code.invokestatic(content.clazz, content.method);
 
           target.method.accept(
