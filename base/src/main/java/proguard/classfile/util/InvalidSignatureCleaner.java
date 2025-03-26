@@ -40,7 +40,7 @@ public class InvalidSignatureCleaner implements AttributeVisitor {
 
     Set<String> clazzInterfaces =
         IntStream.range(0, clazz.getInterfaceCount())
-            .mapToObj(i -> clazz.getInterface(i).getName())
+            .mapToObj(clazz::getInterfaceName)
             .collect(Collectors.toSet());
     Set<String> signatureInterfaces =
         signature.getSuperinterfaceSignatures().stream()
