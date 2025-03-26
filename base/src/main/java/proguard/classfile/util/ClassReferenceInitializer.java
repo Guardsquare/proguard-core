@@ -31,7 +31,6 @@ import proguard.classfile.AccessConstants;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
-import proguard.classfile.Field;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryField;
 import proguard.classfile.LibraryMethod;
@@ -64,9 +63,6 @@ import proguard.classfile.attribute.annotation.EnumConstantElementValue;
 import proguard.classfile.attribute.annotation.ParameterAnnotationsAttribute;
 import proguard.classfile.attribute.annotation.visitor.AnnotationVisitor;
 import proguard.classfile.attribute.annotation.visitor.ElementValueVisitor;
-import proguard.classfile.attribute.signature.grammars.ClassSignatureGrammar;
-import proguard.classfile.attribute.signature.grammars.MethodSignatureGrammar;
-import proguard.classfile.attribute.signature.grammars.TypeSignatureGrammar;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.attribute.visitor.InnerClassesInfoVisitor;
 import proguard.classfile.attribute.visitor.LocalVariableInfoVisitor;
@@ -82,7 +78,6 @@ import proguard.classfile.constant.MethodHandleConstant;
 import proguard.classfile.constant.MethodTypeConstant;
 import proguard.classfile.constant.StringConstant;
 import proguard.classfile.constant.visitor.ConstantVisitor;
-import proguard.classfile.editor.NamedAttributeDeleter;
 import proguard.classfile.kotlin.KotlinAnnotatable;
 import proguard.classfile.kotlin.KotlinAnnotation;
 import proguard.classfile.kotlin.KotlinAnnotationArgument;
@@ -1277,43 +1272,6 @@ public class ClassReferenceInitializer
     }
 
     return clazz;
-  }
-
-  /** A small utility class used to clean up invalid signatures. */
-  private class InvalidSignatureCleaner implements AttributeVisitor {
-    // Implementations for AttributeVisitor.
-
-    @Override
-    public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
-
-    @Override
-    public void visitSignatureAttribute(Clazz clazz, SignatureAttribute attibute) {
-      if (ClassSignatureGrammar.parse(attibute.getSignature(clazz)) == null) {
-        clazz.accept(new NamedAttributeDeleter(Attribute.SIGNATURE));
-      }
-    }
-
-    @Override
-    public void visitSignatureAttribute(
-        Clazz clazz, RecordComponentInfo recordComponentInfo, SignatureAttribute attribute) {
-      if (ClassSignatureGrammar.parse(attribute.getSignature(clazz)) == null) {
-        recordComponentInfo.attributesAccept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
-      }
-    }
-
-    @Override
-    public void visitSignatureAttribute(Clazz clazz, Member member, SignatureAttribute attribute) {
-      boolean invalid = false;
-      if (member instanceof Field) {
-        invalid = TypeSignatureGrammar.parse(attribute.getSignature(clazz)) == null;
-      } else if (member instanceof Method) {
-        invalid = MethodSignatureGrammar.parse(attribute.getSignature(clazz)) == null;
-      }
-
-      if (invalid) {
-        member.accept(clazz, new NamedAttributeDeleter(Attribute.SIGNATURE));
-      }
-    }
   }
 
   // Helper classes for KotlinReferenceInitializer.

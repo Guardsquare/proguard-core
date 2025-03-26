@@ -1,10 +1,3 @@
-/*
- * ProGuard -- shrinking, optimization, obfuscation, and preverification
- *             of Java bytecode.
- *
- * Copyright (c) 2002-2021 Guardsquare NV
- */
-
 package proguard.classfile.util
 
 import io.kotest.assertions.throwables.shouldNotThrow
@@ -59,7 +52,6 @@ import proguard.classfile.visitor.MemberVisitor
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
-import java.util.function.Predicate
 import proguard.classfile.kotlin.KotlinConstants.dummyClassPool as kotlinDummyClassPool
 
 class ClassReferenceInitializerTest : BehaviorSpec({
@@ -92,7 +84,7 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                     val annotation: Foo
                 )
 
-                val x: @MyTypeAnnotation(
+                const val x: @MyTypeAnnotation(
                     string = "foo",
                     byte = 1,
                     char = 'a',
@@ -108,10 +100,10 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                     uLong = 1uL,
                     kClass = String::class,
                     enum = MyEnum.FOO,
-                    array = arrayOf(Foo("foo"), Foo("bar")),
+                    array = [Foo("foo"), Foo("bar")],
                     annotation = Foo("foo")) String = "foo"
 
-                // extra helpers
+                // Extra helpers.
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
@@ -196,7 +188,7 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                     AllKotlinAnnotationVisitor(
                         AllKotlinAnnotationArgumentVisitor(
                             KotlinAnnotationArgumentFilter(
-                                Predicate<KotlinAnnotationArgument> { it.name == "kClass" },
+                                { it.name == "kClass" },
                                 annotationArgVisitor,
                             ),
                         ),
@@ -226,7 +218,7 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                     AllKotlinAnnotationVisitor(
                         AllKotlinAnnotationArgumentVisitor(
                             KotlinAnnotationArgumentFilter(
-                                Predicate<KotlinAnnotationArgument> { it.name == "enum" },
+                                { it.name == "enum" },
                                 annotationArgVisitor,
                             ),
                         ),
@@ -256,7 +248,7 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                     AllKotlinAnnotationVisitor(
                         AllKotlinAnnotationArgumentVisitor(
                             KotlinAnnotationArgumentFilter(
-                                Predicate<KotlinAnnotationArgument> { it.name == "annotation" },
+                                { it.name == "annotation" },
                                 annotationArgVisitor,
                             ),
                         ),
@@ -309,7 +301,7 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                 """
                 class BaseClass {
                     companion object {
-                        val CONSTANT = "This does not need the base class"
+                        const val CONSTANT = "This does not need the base class"
                     }
                 }
                 """.trimIndent(),
