@@ -9,6 +9,7 @@ import proguard.classfile.ProgramMethod
 import proguard.classfile.util.inject.CodeInjector
 import proguard.classfile.util.inject.argument.ConstantPrimitive
 import proguard.classfile.util.inject.argument.ConstantString
+import proguard.classfile.util.inject.argument.PrimitiveArrayConstantArgument
 import proguard.classfile.util.inject.location.FirstBlock
 import proguard.classfile.visitor.ClassPrinter
 import proguard.testutils.ClassPoolBuilder
@@ -53,6 +54,9 @@ class CodeInjectorTest : BehaviorSpec({
                     public static void logMixed(String stringData, int intData, double doubleData) {
                         System.out.printf("log param: %s:String, %d:intData, %f:doubleData%n", stringData, intData, doubleData);
                     } 
+                    public static void logMixedWithArray(int intId, String stringId , int[] inArrayData, String stringData) {
+                        System.out.printf("log param:  %d:int, %s:String, %d:intData[], %f:stringData%n", intId, stringId, inArrayData, stringData);
+                    }
                 }
                 """.trimIndent(),
             ),
@@ -248,6 +252,40 @@ class CodeInjectorTest : BehaviorSpec({
                     \s*\[\d+] iconst_1
                     \s*\[\d+] ldc2_w #\d+ = Double\(12.49\)
                     \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
+                    """.trimIndent(),
+                )
+            }
+        }
+
+        When("Injecting InjectContent.logMixedWithArray(...) into static method InjectTarget.main()") {
+            val targetMethod = injectTargetClass.findMethod("main", "([Ljava/lang/String;)V") as ProgramMethod
+            CodeInjector()
+                .injectInvokeStatic(
+                    injectContentClass,
+                    injectContentClass.findMethod("logMixedWithArray", "(ILjava/lang/String;[ILjava/lang/String;)V"),
+                    ConstantPrimitive(1),
+                    ConstantString("foo"),
+                    PrimitiveArrayConstantArgument(arrayOf(1, 2)),
+                    ConstantString("bar"),
+                )
+                .into(injectTargetClass, targetMethod)
+                .at(FirstBlock())
+                .commit()
+
+            Then("The first instruction is InjectContent.logMixedWithArray(1,\"foo\",\\[1,2\\],\"bar\")") {
+                val renderedMethod = StringWriter()
+                targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
+                // Saw different byte code patterns to create and then pass array. Hence, not using the exact pattern to match array loading.
+                // It just checks that a newarray instruction is present in between `ldc foo` and `ldc bar`
+                renderedMethod.toString() shouldContain Regex(
+                    """
+                    \s*\[0] iconst_1
+                    \s*\[\d+] ldc #\d+ = String\("foo"\)
+                    ((.|\n)*)
+                    \s*\[\d+] newarray ((.|\n)*)
+                    ((.|\n)*)
+                    \s*\[\d+] ldc #\d+ = String\("bar"\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logMixedWithArray\(ILjava/lang/String;\[ILjava/lang/String;\)V\)
                     """.trimIndent(),
                 )
             }

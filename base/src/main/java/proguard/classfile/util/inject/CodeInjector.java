@@ -144,7 +144,10 @@ public class CodeInjector {
               argument -> {
                 Object value = argument.getValue();
                 if (value.getClass().isArray()) {
-                  code.pushPrimitiveOrStringArray(argument.getInternalType(), (Object[]) value);
+                  // Remove the Array part from the internal type as it's not needed further.
+                  code.pushPrimitiveOrStringArray(
+                      ClassUtil.internalTypeFromArrayType(argument.getInternalType()),
+                      (Object[]) value);
                 } else {
                   code.pushPrimitiveOrString(value, argument.getInternalType());
                 }

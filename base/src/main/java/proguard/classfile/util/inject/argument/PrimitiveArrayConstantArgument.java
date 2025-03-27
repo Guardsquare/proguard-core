@@ -18,21 +18,21 @@ public class PrimitiveArrayConstantArgument<T extends Number> implements Injecte
   public String getInternalType() {
     switch (numericConstantArray.getClass().getName()) {
       case "[Ljava.lang.Boolean;":
-        return "Z";
+        return "[Z";
       case "[Ljava.lang.Byte;":
-        return "B";
+        return "[B";
       case "[Ljava.lang.Character;":
-        return "C";
+        return "[C";
       case "[Ljava.lang.Short;":
-        return "S";
+        return "[S";
       case "[Ljava.lang.Integer;":
-        return "I";
+        return "[I";
       case "[Ljava.lang.Long;":
-        return "J";
+        return "[J";
       case "[Ljava.lang.Float;":
-        return "F";
+        return "[F";
       case "[Ljava.lang.Double;":
-        return "D";
+        return "[D";
       default:
         throw new RuntimeException("Unexpected type");
     }
