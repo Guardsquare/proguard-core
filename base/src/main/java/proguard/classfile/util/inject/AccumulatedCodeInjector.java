@@ -73,7 +73,7 @@ public class AccumulatedCodeInjector extends CodeInjector {
 
           // Map offsets to the list of instructions that should be applied, either before or after
           // the offset.
-          Map<Integer, LinkedList<Instruction[]>> beforeOffsetInsertions = new HashMap<>();
+          Map<Integer, LinkedList<Instruction[]>> beforeInstructionInsertions = new HashMap<>();
           Map<Integer, LinkedList<Instruction[]>> afterInstructionInsertions = new HashMap<>();
           injectors.forEach(
               injector -> {
@@ -96,7 +96,7 @@ public class AccumulatedCodeInjector extends CodeInjector {
                             (ProgramClass) target.clazz, (ProgramMethod) target.method);
                 for (InjectStrategy.InjectLocation location : injectLocations) {
                   if (location.shouldInjectBefore()) {
-                    beforeOffsetInsertions
+                    beforeInstructionInsertions
                         .computeIfAbsent(location.getOffset(), (i_) -> new LinkedList<>())
                         .add(code.instructions());
                   } else {
@@ -123,11 +123,11 @@ public class AccumulatedCodeInjector extends CodeInjector {
 
           // Apply injections to the code attribute.
           for (Map.Entry<Integer, LinkedList<Instruction[]>> entry :
-              beforeOffsetInsertions.entrySet()) {
+              beforeInstructionInsertions.entrySet()) {
             int offset = entry.getKey();
             Instruction[] instructions =
                 entry.getValue().stream().flatMap(Arrays::stream).toArray(Instruction[]::new);
-            editor.insertBeforeOffset(offset, instructions);
+            editor.insertBeforeInstruction(offset, instructions);
           }
 
           for (Map.Entry<Integer, LinkedList<Instruction[]>> entry :

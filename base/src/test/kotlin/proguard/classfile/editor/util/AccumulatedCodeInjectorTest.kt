@@ -2,9 +2,22 @@ package proguard.classfile.editor.util
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import proguard.classfile.Clazz
+import proguard.classfile.Member
+import proguard.classfile.Method
 import proguard.classfile.ProgramClass
 import proguard.classfile.ProgramMethod
+import proguard.classfile.attribute.Attribute
+import proguard.classfile.attribute.CodeAttribute
+import proguard.classfile.attribute.ExceptionInfo
+import proguard.classfile.attribute.visitor.AttributeVisitor
+import proguard.classfile.attribute.visitor.ExceptionInfoVisitor
+import proguard.classfile.instruction.ConstantInstruction
+import proguard.classfile.instruction.Instruction
+import proguard.classfile.instruction.visitor.AllInstructionVisitor
+import proguard.classfile.instruction.visitor.InstructionVisitor
 import proguard.classfile.util.inject.AccumulatedCodeInjector
 import proguard.classfile.util.inject.argument.ConstantPrimitive
 import proguard.classfile.util.inject.argument.ConstantString
@@ -12,6 +25,8 @@ import proguard.classfile.util.inject.location.FirstBlock
 import proguard.classfile.util.inject.location.LastBlocks
 import proguard.classfile.util.inject.location.SpecificOffset
 import proguard.classfile.visitor.ClassPrinter
+import proguard.classfile.visitor.MemberVisitor
+import proguard.classfile.visitor.ReferencedMemberVisitor
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import java.io.PrintWriter
@@ -26,6 +41,7 @@ class AccumulatedCodeInjectorTest : BehaviorSpec({
                 "InjectionTarget.java",
                 """
                 public class InjectionTarget {
+                    private static final Object LOCK = new Object();
                     public InjectionTarget() {}
                     public InjectionTarget(int dummy) {}
                     public InjectionTarget(int dummyInt, float dummyFloat) {
@@ -34,6 +50,16 @@ class AccumulatedCodeInjectorTest : BehaviorSpec({
                     public static void main(String... args) {}
                     public int instanceMethod() {
                         return 0;
+                    }
+                    private static boolean isEnabled() { return true; }
+                    public void synchro() {
+                        try{
+                            synchronized (LOCK) {
+                            boolean b = isEnabled();
+                            }
+                        } catch (Throwable e) {
+                        e.printStackTrace();
+                        }
                     }
                 }
                 """.trimIndent(),
@@ -133,6 +159,141 @@ class AccumulatedCodeInjectorTest : BehaviorSpec({
                     \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logMixed\(Ljava/lang/String;ID\)V\)
                     """.trimIndent(),
                 )
+            }
+        }
+        When("Injecting InjectContent.log() into instance method synchro, which has a nested synchronized block in a try catch block, and the first instruction of the synchronized block is a static invocation") {
+            val targetMethod = injectTargetClass.findMethod("synchro", "()V") as ProgramMethod
+            val codeInjector = AccumulatedCodeInjector()
+                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("log", "()V"))
+                .into(injectTargetClass, targetMethod)
+
+            targetMethod.attributesAccept(
+                injectTargetClass,
+                AllInstructionVisitor(object : InstructionVisitor {
+                    override fun visitAnyInstruction(
+                        clazz: Clazz,
+                        method: Method,
+                        codeAttribute: CodeAttribute,
+                        offset: Int,
+                        instruction: Instruction,
+                    ) {
+                    }
+
+                    override fun visitConstantInstruction(
+                        clazz: Clazz,
+                        method: Method,
+                        codeAttribute: CodeAttribute,
+                        offset: Int,
+                        constantInstruction: ConstantInstruction,
+                    ) {
+                        if (constantInstruction.opcode == Instruction.OP_INVOKESTATIC) {
+                            clazz.constantPoolEntryAccept(
+                                constantInstruction.constantIndex,
+                                ReferencedMemberVisitor(object : MemberVisitor {
+                                    override fun visitAnyMember(
+                                        clazz: Clazz,
+                                        member: Member,
+                                    ) {}
+
+                                    override fun visitProgramMethod(
+                                        programClass: ProgramClass,
+                                        programMethod: ProgramMethod,
+                                    ) {
+                                        if (programClass.name.equals(injectTargetClass.name) && programMethod.getName(programClass).equals("isEnabled")) {
+                                            codeInjector.at(SpecificOffset(offset, true))
+                                        }
+                                    }
+                                }),
+                            )
+                        }
+                    }
+                }),
+            )
+            codeInjector.commit()
+            val renderedMethod = StringWriter()
+            targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
+            Then("InjectContent.log() should be injected after the monitorenter and before the isEnabled invocation") {
+
+                renderedMethod.toString() shouldContain Regex(
+                    """
+                    \s*\[\d+] monitorenter
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.log\(\)V\)
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectionTarget\.isEnabled\(\)Z\)
+                    """.trimIndent(),
+                )
+            }
+            Then("The exception handler should include InjectContent.log() in its range") {
+                data class ExceptionRange(val exceptionStart: Int, val exceptionEnd: Int)
+
+                val exceptionRangesFinder = object : AttributeVisitor, ExceptionInfoVisitor {
+                    val exceptionRanges = mutableListOf<ExceptionRange>()
+                    override fun visitAnyAttribute(
+                        clazz: Clazz,
+                        attribute: Attribute,
+                    ) {
+                    }
+
+                    override fun visitCodeAttribute(
+                        clazz: Clazz,
+                        method: Method,
+                        codeAttribute: CodeAttribute,
+                    ) {
+                        codeAttribute.exceptionsAccept(clazz, method, this)
+                    }
+
+                    override fun visitExceptionInfo(
+                        clazz: Clazz,
+                        method: Method,
+                        codeAttribute: CodeAttribute,
+                        exceptionInfo: ExceptionInfo,
+                    ) {
+                        exceptionRanges.add(ExceptionRange(exceptionInfo.u2startPC, exceptionInfo.u2endPC))
+                    }
+                }
+                targetMethod.attributesAccept(injectTargetClass, exceptionRangesFinder)
+                val rangeChecker = object : InstructionVisitor {
+                    var inRange = false
+                    override fun visitAnyInstruction(
+                        clazz: Clazz,
+                        method: Method,
+                        codeAttribute: CodeAttribute,
+                        offset: Int,
+                        instruction: Instruction,
+                    ) {}
+
+                    override fun visitConstantInstruction(
+                        clazz: Clazz,
+                        method: Method,
+                        codeAttribute: CodeAttribute,
+                        offset: Int,
+                        constantInstruction: ConstantInstruction,
+                    ) {
+                        if (constantInstruction.opcode == Instruction.OP_INVOKESTATIC) {
+                            clazz.constantPoolEntryAccept(
+                                constantInstruction.constantIndex,
+                                ReferencedMemberVisitor(object : MemberVisitor {
+                                    override fun visitAnyMember(
+                                        clazz: Clazz,
+                                        member: Member,
+                                    ) {
+                                    }
+
+                                    override fun visitProgramMethod(
+                                        programClass: ProgramClass,
+                                        programMethod: ProgramMethod,
+                                    ) {
+                                        if (programClass.name.equals(injectContentClass.name) && programMethod.getName(programClass).equals("log")) {
+                                            val expectedRange = exceptionRangesFinder.exceptionRanges.first()
+                                            inRange = offset in expectedRange.exceptionStart..expectedRange.exceptionEnd
+                                        }
+                                    }
+                                }),
+                            )
+                        }
+                    }
+                }
+                targetMethod.attributesAccept(injectTargetClass, AllInstructionVisitor(rangeChecker))
+                rangeChecker.inRange shouldBe true
             }
         }
     }
