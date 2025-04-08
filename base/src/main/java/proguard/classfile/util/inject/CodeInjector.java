@@ -140,18 +140,8 @@ public class CodeInjector {
           InstructionSequenceBuilder code =
               new InstructionSequenceBuilder((ProgramClass) target.clazz);
 
-          arguments.forEach(
-              argument -> {
-                Object value = argument.getValue();
-                if (value.getClass().isArray()) {
-                  // Remove the Array part from the internal type as it's not needed further.
-                  code.pushPrimitiveOrStringArray(
-                      ClassUtil.internalTypeFromArrayType(argument.getInternalType()),
-                      (Object[]) value);
-                } else {
-                  code.pushPrimitiveOrString(value, argument.getInternalType());
-                }
-              });
+          arguments.forEach(argument -> pushArgument(argument, code));
+
           code.invokestatic(content.clazz, content.method);
 
           target.method.accept(
@@ -160,6 +150,23 @@ public class CodeInjector {
                   new AttributeNameFilter(
                       Attribute.CODE, new InstructionInjector(editor, code, injectStrategy))));
         });
+  }
+
+  /**
+   * Pushes an argument to the stack, adjusting the internal type in case it is an array.
+   *
+   * @param argument values to be pushed
+   * @param code InstructionSequenceBuilder to add the pushing instructions
+   */
+  protected void pushArgument(InjectedArgument argument, InstructionSequenceBuilder code) {
+    if (argument.getValue().getClass().isArray()) {
+      // Remove the Array part from the internal type as it's not needed further.
+      code.pushPrimitiveOrStringArray(
+          ClassUtil.internalTypeFromArrayType(argument.getInternalType()),
+          (Object[]) argument.getValue());
+    } else {
+      code.pushPrimitiveOrString(argument.getValue(), argument.getInternalType());
+    }
   }
 
   public boolean readyToCommit() {

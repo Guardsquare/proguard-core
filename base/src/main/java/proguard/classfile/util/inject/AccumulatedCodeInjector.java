@@ -78,12 +78,7 @@ public class AccumulatedCodeInjector extends CodeInjector {
           injectors.forEach(
               injector -> {
                 // Push arguments.
-                injector
-                    .getArguments()
-                    .forEach(
-                        argument ->
-                            code.pushPrimitiveOrString(
-                                argument.getValue(), argument.getInternalType()));
+                injector.getArguments().forEach(argument -> pushArgument(argument, code));
 
                 // Call static method.
                 code.invokestatic(injector.getContent().clazz, injector.getContent().method);
