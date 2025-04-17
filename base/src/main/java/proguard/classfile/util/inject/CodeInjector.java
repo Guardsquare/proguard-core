@@ -234,7 +234,7 @@ public class CodeInjector {
       for (InjectStrategy.InjectLocation location : injectLocations) {
         final BiConsumer<Integer, Instruction[]> inserter =
             location.shouldInjectBefore()
-                ? editor::insertBeforeOffset
+                ? editor::insertBeforeInstruction
                 : editor::insertAfterInstruction;
 
         inserter.accept(location.getOffset(), code.instructions());
