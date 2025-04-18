@@ -58,9 +58,7 @@ class CodeInjectorTest : BehaviorSpec({
                             synchronized (LOCK) {
                             boolean b = isEnabled();
                             }
-                        } catch (Throwable e) {
-                        e.printStackTrace();
-                        }
+                        } catch (Throwable ignored) {}
                     }
                 }
                 """.trimIndent(),
@@ -72,8 +70,8 @@ class CodeInjectorTest : BehaviorSpec({
                     public static void log() {
                         System.out.println("log called");
                     }
-                    public static void logPrimitive(int intData, double doubleData) {
-                        System.out.printf("log param: %d:int, %f:double%n", intData, doubleData);
+                    public static void logPrimitive(int intData, double doubleData, boolean booleanData) {
+                        System.out.printf("log param: %d:int, %f:double, %b:boolean%n", intData, doubleData, booleanData);
                     } 
                     public static void logString(String stringData) {
                         System.out.printf("log param: %s:String%n", stringData);
@@ -81,8 +79,8 @@ class CodeInjectorTest : BehaviorSpec({
                     public static void logMixed(String stringData, int intData, double doubleData) {
                         System.out.printf("log param: %s:String, %d:intData, %f:doubleData%n", stringData, intData, doubleData);
                     } 
-                    public static void logMixedWithArray(int intId, String stringId , int[] inArrayData, String stringData) {
-                        System.out.printf("log param:  %d:int, %s:String, %d:intData[], %f:stringData%n", intId, stringId, inArrayData, stringData);
+                    public static void logMixedWithArray(int intId, String stringId , int[] intArrayData, String stringData) {
+                        System.out.printf("log param:  %d:int, %s:String, %d:intData[], %s:stringData%n", intId, stringId, intArrayData, stringData);
                     }
                 }
                 """.trimIndent(),
@@ -116,9 +114,10 @@ class CodeInjectorTest : BehaviorSpec({
             CodeInjector()
                 .injectInvokeStatic(
                     injectContentClass,
-                    injectContentClass.findMethod("logPrimitive", "(ID)V"),
+                    injectContentClass.findMethod("logPrimitive", "(IDZ)V"),
                     ConstantPrimitive(99),
                     ConstantPrimitive(42.24),
+                    ConstantPrimitive(true),
                 )
                 .into(injectTargetClass, targetMethod)
                 .at(FirstBlock())
@@ -132,7 +131,8 @@ class CodeInjectorTest : BehaviorSpec({
                     """
                     \s*\[0] bipush 99
                     \s*\[\d+] ldc2_w #\d+ = Double\(42.24\)
-                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logPrimitive\(ID\)V\)
+                    \s*\[\d+] iconst_1
+                    \s*\[\d+] invokestatic #\d+ = Methodref\(InjectContent\.logPrimitive\(IDZ\)V\)
                     """.trimIndent(),
                 )
             }

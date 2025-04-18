@@ -8,21 +8,21 @@ import proguard.classfile.util.ClassUtil;
  *
  * @author Kymeng Tang
  */
-public class ConstantPrimitive<T extends Number> implements InjectedArgument {
-  private final T numericConstant;
+public class ConstantPrimitive implements InjectedArgument {
+  private final Object primitive;
 
-  public ConstantPrimitive(T constant) {
-    this.numericConstant = constant;
+  public ConstantPrimitive(Object primitive) {
+    this.primitive = primitive;
   }
 
   @Override
   public Object getValue() {
-    return numericConstant;
+    return primitive;
   }
 
   @Override
   public String getInternalType() {
-    switch (numericConstant.getClass().getName()) {
+    switch (primitive.getClass().getName()) {
       case "java.lang.Boolean":
         return "Z";
       case "java.lang.Byte":
@@ -46,6 +46,6 @@ public class ConstantPrimitive<T extends Number> implements InjectedArgument {
 
   @Override
   public String toString() {
-    return numericConstant.toString() + ":" + ClassUtil.externalType(getInternalType());
+    return primitive.toString() + ":" + ClassUtil.externalType(getInternalType());
   }
 }
