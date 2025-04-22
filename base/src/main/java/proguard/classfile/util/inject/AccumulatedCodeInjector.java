@@ -11,6 +11,7 @@ import proguard.classfile.editor.CodeAttributeEditor;
 import proguard.classfile.editor.InstructionSequenceBuilder;
 import proguard.classfile.instruction.Instruction;
 import proguard.classfile.util.inject.argument.InjectedArgument;
+import proguard.classfile.util.inject.argument.LocalVariable;
 import proguard.classfile.util.inject.location.InjectStrategy;
 
 /**
@@ -48,6 +49,10 @@ public class AccumulatedCodeInjector extends CodeInjector {
     return this;
   }
 
+  public LocalVariable store() {
+    return injectors.get(injectors.size() - 1).store();
+  }
+
   @Override
   public void commit() {
     // Construct a map of target methods to the code injectors that should be applied.
@@ -78,10 +83,18 @@ public class AccumulatedCodeInjector extends CodeInjector {
           injectors.forEach(
               injector -> {
                 // Push arguments.
-                injector.getArguments().forEach(argument -> pushArgument(argument, code));
+                injector.getArguments().forEach(argument -> argument.pushToStack(code));
 
                 // Call static method.
                 code.invokestatic(injector.getContent().clazz, injector.getContent().method);
+
+                // Store the return value.
+                LocalVariable resultLocalIndex = injector.getResultLocalIndex();
+                if (resultLocalIndex != null) {
+                  code.store(
+                      resultLocalIndex.getTargetVariableIndex(),
+                      resultLocalIndex.getInternalType());
+                }
 
                 // Map instructions to offsets.
                 InjectStrategy.InjectLocation[] injectLocations =

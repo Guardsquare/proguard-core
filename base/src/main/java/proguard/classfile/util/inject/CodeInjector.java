@@ -15,7 +15,9 @@ import proguard.classfile.instruction.Instruction;
 import proguard.classfile.util.ClassUtil;
 import proguard.classfile.util.InternalTypeEnumeration;
 import proguard.classfile.util.inject.argument.InjectedArgument;
+import proguard.classfile.util.inject.argument.LocalVariable;
 import proguard.classfile.util.inject.location.InjectStrategy;
+import proguard.classfile.visitor.MemberVisitor;
 
 /**
  * This utility class allows for injecting a method invocation instruction, optionally with
@@ -34,6 +36,8 @@ public class CodeInjector {
   private ClassMethodPair content;
   private InjectStrategy injectStrategy;
   private List<InjectedArgument> arguments = new ArrayList<>();
+  private int localMaxLocals = -1;
+  private LocalVariable resultLocalIndex;
 
   /**
    * Specify the static method to be invoked.
@@ -114,6 +118,30 @@ public class CodeInjector {
     return this;
   }
 
+  public LocalVariable store() {
+    assert targets != null && !targets.isEmpty() : "The injection target has not been specified.";
+    ClassMethodPair target = targets.get(0);
+    String returnType =
+        ClassUtil.internalMethodReturnType(content.method.getDescriptor(content.clazz));
+    assert !returnType.equals("V")
+        : "The injection content " + content.toString() + " doesn't have a return type";
+    resultLocalIndex =
+        new LocalVariable(
+            allocateLocalVar(target, ClassUtil.isInternalCategory2Type(returnType)), returnType);
+    return resultLocalIndex;
+  }
+
+  private int allocateLocalVar(ClassMethodPair target, boolean isWide) {
+    if (localMaxLocals == -1) {
+      LocalVarCountRetriever retriever = new LocalVarCountRetriever();
+      target.method.accept(target.clazz, retriever);
+      localMaxLocals = retriever.getLocalVarCount();
+    }
+    int temp = localMaxLocals;
+    localMaxLocals += isWide ? 2 : 1;
+    return temp;
+  }
+
   /**
    * Apply the invoke instruction in accordance to the specifications provided via the
    * `.injectInvokeStatic(...)`, `.into(...)` and `.at(...)` methods.
@@ -140,9 +168,13 @@ public class CodeInjector {
           InstructionSequenceBuilder code =
               new InstructionSequenceBuilder((ProgramClass) target.clazz);
 
-          arguments.forEach(argument -> pushArgument(argument, code));
+          arguments.forEach(argument -> argument.pushToStack(code));
 
           code.invokestatic(content.clazz, content.method);
+          if (resultLocalIndex != null) {
+            code.store(
+                resultLocalIndex.getTargetVariableIndex(), resultLocalIndex.getInternalType());
+          }
 
           target.method.accept(
               target.clazz,
@@ -150,23 +182,6 @@ public class CodeInjector {
                   new AttributeNameFilter(
                       Attribute.CODE, new InstructionInjector(editor, code, injectStrategy))));
         });
-  }
-
-  /**
-   * Pushes an argument to the stack, adjusting the internal type in case it is an array.
-   *
-   * @param argument values to be pushed
-   * @param code InstructionSequenceBuilder to add the pushing instructions
-   */
-  protected void pushArgument(InjectedArgument argument, InstructionSequenceBuilder code) {
-    if (argument.getValue().getClass().isArray()) {
-      // Remove the Array part from the internal type as it's not needed further.
-      code.pushPrimitiveOrStringArray(
-          ClassUtil.internalTypeFromArrayType(argument.getInternalType()),
-          (Object[]) argument.getValue());
-    } else {
-      code.pushPrimitiveOrString(argument.getValue(), argument.getInternalType());
-    }
   }
 
   public boolean readyToCommit() {
@@ -187,6 +202,10 @@ public class CodeInjector {
 
   public List<InjectedArgument> getArguments() {
     return arguments;
+  }
+
+  protected LocalVariable getResultLocalIndex() {
+    return resultLocalIndex;
   }
 
   // Internal utility methods.
@@ -268,6 +287,24 @@ public class CodeInjector {
     @Override
     public String toString() {
       return clazz.getName() + "." + method.getName(clazz) + method.getDescriptor(clazz);
+    }
+  }
+
+  private static class LocalVarCountRetriever implements MemberVisitor, AttributeVisitor {
+    private int u2maxLocals;
+
+    @Override
+    public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
+      programMethod.attributesAccept(programClass, new AttributeNameFilter(Attribute.CODE, this));
+    }
+
+    @Override
+    public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
+      u2maxLocals = codeAttribute.u2maxLocals;
+    }
+
+    public int getLocalVarCount() {
+      return u2maxLocals;
     }
   }
 }

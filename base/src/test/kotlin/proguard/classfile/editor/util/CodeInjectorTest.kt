@@ -24,6 +24,7 @@ import proguard.classfile.util.inject.argument.ConstantPrimitive
 import proguard.classfile.util.inject.argument.ConstantString
 import proguard.classfile.util.inject.argument.PrimitiveArrayConstantArgument
 import proguard.classfile.util.inject.location.FirstBlock
+import proguard.classfile.util.inject.location.LastBlocks
 import proguard.classfile.util.inject.location.SpecificOffset
 import proguard.classfile.visitor.ClassPrinter
 import proguard.classfile.visitor.MemberVisitor
@@ -66,7 +67,11 @@ class CodeInjectorTest : BehaviorSpec({
             JavaSource(
                 "InjectContent.java",
                 """
-                public class InjectContent { 
+                public class InjectContent {
+                    public static String logAndStore() {
+                        System.out.println("log called");
+                        return "logAndStore called";
+                    }
                     public static void log() {
                         System.out.println("log called");
                     }
@@ -91,6 +96,7 @@ class CodeInjectorTest : BehaviorSpec({
 
         When("Injecting InjectContent.log() into static method InjectTarget.main()") {
             val targetMethod = injectTargetClass.findMethod("main", "([Ljava/lang/String;)V") as ProgramMethod
+
             CodeInjector()
                 .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("log", "()V"))
                 .into(injectTargetClass, targetMethod)
@@ -104,6 +110,62 @@ class CodeInjectorTest : BehaviorSpec({
                 renderedMethod.toString() shouldContain Regex(
                     """
                     \s*\[0] invokestatic #\d+ = Methodref\(InjectContent\.log\(\)V\)
+                    """.trimIndent(),
+                )
+            }
+        }
+
+        When("Injecting InjectContent.logAndStore():String and InjectContent.logString() into static method InjectTarget.main()") {
+            val targetMethod = injectTargetClass.findMethod("main", "([Ljava/lang/String;)V") as ProgramMethod
+
+            val injector = CodeInjector()
+                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logAndStore", "()Ljava/lang/String;"))
+                .into(injectTargetClass, targetMethod)
+                .at(FirstBlock())
+
+            val result = injector.store()
+            injector.commit()
+
+            CodeInjector()
+                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logString", "(Ljava/lang/String;)V"), result)
+                .into(injectTargetClass, targetMethod)
+                .at(LastBlocks())
+                .commit()
+
+            Then("InjectTarget.main() should start with InjectContent.logAndStore() and the return value is stored on var1") {
+                val renderedMethod = StringWriter()
+                targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
+
+                renderedMethod.toString() shouldContain Regex(
+                    """
+                    \s*\[0] invokestatic #\d+ = Methodref\(InjectContent\.logAndStore\(\)Ljava/lang/String;\)
+                    \s*\[3] astore_1 v1
+                    \s*\[4] aload_1 v1
+                    \s*\[5] invokestatic #\d+ = Methodref\(InjectContent\.logString\(Ljava/lang/String;\)V\)
+                    """.trimIndent(),
+                )
+            }
+        }
+
+        When("Injecting InjectContent.logAndStore():String into static method InjectTarget.main()") {
+            val targetMethod = injectTargetClass.findMethod("main", "([Ljava/lang/String;)V") as ProgramMethod
+
+            val injector = CodeInjector()
+                .injectInvokeStatic(injectContentClass, injectContentClass.findMethod("logAndStore", "()Ljava/lang/String;"))
+                .into(injectTargetClass, targetMethod)
+                .at(FirstBlock())
+
+            injector.store()
+            injector.commit()
+
+            Then("InjectTarget.main() should start with InjectContent.logAndStore() and the return value is stored on var1") {
+                val renderedMethod = StringWriter()
+                targetMethod.accept(injectTargetClass, ClassPrinter(PrintWriter(renderedMethod)))
+
+                renderedMethod.toString() shouldContain Regex(
+                    """
+                    \s*\[0] invokestatic #\d+ = Methodref\(InjectContent\.logAndStore\(\)Ljava/lang/String;\)
+                    \s*\[3] astore_1 v1
                     """.trimIndent(),
                 )
             }
