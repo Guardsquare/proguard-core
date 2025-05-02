@@ -6,3 +6,4 @@ build
 /docs/html/
 /venv/
 .kotlin/sessions/
+.DS_Store
