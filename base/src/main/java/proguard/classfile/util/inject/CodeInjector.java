@@ -38,6 +38,7 @@ public class CodeInjector {
   private List<InjectedArgument> arguments = new ArrayList<>();
   private int localMaxLocals = -1;
   private LocalVariable resultLocalIndex;
+  private CodeAttributeEditor editor;
 
   /**
    * Specify the static method to be invoked.
@@ -162,9 +163,12 @@ public class CodeInjector {
             + renderInjectionContent(content.clazz, content.method, arguments)
             + " into the target method.";
 
+    if (editor == null) {
+      editor = new CodeAttributeEditor();
+    }
+
     targets.forEach(
         target -> {
-          CodeAttributeEditor editor = new CodeAttributeEditor();
           InstructionSequenceBuilder code =
               new InstructionSequenceBuilder((ProgramClass) target.clazz);
 
