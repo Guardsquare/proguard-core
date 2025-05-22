@@ -244,30 +244,7 @@ public class ClassPool {
 
   /** Applies the given ClassVisitor to all matching classes in the class pool. */
   public void classesAccept(StringMatcher classNameFilter, ClassVisitor classVisitor) {
-    String prefix = classNameFilter.prefix();
-    if ("".equals(prefix)) {
-      // It is more efficient to avoid using higherEntry when we're traversing over the complete
-      // ClassPool.
-      for (Map.Entry<String, Clazz> entry : classes.entrySet()) {
-        String className = entry.getKey();
-
-        if (classNameFilter.matches(className)) {
-          Clazz clazz = entry.getValue();
-          clazz.accept(classVisitor);
-        }
-      }
-    } else {
-      // If we can skip towards a specific entry using the prefix and handle a smaller part of the
-      // ClassPool,
-      // then it becomes worthwhile to traverse using higherEntry.
-      Map.Entry<String, Clazz> classEntry = classes.ceilingEntry(prefix);
-      while (classEntry != null && classEntry.getKey().startsWith(prefix)) {
-        if (classNameFilter.matches(classEntry.getKey())) {
-          classEntry.getValue().accept(classVisitor);
-        }
-        classEntry = classes.higherEntry(classEntry.getKey());
-      }
-    }
+    MapUtil.filterTreeMap(classes, classNameFilter, (c) -> c.accept(classVisitor));
   }
 
   /**
