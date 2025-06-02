@@ -58,10 +58,22 @@ public class ZipFileDataEntry implements DataEntry {
     return getName();
   }
 
+  /**
+   * Returns the approximate size of this zip file entry. Specifically, this returns the maximum of
+   * the entry's uncompressed and compressed sizes.
+   *
+   * <p>NB: For small entry sizes and incompressible data, this can lead to unexpected results, such
+   * as the returned result being larger than the logical/uncompressed size of the entry.
+   */
   @Override
   public long getSize() {
     // Try to get some estimate of the size.
     return Math.max(zipEntry.getSize(), zipEntry.getCompressedSize());
+  }
+
+  /** Returns the uncompressed size of the underlying zip entry. */
+  public long getUncompressedSize() {
+    return zipEntry.getSize();
   }
 
   @Override
