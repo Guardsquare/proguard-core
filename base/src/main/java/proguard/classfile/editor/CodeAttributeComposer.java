@@ -390,6 +390,10 @@ public class CodeAttributeComposer
    * @param exceptionInfo the exception to be appended.
    */
   public void appendException(ExceptionInfo exceptionInfo) {
+    addException(exceptionInfo, exceptionTableLength);
+  }
+
+  public void addException(ExceptionInfo exceptionInfo, int index) {
     if (DEBUG) {
       print(
           "         ",
@@ -426,7 +430,10 @@ public class CodeAttributeComposer
     }
 
     // Add the exception.
-    exceptionTable = ArrayUtil.add(exceptionTable, exceptionTableLength++, exceptionInfo);
+    exceptionTable =
+        index == exceptionTableLength
+            ? ArrayUtil.add(exceptionTable, exceptionTableLength++, exceptionInfo)
+            : ArrayUtil.insert(exceptionTable, exceptionTableLength++, index, exceptionInfo);
   }
 
   /**
