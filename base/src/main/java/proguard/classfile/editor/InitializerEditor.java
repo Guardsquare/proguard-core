@@ -1,12 +1,21 @@
 package proguard.classfile.editor;
 
-import java.util.*;
-import proguard.classfile.*;
-import proguard.classfile.attribute.*;
-import proguard.classfile.attribute.visitor.*;
+import java.util.HashSet;
+import java.util.Set;
+import proguard.classfile.AccessConstants;
+import proguard.classfile.ClassConstants;
+import proguard.classfile.Clazz;
+import proguard.classfile.Method;
+import proguard.classfile.ProgramClass;
+import proguard.classfile.attribute.Attribute;
+import proguard.classfile.attribute.CodeAttribute;
+import proguard.classfile.attribute.visitor.AllAttributeVisitor;
+import proguard.classfile.attribute.visitor.AttributeVisitor;
 import proguard.classfile.instruction.Instruction;
-import proguard.classfile.visitor.*;
-import proguard.util.*;
+import proguard.classfile.visitor.ConstructorMethodFilter;
+import proguard.classfile.visitor.MethodCollector;
+import proguard.util.ProcessingFlagSetter;
+import proguard.util.ProcessingFlags;
 
 /**
  * This editor allows to build and/or edit classes (ProgramClass instances). It provides methods to
@@ -18,6 +27,7 @@ public class InitializerEditor implements AttributeVisitor {
   private static final String EXTRA_INIT_METHOD_NAME = "init$";
   private static final String EXTRA_INIT_METHOD_DESCRIPTOR = "()V";
 
+  private final CodeAttributeEditor codeAttributeEditor;
   private final ProgramClass programClass;
 
   // A field acting as a parameter for visitor methods.
@@ -29,7 +39,18 @@ public class InitializerEditor implements AttributeVisitor {
    * @param programClass The class to be edited.
    */
   public InitializerEditor(ProgramClass programClass) {
+    this(programClass, new CodeAttributeEditor());
+  }
+
+  /**
+   * Creates a new InitializerEditor for the given class.
+   *
+   * @param programClass The class to be edited.
+   * @param codeAttributeEditor The CodeAttributeEditor to use for code editing.
+   */
+  public InitializerEditor(ProgramClass programClass, CodeAttributeEditor codeAttributeEditor) {
     this.programClass = programClass;
+    this.codeAttributeEditor = codeAttributeEditor;
   }
 
   /**
@@ -250,8 +271,7 @@ public class InitializerEditor implements AttributeVisitor {
 
   @Override
   public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
-    // Insert the instructions befotre the first instruction of this method.
-    CodeAttributeEditor codeAttributeEditor = new CodeAttributeEditor();
+    // Insert the instructions before the first instruction of this method.
     codeAttributeEditor.reset(codeAttribute.u4codeLength);
     codeAttributeEditor.insertBeforeOffset(0, insertInstructions);
     codeAttributeEditor.visitCodeAttribute(clazz, method, codeAttribute);
