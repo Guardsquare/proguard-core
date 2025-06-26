@@ -1450,6 +1450,38 @@ public class InstructionSequenceBuilder {
     return add(new ConstantInstruction(Instruction.OP_PUTFIELD, constantIndex));
   }
 
+  public InstructionSequenceBuilder invoke(
+      byte opcode, Clazz referencedClass, Method referencedMethod) {
+    return invoke(
+        opcode,
+        referencedClass.getName(),
+        referencedMethod.getName(referencedClass),
+        referencedMethod.getDescriptor(referencedClass),
+        referencedClass,
+        referencedMethod);
+  }
+
+  public InstructionSequenceBuilder invoke(
+      byte opcode,
+      String className,
+      String name,
+      String descriptor,
+      Clazz referencedClass,
+      Method referencedMethod) {
+    switch (opcode) {
+      case Instruction.OP_INVOKEINTERFACE:
+        return invokeinterface(className, name, descriptor, referencedClass, referencedMethod);
+      case Instruction.OP_INVOKESPECIAL:
+        return invokespecial(className, name, descriptor, referencedClass, referencedMethod);
+      case Instruction.OP_INVOKESTATIC:
+        return invokestatic(className, name, descriptor, referencedClass, referencedMethod);
+      case Instruction.OP_INVOKEVIRTUAL:
+        return invokevirtual(className, name, descriptor, referencedClass, referencedMethod);
+      default:
+        throw new IllegalArgumentException("Illegal invocation opcode " + opcode);
+    }
+  }
+
   public InstructionSequenceBuilder invokevirtual(Clazz clazz, Method method) {
     return invokevirtual(
         clazz.getName(), method.getName(clazz), method.getDescriptor(clazz), clazz, method);
