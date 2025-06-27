@@ -55,6 +55,7 @@ import static proguard.classfile.ClassConstants.TYPE_JAVA_LANG_OBJECT;
 
 import java.util.ArrayList;
 import java.util.List;
+import proguard.classfile.AccessConstants;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
@@ -155,7 +156,7 @@ public class InstructionSequenceBuilder {
   /**
    * Short for {@link #appendInstruction(Instruction)}.
    *
-   * @see InstructionSequenceReplacer#catch_(int,int,int)
+   * @see InstructionSequenceReplacer#catch_(int, int, int)
    */
   public InstructionSequenceBuilder catch_(Instruction instruction) {
     return add(instruction);
@@ -1330,6 +1331,27 @@ public class InstructionSequenceBuilder {
             Instruction.OP_LOOKUPSWITCH, defaultOffset, cases, jumpOffsets));
   }
 
+  public InstructionSequenceBuilder return_(String internalType) {
+    switch (internalType.charAt(0)) {
+      case TypeConstants.BOOLEAN:
+      case TypeConstants.BYTE:
+      case TypeConstants.CHAR:
+      case TypeConstants.SHORT:
+      case TypeConstants.INT:
+        return ireturn();
+      case TypeConstants.LONG:
+        return lreturn();
+      case TypeConstants.FLOAT:
+        return freturn();
+      case TypeConstants.DOUBLE:
+        return dreturn();
+      case TypeConstants.VOID:
+        return return_();
+      default:
+        return areturn();
+    }
+  }
+
   public InstructionSequenceBuilder ireturn() {
     return add(new SimpleInstruction(Instruction.OP_IRETURN));
   }
@@ -1448,6 +1470,20 @@ public class InstructionSequenceBuilder {
 
   public InstructionSequenceBuilder putfield(int constantIndex) {
     return add(new ConstantInstruction(Instruction.OP_PUTFIELD, constantIndex));
+  }
+
+  public InstructionSequenceBuilder invoke(Clazz referencedClass, Method referencedMethod) {
+    if (ClassUtil.isInstanceInitializer(referencedMethod.getName(referencedClass))) {
+      return invoke(Instruction.OP_INVOKESPECIAL, referencedClass, referencedMethod);
+    } else {
+      if ((referencedMethod.getAccessFlags() & AccessConstants.STATIC) != 0) {
+        return invoke(Instruction.OP_INVOKESTATIC, referencedClass, referencedMethod);
+      } else if ((referencedClass.getAccessFlags() & AccessConstants.INTERFACE) != 0) {
+        return invoke(Instruction.OP_INVOKEINTERFACE, referencedClass, referencedMethod);
+      } else {
+        return invoke(Instruction.OP_INVOKEVIRTUAL, referencedClass, referencedMethod);
+      }
+    }
   }
 
   public InstructionSequenceBuilder invoke(

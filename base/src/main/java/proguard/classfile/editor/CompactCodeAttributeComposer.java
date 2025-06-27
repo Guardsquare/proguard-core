@@ -1636,6 +1636,52 @@ public class CompactCodeAttributeComposer implements AttributeVisitor {
     return appendInstruction(new ConstantInstruction(Instruction.OP_PUTFIELD, constantIndex));
   }
 
+  public CompactCodeAttributeComposer invoke(Clazz referencedClass, Method referencedMethod) {
+    if (ClassUtil.isInstanceInitializer(referencedMethod.getName(referencedClass))) {
+      return invoke(Instruction.OP_INVOKESPECIAL, referencedClass, referencedMethod);
+    } else {
+      if ((referencedMethod.getAccessFlags() & AccessConstants.STATIC) != 0) {
+        return invoke(Instruction.OP_INVOKESTATIC, referencedClass, referencedMethod);
+      } else if ((referencedClass.getAccessFlags() & AccessConstants.INTERFACE) != 0) {
+        return invoke(Instruction.OP_INVOKEINTERFACE, referencedClass, referencedMethod);
+      } else {
+        return invoke(Instruction.OP_INVOKEVIRTUAL, referencedClass, referencedMethod);
+      }
+    }
+  }
+
+  public CompactCodeAttributeComposer invoke(
+      byte opcode, Clazz referencedClass, Method referencedMethod) {
+    return invoke(
+        opcode,
+        referencedClass.getName(),
+        referencedMethod.getName(referencedClass),
+        referencedMethod.getDescriptor(referencedClass),
+        referencedClass,
+        referencedMethod);
+  }
+
+  public CompactCodeAttributeComposer invoke(
+      byte opcode,
+      String className,
+      String name,
+      String descriptor,
+      Clazz referencedClass,
+      Method referencedMethod) {
+    switch (opcode) {
+      case Instruction.OP_INVOKEINTERFACE:
+        return invokeinterface(className, name, descriptor, referencedClass, referencedMethod);
+      case Instruction.OP_INVOKESPECIAL:
+        return invokespecial(className, name, descriptor, referencedClass, referencedMethod);
+      case Instruction.OP_INVOKESTATIC:
+        return invokestatic(className, name, descriptor, referencedClass, referencedMethod);
+      case Instruction.OP_INVOKEVIRTUAL:
+        return invokevirtual(className, name, descriptor, referencedClass, referencedMethod);
+      default:
+        throw new IllegalArgumentException("Illegal invocation opcode " + opcode);
+    }
+  }
+
   public CompactCodeAttributeComposer invokevirtual(Clazz clazz, Method method) {
     return invokevirtual(
         clazz.getName(), method.getName(clazz), method.getDescriptor(clazz), clazz, method);
