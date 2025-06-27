@@ -15,6 +15,11 @@ public enum BaseTypeNode {
   S,
   Z;
 
+  /** Return true if this base type corresponds to a category 2 value. */
+  public boolean isCategory2() {
+    return (this == J || this == D);
+  }
+
   public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
     return visitor.visit(this, arg);
   }
