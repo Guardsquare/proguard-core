@@ -22,8 +22,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
@@ -148,8 +146,6 @@ public class CodeAttributeEditor
   //*/
 
   private static final int LABEL_FLAG = 0x20000000;
-
-  private static final Logger logger = LogManager.getLogger(CodeAttributeEditor.class);
 
   private final boolean updateFrameSizes;
   private final boolean shrinkInstructions;
