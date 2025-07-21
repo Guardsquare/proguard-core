@@ -33,6 +33,7 @@ allprojects {
 
 		javadoc {
 			options.addStringOption('Xdoclint:none', '-quiet')
+		    options.encoding = 'UTF-8'
 		}
 
 		spotless {
@@ -63,7 +64,7 @@ allprojects {
 	}
 	tasks.withType(KotlinCompilationTask.class)
 			.configureEach {
-				compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_7
+				compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_8
 			}
 
 	apply plugin: 'com.diffplug.spotless'
