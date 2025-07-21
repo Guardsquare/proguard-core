@@ -33,7 +33,7 @@ allprojects {
 
 		javadoc {
 			options.addStringOption('Xdoclint:none', '-quiet')
-		    options.encoding = 'UTF-8'
+			options.encoding = 'UTF-8'
 		}
 
 		spotless {
