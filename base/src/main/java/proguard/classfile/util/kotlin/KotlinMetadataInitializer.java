@@ -55,6 +55,7 @@ import kotlin.metadata.KmEffect;
 import kotlin.metadata.KmEffectExpression;
 import kotlin.metadata.KmEffectInvocationKind;
 import kotlin.metadata.KmEffectType;
+import kotlin.metadata.KmEnumEntry;
 import kotlin.metadata.KmFlexibleTypeUpperBound;
 import kotlin.metadata.KmFunction;
 import kotlin.metadata.KmPackage;
@@ -497,12 +498,14 @@ public class KotlinMetadataInitializer
     kotlinClassKindMetadata.underlyingPropertyName = kmClass.getInlineClassUnderlyingPropertyName();
     kotlinClassKindMetadata.underlyingPropertyType =
         convertKmType(kmClass.getInlineClassUnderlyingType());
-    kotlinClassKindMetadata.enumEntryNames = kmClass.getEnumEntries();
     kotlinClassKindMetadata.nestedClassNames = kmClass.getNestedClasses();
     kotlinClassKindMetadata.sealedSubclassNames =
         kmClass.getSealedSubclasses().stream()
             .map(it -> it.replace(".", "$"))
             .collect(Collectors.toList());
+
+    kotlinClassKindMetadata.enumEntryNames =
+        kmClass.getKmEnumEntries().stream().map(KmEnumEntry::getName).collect(Collectors.toList());
 
     kotlinClassKindMetadata.versionRequirement =
         convertKmVersionRequirement(kmClass.getVersionRequirements());

@@ -124,7 +124,7 @@ class KotlinMetadataWriterTest : BehaviorSpec({
         }
     }
 
-    Given("an annotation") {
+    Given("a type annotation") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",

@@ -45,6 +45,7 @@ class AllTypeParameterVisitorTest : FreeSpec({
                 }
             """.trimIndent(),
         ),
+        kotlincArguments = listOf("-Xnested-type-aliases"),
     )
 
     "Given a file facade containing entities with type parameters" - {

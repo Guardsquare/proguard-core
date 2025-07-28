@@ -96,6 +96,7 @@ class KotlinHasAnnotationsFlagTest : BehaviorSpec({
             }
             """.trimIndent(),
         ),
+        kotlincArguments = listOf("-Xnested-type-aliases"),
     )
 
     // Run the test twice, check a class where everything is annotated and another where nothing is annotated.

@@ -15,7 +15,7 @@ import proguard.resources.kotlinmodule.io.KotlinModuleWriter
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.Base64
-import kotlin.metadata.internal.metadata.jvm.deserialization.JvmMetadataVersion
+import kotlin.metadata.jvm.JvmMetadataVersion
 
 class KotlinModuleVersionTest : BehaviorSpec({
 
@@ -64,7 +64,8 @@ class KotlinModuleVersionTest : BehaviorSpec({
             val processedModuleReader = KotlinModuleReader(ByteArrayInputStream(processedModuleBytes))
             processedModuleReader.visitKotlinModule(processedModule)
             // The module should have the COMPATIBLE version of metadata.
-            processedModule.version.toArray() shouldBe JvmMetadataVersion.INSTANCE.toArray()
+            val latest = JvmMetadataVersion.LATEST_STABLE_SUPPORTED
+            processedModule.version.toArray() shouldBe arrayOf(latest.major, latest.minor, latest.patch)
         }
     }
 })

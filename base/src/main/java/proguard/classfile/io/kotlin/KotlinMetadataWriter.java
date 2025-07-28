@@ -40,6 +40,7 @@ import kotlin.metadata.KmEffect;
 import kotlin.metadata.KmEffectExpression;
 import kotlin.metadata.KmEffectInvocationKind;
 import kotlin.metadata.KmEffectType;
+import kotlin.metadata.KmEnumEntry;
 import kotlin.metadata.KmFlexibleTypeUpperBound;
 import kotlin.metadata.KmFunction;
 import kotlin.metadata.KmLambda;
@@ -694,8 +695,8 @@ public class KotlinMetadataWriter
       kotlinClassKindMetadata.functionsAccept(clazz, this);
       kotlinClassKindMetadata.typeAliasesAccept(clazz, this);
 
-      for (String enumEntry : kotlinClassKindMetadata.enumEntryNames) {
-        kmClass.getEnumEntries().add(enumEntry);
+      for (String enumEntryName : kotlinClassKindMetadata.enumEntryNames) {
+        kmClass.getKmEnumEntries().add(new KmEnumEntry(enumEntryName));
       }
 
       for (String nestedClass : kotlinClassKindMetadata.nestedClassNames) {

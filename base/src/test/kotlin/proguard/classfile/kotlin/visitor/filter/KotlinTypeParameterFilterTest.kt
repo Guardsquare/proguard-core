@@ -53,6 +53,7 @@ class KotlinTypeParameterFilterTest : FreeSpec({
                 }
             """,
         ),
+        kotlincArguments = listOf("-Xnested-type-aliases"),
     )
 
     "Given a file facade containing entities with type parameters" - {
