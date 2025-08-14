@@ -142,6 +142,7 @@ distZip {
 nexusPublishing {
 	repositories {
 		sonatype {
+			nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
 			username = findProperty('PROGUARD_STAGING_USERNAME')
 			password = findProperty('PROGUARD_STAGING_PASSWORD')
 		}
