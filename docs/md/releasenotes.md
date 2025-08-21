@@ -1,5 +1,9 @@
 ## Version 9.1.11
 
+### Kotlin support
+
+- Add support for processing Kotlin 2.2 metadata.
+
 ## Version 9.1.10
 
 ### Java support
