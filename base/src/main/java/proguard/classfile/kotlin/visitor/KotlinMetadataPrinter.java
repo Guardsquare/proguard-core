@@ -1106,8 +1106,4 @@ public class KotlinMetadataPrinter
         + (flags.isNoInline ? "noinline " : "")
         + (flags.hasDefaultValue ? "hasDefault " : "");
   }
-
-  private String hasAnnotationsFlag(KotlinCommonFlags flags) {
-    return flags.hasAnnotations ? "@" : "";
-  }
 }

@@ -28,7 +28,7 @@ public class KotlinPropertyAccessorFlags implements KotlinFlags {
   public KotlinVisibilityFlags visibility;
   public KotlinModalityFlags modality;
 
-  public boolean hasAnnotations;
+  @Deprecated public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding property is not default, i.e. it has a body and/or annotations

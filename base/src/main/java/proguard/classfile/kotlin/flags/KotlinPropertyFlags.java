@@ -28,7 +28,7 @@ public class KotlinPropertyFlags implements KotlinFlags {
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
 
-  public boolean hasAnnotations;
+  @Deprecated public boolean hasAnnotations;
 
   /**
    * A member kind flag, signifying that the corresponding property is explicitly declared in the

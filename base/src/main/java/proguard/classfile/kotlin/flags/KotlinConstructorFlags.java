@@ -27,7 +27,7 @@ public class KotlinConstructorFlags implements KotlinFlags {
 
   public final KotlinVisibilityFlags visibility;
 
-  public boolean hasAnnotations;
+  @Deprecated public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding constructor is secondary, i.e. declared not in the class

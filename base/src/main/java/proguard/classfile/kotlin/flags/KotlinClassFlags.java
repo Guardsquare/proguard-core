@@ -28,7 +28,7 @@ public class KotlinClassFlags implements KotlinFlags {
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
 
-  public boolean hasAnnotations;
+  @Deprecated public boolean hasAnnotations;
 
   /** A class kind flag, signifying that the corresponding class is a usual `class`. */
   public boolean isUsualClass;

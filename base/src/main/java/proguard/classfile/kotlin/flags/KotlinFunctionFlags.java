@@ -28,7 +28,7 @@ public class KotlinFunctionFlags implements KotlinFlags {
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
 
-  public boolean hasAnnotations;
+  @Deprecated public boolean hasAnnotations;
 
   /**
    * A member kind flag, signifying that the corresponding function is explicitly declared in the

@@ -26,7 +26,7 @@ package proguard.classfile.kotlin.flags;
  */
 public class KotlinValueParameterFlags implements KotlinFlags {
 
-  public boolean hasAnnotations;
+  @Deprecated public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding value parameter declares a default value. Note that the

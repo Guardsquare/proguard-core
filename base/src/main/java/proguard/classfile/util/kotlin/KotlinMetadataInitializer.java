@@ -498,14 +498,13 @@ public class KotlinMetadataInitializer
     kotlinClassKindMetadata.underlyingPropertyName = kmClass.getInlineClassUnderlyingPropertyName();
     kotlinClassKindMetadata.underlyingPropertyType =
         convertKmType(kmClass.getInlineClassUnderlyingType());
+    kotlinClassKindMetadata.enumEntryNames =
+        kmClass.getKmEnumEntries().stream().map(KmEnumEntry::getName).collect(Collectors.toList());
     kotlinClassKindMetadata.nestedClassNames = kmClass.getNestedClasses();
     kotlinClassKindMetadata.sealedSubclassNames =
         kmClass.getSealedSubclasses().stream()
             .map(it -> it.replace(".", "$"))
             .collect(Collectors.toList());
-
-    kotlinClassKindMetadata.enumEntryNames =
-        kmClass.getKmEnumEntries().stream().map(KmEnumEntry::getName).collect(Collectors.toList());
 
     kotlinClassKindMetadata.versionRequirement =
         convertKmVersionRequirement(kmClass.getVersionRequirements());
@@ -746,14 +745,15 @@ public class KotlinMetadataInitializer
     property.versionRequirement = convertKmVersionRequirement(kmProperty.getVersionRequirements());
 
     KmValueParameter setterParameter = kmProperty.getSetterParameter();
-    // TODO: There can only be one Setter parameter but previously our API used a list.
-    // The name of the value parameter is like `"<set-?>"` for properties emitted by the Kotlin
-    // compiler.
+    // TODO(deprecation): Remove the deprecated setterParameters initialisation.
     property.setterParameters =
         setterParameter != null
             ? new ArrayList<>(
                 Collections.singletonList(convertKmValueParameter(0, setterParameter)))
             : new ArrayList<>();
+
+    property.setterParameter =
+        setterParameter != null ? convertKmValueParameter(0, setterParameter) : null;
 
     property.typeParameters =
         kmProperty.getTypeParameters().stream()

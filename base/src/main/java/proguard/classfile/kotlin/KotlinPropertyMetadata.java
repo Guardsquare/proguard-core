@@ -34,7 +34,13 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
 
   public List<KotlinTypeMetadata> contextReceivers;
 
-  public List<KotlinValueParameterMetadata> setterParameters;
+  /**
+   * @deprecated Use {@link KotlinPropertyMetadata#setterParameter } instead. There can only be one
+   *     setter parameter but this old API used a list.
+   */
+  @Deprecated public List<KotlinValueParameterMetadata> setterParameters;
+
+  public KotlinValueParameterMetadata setterParameter;
 
   public KotlinTypeMetadata type;
 
@@ -124,17 +130,23 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
     }
   }
 
+  /**
+   * @deprecated Use {@link #setterParameterAccept(Clazz, KotlinDeclarationContainerMetadata,
+   *     KotlinValueParameterVisitor)} instead.
+   */
+  @Deprecated
   public void setterParametersAccept(
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinValueParameterVisitor kotlinValueParameterVisitor) {
-    if (setterParameters == null) {
-      throw new ProguardCoreException.Builder(
-              "Setter parameters are null in class %s.", ErrorId.CLASSFILE_NULL_VALUES)
-          .errorParameters(clazz.getName())
-          .build();
-    }
-    for (KotlinValueParameterMetadata setterParameter : setterParameters) {
+    setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, kotlinValueParameterVisitor);
+  }
+
+  public void setterParameterAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinValueParameterVisitor kotlinValueParameterVisitor) {
+    if (setterParameter != null) {
       setterParameter.accept(
           clazz, kotlinDeclarationContainerMetadata, this, kotlinValueParameterVisitor);
     }

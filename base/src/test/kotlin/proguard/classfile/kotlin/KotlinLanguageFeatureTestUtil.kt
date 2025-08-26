@@ -1,7 +1,7 @@
 package proguard.classfile.kotlin
 
 import io.kotest.core.factory.TestFactory
-import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.spec.style.funSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import proguard.classfile.kotlin.visitor.KotlinMetadataPrinter
@@ -14,7 +14,7 @@ import proguard.testutils.ReWritingMetadataVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 
-class KotlinLanguageFeatureTestUtil : BehaviorSpec({
+class KotlinLanguageFeatureTestUtil : FunSpec({
     include(
         shouldRewriteMetadataCorrectly(
             "Non-local break & continue",
