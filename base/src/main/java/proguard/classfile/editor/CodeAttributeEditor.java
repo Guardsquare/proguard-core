@@ -36,6 +36,7 @@ import proguard.classfile.attribute.LocalVariableInfo;
 import proguard.classfile.attribute.LocalVariableTableAttribute;
 import proguard.classfile.attribute.LocalVariableTypeInfo;
 import proguard.classfile.attribute.LocalVariableTypeTableAttribute;
+import proguard.classfile.attribute.StructuredLineNumberInfo;
 import proguard.classfile.attribute.annotation.TypeAnnotation;
 import proguard.classfile.attribute.annotation.TypeAnnotationsAttribute;
 import proguard.classfile.attribute.annotation.target.LocalVariableTargetElement;
@@ -1460,22 +1461,45 @@ public class CodeAttributeEditor
    * offset.
    */
   public Label line(int lineNumber) {
-    return line(lineNumber, null);
+    return line(lineNumber, (StructuredLineNumberInfo.Block) null);
   }
 
   /**
    * Creates a new line number instance that will insert the given line number at the current
    * offset. It will insert an extended line number info with the given source if it's not null.
    */
+  @Deprecated
   public Label line(int lineNumber, String source) {
     return line(labels.size(), lineNumber, source);
   }
 
   /**
    * Creates a new line number instance that will insert the given line number at the current
+   * offset. It will insert structured line number info belonging to the given block if it's not
+   * null.
+   */
+  public Label line(int lineNumber, StructuredLineNumberInfo.Block block) {
+    return line(labels.size(), lineNumber, block);
+  }
+
+  /**
+   * Creates a new line number instance that will insert the given line number at the current
    * offset. It will insert an extended line number info with the given source if it's not null.
    */
-  public Label line(int identifier, int lineNumber, String source) {
+  private Label line(int identifier, int lineNumber, StructuredLineNumberInfo.Block block) {
+    LineNumber lineNumberLabel = new LineNumber(identifier, lineNumber, block);
+
+    // Remember the label, so we can retrieve its offset later on.
+    labels.put(identifier, lineNumberLabel);
+
+    return lineNumberLabel;
+  }
+
+  /**
+   * Creates a new line number instance that will insert the given line number at the current
+   * offset. It will insert an extended line number info with the given source if it's not null.
+   */
+  private Label line(int identifier, int lineNumber, String source) {
     LineNumber lineNumberLabel = new LineNumber(identifier, lineNumber, source);
 
     // Remember the label, so we can retrieve its offset later on.
@@ -1677,6 +1701,7 @@ public class CodeAttributeEditor
   private static class LineNumber extends Label {
     private final int lineNumber;
     private final String source;
+    private final StructuredLineNumberInfo.Block block;
 
     /**
      * Creates a new LineNumber instance.
@@ -1685,10 +1710,26 @@ public class CodeAttributeEditor
      * @param lineNumber the line number to inject at the current offset.
      * @param source the extended line number info source to optionally add.
      */
+    @Deprecated
     public LineNumber(int identifier, int lineNumber, String source) {
       super(identifier);
       this.lineNumber = lineNumber;
       this.source = source;
+      this.block = null;
+    }
+
+    /**
+     * Creates a new LineNumber instance.
+     *
+     * @param identifier an identifier that can be chosen freely.
+     * @param lineNumber the line number to inject at the current offset.
+     * @param block optional line number block tracking the origins of this line.
+     */
+    public LineNumber(int identifier, int lineNumber, StructuredLineNumberInfo.Block block) {
+      super(identifier);
+      this.lineNumber = lineNumber;
+      this.block = block;
+      this.source = null;
     }
 
     // Implementations for Instruction.
@@ -1733,9 +1774,11 @@ public class CodeAttributeEditor
       LineNumberTableAttributeEditor lineNumberTableAttributeEditor =
           new LineNumberTableAttributeEditor((LineNumberTableAttribute) lineNumberTableAttribute);
       lineNumberTableAttributeEditor.addLineNumberInfo(
-          source == null
-              ? new LineNumberInfo(offset(), lineNumber)
-              : new ExtendedLineNumberInfo(offset(), lineNumber, source));
+          block != null
+              ? block.line(offset, lineNumber)
+              : source == null
+                  ? new LineNumberInfo(offset(), lineNumber)
+                  : new ExtendedLineNumberInfo(offset(), lineNumber, source));
     }
 
     // Implementations for Object.

@@ -19,6 +19,7 @@ package proguard.classfile.visitor;
 
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.annotation.*;
@@ -1113,12 +1114,21 @@ public class ClassPrinter
 
   public void visitLineNumberInfo(
       Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberInfo lineNumberInfo) {
+    String origins = "";
+    if (lineNumberInfo instanceof StructuredLineNumberInfo) {
+      StructuredLineNumberInfo slni = (StructuredLineNumberInfo) lineNumberInfo;
+      origins =
+          " "
+              + String.join(
+                  ":", slni.getOrigin().stream().map(Object::toString).collect(Collectors.toSet()));
+    }
     println(
         "["
             + lineNumberInfo.u2startPC
             + "] -> line "
             + lineNumberInfo.u2lineNumber
-            + (lineNumberInfo.getSource() == null ? "" : " [" + lineNumberInfo.getSource() + "]"));
+            + (lineNumberInfo.getSource() == null ? "" : " [" + lineNumberInfo.getSource() + "]")
+            + origins);
   }
 
   // Implementations for ParameterInfoVisitor.

@@ -24,9 +24,9 @@ import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
-import proguard.classfile.attribute.ExtendedLineNumberInfo;
 import proguard.classfile.attribute.LineNumberInfo;
 import proguard.classfile.attribute.LineNumberTableAttribute;
+import proguard.classfile.attribute.StructuredLineNumberInfo;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.attribute.visitor.AttributeNameFilter;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
@@ -139,6 +139,7 @@ public class MethodCopier implements ClassVisitor, MemberVisitor, AttributeVisit
       this.copiedMethodLineNumberTableAttribute = copiedMethodLineNumberTableAttribute;
     }
 
+    @Override
     public void visitCodeAttribute(
         Clazz sourceClass, Method sourceMethod, CodeAttribute sourceMethodCodeAttribute) {
       LineNumberTableAttribute sourceMethodLineNumberTableAttribute =
@@ -157,12 +158,21 @@ public class MethodCopier implements ClassVisitor, MemberVisitor, AttributeVisit
           initializeLineNumberInfoSource(
               sourceClass, sourceMethod, lowestLineNumber, highestLineNumber);
 
+      StructuredLineNumberInfo.Block block =
+          new StructuredLineNumberInfo.Block(
+              StructuredLineNumberInfo.SimpleOrigin.COPIED,
+              sourceClass.getName()
+                  + "."
+                  + sourceMethod.getName(sourceClass)
+                  + sourceMethod.getDescriptor(sourceClass),
+              lowestLineNumber,
+              highestLineNumber);
+
       for (int i = 0; i < copiedMethodLineNumberTableAttribute.u2lineNumberTableLength; i++) {
         LineNumberInfo currentLineNumberInfo =
             copiedMethodLineNumberTableAttribute.lineNumberTable[i];
-        ExtendedLineNumberInfo newLineNumberInfo =
-            new ExtendedLineNumberInfo(
-                currentLineNumberInfo.u2startPC, currentLineNumberInfo.u2lineNumber, newSource);
+        LineNumberInfo newLineNumberInfo =
+            block.line(currentLineNumberInfo.u2startPC, currentLineNumberInfo.u2lineNumber);
         copiedMethodLineNumberTableAttribute.lineNumberTable[i] = newLineNumberInfo;
       }
     }

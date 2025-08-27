@@ -29,7 +29,7 @@ import proguard.classfile.attribute.visitor.*;
 public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisitor {
   private final LineNumberTableAttributeEditor lineNumberTableAttributeEditor;
 
-  private String source;
+  private StructuredLineNumberInfo.Block sourceBlock;
 
   /**
    * Creates a new LineNumberInfoAdder that will copy line numbers into the given target line number
@@ -42,23 +42,22 @@ public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisi
 
   // Implementations for AttributeVisitor.
 
+  @Override
   public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
+  @Override
   public void visitLineNumberTableAttribute(
       Clazz clazz,
       Method method,
       CodeAttribute codeAttribute,
       LineNumberTableAttribute lineNumberTableAttribute) {
     // Remember the source.
-    source =
-        clazz.getName()
-            + '.'
-            + method.getName(clazz)
-            + method.getDescriptor(clazz)
-            + ':'
-            + lineNumberTableAttribute.getLowestLineNumber()
-            + ':'
-            + lineNumberTableAttribute.getHighestLineNumber();
+    sourceBlock =
+        new StructuredLineNumberInfo.Block(
+            StructuredLineNumberInfo.SimpleOrigin.COPIED,
+            clazz.getName() + "." + method.getName(clazz) + method.getDescriptor(clazz),
+            lineNumberTableAttribute.getLowestLineNumber(),
+            lineNumberTableAttribute.getHighestLineNumber());
 
     // Copy all line numbers.
     lineNumberTableAttribute.lineNumbersAccept(clazz, method, codeAttribute, this);
@@ -66,15 +65,16 @@ public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisi
 
   // Implementations for LineNumberInfoVisitor.
 
+  @Override
   public void visitLineNumberInfo(
       Clazz clazz, Method method, CodeAttribute codeAttribute, LineNumberInfo lineNumberInfo) {
-    // Make sure we have a source.
-    String newSource = lineNumberInfo.getSource() != null ? lineNumberInfo.getSource() : source;
-
     // Create a new line number.
     LineNumberInfo newLineNumberInfo =
-        new ExtendedLineNumberInfo(
-            lineNumberInfo.u2startPC, lineNumberInfo.u2lineNumber, newSource);
+        lineNumberInfo.getSource() == null
+            ? sourceBlock.line(lineNumberInfo.u2startPC, lineNumberInfo.u2lineNumber)
+            : ((StructuredLineNumberInfo) lineNumberInfo)
+                .getBlock()
+                .line(lineNumberInfo.u2startPC, lineNumberInfo.u2lineNumber);
 
     // Add it to the target.
     lineNumberTableAttributeEditor.addLineNumberInfo(newLineNumberInfo);

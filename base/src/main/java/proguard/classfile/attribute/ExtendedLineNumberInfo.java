@@ -23,7 +23,10 @@ package proguard.classfile.attribute;
  * inlined or merged code.
  *
  * @author Eric Lafortune
+ * @deprecated Use {@link StructuredLineNumberInfo} instead to properly track the source of lines
+ *     that don't originate from the given method.
  */
+@Deprecated
 public class ExtendedLineNumberInfo extends LineNumberInfo {
   public String source;
 
