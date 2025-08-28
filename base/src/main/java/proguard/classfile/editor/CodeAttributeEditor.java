@@ -1775,7 +1775,7 @@ public class CodeAttributeEditor
           new LineNumberTableAttributeEditor((LineNumberTableAttribute) lineNumberTableAttribute);
       lineNumberTableAttributeEditor.addLineNumberInfo(
           block != null
-              ? block.line(offset, lineNumber)
+              ? block.line(offset(), lineNumber)
               : source == null
                   ? new LineNumberInfo(offset(), lineNumber)
                   : new ExtendedLineNumberInfo(offset(), lineNumber, source));
