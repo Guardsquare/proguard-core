@@ -1,7 +1,6 @@
 package proguard.classfile.util
 
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.shouldBe
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.ClassConstants.METHOD_TYPE_INIT
 import proguard.classfile.ClassConstants.NAME_JAVA_LANG_OBJECT
@@ -10,7 +9,7 @@ import proguard.classfile.editor.ClassBuilder
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class InstructionSequenceMatcherTest : BehaviorSpec({
     Given("A class that was compiled from sources") {
@@ -35,9 +34,9 @@ class InstructionSequenceMatcherTest : BehaviorSpec({
                 val method by lazy { clazz.findMethod("b", METHOD_TYPE_INIT) }
 
                 with(clazz and method) {
-                    match {
+                    shouldMatch {
                         ldc("a".toByteArray())
-                    } shouldBe true
+                    }
                 }
             }
         }
@@ -54,9 +53,9 @@ class InstructionSequenceMatcherTest : BehaviorSpec({
         Then("The InstructionSequenceMatcher should match the PrimitiveArrayConstant") {
             val method by lazy { clazz.findMethod("b", METHOD_TYPE_INIT) }
             with(clazz and method) {
-                match {
+                shouldMatch {
                     ldc("The answer is 42".toByteArray())
-                } shouldBe true
+                }
             }
         }
     }

@@ -1,14 +1,13 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import proguard.android.testutils.getSmaliResource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class EmptyTryCatchWithGotoHeadTest : FreeSpec({
     "Empty Try Catch With Goto Head test" - {
@@ -33,7 +32,7 @@ class EmptyTryCatchWithGotoHeadTest : FreeSpec({
 
         "Check if sequence of operations after translation match original smali code" {
             with(testClass and testMethod) {
-                match {
+                shouldMatch {
                     aload(0)
                     getfield("z", "z", "Lz;")
                     ifnull(38)
@@ -54,10 +53,14 @@ class EmptyTryCatchWithGotoHeadTest : FreeSpec({
                     aload(3)
                     ldc("%.1f")
                     aload(4)
-                    invokestatic("java/lang/String", "format", "(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;")
+                    invokestatic(
+                        "java/lang/String",
+                        "format",
+                        "(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;",
+                    )
                     invokevirtual("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V")
                     return_()
-                } shouldBe true
+                }
             }
         }
     }

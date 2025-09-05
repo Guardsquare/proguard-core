@@ -8,8 +8,8 @@ import proguard.android.testutils.fromSmali
 import proguard.classfile.editor.CodeAttributeEditor
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
 import proguard.testutils.runClassPool
+import proguard.testutils.shouldMatch
 
 class TestTypeTransformerMergeIZArray : FreeSpec({
 
@@ -94,7 +94,7 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
 
             "Then the instruction sequence of method `foo` should match that of dex2jar after translation" {
                 with(testClass and methodFoo) {
-                    match {
+                    shouldMatch {
                         iconst_2()
                         newarray(10)
                         astore_0()
@@ -112,7 +112,7 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
                         iconst_0()
                         iaload()
                         ireturn()
-                    } shouldBe true
+                    }
                 }
             }
 
@@ -124,7 +124,7 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
                 val L1 = editor.label()
 
                 with(testClass and methodMain) {
-                    match {
+                    shouldMatch {
                         invokestatic("TestTypeTransformerMergeIZArray", "foo", "()Z")
                         pop()
                         getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
@@ -158,7 +158,7 @@ class TestTypeTransformerMergeIZArray : FreeSpec({
                         invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
                         return_()
                     }
-                } shouldBe true
+                }
             }
 
             "Then the result after execution of the program should be correct" {

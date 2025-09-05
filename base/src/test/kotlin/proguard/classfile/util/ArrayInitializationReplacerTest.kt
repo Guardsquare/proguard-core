@@ -1,12 +1,11 @@
 package proguard.classfile.util
 
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.shouldBe
 import proguard.classfile.ClassConstants.METHOD_TYPE_INIT
 import proguard.testutils.AssemblerSource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class ArrayInitializationReplacerTest : BehaviorSpec({
     Given("A class with unreachable code") {
@@ -45,11 +44,11 @@ class ArrayInitializationReplacerTest : BehaviorSpec({
                 val clazz = programClassPool.getClass("A")
                 val method by lazy { clazz.findMethod("quickie", METHOD_TYPE_INIT) }
                 with(clazz and method) {
-                    match {
+                    shouldMatch {
                         return_()
                         bipush(10)
                         newarray(10)
-                    } shouldBe true
+                    }
                 }
             }
 
@@ -66,11 +65,11 @@ class ArrayInitializationReplacerTest : BehaviorSpec({
                     val clazz = programClassPool.getClass("A")
                     val method by lazy { clazz.findMethod("quickie", METHOD_TYPE_INIT) }
                     with(clazz and method) {
-                        match {
+                        shouldMatch {
                             return_()
                             bipush(10)
                             newarray(10)
-                        } shouldBe true
+                        }
                     }
                 }
             }
