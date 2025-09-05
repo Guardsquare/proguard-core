@@ -1,14 +1,13 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import proguard.android.testutils.getSmaliResource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class IntOrBooleanTest : FreeSpec({
     "Int or Boolean test" - {
@@ -40,7 +39,7 @@ class IntOrBooleanTest : FreeSpec({
 
         "Check if sequence of operations after translation match original smali code" {
             with(testClass and testMethod) {
-                match {
+                shouldMatch {
                     aload_0()
                     getfield("com/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper", "showBackground", "Z")
                     iload_1()
@@ -52,7 +51,7 @@ class IntOrBooleanTest : FreeSpec({
                     putfield("com/google/android/finsky/widget/consumption/NowPlayingWidgetProvider\$ViewTreeWrapper", "showBackground", "Z")
                     iload_2()
                     ireturn()
-                } shouldBe true
+                }
             }
         }
     }

@@ -1,13 +1,12 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class BasicTranslationTest : FreeSpec({
 
@@ -49,12 +48,12 @@ class BasicTranslationTest : FreeSpec({
 
         "Check if sequence of operations after translation match original smali code" {
             with(helloWorldClass and mainMethod) {
-                match {
+                shouldMatch {
                     getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
                     ldc("Hello World!")
                     invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
                     return_()
-                } shouldBe true
+                }
             }
         }
     }

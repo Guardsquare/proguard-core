@@ -1,12 +1,11 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class TestTranslationDeterminism : FreeSpec({
 
@@ -77,7 +76,7 @@ class TestTranslationDeterminism : FreeSpec({
                     val methodFoo = testClass.findMethod("foo", "()Z")
                     val methodMain = testClass.findMethod("main", "([Ljava/lang/String;)V")
                     with(testClass and methodFoo) {
-                        match {
+                        shouldMatch {
                             iconst_2()
                             newarray(10)
                             astore_0()
@@ -95,10 +94,10 @@ class TestTranslationDeterminism : FreeSpec({
                             iconst_0()
                             iaload()
                             ireturn()
-                        } shouldBe true
+                        }
                     }
                     with(testClass and methodMain) {
-                        match {
+                        shouldMatch {
                             invokestatic("TestTypeTransformerMergeIZArray", "foo", "()Z")
                             pop()
                             getstatic("java/lang/System", "out", "Ljava/io/PrintStream;")
@@ -132,7 +131,7 @@ class TestTranslationDeterminism : FreeSpec({
                             invokevirtual("java/io/PrintStream", "println", "(Ljava/lang/String;)V")
                             return_()
                         }
-                    } shouldBe true
+                    }
                 }
             }
         }

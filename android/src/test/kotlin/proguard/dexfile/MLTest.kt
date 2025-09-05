@@ -1,14 +1,13 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import proguard.android.testutils.getSmaliResource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class MLTest : FreeSpec({
     "ML test" - {
@@ -42,17 +41,17 @@ class MLTest : FreeSpec({
 
         "Check if sequence of operations for method <init> after translation match original smali code" {
             with(testClass and methodInit) {
-                match {
+                shouldMatch {
                     aload(0)
                     invokespecial("java/lang/Object", "<init>", "()V")
                     return_()
-                } shouldBe true
+                }
             }
         }
 
         "Check if sequence of operations for method a after translation match original smali code" {
             with(testClass and methodA) {
-                match {
+                shouldMatch {
                     iconst(3)
                     newarray(10)
                     astore(1)
@@ -73,7 +72,7 @@ class MLTest : FreeSpec({
                     invokestatic("java/lang/reflect/Array", "newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;")
                     checkcast("[[[Ljava/lang/String;")
                     areturn()
-                } shouldBe true
+                }
             }
         }
     }

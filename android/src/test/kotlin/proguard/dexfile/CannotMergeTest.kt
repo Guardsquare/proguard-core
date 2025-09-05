@@ -1,14 +1,13 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import proguard.android.testutils.getSmaliResource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class CannotMergeTest : FreeSpec({
     "Can not merge z and i test" - {
@@ -33,7 +32,7 @@ class CannotMergeTest : FreeSpec({
 
         "Check if sequence of operations after translation match original smali code" {
             with(testClass and testMethod) {
-                match {
+                shouldMatch {
                     aload(0)
                     aload(1)
                     aload(2)
@@ -45,7 +44,7 @@ class CannotMergeTest : FreeSpec({
                     )
                     pop()
                     return_()
-                } shouldBe true
+                }
             }
         }
     }

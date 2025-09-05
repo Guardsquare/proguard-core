@@ -18,9 +18,14 @@
 
 package proguard.testutils
 
+import io.kotest.matchers.EqualityMatcherResult
+import io.kotest.matchers.Matcher
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldNot
 import proguard.classfile.Clazz
 import proguard.classfile.Member
 import proguard.classfile.Method
+import proguard.classfile.ProgramClass
 import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
 import proguard.classfile.instruction.Instruction
@@ -58,3 +63,42 @@ fun ClazzMemberPair.match(builder: InstructionBuilder.() -> InstructionBuilder):
     return matcher.isMatching
 }
 fun Clazz.findMethod(name: String) = findMethod(name, null)
+
+private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuilder) = Matcher<ClazzMemberPair> { value ->
+    EqualityMatcherResult(
+        passed = value.match(builder),
+        actual = object {
+            override fun toString(): String = with(value) {
+                val instructions = MethodInstructionCollector.getMethodInstructions(clazz, member as Method)
+                var offset = 0
+                instructions.joinToString("\n") {
+                    val thisOffset = offset
+                    offset += it.length(offset)
+                    it.toString(clazz, thisOffset)
+                }
+            }
+        },
+        expected = object {
+            override fun toString(): String {
+                val (constants, instructions) = builder(InstructionBuilder())
+                val clazz = ProgramClass().apply { constantPool = constants }
+                var offset = 0
+                return instructions.joinToString("\n") {
+                    val thisOffset = offset
+                    offset += it.length(offset)
+                    it.toString(clazz, thisOffset)
+                }
+            }
+        },
+        failureMessageFn = { "Instructions should match" },
+        negatedFailureMessageFn = { "Instructions should not match" },
+    )
+}
+
+fun ClazzMemberPair.shouldMatch(builder: InstructionBuilder.() -> InstructionBuilder) {
+    this should matchInstructions(builder)
+}
+
+fun ClazzMemberPair.shouldNotMatch(builder: InstructionBuilder.() -> InstructionBuilder) {
+    this shouldNot matchInstructions(builder)
+}

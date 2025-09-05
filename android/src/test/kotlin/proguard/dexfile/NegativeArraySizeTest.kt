@@ -1,14 +1,13 @@
 package proguard.dexfile
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.android.testutils.SmaliSource
 import proguard.android.testutils.fromSmali
 import proguard.android.testutils.getSmaliResource
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.and
-import proguard.testutils.match
+import proguard.testutils.shouldMatch
 
 class NegativeArraySizeTest : FreeSpec({
     "Negative array size test" - {
@@ -36,7 +35,7 @@ class NegativeArraySizeTest : FreeSpec({
 
         "Check if sequence of operations after translation match original smali code" {
             with(testClass and testMethod) {
-                match {
+                shouldMatch {
                     iconst_m1()
                     newarray(10)
                     astore(1)
@@ -52,7 +51,7 @@ class NegativeArraySizeTest : FreeSpec({
                     astore(1)
                     aload(1)
                     athrow()
-                } shouldBe true
+                }
             }
         }
     }
