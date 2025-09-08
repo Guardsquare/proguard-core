@@ -45,28 +45,27 @@ infix fun Clazz.and(member: Member) = ClazzMemberPair(this, member)
 fun ClazzMemberPair.instructionsAccept(visitor: InstructionVisitor) =
     member.accept(clazz, AllAttributeVisitor(AllInstructionVisitor(visitor)))
 
-fun ClazzMemberPair.match(builder: InstructionBuilder.() -> InstructionBuilder): Boolean = with(this) {
-    val (constants, instructions) = builder(InstructionBuilder())
-    val matcher = InstructionMatcher(constants, instructions)
-
-    class EarlyReturn : RuntimeException()
-
-    try {
-        instructionsAccept(object : InstructionVisitor {
-            override fun visitAnyInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, instruction: Instruction) {
-                if (matcher.isMatching) throw EarlyReturn()
-                instruction.accept(clazz, method, codeAttribute, offset, matcher)
-            }
-        })
-    } catch (ignored: EarlyReturn) { }
-
-    return matcher.isMatching
-}
 fun Clazz.findMethod(name: String) = findMethod(name, null)
 
 private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuilder) = Matcher<ClazzMemberPair> { value ->
     EqualityMatcherResult(
-        passed = value.match(builder),
+        passed = with(value) {
+            val (constants, instructions) = builder(InstructionBuilder())
+            val matcher = InstructionMatcher(constants, instructions)
+
+            class EarlyReturn : RuntimeException()
+
+            try {
+                instructionsAccept(object : InstructionVisitor {
+                    override fun visitAnyInstruction(clazz: Clazz, method: Method, codeAttribute: CodeAttribute, offset: Int, instruction: Instruction) {
+                        if (matcher.isMatching) throw EarlyReturn()
+                        instruction.accept(clazz, method, codeAttribute, offset, matcher)
+                    }
+                })
+            } catch (_: EarlyReturn) { }
+
+            matcher.isMatching
+        },
         actual = object {
             override fun toString(): String = with(value) {
                 val instructions = MethodInstructionCollector.getMethodInstructions(clazz, member as Method)
@@ -94,6 +93,9 @@ private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuild
         negatedFailureMessageFn = { "Instructions should not match" },
     )
 }
+
+@Deprecated("Use shouldMatch or shouldNotMatch instead")
+fun ClazzMemberPair.match(builder: InstructionBuilder.() -> InstructionBuilder): Boolean = matchInstructions(builder).test(this).passed()
 
 fun ClazzMemberPair.shouldMatch(builder: InstructionBuilder.() -> InstructionBuilder) {
     this should matchInstructions(builder)
