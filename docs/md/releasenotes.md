@@ -1,3 +1,11 @@
+## Version 9.1.12
+
+### API changes for line number handling
+
+- Add new StructuredLineNumberInfo class.
+- Deprecate ExtendedLineNumberInfo class.
+- Adapt utilities to generate StructuredLineNumberInfo instead of ExtendedLineNumberInfo.
+
 ## Version 9.1.11
 
 ### Kotlin support

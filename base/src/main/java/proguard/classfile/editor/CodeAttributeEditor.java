@@ -20,8 +20,11 @@ package proguard.classfile.editor;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.IntStream;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
@@ -147,6 +150,12 @@ public class CodeAttributeEditor
   //*/
 
   private static final int LABEL_FLAG = 0x20000000;
+
+  /**
+   * Magic line number that indicates the previous line number should be restored. The restored line
+   * number is the first preceding line number with a different source.
+   */
+  public static final int RESTORE_PREVIOUS_LINE_NUMBER = -3;
 
   private final boolean updateFrameSizes;
   private final boolean shrinkInstructions;
@@ -659,6 +668,72 @@ public class CodeAttributeEditor
         0,
         lineNumberTableAttribute.u2lineNumberTableLength,
         Comparator.comparingInt(lhs -> lhs.u2startPC));
+
+    // Handle magic lines if needed.
+    handleMagicLines(lineNumberTableAttribute);
+  }
+
+  private static void handleMagicLines(LineNumberTableAttribute lineNumberTableAttribute) {
+    // Don't touch the line number table if there's no magic lines.
+    if (Arrays.stream(
+            lineNumberTableAttribute.lineNumberTable,
+            0,
+            lineNumberTableAttribute.u2lineNumberTableLength)
+        .noneMatch(lni -> lni.u2lineNumber == RESTORE_PREVIOUS_LINE_NUMBER)) {
+      return;
+    }
+
+    LineNumberInfo[] table = lineNumberTableAttribute.lineNumberTable;
+    int tableLength = lineNumberTableAttribute.u2lineNumberTableLength;
+    Set<Integer> deletions = new HashSet<>();
+    for (int currentIndex = 0; currentIndex < tableLength; currentIndex++) {
+      if (table[currentIndex].u2lineNumber != RESTORE_PREVIOUS_LINE_NUMBER) {
+        continue;
+      }
+
+      LineNumberInfo magicLine = table[currentIndex];
+
+      // Figure out what line came before the start of this block.
+      int previousIndex = -1;
+      for (int i = currentIndex - 1; i >= 0; i--) {
+        if (table[i].getBlockId() != magicLine.getBlockId()) {
+          previousIndex = i;
+          break;
+        }
+      }
+      LineNumberInfo previousLine = previousIndex == -1 ? null : table[previousIndex];
+
+      // If the start of a fresh injected block collides with the previous line, then drop the
+      // previous line - it will be restored after the block.
+      if (previousIndex != -1 && previousLine.u2startPC == table[previousIndex + 1].u2startPC) {
+        deletions.add(previousIndex);
+      }
+
+      // If this block ends on the start of a new line, then we simply drop the colliding magic
+      // line.
+      if (currentIndex + 1 < tableLength
+          && table[currentIndex + 1].u2startPC == magicLine.u2startPC) {
+        deletions.add(currentIndex);
+      }
+      // Otherwise if there's a previous line, we restore it.
+      else if (previousIndex != -1) {
+        table[currentIndex] =
+            previousLine.getBlock().line(magicLine.u2startPC, previousLine.u2lineNumber);
+      }
+      // If there's no previous line, we insert a dummy so the following lines aren't marked.
+      else {
+        table[currentIndex] = new LineNumberInfo(magicLine.u2startPC, 0);
+      }
+    }
+
+    // Filter out all the deleted lines.
+    lineNumberTableAttribute.lineNumberTable =
+        IntStream.range(0, tableLength)
+            .filter(i -> !deletions.contains(i))
+            .mapToObj(i -> table[i])
+            .toArray(LineNumberInfo[]::new);
+    lineNumberTableAttribute.u2lineNumberTableLength =
+        lineNumberTableAttribute.lineNumberTable.length;
   }
 
   public void visitLocalVariableTableAttribute(

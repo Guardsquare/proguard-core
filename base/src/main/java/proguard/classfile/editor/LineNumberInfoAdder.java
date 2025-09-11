@@ -54,7 +54,7 @@ public class LineNumberInfoAdder implements AttributeVisitor, LineNumberInfoVisi
     // Remember the source.
     sourceBlock =
         new StructuredLineNumberInfo.Block(
-            StructuredLineNumberInfo.SimpleOrigin.COPIED,
+            LineOrigin.SimpleOrigin.COPIED,
             clazz.getName() + "." + method.getName(clazz) + method.getDescriptor(clazz),
             lineNumberTableAttribute.getLowestLineNumber(),
             lineNumberTableAttribute.getHighestLineNumber());
