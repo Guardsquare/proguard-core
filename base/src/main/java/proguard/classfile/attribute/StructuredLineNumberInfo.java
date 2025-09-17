@@ -33,7 +33,7 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
   private final String sourceMethod;
   private final int sourceLineStart;
   private final int sourceLineEnd;
-  private final List<Origin> origin;
+  private final List<LineOrigin> origin;
 
   // Required to handle the legacy expectation that lines from the same block use the same string
   // object. Do not rely on this behavior as it may change in the future.
@@ -64,7 +64,7 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
    * element, followed by any subsequent manipulations (e.g. multiple levels of inlining, copying,
    * etc.).
    */
-  public List<Origin> getOrigin() {
+  public List<LineOrigin> getOrigin() {
     return origin;
   }
 
@@ -72,7 +72,7 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
       int u2startPc,
       int u2lineNumber,
       int blockId,
-      List<Origin> origin,
+      List<LineOrigin> origin,
       String sourceMethod,
       int sourceLineStart,
       int sourceLineEnd) {
@@ -96,24 +96,23 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
     }
   }
 
-  public Block getBlock(Origin... addedOrigins) {
-    List<Origin> origins = new ArrayList<>();
+  public LineNumberInfoBlock getBlock() {
+    return new Block(
+        blockId, new ArrayList<LineOrigin>(origin), sourceMethod, sourceLineStart, sourceLineEnd);
+  }
+
+  public Block getBlock(LineOrigin... addedOrigins) {
+    List<LineOrigin> origins = new ArrayList<>();
     origins.addAll(origin);
     origins.addAll(Arrays.asList(addedOrigins));
     return new Block(blockId, origins, sourceMethod, sourceLineStart, sourceLineEnd);
-  }
-
-  public interface Origin {}
-
-  public enum SimpleOrigin implements Origin {
-    COPIED
   }
 
   /**
    * Factory for {@link StructuredLineNumberInfo} objects. Line numbers that form a single block in
    * the mapping file should be generated with the same {@code Block}.
    */
-  public static class Block {
+  public static class Block implements LineNumberInfoBlock {
     private static int idCounter = 0;
 
     private static synchronized int getNewId() {
@@ -126,11 +125,11 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
     private final int sourceLineStart;
     private final int sourceLineEnd;
 
-    private final List<Origin> origin;
+    private final List<LineOrigin> origin;
 
-    private Block(
+    Block(
         int blockId,
-        List<Origin> origin,
+        List<LineOrigin> origin,
         String sourceMethod,
         int sourceLineStart,
         int sourceLineEnd) {
@@ -141,11 +140,12 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
       this.origin = origin;
     }
 
-    public Block(List<Origin> origin, String sourceMethod, int sourceLineStart, int sourceLineEnd) {
+    public Block(
+        List<LineOrigin> origin, String sourceMethod, int sourceLineStart, int sourceLineEnd) {
       this(getNewId(), origin, sourceMethod, sourceLineStart, sourceLineEnd);
     }
 
-    public Block(Origin origin, String sourceMethod, int sourceLineStart, int sourceLineEnd) {
+    public Block(LineOrigin origin, String sourceMethod, int sourceLineStart, int sourceLineEnd) {
       this(
           getNewId(),
           new ArrayList<>(Arrays.asList(origin)),
@@ -154,7 +154,7 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
           sourceLineEnd);
     }
 
-    public Block(Origin origin) {
+    public Block(LineOrigin origin) {
       this(origin, null, -1, -1);
     }
 

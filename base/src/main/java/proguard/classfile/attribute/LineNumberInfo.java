@@ -17,12 +17,18 @@
  */
 package proguard.classfile.attribute;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
- * Representation of an line number table entry.
+ * Representation of a line number table entry.
  *
  * @author Eric Lafortune
  */
 public class LineNumberInfo {
+  public static int SIMPLE_LINE_NUMBER_BLOCK_ID = -1;
+  public static int LINE_RANGE_NO_SOURCE = -1;
+
   public int u2startPC;
   public int u2lineNumber;
 
@@ -42,5 +48,35 @@ public class LineNumberInfo {
    */
   public String getSource() {
     return null;
+  }
+
+  public String getSourceMethod() {
+    return null;
+  }
+
+  public int getSourceLineStart() {
+    return LINE_RANGE_NO_SOURCE;
+  }
+
+  public int getSourceLineEnd() {
+    return LINE_RANGE_NO_SOURCE;
+  }
+
+  public int getBlockId() {
+    return SIMPLE_LINE_NUMBER_BLOCK_ID;
+  }
+
+  public List<LineOrigin> getOrigin() {
+    return Collections.emptyList();
+  }
+
+  public LineNumberInfoBlock getBlock() {
+    return new Block();
+  }
+
+  private static class Block implements LineNumberInfoBlock {
+    public LineNumberInfo line(int u2StartPc, int u2LineNumber) {
+      return new LineNumberInfo(u2StartPc, u2LineNumber);
+    }
   }
 }

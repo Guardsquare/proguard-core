@@ -45,4 +45,40 @@ public class ExtendedLineNumberInfo extends LineNumberInfo {
   public String getSource() {
     return source;
   }
+
+  public String getSourceMethod() {
+    if (source == null) return null;
+    if (!source.contains(":")) return source;
+    return source.split(":")[0];
+  }
+
+  public int getSourceLineStart() {
+    if (source == null || !source.contains(":")) return LINE_RANGE_NO_SOURCE;
+    return Integer.parseInt(source.split(":")[1]);
+  }
+
+  public int getSourceLineEnd() {
+    if (source == null || !source.contains(":")) return LINE_RANGE_NO_SOURCE;
+    return Integer.parseInt(source.split(":")[2]);
+  }
+
+  public int getBlockId() {
+    return System.identityHashCode(source);
+  }
+
+  public LineNumberInfoBlock getBlock() {
+    return new Block(source);
+  }
+
+  private static class Block implements LineNumberInfoBlock {
+    private final String source;
+
+    private Block(String source) {
+      this.source = source;
+    }
+
+    public LineNumberInfo line(int u2StartPc, int u2LineNumber) {
+      return new ExtendedLineNumberInfo(u2StartPc, u2LineNumber, source);
+    }
+  }
 }

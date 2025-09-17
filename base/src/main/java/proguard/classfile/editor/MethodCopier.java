@@ -26,6 +26,7 @@ import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.LineNumberInfo;
 import proguard.classfile.attribute.LineNumberTableAttribute;
+import proguard.classfile.attribute.LineOrigin;
 import proguard.classfile.attribute.StructuredLineNumberInfo;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
 import proguard.classfile.attribute.visitor.AttributeNameFilter;
@@ -160,7 +161,7 @@ public class MethodCopier implements ClassVisitor, MemberVisitor, AttributeVisit
 
       StructuredLineNumberInfo.Block block =
           new StructuredLineNumberInfo.Block(
-              StructuredLineNumberInfo.SimpleOrigin.COPIED,
+              LineOrigin.SimpleOrigin.COPIED,
               sourceClass.getName()
                   + "."
                   + sourceMethod.getName(sourceClass)

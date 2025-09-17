@@ -343,7 +343,7 @@ public class AttributeAdder implements AttributeVisitor {
     if (codeAttribute.getAttribute(clazz, Attribute.LINE_NUMBER_TABLE) == null) {
       StructuredLineNumberInfo.Block block =
           new StructuredLineNumberInfo.Block(
-              StructuredLineNumberInfo.SimpleOrigin.COPIED,
+              LineOrigin.SimpleOrigin.COPIED,
               clazz.getName() + '.' + method.getName(clazz) + method.getDescriptor(clazz),
               0,
               0);
