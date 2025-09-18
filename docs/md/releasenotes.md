@@ -1,10 +1,14 @@
-## Version 9.1.12
+## Version 9.2.0
 
 ### API changes for line number handling
 
 - Add new StructuredLineNumberInfo class.
 - Deprecate ExtendedLineNumberInfo class.
 - Adapt utilities to generate StructuredLineNumberInfo instead of ExtendedLineNumberInfo.
+
+### Java support
+
+- Update maximum supported Java class version to 69.65535 (Java 25).
 
 ## Version 9.1.11
 

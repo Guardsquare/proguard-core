@@ -54,4 +54,5 @@ public class JavaVersionConstants {
   public static final String CLASS_VERSION_22 = "22";
   public static final String CLASS_VERSION_23 = "23";
   public static final String CLASS_VERSION_24 = "24";
+  public static final String CLASS_VERSION_25 = "25";
 }
