@@ -20,15 +20,13 @@ package proguard.classfile.kotlin.flags;
 /**
  * Flags for Kotlin properties.
  *
- * <p>Valid common flags: - hasAnnotations - isInternal - isPrivate - isProtected - isPublic -
- * isPrivateToThis - isLocal - isFinal - isOpen - isAbstract - isSealed
+ * <p>Valid common flags: - isInternal - isPrivate - isProtected - isPublic - isPrivateToThis -
+ * isLocal - isFinal - isOpen - isAbstract - isSealed
  */
 public class KotlinPropertyFlags implements KotlinFlags {
 
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
-
-  @Deprecated public boolean hasAnnotations;
 
   /**
    * A member kind flag, signifying that the corresponding property is explicitly declared in the
@@ -91,6 +89,8 @@ public class KotlinPropertyFlags implements KotlinFlags {
    * <p>interface A { companion object { @JvmField val s:String = "string" } }
    */
   public boolean isMovedFromInterfaceCompanion;
+
+  @Deprecated public boolean hasAnnotations;
 
   public KotlinPropertyFlags(KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;

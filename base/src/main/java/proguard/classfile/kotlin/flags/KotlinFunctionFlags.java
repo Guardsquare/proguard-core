@@ -17,18 +17,10 @@
  */
 package proguard.classfile.kotlin.flags;
 
-/**
- * Flags for Kotlin functions.
- *
- * <p>Valid common flags: - hasAnnotations - isInternal - isPrivate - isProtected - isPublic -
- * isPrivateToThis - isLocal - isFinal - isOpen - isAbstract - isSealed
- */
 public class KotlinFunctionFlags implements KotlinFlags {
 
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
-
-  @Deprecated public boolean hasAnnotations;
 
   /**
    * A member kind flag, signifying that the corresponding function is explicitly declared in the
@@ -75,6 +67,8 @@ public class KotlinFunctionFlags implements KotlinFlags {
 
   /** Signifies that the corresponding function is `expect`. */
   public boolean isExpect;
+
+  @Deprecated public boolean hasAnnotations;
 
   public KotlinFunctionFlags(KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;

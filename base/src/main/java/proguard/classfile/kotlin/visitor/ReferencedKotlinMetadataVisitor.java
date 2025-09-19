@@ -26,10 +26,14 @@ import proguard.classfile.visitor.ClassVisitor;
  * initialized, even if empty.
  */
 public class ReferencedKotlinMetadataVisitor implements ClassVisitor {
-  private final KotlinMetadataVisitor kotlinMetadataVisitor;
+  private final KotlinMetadataVisitor[] kotlinMetadataVisitors;
 
   public ReferencedKotlinMetadataVisitor(KotlinMetadataVisitor kotlinMetadataVisitor) {
-    this.kotlinMetadataVisitor = kotlinMetadataVisitor;
+    this.kotlinMetadataVisitors = new KotlinMetadataVisitor[] {kotlinMetadataVisitor};
+  }
+
+  public ReferencedKotlinMetadataVisitor(KotlinMetadataVisitor... kotlinMetadataVisitors) {
+    this.kotlinMetadataVisitors = kotlinMetadataVisitors;
   }
 
   // Implementations for ClassVisitor.
@@ -42,11 +46,15 @@ public class ReferencedKotlinMetadataVisitor implements ClassVisitor {
 
   @Override
   public void visitProgramClass(ProgramClass programClass) {
-    programClass.kotlinMetadataAccept(kotlinMetadataVisitor);
+    for (KotlinMetadataVisitor visitor : kotlinMetadataVisitors) {
+      programClass.kotlinMetadataAccept(visitor);
+    }
   }
 
   @Override
   public void visitLibraryClass(LibraryClass libraryClass) {
-    libraryClass.kotlinMetadataAccept(kotlinMetadataVisitor);
+    for (KotlinMetadataVisitor visitor : kotlinMetadataVisitors) {
+      libraryClass.kotlinMetadataAccept(visitor);
+    }
   }
 }

@@ -93,10 +93,10 @@ public class ClassIntegrity extends AbstractKotlinMetadataConstraint {
       reporter.report("Kotlin class " + kotlinClassKindMetadata.className + " has no super types");
     }
 
-    kotlinClassKindMetadata.referencedEnumEntries.forEach(
+    kotlinClassKindMetadata.enumEntries.forEach(
         enumEntry -> {
-          util.reportIfNullReference("enum entries", enumEntry);
-          util.reportIfFieldDangling("enum entries", clazz, enumEntry);
+          util.reportIfNullReference("enum entries", enumEntry.referencedEnumEntry);
+          util.reportIfFieldDangling("enum entries", clazz, enumEntry.referencedEnumEntry);
         });
 
     kotlinClassKindMetadata.referencedNestedClasses.forEach(

@@ -754,10 +754,10 @@ public class ClassReferenceInitializer
                 ClassUtil.internalTypeFromClassName(name));
       }
 
-      kotlinClassKindMetadata.referencedEnumEntries =
-          kotlinClassKindMetadata.enumEntryNames.stream()
-              .map(enumEntry -> strictMemberFinder.findField(clazz, enumEntry, null))
-              .collect(Collectors.toList());
+      kotlinClassKindMetadata.enumEntries.forEach(
+          enumEntry ->
+              enumEntry.referencedEnumEntry =
+                  strictMemberFinder.findField(clazz, enumEntry.name, null));
 
       kotlinClassKindMetadata.referencedNestedClasses =
           kotlinClassKindMetadata.nestedClassNames.stream()
@@ -897,20 +897,21 @@ public class ClassReferenceInitializer
             strictMemberFinder.correspondingClass();
       }
 
-      if (kotlinPropertyMetadata.getterSignature != null) {
-        kotlinPropertyMetadata.referencedGetterMethod =
+      if (kotlinPropertyMetadata.getterMetadata.signature != null) {
+        kotlinPropertyMetadata.getterMetadata.referencedMethod =
             strictMemberFinder.findMethod(
                 clazz,
-                kotlinPropertyMetadata.getterSignature.method,
-                kotlinPropertyMetadata.getterSignature.descriptor.toString());
+                kotlinPropertyMetadata.getterMetadata.signature.method,
+                kotlinPropertyMetadata.getterMetadata.signature.descriptor.toString());
       }
 
-      if (kotlinPropertyMetadata.setterSignature != null) {
-        kotlinPropertyMetadata.referencedSetterMethod =
+      if (kotlinPropertyMetadata.setterMetadata != null
+          && kotlinPropertyMetadata.setterMetadata.signature != null) {
+        kotlinPropertyMetadata.setterMetadata.referencedMethod =
             strictMemberFinder.findMethod(
                 clazz,
-                kotlinPropertyMetadata.setterSignature.method,
-                kotlinPropertyMetadata.setterSignature.descriptor.toString());
+                kotlinPropertyMetadata.setterMetadata.signature.method,
+                kotlinPropertyMetadata.setterMetadata.signature.descriptor.toString());
       }
 
       if (kotlinPropertyMetadata.syntheticMethodForAnnotations != null) {
@@ -940,8 +941,7 @@ public class ClassReferenceInitializer
       kotlinPropertyMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
-      kotlinPropertyMetadata.setterParametersAccept(
-          clazz, kotlinDeclarationContainerMetadata, this);
+      kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
     }
 
     // Implementations for KotlinFunctionVisitor.
