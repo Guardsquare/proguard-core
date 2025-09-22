@@ -85,22 +85,6 @@ class ClassPoolBuilder private constructor() {
             initialize: Boolean = true,
             ignoreStackMapAttributes: Boolean = true,
         ): ClassPools {
-            compiler.apply {
-                this.sources = source.filterNot { it is AssemblerSource }.map { it.asSourceFile() }
-                this.inheritClassPath = false
-                this.workingDir = createTempDirectory("ClassPoolBuilder").toFile()
-                this.javacArguments = javacArguments.toMutableList()
-                this.kotlincArguments = kotlincArguments
-                this.verbose = false
-                this.jdkHome = jdkHome
-            }
-
-            val result = compiler.compile()
-
-            if (result.exitCode != KotlinCompilation.ExitCode.OK) {
-                fail("Compilation error: ${result.messages}")
-            }
-
             val programClassPool = ClassPool()
 
             val classReader: DataEntryReader = NameFilteredDataEntryReader(
@@ -116,8 +100,30 @@ class ClassPoolBuilder private constructor() {
                 ),
             )
 
-            result.compiledClassAndResourceFiles.filter { it.isClassFile() }.forEach {
-                classReader.read(FileDataEntry(it))
+            val nonAssemblerSources = source.filterNot { it is AssemblerSource }
+
+            if (nonAssemblerSources.isNotEmpty()) {
+                compiler.apply {
+                    this.sources = nonAssemblerSources.map { it.asSourceFile() }
+                    this.inheritClassPath = false
+                    this.workingDir = createTempDirectory("ClassPoolBuilder").toFile()
+                    this.javacArguments = javacArguments.toMutableList()
+                    this.kotlincArguments = kotlincArguments
+                    this.verbose = false
+                    this.jdkHome = jdkHome
+                }
+
+                val result = compiler.compile()
+
+                if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+                    fail("Compilation error: ${result.messages}")
+                }
+
+                result.compiledClassAndResourceFiles.filter { it.isClassFile() }.forEach {
+                    classReader.read(FileDataEntry(it))
+                }
+
+                compiler.workingDir.deleteRecursively()
             }
 
             source.filterIsInstance<AssemblerSource>().forEach {
@@ -128,8 +134,6 @@ class ClassPoolBuilder private constructor() {
                 initialize(programClassPool, libraryClassPool, source.any { it is KotlinSource })
             }
 
-            compiler.workingDir.deleteRecursively()
-
             return ClassPools(programClassPool, libraryClassPool)
         }
 
@@ -137,7 +141,7 @@ class ClassPoolBuilder private constructor() {
             initialize(programClassPool, libraryClassPool, containsKotlinCode)
         }
 
-        fun initialize(programClassPool: ClassPool, libraryClassPool: ClassPool, containsKotlinCode: Boolean) {
+        fun initialize(programClassPool: ClassPool, libraryClassPool: ClassPool, containsKotlinCode: Boolean, initializeLibraryClasses: Boolean = false) {
             val classReferenceInitializer =
                 ClassReferenceInitializer(programClassPool, libraryClassPool)
             val classSuperHierarchyInitializer =
@@ -145,7 +149,9 @@ class ClassPoolBuilder private constructor() {
             val classSubHierarchyInitializer = ClassSubHierarchyInitializer()
 
             programClassPool.classesAccept(classSuperHierarchyInitializer)
-            libraryClassPool.classesAccept(classSuperHierarchyInitializer)
+            if (initializeLibraryClasses) {
+                libraryClassPool.classesAccept(classSuperHierarchyInitializer)
+            }
 
             if (containsKotlinCode) {
                 programClassPool.classesAccept(
@@ -158,7 +164,9 @@ class ClassPoolBuilder private constructor() {
             }
 
             programClassPool.classesAccept(classReferenceInitializer)
-            libraryClassPool.classesAccept(classReferenceInitializer)
+            if (initializeLibraryClasses) {
+                libraryClassPool.classesAccept(classReferenceInitializer)
+            }
 
             programClassPool.accept(classSubHierarchyInitializer)
             libraryClassPool.accept(classSubHierarchyInitializer)
@@ -179,7 +187,7 @@ private class LibraryClassPoolBuilder(private val compiler: KotlinCompilation) {
             compiler.kotlinStdLibJar?.let { libraryClassPool.fromFile(it) }
             compiler.kotlinReflectJar?.let { libraryClassPool.fromFile(it) }
             libraryClassPools[key] = libraryClassPool
-            ClassPoolBuilder.initialize(ClassPool(), libraryClassPool, containsKotlinCode = true)
+            ClassPoolBuilder.initialize(ClassPool(), libraryClassPool, containsKotlinCode = true, initializeLibraryClasses = true)
         }
 
         return libraryClassPools[key]!!
