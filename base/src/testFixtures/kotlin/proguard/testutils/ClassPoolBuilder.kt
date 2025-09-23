@@ -41,7 +41,11 @@ import java.util.Objects
 import kotlin.reflect.KProperty
 import kotlin.streams.toList
 
-data class ClassPools(val programClassPool: ClassPool, val libraryClassPool: ClassPool)
+class ClassPools(val programClassPool: ClassPool, private val customLibraryClassPool: ClassPool? = null) {
+    val libraryClassPool get() = customLibraryClassPool ?: ClassPoolBuilder.libraryClassPool
+    operator fun component1() = programClassPool
+    operator fun component2() = libraryClassPool
+}
 
 class ClassPoolBuilder private constructor() {
 
@@ -134,7 +138,7 @@ class ClassPoolBuilder private constructor() {
                 initialize(programClassPool, libraryClassPool, source.any { it is KotlinSource })
             }
 
-            return ClassPools(programClassPool, libraryClassPool)
+            return ClassPools(programClassPool)
         }
 
         fun initialize(programClassPool: ClassPool, containsKotlinCode: Boolean) {

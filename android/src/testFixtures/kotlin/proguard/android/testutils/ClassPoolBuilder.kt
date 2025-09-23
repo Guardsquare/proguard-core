@@ -38,7 +38,7 @@ fun ClassPoolBuilder.Companion.fromSmali(smali: SmaliSource): ClassPools {
     }
     file.deleteOnExit()
     initialize(classPool, false)
-    return ClassPools(classPool, libraryClassPool)
+    return ClassPools(classPool)
 }
 
 class Smali2DexReader(private val delegate: DataEntryReader) : DataEntryReader {
