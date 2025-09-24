@@ -155,7 +155,7 @@ public class CodeAttributeEditor
    * Magic line number that indicates the previous line number should be restored. The restored line
    * number is the first preceding line number with a different source.
    */
-  public static final int RESTORE_PREVIOUS_LINE_NUMBER = -3;
+  public static final int RESTORE_PREVIOUS_LINE_NUMBER = -70000;
 
   private final boolean updateFrameSizes;
   private final boolean shrinkInstructions;
