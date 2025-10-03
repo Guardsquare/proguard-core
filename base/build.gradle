@@ -12,7 +12,6 @@ plugins {
 
 dependencies {
 	api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-	api "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlinVersion}"
 	api "org.jetbrains.kotlin:kotlin-metadata-jvm:${kotlinVersion}"
 
 
