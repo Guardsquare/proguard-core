@@ -79,10 +79,10 @@ public class ClassUtil {
   }
 
   /**
-   * Returns the internal class version number.
+   * Returns the minor part of the given class version number.
    *
-   * @param internalClassVersion the external class version number.
-   * @return the internal class version number.
+   * @param internalClassVersion the combined class version number.
+   * @return the minor part of the class version number.
    */
   public static int internalMinorClassVersion(int internalClassVersion) {
     return internalClassVersion & 0xffff;
@@ -156,12 +156,12 @@ public class ClassUtil {
     return 0;
   }
 
-  /**
-   * Returns the minor part of the given class version number.
-   *
-   * @param internalClassVersion the combined class version number.
-   * @return the minor part of the class version number.
-   */
+    /**
+     * Returns the external class version number.
+     *
+     * @param internalClassVersion the internal class version number.
+     * @return the external class version number.
+     */
   public static String externalClassVersion(int internalClassVersion) {
     switch (internalClassVersion) {
       case VersionConstants.CLASS_VERSION_1_0:
