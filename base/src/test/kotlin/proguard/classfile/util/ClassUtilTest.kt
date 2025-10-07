@@ -4,7 +4,10 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.throwable.shouldHaveMessage
 import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.VersionConstants
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.util.ClassUtil.externalClassVersion
 import proguard.classfile.util.ClassUtil.internalClassVersion
@@ -45,6 +48,55 @@ class ClassUtilTest : BehaviorSpec({
             Then("The internal version should be 23") {
                 programClass.u4version shouldBe internalClassVersion("23")
             }
+        }
+    }
+
+    Given("Preview class file version 23") {
+        val version = 67 shl 16 or 65535
+        Then("The external version should be 23") {
+            externalClassVersion(version) shouldBe "23"
+        }
+    }
+
+    Given("Max class file version") {
+        val version = VersionConstants.MAX_SUPPORTED_VERSION
+        Then("The external version should not be null") {
+            externalClassVersion(version) shouldNotBe null
+        }
+    }
+
+    Given("Unrecognized too low class file version") {
+        val version = 20 shl 16 // minimum is 45
+        Then("The external version should be null") {
+            externalClassVersion(version) shouldBe null
+        }
+
+        Then("checkVersionNumbers should throw") {
+            val exception = shouldThrow<UnsupportedOperationException> {
+                ClassUtil.checkVersionNumbers(version)
+            }
+            exception shouldHaveMessage Regex("""Unsupported version number \[20\.0] \(maximum \d+.\d+, Java \d+\)""")
+        }
+    }
+
+    Given("Unrecognized too high class file version") {
+        val version = 65535 shl 16
+        Then("The external version should be null") {
+            externalClassVersion(version) shouldBe null
+        }
+
+        Then("checkVersionNumbers should throw") {
+            val exception = shouldThrow<UnsupportedOperationException> {
+                ClassUtil.checkVersionNumbers(version)
+            }
+            exception shouldHaveMessage Regex("""Unsupported version number \[65535\.0] \(maximum \d+.\d+, Java \d+\)""")
+        }
+    }
+
+    Given("Unrecognized external version") {
+        val version = "0.1"
+        Then("The internal version should be 0") {
+            internalClassVersion(version) shouldBe 0
         }
     }
 
