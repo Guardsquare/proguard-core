@@ -34,7 +34,9 @@ import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.ExceptionInfo;
 import proguard.classfile.attribute.ExtendedLineNumberInfo;
 import proguard.classfile.attribute.LineNumberInfo;
+import proguard.classfile.attribute.LineNumberInfoBlock;
 import proguard.classfile.attribute.LineNumberTableAttribute;
+import proguard.classfile.attribute.LineOrigin;
 import proguard.classfile.attribute.LocalVariableInfo;
 import proguard.classfile.attribute.LocalVariableTableAttribute;
 import proguard.classfile.attribute.LocalVariableTypeInfo;
@@ -722,7 +724,9 @@ public class CodeAttributeEditor
       }
       // If there's no previous line, we insert a dummy so the following lines aren't marked.
       else {
-        table[currentIndex] = new LineNumberInfo(magicLine.u2startPC, 0);
+        table[currentIndex] =
+            new StructuredLineNumberInfo.Block(LineOrigin.SimpleOrigin.NO_LINE)
+                .line(magicLine.u2startPC, 0);
       }
     }
 
@@ -1553,7 +1557,7 @@ public class CodeAttributeEditor
    * offset. It will insert structured line number info belonging to the given block if it's not
    * null.
    */
-  public Label line(int lineNumber, StructuredLineNumberInfo.Block block) {
+  public Label line(int lineNumber, LineNumberInfoBlock block) {
     return line(labels.size(), lineNumber, block);
   }
 
@@ -1561,7 +1565,7 @@ public class CodeAttributeEditor
    * Creates a new line number instance that will insert the given line number at the current
    * offset. It will insert an extended line number info with the given source if it's not null.
    */
-  private Label line(int identifier, int lineNumber, StructuredLineNumberInfo.Block block) {
+  private Label line(int identifier, int lineNumber, LineNumberInfoBlock block) {
     LineNumber lineNumberLabel = new LineNumber(identifier, lineNumber, block);
 
     // Remember the label, so we can retrieve its offset later on.
@@ -1776,7 +1780,7 @@ public class CodeAttributeEditor
   private static class LineNumber extends Label {
     private final int lineNumber;
     private final String source;
-    private final StructuredLineNumberInfo.Block block;
+    private final LineNumberInfoBlock block;
 
     /**
      * Creates a new LineNumber instance.
@@ -1800,7 +1804,7 @@ public class CodeAttributeEditor
      * @param lineNumber the line number to inject at the current offset.
      * @param block optional line number block tracking the origins of this line.
      */
-    public LineNumber(int identifier, int lineNumber, StructuredLineNumberInfo.Block block) {
+    public LineNumber(int identifier, int lineNumber, LineNumberInfoBlock block) {
       super(identifier);
       this.lineNumber = lineNumber;
       this.block = block;
