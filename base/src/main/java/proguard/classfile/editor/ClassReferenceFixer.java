@@ -859,7 +859,9 @@ public class ClassReferenceFixer
     @Override
     public void visitAnyAnnotation(
         Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation) {
-      annotation.className = annotation.referencedAnnotationClass.getName();
+      if (annotation.referencedAnnotationClass != null) {
+        annotation.className = annotation.referencedAnnotationClass.getName();
+      }
 
       annotation.argumentsAccept(clazz, annotatable, this);
     }
