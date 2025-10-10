@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import proguard.classfile.*;
-import proguard.classfile.kotlin.flags.KotlinPropertyAccessorMetadata;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
 import proguard.classfile.visitor.ClassVisitor;
@@ -69,57 +68,6 @@ public class KotlinAnnotation extends SimpleProcessable implements Processable {
       KotlinTypeParameterMetadata kotlinTypeParameterMetadata,
       KotlinAnnotationVisitor kotlinAnnotationVisitor) {
     kotlinAnnotationVisitor.visitTypeParameterAnnotation(clazz, kotlinTypeParameterMetadata, this);
-  }
-
-  public void accept(
-      Clazz clazz,
-      KotlinClassKindMetadata kotlinClassKindMetadata,
-      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    kotlinAnnotationVisitor.visitClassAnnotation(clazz, kotlinClassKindMetadata, this);
-  }
-
-  public void accept(
-      Clazz clazz,
-      KotlinValueParameterMetadata kotlinValueParameterMetadata,
-      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    kotlinAnnotationVisitor.visitValueParameterAnnotation(
-        clazz, kotlinValueParameterMetadata, this);
-  }
-
-  public void accept(
-      Clazz clazz,
-      KotlinPropertyMetadata kotlinPropertyMetadata,
-      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, kotlinPropertyMetadata, this);
-  }
-
-  public void accept(
-      Clazz clazz,
-      KotlinPropertyAccessorMetadata kotlinPropertyAccessorMetadata,
-      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    kotlinAnnotationVisitor.visitPropertyAccessorAnnotation(
-        clazz, kotlinPropertyAccessorMetadata, this);
-  }
-
-  public void accept(
-      Clazz clazz,
-      KotlinEnumEntryMetadata kotlinEnumEntryMetadata,
-      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    kotlinAnnotationVisitor.visitEnumEntryAnnotation(clazz, kotlinEnumEntryMetadata, this);
-  }
-
-  public void accept(
-      Clazz clazz,
-      KotlinConstructorMetadata kotlinConstructorMetadata,
-      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    kotlinAnnotationVisitor.visitConstructorAnnotation(clazz, kotlinConstructorMetadata, this);
-  }
-
-  public void accept(
-      Clazz clazz,
-      KotlinFunctionMetadata kotlinFunctionMetadata,
-      KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    kotlinAnnotationVisitor.visitFunctionAnnotation(clazz, kotlinFunctionMetadata, this);
   }
 
   public void referencedClassAccept(ClassVisitor classVisitor) {

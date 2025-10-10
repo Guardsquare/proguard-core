@@ -17,14 +17,12 @@
  */
 package proguard.classfile.kotlin;
 
-import java.util.List;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.flags.KotlinValueParameterFlags;
 import proguard.classfile.kotlin.visitor.*;
 import proguard.util.*;
 
-public class KotlinValueParameterMetadata extends SimpleProcessable
-    implements Processable, KotlinAnnotatable {
+public class KotlinValueParameterMetadata extends SimpleProcessable implements Processable {
   public String parameterName;
 
   // Type will always be set
@@ -36,8 +34,6 @@ public class KotlinValueParameterMetadata extends SimpleProcessable
   public KotlinTypeMetadata varArgElementType;
 
   public KotlinValueParameterFlags flags;
-
-  public List<KotlinAnnotation> annotations;
 
   public int index;
 
@@ -129,12 +125,5 @@ public class KotlinValueParameterMetadata extends SimpleProcessable
   @Override
   public String toString() {
     return "Kotlin value parameter '" + parameterName + "'";
-  }
-
-  @Override
-  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    for (KotlinAnnotation annotation : annotations) {
-      kotlinAnnotationVisitor.visitValueParameterAnnotation(clazz, this, annotation);
-    }
   }
 }

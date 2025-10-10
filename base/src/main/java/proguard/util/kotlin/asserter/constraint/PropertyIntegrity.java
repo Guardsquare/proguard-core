@@ -51,10 +51,8 @@ public class PropertyIntegrity extends AbstractKotlinMetadataConstraint
     util.reportIfNull(
         "backingFieldSignature, getterSignature or setterSignature",
         kotlinPropertyMetadata.backingFieldSignature,
-        kotlinPropertyMetadata.getterMetadata.signature,
-        kotlinPropertyMetadata.setterMetadata == null
-            ? null
-            : kotlinPropertyMetadata.setterMetadata.signature);
+        kotlinPropertyMetadata.getterSignature,
+        kotlinPropertyMetadata.setterSignature);
 
     if (kotlinPropertyMetadata.backingFieldSignature != null) {
       util.reportIfNullReference(
@@ -68,12 +66,12 @@ public class PropertyIntegrity extends AbstractKotlinMetadataConstraint
           kotlinPropertyMetadata.referencedBackingField);
     }
 
-    if (kotlinPropertyMetadata.getterMetadata.signature != null) {
-      util.reportIfNullReference("getter", kotlinPropertyMetadata.getterMetadata.referencedMethod);
+    if (kotlinPropertyMetadata.getterSignature != null) {
+      util.reportIfNullReference("getter", kotlinPropertyMetadata.referencedGetterMethod);
     }
 
-    if (kotlinPropertyMetadata.setterMetadata.signature != null) {
-      util.reportIfNullReference("setter", kotlinPropertyMetadata.setterMetadata.referencedMethod);
+    if (kotlinPropertyMetadata.setterSignature != null) {
+      util.reportIfNullReference("setter", kotlinPropertyMetadata.referencedSetterMethod);
     }
 
     if (kotlinPropertyMetadata.syntheticMethodForAnnotations != null) {

@@ -18,30 +18,33 @@
 package proguard.classfile.kotlin.flags;
 
 /**
- * Flags for Kotlin constructors.
+ * Flags for Kotlin property accessors (getters/setters for properties).
  *
  * <p>Valid common flags: - hasAnnotations - isInternal - isPrivate - isProtected - isPublic -
- * isPrivateToThis - isLocal
+ * isPrivateToThis - isLocal - isFinal - isOpen - isAbstract - isSealed
  */
-public class KotlinConstructorFlags implements KotlinFlags {
+public class KotlinPropertyAccessorFlags implements KotlinFlags {
 
-  public final KotlinVisibilityFlags visibility;
+  public KotlinVisibilityFlags visibility;
+  public KotlinModalityFlags modality;
 
   @Deprecated public boolean hasAnnotations;
 
   /**
-   * Signifies that the corresponding constructor is secondary, i.e. declared not in the class
-   * header, but in the class body.
+   * Signifies that the corresponding property is not default, i.e. it has a body and/or annotations
+   * in the source code.
    */
-  public boolean isSecondary;
+  public boolean isDefault;
 
-  /**
-   * Signifies that the corresponding constructor has non-stable parameter names, i.e. cannot be
-   * called with named arguments.
-   */
-  public boolean hasNonStableParameterNames;
+  /** Signifies that the corresponding property is `external`. */
+  public boolean isExternal;
 
-  public KotlinConstructorFlags(KotlinVisibilityFlags visibility) {
+  /** Signifies that the corresponding property is `inline`. */
+  public boolean isInline;
+
+  public KotlinPropertyAccessorFlags(
+      KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;
+    this.modality = modality;
   }
 }

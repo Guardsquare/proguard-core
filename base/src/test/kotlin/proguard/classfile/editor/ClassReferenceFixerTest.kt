@@ -78,26 +78,22 @@ class ClassReferenceFixerTest : FunSpec({
 
         // dollar symbols are valid in Kotlin when surrounded by backticks `$innerClass`
         test("with 1 dollar symbol") {
-            val referencedClass =
-                ClassBuilder(55, PUBLIC, "OuterClass\$\$innerClass", NAME_JAVA_LANG_OBJECT).programClass
+            val referencedClass = ClassBuilder(55, PUBLIC, "OuterClass\$\$innerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "\$innerClass", referencedClass) shouldBe "\$innerClass"
         }
 
         test("with multiple dollar symbols") {
-            val referencedClass =
-                ClassBuilder(55, PUBLIC, "OuterClass\$\$\$inner\$Class", NAME_JAVA_LANG_OBJECT).programClass
+            val referencedClass = ClassBuilder(55, PUBLIC, "OuterClass\$\$\$inner\$Class", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "\$\$inner\$Class", referencedClass) shouldBe "\$\$inner\$Class"
         }
 
         test("when they have a new name") {
-            val referencedClass =
-                ClassBuilder(55, PUBLIC, "newOuterClass\$newInnerClass", NAME_JAVA_LANG_OBJECT).programClass
+            val referencedClass = ClassBuilder(55, PUBLIC, "newOuterClass\$newInnerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "innerClass", referencedClass) shouldBe "newInnerClass"
         }
 
         test("when they have a new name with a package") {
-            val referencedClass =
-                ClassBuilder(55, PUBLIC, "mypackage/newOuterClass\$newInnerClass", NAME_JAVA_LANG_OBJECT).programClass
+            val referencedClass = ClassBuilder(55, PUBLIC, "mypackage/newOuterClass\$newInnerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "innerClass", referencedClass) shouldBe "newInnerClass"
         }
     }
@@ -175,11 +171,7 @@ class ClassReferenceFixerTest : FunSpec({
                         AllMethodVisitor(
                             ClassRenamer(
                                 { it.name },
-                                { clazz, member ->
-                                    "renamed${
-                                        member.getName(clazz).replaceFirstChar(Char::uppercase)
-                                    }"
-                                },
+                                { clazz, member -> "renamed${member.getName(clazz).replaceFirstChar(Char::uppercase)}" },
                             ),
                         ),
                     ),
@@ -197,13 +189,7 @@ class ClassReferenceFixerTest : FunSpec({
         val annotation = slot<KotlinAnnotation>()
 
         test("there should be 1 annotation visited") {
-            verify(exactly = 1) {
-                annotationVisitor.visitTypeAnnotation(
-                    fileFacadeClass,
-                    ofType(KotlinTypeMetadata::class),
-                    capture(annotation),
-                )
-            }
+            verify(exactly = 1) { annotationVisitor.visitTypeAnnotation(fileFacadeClass, ofType(KotlinTypeMetadata::class), capture(annotation)) }
         }
 
         test("the annotation class name should be correctly renamed") {
@@ -233,91 +219,23 @@ class ClassReferenceFixerTest : FunSpec({
                     withArg { argument ->
                         with(programClassPool.getClass("MyTypeAnnotation")) {
                             when (argument.name) {
-                                "renamedString" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedString",
-                                    "()Ljava/lang/String;",
-                                )
-
-                                "renamedByte" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedByte",
-                                    "()B",
-                                )
-
-                                "renamedChar" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedChar",
-                                    "()C",
-                                )
-
-                                "renamedShort" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedShort",
-                                    "()S",
-                                )
-
-                                "renamedInt" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedInt",
-                                    "()I",
-                                )
-
-                                "renamedLong" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedLong",
-                                    "()J",
-                                )
-
-                                "renamedFloat" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedFloat",
-                                    "()F",
-                                )
-
-                                "renamedDouble" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedDouble",
-                                    "()D",
-                                )
-
-                                "renamedBoolean" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedBoolean",
-                                    "()Z",
-                                )
-
-                                "renamedUByte" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedUByte",
-                                    "()B",
-                                )
-
-                                "renamedUShort" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedUShort",
-                                    "()S",
-                                )
-
-                                "renamedUInt" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedUInt",
-                                    "()I",
-                                )
-
-                                "renamedULong" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedULong",
-                                    "()J",
-                                )
-
-                                "renamedEnum" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedEnum",
-                                    "()LMyRenamedEnum;",
-                                )
-
-                                "renamedArray" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedArray",
-                                    "()[LRenamedFoo;",
-                                )
-
-                                "renamedAnnotation" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedAnnotation",
-                                    "()LRenamedFoo;",
-                                )
-
-                                "renamedKClass" -> argument.referencedAnnotationMethod shouldBe findMethod(
-                                    "renamedKClass",
-                                    "()Ljava/lang/Class;",
-                                )
-
+                                "renamedString" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedString", "()Ljava/lang/String;")
+                                "renamedByte" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedByte", "()B")
+                                "renamedChar" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedChar", "()C")
+                                "renamedShort" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedShort", "()S")
+                                "renamedInt" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedInt", "()I")
+                                "renamedLong" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedLong", "()J")
+                                "renamedFloat" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedFloat", "()F")
+                                "renamedDouble" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedDouble", "()D")
+                                "renamedBoolean" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedBoolean", "()Z")
+                                "renamedUByte" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedUByte", "()B")
+                                "renamedUShort" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedUShort", "()S")
+                                "renamedUInt" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedUInt", "()I")
+                                "renamedULong" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedULong", "()J")
+                                "renamedEnum" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedEnum", "()LMyRenamedEnum;")
+                                "renamedArray" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedArray", "()[LRenamedFoo;")
+                                "renamedAnnotation" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedAnnotation", "()LRenamedFoo;")
+                                "renamedKClass" -> argument.referencedAnnotationMethod shouldBe findMethod("renamedKClass", "()Ljava/lang/Class;")
                                 else -> RuntimeException("Unexpected argument $argument")
                             }
                         }
@@ -368,15 +286,7 @@ class ClassReferenceFixerTest : FunSpec({
                 MultiClassVisitor(
                     ClassRenamer(
                         { it.name },
-                        { clazz, member ->
-                            if (member.getName(clazz).startsWith("useCase-123")) {
-                                "useCaseRenamed"
-                            } else {
-                                member.getName(
-                                    clazz,
-                                )
-                            }
-                        },
+                        { clazz, member -> if (member.getName(clazz).startsWith("useCase-123")) "useCaseRenamed" else member.getName(clazz) },
                     ),
                     ClassReferenceFixer(false),
                 ),
@@ -538,28 +448,20 @@ class ClassReferenceFixerTest : FunSpec({
         }
     }
 
-    val renameFieldIfClashStrategy =
-        NameGenerationStrategy { programClass: ProgramClass, programMember: ProgramMember?, name: String, descriptor: String ->
-            val newUniqueName =
-                if (name == ClassConstants.METHOD_NAME_INIT) {
-                    ClassConstants.METHOD_NAME_INIT
-                } else {
-                    name + TypeConstants.SPECIAL_MEMBER_SEPARATOR + java.lang.Long.toHexString(
-                        abs(descriptor.hashCode().toDouble()).toLong(),
-                    )
-                }
-            if (programMember is Method) {
-                return@NameGenerationStrategy newUniqueName
-            } else {
-                val clashesCounter = MemberCounter()
-                programClass.accept(
-                    AllFieldVisitor(
-                        MemberNameFilter(name, clashesCounter),
-                    ),
-                )
-                return@NameGenerationStrategy if (clashesCounter.count > 1) newUniqueName else name
-            }
+    val renameFieldIfClashStrategy = NameGenerationStrategy { programClass: ProgramClass, programMember: ProgramMember?, name: String, descriptor: String ->
+        val newUniqueName = if (name == ClassConstants.METHOD_NAME_INIT) ClassConstants.METHOD_NAME_INIT else name + TypeConstants.SPECIAL_MEMBER_SEPARATOR + java.lang.Long.toHexString(abs(descriptor.hashCode().toDouble()).toLong())
+        if (programMember is Method) {
+            return@NameGenerationStrategy newUniqueName
+        } else {
+            val clashesCounter = MemberCounter()
+            programClass.accept(
+                AllFieldVisitor(
+                    MemberNameFilter(name, clashesCounter),
+                ),
+            )
+            return@NameGenerationStrategy if (clashesCounter.count > 1) newUniqueName else name
         }
+    }
 
     context("Given two classes with an unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
@@ -745,14 +647,7 @@ class ClassReferenceFixerTest : FunSpec({
             ),
         )
 
-        programClassPool.classesAccept(
-            AllConstantVisitor(
-                StringReferenceInitializer(
-                    programClassPool,
-                    libraryClassPool,
-                ),
-            ),
-        )
+        programClassPool.classesAccept(AllConstantVisitor(StringReferenceInitializer(programClassPool, libraryClassPool)))
 
         context("Renaming the classes") {
             val packagelessClassName = "PackagelessClass"

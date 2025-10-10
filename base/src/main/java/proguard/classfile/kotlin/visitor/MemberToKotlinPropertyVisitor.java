@@ -58,9 +58,8 @@ public class MemberToKotlinPropertyVisitor implements MemberVisitor {
         new AllPropertyVisitor(
             new KotlinPropertyFilter(
                 prop ->
-                    prop.getterMetadata.referencedMethod == programMethod
-                        || prop.setterMetadata != null
-                            && prop.setterMetadata.referencedMethod == programMethod,
+                    prop.referencedGetterMethod == programMethod
+                        || prop.referencedSetterMethod == programMethod,
                 this.kotlinPropertyVisitor)));
   }
 
@@ -70,9 +69,8 @@ public class MemberToKotlinPropertyVisitor implements MemberVisitor {
         new AllPropertyVisitor(
             new KotlinPropertyFilter(
                 prop ->
-                    prop.getterMetadata.referencedMethod == libraryMethod
-                        || prop.setterMetadata != null
-                            && prop.setterMetadata.referencedMethod == libraryMethod,
+                    prop.referencedGetterMethod == libraryMethod
+                        || prop.referencedSetterMethod == libraryMethod,
                 this.kotlinPropertyVisitor)));
   }
 }

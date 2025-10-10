@@ -84,7 +84,6 @@ import proguard.classfile.kotlin.KotlinAnnotationArgument;
 import proguard.classfile.kotlin.KotlinClassKindMetadata;
 import proguard.classfile.kotlin.KotlinConstructorMetadata;
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
-import proguard.classfile.kotlin.KotlinEnumEntryMetadata;
 import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata;
 import proguard.classfile.kotlin.KotlinFunctionMetadata;
 import proguard.classfile.kotlin.KotlinMetadata;
@@ -96,15 +95,13 @@ import proguard.classfile.kotlin.KotlinTypeAliasMetadata;
 import proguard.classfile.kotlin.KotlinTypeMetadata;
 import proguard.classfile.kotlin.KotlinTypeParameterMetadata;
 import proguard.classfile.kotlin.KotlinValueParameterMetadata;
-import proguard.classfile.kotlin.flags.KotlinPropertyAccessorMetadata;
+import proguard.classfile.kotlin.flags.KotlinPropertyAccessorFlags;
 import proguard.classfile.kotlin.visitor.AllTypeVisitor;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
 import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor;
-import proguard.classfile.kotlin.visitor.KotlinEnumEntryVisitor;
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
-import proguard.classfile.kotlin.visitor.KotlinPropertyAccessorVisitor;
 import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor;
 import proguard.classfile.kotlin.visitor.KotlinTypeAliasVisitor;
 import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor;
@@ -545,14 +542,12 @@ public class ClassReferenceFixer
           KotlinPropertyVisitor,
           KotlinFunctionVisitor,
           KotlinConstructorVisitor,
-          KotlinEnumEntryVisitor,
           KotlinTypeVisitor,
           KotlinTypeAliasVisitor,
           KotlinValueParameterVisitor,
           KotlinTypeParameterVisitor,
           KotlinAnnotationVisitor,
-          KotlinAnnotationArgumentVisitor,
-          KotlinPropertyAccessorVisitor {
+          KotlinAnnotationArgumentVisitor {
     // Implementations for KotlinMetadataVisitor.
     @Override
     public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
@@ -591,8 +586,10 @@ public class ClassReferenceFixer
                 kotlinClassKindMetadata.referencedCompanionClass);
       }
 
-      kotlinClassKindMetadata.enumEntries.forEach(
-          enumEntry -> enumEntry.name = enumEntry.referencedEnumEntry.getName(clazz));
+      for (int k = 0; k < kotlinClassKindMetadata.enumEntryNames.size(); k++) {
+        kotlinClassKindMetadata.enumEntryNames.set(
+            k, kotlinClassKindMetadata.referencedEnumEntries.get(k).getName(clazz));
+      }
 
       for (int k = 0; k < kotlinClassKindMetadata.nestedClassNames.size(); k++) {
         kotlinClassKindMetadata.nestedClassNames.set(
@@ -616,7 +613,6 @@ public class ClassReferenceFixer
       kotlinClassKindMetadata.superTypesAccept(clazz, this);
       kotlinClassKindMetadata.constructorsAccept(clazz, this);
       kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(clazz, this);
-      kotlinClassKindMetadata.annotationsAccept(clazz, this);
 
       visitKotlinDeclarationContainerMetadata(clazz, kotlinClassKindMetadata);
     }
@@ -670,21 +666,19 @@ public class ClassReferenceFixer
             new FieldSignature(backingFieldClass, backingField);
       }
 
-      kotlinPropertyMetadata.getterMetadata.signature =
+      kotlinPropertyMetadata.getterSignature =
           fixPropertyMethod(
               programClass,
-              kotlinPropertyMetadata.getterMetadata.referencedMethod,
-              kotlinPropertyMetadata.getterMetadata,
-              kotlinPropertyMetadata.getterMetadata.signature);
+              kotlinPropertyMetadata.referencedGetterMethod,
+              kotlinPropertyMetadata.getterFlags,
+              kotlinPropertyMetadata.getterSignature);
 
-      if (kotlinPropertyMetadata.setterMetadata != null) {
-        kotlinPropertyMetadata.setterMetadata.signature =
-            fixPropertyMethod(
-                programClass,
-                kotlinPropertyMetadata.setterMetadata.referencedMethod,
-                kotlinPropertyMetadata.setterMetadata,
-                kotlinPropertyMetadata.setterMetadata.signature);
-      }
+      kotlinPropertyMetadata.setterSignature =
+          fixPropertyMethod(
+              programClass,
+              kotlinPropertyMetadata.referencedSetterMethod,
+              kotlinPropertyMetadata.setterFlags,
+              kotlinPropertyMetadata.setterSignature);
 
       kotlinPropertyMetadata.syntheticMethodForAnnotations =
           fixPropertyMethod(
@@ -705,10 +699,8 @@ public class ClassReferenceFixer
       kotlinPropertyMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
-      kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
-      kotlinPropertyMetadata.propertyAccessorsAccept(
+      kotlinPropertyMetadata.setterParametersAccept(
           clazz, kotlinDeclarationContainerMetadata, this);
-      kotlinPropertyMetadata.annotationsAccept(clazz, this);
     }
 
     // Implementations for KotlinFunctionVisitor.
@@ -733,7 +725,6 @@ public class ClassReferenceFixer
       kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.returnTypeAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.contractsAccept(clazz, kotlinMetadata, new AllTypeVisitor(this));
-      kotlinFunctionMetadata.annotationsAccept(clazz, this);
 
       String newFunctionName =
           newKotlinFunctionName(
@@ -758,12 +749,12 @@ public class ClassReferenceFixer
       }
 
       kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
-      kotlinConstructorMetadata.annotationsAccept(clazz, this);
     }
 
     // Implementations for KotlinTypeVisitor.
     @Override
     public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata) {
+
       if (kotlinTypeMetadata.className != null) {
         kotlinTypeMetadata.className = kotlinTypeMetadata.referencedClass.getName();
       }
@@ -783,6 +774,7 @@ public class ClassReferenceFixer
         Clazz clazz,
         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
         KotlinTypeAliasMetadata kotlinTypeAliasMetadata) {
+
       kotlinTypeAliasMetadata.annotationsAccept(clazz, this);
       kotlinTypeAliasMetadata.underlyingTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
       kotlinTypeAliasMetadata.expandedTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
@@ -792,9 +784,7 @@ public class ClassReferenceFixer
     // Implementations for KotlinValueParameterVisitor
     @Override
     public void visitAnyValueParameter(
-        Clazz clazz, KotlinValueParameterMetadata kotlinValueParameterMetadata) {
-      kotlinValueParameterMetadata.annotationsAccept(clazz, this);
-    }
+        Clazz clazz, KotlinValueParameterMetadata kotlinValueParameterMetadata) {}
 
     @Override
     public void visitFunctionValParameter(
@@ -803,7 +793,6 @@ public class ClassReferenceFixer
         KotlinFunctionMetadata kotlinFunctionMetadata,
         KotlinValueParameterMetadata kotlinValueParameterMetadata) {
       kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
-      visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
     }
 
     @Override
@@ -814,7 +803,6 @@ public class ClassReferenceFixer
         KotlinValueParameterMetadata kotlinValueParameterMetadata) {
       kotlinValueParameterMetadata.typeAccept(
           clazz, kotlinClassKindMetadata, kotlinConstructorMetadata, this);
-      visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
     }
 
     @Override
@@ -825,7 +813,6 @@ public class ClassReferenceFixer
         KotlinValueParameterMetadata kotlinValueParameterMetadata) {
       kotlinValueParameterMetadata.typeAccept(
           clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
-      visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
     }
 
     // Implementations for KotlinTypeParameterVisitor
@@ -834,24 +821,6 @@ public class ClassReferenceFixer
         Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
       kotlinTypeParameterMetadata.annotationsAccept(clazz, this);
       kotlinTypeParameterMetadata.upperBoundsAccept(clazz, this);
-      kotlinTypeParameterMetadata.annotationsAccept(clazz, this);
-    }
-
-    @Override
-    public void visitAnyEnumEntry(
-        Clazz clazz,
-        KotlinClassKindMetadata kotlinClassKindMetadata,
-        KotlinEnumEntryMetadata kotlinEnumEntryMetadata) {
-      kotlinEnumEntryMetadata.annotationsAccept(clazz, this);
-    }
-
-    @Override
-    public void visitAnyPropertyAccessor(
-        Clazz clazz,
-        KotlinMetadata kotlinMetadata,
-        KotlinPropertyMetadata kotlinPropertyMetadata,
-        KotlinPropertyAccessorMetadata kotlinPropertyAccessorMetadata) {
-      kotlinPropertyAccessorMetadata.annotationsAccept(clazz, this);
     }
 
     // Implementations for KotlinAnnotationVisitor
@@ -859,9 +828,7 @@ public class ClassReferenceFixer
     @Override
     public void visitAnyAnnotation(
         Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation) {
-      if (annotation.referencedAnnotationClass != null) {
-        annotation.className = annotation.referencedAnnotationClass.getName();
-      }
+      annotation.className = annotation.referencedAnnotationClass.getName();
 
       annotation.argumentsAccept(clazz, annotatable, this);
     }
@@ -1072,7 +1039,7 @@ public class ClassReferenceFixer
   private static MethodSignature fixPropertyMethod(
       Clazz referencedMethodClass,
       Method referencedMethod,
-      KotlinPropertyAccessorMetadata accessorMetadata,
+      KotlinPropertyAccessorFlags flags,
       MethodSignature oldSignature) {
     if (oldSignature == null) {
       return null;
@@ -1080,9 +1047,9 @@ public class ClassReferenceFixer
 
     MethodSignature newSignature = new MethodSignature(referencedMethodClass, referencedMethod);
 
-    if (!oldSignature.equals(newSignature) && accessorMetadata != null) {
+    if (!oldSignature.equals(newSignature) && flags != null) {
       addJvmNameAnnotation((ProgramClass) referencedMethodClass, (ProgramMethod) referencedMethod);
-      accessorMetadata.hasAnnotations = true;
+      flags.hasAnnotations = true;
     }
 
     return newSignature;

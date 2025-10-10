@@ -25,15 +25,14 @@ import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 import proguard.util.*;
 
-public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinAnnotatable {
+public class KotlinPropertyMetadata extends SimpleProcessable {
   public String name;
 
-  public KotlinPropertyFlags flags;
-  public KotlinTypeMetadata type;
   public List<KotlinTypeParameterMetadata> typeParameters;
 
-  public KotlinPropertyAccessorMetadata getterMetadata;
-  public KotlinPropertyAccessorMetadata setterMetadata;
+  public KotlinTypeMetadata receiverType;
+
+  public List<KotlinTypeMetadata> contextReceivers;
 
   /**
    * @deprecated Use {@link KotlinPropertyMetadata#setterParameter } instead. There can only be one
@@ -43,22 +42,25 @@ public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinA
 
   public KotlinValueParameterMetadata setterParameter;
 
-  public List<KotlinAnnotation> annotations;
-
-  public KotlinTypeMetadata receiverType;
-
-  public List<KotlinTypeMetadata> contextReceivers;
+  public KotlinTypeMetadata type;
 
   public KotlinVersionRequirementMetadata versionRequirement;
 
-  public List<KotlinAnnotation> extensionReceiverParameterAnnotations;
-  public List<KotlinAnnotation> backingFieldAnnotations;
-  public List<KotlinAnnotation> delegateFieldAnnotations;
+  public KotlinPropertyFlags flags;
+
+  public KotlinPropertyAccessorFlags getterFlags;
+
+  public KotlinPropertyAccessorFlags setterFlags;
 
   // Extensions.
   public FieldSignature backingFieldSignature;
+  // Store the class where the referencedBackingField is declared.
   public Clazz referencedBackingFieldClass;
   public Field referencedBackingField;
+  public MethodSignature getterSignature;
+  public Method referencedGetterMethod;
+  public MethodSignature setterSignature;
+  public Method referencedSetterMethod;
 
   public MethodSignature syntheticMethodForAnnotations;
 
@@ -73,12 +75,12 @@ public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinA
   public KotlinPropertyMetadata(
       KotlinPropertyFlags flags,
       String name,
-      KotlinPropertyAccessorMetadata getterMetadata,
-      KotlinPropertyAccessorMetadata setterMetadata) {
+      KotlinPropertyAccessorFlags getterFlags,
+      KotlinPropertyAccessorFlags setterFlags) {
     this.name = name;
     this.flags = flags;
-    this.getterMetadata = getterMetadata;
-    this.setterMetadata = setterMetadata;
+    this.getterFlags = getterFlags;
+    this.setterFlags = setterFlags;
   }
 
   public void accept(
@@ -150,18 +152,6 @@ public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinA
     }
   }
 
-  public void propertyAccessorsAccept(
-      Clazz clazz,
-      KotlinMetadata kotlinMetadata,
-      KotlinPropertyAccessorVisitor kotlinPropertyAccessorVisitor) {
-    if (setterMetadata != null) {
-      setterMetadata.accept(clazz, kotlinMetadata, this, kotlinPropertyAccessorVisitor);
-    }
-    if (getterMetadata != null) {
-      getterMetadata.accept(clazz, kotlinMetadata, this, kotlinPropertyAccessorVisitor);
-    }
-  }
-
   public void typeParametersAccept(
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
@@ -198,24 +188,8 @@ public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinA
         + " | "
         + (backingFieldSignature != null ? "b" : "")
         + "g"
-        + (getterMetadata.isDefault ? "" : "+")
-        + (flags.isVar ? "s" + (setterMetadata != null && setterMetadata.isDefault ? "" : "+") : "")
+        + (getterFlags.isDefault ? "" : "+")
+        + (flags.isVar ? "s" + (setterFlags.isDefault ? "" : "+") : "")
         + ")";
-  }
-
-  @Override
-  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
-    for (KotlinAnnotation annotation : annotations) {
-      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
-    }
-    for (KotlinAnnotation annotation : extensionReceiverParameterAnnotations) {
-      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
-    }
-    for (KotlinAnnotation annotation : backingFieldAnnotations) {
-      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
-    }
-    for (KotlinAnnotation annotation : delegateFieldAnnotations) {
-      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
-    }
   }
 }

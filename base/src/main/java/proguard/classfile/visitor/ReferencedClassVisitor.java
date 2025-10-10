@@ -25,7 +25,6 @@ import proguard.classfile.attribute.visitor.*;
 import proguard.classfile.constant.*;
 import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.flags.KotlinPropertyAccessorMetadata;
 import proguard.classfile.kotlin.visitor.*;
 
 /**
@@ -289,16 +288,12 @@ public class ReferencedClassVisitor
 
   public static class KotlinReferencedClassVisitor
       implements KotlinMetadataVisitor,
-          KotlinConstructorVisitor,
-          KotlinClassVisitor,
-          KotlinEnumEntryVisitor,
           KotlinTypeVisitor,
           KotlinTypeAliasVisitor,
           KotlinFunctionVisitor,
           KotlinTypeParameterVisitor,
           KotlinValueParameterVisitor,
           KotlinPropertyVisitor,
-          KotlinPropertyAccessorVisitor,
           KotlinAnnotationVisitor,
           KotlinAnnotationArgumentVisitor {
 
@@ -425,7 +420,8 @@ public class ReferencedClassVisitor
       kotlinPropertyMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
-      kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
+      kotlinPropertyMetadata.setterParametersAccept(
+          clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
 
       if (kotlinPropertyMetadata.referencedSyntheticMethodClass != null) {
@@ -469,7 +465,7 @@ public class ReferencedClassVisitor
         KotlinAnnotation annotation,
         KotlinAnnotationArgument argument,
         KotlinAnnotationArgument.ClassValue value) {
-      visitAnyArgument(clazz, annotatable, annotation, argument, value);
+      this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
       value.referencedClassAccept(classVisitor);
     }
 
@@ -480,7 +476,7 @@ public class ReferencedClassVisitor
         KotlinAnnotation annotation,
         KotlinAnnotationArgument argument,
         KotlinAnnotationArgument.EnumValue value) {
-      visitAnyArgument(clazz, annotatable, annotation, argument, value);
+      this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
       value.referencedClassAccept(classVisitor);
     }
 
@@ -491,33 +487,8 @@ public class ReferencedClassVisitor
         KotlinAnnotation annotation,
         KotlinAnnotationArgument argument,
         KotlinAnnotationArgument.ArrayValue value) {
-      visitAnyArgument(clazz, annotatable, annotation, argument, value);
+      this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
       value.elementsAccept(clazz, annotatable, annotation, argument, this);
-    }
-
-    @Override
-    public void visitConstructor(
-        Clazz clazz,
-        KotlinClassKindMetadata kotlinClassKindMetadata,
-        KotlinConstructorMetadata kotlinConstructorMetadata) {
-      kotlinConstructorMetadata.annotationsAccept(clazz, this);
-    }
-
-    @Override
-    public void visitAnyEnumEntry(
-        Clazz clazz,
-        KotlinClassKindMetadata kotlinClassKindMetadata,
-        KotlinEnumEntryMetadata kotlinEnumEntryMetadata) {
-      kotlinClassKindMetadata.annotationsAccept(clazz, this);
-    }
-
-    @Override
-    public void visitAnyPropertyAccessor(
-        Clazz clazz,
-        KotlinMetadata kotlinMetadata,
-        KotlinPropertyMetadata kotlinPropertyMetadata,
-        KotlinPropertyAccessorMetadata kotlinPropertyAccessorMetadata) {
-      kotlinPropertyAccessorMetadata.annotationsAccept(clazz, this);
     }
   }
 }

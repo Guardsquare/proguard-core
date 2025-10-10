@@ -428,7 +428,8 @@ public class ClassCleaner
       kotlinPropertyMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
-      kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
+      kotlinPropertyMetadata.setterParametersAccept(
+          clazz, kotlinDeclarationContainerMetadata, this);
     }
 
     // Implementations for KotlinFunctionVisitor.

@@ -20,13 +20,35 @@ package proguard.classfile.kotlin
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import io.mockk.verifyAll
 import proguard.classfile.MethodSignature
 import proguard.classfile.io.kotlin.KotlinMetadataWriter.HIGHEST_ALLOWED_TO_WRITE
 import proguard.classfile.io.kotlin.KotlinMetadataWriter.LATEST_STABLE_SUPPORTED
+import proguard.classfile.kotlin.KotlinAnnotationArgument.ArrayValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.BooleanValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.ByteValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.CharValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.ClassValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.DoubleValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.EnumValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.FloatValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.IntValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.LongValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.ShortValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.StringValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.UByteValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.UIntValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.ULongValue
+import proguard.classfile.kotlin.KotlinAnnotationArgument.UShortValue
 import proguard.classfile.kotlin.visitor.AllFunctionVisitor
+import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
+import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.AllTypeVisitor
+import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
+import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
@@ -97,6 +119,253 @@ class KotlinMetadataWriterTest : BehaviorSpec({
                         it.name shouldBe "foo"
                         it.jvmSignature shouldBe MethodSignature(null, "foo", "()V")
                     },
+                )
+            }
+        }
+    }
+
+    Given("an annotation") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                import kotlin.reflect.KClass
+
+                @Target(AnnotationTarget.TYPE)
+                annotation class MyTypeAnnotation(
+                    val string: String,
+                    val byte: Byte,
+                    val char: Char,
+                    val short: Short,
+                    val int: Int,
+                    val long: Long,
+                    val float: Float,
+                    val double: Double,
+                    val boolean: Boolean,
+                    val uByte: UByte,
+                    val uShort: UShort,
+                    val uInt: UInt,
+                    val uLong: ULong,
+                    val kClass: KClass<*>,
+                    val enum: MyEnum,
+                    val array: Array<String>,
+                    val annotation: Foo
+                )
+
+                val x: @MyTypeAnnotation(
+                    string = "foo",
+                    byte = 1,
+                    char = 'a',
+                    short = 1,
+                    int = 1,
+                    long = 1L,
+                    float = 1f,
+                    double = 1.0,
+                    boolean = true,
+                    uByte = 1u,
+                    uShort = 1u,
+                    uInt = 1u,
+                    uLong = 1uL,
+                    kClass = String::class,
+                    enum = MyEnum.FOO,
+                    array = arrayOf("foo", "bar"),
+                    annotation = Foo("foo")) String = "foo"
+
+                // extra helpers
+
+                enum class MyEnum { FOO, BAR }
+                annotation class Foo(val string: String)
+                """.trimIndent(),
+            ),
+            kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"),
+        )
+
+        val annotationVisitor = spyk<KotlinAnnotationVisitor>()
+        val fileFacadeClass = programClassPool.getClass("TestKt")
+
+        programClassPool.classesAccept(
+            ReWritingMetadataVisitor(
+                AllKotlinAnnotationVisitor(annotationVisitor),
+            ),
+        )
+        val annotation = slot<KotlinAnnotation>()
+
+        Then("there should be 1 annotation visited") {
+            verify(exactly = 1) {
+                annotationVisitor.visitTypeAnnotation(
+                    fileFacadeClass,
+                    ofType(KotlinTypeMetadata::class),
+                    capture(annotation),
+                )
+            }
+        }
+
+        Then("the annotation argument values should be correctly set") {
+            val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
+
+            programClassPool.classesAccept(
+                ReWritingMetadataVisitor(
+                    AllKotlinAnnotationVisitor(
+                        AllKotlinAnnotationArgumentVisitor(
+                            annotationArgVisitor,
+                        ),
+                    ),
+                ),
+            )
+
+            verifyAll {
+                annotationArgVisitor.visitAnyArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    ofType<KotlinAnnotationArgument>(),
+                    ofType<KotlinAnnotationArgument.Value>(),
+                )
+
+                annotationArgVisitor.visitAnyLiteralArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    ofType<KotlinAnnotationArgument>(),
+                    ofType<KotlinAnnotationArgument.LiteralValue<*>>(),
+                )
+
+                annotationArgVisitor.visitStringArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "string" },
+                    StringValue("foo"),
+                )
+
+                annotationArgVisitor.visitByteArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "byte" },
+                    ByteValue(1),
+                )
+
+                annotationArgVisitor.visitCharArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "char" },
+                    CharValue('a'),
+                )
+
+                annotationArgVisitor.visitShortArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "short" },
+                    ShortValue(1),
+                )
+
+                annotationArgVisitor.visitIntArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "int" },
+                    IntValue(1),
+                )
+
+                annotationArgVisitor.visitLongArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "long" },
+                    LongValue(1L),
+                )
+
+                annotationArgVisitor.visitFloatArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "float" },
+                    FloatValue(1f),
+                )
+
+                annotationArgVisitor.visitDoubleArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "double" },
+                    DoubleValue(1.0),
+                )
+
+                annotationArgVisitor.visitBooleanArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "boolean" },
+                    BooleanValue(true),
+                )
+
+                annotationArgVisitor.visitUByteArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "uByte" },
+                    UByteValue(1),
+                )
+
+                annotationArgVisitor.visitUShortArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "uShort" },
+                    UShortValue(1),
+                )
+
+                annotationArgVisitor.visitUIntArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "uInt" },
+                    UIntValue(1),
+                )
+
+                annotationArgVisitor.visitULongArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "uLong" },
+                    ULongValue(1),
+                )
+
+                annotationArgVisitor.visitEnumArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "enum" },
+                    EnumValue("MyEnum", "FOO"),
+                )
+
+                annotationArgVisitor.visitArrayArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "array" },
+                    ArrayValue(listOf(StringValue("foo"), StringValue("bar"))),
+                )
+
+                annotationArgVisitor.visitAnnotationArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "annotation" },
+                    withArg {
+                        it.kotlinMetadataAnnotation.className shouldBe "Foo"
+                    },
+                )
+
+                annotationArgVisitor.visitClassArgument(
+                    programClassPool.getClass("TestKt"),
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { it.name shouldBe "kClass" },
+                    ClassValue("kotlin/String"),
                 )
             }
         }

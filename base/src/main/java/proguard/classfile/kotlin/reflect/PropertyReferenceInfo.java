@@ -61,9 +61,8 @@ public class PropertyReferenceInfo implements CallableReferenceInfo {
    */
   @Override
   public String getSignature() {
-    return propertyMetadata.getterMetadata.signature != null
-        ? propertyMetadata.getterMetadata.signature.method
-            + propertyMetadata.getterMetadata.signature.descriptor
+    return propertyMetadata.getterSignature != null
+        ? propertyMetadata.getterSignature.method + propertyMetadata.getterSignature.descriptor
         : generateGetterName(propertyMetadata.backingFieldSignature.memberName)
             + "()"
             + propertyMetadata.backingFieldSignature.descriptor;

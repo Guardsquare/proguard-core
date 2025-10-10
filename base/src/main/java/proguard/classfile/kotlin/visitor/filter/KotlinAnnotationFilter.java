@@ -21,7 +21,6 @@ package proguard.classfile.kotlin.visitor.filter;
 import java.util.function.Predicate;
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
-import proguard.classfile.kotlin.flags.KotlinPropertyAccessorMetadata;
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
 
 /**
@@ -52,64 +51,6 @@ public class KotlinAnnotationFilter implements KotlinAnnotationVisitor {
   @Override
   public void visitAnyAnnotation(
       Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation) {}
-
-  @Override
-  public void visitClassAnnotation(
-      Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata, KotlinAnnotation annotation) {
-    KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
-    if (delegate != null) {
-      annotation.accept(clazz, kotlinClassKindMetadata, delegate);
-    }
-  }
-
-  @Override
-  public void visitConstructorAnnotation(
-      Clazz clazz,
-      KotlinConstructorMetadata kotlinConstructorMetadata,
-      KotlinAnnotation annotation) {
-    KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
-    if (delegate != null) {
-      annotation.accept(clazz, kotlinConstructorMetadata, delegate);
-    }
-  }
-
-  @Override
-  public void visitEnumEntryAnnotation(
-      Clazz clazz, KotlinEnumEntryMetadata kotlinEnumEntryMetadata, KotlinAnnotation annotation) {
-    KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
-    if (delegate != null) {
-      annotation.accept(clazz, kotlinEnumEntryMetadata, delegate);
-    }
-  }
-
-  @Override
-  public void visitFunctionAnnotation(
-      Clazz clazz, KotlinFunctionMetadata kotlinFunctionMetadata, KotlinAnnotation annotation) {
-    KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
-    if (delegate != null) {
-      annotation.accept(clazz, kotlinFunctionMetadata, delegate);
-    }
-  }
-
-  @Override
-  public void visitPropertyAnnotation(
-      Clazz clazz, KotlinPropertyMetadata kotlinPropertyMetadata, KotlinAnnotation annotation) {
-    KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
-    if (delegate != null) {
-      annotation.accept(clazz, kotlinPropertyMetadata, delegate);
-    }
-  }
-
-  @Override
-  public void visitPropertyAccessorAnnotation(
-      Clazz clazz,
-      KotlinPropertyAccessorMetadata kotlinPropertyAccessorMetadata,
-      KotlinAnnotation annotation) {
-    KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
-    if (delegate != null) {
-      annotation.accept(clazz, kotlinPropertyAccessorMetadata, delegate);
-    }
-  }
 
   @Override
   public void visitTypeAnnotation(
@@ -144,16 +85,5 @@ public class KotlinAnnotationFilter implements KotlinAnnotationVisitor {
     return this.predicate.test(kotlinMetadataAnnotation)
         ? this.acceptedKotlinAnnotationVisitor
         : this.rejectedKotlinAnnotationVisitor;
-  }
-
-  @Override
-  public void visitValueParameterAnnotation(
-      Clazz clazz,
-      KotlinValueParameterMetadata kotlinValueParameterMetadata,
-      KotlinAnnotation annotation) {
-    KotlinAnnotationVisitor delegate = this.getDelegate(annotation);
-    if (delegate != null) {
-      annotation.accept(clazz, kotlinValueParameterMetadata, delegate);
-    }
   }
 }

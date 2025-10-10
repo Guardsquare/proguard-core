@@ -92,7 +92,6 @@ import proguard.classfile.kotlin.KotlinContractMetadata;
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
 import proguard.classfile.kotlin.KotlinEffectExpressionMetadata;
 import proguard.classfile.kotlin.KotlinEffectMetadata;
-import proguard.classfile.kotlin.KotlinEnumEntryMetadata;
 import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata;
 import proguard.classfile.kotlin.KotlinFunctionMetadata;
 import proguard.classfile.kotlin.KotlinMetadata;
@@ -525,7 +524,7 @@ public class KotlinMetadataWriter
           clazz, kotlinDeclarationContainerMetadata, new TypeConstructor(kmProperty));
       kotlinPropertyMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, new TypeConstructor(kmProperty));
-      kotlinPropertyMetadata.setterParameterAccept(
+      kotlinPropertyMetadata.setterParametersAccept(
           clazz, kotlinDeclarationContainerMetadata, new ValueParameterConstructor(kmProperty));
       kotlinPropertyMetadata.typeParametersAccept(
           clazz, kotlinDeclarationContainerMetadata, new TypeParameterConstructor(kmProperty));
@@ -535,11 +534,9 @@ public class KotlinMetadataWriter
       JvmAttributes.setMovedFromInterfaceCompanion(
           kmProperty, kotlinPropertyMetadata.flags.isMovedFromInterfaceCompanion);
       JvmExtensionsKt.setGetterSignature(
-          kmProperty, convertMethodSignature(kotlinPropertyMetadata.getterMetadata.signature));
-      if (kotlinPropertyMetadata.setterMetadata != null) {
-        JvmExtensionsKt.setSetterSignature(
-            kmProperty, convertMethodSignature(kotlinPropertyMetadata.setterMetadata.signature));
-      }
+          kmProperty, convertMethodSignature(kotlinPropertyMetadata.getterSignature));
+      JvmExtensionsKt.setSetterSignature(
+          kmProperty, convertMethodSignature(kotlinPropertyMetadata.setterSignature));
       JvmExtensionsKt.setFieldSignature(
           kmProperty, convertFieldSignature(kotlinPropertyMetadata.backingFieldSignature));
 
@@ -560,7 +557,7 @@ public class KotlinMetadataWriter
         Clazz clazz,
         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
         KotlinPropertyMetadata kotlinPropertyMetadata) {
-      kmProperty = convertProperty(clazz, kotlinPropertyMetadata);
+      kmProperty = convertProperty(kotlinPropertyMetadata);
 
       visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
       kmDeclarationContainer.getProperties().add(kmProperty);
@@ -571,7 +568,7 @@ public class KotlinMetadataWriter
         Clazz clazz,
         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
         KotlinPropertyMetadata kotlinPropertyMetadata) {
-      kmProperty = convertProperty(clazz, kotlinPropertyMetadata);
+      kmProperty = convertProperty(kotlinPropertyMetadata);
       visitAnyProperty(clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata);
       kmDeclarationContainer.getProperties().add(kmProperty);
     }
@@ -589,7 +586,7 @@ public class KotlinMetadataWriter
         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
         KotlinFunctionMetadata kotlinFunctionMetadata) {
 
-      KmFunction kmFunction = convertFunction(clazz, kotlinFunctionMetadata);
+      KmFunction kmFunction = convertFunction(kotlinFunctionMetadata);
 
       kotlinFunctionMetadata.valueParametersAccept(
           clazz, kotlinDeclarationContainerMetadata, new ValueParameterConstructor(kmFunction));
@@ -653,6 +650,7 @@ public class KotlinMetadataWriter
       Attributes.setVisibility(
           kmTypeAlias, convertVisibilityFlags(kotlinTypeAliasMetadata.flags.visibility));
       Attributes.setHasAnnotations(kmTypeAlias, kotlinTypeAliasMetadata.flags.hasAnnotations);
+
       return kmTypeAlias;
     }
 
@@ -697,13 +695,8 @@ public class KotlinMetadataWriter
       kotlinClassKindMetadata.functionsAccept(clazz, this);
       kotlinClassKindMetadata.typeAliasesAccept(clazz, this);
 
-      for (KotlinEnumEntryMetadata enumEntryMetadata : kotlinClassKindMetadata.enumEntries) {
-        KmEnumEntry kmEnumEntry = new KmEnumEntry(enumEntryMetadata.name);
-        enumEntryMetadata.annotationsAccept(
-            clazz,
-            new AnnotationConstructor(
-                kmAnnotation -> kmEnumEntry.getAnnotations().add(kmAnnotation)));
-        kmClass.getKmEnumEntries().add(kmEnumEntry);
+      for (String enumEntryName : kotlinClassKindMetadata.enumEntryNames) {
+        kmClass.getKmEnumEntries().add(new KmEnumEntry(enumEntryName));
       }
 
       for (String nestedClass : kotlinClassKindMetadata.nestedClassNames) {
@@ -723,14 +716,9 @@ public class KotlinMetadataWriter
       kotlinClassKindMetadata.inlineClassUnderlyingPropertyTypeAccept(
           clazz, new TypeConstructor(kmClass));
 
-      kotlinClassKindMetadata.annotationsAccept(
-          clazz,
-          new AnnotationConstructor(kmAnnotation -> kmClass.getAnnotations().add(kmAnnotation)));
-
       for (KotlinPropertyMetadata propertyMetadata :
           kotlinClassKindMetadata.localDelegatedProperties) {
-        JvmExtensionsKt.getLocalDelegatedProperties(kmClass)
-            .add(convertProperty(clazz, propertyMetadata));
+        JvmExtensionsKt.getLocalDelegatedProperties(kmClass).add(convertProperty(propertyMetadata));
       }
 
       if (kotlinClassKindMetadata.anonymousObjectOriginName != null) {
@@ -772,11 +760,6 @@ public class KotlinMetadataWriter
 
       kotlinConstructorMetadata.versionRequirementAccept(
           clazz, kotlinClassKindMetadata, new VersionRequirementConstructor(kmConstructor));
-
-      kotlinConstructorMetadata.annotationsAccept(
-          clazz,
-          new AnnotationConstructor(
-              kmAnnotation -> kmConstructor.getAnnotations().add(kmAnnotation)));
 
       // Extensions.
       if (kotlinConstructorMetadata.jvmSignature != null) {
@@ -868,11 +851,6 @@ public class KotlinMetadataWriter
       kmValueParameter = new KmValueParameter(kotlinValueParameterMetadata.parameterName);
       convertValueParameterFlags(kmValueParameter, kotlinValueParameterMetadata.flags);
 
-      kotlinValueParameterMetadata.annotationsAccept(
-          clazz,
-          new AnnotationConstructor(
-              kmAnnotation -> kmValueParameter.getAnnotations().add(kmAnnotation)));
-
       kotlinValueParameterMetadata.typeAccept(
           clazz,
           kotlinClassKindMetadata,
@@ -890,11 +868,6 @@ public class KotlinMetadataWriter
       kmValueParameter = new KmValueParameter(kotlinValueParameterMetadata.parameterName);
       convertValueParameterFlags(kmValueParameter, kotlinValueParameterMetadata.flags);
 
-      kotlinValueParameterMetadata.annotationsAccept(
-          clazz,
-          new AnnotationConstructor(
-              kmAnnotation -> kmValueParameter.getAnnotations().add(kmAnnotation)));
-
       kotlinValueParameterMetadata.typeAccept(
           clazz,
           kotlinDeclarationContainerMetadata,
@@ -911,11 +884,6 @@ public class KotlinMetadataWriter
         KotlinValueParameterMetadata kotlinValueParameterMetadata) {
       kmValueParameter = new KmValueParameter(kotlinValueParameterMetadata.parameterName);
       convertValueParameterFlags(kmValueParameter, kotlinValueParameterMetadata.flags);
-
-      kotlinValueParameterMetadata.annotationsAccept(
-          clazz,
-          new AnnotationConstructor(
-              kmAnnotation -> kmValueParameter.getAnnotations().add(kmAnnotation)));
 
       kotlinValueParameterMetadata.typeAccept(
           clazz, kotlinMetadata, kotlinFunctionMetadata, new TypeConstructor(kmValueParameter));
@@ -1445,7 +1413,7 @@ public class KotlinMetadataWriter
       for (KotlinPropertyMetadata propertyMetadata :
           kotlinFileFacadeKindMetadata.localDelegatedProperties) {
         JvmExtensionsKt.getLocalDelegatedProperties(kmPackage)
-            .add(convertProperty(clazz, propertyMetadata));
+            .add(convertProperty(propertyMetadata));
       }
 
       // Finally store the protobuf contents in the fields of the enclosing class.
@@ -1518,7 +1486,7 @@ public class KotlinMetadataWriter
         KotlinSyntheticClassKindMetadata kotlinSyntheticClassKindMetadata,
         KotlinFunctionMetadata kotlinFunctionMetadata) {
 
-      KmFunction kmFunction = convertFunction(clazz, kotlinFunctionMetadata);
+      KmFunction kmFunction = convertFunction(kotlinFunctionMetadata);
 
       kotlinFunctionMetadata.valueParametersAccept(
           clazz, kotlinSyntheticClassKindMetadata, new ValueParameterConstructor(kmFunction));
@@ -1600,7 +1568,7 @@ public class KotlinMetadataWriter
       for (KotlinPropertyMetadata propertyMetadata :
           kotlinMultiFilePartKindMetadata.localDelegatedProperties) {
         JvmExtensionsKt.getLocalDelegatedProperties(kmPackage)
-            .add(convertProperty(clazz, propertyMetadata));
+            .add(convertProperty(propertyMetadata));
       }
 
       // Finally store the protobuf contents in the fields of the enclosing class.
@@ -1829,7 +1797,7 @@ public class KotlinMetadataWriter
     }
   }
 
-  private static KmFunction convertFunction(Clazz clazz, KotlinFunctionMetadata functionMetadata) {
+  private static KmFunction convertFunction(KotlinFunctionMetadata functionMetadata) {
     KmFunction kmFunction = new KmFunction(functionMetadata.name);
 
     KotlinFunctionFlags flags = functionMetadata.flags;
@@ -1849,10 +1817,6 @@ public class KotlinMetadataWriter
       Attributes.setKind(kmFunction, MemberKind.SYNTHESIZED);
     }
 
-    functionMetadata.annotationsAccept(
-        clazz,
-        new AnnotationConstructor(kmAnnotation -> kmFunction.getAnnotations().add(kmAnnotation)));
-
     Attributes.setHasAnnotations(kmFunction, flags.hasAnnotations);
     Attributes.setOperator(kmFunction, flags.isOperator);
     Attributes.setInfix(kmFunction, flags.isInfix);
@@ -1864,7 +1828,7 @@ public class KotlinMetadataWriter
     return kmFunction;
   }
 
-  private static KmProperty convertProperty(Clazz clazz, KotlinPropertyMetadata propertyMetadata) {
+  private static KmProperty convertProperty(KotlinPropertyMetadata propertyMetadata) {
     KmProperty kmProperty = new KmProperty(propertyMetadata.name);
 
     KotlinPropertyFlags flags = propertyMetadata.flags;
@@ -1893,72 +1857,43 @@ public class KotlinMetadataWriter
     Attributes.setDelegated(kmProperty, flags.isDelegated);
     Attributes.setExpect(kmProperty, flags.isExpect);
 
-    propertyMetadata.annotationsAccept(
-        clazz,
-        new AnnotationConstructor(kmAnnotation -> kmProperty.getAnnotations().add(kmAnnotation)));
-    propertyMetadata.annotationsAccept(
-        clazz,
-        new AnnotationConstructor(
-            kmAnnotation -> kmProperty.getBackingFieldAnnotations().add(kmAnnotation)));
-    propertyMetadata.annotationsAccept(
-        clazz,
-        new AnnotationConstructor(
-            kmAnnotation -> kmProperty.getDelegateFieldAnnotations().add(kmAnnotation)));
-    propertyMetadata.annotationsAccept(
-        clazz,
-        new AnnotationConstructor(
-            kmAnnotation ->
-                kmProperty.getExtensionReceiverParameterAnnotations().add(kmAnnotation)));
-
-    if (propertyMetadata.setterMetadata != null) {
+    if (propertyMetadata.setterFlags != null) {
       KmPropertyAccessorAttributes kmPropertyAccessorAttributes =
           new KmPropertyAccessorAttributes();
 
-      Attributes.setHasAnnotations(
-          kmPropertyAccessorAttributes, propertyMetadata.setterMetadata.hasAnnotations);
       Attributes.setVisibility(
           kmPropertyAccessorAttributes,
-          convertVisibilityFlags(propertyMetadata.setterMetadata.visibility));
+          convertVisibilityFlags(propertyMetadata.setterFlags.visibility));
       Attributes.setModality(
           kmPropertyAccessorAttributes,
-          convertModalityFlags(propertyMetadata.setterMetadata.modality));
+          convertModalityFlags(propertyMetadata.setterFlags.modality));
 
-      propertyMetadata.setterMetadata.annotationsAccept(
-          clazz,
-          new AnnotationConstructor(
-              kmAnnotation -> kmPropertyAccessorAttributes.getAnnotations().add(kmAnnotation)));
-
+      Attributes.setHasAnnotations(
+          kmPropertyAccessorAttributes, propertyMetadata.setterFlags.hasAnnotations);
       Attributes.setNotDefault(
-          kmPropertyAccessorAttributes, !propertyMetadata.setterMetadata.isDefault);
-      Attributes.setInline(kmPropertyAccessorAttributes, propertyMetadata.setterMetadata.isInline);
-      Attributes.setExternal(
-          kmPropertyAccessorAttributes, propertyMetadata.setterMetadata.isExternal);
+          kmPropertyAccessorAttributes, !propertyMetadata.setterFlags.isDefault);
+      Attributes.setInline(kmPropertyAccessorAttributes, propertyMetadata.setterFlags.isInline);
+      Attributes.setExternal(kmPropertyAccessorAttributes, propertyMetadata.setterFlags.isExternal);
 
       kmProperty.setSetter(kmPropertyAccessorAttributes);
     }
 
-    if (propertyMetadata.getterMetadata != null) {
+    if (propertyMetadata.getterFlags != null) {
       KmPropertyAccessorAttributes kmPropertyAccessorAttributes = kmProperty.getGetter();
 
       Attributes.setVisibility(
           kmPropertyAccessorAttributes,
-          convertVisibilityFlags(propertyMetadata.getterMetadata.visibility));
+          convertVisibilityFlags(propertyMetadata.getterFlags.visibility));
       Attributes.setModality(
           kmPropertyAccessorAttributes,
-          convertModalityFlags(propertyMetadata.getterMetadata.modality));
-
-      propertyMetadata.getterMetadata.annotationsAccept(
-          clazz,
-          new AnnotationConstructor(
-              kmAnnotation -> kmPropertyAccessorAttributes.getAnnotations().add(kmAnnotation)));
+          convertModalityFlags(propertyMetadata.getterFlags.modality));
 
       Attributes.setHasAnnotations(
-          kmPropertyAccessorAttributes, propertyMetadata.getterMetadata.hasAnnotations);
+          kmPropertyAccessorAttributes, propertyMetadata.getterFlags.hasAnnotations);
       Attributes.setNotDefault(
-          kmPropertyAccessorAttributes, !propertyMetadata.getterMetadata.isDefault);
-      Attributes.setInline(kmPropertyAccessorAttributes, propertyMetadata.getterMetadata.isInline);
-      Attributes.setExternal(
-          kmPropertyAccessorAttributes, propertyMetadata.getterMetadata.isExternal);
+          kmPropertyAccessorAttributes, !propertyMetadata.getterFlags.isDefault);
+      Attributes.setInline(kmPropertyAccessorAttributes, propertyMetadata.getterFlags.isInline);
+      Attributes.setExternal(kmPropertyAccessorAttributes, propertyMetadata.getterFlags.isExternal);
     }
 
     return kmProperty;
