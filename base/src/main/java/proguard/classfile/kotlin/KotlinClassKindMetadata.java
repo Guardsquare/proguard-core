@@ -23,7 +23,9 @@ import java.util.List;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
 import proguard.classfile.kotlin.flags.KotlinClassFlags;
+import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor;
 import proguard.classfile.kotlin.visitor.KotlinConstructorVisitor;
+import proguard.classfile.kotlin.visitor.KotlinEnumEntryVisitor;
 import proguard.classfile.kotlin.visitor.KotlinMetadataVisitor;
 import proguard.classfile.kotlin.visitor.KotlinTypeParameterVisitor;
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor;
@@ -31,7 +33,8 @@ import proguard.classfile.kotlin.visitor.KotlinVersionRequirementVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 import proguard.classfile.visitor.MemberVisitor;
 
-public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata {
+public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata
+    implements KotlinAnnotatable {
 
   public String className;
   public Clazz referencedClass;
@@ -44,10 +47,11 @@ public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata 
 
   public List<KotlinConstructorMetadata> constructors;
 
-  public List<String> enumEntryNames;
-  public List<Field> referencedEnumEntries;
+  public List<KotlinEnumEntryMetadata> enumEntries;
+
   public List<String> nestedClassNames;
   public List<Clazz> referencedNestedClasses;
+
   public List<String> sealedSubclassNames;
   public List<Clazz> referencedSealedSubClasses;
 
@@ -63,6 +67,8 @@ public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata 
 
   public String underlyingPropertyName;
   public KotlinTypeMetadata underlyingPropertyType;
+
+  public List<KotlinAnnotation> annotations;
 
   // Extensions.
 
@@ -154,6 +160,14 @@ public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata 
     }
   }
 
+  public void enumEntriesAccept(Clazz clazz, KotlinEnumEntryVisitor kotlinEnumEntryVisitor) {
+    if (enumEntries != null) {
+      for (KotlinEnumEntryMetadata enumEntry : enumEntries) {
+        kotlinEnumEntryVisitor.visitAnyEnumEntry(clazz, this, enumEntry);
+      }
+    }
+  }
+
   // Implementations for Object.
   @Override
   public String toString() {
@@ -169,5 +183,12 @@ public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata 
         + "class("
         + className
         + ")";
+  }
+
+  @Override
+  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    for (KotlinAnnotation annotation : annotations) {
+      kotlinAnnotationVisitor.visitClassAnnotation(clazz, this, annotation);
+    }
   }
 }

@@ -19,12 +19,20 @@ package proguard.classfile.kotlin.visitor;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.flags.KotlinPropertyAccessorMetadata;
 
 public class AllKotlinAnnotationVisitor
     implements KotlinMetadataVisitor,
+        KotlinClassVisitor,
+        KotlinConstructorVisitor,
+        KotlinEnumEntryVisitor,
+        KotlinFunctionVisitor,
         KotlinTypeAliasVisitor,
         KotlinTypeParameterVisitor,
-        KotlinTypeVisitor {
+        KotlinTypeVisitor,
+        KotlinPropertyVisitor,
+        KotlinPropertyAccessorVisitor,
+        KotlinValueParameterVisitor {
   private final KotlinAnnotationVisitor delegate;
 
   public AllKotlinAnnotationVisitor(KotlinAnnotationVisitor delegate) {
@@ -39,11 +47,22 @@ public class AllKotlinAnnotationVisitor
     kotlinMetadata.accept(clazz, new AllTypeParameterVisitor(this));
   }
 
+  // Implementations for KotlinClassVisitor.
+
+  @Override
+  public void visitKotlinClassMetadata(
+      Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata) {
+    kotlinClassKindMetadata.annotationsAccept(clazz, delegate);
+    kotlinClassKindMetadata.constructorsAccept(clazz, this);
+    kotlinClassKindMetadata.enumEntriesAccept(clazz, this);
+  }
+
   @Override
   public void visitKotlinDeclarationContainerMetadata(
       Clazz clazz, KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata) {
+    kotlinDeclarationContainerMetadata.functionsAccept(clazz, this);
+    kotlinDeclarationContainerMetadata.propertiesAccept(clazz, this);
     kotlinDeclarationContainerMetadata.typeAliasesAccept(clazz, this);
-
     visitAnyKotlinMetadata(clazz, kotlinDeclarationContainerMetadata);
   }
 
@@ -70,5 +89,88 @@ public class AllKotlinAnnotationVisitor
   public void visitAnyTypeParameter(
       Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
     kotlinTypeParameterMetadata.annotationsAccept(clazz, delegate);
+  }
+
+  // Implementations for KotlinConstructorVisitor.
+
+  @Override
+  public void visitConstructor(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata) {
+    kotlinConstructorMetadata.annotationsAccept(clazz, delegate);
+    kotlinConstructorMetadata.valueParametersAccept(clazz, kotlinClassKindMetadata, this);
+  }
+
+  @Override
+  public void visitAnyFunction(
+      Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata) {
+    kotlinFunctionMetadata.annotationsAccept(clazz, delegate);
+    kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
+  }
+
+  @Override
+  public void visitAnyProperty(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata) {
+    kotlinPropertyMetadata.annotationsAccept(clazz, delegate);
+    kotlinPropertyMetadata.propertyAccessorsAccept(clazz, kotlinDeclarationContainerMetadata, this);
+    kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
+  }
+
+  @Override
+  public void visitAnyValueParameter(
+      Clazz clazz, KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    kotlinValueParameterMetadata.annotationsAccept(clazz, delegate);
+  }
+
+  @Override
+  public void visitConstructorValParameter(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinConstructorMetadata kotlinConstructorMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    kotlinValueParameterMetadata.typeAccept(
+        clazz, kotlinClassKindMetadata, kotlinConstructorMetadata, this);
+    visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+  }
+
+  @Override
+  public void visitFunctionValParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+    visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+  }
+
+  @Override
+  public void visitPropertyValParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    kotlinValueParameterMetadata.typeAccept(
+        clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+    visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+  }
+
+  @Override
+  public void visitAnyEnumEntry(
+      Clazz clazz,
+      KotlinClassKindMetadata kotlinClassKindMetadata,
+      KotlinEnumEntryMetadata kotlinEnumEntryMetadata) {
+    kotlinEnumEntryMetadata.annotationsAccept(clazz, delegate);
+  }
+
+  @Override
+  public void visitAnyPropertyAccessor(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinPropertyAccessorMetadata kotlinPropertyAccessorMetadata) {
+    kotlinPropertyAccessorMetadata.annotationsAccept(clazz, delegate);
   }
 }

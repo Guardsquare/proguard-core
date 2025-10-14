@@ -48,11 +48,11 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
                         // getterFlags should be set correctly
-                        withClue("isDefault") { it.getterFlags.isDefault shouldBe true }
-                        withClue("isInline") { it.getterFlags.isInline shouldBe false }
-                        withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
+                        withClue("isDefault") { it.getterMetadata.isDefault shouldBe true }
+                        withClue("isInline") { it.getterMetadata.isInline shouldBe false }
+                        withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
                         // Value properties do not have setters.
-                        it.setterFlags shouldBe null
+                        it.setterMetadata shouldBe null
                     },
                 )
             }
@@ -68,11 +68,11 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
                         // getterFlags should be set correctly
-                        withClue("isDefault") { it.getterFlags.isDefault shouldBe true }
-                        withClue("isInline") { it.getterFlags.isInline shouldBe false }
-                        withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
+                        withClue("isDefault") { it.getterMetadata.isDefault shouldBe true }
+                        withClue("isInline") { it.getterMetadata.isInline shouldBe false }
+                        withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
                         // Value properties do not have setters.
-                        it.setterFlags shouldBe null
+                        it.setterMetadata shouldBe null
                     },
                 )
             }
@@ -94,11 +94,11 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
                         // getterFlags should be set correctly
-                        withClue("isDefault") { it.getterFlags.isDefault shouldBe false }
-                        withClue("isInline") { it.getterFlags.isInline shouldBe true }
-                        withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
+                        withClue("isDefault") { it.getterMetadata.isDefault shouldBe false }
+                        withClue("isInline") { it.getterMetadata.isInline shouldBe true }
+                        withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
                         // Value properties do not have setters.
-                        it.setterFlags shouldBe null
+                        it.setterMetadata shouldBe null
                     },
                 )
             }
@@ -114,11 +114,11 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                     ofType(KotlinDeclarationContainerMetadata::class),
                     withArg {
                         // getterFlags should be set correctly
-                        withClue("isDefault") { it.getterFlags.isDefault shouldBe false }
-                        withClue("isInline") { it.getterFlags.isInline shouldBe true }
-                        withClue("isExternal") { it.getterFlags.isExternal shouldBe false }
+                        withClue("isDefault") { it.getterMetadata.isDefault shouldBe false }
+                        withClue("isInline") { it.getterMetadata.isInline shouldBe true }
+                        withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
                         // Value properties do not have setters.
-                        it.setterFlags shouldBe null
+                        it.setterMetadata shouldBe null
                     },
                 )
             }

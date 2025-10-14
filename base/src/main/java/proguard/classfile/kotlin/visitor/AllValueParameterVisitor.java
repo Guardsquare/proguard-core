@@ -78,7 +78,7 @@ public class AllValueParameterVisitor
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinPropertyMetadata kotlinPropertyMetadata) {
-    kotlinPropertyMetadata.setterParametersAccept(
+    kotlinPropertyMetadata.setterParameterAccept(
         clazz, kotlinDeclarationContainerMetadata, delegate);
   }
 

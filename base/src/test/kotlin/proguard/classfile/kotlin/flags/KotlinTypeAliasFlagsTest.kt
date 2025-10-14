@@ -131,7 +131,6 @@ class KotlinTypeAliasFlagsTest : BehaviorSpec({
             }
         }
     }
-
     Given("an annotated type alias") {
         val clazz = ClassPoolBuilder.fromSource(
             KotlinSource(

@@ -147,7 +147,7 @@ class KotlinMetadataAsserterTest : BehaviorSpec({
                         clazz: Clazz?,
                         kotlinClassKindMetadata: KotlinClassKindMetadata?,
                     ) {
-                        kotlinClassKindMetadata?.referencedEnumEntries = listOf(null, null)
+                        kotlinClassKindMetadata?.enumEntries?.forEach { it.referencedEnumEntry = null }
                     }
                 },
             )
