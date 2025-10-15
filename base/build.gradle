@@ -2,39 +2,28 @@ plugins {
 	id 'java'
 	id 'distribution'
 	id 'java-library'
-	id "org.jetbrains.kotlin.jvm"
 	id 'maven-publish'
 	id 'signing'
-	id 'com.adarshr.test-logger'
 	id 'jacoco'
 	id "java-test-fixtures"
+	alias(libs.plugins.kotlin.plugin)
+	alias(libs.plugins.test.logger)
 }
 
 dependencies {
-	api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-	api "org.jetbrains.kotlin:kotlin-metadata-jvm:${kotlinVersion}"
-
-
-	implementation 'org.jetbrains:annotations:26.0.1'
-
-	implementation 'org.apache.logging.log4j:log4j-api:2.24.2'
-	implementation 'org.apache.logging.log4j:log4j-core:2.24.2'
-
-	testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-	testImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-	testFixturesImplementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-	testFixturesImplementation group: "dev.zacsweers.kctfork", name: "core", version: "0.8.0"
-	testFixturesImplementation 'io.kotest:kotest-runner-junit5-jvm:5.9.1' // for kotest framework
-	testImplementation 'io.kotest:kotest-runner-junit5-jvm:5.9.1' // for kotest framework
-	testImplementation 'io.kotest:kotest-assertions-core-jvm:5.9.1' // for kotest core jvm assertions
-	testFixturesImplementation 'io.kotest:kotest-assertions-core-jvm:5.9.1' // for kotest core jvm assertions
-
-	testImplementation 'io.kotest:kotest-property-jvm:5.9.1' // for kotest property test
-	testImplementation 'io.kotest:kotest-framework-datatest:5.9.1'
-	testImplementation 'io.mockk:mockk:1.13.13' // for mocking
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.3' // for junit framework
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.3' // for junit framework
-
+	implementation(libs.kotlin.stdlib)
+	implementation(libs.kotlin.metadata)
+	implementation(libs.annotations)
+	implementation(libs.bundles.log4j)
+	testImplementation(libs.bundles.kotlin)
+	testImplementation(libs.bundles.kotest)
+	testFixturesImplementation(libs.kotlin.reflect)
+	testFixturesImplementation(libs.kctfork)
+	testFixturesImplementation(libs.kotest.runner.jvm) // for kotest framework
+	testFixturesImplementation(libs.kotest.assertions.jvm) // for kotest core jvm assertions
+	testImplementation(libs.mockk)
+	testImplementation(libs.jupiter.api) // for junit framework
+	testRuntimeOnly(libs.jupiter.engine) // for junit framework
 	testFixturesImplementation("com.guardsquare:proguard-assembler:1.0.0")
 }
 

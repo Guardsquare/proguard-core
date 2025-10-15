@@ -4,13 +4,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	id 'distribution'
-	id 'io.github.gradle-nexus.publish-plugin'
 	id 'signing'
-	id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
-	id 'com.adarshr.test-logger' version '4.0.0' apply false
-	id "org.sonarqube" version "6.0.1.5171"
-	id "io.freefair.aggregate-javadoc" version "8.11"
-	id "com.diffplug.spotless" version "6.18.0" apply false
+	alias(libs.plugins.kotlin.plugin) apply false
+	alias(libs.plugins.spotless)
+	alias(libs.plugins.nexus.publish)
+	alias(libs.plugins.test.logger) apply false
+	alias(libs.plugins.sonarqube)
+	alias(libs.plugins.aggregate.javadoc)
 }
 
 allprojects {

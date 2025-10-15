@@ -1,14 +1,15 @@
 plugins {
-	id 'org.jetbrains.kotlin.jvm'
 	id 'application'
 	id 'maven-publish'
 	id 'signing'
+	alias(libs.plugins.kotlin.plugin)
 }
 
 dependencies {
+	implementation(project(":proguard-core"))
 	implementation(project(":proguard-core-android"))
-	implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
-	implementation 'org.smali:smali:2.5.2'
+	implementation(libs.kotlinx.cli)
+	implementation(libs.smali)
 }
 
 application {
