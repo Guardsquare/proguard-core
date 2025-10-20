@@ -19,6 +19,7 @@ package proguard.classfile.kotlin.visitor;
 
 import proguard.classfile.Clazz;
 import proguard.classfile.kotlin.*;
+import proguard.classfile.kotlin.flags.KotlinPropertyAccessorMetadata;
 
 public interface KotlinAnnotationVisitor {
   void visitAnyAnnotation(Clazz clazz, KotlinAnnotatable annotatable, KotlinAnnotation annotation);
@@ -38,5 +39,46 @@ public interface KotlinAnnotationVisitor {
   default void visitTypeAliasAnnotation(
       Clazz clazz, KotlinTypeAliasMetadata kotlinTypeAliasMetadata, KotlinAnnotation annotation) {
     visitAnyAnnotation(clazz, kotlinTypeAliasMetadata, annotation);
+  }
+
+  default void visitClassAnnotation(
+      Clazz clazz, KotlinClassKindMetadata kotlinClassKindMetadata, KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinClassKindMetadata, annotation);
+  }
+
+  default void visitConstructorAnnotation(
+      Clazz clazz,
+      KotlinConstructorMetadata kotlinConstructorMetadata,
+      KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinConstructorMetadata, annotation);
+  }
+
+  default void visitFunctionAnnotation(
+      Clazz clazz, KotlinFunctionMetadata kotlinFunctionMetadata, KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinFunctionMetadata, annotation);
+  }
+
+  default void visitPropertyAccessorAnnotation(
+      Clazz clazz,
+      KotlinPropertyAccessorMetadata kotlinPropertyAccessorMetadata,
+      KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinPropertyAccessorMetadata, annotation);
+  }
+
+  default void visitPropertyAnnotation(
+      Clazz clazz, KotlinPropertyMetadata kotlinPropertyMetadata, KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinPropertyMetadata, annotation);
+  }
+
+  default void visitValueParameterAnnotation(
+      Clazz clazz,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata,
+      KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinValueParameterMetadata, annotation);
+  }
+
+  default void visitEnumEntryAnnotation(
+      Clazz clazz, KotlinEnumEntryMetadata kotlinEnumEntryMetadata, KotlinAnnotation annotation) {
+    visitAnyAnnotation(clazz, kotlinEnumEntryMetadata, annotation);
   }
 }

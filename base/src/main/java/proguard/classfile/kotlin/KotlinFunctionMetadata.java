@@ -24,7 +24,8 @@ import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.visitor.MemberVisitor;
 import proguard.util.*;
 
-public class KotlinFunctionMetadata extends SimpleProcessable implements Processable {
+public class KotlinFunctionMetadata extends SimpleProcessable
+    implements Processable, KotlinAnnotatable {
   public String name;
 
   public List<KotlinContractMetadata> contracts;
@@ -42,6 +43,8 @@ public class KotlinFunctionMetadata extends SimpleProcessable implements Process
   public KotlinVersionRequirementMetadata versionRequirement;
 
   public KotlinFunctionFlags flags;
+
+  public List<KotlinAnnotation> annotations;
 
   // Extensions.
   public MethodSignature jvmSignature;
@@ -175,5 +178,12 @@ public class KotlinFunctionMetadata extends SimpleProcessable implements Process
   @Override
   public String toString() {
     return "Kotlin " + (flags.isSynthesized ? "synthesized " : "") + "function(" + name + ")";
+  }
+
+  @Override
+  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    for (KotlinAnnotation annotation : annotations) {
+      kotlinAnnotationVisitor.visitFunctionAnnotation(clazz, this, annotation);
+    }
   }
 }

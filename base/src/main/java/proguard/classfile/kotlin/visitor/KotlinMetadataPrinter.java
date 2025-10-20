@@ -21,6 +21,7 @@ import static proguard.classfile.util.ClassUtil.*;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.*;
 import proguard.classfile.kotlin.flags.*;
@@ -89,7 +90,7 @@ public class KotlinMetadataPrinter
             + "Kotlin "
             + classFlags(kotlinClassKindMetadata.flags)
             + "class("
-            + (kotlinClassKindMetadata.flags.hasAnnotations ? "@" : "")
+            + (!kotlinClassKindMetadata.annotations.isEmpty() ? "@" : "")
             + externalClassName(kotlinClassKindMetadata.className)
             + ")");
 
@@ -124,8 +125,12 @@ public class KotlinMetadataPrinter
         kotlinClassKindMetadata.referencedNestedClasses);
     printArray(
         "Enum entry names",
-        kotlinClassKindMetadata.enumEntryNames,
-        kotlinClassKindMetadata.referencedEnumEntries);
+        kotlinClassKindMetadata.enumEntries.stream()
+            .map(enumEntry -> enumEntry.name)
+            .collect(Collectors.toList()),
+        kotlinClassKindMetadata.enumEntries.stream()
+            .map(enumEntry -> enumEntry.referencedEnumEntry)
+            .collect(Collectors.toList()));
     printArray(
         "Sealed subclass names",
         kotlinClassKindMetadata.sealedSubclassNames,
@@ -198,6 +203,7 @@ public class KotlinMetadataPrinter
     visitKotlinDeclarationContainerMetadata(clazz, kotlinMultiFilePartKindMetadata);
     outdent();
   }
+
   // Implementations for KotlinConstructorVisitor
 
   @Override
@@ -209,12 +215,12 @@ public class KotlinMetadataPrinter
     if (kotlinClassKindMetadata.flags.isAnnotationClass) {
       pw.println(
           constructorFlags(kotlinConstructorMetadata.flags)
-              + (kotlinConstructorMetadata.flags.hasAnnotations ? "@" : ""));
+              + (!kotlinConstructorMetadata.annotations.isEmpty() ? "@" : ""));
     } else {
       pw.println(
           hasRefIndicator(kotlinConstructorMetadata.referencedMethod)
               + constructorFlags(kotlinConstructorMetadata.flags)
-              + (kotlinConstructorMetadata.flags.hasAnnotations ? "@" : "")
+              + (!kotlinConstructorMetadata.annotations.isEmpty() ? "@" : "")
               + "["
               + externalMethodDescription(kotlinConstructorMetadata.jvmSignature)
               + "]");
@@ -254,7 +260,7 @@ public class KotlinMetadataPrinter
     println(
         "[VALP] "
             + valueParameterFlags(kotlinValueParameterMetadata.flags)
-            + (kotlinValueParameterMetadata.flags.hasAnnotations ? "@" : "")
+            + (!kotlinValueParameterMetadata.annotations.isEmpty() ? "@" : "")
             + "\""
             + kotlinValueParameterMetadata.parameterName
             + "\" ");
@@ -310,20 +316,20 @@ public class KotlinMetadataPrinter
       KotlinPropertyMetadata kotlinPropertyMetadata) {
     print(
         propertyFlags(kotlinPropertyMetadata.flags)
-            + (kotlinPropertyMetadata.flags.hasAnnotations ? "@" : "")
+            + (!kotlinPropertyMetadata.annotations.isEmpty() ? "@" : "")
             + "\""
             + kotlinPropertyMetadata.name
             + "\" ");
 
     String getString =
-        propertyAccessorFlags(kotlinPropertyMetadata.getterFlags)
-            + (kotlinPropertyMetadata.getterFlags.hasAnnotations ? "@" : "")
+        propertyAccessorFlags(kotlinPropertyMetadata.getterMetadata)
+            + (!kotlinPropertyMetadata.getterMetadata.annotations.isEmpty() ? "@" : "")
             + "get";
 
     String setString =
-        kotlinPropertyMetadata.flags.isVar
-            ? (propertyAccessorFlags(kotlinPropertyMetadata.setterFlags)
-                + (kotlinPropertyMetadata.setterFlags.hasAnnotations ? "@" : "")
+        kotlinPropertyMetadata.flags.isVar && kotlinPropertyMetadata.setterMetadata != null
+            ? (propertyAccessorFlags(kotlinPropertyMetadata.setterMetadata)
+                + (!kotlinPropertyMetadata.setterMetadata.annotations.isEmpty() ? "@" : "")
                 + "set")
             : "";
 
@@ -339,18 +345,18 @@ public class KotlinMetadataPrinter
               + externalFieldDescription(kotlinPropertyMetadata.backingFieldSignature));
     }
 
-    if (kotlinPropertyMetadata.getterSignature != null) {
+    if (kotlinPropertyMetadata.getterMetadata.signature != null) {
       println(
           "Getter:        "
-              + hasRefIndicator(kotlinPropertyMetadata.referencedGetterMethod)
-              + externalMethodDescription(kotlinPropertyMetadata.getterSignature));
+              + hasRefIndicator(kotlinPropertyMetadata.getterMetadata.referencedMethod)
+              + externalMethodDescription(kotlinPropertyMetadata.getterMetadata.signature));
     }
 
-    if (kotlinPropertyMetadata.setterSignature != null) {
+    if (kotlinPropertyMetadata.setterMetadata != null) {
       println(
           "Setter:        "
-              + hasRefIndicator(kotlinPropertyMetadata.referencedSetterMethod)
-              + externalMethodDescription(kotlinPropertyMetadata.setterSignature));
+              + hasRefIndicator(kotlinPropertyMetadata.setterMetadata.referencedMethod)
+              + externalMethodDescription(kotlinPropertyMetadata.setterMetadata.signature));
     }
 
     if (kotlinPropertyMetadata.syntheticMethodForAnnotations != null) {
@@ -389,7 +395,7 @@ public class KotlinMetadataPrinter
         clazz, kotlinDeclarationContainerMetadata, this);
     kotlinPropertyMetadata.typeParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
     kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
-    kotlinPropertyMetadata.setterParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
+    kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
     kotlinPropertyMetadata.versionRequirementAccept(
         clazz, kotlinDeclarationContainerMetadata, this);
 
@@ -613,7 +619,7 @@ public class KotlinMetadataPrinter
       KotlinTypeAliasMetadata kotlinTypeAliasMetadata) {
     println(
         "[ALIA] "
-            + (kotlinTypeAliasMetadata.flags.hasAnnotations ? "@" : "")
+            + (!kotlinTypeAliasMetadata.annotations.isEmpty() ? "@" : "")
             + hasRefIndicator(kotlinTypeAliasMetadata.referencedDeclarationContainer)
             + kotlinTypeAliasMetadata.name
             + " ");
@@ -671,7 +677,7 @@ public class KotlinMetadataPrinter
     pw.print(
         hasRefIndicator(kotlinFunctionMetadata.referencedMethod)
             + functionFlags(kotlinFunctionMetadata.flags)
-            + (kotlinFunctionMetadata.flags.hasAnnotations ? "@" : "")
+            + (!kotlinFunctionMetadata.annotations.isEmpty() ? "@" : "")
             + "\""
             + kotlinFunctionMetadata.name
             + "\" ["
@@ -1060,12 +1066,12 @@ public class KotlinMetadataPrinter
         + (flags.isExpect ? "expect " : "");
   }
 
-  private String propertyAccessorFlags(KotlinPropertyAccessorFlags flags) {
-    return visibilityFlags(flags.visibility)
-        + modalityFlags(flags.modality)
-        + (flags.isDefault ? "" : "nonDefault ")
-        + (flags.isExternal ? "external " : "")
-        + (flags.isInline ? "inline " : "");
+  private String propertyAccessorFlags(KotlinPropertyAccessorMetadata accessorMetadata) {
+    return visibilityFlags(accessorMetadata.visibility)
+        + modalityFlags(accessorMetadata.modality)
+        + (accessorMetadata.isDefault ? "" : "nonDefault ")
+        + (accessorMetadata.isExternal ? "external " : "")
+        + (accessorMetadata.isInline ? "inline " : "");
   }
 
   private String propertyFlags(KotlinPropertyFlags flags) {
@@ -1105,9 +1111,5 @@ public class KotlinMetadataPrinter
     return (flags.isCrossInline ? "crossinline " : "")
         + (flags.isNoInline ? "noinline " : "")
         + (flags.hasDefaultValue ? "hasDefault " : "");
-  }
-
-  private String hasAnnotationsFlag(KotlinCommonFlags flags) {
-    return flags.hasAnnotations ? "@" : "";
   }
 }

@@ -1,0 +1,47 @@
+[versions]
+aggregate-javadoc = "8.11"
+annotations = "26.0.1"
+jupiter = "5.11.3"
+kctfork = "0.8.0"
+kotest = "5.9.1"
+kotlin = "2.2.0"
+kotlinx-cli = "0.3.6"
+log4j = "2.24.2"
+mockk = "1.13.13"
+r8 = "3.3.75"
+spotless = "6.18.0"
+smali = "2.5.2"
+sonarqube = "6.0.1.5171"
+testLogger = "4.0.0"
+
+[libraries]
+annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
+jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "jupiter"}
+jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "jupiter" }
+kctfork = { group =  "dev.zacsweers.kctfork", name = "core", version.ref = "kctfork" }
+kotest-runner-jvm = { group = "io.kotest", name = "kotest-runner-junit5-jvm", version.ref = "kotest" }
+kotest-assertions-jvm = { group = "io.kotest", name = "kotest-assertions-core-jvm", version.ref = "kotest" }
+kotest-property-jvm = { group = "io.kotest", name = "kotest-property-jvm", version.ref = "kotest" }
+kotest-framework-datatest = { group = "io.kotest", name = "kotest-framework-datatest", version.ref = "kotest" }
+kotlin-metadata = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
+kotlinx-cli = { group = "org.jetbrains.kotlinx", name = "kotlinx-cli", version.ref = "kotlinx-cli" }
+log4j-api = { group = "org.apache.logging.log4j",name = "log4j-api", version.ref = "log4j" }
+log4j-core = { group = "org.apache.logging.log4j",name = "log4j-core", version.ref = "log4j" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+r8 = { group = "com.android.tools", name = "r8", version.ref = "r8" }
+smali = { group = "org.smali", name = "smali", version.ref = "smali" }
+
+[bundles]
+log4j = ["log4j-api", "log4j-core"]
+kotest = ["kotest-assertions-jvm", "kotest-framework-datatest", "kotest-property-jvm", "kotest-runner-jvm"]
+kotlin = ["kotlin-stdlib", "kotlin-reflect"]
+
+[plugins]
+aggregate-javadoc = { id = "io.freefair.aggregate-javadoc", version.ref = "aggregate-javadoc" }
+kotlin-plugin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+nexus-publish = { id  = "io.github.gradle-nexus.publish-plugin" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube"}
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+test-logger = { id = "com.adarshr.test-logger", version.ref = "testLogger" }

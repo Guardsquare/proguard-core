@@ -104,6 +104,7 @@ import proguard.classfile.kotlin.KotlinEffectExpressionMetadata;
 import proguard.classfile.kotlin.KotlinEffectInvocationKind;
 import proguard.classfile.kotlin.KotlinEffectMetadata;
 import proguard.classfile.kotlin.KotlinEffectType;
+import proguard.classfile.kotlin.KotlinEnumEntryMetadata;
 import proguard.classfile.kotlin.KotlinFileFacadeKindMetadata;
 import proguard.classfile.kotlin.KotlinFunctionMetadata;
 import proguard.classfile.kotlin.KotlinMetadata;
@@ -126,7 +127,7 @@ import proguard.classfile.kotlin.flags.KotlinConstructorFlags;
 import proguard.classfile.kotlin.flags.KotlinEffectExpressionFlags;
 import proguard.classfile.kotlin.flags.KotlinFunctionFlags;
 import proguard.classfile.kotlin.flags.KotlinModalityFlags;
-import proguard.classfile.kotlin.flags.KotlinPropertyAccessorFlags;
+import proguard.classfile.kotlin.flags.KotlinPropertyAccessorMetadata;
 import proguard.classfile.kotlin.flags.KotlinPropertyFlags;
 import proguard.classfile.kotlin.flags.KotlinTypeAliasFlags;
 import proguard.classfile.kotlin.flags.KotlinTypeFlags;
@@ -504,8 +505,10 @@ public class KotlinMetadataInitializer
             .map(it -> it.replace(".", "$"))
             .collect(Collectors.toList());
 
-    kotlinClassKindMetadata.enumEntryNames =
-        kmClass.getKmEnumEntries().stream().map(KmEnumEntry::getName).collect(Collectors.toList());
+    kotlinClassKindMetadata.enumEntries =
+        kmClass.getKmEnumEntries().stream()
+            .map(KotlinMetadataInitializer::convertKmEnumEntry)
+            .collect(Collectors.toList());
 
     kotlinClassKindMetadata.versionRequirement =
         convertKmVersionRequirement(kmClass.getVersionRequirements());
@@ -549,6 +552,11 @@ public class KotlinMetadataInitializer
             .map(KotlinMetadataInitializer::convertKmTypeAlias)
             .collect(Collectors.toList());
 
+    kotlinClassKindMetadata.annotations =
+        kmClass.getAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
+
     // JvmExtensions
 
     kotlinClassKindMetadata.flags.hasMethodBodiesInInterface =
@@ -564,6 +572,16 @@ public class KotlinMetadataInitializer
             .collect(Collectors.toList());
 
     return kotlinClassKindMetadata;
+  }
+
+  private static KotlinEnumEntryMetadata convertKmEnumEntry(KmEnumEntry kmEnumEntry) {
+    KotlinEnumEntryMetadata kotlinEnumEntryMetadata =
+        new KotlinEnumEntryMetadata(kmEnumEntry.getName());
+    kotlinEnumEntryMetadata.annotations =
+        kmEnumEntry.getAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
+    return kotlinEnumEntryMetadata;
   }
 
   private static KotlinFileFacadeKindMetadata convertFileFacadeKindMetadata(
@@ -622,6 +640,11 @@ public class KotlinMetadataInitializer
       kotlinFunctionMetadata.valueParameters.add(
           convertKmValueParameter(i, valueParameters.get(i)));
     }
+
+    kotlinFunctionMetadata.annotations =
+        kmFunction.getAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
 
     kotlinFunctionMetadata.versionRequirement =
         convertKmVersionRequirement(kmFunction.getVersionRequirements());
@@ -722,18 +745,21 @@ public class KotlinMetadataInitializer
   }
 
   private static KotlinPropertyMetadata convertKmProperty(KmProperty kmProperty) {
-    // We are checking whether getSetter is null because we have encountered occurrences where
-    // Attributes.isVar returns true even though there is no setter for the given property.
-    KotlinPropertyAccessorFlags setterFlags =
-        kmProperty.getSetter() != null
-            ? convertPropertyAccessorFlags(kmProperty.getSetter())
-            : null;
+    KotlinPropertyAccessorMetadata getterMetadata =
+        convertPropertyAccessorMetadata(kmProperty.getGetter());
+    getterMetadata.signature =
+        convertJvmMethodSignature(JvmExtensionsKt.getGetterSignature(kmProperty));
+
+    KotlinPropertyAccessorMetadata setterMetadata = null;
+    if (kmProperty.getSetter() != null) {
+      setterMetadata = convertPropertyAccessorMetadata(kmProperty.getSetter());
+      setterMetadata.signature =
+          convertJvmMethodSignature(JvmExtensionsKt.getSetterSignature(kmProperty));
+    }
+
     KotlinPropertyMetadata property =
         new KotlinPropertyMetadata(
-            convertPropertyFlags(kmProperty),
-            kmProperty.getName(),
-            convertPropertyAccessorFlags(kmProperty.getGetter()),
-            setterFlags);
+            convertPropertyFlags(kmProperty), kmProperty.getName(), getterMetadata, setterMetadata);
 
     property.receiverType = convertKmType(kmProperty.getReceiverParameterType());
 
@@ -746,26 +772,40 @@ public class KotlinMetadataInitializer
     property.versionRequirement = convertKmVersionRequirement(kmProperty.getVersionRequirements());
 
     KmValueParameter setterParameter = kmProperty.getSetterParameter();
-    // TODO: There can only be one Setter parameter but previously our API used a list.
-    // The name of the value parameter is like `"<set-?>"` for properties emitted by the Kotlin
-    // compiler.
+    // TODO(deprecation): Remove the deprecated setterParameters initialisation.
     property.setterParameters =
         setterParameter != null
             ? new ArrayList<>(
                 Collections.singletonList(convertKmValueParameter(0, setterParameter)))
             : new ArrayList<>();
 
+    property.setterParameter =
+        setterParameter != null ? convertKmValueParameter(0, setterParameter) : null;
+
     property.typeParameters =
         kmProperty.getTypeParameters().stream()
             .map(KotlinMetadataInitializer::convertKmTypeParameter)
             .collect(Collectors.toList());
 
+    property.annotations =
+        kmProperty.getAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
+    property.backingFieldAnnotations =
+        kmProperty.getBackingFieldAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
+    property.delegateFieldAnnotations =
+        kmProperty.getDelegateFieldAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
+    property.extensionReceiverParameterAnnotations =
+        kmProperty.getExtensionReceiverParameterAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
+
     property.backingFieldSignature =
         convertJvmFieldSignature(JvmExtensionsKt.getFieldSignature(kmProperty));
-    property.getterSignature =
-        convertJvmMethodSignature(JvmExtensionsKt.getGetterSignature(kmProperty));
-    property.setterSignature =
-        convertJvmMethodSignature(JvmExtensionsKt.getSetterSignature(kmProperty));
 
     property.flags.isMovedFromInterfaceCompanion =
         JvmAttributes.isMovedFromInterfaceCompanion(kmProperty);
@@ -911,6 +951,11 @@ public class KotlinMetadataInitializer
     constructor.versionRequirement =
         convertKmVersionRequirement(kmConstructor.getVersionRequirements());
 
+    constructor.annotations =
+        kmConstructor.getAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
+
     if (!isAnnotationClass) {
       // For annotation classes, the metadata will have a JVM signature for a constructor,
       // while this is impossible to correspond to a real constructor. We set the jvmSignature
@@ -931,6 +976,11 @@ public class KotlinMetadataInitializer
     valueParameterMetadata.type = convertKmType(kmValueParameter.getType());
     valueParameterMetadata.varArgElementType =
         convertKmType(kmValueParameter.getVarargElementType());
+
+    valueParameterMetadata.annotations =
+        kmValueParameter.getAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
 
     return valueParameterMetadata;
   }
@@ -1204,19 +1254,26 @@ public class KotlinMetadataInitializer
     return flags;
   }
 
-  private static KotlinPropertyAccessorFlags convertPropertyAccessorFlags(
+  private static KotlinPropertyAccessorMetadata convertPropertyAccessorMetadata(
       KmPropertyAccessorAttributes kmPropertyAccessorAttributes) {
-    KotlinPropertyAccessorFlags flags =
-        new KotlinPropertyAccessorFlags(
+    KotlinPropertyAccessorMetadata kotlinPropertyAccessorMetadata =
+        new KotlinPropertyAccessorMetadata(
             convertVisibilityFlags(Attributes.getVisibility(kmPropertyAccessorAttributes)),
             convertModalityFlags(Attributes.getModality(kmPropertyAccessorAttributes)));
 
-    flags.hasAnnotations = Attributes.getHasAnnotations(kmPropertyAccessorAttributes);
-    flags.isDefault = !Attributes.isNotDefault(kmPropertyAccessorAttributes);
-    flags.isExternal = Attributes.isExternal(kmPropertyAccessorAttributes);
-    flags.isInline = Attributes.isInline(kmPropertyAccessorAttributes);
+    kotlinPropertyAccessorMetadata.hasAnnotations =
+        Attributes.getHasAnnotations(kmPropertyAccessorAttributes);
+    kotlinPropertyAccessorMetadata.annotations =
+        kmPropertyAccessorAttributes.getAnnotations().stream()
+            .map(KotlinAnnotationUtilKt::convertAnnotation)
+            .collect(Collectors.toList());
 
-    return flags;
+    kotlinPropertyAccessorMetadata.isDefault =
+        !Attributes.isNotDefault(kmPropertyAccessorAttributes);
+    kotlinPropertyAccessorMetadata.isExternal = Attributes.isExternal(kmPropertyAccessorAttributes);
+    kotlinPropertyAccessorMetadata.isInline = Attributes.isInline(kmPropertyAccessorAttributes);
+
+    return kotlinPropertyAccessorMetadata;
   }
 
   private static KotlinValueParameterFlags convertValueParameterFlags(

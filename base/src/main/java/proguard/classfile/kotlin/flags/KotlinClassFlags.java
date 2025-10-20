@@ -17,18 +17,10 @@
  */
 package proguard.classfile.kotlin.flags;
 
-/**
- * Flags for Kotlin classes.
- *
- * <p>Valid common flags: - hasAnnotations - isInternal - isPrivate - isProtected - isPublic -
- * isPrivateToThis - isLocal - isFinal - isOpen - isAbstract - isSealed
- */
 public class KotlinClassFlags implements KotlinFlags {
 
   public final KotlinVisibilityFlags visibility;
   public final KotlinModalityFlags modality;
-
-  public boolean hasAnnotations;
 
   /** A class kind flag, signifying that the corresponding class is a usual `class`. */
   public boolean isUsualClass;
@@ -89,6 +81,8 @@ public class KotlinClassFlags implements KotlinFlags {
    * compiler moves all interface method bodies into a nested `DefaultImpls` class.
    */
   public boolean isCompiledInCompatibilityMode;
+
+  @Deprecated public boolean hasAnnotations;
 
   public KotlinClassFlags(KotlinVisibilityFlags visibility, KotlinModalityFlags modality) {
     this.visibility = visibility;

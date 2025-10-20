@@ -21,12 +21,8 @@ package proguard.classfile.kotlin.flags;
  * Flags for Kotlin value parameters.
  *
  * <p>No valid visibility or modality flags.
- *
- * <p>hasAnnotations is valid.
  */
 public class KotlinValueParameterFlags implements KotlinFlags {
-
-  public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding value parameter declares a default value. Note that the
@@ -43,4 +39,6 @@ public class KotlinValueParameterFlags implements KotlinFlags {
 
   /** Signifies that the corresponding value parameter is `noinline`. */
   public boolean isNoInline;
+
+  @Deprecated public boolean hasAnnotations;
 }

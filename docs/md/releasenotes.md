@@ -10,6 +10,10 @@
 
 - Update maximum supported Java class version to 69.65535 (Java 25).
 
+### Bugfixes
+
+- Prevent error when building with maven where the dependency "kotlin-stdlib-common" could not be found.
+
 ## Version 9.1.11
 
 ### Kotlin support

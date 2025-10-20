@@ -17,17 +17,9 @@
  */
 package proguard.classfile.kotlin.flags;
 
-/**
- * Flags for Kotlin constructors.
- *
- * <p>Valid common flags: - hasAnnotations - isInternal - isPrivate - isProtected - isPublic -
- * isPrivateToThis - isLocal
- */
 public class KotlinConstructorFlags implements KotlinFlags {
 
   public final KotlinVisibilityFlags visibility;
-
-  public boolean hasAnnotations;
 
   /**
    * Signifies that the corresponding constructor is secondary, i.e. declared not in the class
@@ -40,6 +32,8 @@ public class KotlinConstructorFlags implements KotlinFlags {
    * called with named arguments.
    */
   public boolean hasNonStableParameterNames;
+
+  @Deprecated public boolean hasAnnotations;
 
   public KotlinConstructorFlags(KotlinVisibilityFlags visibility) {
     this.visibility = visibility;

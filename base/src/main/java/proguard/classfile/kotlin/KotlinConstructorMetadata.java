@@ -24,12 +24,15 @@ import proguard.classfile.kotlin.visitor.*;
 import proguard.classfile.visitor.MemberVisitor;
 import proguard.util.*;
 
-public class KotlinConstructorMetadata extends SimpleProcessable implements Processable {
+public class KotlinConstructorMetadata extends SimpleProcessable
+    implements Processable, KotlinAnnotatable {
   public List<KotlinValueParameterMetadata> valueParameters;
 
   public KotlinVersionRequirementMetadata versionRequirement;
 
   public KotlinConstructorFlags flags;
+
+  public List<KotlinAnnotation> annotations;
 
   // Extensions.
   public MethodSignature jvmSignature;
@@ -78,5 +81,12 @@ public class KotlinConstructorMetadata extends SimpleProcessable implements Proc
   @Override
   public String toString() {
     return "Kotlin " + (flags.isSecondary ? "secondary " : "") + "constructor";
+  }
+
+  @Override
+  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    for (KotlinAnnotation annotation : annotations) {
+      kotlinAnnotationVisitor.visitConstructorAnnotation(clazz, this, annotation);
+    }
   }
 }

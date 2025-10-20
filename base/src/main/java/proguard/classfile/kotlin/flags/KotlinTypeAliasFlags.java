@@ -20,7 +20,7 @@ package proguard.classfile.kotlin.flags;
 public class KotlinTypeAliasFlags implements KotlinFlags {
   public final KotlinVisibilityFlags visibility;
 
-  public boolean hasAnnotations;
+  @Deprecated public boolean hasAnnotations;
 
   public KotlinTypeAliasFlags(KotlinVisibilityFlags visibility) {
     this.visibility = visibility;

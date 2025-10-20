@@ -18,6 +18,7 @@
 package proguard.classfile.kotlin;
 
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 import proguard.classfile.*;
 import proguard.classfile.kotlin.flags.*;
 import proguard.classfile.kotlin.visitor.*;
@@ -25,36 +26,40 @@ import proguard.exception.ErrorId;
 import proguard.exception.ProguardCoreException;
 import proguard.util.*;
 
-public class KotlinPropertyMetadata extends SimpleProcessable {
+public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinAnnotatable {
   public String name;
 
+  public KotlinPropertyFlags flags;
+  public KotlinTypeMetadata type;
   public List<KotlinTypeParameterMetadata> typeParameters;
+
+  public KotlinPropertyAccessorMetadata getterMetadata;
+  @Nullable public KotlinPropertyAccessorMetadata setterMetadata;
+
+  /**
+   * @deprecated Use {@link KotlinPropertyMetadata#setterParameter } instead. There can only be one
+   *     setter parameter but this old API used a list.
+   */
+  @Deprecated public List<KotlinValueParameterMetadata> setterParameters;
+
+  public KotlinValueParameterMetadata setterParameter;
+
+  public List<KotlinAnnotation> annotations;
 
   public KotlinTypeMetadata receiverType;
 
   public List<KotlinTypeMetadata> contextReceivers;
 
-  public List<KotlinValueParameterMetadata> setterParameters;
-
-  public KotlinTypeMetadata type;
-
   public KotlinVersionRequirementMetadata versionRequirement;
 
-  public KotlinPropertyFlags flags;
-
-  public KotlinPropertyAccessorFlags getterFlags;
-
-  public KotlinPropertyAccessorFlags setterFlags;
+  public List<KotlinAnnotation> extensionReceiverParameterAnnotations;
+  public List<KotlinAnnotation> backingFieldAnnotations;
+  public List<KotlinAnnotation> delegateFieldAnnotations;
 
   // Extensions.
   public FieldSignature backingFieldSignature;
-  // Store the class where the referencedBackingField is declared.
   public Clazz referencedBackingFieldClass;
   public Field referencedBackingField;
-  public MethodSignature getterSignature;
-  public Method referencedGetterMethod;
-  public MethodSignature setterSignature;
-  public Method referencedSetterMethod;
 
   public MethodSignature syntheticMethodForAnnotations;
 
@@ -69,12 +74,12 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
   public KotlinPropertyMetadata(
       KotlinPropertyFlags flags,
       String name,
-      KotlinPropertyAccessorFlags getterFlags,
-      KotlinPropertyAccessorFlags setterFlags) {
+      KotlinPropertyAccessorMetadata getterMetadata,
+      KotlinPropertyAccessorMetadata setterMetadata) {
     this.name = name;
     this.flags = flags;
-    this.getterFlags = getterFlags;
-    this.setterFlags = setterFlags;
+    this.getterMetadata = getterMetadata;
+    this.setterMetadata = setterMetadata;
   }
 
   public void accept(
@@ -124,19 +129,37 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
     }
   }
 
+  /**
+   * @deprecated Use {@link #setterParameterAccept(Clazz, KotlinDeclarationContainerMetadata,
+   *     KotlinValueParameterVisitor)} instead.
+   */
+  @Deprecated
   public void setterParametersAccept(
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinValueParameterVisitor kotlinValueParameterVisitor) {
-    if (setterParameters == null) {
-      throw new ProguardCoreException.Builder(
-              "Setter parameters are null in class %s.", ErrorId.CLASSFILE_NULL_VALUES)
-          .errorParameters(clazz.getName())
-          .build();
-    }
-    for (KotlinValueParameterMetadata setterParameter : setterParameters) {
+    setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, kotlinValueParameterVisitor);
+  }
+
+  public void setterParameterAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinValueParameterVisitor kotlinValueParameterVisitor) {
+    if (setterParameter != null) {
       setterParameter.accept(
           clazz, kotlinDeclarationContainerMetadata, this, kotlinValueParameterVisitor);
+    }
+  }
+
+  public void propertyAccessorsAccept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinPropertyAccessorVisitor kotlinPropertyAccessorVisitor) {
+    if (setterMetadata != null) {
+      setterMetadata.accept(clazz, kotlinMetadata, this, kotlinPropertyAccessorVisitor);
+    }
+    if (getterMetadata != null) {
+      getterMetadata.accept(clazz, kotlinMetadata, this, kotlinPropertyAccessorVisitor);
     }
   }
 
@@ -176,8 +199,24 @@ public class KotlinPropertyMetadata extends SimpleProcessable {
         + " | "
         + (backingFieldSignature != null ? "b" : "")
         + "g"
-        + (getterFlags.isDefault ? "" : "+")
-        + (flags.isVar ? "s" + (setterFlags.isDefault ? "" : "+") : "")
+        + (getterMetadata.isDefault ? "" : "+")
+        + (flags.isVar ? "s" + (setterMetadata != null && setterMetadata.isDefault ? "" : "+") : "")
         + ")";
+  }
+
+  @Override
+  public void annotationsAccept(Clazz clazz, KotlinAnnotationVisitor kotlinAnnotationVisitor) {
+    for (KotlinAnnotation annotation : annotations) {
+      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
+    }
+    for (KotlinAnnotation annotation : extensionReceiverParameterAnnotations) {
+      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
+    }
+    for (KotlinAnnotation annotation : backingFieldAnnotations) {
+      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
+    }
+    for (KotlinAnnotation annotation : delegateFieldAnnotations) {
+      kotlinAnnotationVisitor.visitPropertyAnnotation(clazz, this, annotation);
+    }
   }
 }
