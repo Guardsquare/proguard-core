@@ -1,3 +1,9 @@
+## Version 9.2.1
+
+### Bugfixes
+
+- Fix `ClassUtil.externalClassVersion` returning null for preview versions
+
 ## Version 9.2.0
 
 ### API changes for line number handling
