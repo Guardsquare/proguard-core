@@ -13,6 +13,31 @@ plugins {
 	alias(libs.plugins.aggregate.javadoc)
 }
 
+apply from: 'formattedSources.gradle'
+
+spotless {
+	java {
+		target(formatExtension("java"))
+		targetExclude("*/src/test/**")
+		importOrder()
+		googleJavaFormat()
+		endWithNewline()
+		toggleOffOn('formatter:off', 'formatter:on')
+	}
+	kotlin {
+		target(formatExtension("kt"))
+		ktlint()
+		endWithNewline()
+		toggleOffOn('formatter:off', 'formatter:on')
+	}
+	groovyGradle {
+		target("*/*.gradle")
+		greclipse()
+		endWithNewline()
+		toggleOffOn('formatter:off', 'formatter:on')
+	}
+}
+
 allprojects {
 	group = 'com.guardsquare'
 	version = proguardCoreVersion
@@ -34,23 +59,6 @@ allprojects {
 		javadoc {
 			options.addStringOption('Xdoclint:none', '-quiet')
 		}
-
-		spotless {
-			java {
-				importOrder()
-				googleJavaFormat()
-				endWithNewline()
-			}
-		}
-	}
-
-	pluginManager.withPlugin('kotlin') {
-		spotless {
-			kotlin {
-				ktlint()
-				endWithNewline()
-			}
-		}
 	}
 
 	tasks.withType(KotlinCompile).configureEach {
@@ -65,16 +73,6 @@ allprojects {
 			.configureEach {
 				compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_8
 			}
-
-	apply plugin: 'com.diffplug.spotless'
-
-	spotless {
-		groovyGradle {
-			greclipse()
-			endWithNewline()
-			toggleOffOn('formatter:off', 'formatter:on')
-		}
-	}
 }
 
 dependencies {

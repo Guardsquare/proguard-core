@@ -1,0 +1,25 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
+def formattedSourcesPaths = [
+	"base/src",
+	"android/src",
+	"examples/src",
+	"tools/src",
+]
+
+project.ext.formatExtension = { String fileExtension ->
+	def rootDir = project.rootDir
+	def folders = formattedSourcesPaths.collect { path -> "$rootDir${File.separator}$path" }
+	def nonexistentPaths = folders.findAll { path -> Files.notExists(Paths.get(path)) }.join("\n")
+	if (!nonexistentPaths.isEmpty()){
+		throw new IllegalArgumentException("Formatted sources contains non existing paths:\n$nonexistentPaths")
+	}
+	def nonSrcPaths = folders.findAll { path -> !path.endsWith("/src") }.join("\n")
+	if (!nonSrcPaths.isEmpty()) {
+		throw new IllegalArgumentException(
+		"The following paths do not end with /src:\n$nonSrcPaths\n" +
+		"Not specifying the src directory can lead to intermediate build files being scanned.")
+	}
+	return folders.collect { fileTree(dir: it).include("**/*.${fileExtension}") }.flatten()
+}
