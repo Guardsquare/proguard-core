@@ -1,5 +1,9 @@
 ## Version 9.2.1
 
+### API changes
+
+- Deprecate `DominatorCalculator.dominates` method, introduce `DominatorCalculator.maybeDominates` returning an `Optional<Boolean>` instead of `boolean`.
+
 ### Bugfixes
 
 - Fix `ClassUtil.externalClassVersion` returning null for preview versions

@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
@@ -121,7 +122,10 @@ public class DominatorCalculator implements AttributeVisitor {
    * @param dominator The potentially dominating instruction's offset
    * @param inferior The potentially dominated instruction's offset
    * @return true if the potential dominator is indeed guaranteed to be executed before the inferior
+   * @deprecated Callers should use {@link #maybeDominates} to handle an optional value instead of
+   *     an exception.
    */
+  @Deprecated
   public boolean dominates(int dominator, int inferior) {
     BitSet dominators = dominatorMap.get(inferior);
     if (dominators == null) {
@@ -132,6 +136,25 @@ public class DominatorCalculator implements AttributeVisitor {
           .build();
     }
     return dominators.get(offsetToIndex(dominator));
+  }
+
+  /**
+   * Check if one instruction dominates another one. If this is the case, the dominating instruction
+   * is guaranteed to be executed before the inferior instruction. Should you wish to check whether
+   * an instruction is guaranteed to be executed once the containing method is invoked, you can use
+   * the virtual inferior {@link #EXIT_NODE_OFFSET} as a collection for all return instructions.
+   *
+   * @param dominator The potentially dominating instruction's offset
+   * @param inferior The potentially dominated instruction's offset
+   * @return Optional.true if the potential dominator is indeed guaranteed to be executed before the
+   *     inferior, Optional.false if not and Optional.empty when no dominator information is known.
+   */
+  public Optional<Boolean> maybeDominates(int dominator, int inferior) {
+    BitSet dominators = dominatorMap.get(inferior);
+    if (dominators == null) {
+      return Optional.empty();
+    }
+    return Optional.of(dominators.get(offsetToIndex(dominator)));
   }
 
   /**
