@@ -20,7 +20,8 @@ package proguard.analysis
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.optional.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import proguard.analysis.DominatorCalculator.ENTRY_NODE_OFFSET
 import proguard.analysis.DominatorCalculator.EXIT_NODE_OFFSET
@@ -37,7 +38,7 @@ import proguard.exception.ProguardCoreException
 import java.util.BitSet
 import kotlin.streams.asSequence
 
-class DominatorCalculatorTest : FreeSpec({
+class DominatorCalculatorTest : FunSpec({
 
     class NamedClass(val memberName: String) : ProgramClass() {
         private var superNameStr: String? = null
@@ -91,7 +92,7 @@ class DominatorCalculatorTest : FreeSpec({
         return dominatorMap[offset]!!.stream().asSequence().map { it - 2 }.toSet()
     }
 
-    "Simple" {
+    test("Simple") {
         val code = byteArrayOf(
             Instruction.OP_BIPUSH,
             42, // 0  bipush 42
@@ -137,7 +138,7 @@ class DominatorCalculatorTest : FreeSpec({
         )
     }
 
-    "Branch" {
+    test("Branch") {
         val code = byteArrayOf(
             Instruction.OP_BIPUSH, 42, //     0  bipush 42
             Instruction.OP_IFICMPNE, 0, 8, // 2  if_icmpne 10 (+8)
@@ -190,7 +191,7 @@ class DominatorCalculatorTest : FreeSpec({
         )
     }
 
-    "Normal loop" {
+    test("Normal loop") {
         val code = byteArrayOf(
             Instruction.OP_BIPUSH, 42, //                        0  bipush 42
             Instruction.OP_IFICMPNE, 0, 8, //                    2  if_icmpne 10 (+8)
@@ -241,7 +242,7 @@ class DominatorCalculatorTest : FreeSpec({
         )
     }
 
-    "Loop to entrypoint" {
+    test("Loop to entrypoint") {
         val code = byteArrayOf(
             Instruction.OP_BIPUSH, 42, //                        0  bipush 42
             Instruction.OP_IFICMPNE, 0, 8, //                    2  if_icmpne 10 (+8)
@@ -292,7 +293,7 @@ class DominatorCalculatorTest : FreeSpec({
         )
     }
 
-    "Multiple return statements" {
+    test("Multiple return statements") {
         val code = byteArrayOf(
             Instruction.OP_BIPUSH, 42, //     0  bipush 42
             Instruction.OP_IFICMPNE, 0, 6, // 2  if_icmpne 8 (+6)
@@ -335,7 +336,7 @@ class DominatorCalculatorTest : FreeSpec({
         )
     }
 
-    "Switch statement" {
+    test("Switch statement") {
         val code = byteArrayOf(
             Instruction.OP_LOOKUPSWITCH, 0, 0, 0, // 0  lookupswitch:
             0, 0, 0, 41, //                               default (+41)
@@ -386,7 +387,7 @@ class DominatorCalculatorTest : FreeSpec({
         )
     }
 
-    "Try block at start of code" {
+    test("Try block at start of code") {
         val code = byteArrayOf(
             // try start
             Instruction.OP_BIPUSH, 42, // 0  bipush 42
@@ -437,7 +438,7 @@ class DominatorCalculatorTest : FreeSpec({
         calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 11, 13, EXIT_NODE_OFFSET)
     }
 
-    "Try block partway through code" {
+    test("Try block partway through code") {
         val code = byteArrayOf(
             Instruction.OP_BIPUSH, 42, // 0  bipush 42
             // try start
@@ -488,7 +489,7 @@ class DominatorCalculatorTest : FreeSpec({
         calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 0, 11, 13, EXIT_NODE_OFFSET)
     }
 
-    "Different try blocks pointing to the same handler" {
+    test("Different try blocks pointing to the same handler") {
         // In Java, nested try blocks can compile to multiple exception handlers with a goto between them.
         val code = byteArrayOf(
             // try start
@@ -550,7 +551,7 @@ class DominatorCalculatorTest : FreeSpec({
         calculator.getDominators(EXIT_NODE_OFFSET) shouldBe setOf(ENTRY_NODE_OFFSET, 8, EXIT_NODE_OFFSET)
     }
 
-    "Unknown offsets should not have dominators" {
+    context("Unknown offsets should not have dominators") {
         val code = byteArrayOf(
             Instruction.OP_BIPUSH,
             42, // 0  bipush 42
@@ -563,9 +564,6 @@ class DominatorCalculatorTest : FreeSpec({
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
         val codeAttribute = CodeAttribute(0, 1, 0, code.size, code)
-
-        val calculator = DominatorCalculator()
-        codeAttribute.accept(clazz, method, calculator)
 
         /*
              ENTRY
@@ -581,21 +579,36 @@ class DominatorCalculatorTest : FreeSpec({
               EXIT
          */
 
-        shouldThrow<ProguardCoreException> {
-            calculator.dominates(0, 1)
+        test("Deprecated dominates method should throw an exception on error") {
+            val calculator = DominatorCalculator()
+            codeAttribute.accept(clazz, method, calculator)
+
+            shouldThrow<ProguardCoreException> {
+                calculator.dominates(0, 1)
+            }
+            shouldThrow<ProguardCoreException> {
+                calculator.dominates(0, 3)
+            }
+            shouldThrow<ProguardCoreException> {
+                calculator.dominates(0, 5)
+            }
+            shouldThrow<ProguardCoreException> {
+                calculator.dominates(0, 7)
+            }
         }
-        shouldThrow<ProguardCoreException> {
-            calculator.dominates(0, 3)
-        }
-        shouldThrow<ProguardCoreException> {
-            calculator.dominates(0, 5)
-        }
-        shouldThrow<ProguardCoreException> {
-            calculator.dominates(0, 7)
+
+        test("maybeDominates method should return empty on error") {
+            val calculator = DominatorCalculator()
+            codeAttribute.accept(clazz, method, calculator)
+
+            calculator.maybeDominates(0, 1).shouldBeEmpty()
+            calculator.maybeDominates(0, 3).shouldBeEmpty()
+            calculator.maybeDominates(0, 5).shouldBeEmpty()
+            calculator.maybeDominates(0, 7).shouldBeEmpty()
         }
     }
 
-    "Empty CodeAttribute" - {
+    context("Empty CodeAttribute") {
         val code = byteArrayOf()
         val clazz = NamedClass("Test")
         val method = NamedMember("", "()V")
@@ -603,15 +616,22 @@ class DominatorCalculatorTest : FreeSpec({
 
         val calculator = DominatorCalculator()
 
-        "Analysis does not crash" {
+        test("Analysis does not crash") {
             shouldNotThrowAny {
                 codeAttribute.accept(clazz, method, calculator)
             }
         }
 
-        "All offsets are unknown" {
-            shouldThrow<ProguardCoreException> {
-                calculator.dominates(0, 1)
+        context("All offsets are unknown") {
+
+            test("Deprecated dominates method should throw an exception on error") {
+                shouldThrow<ProguardCoreException> {
+                    calculator.dominates(0, 1)
+                }
+            }
+
+            test("maybeDominates method should return empty on error") {
+                calculator.maybeDominates(0, 1).shouldBeEmpty()
             }
         }
     }

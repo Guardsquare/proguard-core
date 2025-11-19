@@ -44,4 +44,9 @@ public interface Processable extends Serializable {
 
   /** Gets the processing information. */
   public Object getProcessingInfo();
+
+  /** Accepts the given processable visitor. */
+  default void accept(ProcessableVisitor processableVisitor) {
+    processableVisitor.visitAnyProcessable(this);
+  }
 }

@@ -422,7 +422,9 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
     boolean alwaysInvoked = true;
     if (useDominatorAnalysis) {
       alwaysInvoked =
-          dominatorCalculator.dominates(location.offset, DominatorCalculator.EXIT_NODE_OFFSET);
+          dominatorCalculator
+              .maybeDominates(location.offset, DominatorCalculator.EXIT_NODE_OFFSET)
+              .orElse(false);
     }
     Call call =
         instantiateCall(
