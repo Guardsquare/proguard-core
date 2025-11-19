@@ -1,12 +1,13 @@
-## Version 9.2.1
+## Version 9.3.0
 
 ### API changes
 
 - Deprecate `DominatorCalculator.dominates` method, introduce `DominatorCalculator.maybeDominates` returning an `Optional<Boolean>` instead of `boolean`.
+- Support Kotlin experimental annotation metadata v2.
 
 ### Bugfixes
 
-- Fix `ClassUtil.externalClassVersion` returning null for preview versions
+- Fix `ClassUtil.externalClassVersion` returning null for preview versions.
 
 ## Version 9.2.0
 
