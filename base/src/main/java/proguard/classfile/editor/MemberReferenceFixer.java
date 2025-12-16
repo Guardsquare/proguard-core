@@ -200,25 +200,23 @@ public class MemberReferenceFixer
   }
 
   @Override
-  public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant)
-  {
+  public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
     // Do we know the referenced member?
-    if (invokeDynamicConstant.referencedMember != null)
-    {
-      Clazz  referencedClass  = invokeDynamicConstant.referencedClass;
+    if (invokeDynamicConstant.referencedMember != null) {
+      Clazz referencedClass = invokeDynamicConstant.referencedClass;
       Member referencedMember = invokeDynamicConstant.referencedMember;
 
       // Does it have a new name?
-      String newName     = referencedMember.getName(referencedClass);
+      String newName = referencedMember.getName(referencedClass);
       String currentName = invokeDynamicConstant.getName(clazz);
 
-      if (!currentName.equals(newName))
-      {
+      if (!currentName.equals(newName)) {
         String currentDescriptor = invokeDynamicConstant.getType(clazz);
 
         // Update the name and type index.
         invokeDynamicConstant.u2nameAndTypeIndex =
-                new ConstantPoolEditor((ProgramClass)clazz).addNameAndTypeConstant(newName, currentDescriptor);
+            new ConstantPoolEditor((ProgramClass) clazz)
+                .addNameAndTypeConstant(newName, currentDescriptor);
       }
     }
   }

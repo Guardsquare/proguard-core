@@ -27,18 +27,15 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.visitor.ClassVisitor;
 
 /**
- * This {@link ClassVisitor} initializes the references of {@link InvokeDynamicConstant}s
- * that represent lambda expressions. More specifically, it links the constants to the
- * actual functional interface methods they target in the program class pool or in the
- * library class pool.
+ * This {@link ClassVisitor} initializes the references of {@link InvokeDynamicConstant}s that
+ * represent lambda expressions. More specifically, it links the constants to the actual functional
+ * interface methods they target in the program class pool or in the library class pool.
  *
  * <p>The class hierarchy must be initialized before using this visitor.
  *
  * @author ShortyDev
  */
-public class LambdaReferenceInitializer
-        implements ClassVisitor,
-        ConstantVisitor {
+public class LambdaReferenceInitializer implements ClassVisitor, ConstantVisitor {
   private final ClassPool programClassPool;
   private final ClassPool libraryClassPool;
 
@@ -49,8 +46,7 @@ public class LambdaReferenceInitializer
 
   // Implementations for ClassVisitor.
   @Override
-  public void visitAnyClass(Clazz clazz) {
-  }
+  public void visitAnyClass(Clazz clazz) {}
 
   @Override
   public void visitProgramClass(ProgramClass programClass) {
@@ -59,8 +55,7 @@ public class LambdaReferenceInitializer
 
   // Implementations for ConstantVisitor.
   @Override
-  public void visitAnyConstant(Clazz clazz, Constant constant) {
-  }
+  public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
   @Override
   public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
