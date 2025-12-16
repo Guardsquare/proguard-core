@@ -38,6 +38,18 @@ public class InvokeDynamicConstant extends Constant {
    */
   public Clazz[] referencedClasses;
 
+  /**
+   * An extra field pointing to the Clazz that contains the method referenced. This field is
+   * populated by the <code>{@link proguard.classfile.util.LambdaReferenceInitializer}</code>.
+   */
+  public Clazz referencedClass;
+
+  /**
+   * An extra field pointing to the Member referenced by this InvokeDynamic. This field is
+   * populated by the <code>{@link proguard.classfile.util.LambdaReferenceInitializer}</code>.
+   */
+  public Member referencedMember;
+
   /** Creates an uninitialized InvokeDynamicConstant. */
   public InvokeDynamicConstant() {}
 
