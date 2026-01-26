@@ -35,10 +35,22 @@ public class CodeInjector {
   private List<ClassMethodPair> targets;
   private ClassMethodPair content;
   private InjectStrategy injectStrategy;
-  private List<InjectedArgument> arguments = new ArrayList<>();
+  private List<InjectedArgument> arguments = Collections.emptyList();
   private int localMaxLocals = -1;
   private LocalVariable resultLocalIndex;
-  private CodeAttributeEditor editor;
+  protected final CodeAttributeEditor editor;
+
+  /**
+   * @deprecated Use {@link #CodeInjector(CodeAttributeEditor)} instead.
+   */
+  @Deprecated
+  public CodeInjector() {
+    this(new CodeAttributeEditor());
+  }
+
+  public CodeInjector(CodeAttributeEditor editor) {
+    this.editor = editor;
+  }
 
   /**
    * Specify the static method to be invoked.
@@ -89,6 +101,23 @@ public class CodeInjector {
     this.arguments = Arrays.asList(arguments);
 
     return this;
+  }
+
+  /**
+   * Resets the internal state of this injector, allowing it to be reused.
+   *
+   * <p>This avoids the performance overhead of re-instantiating the attribute editor for subsequent
+   * operations.
+   */
+  public void reset() {
+    targets = null;
+    content = null;
+    injectStrategy = null;
+    resultLocalIndex = null;
+    arguments = Collections.emptyList();
+    localMaxLocals = -1;
+    // editor doesn't need resetting because that already happens
+    // everytime it is used in visitCodeAttribute
   }
 
   /**
@@ -162,10 +191,6 @@ public class CodeInjector {
         : "The injection location hasn't been provided. please use `.at(...)` to indicate the place to inject "
             + renderInjectionContent(content.clazz, content.method, arguments)
             + " into the target method.";
-
-    if (editor == null) {
-      editor = new CodeAttributeEditor();
-    }
 
     targets.forEach(
         target -> {

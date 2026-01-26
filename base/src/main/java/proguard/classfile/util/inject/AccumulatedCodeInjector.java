@@ -20,7 +20,17 @@ import proguard.classfile.util.inject.location.InjectStrategy;
  */
 public class AccumulatedCodeInjector extends CodeInjector {
   private final List<CodeInjector> injectors = new ArrayList<>();
-  private CodeInjector currentInjector = new CodeInjector();
+
+  private CodeInjector currentInjector;
+
+  public AccumulatedCodeInjector() {
+    this(new CodeAttributeEditor());
+  }
+
+  public AccumulatedCodeInjector(CodeAttributeEditor editor) {
+    super(editor);
+    currentInjector = new CodeInjector(editor);
+  }
 
   @Override
   public CodeInjector injectInvokeStatic(Clazz clazz, Method method) {
@@ -49,6 +59,7 @@ public class AccumulatedCodeInjector extends CodeInjector {
     return this;
   }
 
+  @Override
   public LocalVariable store() {
     return injectors.get(injectors.size() - 1).store();
   }
@@ -67,8 +78,6 @@ public class AccumulatedCodeInjector extends CodeInjector {
                           targetToInjectorsMap.computeIfAbsent(target, k -> new ArrayList<>());
                       currentInjectors.add(injector);
                     }));
-
-    CodeAttributeEditor editor = new CodeAttributeEditor();
 
     // Iterate over the target methods.
     targetToInjectorsMap.forEach(
@@ -155,7 +164,7 @@ public class AccumulatedCodeInjector extends CodeInjector {
   private void commitCurrentInjector() {
     if (currentInjector.readyToCommit()) {
       injectors.add(currentInjector);
-      currentInjector = new CodeInjector();
+      currentInjector = new CodeInjector(editor);
     }
   }
 }
