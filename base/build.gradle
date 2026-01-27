@@ -21,6 +21,7 @@ dependencies {
 	testFixturesImplementation(libs.kctfork)
 	testFixturesImplementation(libs.kotest.runner.jvm) // for kotest framework
 	testFixturesImplementation(libs.kotest.assertions.jvm) // for kotest core jvm assertions
+	testFixturesImplementation(libs.mockk)
 	testImplementation(libs.mockk)
 	testImplementation(libs.jupiter.api) // for junit framework
 	testRuntimeOnly(libs.jupiter.engine) // for junit framework
