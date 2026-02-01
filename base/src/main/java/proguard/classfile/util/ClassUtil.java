@@ -152,6 +152,7 @@ public class ClassUtil {
         return VersionConstants.CLASS_VERSION_24;
       case JavaVersionConstants.CLASS_VERSION_25:
         return VersionConstants.CLASS_VERSION_25;
+
     }
     return 0;
   }
@@ -222,6 +223,8 @@ public class ClassUtil {
         return JavaVersionConstants.CLASS_VERSION_24;
       case VersionConstants.CLASS_VERSION_25:
         return JavaVersionConstants.CLASS_VERSION_25;
+      case VersionConstants.CLASS_VERSION_26:
+        return JavaVersionConstants.CLASS_VERSION_26;
       default:
         return null;
     }

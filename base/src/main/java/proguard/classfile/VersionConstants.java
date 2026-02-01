@@ -75,6 +75,8 @@ public class VersionConstants {
   public static final int CLASS_VERSION_24_MINOR = 0;
   public static final int CLASS_VERSION_25_MAJOR = 69;
   public static final int CLASS_VERSION_25_MINOR = 0;
+  public static final int CLASS_VERSION_26_MAJOR = 70;
+  public static final int CLASS_VERSION_26_MINOR = 0;
   public static final int PREVIEW_VERSION_MINOR = 65535;
 
   public static final int CLASS_VERSION_1_0 =
@@ -127,6 +129,8 @@ public class VersionConstants {
       (CLASS_VERSION_24_MAJOR << 16) | CLASS_VERSION_24_MINOR;
   public static final int CLASS_VERSION_25 =
       (CLASS_VERSION_25_MAJOR << 16) | CLASS_VERSION_25_MINOR;
+  public static final int CLASS_VERSION_26 =
+          (CLASS_VERSION_26_MAJOR << 16) | CLASS_VERSION_26_MINOR;
   public static final int MAX_SUPPORTED_VERSION =
-      (CLASS_VERSION_25_MAJOR << 16) | PREVIEW_VERSION_MINOR;
+      (CLASS_VERSION_26_MAJOR << 16) | PREVIEW_VERSION_MINOR;
 }
