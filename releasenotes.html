@@ -1,0 +1,3728 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="The ProGuardCORE library">
+      
+      
+        <meta name="author" content="Guardsquare NV">
+      
+      
+      
+        <link rel="prev" href="building.html">
+      
+      
+      <link rel="icon" href="img/guardsquare.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
+    
+    
+      
+        <title>Release notes - ProGuardCORE</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.eebd395e.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ecc896b0.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="extra.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#version-930" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="ProGuardCORE" class="md-header__button md-logo" aria-label="ProGuardCORE" data-md-component="logo">
+      
+  <img src="img/core.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ProGuardCORE
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Release notes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+            
+              <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+              </label>
+            
+          
+            
+            
+            
+            <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+            
+              <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+              </label>
+            
+          
+        </form>
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/guardsquare/proguard-core" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    guardsquare/proguard-core
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="ProGuardCORE" class="md-nav__button md-logo" aria-label="ProGuardCORE" data-md-component="logo">
+      
+  <img src="img/core.png" alt="logo">
+
+    </a>
+    ProGuardCORE
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/guardsquare/proguard-core" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    guardsquare/proguard-core
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reading.html" class="md-nav__link">
+        Reading classes
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="creating.html" class="md-nav__link">
+        Creating classes
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="editing.html" class="md-nav__link">
+        Editing classes
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="patternmatching.html" class="md-nav__link">
+        Pattern matching
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Analyzing code
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Analyzing code
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="partialevaluator.html" class="md-nav__link">
+        Data flow analysis with partial evaluation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="taintcpa.html" class="md-nav__link">
+        Taint analysis with CPA
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="kotlin.html" class="md-nav__link">
+        Kotlin metadata
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="downloads.html" class="md-nav__link">
+        Downloads
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="building.html" class="md-nav__link">
+        Building
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Release notes
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="releasenotes.html" class="md-nav__link md-nav__link--active">
+        Release notes
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#version-930" class="md-nav__link">
+    Version 9.3.0
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.3.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-changes" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-920" class="md-nav__link">
+    Version 9.2.0
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-changes-for-line-number-handling" class="md-nav__link">
+    API changes for line number handling
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java-support" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_1" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-9111" class="md-nav__link">
+    Version 9.1.11
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-9110" class="md-nav__link">
+    Version 9.1.10
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.10">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_1" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_2" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-919" class="md-nav__link">
+    Version 9.1.9
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-918" class="md-nav__link">
+    Version 9.1.8
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_1" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_1" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes-for-the-dataflow-analysis-code" class="md-nav__link">
+    API changes for the dataflow analysis code
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_3" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-917" class="md-nav__link">
+    Version 9.1.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_4" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_2" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements" class="md-nav__link">
+    API improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_1" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes-for-the-dataflow-analysis-code_1" class="md-nav__link">
+    API changes for the dataflow analysis code
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-916" class="md-nav__link">
+    Version 9.1.6
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_2" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_2" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_5" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-915" class="md-nav__link">
+    Version 9.1.5
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_3" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_6" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_3" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-914" class="md-nav__link">
+    Version 9.1.4
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_2" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_4" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_4" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_7" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-913" class="md-nav__link">
+    Version 9.1.3
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_3" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-912" class="md-nav__link">
+    Version 9.1.2
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_3" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_5" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_5" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-911" class="md-nav__link">
+    Version 9.1.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_8" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_6" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-code-style" class="md-nav__link">
+    New Code Style
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-91" class="md-nav__link">
+    Version 9.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_7" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_6" class="md-nav__link">
+    API Changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-9010" class="md-nav__link">
+    Version 9.0.10
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.10">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_8" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_7" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-909" class="md-nav__link">
+    Version 9.0.9
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_4" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java-support_4" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_9" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_8" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-908" class="md-nav__link">
+    Version 9.0.8
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_10" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_9" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade-considerations" class="md-nav__link">
+    Upgrade considerations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-907" class="md-nav__link">
+    Version 9.0.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_11" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-907_1" class="md-nav__link">
+    Version 9.0.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_12" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_1" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_10" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-906" class="md-nav__link">
+    Version 9.0.6
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_13" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_4" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_2" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-905" class="md-nav__link">
+    Version 9.0.5
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_14" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_5" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-904" class="md-nav__link">
+    Version 9.0.4
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_15" class="md-nav__link">
+    Improved
+  </a>
+  
+    <nav class="md-nav" aria-label="Improved">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_3" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_6" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-903" class="md-nav__link">
+    Version 9.0.3
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_5" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_16" class="md-nav__link">
+    Improved
+  </a>
+  
+    <nav class="md-nav" aria-label="Improved">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_4" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-902" class="md-nav__link">
+    Version 9.0.2
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_17" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improvements-to-kotlin-metadata-initialization" class="md-nav__link">
+    Improvements to Kotlin metadata initialization
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-901" class="md-nav__link">
+    Version 9.0.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_18" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_7" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upgrade-considerations_1" class="md-nav__link">
+    Upgrade considerations
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrade considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type-name-convention" class="md-nav__link">
+    TYPE NAME CONVENTION
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-90-april-2022" class="md-nav__link">
+    Version 9.0 (April 2022)
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0 (April 2022)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configurable-program-analysis-cpa" class="md-nav__link">
+    Configurable program analysis (CPA)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_8" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-807" class="md-nav__link">
+    Version 8.0.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_6" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_19" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-806" class="md-nav__link">
+    Version 8.0.6
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_20" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-805" class="md-nav__link">
+    Version 8.0.5
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_21" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_9" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_11" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-804" class="md-nav__link">
+    Version 8.0.4
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_22" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_5" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-803" class="md-nav__link">
+    Version 8.0.3
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_23" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-802" class="md-nav__link">
+    Version 8.0.2
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_24" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_6" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_10" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-801" class="md-nav__link">
+    Version 8.0.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_7" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_11" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-800" class="md-nav__link">
+    Version 8.0.0
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_7" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_5" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_8" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_12" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-711" class="md-nav__link">
+    Version 7.1.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 7.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_9" class="md-nav__link">
+    API improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_12" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-71-june-2021" class="md-nav__link">
+    Version 7.1 (June 2021)
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 7.1 (June 2021)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_8" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved-code-analysis" class="md-nav__link">
+    Improved code analysis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    Performance improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_10" class="md-nav__link">
+    API improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_13" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-70-jan-2020" class="md-nav__link">
+    Version 7.0 (Jan 2020)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#version-930" class="md-nav__link">
+    Version 9.3.0
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.3.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-changes" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-920" class="md-nav__link">
+    Version 9.2.0
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-changes-for-line-number-handling" class="md-nav__link">
+    API changes for line number handling
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java-support" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_1" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-9111" class="md-nav__link">
+    Version 9.1.11
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-9110" class="md-nav__link">
+    Version 9.1.10
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.10">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_1" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_2" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-919" class="md-nav__link">
+    Version 9.1.9
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-918" class="md-nav__link">
+    Version 9.1.8
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_1" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_1" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes-for-the-dataflow-analysis-code" class="md-nav__link">
+    API changes for the dataflow analysis code
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_3" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-917" class="md-nav__link">
+    Version 9.1.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_4" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_2" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements" class="md-nav__link">
+    API improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_1" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes-for-the-dataflow-analysis-code_1" class="md-nav__link">
+    API changes for the dataflow analysis code
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-916" class="md-nav__link">
+    Version 9.1.6
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_2" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_2" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_5" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-915" class="md-nav__link">
+    Version 9.1.5
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_3" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_6" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_3" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-914" class="md-nav__link">
+    Version 9.1.4
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_2" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_4" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_4" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_7" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-913" class="md-nav__link">
+    Version 9.1.3
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_3" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-912" class="md-nav__link">
+    Version 9.1.2
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_3" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_5" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_5" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-911" class="md-nav__link">
+    Version 9.1.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bugfixes_8" class="md-nav__link">
+    Bugfixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_6" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-code-style" class="md-nav__link">
+    New Code Style
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-91" class="md-nav__link">
+    Version 9.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_7" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_6" class="md-nav__link">
+    API Changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-9010" class="md-nav__link">
+    Version 9.0.10
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.10">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_8" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_7" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-909" class="md-nav__link">
+    Version 9.0.9
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_4" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java-support_4" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_9" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_8" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-908" class="md-nav__link">
+    Version 9.0.8
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_10" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_9" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade-considerations" class="md-nav__link">
+    Upgrade considerations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-907" class="md-nav__link">
+    Version 9.0.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_11" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-907_1" class="md-nav__link">
+    Version 9.0.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_12" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_1" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_10" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-906" class="md-nav__link">
+    Version 9.0.6
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_13" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_4" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_2" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-905" class="md-nav__link">
+    Version 9.0.5
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_14" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_5" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-904" class="md-nav__link">
+    Version 9.0.4
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_15" class="md-nav__link">
+    Improved
+  </a>
+  
+    <nav class="md-nav" aria-label="Improved">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_3" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_6" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-903" class="md-nav__link">
+    Version 9.0.3
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_5" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_16" class="md-nav__link">
+    Improved
+  </a>
+  
+    <nav class="md-nav" aria-label="Improved">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_4" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-902" class="md-nav__link">
+    Version 9.0.2
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_17" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improvements-to-kotlin-metadata-initialization" class="md-nav__link">
+    Improvements to Kotlin metadata initialization
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-901" class="md-nav__link">
+    Version 9.0.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_18" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_7" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upgrade-considerations_1" class="md-nav__link">
+    Upgrade considerations
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrade considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type-name-convention" class="md-nav__link">
+    TYPE NAME CONVENTION
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-90-april-2022" class="md-nav__link">
+    Version 9.0 (April 2022)
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 9.0 (April 2022)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configurable-program-analysis-cpa" class="md-nav__link">
+    Configurable program analysis (CPA)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_8" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-807" class="md-nav__link">
+    Version 8.0.7
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_6" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved_19" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-806" class="md-nav__link">
+    Version 8.0.6
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_20" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-805" class="md-nav__link">
+    Version 8.0.5
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_21" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_9" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_11" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-804" class="md-nav__link">
+    Version 8.0.4
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_22" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_5" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-803" class="md-nav__link">
+    Version 8.0.3
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_23" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-802" class="md-nav__link">
+    Version 8.0.2
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#improved_24" class="md-nav__link">
+    Improved
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_6" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_10" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-801" class="md-nav__link">
+    Version 8.0.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_7" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_11" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-800" class="md-nav__link">
+    Version 8.0.0
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 8.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_7" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-support_5" class="md-nav__link">
+    Kotlin support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_8" class="md-nav__link">
+    API Improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-changes_12" class="md-nav__link">
+    API changes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-711" class="md-nav__link">
+    Version 7.1.1
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 7.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_9" class="md-nav__link">
+    API improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_12" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-71-june-2021" class="md-nav__link">
+    Version 7.1 (June 2021)
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 7.1 (June 2021)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#java-support_8" class="md-nav__link">
+    Java support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#improved-code-analysis" class="md-nav__link">
+    Improved code analysis
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    Performance improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-improvements_10" class="md-nav__link">
+    API improvements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_13" class="md-nav__link">
+    Bug fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-70-jan-2020" class="md-nav__link">
+    Version 7.0 (Jan 2020)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Release notes</h1>
+
+<h2 id="version-930">Version 9.3.0</h2>
+<h3 id="api-changes">API changes</h3>
+<ul>
+<li>Deprecate <code>DominatorCalculator.dominates</code> method, introduce <code>DominatorCalculator.maybeDominates</code> returning an <code>Optional&lt;Boolean&gt;</code> instead of <code>boolean</code>.</li>
+<li>Support Kotlin experimental annotation metadata v2.</li>
+</ul>
+<p>The following changes will require code updates:
+- <code>KotlinPropertyAccessorFlags</code> is removed and inlined into <code>KotlinProperyAccessorMetadata</code>. Please use <code>KotlinPropertyAccessorMetadata</code> instead.
+- <code>KotlinPropertyMetadata.getterFlags</code>,<code>KotlinPropertyMetadata.referencedGetterMethod</code>,<code>KotlinPropertyMetadata.getterSignature</code> have been removed.
+  Please use <code>KotlinPropertyMetadata.getterMetadata</code> instead.
+- <code>KotlinPropertyMetadata.setterFlags</code>,<code>KotlinPropertyMetadata.referencedSetterMethod</code>,<code>KotlinPropertyMetadata.setterSignature</code> have been removed.
+  Please use <code>KotlinPropertyMetadata.setterMetadata</code> instead.
+- <code>KotlinClassKindMetadata.enumEntryNames</code>, <code>KotlinClassKindMetadata.referencedEnumEntries</code> have been removed and moved to <code>EnumEntryMetadata</code>.
+  Please use <code>KotlinClassKindMetadata.enumEntries</code> instead.</p>
+<h3 id="bugfixes">Bugfixes</h3>
+<ul>
+<li>Fix <code>ClassUtil.externalClassVersion</code> returning null for preview versions.</li>
+</ul>
+<h2 id="version-920">Version 9.2.0</h2>
+<h3 id="api-changes-for-line-number-handling">API changes for line number handling</h3>
+<ul>
+<li>Add new StructuredLineNumberInfo class.</li>
+<li>Deprecate ExtendedLineNumberInfo class.</li>
+<li>Adapt utilities to generate StructuredLineNumberInfo instead of ExtendedLineNumberInfo.</li>
+</ul>
+<h3 id="java-support">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 69.65535 (Java 25).</li>
+</ul>
+<h3 id="bugfixes_1">Bugfixes</h3>
+<ul>
+<li>Prevent error when building with maven where the dependency "kotlin-stdlib-common" could not be found.</li>
+</ul>
+<h2 id="version-9111">Version 9.1.11</h2>
+<h3 id="kotlin-support">Kotlin support</h3>
+<ul>
+<li>Add support for processing Kotlin 2.2 metadata.</li>
+</ul>
+<h2 id="version-9110">Version 9.1.10</h2>
+<h3 id="java-support_1">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 68.65535 (Java 24).</li>
+</ul>
+<h3 id="bugfixes_2">Bugfixes</h3>
+<ul>
+<li>Prevent <code>StackOverflowError</code> in ConstantPoolShrinker when visiting a pattern matching switch in java &gt;= 21. </li>
+</ul>
+<h2 id="version-919">Version 9.1.9</h2>
+<h3 id="improved">Improved</h3>
+<ul>
+<li>Improve performance of <code>MethodLinker</code> in situations with large number of linked methods in a chain.</li>
+</ul>
+<h2 id="version-918">Version 9.1.8</h2>
+<h3 id="improved_1">Improved</h3>
+<ul>
+<li>Improve runtime of <code>BamTransferRelation</code>.</li>
+<li>Add a method signature and descriptor parser in the new package <code>proguard.classfile.attribute.signature</code>.</li>
+</ul>
+<h3 id="kotlin-support_1">Kotlin support</h3>
+<ul>
+<li>Add support for processing Kotlin 2.1 metadata.</li>
+</ul>
+<h3 id="api-changes-for-the-dataflow-analysis-code">API changes for the dataflow analysis code</h3>
+<p>This is a continuation of the API changes started in release 9.1.7.
+- Remove <code>JvmValueBamCpaRun</code> in order to simplify the utility code to run the analysis. <code>ValueAnalyzer</code> is the direct replacement, this class has the same behavior as <code>JvmValueBamCpaRun</code>, as long as <code>analyze</code> is called only once.
+- Remove <code>JvmTaintMemoryLocationBamCpaRun</code> in order to simplify the utility code to run the analysis. <code>TaintAnalyzer</code> is the direct replacement, this class has the same behavior as <code>JvmTaintMemoryLocationBamCpaRun</code>, as long as <code>analyze</code> is called only once.
+- Remove the <code>CpaRun</code> infrastructure.
+- Remove <code>MapAbstractStateFactory</code>, <code>WrapperTransferRelation</code>, and other classes that were only used with the tree heap model.
+- Remove <code>StateNames</code> and <code>getStateByName</code>.
+- Refactor several classes taking generic parameters for <code>CfaEdge</code>, <code>CfaNode</code>, and <code>Signature</code>, to not use the generic parameters anymore. They now default to <code>JvmCfaEdge</code>, <code>JvmCfaNode</code>, and <code>MethodSignature</code>.
+- Refactor CPA reached set, waitlist, operators, and all their dependant classes to be parametrized by the type of abstract states of the dataflow analysis. This allows to make the code safe at compile time and avoid unnecessary casts.
+- Move <code>AbortOperator</code> from being a parameter of <code>CpaAlgorithm#run</code> to the <code>ConfigurableProgramAnalysis</code> interface.
+- Move functionalities of <code>LatticeAbstractState</code> to <code>AbstractState</code>. Remove <code>AbstractDomain</code> since the abstract states can now perform directly the <code>isLessOrEqual</code> and <code>join</code> operations without the need of delegation.</p>
+<h3 id="bugfixes_3">Bugfixes</h3>
+<ul>
+<li>Fix semi-lattice properties of <code>MultiTypedReferenceValue</code>'s <code>generalize()</code> method</li>
+<li>Fix integers potentially being used as reference identifier during interprocedural value analysis. This could result in the analysis not reaching a fixed point.</li>
+<li>Fix <code>JvmTaintTransferRelation#propagateExtraTaints</code> propagating taint incorrectly if the stack contains more than one element.</li>
+</ul>
+<h2 id="version-917">Version 9.1.7</h2>
+<h3 id="bugfixes_4">Bugfixes</h3>
+<ul>
+<li>Make sure injected initialization methods in interfaces have the correct access flags.</li>
+</ul>
+<h3 id="improved_2">Improved</h3>
+<ul>
+<li><code>InstructionSequenceMatcher</code> now supports matching of primitive array constants.</li>
+<li>Support propagation of extra specified taints in <code>JvmTaintTransferRelation</code>.</li>
+<li>Introduce <code>ReflectiveModel</code> and <code>ReflectiveModelExecutor</code> to simplify the creation and analysis of <code>Model</code>s.</li>
+</ul>
+<h3 id="api-improvements">API improvements</h3>
+<ul>
+<li>Rename <code>CallVisitor</code> to <code>CallHandler</code> and add extra parameters to handle calls accounting for more data.</li>
+<li>Add <code>ClassUtil.isClassInitializer(String)</code> and <code>ClassUtil.isInstanceInitializer(String)</code>.</li>
+<li>Extend <code>MemberCollectionFilter</code> to accept a <code>Set</code> of any subtype of <code>Member</code>.</li>
+</ul>
+<h3 id="api-changes_1">API changes</h3>
+<ul>
+<li>Move classes related to <code>Model</code> to the <code>proguard.evaluation.value.object.model</code> package.</li>
+<li><code>StringSharer</code> now uses a string pool to share strings, instead of traversing references.</li>
+</ul>
+<h3 id="api-changes-for-the-dataflow-analysis-code_1">API changes for the dataflow analysis code</h3>
+<p>There are several changes to the dataflow analysis code with the objective of eliminating unnecessary abstraction and 
+make its usage easier. This includes:
+- Remove <code>MemoryLocation</code>, use <code>JvmMemoryLocation</code> instead.
+- Make <code>JvmMemoryLocation</code> independent of the type of value contained in the analysis' state. The type of the value now needs only to be provided when calling <code>extractValueOrDefault</code>.
+- Remove all code related to the tree heap model for taint analysis.</p>
+<h2 id="version-916">Version 9.1.6</h2>
+<h3 id="java-support_2">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 67.65535 (Java 23).</li>
+</ul>
+<h3 id="api-changes_2">API changes</h3>
+<ul>
+<li>Make <code>CallGraph</code> reconstruction/traversal methods generic in that they now take a <code>Set&lt;MethodSignature&gt;</code> to determine when to stop exploration</li>
+<li>Delete <code>EntryPoint</code> class</li>
+</ul>
+<h3 id="bugfixes_5">Bugfixes</h3>
+<ul>
+<li>Fix incorrect traversal direction in <code>predecessorsContain</code>.</li>
+</ul>
+<h2 id="version-915">Version 9.1.5</h2>
+<h3 id="improved_3">Improved</h3>
+<ul>
+<li><code>ExecutingInvocationUnit</code> now supports execution of static methods with no parameters.</li>
+</ul>
+<h3 id="bugfixes_6">Bugfixes</h3>
+<ul>
+<li>Prevent <code>unknown enum value for KmVersionRequirementVersionKind</code> exception when processing code compiled with an outdated Kotlin version.</li>
+<li>Fix <code>UnknownReferenceValue</code> return wrong string format in <code>getType</code>.</li>
+<li>Fix <code>ReflectionExecutor</code> not updating instance of <code>StringBuilder</code>s in fallback result.</li>
+<li>Fix <code>DetailedArrayValueFactory#createArrayReferenceValue</code> expecting an array type instead of the type of the values contained in the array.</li>
+<li>Fix <code>ExecutingInvocationUnit</code> using both <code>ParticularReferenceValue</code> and <code>DetailedArrayReferenceValue</code> for arrays of reference types. Now <code>DetailedArrayValueFactory</code> is used consistently.</li>
+</ul>
+<h3 id="api-changes_3">API changes</h3>
+<ul>
+<li><code>Executor</code>s do not support <code>MethodSignature</code> wildcards anymore. The assumption from <code>ExecutorLookup</code> is now that all the signatures supported by the executor are declared explicitly in <code>getSupportedMethodSignatures</code>.</li>
+<li><code>StringExecutor</code>, <code>ExecutingInvocationUnit</code>, and <code>JvmValueBamCpaRun</code> now need the library class pool as parameter.</li>
+<li>Calls to <code>InstructionSequenceBuilder.ldc</code> now optionally accept a <code>ConstantVisitor</code>. The visitor will visit the constant that is referenced by the added instruction.</li>
+<li><code>DetailedArrayValueFactory</code> now takes a <code>referenceValueFactory</code> parameter, which determines if the value factory supports direct creation of reference arrays.</li>
+<li><code>ParticularReferenceValue</code> can't be used with arrays anymore.</li>
+</ul>
+<h2 id="version-914">Version 9.1.4</h2>
+<h3 id="kotlin-support_2">Kotlin support</h3>
+<ul>
+<li>Update Kotlin dependency to 2.0.0 final release version.</li>
+</ul>
+<h3 id="improved_4">Improved</h3>
+<ul>
+<li>Add support for dynamic dispatch in <code>ExecutorInvocationUnit</code>. This makes it possible to execute methods based on statically observed types of objects, not only based on the type of the used variables.</li>
+</ul>
+<h3 id="api-changes_4">API changes</h3>
+<ul>
+<li>Remove <code>ExecutorMatcher</code> and change the <code>Executor</code> interface so that it declares supported methods by <code>MethodSignature</code> wildcards instead.</li>
+<li>Add <code>@Nullable</code> annotations to <code>MethodSignature</code>.</li>
+</ul>
+<h3 id="bugfixes_7">Bugfixes</h3>
+<ul>
+<li>Prevent potential <code>NullPointerException</code> when Kotlin property metadata <code>isVar</code> flag does not correctly indicate the presence of a setter.</li>
+</ul>
+<h2 id="version-913">Version 9.1.3</h2>
+<h3 id="kotlin-support_3">Kotlin support</h3>
+<ul>
+<li>Add support for processing Kotlin 2.0 metadata.</li>
+<li>Update to stable version of the Kotlin metadata library.</li>
+</ul>
+<h2 id="version-912">Version 9.1.2</h2>
+<h3 id="java-support_3">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 66.65535 (Java 22).</li>
+</ul>
+<h3 id="api-changes_5">API changes</h3>
+<ul>
+<li>Remove deprecated <code>ReferenceValueFactory</code>, <code>ParticularReferenceValueFactory</code> should be used instead.</li>
+<li>Deprecate methods in <code>ValueFactory</code> taking an <code>Object</code> as parameter. The alternatives using <code>ParticularObject</code> should be used instead.</li>
+<li><code>Executor#getMethodResult</code> now returns a <code>MethodResult</code> object instead of just the return value of the analyzed method. The calling instance has been removed from the parameters array since it's already available in another argument.</li>
+</ul>
+<h3 id="improved_5">Improved</h3>
+<ul>
+<li>Add support for selective parameter reconstruction to define which methods should have their calls evaluated.</li>
+<li>Refactor <code>ExecutingInvocationUnit</code> to be customizable using executors. Improve checking whether method instance should be replaced in stack and variables.</li>
+<li>Support execution of methods that operate on 1D arrays of all primitive and reference types with <code>ReflectionExecutor</code>.</li>
+<li>Use runtime type instead of static type when possible in <code>ExecutingInvocationUnit</code>.</li>
+<li>Introduce <code>ParticularObject</code> as the value tracked by <code>ParticularReferenceValue</code>. This makes explicit which kind of values can be tracked during the analysis, and introduces the possibility of tracking a model of the values that differ from the actual tracked object.</li>
+<li>Extend capabilities of <code>ExecutingInvocationUnit</code> to allow executors to specify side effects not only on the instance value, but also on parameters.</li>
+<li>Extend capabilities of <code>ExecutingInvocationUnit</code> to allow executors to specify return/instance/argument values that are not particular.</li>
+</ul>
+<h3 id="bug-fixes">Bug fixes</h3>
+<ul>
+<li>Improve Kotlin MultiFileFacade metadata assertions to detect uninitialized references. </li>
+<li>Fix handling of category 2 values in <code>JvmValueTransferRelation</code> to work correctly with <code>ExecutingInvocationUnit</code>.</li>
+<li>Fix concurrency problems in CallGraph and ValueFactory ids.</li>
+<li>Fix a bug in <code>ReturnClassExtractor</code> returning the last parameter type instead of null for primitive return values.</li>
+<li>Fix <code>ExecutorMethodSignatureMatcher</code> trying to mutate an immutable map.</li>
+<li>Fix <code>TypedReferenceValue.cast()</code> not handling null values correctly.</li>
+</ul>
+<h2 id="version-911">Version 9.1.1</h2>
+<h3 id="bugfixes_8">Bugfixes</h3>
+<ul>
+<li>Enable fix previously behind system property: fix <code>TypedReferenceValue.generalize()</code> not setting <code>mayBeExtension</code> to true when generalizing to common parent type.</li>
+<li>Avoid printing <code>PartialEvaluator</code> messages when an <code>ExcessiveComplexityException</code> occurs.</li>
+<li>Fix incorrect writing of flags for type parameters with name annotations.</li>
+<li>Fix incorrect writing of flags for reified type parameters.</li>
+<li>Fix model for types and type parameters, removing the incorrect <code>HAS_ANNOTATION</code> common flag.</li>
+</ul>
+<h3 id="improved_6">Improved</h3>
+<ul>
+<li>Enable new <code>PartialEvaluator</code> error message format by default.</li>
+<li>Add the ability to implement a custom renaming strategy for <code>ClassReferenceFixer</code>.</li>
+<li>Add new <code>MaxStackSizeComputer</code> to compute the maximum stack size of a code attribute which is more memory efficient than the existing <code>StackSizeComputer</code>.</li>
+<li>Add <code>IdentifiedArrayReferenceValue.generalize()</code> to maintain <code>ID</code> when applied to two instances with same <code>ID</code>.</li>
+<li>Improve <code>ExecutingInvocationUnit</code> support to methods that transform a <code>String</code> into an array of a primitive type. </li>
+<li>Add support for customizing the way method calls are processed in taint analysis.</li>
+</ul>
+<h2 id="new-code-style">New Code Style</h2>
+<p>We have changed our code style to follow the Google Java Style Guide. A new auto-formatter is now available to make contributing to 
+ProGuardCORE easier:</p>
+<div class="highlight"><pre><span></span><code>./gradlew spotlessApply
+</code></pre></div>
+<p>More information can be found in the <code>Code Style</code> section in <code>CONTRIBUTING.md</code>. </p>
+<h2 id="version-91">Version 9.1</h2>
+<h3 id="improved_7">Improved</h3>
+<ul>
+<li>Added <code>PartialEvaluator</code> JSON output.</li>
+<li>Improve <code>PartialEvaluator</code> error messages when enabled with <code>PartialEvaluator.Builder.setPrettyPrinting()</code>.</li>
+<li>Improve documentation for the <code>PartialEvaluator</code> <a href="https://guardsquare.github.io/proguard-core/partialevaluator.html">https://guardsquare.github.io/proguard-core/partialevaluator.html</a>.</li>
+</ul>
+<h3 id="bug-fixes_1">Bug fixes</h3>
+<ul>
+<li>Fix <code>UnsupportedOperationException</code> when trying to shrink Kotlin metadata from a lambda function.</li>
+<li>Change behavior of array index out of bounds during partial evaluation, which is now handled as an unknown value instead of throwing an exception in the partial evaluator method.</li>
+<li>Fix <code>IllegalArgumentException</code> when joining values with different computational type during value analysis.</li>
+<li>Fix <code>TypedReferenceValue.generalize()</code> not setting <code>mayBeExtension</code> to true when generalizing to common parent type. For now only available experimentally by setting the system property <code>proguard.pe.newextensiongeneralize</code>.</li>
+<li>Fix <code>MultiTypeReferenceValue</code> possibly using an imprecise type metadata (i.e., mayBeExtension, mayBeNull) in the generalized type.</li>
+</ul>
+<h3 id="api-changes_6">API Changes</h3>
+<ul>
+<li>No longer consider Record attributes empty when they have no components in <code>NonEmptyAttributeFilter</code>. (#118)</li>
+<li>Add new <code>ProguardCoreException</code> subclasses with more specific meanings.</li>
+</ul>
+<h2 id="version-9010">Version 9.0.10</h2>
+<h3 id="improved_8">Improved</h3>
+<ul>
+<li><code>TaintSink</code> can now be configured with a predicate to filter on which <code>TaintSource</code>s trigger it.</li>
+<li>Improve performance of <code>DynamicClassReferenceInitializer</code>.</li>
+<li>Improve performance of <code>DynamicClassMemberReferenceInitializer</code>.</li>
+</ul>
+<h3 id="api-changes_7">API changes</h3>
+<ul>
+<li>The constructors in <code>JvmInvokeTaintSink</code> are now deprecated, <code>JvmInvokeTaintSink#Builder</code> should be used instead.</li>
+<li><code>MultiTypedReferenceValue.generalize()</code> now removes the <code>null</code> type from the set of potential types, and sets <code>maybeNull</code> on the other types instead.</li>
+</ul>
+<h2 id="version-909">Version 9.0.9</h2>
+<h3 id="kotlin-support_4">Kotlin support</h3>
+<ul>
+<li>Add support for processing Kotlin 1.9 metadata.</li>
+<li>Update <code>kotlinx</code> metadata dependency to version 0.6.0.</li>
+</ul>
+<h3 id="java-support_4">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 65.65535 (Java 21).</li>
+</ul>
+<h3 id="improved_9">Improved</h3>
+<ul>
+<li>Added support for adding line numbers in the <code>CodeAttributeEditor</code>.</li>
+<li>Improve performance of <code>ClassReferenceInitializer</code> when initializing Kotlin type aliases.</li>
+<li>Improve performance of <code>ClassPool.removeClass</code>.</li>
+<li>Allow more configuration of <code>ExecutingInvocationUnit</code> by using <code>ExecutingInvocationUnit.Builder</code>.</li>
+<li>Add a mode to <code>ExecutingInvocationUnit</code> to approximate reference of types not supported for the execution via reflection.</li>
+<li>Implement <code>Autocloseable</code> in <code>DataEntryWriter</code> interface.</li>
+</ul>
+<h3 id="bug-fixes_2">Bug fixes</h3>
+<ul>
+<li>Use program location as hash code for <code>JvmAbstractState</code> to allow correct use with hash sets.</li>
+<li>Fix a bug in <code>JvmTransferRelation</code> handling arithmetic instructions returning category 2 values incorrectly.</li>
+<li>Fix delegation of <code>proguard.evaluation.value.ParticularValueFactory#createReferenceValueNull()</code>.</li>
+</ul>
+<h3 id="api-changes_8">API changes</h3>
+<ul>
+<li>The key used for fields in <code>JvmAbstractState</code> has been updated to include the field type to disambiguate between
+   overloaded fields.</li>
+<li>Replace <code>allNodes</code> field in <code>proguard.analysis.cpa.defaults.Cfa</code> with <code>getAllNodes</code> method to save memory.</li>
+<li>Constructor for <code>ExecutingInvocationUnit</code> is deprecated, use <code>ExecutingInvocationUnit.Builder</code> instead.</li>
+</ul>
+<h2 id="version-908">Version 9.0.8</h2>
+<h3 id="improved_10">Improved</h3>
+<ul>
+<li>Increase <code>proguard.classfile.VersionConstants.MAX_SUPPORTED_VERSION</code> to <code>64.65535</code> (Java 20 + preview enabled).</li>
+<li>Fix tracking of <code>IdentifiedReferenceValue</code> IDs.</li>
+<li>Add new Kotlin visitor SAM interfaces: <code>KotlinClassVisitor</code>, <code>KotlinFileFacadeVisitor</code>,
+  <code>KotlinMultiFileFacadeVisitor</code>, <code>KotlinMultiFilePartVisitor</code>, <code>KotlinSyntheticClassVisitor</code>.</li>
+</ul>
+<h3 id="api-changes_9">API changes</h3>
+<ul>
+<li><code>JvmTransferRelation</code> has been refactored to model <code>IINC</code> in a separate <code>computeIncrement</code> method. </li>
+<li>The <code>ProcessingFlag.DONT_PROCESS_KOTLIN_MODULE</code> value was changed from <code>0x00002000</code> to <code>0x00008000</code>.</li>
+<li>Remove <code>fromClassPool</code> suffixes in <code>CfaUtil</code> methods.</li>
+<li>Refactor <code>CodeLocation</code> to only take the signature and offset into consideration.</li>
+<li><code>IdentifiedReferenceValue</code> <code>id</code> field changed from <code>int</code> to <code>Object</code>.</li>
+<li><code>ParticularValueFactory.ReferenceFactory</code> replaced by <code>ParticularReferenceValueFactory</code>.</li>
+<li>Add <code>ValueFactory.createReferenceValue(String type, Clazz referencedClass, boolean mayBeExtension, boolean maybeNull, Clazz   creationClass, Method  creationMethod, int creationOffset)</code> to allow creating references identified by their creation site.</li>
+<li>Add <code>JvmCfaReferenceValueFactory</code> to create references identified by the <code>JvmCfaNode</code> creation site.</li>
+</ul>
+<h2 id="upgrade-considerations">Upgrade considerations</h2>
+<p>Identified and particular references can now be identified by any <code>Object</code> instead of a simple <code>int</code>. 
+However, this means that code which compared the IDs may need to be modified. For example, the following
+code should be changed:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">equal</span><span class="p">(</span><span class="n">IdentifiedReferenceValue</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">IdentifiedReferenceValue</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="na">id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="na">id</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+</code></pre></div>
+<p>It should use the <code>equals</code> method instead.</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">equal</span><span class="p">(</span><span class="n">IdentifiedReferenceValue</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">IdentifiedReferenceValue</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="na">id</span><span class="p">.</span><span class="na">equals</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="na">id</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+</code></pre></div>
+<p>The <code>ParticularReferenceValueFactory</code> identifies references with integers by default:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ValueFactory</span><span class="w"> </span><span class="n">valueFactory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ParticularReferenceFactory</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">ParticularReferenceValueFactory</span><span class="p">());</span>
+<span class="n">Value</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">valueFactory</span><span class="p">.</span><span class="na">createReferenceValue</span><span class="p">(</span><span class="s">&quot;Ljava/lang/String;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">clazz</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">);</span>
+<span class="c1">// a.id will be an integer.</span>
+</code></pre></div>
+<p>Any <code>Object</code> can be used as an ID using the <code>createReferenceValueForId</code> method:</p>
+<div class="highlight"><pre><span></span><code><span class="n">String</span><span class="w"> </span><span class="n">objectId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;myId&quot;</span><span class="p">;</span>
+<span class="n">ValueFactory</span><span class="w"> </span><span class="n">valueFactory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ParticularReferenceFactory</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">ParticularReferenceValueFactory</span><span class="p">());</span>
+<span class="n">Value</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">valueFactory</span><span class="p">.</span><span class="na">createReferenceValueForId</span><span class="p">(</span><span class="s">&quot;Ljava/lang/String;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">clazz</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="n">objectId</span><span class="p">);</span>
+<span class="c1">// a.id will be objectId</span>
+</code></pre></div>
+<h2 id="version-907">Version 9.0.7</h2>
+<h3 id="improved_11">Improved</h3>
+<ul>
+<li>Add <code>JvmShallowHeapModel</code> for selective heap modeling.</li>
+</ul>
+<h2 id="version-907_1">Version 9.0.7</h2>
+<h3 id="improved_12">Improved</h3>
+<ul>
+<li>Don't report warnings for missing Kotlin default implementation classes when initializing with <code>ClassReferenceInitializer</code>.</li>
+<li>Only link matching methods in Kotlin file facades with <code>MethodLinker</code>.</li>
+<li>Extend the <code>LimitedHashMap</code> parameterization with an element exclusion selector.</li>
+<li>Add the possibility to add a predicate to taint sources and sinks for selective response to calls.</li>
+</ul>
+<h3 id="bug-fixes_3">Bug fixes</h3>
+<ul>
+<li>Fix the reduce operator producing a wrong <code>JvmAbstractState</code> for the composite taint analysis.</li>
+<li>Fix potential <code>expected Precise Reference</code> runtime verifier error.</li>
+<li>Don't report warnings for missing Kotlin default implementation classes when initiazing with <code>ClassReferenceInitializer</code>.</li>
+</ul>
+<h3 id="api-improvements_1">API Improvements</h3>
+<ul>
+<li>Add <code>KotlinMetadataAsserter</code> to check the integrity of Kotlin metadata.</li>
+<li>Add <code>JvmReturnTaintSink</code> to support return instruction sinks in taint analysis.</li>
+<li>Use method signatures instead of fully qualified names in taint sources and sinks.</li>
+</ul>
+<h3 id="api-changes_10">API changes</h3>
+<ul>
+<li><code>JvmTaintSink</code> has been generalized, use <code>JvmInvokeTaintSink</code> to have the old functionalities.</li>
+</ul>
+<h2 id="version-906">Version 9.0.6</h2>
+<h3 id="improved_13">Improved</h3>
+<ul>
+<li>Add support for limiting the size of the CPA tree heap model with <code>LimitedHashMap</code>s.</li>
+</ul>
+<h3 id="bug-fixes_4">Bug fixes</h3>
+<ul>
+<li>Fix <code>ldc_w</code> method in the <code>InstructionSequenceBuilder</code> generating a <code>ldc</code> instruction instead of a <code>ldc_w</code>.</li>
+</ul>
+<h3 id="api-improvements_2">API Improvements</h3>
+<ul>
+<li>Add <code>referencedDefaultMethodAccept</code> to <code>KotlinFunctionMetadata</code> model.</li>
+</ul>
+<h2 id="version-905">Version 9.0.5</h2>
+<h3 id="improved_14">Improved</h3>
+<ul>
+<li>Replace <code>proguard-assembler</code> dependency in test fixtures with Maven Central version.</li>
+</ul>
+<h3 id="bug-fixes_5">Bug fixes</h3>
+<ul>
+<li>Do not add interprocedural CFA edges for methods missing intraprocedural CFA.</li>
+</ul>
+<h2 id="version-904">Version 9.0.4</h2>
+<h3 id="improved_15">Improved</h3>
+<ul>
+<li>Allow class sub-hierarchy re-initialization for the optimized implementation of <code>ClassSubHierarchyInitializer</code>.</li>
+<li>Enable providing distinct abort operators for the main and trace reconstruction CPAs.</li>
+<li>Add a heap model for taint CPA supporting tainting of whole objects.</li>
+<li><code>Call</code> API: Add a few utilities and fix inconsistent call argument count getter behavior.</li>
+<li>Only change the Kotlin metadata version if the original version is unsupported.</li>
+<li>Add support for Kotlin context receivers in Kotlin metadata.</li>
+<li>Add support for reading &amp; writing Kotlin 1.8 metadata.</li>
+</ul>
+<h4 id="api-improvements_3">API Improvements</h4>
+<ul>
+<li>Add <code>referencedDefaultImplementationMethodAccept</code> to <code>KotlinFunctionMetadata</code> model class.</li>
+<li>Deprecated <code>referencedMethodAccept(Clazz, MemberVisitor)</code> in favour of <code>referencedMethodAccept(MemberVisitor)</code> in <code>KotlinFunctionMetadata</code> model class.</li>
+<li>Add <code>TransformedStringMatcher</code>.</li>
+<li>Add <code>ClassFeatureNameCollector</code>.</li>
+<li>Add var-arg constructor to <code>ClassPath</code>.</li>
+<li>Add <code>DataEntryClassInfoFilter</code>.</li>
+<li>Add <code>NamedDataEntry</code>.</li>
+<li>Refactor <code>CodeLocation#getClassName</code> as <code>getExternalClassName</code> to comply with the types naming convention.</li>
+<li>Make <code>TypedReferenceValue.ALLOW_INCOMPLETE_CLASS_HIERARCHY</code> private, add a getter <code>TypedReferenceValue.allowsIncompleteClassHierarchy()</code> instead.</li>
+</ul>
+<h3 id="bug-fixes_6">Bug fixes</h3>
+<ul>
+<li>Fix side effect on <code>DetailedArrayReferenceValue</code> modifying values at previous offsets on array store
+  instructions during <code>PartialEvaluator</code> execution.</li>
+<li>Fix <code>JvmTransferRelation</code> to produce a successor in case of missing interprocedural call edge
+  (e.g., in case of incomplete call resolution).</li>
+<li>Fix call resolution for <code>invokedynamic</code> (issue #63). There might now be calls with incomplete target
+  information. By default, these calls will not be distributed to visitors, but this can be enabled
+  by setting the <code>skipIncompleteCalls</code> option in the call resolver.</li>
+<li>Fix leading <code>$</code> being stripped from inner classes by the <code>ClassReferenceFixer</code>. This prevents classes
+  with names like <code>Foo$$Bar</code> incorrectly having their simple name changed from <code>$Bar</code> to <code>Bar</code>.</li>
+</ul>
+<h2 id="version-903">Version 9.0.3</h2>
+<h3 id="java-support_5">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 63.65535 (Java 19 ea). (<code>PGD-247</code>)</li>
+</ul>
+<h3 id="improved_16">Improved</h3>
+<ul>
+<li>Add utility to produce dot-graphs for control flow automatons (<code>CfaUtil.toDot(cfa)</code>, example <code>VisualizeCfa</code>).</li>
+<li>Add support for heap slicing on call sites and heap reconstruction on return sites in dataflow analysis heap tree model.</li>
+<li>Add support for differential map representation to be used in the data flow analysis.</li>
+</ul>
+<h4 id="api-improvements_4">API Improvements</h4>
+<ul>
+<li>Split <code>ProgramLocationDependentTransferRelation</code> into forward and backward variants.</li>
+<li>Add <code>ClassPoolClassLoader</code> utility for loading ProGuardCORE classes.</li>
+<li>Add builders for CPA runs.</li>
+</ul>
+<h2 id="version-902">Version 9.0.2</h2>
+<h3 id="improved_17">Improved</h3>
+<ul>
+<li><code>JvmMemoryLocationTransferRelation</code> does not rely anymore on a pre-computed abstract reachability graph.</li>
+</ul>
+<h3 id="improvements-to-kotlin-metadata-initialization">Improvements to Kotlin metadata initialization</h3>
+<p>Several improvements to Kotlin metadata initialization now allow building the Kotlin metadata model for library classes (<code>LibraryClass</code>):</p>
+<ul>
+<li><code>KotlinMetadataInitializer</code> provides a new public method <code>initialize(Clazz, int, int[], String[], String[], int, String, String)</code> to initialize
+  the Kotlin metadata model for a given class.</li>
+<li><code>ClassReader</code> can now build the Kotlin metadata model by setting <code>includeKotlinMetadata</code> to <code>true</code>.</li>
+<li><code>LibraryClassReader</code> can now read the Kotlin metadata annotation and provide the components to a consumer.</li>
+<li>An <code>UnsupportedKotlinMetadata</code> type is now assigned by the <code>KotlinMetadataInitializer</code> if the Kotlin metadata model
+  could not be initialized correctly. </li>
+</ul>
+<h2 id="version-901">Version 9.0.1</h2>
+<h3 id="improved_18">Improved</h3>
+<ul>
+<li><code>ExecutingInvocationUnit</code> now loads values from static final fields.</li>
+<li>Initialize Kotlin lambda method references when the JVM method name is <code>&lt;anonymous&gt;</code>.</li>
+<li>Add the possibility of limiting the number of <code>CodeAttributes</code> contributing into CFA.</li>
+<li>Add the possibility of limiting the number of <code>CodeAttributes</code> considered by the <code>CallResolver</code>.</li>
+</ul>
+<h3 id="bug-fixes_7">Bug fixes</h3>
+<ul>
+<li>Fix wrong handling of array types in <code>ExecutingIvocationUnit</code> and <code>ParticularReferenceValue</code>.</li>
+<li><code>ParticularReferenceValue</code> sanity checks now take inheritance into consideration, improving call analysis.</li>
+<li>Prevent missing semicolon leading to an infinite loop in <code>ClassUtil#internalMethodParameterCount</code>.</li>
+<li>Make category 2 CPA taint sources affect only the most significant byte abstract state.</li>
+<li>Fix inconsistent usage of type names in the context of the <code>PartialEvaluator</code> that could result in
+  trying to create an internal type string from a string that was already an internal type.</li>
+<li>Fix initialization of Kotlin callable references when using <code>-Xno-optimized-callable-references</code> compiler option.</li>
+<li>Fix <code>createCache()</code> delegation in <code>ArgBamCpaRun</code></li>
+</ul>
+<h3 id="upgrade-considerations_1">Upgrade considerations</h3>
+<h4 id="type-name-convention">TYPE NAME CONVENTION</h4>
+<p>PGC has different representation for type string variables: </p>
+<ul>
+<li>External class name: <code>com.guardsquare.SomeClass</code></li>
+<li>Internal class name: <code>com/guardsquare/SomeClass</code></li>
+<li>Internal type (or just <code>type</code>): <code>Lcom/guardsquare/SomeClass;</code> (for arrays e.g. <code>[I</code>, <code>[Ljava/lang/Object;</code>)</li>
+<li>Internal class type: <code>com/guardsquare/SomeClass</code> (for arrays this is their internal type e.g. <code>[I</code>, <code>[Ljava/lang/Object;</code>)</li>
+</ul>
+<p>See <code>proguard.classfile.util.ClassUtil</code> for useful methods to convert between the different representations.</p>
+<p>Since internal class name and type were used ambiguously, from version 9.0.1 the internal type is used 
+consistently whenever we have a variable named <code>type</code>.</p>
+<p>Since this was not the case, this update might cause some <code>type</code> variables switching from the internal class name
+notation to the internal type notation, potentially breaking some logic if types are used by an external
+application using proguard-core.</p>
+<h2 id="version-90-april-2022">Version 9.0 (April 2022)</h2>
+<h3 id="configurable-program-analysis-cpa">Configurable program analysis (CPA)</h3>
+<p><em>CPA is a formalism for data flow analysis allowing seamless composition of various analyses
+and model checking techniques. Thus, it adds a framework for systematic development and extension
+of static analyses in a uniform structured way.</em></p>
+<p>Taint analysis is the first ProGuardCORE CPA. Its goal is to detect data flow between source and sink
+method calls, which is useful for detecting bugs and security flaws.</p>
+<p>The <a href="taintcpa.html">Taint Analysis manual page</a> provides more information.</p>
+<ul>
+<li>Add configurable program analysis (CPA) for interprocedural data flow analysis development.</li>
+<li>Add taint analysis.</li>
+</ul>
+<h3 id="bug-fixes_8">Bug fixes</h3>
+<ul>
+<li>Prevent linking a final method with a shadowing method in a subclass.</li>
+<li>Force <code>Call#getArgumentCount()</code> to be correct even if the actual argument values
+  could not be calculated or have been cleared.</li>
+<li>Reset <code>ExecutingInvocationUnit</code> parameters array even when an exception happens.</li>
+</ul>
+<h2 id="version-807">Version 8.0.7</h2>
+<h3 id="java-support_6">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 62.65535 (Java 18 ea).</li>
+</ul>
+<h3 id="improved_19">Improved</h3>
+<ul>
+<li>Add support for Kotlin property synthetic delegate methods.</li>
+<li>Add ability to pass <code>KotlinMetadataVersion</code> to <code>KotlinMetadataWriter</code> / <code>KotlinModuleWriter</code>.</li>
+</ul>
+<h2 id="version-806">Version 8.0.6</h2>
+<h3 id="improved_20">Improved</h3>
+<ul>
+<li>Add support for writing out zip64 archives.</li>
+<li>Improve speed for <code>ClassPool.contains</code> method.</li>
+</ul>
+<h2 id="version-805">Version 8.0.5</h2>
+<h3 id="improved_21">Improved</h3>
+<ul>
+<li>Upgrade log4j2 dependency to v2.17.1 in response to CVE-2021-44832.</li>
+<li>Add support for reading and writing Kotlin 1.6 metadata.</li>
+</ul>
+<h3 id="bug-fixes_9">Bug fixes</h3>
+<ul>
+<li>Fix <code>CallResolver</code> erroneously creating call edges to unimplemented interface methods.</li>
+<li>Make the <code>DominatorCalculator</code> skip methods with an empty <code>CodeAttribute</code>.</li>
+<li>Prevent updating Kotlin function names with mangled JVM method names in <code>ClassReferenceFixer</code>.</li>
+<li>Initialize Kotlin default implementation classes of annotation classes correctly in <code>ClassReferenceInitializer</code>.</li>
+<li>Correctly initialize Java Record component attributes in <code>ClassReferenceInitializer</code>.</li>
+</ul>
+<h3 id="api-changes_11">API changes</h3>
+<ul>
+<li><code>KotlinInterfaceToDefaultImplsClassVisitor</code> replaced by <code>KotlinClassToDefaultImplsClassVisitor</code>.</li>
+<li>Deprecate Kotlin class metadata flag <code>IS_INLINE</code> and replaced with <code>IS_VALUE</code>.</li>
+<li>Convert to/from Kotlin unsigned integers in Kotlin annotation unsigned type arguments.</li>
+<li>Initialize array dimension in Kotlin annotation <code>ClassValue</code> type arguments.</li>
+<li>Add support for Kotlin inline class underlying type to Kotlin metadata model.</li>
+<li>Add support to <code>MemberDescriptorReferencedClassVisitor</code> for visiting referenced Kotlin inline class parameters.</li>
+</ul>
+<h2 id="version-804">Version 8.0.4</h2>
+<h3 id="improved_22">Improved</h3>
+<ul>
+<li>Upgrade log4j2 dependency to v2.17 in response to CVE-2021-45105.</li>
+</ul>
+<h3 id="api-improvements_5">API Improvements</h3>
+<ul>
+<li>Add <code>KotlinMetadataVersionFilter</code> to filter classes based on the version of the attached metadata.</li>
+</ul>
+<h2 id="version-803">Version 8.0.3</h2>
+<h3 id="improved_23">Improved</h3>
+<ul>
+<li>Upgrade log4j2 dependency in response to CVE-2021-45046.</li>
+</ul>
+<h2 id="version-802">Version 8.0.2</h2>
+<h3 id="improved_24">Improved</h3>
+<ul>
+<li>Upgrade log4j2 dependency in response to CVE-2021-44228.</li>
+</ul>
+<h3 id="api-improvements_6">API Improvements</h3>
+<ul>
+<li>Add call resolving and graph traversal features to enable interprocedural control flow analyses.</li>
+</ul>
+<h3 id="bug-fixes_10">Bug fixes</h3>
+<ul>
+<li>Fix potential <code>StringIndexOutOfBoundsException</code> while trimming attribute value spaces in <code>SignedJarWriter</code>.</li>
+<li>Fix <code>referencedClass</code> of Values generated by the <code>ExecutingInvocationUnit</code>.</li>
+<li>Fix potential <code>StackOverflowError</code> when using an <code>AttributeVisitor</code> to visit runtime invisible type annotations.</li>
+<li>Fix potential <code>StringIndexOutOfBoundsException</code> in <code>KotlinCallableReferenceInitializer</code>.</li>
+<li>Fix potential <code>NullPointerException</code> in <code>KotlinInterClassPropertyReferenceInitializer</code>.</li>
+<li>Fix wrong offset for complementary branch instruction when widening branch instructions in <code>InstructionWriter</code>.</li>
+<li>Fix potential <code>ClassFormatError</code> due to adding multiple annotation attributes when processing Kotlin code.</li>
+<li>Fix potential <code>NullPointerException</code> due to missing classes in <code>ClassReferenceInitializer</code>.</li>
+<li>Prevent making package-private final methods that are shadowed protected.</li>
+</ul>
+<h2 id="version-801">Version 8.0.1</h2>
+<h3 id="api-improvements_7">API Improvements</h3>
+<ul>
+<li>Add <code>LibraryClassBuilder</code> and <code>LibraryClassEditor</code> classes to create and edit a <code>LibraryClass</code>.</li>
+<li>Add additional constructors to <code>LibraryClass</code>. </li>
+</ul>
+<h3 id="bug-fixes_11">Bug fixes</h3>
+<ul>
+<li>Fix potential <code>NullPointerException</code> when initializing Kotlin callable references.</li>
+<li>Prevent requiring <code>--enable-preview</code> on a JVM for Java 16 class files (write class file version <code>60.0</code> instead of <code>60.65535</code>).</li>
+<li>Fix potential <code>NullPointerException</code> when visiting referenced methods of Kotlin functions.</li>
+</ul>
+<h2 id="version-800">Version 8.0.0</h2>
+<h3 id="java-support_7">Java support</h3>
+<ul>
+<li>Update maximum supported Java class version to 61.0 (Java 17).</li>
+</ul>
+<h3 id="kotlin-support_5">Kotlin support</h3>
+<ul>
+<li>Add support for processing Kotlin 1.5 metadata.</li>
+<li>Update <code>kotlinx</code> metadata dependency to version 0.2.</li>
+</ul>
+<h3 id="api-improvements_8">API Improvements</h3>
+<ul>
+<li>Add <code>WarningLogger</code> class to allow using a custom Log4j2 logger.</li>
+<li>Add Kotlin metadata model classes and visitors for Kotlin annotations.</li>
+<li>Add Kotlin metadata model enum for <code>KmVariance</code>.</li>
+<li>Add Kotlin metadata model enum for <code>KmVersionRequirement(Kind|Level)</code>.</li>
+<li>Add Kotlin metadata model enum for <code>KmEffect(Type|InvocationKind)</code>.</li>
+<li>Add Kotlin metadata flag <code>IS_FUN</code> for functional interfaces.</li>
+<li>Add Kotlin metadata flag <code>HAS_NON_STABLE_PARAMETER_NAMES</code> for Kotlin callables.</li>
+<li>Add error handler callback to <code>KotlinMetadataInitializer</code>.</li>
+<li>Add error handler callback to <code>KotlinMetadataWriter</code>.</li>
+<li>Add error handler callback to <code>KotlinModuleReader</code>.</li>
+<li>Add error handler callback to <code>KotlinModuleWriter</code>. Add Kotlin metadata flag <code>IS_SECONDARY</code> for constructors.</li>
+<li>Implement <code>ClassVisitor</code> in <code>KotlinMetadataInitializer</code> to allow easier initialization of Kotlin metadata.</li>
+<li>Implement <code>ClassVisitor</code> in <code>KotlinMetadataWriter</code> to allow easier writing of Kotlin metadata.</li>
+</ul>
+<h3 id="api-changes_12">API changes</h3>
+<ul>
+<li><code>KotlinTypeParameterVistor#visitClassParameter(Clazz, KotlinMetadata, KotlinTypeParameterMetadata)</code> now has the correct signature: <code>KotlinTypeParameterVistor#visitClassParameter(Clazz, KotlinClassKindMetadata, KotlinTypeParameterMetadata)</code>. </li>
+<li>Rename <code>AllKotlinPropertiesVisitor</code> to <code>AllPropertyVisitor</code>.</li>
+<li>Rename <code>AllConstructorsVisitor</code> to <code>AllConstructorVisitor</code>.</li>
+<li>Rename <code>AllFunctionsVisitor</code> to <code>AllFunctionVisitor</code>.</li>
+<li>Remove `KotlinValueParameterVisitor.onNewFunctionStart()' method.</li>
+<li>Deprecate Kotlin metadata flag <code>IS_PRIMARY</code> for constructors.</li>
+</ul>
+<h2 id="version-711">Version 7.1.1</h2>
+<h3 id="api-improvements_9">API improvements</h3>
+<ul>
+<li>Add <code>KotlinTypeParameterFilter</code> to allow filtering easily when visiting type parameters.</li>
+<li>Add <code>KotlinValueParameterFilter</code> to allow filtering easily when visiting value parameters.</li>
+</ul>
+<h3 id="bug-fixes_12">Bug fixes</h3>
+<ul>
+<li>Fix <code>AllTypeParameterVisitor</code> so that it visits type parameters defined in any kind of declaration container.</li>
+<li>Fix <code>AllTypeParameterVisitor</code> so that it visits type parameters of type aliases.</li>
+<li>Fix potential <code>NullPointerException</code> when initializing a Kotlin default implementation class that does not contain an initialized <code>jvmSignature</code>.</li>
+<li>Add missing <code>equals</code> method to <code>ParticularReferenceValue</code>.</li>
+<li>Fix incorrect handling of <code>InterruptedException</code> in <code>ParallelAllClassVisitor</code>.</li>
+<li>Fix potential <code>ZipOutput</code> alignment issue when writing large uncompressed zip entries.</li>
+<li>Fix potential <code>ZipOutput</code> synchronization issue when writing uncompressed zip entries.</li>
+<li>Fix potential <code>NullPointerException</code> when comparing strings with <code>FixedStringMatcher</code>.</li>
+<li>Fix potential <code>NullPointerException</code> when comparing strings with <code>MatchedStringMatcher</code>.</li>
+<li>Fix initialization of Kotlin callable references when using Kotlin &gt;= 1.4.</li>
+</ul>
+<h2 id="version-71-june-2021">Version 7.1 (June 2021)</h2>
+<h3 id="java-support_8">Java support</h3>
+<p>ProGuardCORE 7.1 now supports Java versions 14, 15 and 16:</p>
+<ul>
+<li>Add support for reading &amp; writing Java 14, 15 and 16 class files.</li>
+<li>Add support for Java 14 sealed classes (permitted subclasses attributes).</li>
+<li>Add support for record attributes (previewed in Java 15/16, targeted for Java 17).</li>
+</ul>
+<h3 id="improved-code-analysis">Improved code analysis</h3>
+<ul>
+<li>The partial evaluator can now be used to reconstruct the specific values of <code>String</code>, <code>StringBuilder</code> and <code>StringBuffer</code> type objects. 
+  See <a href="analyzing.md#particularreference">analyzing code manual page</a> for more information.</li>
+<li>The partial evaluator will now throw an <code>IncompleteClassHierarchyException</code> instead of
+  <code>IllegalArgumentException</code> when an incomplete hierarchy is encountered.</li>
+<li>The partial evaluator will now throw an <code>ExcessiveComplexityException</code> if an instruction is visited more than <code>stopAnalysisAfterNEvaluations</code> times.</li>
+<li>Potentially throwing <code>ldc</code> instructions are now taken into account during partial evaluation,
+  improving the accuracy of code analysis.</li>
+<li>Add support for multiple possible types during partial evaluation.</li>
+</ul>
+<h3 id="performance-improvements">Performance improvements</h3>
+<ul>
+<li>Improve efficiency of building classes, methods and constant pools.</li>
+</ul>
+<h3 id="api-improvements_10">API improvements</h3>
+<ul>
+<li>Add <code>ClassRenamer</code> to allow renaming classes and members easily.</li>
+</ul>
+<h3 id="bug-fixes_13">Bug fixes</h3>
+<ul>
+<li>Add missing method reference in injected static initializer instructions.</li>
+<li>Add missing dimensions argument to <code>CompactCodeAttributeComposer.multianewarray</code>.</li>
+<li>Fix potential <code>StackOverflowException</code> when comparing multi-typed reference values.</li>
+<li>Fix handling of Kotlin nested class names which contain <code>$</code>.</li>
+<li>Mark <code>Module</code>, <code>ModuleMainClass</code> and <code>ModulePackages</code> attributes as required.</li>
+<li>Fix potential <code>ClassCastException</code> in <code>ConstructorMethodFilter</code>.</li>
+<li>Fix potential <code>NullPointerException</code> for module classes in ClassPrinter.</li>
+<li>Fix storage and alignment of uncompressed zip entries.</li>
+<li>Fix processing of constant boolean arrays.</li>
+<li>Fix adding branch instructions with labels in <code>CompactCodeAttributeComposer</code>.</li>
+<li>Fix handling of array dereferencing in <code>MultiTypedReferenceValue</code>.</li>
+<li>Fix <code>AllKotlinAnnotationVisitor</code> so that it visits type alias annotations defined in any kind of declaration container.</li>
+<li>Move initialization of Kotlin declaration container's <code>ownerClassName</code> field from <code>ClassReferenceInitializer</code> to <code>KotlinMetadataInitializer</code>.</li>
+</ul>
+<h2 id="version-70-jan-2020">Version 7.0 (Jan 2020)</h2>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Issue</th>
+<th>Module</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7.0.1</td>
+<td>DGD-2382</td>
+<td>CORE</td>
+<td>Fixed processing of Kotlin 1.4 metadata annotations.</td>
+</tr>
+<tr>
+<td>7.0.1</td>
+<td>DGD-2390</td>
+<td>CORE</td>
+<td>Fixed storage and alignment of uncompressed zip entries.</td>
+</tr>
+<tr>
+<td>7.0.1</td>
+<td>DGD-2338</td>
+<td>CORE</td>
+<td>Fixed processing of constant boolean arrays.</td>
+</tr>
+<tr>
+<td>7.0.1</td>
+<td></td>
+<td>CORE</td>
+<td>Fixed adding branch instructions with labels in CompactCodeAttributeComposer.</td>
+</tr>
+<tr>
+<td>7.0.0</td>
+<td></td>
+<td>CORE</td>
+<td>Initial release of Kotlin support.</td>
+</tr>
+<tr>
+<td>7.0.0</td>
+<td>PGD-32</td>
+<td>CORE</td>
+<td>Added support for Java 14 class files.</td>
+</tr>
+<tr>
+<td>7.0.0</td>
+<td>DGD-1780</td>
+<td>CORE</td>
+<td>Removed dependency on internal sun.security API.</td>
+</tr>
+<tr>
+<td>7.0.0</td>
+<td>DGD-1800</td>
+<td>CORE</td>
+<td>Fixed obfuscation of functional interfaces with abstract Object methods.</td>
+</tr>
+<tr>
+<td>7.0.0</td>
+<td></td>
+<td>CORE</td>
+<td>Initial release, extracted from ProGuard.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2002-2022 Guardsquare NV
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/Guardsquare/proguard-core" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/guardsquare" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/company/guardsquare-nv" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.facebook.com/guardsquare" target="_blank" rel="noopener" title="www.facebook.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": ".", "features": ["content.code.copy"], "search": "assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.220ee61c.min.js"></script>
+      
+    
+  </body>
+</html>
