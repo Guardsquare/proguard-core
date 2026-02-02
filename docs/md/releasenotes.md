@@ -5,6 +5,15 @@
 - Deprecate `DominatorCalculator.dominates` method, introduce `DominatorCalculator.maybeDominates` returning an `Optional<Boolean>` instead of `boolean`.
 - Support Kotlin experimental annotation metadata v2.
 
+The following changes will require code updates:
+- `KotlinPropertyAccessorFlags` is removed and inlined into `KotlinProperyAccessorMetadata`. Please use `KotlinPropertyAccessorMetadata` instead.
+- `KotlinPropertyMetadata.getterFlags`,`KotlinPropertyMetadata.referencedGetterMethod`,`KotlinPropertyMetadata.getterSignature` have been removed.
+  Please use `KotlinPropertyMetadata.getterMetadata` instead.
+- `KotlinPropertyMetadata.setterFlags`,`KotlinPropertyMetadata.referencedSetterMethod`,`KotlinPropertyMetadata.setterSignature` have been removed.
+  Please use `KotlinPropertyMetadata.setterMetadata` instead.
+- `KotlinClassKindMetadata.enumEntryNames`, `KotlinClassKindMetadata.referencedEnumEntries` have been removed and moved to `EnumEntryMetadata`.
+  Please use `KotlinClassKindMetadata.enumEntries` instead.
+
 ### Bugfixes
 
 - Fix `ClassUtil.externalClassVersion` returning null for preview versions.
