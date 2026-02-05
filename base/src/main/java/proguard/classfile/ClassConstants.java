@@ -85,6 +85,9 @@ public class ClassConstants {
   public static final String NAME_JAVA_LANG_REFLECT_FIELD = "java/lang/reflect/Field";
   public static final String NAME_JAVA_LANG_REFLECT_METHOD = "java/lang/reflect/Method";
   public static final String NAME_JAVA_LANG_REFLECT_CONSTRUCTOR = "java/lang/reflect/Constructor";
+  public static final String NAME_JAVA_LANG_REFLECT_PARAMETERIZED_TYPE =
+      "java/lang/reflect/ParameterizedType";
+  public static final String NAME_JAVA_LANG_REFLECT_PROXY = "java/lang/reflect/Proxy";
   public static final String NAME_JAVA_LANG_REFLECT_ACCESSIBLE_OBJECT =
       "java/lang/reflect/AccessibleObject";
   public static final String NAME_JAVA_IO_SERIALIZABLE = "java/io/Serializable";
@@ -160,6 +163,52 @@ public class ClassConstants {
       new MethodSignature(
           NAME_JAVA_LANG_CLASS, METHOD_NAME_CLASS_FOR_NAME, METHOD_TYPE_CLASS_FOR_NAME2);
 
+  public static final String METHOD_NAME_GET_ANNOTATION = "getAnnotation";
+  public static final String METHOD_TYPE_GET_ANNOTATION =
+      "(Ljava/lang/Class;)Ljava/lang/annotation/Annotation;";
+  public static final MethodSignature CLASS_GET_ANNOTATION_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS, METHOD_NAME_GET_ANNOTATION, METHOD_TYPE_GET_ANNOTATION);
+
+  public static final String METHOD_NAME_NEW_UPDATER = "newUpdater";
+  public static final String METHOD_TYPE_NEW_INTEGER_UPDATER =
+      "(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicIntegerFieldUpdater;";
+  public static final String METHOD_TYPE_NEW_LONG_UPDATER =
+      "(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicLongFieldUpdater;";
+  public static final String METHOD_TYPE_NEW_REFERENCE_UPDATER =
+      "(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;";
+  public static final MethodSignature ATOMIC_LONG_FIELD_UPDATER_NEW_UPDATER_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_LONG_FIELD_UPDATER,
+          METHOD_NAME_NEW_UPDATER,
+          METHOD_TYPE_NEW_LONG_UPDATER);
+  public static final MethodSignature ATOMIC_INTEGER_FIELD_UPDATER_NEW_UPDATER_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_INTEGER_FIELD_UPDATER,
+          METHOD_NAME_NEW_UPDATER,
+          METHOD_TYPE_NEW_INTEGER_UPDATER);
+  public static final MethodSignature ATOMIC_REFERENCE_FIELD_UPDATER_NEW_UPDATER_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_REFERENCE_FIELD_UPDATER,
+          METHOD_NAME_NEW_UPDATER,
+          METHOD_TYPE_NEW_REFERENCE_UPDATER);
+
+  public static final String METHOD_NAME_GET_ACTUAL_TYPE_ARGUMENTS = "getActualTypeArguments";
+  public static final String METHOD_TYPE_GET_ACTUAL_TYPE_ARGUMENTS = "()[Ljava/lang/reflect/Type;";
+  public static final MethodSignature PARAMETERIZED_TYPE_GET_ACTUAL_TYPE_ARGUMENTS_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_REFLECT_PARAMETERIZED_TYPE,
+          METHOD_NAME_GET_ACTUAL_TYPE_ARGUMENTS,
+          METHOD_TYPE_GET_ACTUAL_TYPE_ARGUMENTS);
+
+  public static final String METHOD_NAME_NEW_PROXY_INSTANCE = "newProxyInstance";
+  public static final String METHOD_TYPE_NEW_PROXY_INSTANCE =
+      "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;";
+  public static final MethodSignature PROXY_NEW_INSTANCE_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_REFLECT_PARAMETERIZED_TYPE,
+          METHOD_NAME_NEW_PROXY_INSTANCE,
+          METHOD_TYPE_NEW_PROXY_INSTANCE);
   public static final String METHOD_NAME_CLASS_GET_NAME = "getName";
   public static final String METHOD_TYPE_CLASS_GET_NAME = "()Ljava/lang/String;";
   public static final MethodSignature CLASS_GET_NAME_SIGNATURE =
@@ -291,19 +340,11 @@ public class ClassConstants {
   public static final String METHOD_NAME_CLASS_GET_ENCLOSING_CONSTRUCTOR =
       "getEnclosingConstructor";
   public static final String METHOD_NAME_CLASS_GET_ENCLOSING_METHOD = "getEnclosingMethod";
-  public static final String METHOD_NAME_GET_ANNOTATION = "getAnnotation";
   public static final String METHOD_NAME_GET_ANNOTATIONS = "getAnnotations";
   public static final String METHOD_NAME_GET_DECLARED_ANNOTATIONS = "getDeclaredAnnotations";
   public static final String METHOD_NAME_GET_PARAMETER_ANNOTATIONS = "getParameterAnnotations";
   public static final String METHOD_NAME_GET_TYPE_PREFIX = "getType";
   public static final String METHOD_NAME_GET_GENERIC_PREFIX = "getGeneric";
-  public static final String METHOD_NAME_NEW_UPDATER = "newUpdater";
-  public static final String METHOD_TYPE_NEW_INTEGER_UPDATER =
-      "(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicIntegerFieldUpdater;";
-  public static final String METHOD_TYPE_NEW_LONG_UPDATER =
-      "(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicLongFieldUpdater;";
-  public static final String METHOD_TYPE_NEW_REFERENCE_UPDATER =
-      "(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;";
   public static final String METHOD_NAME_FIELD_GET = "get";
   public static final String METHOD_TYPE_FIELD_GET = "(Ljava/lang/Object;)Ljava/lang/Object;";
   public static final String METHOD_NAME_FIELD_GET_INT = "getInt";
