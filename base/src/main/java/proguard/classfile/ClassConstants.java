@@ -114,7 +114,6 @@ public class ClassConstants {
   public static final String TYPE_JAVA_UTIL_LIST = "Ljava/util/List;";
   public static final String NAME_JAVA_UTIL_ARRAY_LIST = "java/util/ArrayList";
 
-  public static final String NAME_ANDROID_OS_BUNDLE = "android/os/Bundle";
   public static final String NAME_ANDROID_APP_ACTIVITY = "android/app/Activity";
   public static final String NAME_ANDROID_APP_APPLICATION = "android/app/Application";
   public static final String NAME_ANDROID_APP_FRAGMENT = "android/app/Fragment";
@@ -144,9 +143,6 @@ public class ClassConstants {
       "java/util/concurrent/atomic/AtomicLongFieldUpdater";
   public static final String NAME_JAVA_UTIL_CONCURRENT_ATOMIC_ATOMIC_REFERENCE_FIELD_UPDATER =
       "java/util/concurrent/atomic/AtomicReferenceFieldUpdater";
-
-  public static final String METHOD_NAME_BUNDLE_GET = "get";
-  public static final String METHOD_TYPE_BUNDLE_GET = "(Ljava/lang/String;)Ljava/lang/Object;";
 
   public static final String METHOD_NAME_INIT = "<init>";
   public static final String METHOD_TYPE_INIT = "()V";
