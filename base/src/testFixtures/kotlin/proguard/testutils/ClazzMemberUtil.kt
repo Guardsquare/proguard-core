@@ -28,6 +28,7 @@ import proguard.classfile.Method
 import proguard.classfile.ProgramClass
 import proguard.classfile.attribute.CodeAttribute
 import proguard.classfile.attribute.visitor.AllAttributeVisitor
+import proguard.classfile.instruction.ConstantInstruction
 import proguard.classfile.instruction.Instruction
 import proguard.classfile.instruction.visitor.AllInstructionVisitor
 import proguard.classfile.instruction.visitor.InstructionVisitor
@@ -73,7 +74,11 @@ private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuild
                 instructions.joinToString("\n") {
                     val thisOffset = offset
                     offset += it.length(offset)
-                    it.toString(clazz, thisOffset)
+                    if (it !is ConstantInstruction || it.constantIndex < (clazz as ProgramClass).constantPool.size) {
+                        it.toString(clazz, thisOffset)
+                    } else {
+                        it.toString()
+                    }
                 }
             }
         },
@@ -85,7 +90,11 @@ private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuild
                 return instructions.joinToString("\n") {
                     val thisOffset = offset
                     offset += it.length(offset)
-                    it.toString(clazz, thisOffset)
+                    if (it !is ConstantInstruction || it.constantIndex < clazz.constantPool.size) {
+                        it.toString(clazz, thisOffset)
+                    } else {
+                        it.toString()
+                    }
                 }
             }
         },
