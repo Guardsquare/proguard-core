@@ -169,6 +169,13 @@ public class ClassConstants {
   public static final MethodSignature CLASS_GET_ANNOTATION_SIGNATURE =
       new MethodSignature(
           NAME_JAVA_LANG_CLASS, METHOD_NAME_GET_ANNOTATION, METHOD_TYPE_GET_ANNOTATION);
+  public static final String METHOD_NAME_IS_ANNOTATION_PRESENT = "isAnnotationPresent";
+  public static final String METHOD_TYPE_IS_ANNOTATION_PRESENT = "(Ljava/lang/Class;)Z";
+  public static final MethodSignature CLASS_IS_ANNOTATION_PRESENT_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS,
+          METHOD_NAME_IS_ANNOTATION_PRESENT,
+          METHOD_TYPE_IS_ANNOTATION_PRESENT);
 
   public static final String METHOD_NAME_NEW_UPDATER = "newUpdater";
   public static final String METHOD_TYPE_NEW_INTEGER_UPDATER =
