@@ -213,7 +213,7 @@ public class ClassConstants {
       "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;";
   public static final MethodSignature PROXY_NEW_INSTANCE_SIGNATURE =
       new MethodSignature(
-          NAME_JAVA_LANG_REFLECT_PARAMETERIZED_TYPE,
+          NAME_JAVA_LANG_REFLECT_PROXY,
           METHOD_NAME_NEW_PROXY_INSTANCE,
           METHOD_TYPE_NEW_PROXY_INSTANCE);
   public static final String METHOD_NAME_CLASS_GET_NAME = "getName";
