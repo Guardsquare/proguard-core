@@ -61,6 +61,7 @@ public class ClassConstants {
   public static final String NAME_JAVA_LANG_INVOKE_STRING_CONCAT_FACTORY =
       "java/lang/invoke/StringConcatFactory";
   public static final String NAME_JAVA_LANG_VOID = "java/lang/Void";
+  public static final String TYPE_JAVA_LANG_VOID = "Ljava/lang/Void;";
   public static final String NAME_JAVA_LANG_BOOLEAN = "java/lang/Boolean";
   public static final String TYPE_JAVA_LANG_BOOLEAN = "Ljava/lang/Boolean;";
   public static final String NAME_JAVA_LANG_BYTE = "java/lang/Byte";

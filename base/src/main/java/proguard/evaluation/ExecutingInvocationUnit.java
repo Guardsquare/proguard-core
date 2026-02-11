@@ -20,6 +20,8 @@ package proguard.evaluation;
 
 import static proguard.classfile.AccessConstants.FINAL;
 import static proguard.classfile.AccessConstants.STATIC;
+import static proguard.classfile.ClassConstants.FIELD_NAME_TYPE;
+import static proguard.classfile.ClassConstants.NAME_JAVA_LANG_CLASS;
 import static proguard.classfile.TypeConstants.BOOLEAN;
 import static proguard.classfile.TypeConstants.BYTE;
 import static proguard.classfile.TypeConstants.CHAR;
@@ -48,6 +50,8 @@ import proguard.analysis.datastructure.callgraph.ConcreteCall;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
+import proguard.classfile.LibraryClass;
+import proguard.classfile.LibraryField;
 import proguard.classfile.Member;
 import proguard.classfile.MethodSignature;
 import proguard.classfile.ProgramClass;
@@ -75,6 +79,7 @@ import proguard.evaluation.value.Value;
 import proguard.evaluation.value.ValueFactory;
 import proguard.evaluation.value.object.AnalyzedObject;
 import proguard.evaluation.value.object.AnalyzedObjectFactory;
+import proguard.evaluation.value.object.model.ClassModel;
 import proguard.evaluation.value.object.model.Model;
 import proguard.util.PartialEvaluatorUtils;
 
@@ -735,6 +740,13 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
 
   @Override
   public Value getFieldValue(Clazz clazz, FieldrefConstant fieldrefConstant, String type) {
+    // Handle primitive type field references.
+    PrimitiveTypeObjectReferenceResolver primitiveTypeObjectReferenceResolver =
+        new PrimitiveTypeObjectReferenceResolver();
+    fieldrefConstant.referencedFieldAccept(primitiveTypeObjectReferenceResolver);
+    if (primitiveTypeObjectReferenceResolver.value != null)
+      return primitiveTypeObjectReferenceResolver.value;
+
     // get values from static final fields
     FieldValueGetterVisitor constantVisitor = new FieldValueGetterVisitor();
     fieldrefConstant.referencedFieldAccept(
@@ -744,6 +756,44 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     return constantVisitor.value == null
         ? super.getFieldValue(clazz, fieldrefConstant, type)
         : constantVisitor.value;
+  }
+
+  /**
+   * This visitor resolves references to class objects of primitive types. For example: <code>
+   * boolean.class</code> or <code>int.class</code>. Such references are compiled as
+   *
+   * <p><code>
+   * getstatic = Fieldref(java/lang/Boolean.TYPE Ljava/lang/Class;)</code>.
+   *
+   * <p>This visitor creates the corresponding ClassModel for the relevant LibraryClass and stores
+   * it in {@link PrimitiveTypeObjectReferenceResolver#value}.
+   *
+   * @see Boolean#TYPE
+   * @see Class#getPrimitiveClass(java.lang.String)
+   */
+  private class PrimitiveTypeObjectReferenceResolver implements MemberVisitor {
+    Value value;
+
+    @Override
+    public void visitAnyMember(Clazz clazz, Member member) {}
+
+    @Override
+    public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
+      if (ClassUtil.isInternalPrimitiveBoxingType(
+              ClassUtil.internalTypeFromClassName(libraryClass.getName()))
+          && libraryField.name.equals(FIELD_NAME_TYPE)
+          && libraryField.referencedClass != null
+          && libraryField.referencedClass.getName().equals(NAME_JAVA_LANG_CLASS)) {
+        value =
+            valueFactory.createReferenceValue(
+                libraryField.referencedClass,
+                false,
+                false,
+                AnalyzedObjectFactory.createModeled(
+                    new ClassModel(
+                        ClassUtil.primitiveClassFromInternalBoxingType(libraryClass.getName()))));
+      }
+    }
   }
 
   private class FieldValueGetterVisitor
