@@ -8,6 +8,7 @@ import io.mockk.verify
 import org.apache.logging.log4j.LogManager
 import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
+import proguard.classfile.editor.ClassEditor
 import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinMetadata
 import proguard.classfile.kotlin.KotlinMultiFileFacadeKindMetadata
@@ -19,6 +20,7 @@ import proguard.classfile.util.kotlin.KotlinMetadataInitializer
 import proguard.resources.file.ResourceFilePool
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.KotlinSource
+import proguard.testutils.findMethod
 
 class KotlinMetadataAsserterTest : BehaviorSpec({
     val warningLogger = WarningLogger(LogManager.getLogger(KotlinMetadataAsserter::class.java))
@@ -73,6 +75,11 @@ class KotlinMetadataAsserterTest : BehaviorSpec({
         When("the KotlinMetadataAsserter is run") {
 
             programClassPool.removeClass("Test\$DefaultImpls")
+            val testClass = programClassPool.getClass("Test") as ProgramClass
+            // Remove the default method added by the compiler, so we can test the case where the interface method
+            // has dangling references.
+            val defaultMethod = testClass.findMethod("foo")
+            ClassEditor(testClass).removeMethod(defaultMethod)
 
             KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
 
@@ -104,7 +111,6 @@ class KotlinMetadataAsserterTest : BehaviorSpec({
                 }
                 """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xjvm-default=all"),
         )
 
         When("the KotlinMetadataAsserter is run") {

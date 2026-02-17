@@ -49,6 +49,7 @@ public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinA
   public KotlinTypeMetadata receiverType;
 
   public List<KotlinTypeMetadata> contextReceivers;
+  public List<KotlinValueParameterMetadata> contextParameters;
 
   public KotlinVersionRequirementMetadata versionRequirement;
 
@@ -125,6 +126,18 @@ public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinA
       for (KotlinTypeMetadata contextReceiver : contextReceivers) {
         kotlinTypeVisitor.visitPropertyContextReceiverType(
             clazz, kotlinMetadata, this, contextReceiver);
+      }
+    }
+  }
+
+  public void contextParameterValuesAccept(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinValueParameterVisitor kotlinValueParameterVisitor) {
+    if (contextParameters != null) {
+      for (KotlinValueParameterMetadata contextParameter : contextParameters) {
+        kotlinValueParameterVisitor.visitPropertyContextParameter(
+            clazz, kotlinDeclarationContainerMetadata, this, contextParameter);
       }
     }
   }

@@ -948,6 +948,8 @@ public class ClassReferenceInitializer
       kotlinPropertyMetadata.receiverTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, this);
+      kotlinPropertyMetadata.contextParameterValuesAccept(
+          clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
     }
@@ -989,6 +991,7 @@ public class ClassReferenceInitializer
       kotlinFunctionMetadata.typeParametersAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.receiverTypeAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+      kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.returnTypeAccept(clazz, kotlinMetadata, this);
     }
@@ -1096,6 +1099,16 @@ public class ClassReferenceInitializer
     }
 
     @Override
+    public void visitFunctionContextParameter(
+        Clazz clazz,
+        KotlinMetadata kotlinMetadata,
+        KotlinFunctionMetadata kotlinFunctionMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kotlinFunctionMetadata.annotationsAccept(clazz, this);
+      kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+    }
+
+    @Override
     public void visitConstructorValParameter(
         Clazz clazz,
         KotlinClassKindMetadata kotlinClassKindMetadata,
@@ -1108,6 +1121,17 @@ public class ClassReferenceInitializer
 
     @Override
     public void visitPropertyValParameter(
+        Clazz clazz,
+        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+        KotlinPropertyMetadata kotlinPropertyMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kotlinValueParameterMetadata.annotationsAccept(clazz, this);
+      kotlinValueParameterMetadata.typeAccept(
+          clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+    }
+
+    @Override
+    public void visitPropertyContextParameter(
         Clazz clazz,
         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
         KotlinPropertyMetadata kotlinPropertyMetadata,

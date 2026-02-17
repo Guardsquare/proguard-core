@@ -47,6 +47,11 @@ class KotlinConstructorFlagsTest : BehaviorSpec({
                 constructor(param: String, param2: String, param3: String, param4: String) : this(param) { }
                 constructor(param: String, param2: String, param3: String, param4: String, param5: String) : this(param) { }
             }
+            annotation class Ann
+            class Bar {
+                @Ann constructor(param: String)
+            }
+
             """.trimIndent(),
         ),
     )
@@ -54,7 +59,7 @@ class KotlinConstructorFlagsTest : BehaviorSpec({
     Given("a primary constructor") {
         val clazz = programClassPool.getClass("Foo")
 
-        Then("the isSecondary flag should be initialized to false") {
+        Then("the flags should be initialized as expected") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
             clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, secondary = false)))
@@ -67,12 +72,15 @@ class KotlinConstructorFlagsTest : BehaviorSpec({
                         withClue("Init: isSecondary shouldBe false") {
                             it.flags.isSecondary shouldBe false
                         }
+                        withClue("Init: hasAnnotationsInBytecode shouldBe false") {
+                            it.flags.hasAnnotationsInBytecode shouldBe false
+                        }
                     },
                 )
             }
         }
 
-        Then("the isSecondary flag should be written and re-initialized to false") {
+        Then("the flags should be written and re-initialized as expected") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
             clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, secondary = false)))
@@ -85,6 +93,9 @@ class KotlinConstructorFlagsTest : BehaviorSpec({
                         withClue("Rewrite: isSecondary shouldBe false") {
                             it.flags.isSecondary shouldBe false
                         }
+                        withClue("Init: hasAnnotationsInBytecode shouldBe false") {
+                            it.flags.hasAnnotationsInBytecode shouldBe false
+                        }
                     },
                 )
             }
@@ -94,7 +105,7 @@ class KotlinConstructorFlagsTest : BehaviorSpec({
     Given("secondary constructors") {
         val clazz = programClassPool.getClass("Foo")
 
-        Then("the isSecondary flag should be initialized to true") {
+        Then("the flags should be initialized as expected") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
             clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(consVisitor, secondary = true)))
@@ -107,12 +118,15 @@ class KotlinConstructorFlagsTest : BehaviorSpec({
                         withClue("Init: isSecondary shouldBe true") {
                             it.flags.isSecondary shouldBe true
                         }
+                        withClue("Init: hasAnnotationsInBytecode shouldBe false") {
+                            it.flags.hasAnnotationsInBytecode shouldBe false
+                        }
                     },
                 )
             }
         }
 
-        Then("the isSecondary flag should be written and re-initialized to true") {
+        Then("the flags should be written and re-initialized as expected") {
             val consVisitor = spyk<KotlinConstructorVisitor>()
 
             clazz.accept(ReWritingMetadataVisitor(createVisitor(consVisitor, secondary = true)))
@@ -124,6 +138,55 @@ class KotlinConstructorFlagsTest : BehaviorSpec({
                     withArg {
                         withClue("Rewrite: isSecondary shouldBe true") {
                             it.flags.isSecondary shouldBe true
+                        }
+                        withClue("Init: hasAnnotationsInBytecode shouldBe false") {
+                            it.flags.hasAnnotationsInBytecode shouldBe false
+                        }
+                    },
+                )
+            }
+        }
+    }
+
+    Given("a constructor with an annotation") {
+        val clazz = programClassPool.getClass("Bar")
+
+        Then("the flags should be initialized as expected") {
+            val consVisitor = spyk<KotlinConstructorVisitor>()
+
+            clazz.accept(ReferencedKotlinMetadataVisitor(AllConstructorVisitor(consVisitor)))
+
+            verify(exactly = 1) {
+                consVisitor.visitConstructor(
+                    clazz,
+                    ofType(KotlinClassKindMetadata::class),
+                    withArg {
+                        withClue("Init: isSecondary shouldBe true") {
+                            it.flags.isSecondary shouldBe true
+                        }
+                        withClue("Init: hasAnnotationsInBytecode shouldBe false") {
+                            it.flags.hasAnnotationsInBytecode shouldBe true
+                        }
+                    },
+                )
+            }
+        }
+
+        Then("the flags should be written and re-initialized as expected") {
+            val consVisitor = spyk<KotlinConstructorVisitor>()
+
+            clazz.accept(ReWritingMetadataVisitor(AllConstructorVisitor(consVisitor)))
+
+            verify(exactly = 1) {
+                consVisitor.visitConstructor(
+                    clazz,
+                    ofType(KotlinClassKindMetadata::class),
+                    withArg {
+                        withClue("Rewrite: isSecondary shouldBe true") {
+                            it.flags.isSecondary shouldBe true
+                        }
+                        withClue("Init: hasAnnotationsInBytecode shouldBe false") {
+                            it.flags.hasAnnotationsInBytecode shouldBe true
                         }
                     },
                 )

@@ -525,6 +525,8 @@ public class KotlinMetadataWriter
           clazz, kotlinDeclarationContainerMetadata, new TypeConstructor(kmProperty));
       kotlinPropertyMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, new TypeConstructor(kmProperty));
+      kotlinPropertyMetadata.contextParameterValuesAccept(
+          clazz, kotlinDeclarationContainerMetadata, new ValueParameterConstructor(kmProperty));
       kotlinPropertyMetadata.setterParameterAccept(
           clazz, kotlinDeclarationContainerMetadata, new ValueParameterConstructor(kmProperty));
       kotlinPropertyMetadata.typeParametersAccept(
@@ -599,6 +601,8 @@ public class KotlinMetadataWriter
           clazz, kotlinDeclarationContainerMetadata, new TypeConstructor(kmFunction));
       kotlinFunctionMetadata.contextReceiverTypesAccept(
           clazz, kotlinDeclarationContainerMetadata, new TypeConstructor(kmFunction));
+      kotlinFunctionMetadata.contextParameterValuesAccept(
+          clazz, kotlinDeclarationContainerMetadata, new ValueParameterConstructor(kmFunction));
       kotlinFunctionMetadata.typeParametersAccept(
           clazz, kotlinDeclarationContainerMetadata, new TypeParameterConstructor(kmFunction));
       kotlinFunctionMetadata.versionRequirementAccept(
@@ -920,6 +924,49 @@ public class KotlinMetadataWriter
       kotlinValueParameterMetadata.typeAccept(
           clazz, kotlinMetadata, kotlinFunctionMetadata, new TypeConstructor(kmValueParameter));
       kmFunction.getValueParameters().add(kmValueParameter);
+    }
+
+    @Override
+    public void visitFunctionContextParameter(
+        Clazz clazz,
+        KotlinMetadata kotlinMetadata,
+        KotlinFunctionMetadata kotlinFunctionMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kmValueParameter = new KmValueParameter(kotlinValueParameterMetadata.parameterName);
+      convertValueParameterFlags(kmValueParameter, kotlinValueParameterMetadata.flags);
+
+      kotlinValueParameterMetadata.annotationsAccept(
+          clazz,
+          new AnnotationConstructor(
+              kmAnnotation -> kmValueParameter.getAnnotations().add(kmAnnotation)));
+
+      kotlinValueParameterMetadata.typeAccept(
+          clazz, kotlinMetadata, kotlinFunctionMetadata, new TypeConstructor(kmValueParameter));
+
+      kmFunction.getContextParameters().add(kmValueParameter);
+    }
+
+    @Override
+    public void visitPropertyContextParameter(
+        Clazz clazz,
+        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+        KotlinPropertyMetadata kotlinPropertyMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kmValueParameter = new KmValueParameter(kotlinValueParameterMetadata.parameterName);
+      convertValueParameterFlags(kmValueParameter, kotlinValueParameterMetadata.flags);
+
+      kotlinValueParameterMetadata.annotationsAccept(
+          clazz,
+          new AnnotationConstructor(
+              kmAnnotation -> kmValueParameter.getAnnotations().add(kmAnnotation)));
+
+      kotlinValueParameterMetadata.typeAccept(
+          clazz,
+          kotlinDeclarationContainerMetadata,
+          kotlinPropertyMetadata,
+          new TypeConstructor(kmValueParameter));
+
+      kmProperty.getContextParameters().add(kmValueParameter);
     }
 
     private static void convertValueParameterFlags(

@@ -559,6 +559,8 @@ public class KotlinMetadataInitializer
 
     // JvmExtensions
 
+    kotlinClassKindMetadata.flags.hasAnnotationsInBytecode =
+        JvmAttributes.getHasAnnotationsInBytecode(kmClass);
     kotlinClassKindMetadata.flags.hasMethodBodiesInInterface =
         JvmAttributes.getHasMethodBodiesInInterface(kmClass);
     kotlinClassKindMetadata.flags.isCompiledInCompatibilityMode =
@@ -628,6 +630,13 @@ public class KotlinMetadataInitializer
             .map(KotlinMetadataInitializer::convertKmType)
             .collect(Collectors.toList());
 
+    List<KmValueParameter> contextParameters = kmFunction.getContextParameters();
+    kotlinFunctionMetadata.contextParameters = new ArrayList<>(contextParameters.size());
+    for (int i = 0; i < contextParameters.size(); i++) {
+      kotlinFunctionMetadata.contextParameters.add(
+          convertKmValueParameter(i, contextParameters.get(i)));
+    }
+
     kotlinFunctionMetadata.returnType = convertKmType(kmFunction.returnType);
     kotlinFunctionMetadata.typeParameters =
         kmFunction.getTypeParameters().stream()
@@ -652,6 +661,11 @@ public class KotlinMetadataInitializer
         convertJvmMethodSignature(JvmExtensionsKt.getSignature(kmFunction));
     kotlinFunctionMetadata.lambdaClassOriginName =
         JvmExtensionsKt.getLambdaClassOriginName(kmFunction);
+
+    // JvmExtensions
+
+    kotlinFunctionMetadata.flags.hasAnnotationsInBytecode =
+        JvmAttributes.getHasAnnotationsInBytecode(kmFunction);
 
     return kotlinFunctionMetadata;
   }
@@ -768,6 +782,12 @@ public class KotlinMetadataInitializer
             .map(KotlinMetadataInitializer::convertKmType)
             .collect(Collectors.toList());
 
+    List<KmValueParameter> contextParameters = kmProperty.getContextParameters();
+    property.contextParameters = new ArrayList<>(contextParameters.size());
+    for (int i = 0; i < contextParameters.size(); i++) {
+      property.contextParameters.add(convertKmValueParameter(i, contextParameters.get(i)));
+    }
+
     property.type = convertKmType(kmProperty.returnType);
     property.versionRequirement = convertKmVersionRequirement(kmProperty.getVersionRequirements());
 
@@ -807,8 +827,12 @@ public class KotlinMetadataInitializer
     property.backingFieldSignature =
         convertJvmFieldSignature(JvmExtensionsKt.getFieldSignature(kmProperty));
 
+    // JvmExtensions
+
     property.flags.isMovedFromInterfaceCompanion =
         JvmAttributes.isMovedFromInterfaceCompanion(kmProperty);
+
+    property.flags.hasAnnotationsInBytecode = JvmAttributes.getHasAnnotationsInBytecode(kmProperty);
 
     property.syntheticMethodForAnnotations =
         convertJvmMethodSignature(JvmExtensionsKt.getSyntheticMethodForAnnotations(kmProperty));
@@ -963,6 +987,11 @@ public class KotlinMetadataInitializer
       constructor.jvmSignature =
           convertJvmMethodSignature(JvmExtensionsKt.getSignature(kmConstructor));
     }
+
+    // JvmExtensions
+
+    constructor.flags.hasAnnotationsInBytecode =
+        JvmAttributes.getHasAnnotationsInBytecode(kmConstructor);
 
     return constructor;
   }
@@ -1273,6 +1302,11 @@ public class KotlinMetadataInitializer
     kotlinPropertyAccessorMetadata.isExternal = Attributes.isExternal(kmPropertyAccessorAttributes);
     kotlinPropertyAccessorMetadata.isInline = Attributes.isInline(kmPropertyAccessorAttributes);
 
+    // JvmExtensions
+
+    kotlinPropertyAccessorMetadata.hasAnnotationsInBytecode =
+        JvmAttributes.getHasAnnotationsInBytecode(kmPropertyAccessorAttributes);
+
     return kotlinPropertyAccessorMetadata;
   }
 
@@ -1285,6 +1319,8 @@ public class KotlinMetadataInitializer
     flags.hasDefaultValue = Attributes.getDeclaresDefaultValue(kmValueParameter);
     flags.isCrossInline = Attributes.isCrossinline(kmValueParameter);
     flags.isNoInline = Attributes.isNoinline(kmValueParameter);
+
+    flags.hasAnnotationsInBytecode = JvmAttributes.getHasAnnotationsInBytecode(kmValueParameter);
 
     return flags;
   }

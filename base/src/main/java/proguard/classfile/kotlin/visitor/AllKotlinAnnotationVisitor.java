@@ -147,7 +147,28 @@ public class AllKotlinAnnotationVisitor
   }
 
   @Override
+  public void visitFunctionContextParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+    visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+  }
+
+  @Override
   public void visitPropertyValParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    kotlinValueParameterMetadata.typeAccept(
+        clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+    visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+  }
+
+  @Override
+  public void visitPropertyContextParameter(
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinPropertyMetadata kotlinPropertyMetadata,

@@ -71,7 +71,7 @@ allprojects {
 	}
 	tasks.withType(KotlinCompilationTask.class)
 			.configureEach {
-				compilerOptions.languageVersion = KotlinVersion.KOTLIN_1_8
+				compilerOptions.languageVersion = KotlinVersion.KOTLIN_2_0
 			}
 }
 

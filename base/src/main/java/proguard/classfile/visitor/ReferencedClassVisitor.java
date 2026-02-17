@@ -365,6 +365,7 @@ public class ReferencedClassVisitor
         Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata) {
       kotlinFunctionMetadata.receiverTypeAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+      kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.returnTypeAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.typeParametersAccept(clazz, kotlinMetadata, this);
       kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
@@ -405,7 +406,26 @@ public class ReferencedClassVisitor
     }
 
     @Override
+    public void visitFunctionContextParameter(
+        Clazz clazz,
+        KotlinMetadata kotlinMetadata,
+        KotlinFunctionMetadata kotlinFunctionMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+    }
+
+    @Override
     public void visitPropertyValParameter(
+        Clazz clazz,
+        KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+        KotlinPropertyMetadata kotlinPropertyMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kotlinValueParameterMetadata.typeAccept(
+          clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+    }
+
+    @Override
+    public void visitPropertyContextParameter(
         Clazz clazz,
         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
         KotlinPropertyMetadata kotlinPropertyMetadata,
@@ -423,6 +443,8 @@ public class ReferencedClassVisitor
         KotlinPropertyMetadata kotlinPropertyMetadata) {
       kotlinPropertyMetadata.receiverTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.contextReceiverTypesAccept(
+          clazz, kotlinDeclarationContainerMetadata, this);
+      kotlinPropertyMetadata.contextParameterValuesAccept(
           clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);

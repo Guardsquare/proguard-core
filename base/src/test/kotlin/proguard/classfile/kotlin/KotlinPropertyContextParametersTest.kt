@@ -28,12 +28,7 @@ import proguard.testutils.ReWritingMetadataVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 
-/**
- * Note that since Kotlin 2.3 the kotlin receiver data is stored in
- * the 'context parameter' fields, since the context receiver fields
- * are deprecated.
- */
-class KotlinPropertyContextReceiversTest : FreeSpec({
+class KotlinPropertyContextParametersTest : FreeSpec({
     "Given a property with context receivers" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             KotlinSource(
@@ -45,10 +40,10 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                   }
               }
 
-              context(Logger)
+              context(logger: Logger)
               val foo: String
                   get() { 
-                      info("message")
+                      logger.info("message")
                       return "test"
                   }
 
@@ -57,7 +52,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
               }
                 """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xcontext-receivers"),
+            kotlincArguments = listOf("-Xcontext-parameters"),
         )
 
         val loggerClass = programClassPool.getClass("Logger") as ProgramClass
@@ -69,7 +64,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(KotlinMetadataPrinter(PrintWriter(writer))),
             )
             "Then the printed string should contain the context receiver" {
-                writer.toString() shouldContain "[CTPA] Logger"
+                writer.toString() shouldContain "[CTPA] logger"
                 writer.toString() shouldContain "[TYPE] Logger"
             }
         }
@@ -88,7 +83,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
             )
 
             "Then the printed string should contain the context receiver" {
-                writer.toString() shouldContain "[CTPA] Logger"
+                writer.toString() shouldContain "[CTPA] logger"
                 writer.toString() shouldContain "[TYPE] Logger"
             }
         }
