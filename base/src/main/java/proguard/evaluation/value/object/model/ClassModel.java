@@ -19,10 +19,9 @@ import proguard.evaluation.value.object.model.reflective.ReflectiveModel;
 
 /** A {@link Model} to track specific Clazz constants. */
 public class ClassModel implements ReflectiveModel<ClassModel> {
-
   private final Clazz clazz;
-
   private final Class<?> primitiveClass;
+  private final String name;
 
   /**
    * Mandatory no-argument constructor.
@@ -32,11 +31,19 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
   private ClassModel() {
     this.clazz = null;
     this.primitiveClass = null;
+    this.name = null;
   }
 
   public ClassModel(Clazz clazz) {
     this.clazz = clazz;
     this.primitiveClass = null;
+    this.name = null;
+  }
+
+  private ClassModel(String name) {
+    this.clazz = null;
+    this.primitiveClass = null;
+    this.name = name;
   }
 
   /**
@@ -46,12 +53,13 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
    *     ...
    * @throws IllegalArgumentException iff a non-primitive {@link Class} object is passed.
    */
-  public ClassModel(Class<?> clazz) {
+  public ClassModel(@NotNull Class<?> clazz) {
     if (!clazz.isPrimitive()) {
       throw new IllegalArgumentException("The class parameter must be a primitive.");
     }
     this.clazz = null;
     this.primitiveClass = clazz;
+    this.name = null;
   }
 
   /**
@@ -61,7 +69,7 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
    * @return the modeled {@link Clazz}.
    * @throws IllegalArgumentException if a primitive class is modeled.
    */
-  public Clazz getClazz() {
+  public @Nullable Clazz getClazz() {
     if (isPrimitive()) throw new IllegalArgumentException("A primitive class is modeled.");
     return clazz;
   }
@@ -82,12 +90,17 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
     return primitiveClass != null;
   }
 
+  public boolean isUnknown() {
+    return name != null;
+  }
+
   /**
    * @return the name of the modeled class.
    */
   public @Nullable String getModeledClassName() {
     if (isPrimitive()) return primitiveClass.getName();
     if (clazz != null) return clazz.getName();
+    if (name != null) return name;
     return null;
   }
 
@@ -188,15 +201,16 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
   MethodResult forName(ModelHelper.MethodExecutionContext context, Value classNameValue) {
     if (!classNameValue.isParticular()) return MethodResult.invalidResult();
 
+    String className = (String) classNameValue.referenceValue().getValue().getPreciseValue();
     Optional<Clazz> clazz =
         findReferencedClazz(
-            (String) classNameValue.referenceValue().getValue().getPreciseValue(),
+            className,
             context.getExecutionInfo().getProgramClassPool(),
             context.getExecutionInfo().getLibraryClassPool());
     if (clazz.isPresent())
       return ModelHelper.createDefaultReturnResult(context, new ClassModel(clazz.get()));
 
-    return MethodResult.invalidResult();
+    return ModelHelper.createDefaultReturnResult(context, new ClassModel(className));
   }
 
   /** Models {@link Class#forName(String, boolean, ClassLoader)}. */
@@ -210,15 +224,16 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
       Value classLoaderValue) {
     if (!classNameValue.isParticular()) return MethodResult.invalidResult();
 
+    String className = (String) classNameValue.referenceValue().getValue().getPreciseValue();
     Optional<Clazz> clazz =
         findReferencedClazz(
-            (String) classNameValue.referenceValue().getValue().getPreciseValue(),
+            className,
             context.getExecutionInfo().getProgramClassPool(),
             context.getExecutionInfo().getLibraryClassPool());
     if (clazz.isPresent())
       return ModelHelper.createDefaultReturnResult(context, new ClassModel(clazz.get()));
 
-    return MethodResult.invalidResult();
+    return ModelHelper.createDefaultReturnResult(context, new ClassModel(className));
   }
 
   // Object overrides.
@@ -228,21 +243,20 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     ClassModel that = (ClassModel) o;
-    return Objects.equals(clazz, that.clazz);
+
+    return Objects.equals(clazz, that.clazz)
+        && Objects.equals(primitiveClass, that.primitiveClass)
+        && Objects.equals(name, that.name);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(clazz != null ? clazz : primitiveClass);
+    return Objects.hash(clazz, primitiveClass, name);
   }
 
   @Override
   public String toString() {
-    return String.format(
-        "ClassModel{%s}",
-        clazz != null
-            ? clazz.getName()
-            : primitiveClass != null ? primitiveClass.getName() : "null");
+    return String.format("ClassModel{%s}", getModeledClassName());
   }
 
   // Private helper methods.
