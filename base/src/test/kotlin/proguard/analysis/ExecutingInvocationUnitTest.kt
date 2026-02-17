@@ -26,6 +26,7 @@ import proguard.evaluation.value.ReferenceValue
 import proguard.evaluation.value.TypedReferenceValue
 import proguard.evaluation.value.ValueFactory
 import proguard.evaluation.value.`object`.model.ArrayModel
+import proguard.evaluation.value.`object`.model.ClassModel
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.PartialEvaluatorUtil
@@ -544,6 +545,52 @@ class ExecutingInvocationUnitTest : FreeSpec({
                 "int",
                 "boolean",
             )
+        }
+    }
+    "Executed methods returning non existing class has correct type and value" - {
+        val code = JavaSource(
+            "Test.java",
+            """
+                class Test {
+                    public void testGetNameExecution() throws ClassNotFoundException {
+                        Class<?> IDontExist = Class.forName("IDontExist");
+                    }
+                }
+                """,
+        )
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            code,
+            javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"),
+        )
+        val valueFactory: ValueFactory = ParticularValueFactory(
+            DetailedArrayValueFactory(ParticularReferenceValueFactory()),
+            ParticularReferenceValueFactory(),
+        )
+        val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).addExecutor(
+            ClassModelExecutor.Builder(programClassPool, libraryClassPool),
+        ).build(valueFactory)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
+
+        val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+            "Test",
+            "testGetNameExecution",
+            "()V",
+            programClassPool,
+            partialEvaluator,
+        )
+
+        val (instruction, _) = instructions.last()
+
+        val IDontExistClass = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["IDontExist"]!!)
+
+        "for the IDontExist class" {
+            IDontExistClass.shouldBeInstanceOf<ParticularReferenceValue>()
+            IDontExistClass.value.type shouldBe "Ljava/lang/Class;"
+            (IDontExistClass.value.modeledValue as ClassModel).getModeledClassName() shouldBe "IDontExist"
         }
     }
 })
