@@ -1,6 +1,6 @@
 package proguard.classfile.kotlin
 
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.spyk
@@ -31,8 +31,8 @@ import proguard.testutils.ReWritingMetadataVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 
-class KotlinFunctionContextParametersTest : FreeSpec({
-    "Given a function with context receivers" - {
+class KotlinFunctionContextParametersTest : BehaviorSpec({
+    Given("a function with context receivers") {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -58,19 +58,19 @@ class KotlinFunctionContextParametersTest : FreeSpec({
 
         val loggerClass = programClassPool.getClass("Logger") as ProgramClass
 
-        "When printing the metadata" - {
+        When("printing the metadata") {
             val writer = StringWriter()
             programClassPool.classAccept(
                 "TestKt",
                 ReferencedKotlinMetadataVisitor(KotlinMetadataPrinter(PrintWriter(writer))),
             )
-            "Then the printed string should contain the context receiver" {
+            Then("the printed string should contain the context receiver") {
                 writer.toString() shouldContain "[CTPA] logger"
                 writer.toString() shouldContain "[TYPE] Logger"
             }
         }
 
-        "When rewriting the metadata" - {
+        When("rewriting the metadata") {
             val writer = StringWriter()
             programClassPool.classAccept(
                 "TestKt",
@@ -83,13 +83,13 @@ class KotlinFunctionContextParametersTest : FreeSpec({
                 ),
             )
 
-            "Then the printed string should contain the context receiver" {
+            Then("the printed string should contain the context receiver") {
                 writer.toString() shouldContain "[CTPA] logger"
                 writer.toString() shouldContain "[TYPE] Logger"
             }
         }
 
-        "When placing processing info on the receiver type metadata" - {
+        When("placing processing info on the receiver type metadata") {
             val processingInfo = Object()
 
             programClassPool.getClass("TestKt").kotlinMetadataAccept(
@@ -102,7 +102,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
                 ),
             )
 
-            "Then there should be processingInfo" {
+            Then("there should be processingInfo") {
                 val visitor = spyk<KotlinTypeVisitor>()
                 val allTypeVisitor = AllTypeVisitor(visitor)
                 programClassPool.getClass("TestKt").kotlinMetadataAccept(
@@ -124,7 +124,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
                 }
             }
 
-            "Then it should be cleaned using the ClassCleaner" {
+            Then("it should be cleaned using the ClassCleaner") {
                 val visitor = spyk<KotlinTypeVisitor>()
                 programClassPool.classAccept("TestKt", ClassCleaner())
                 programClassPool.classAccept(
@@ -149,11 +149,11 @@ class KotlinFunctionContextParametersTest : FreeSpec({
             }
         }
 
-        "When visiting all types" - {
+        When("visiting all types") {
             val typeVisitor = spyk<KotlinTypeVisitor>()
             programClassPool.classAccept("TestKt", ReferencedKotlinMetadataVisitor(AllTypeVisitor(typeVisitor)))
 
-            "Then the context receiver type should be visited" {
+            Then("the context receiver type should be visited") {
                 verify(exactly = 1) {
                     typeVisitor.visitFunctionValParamType(
                         programClassPool.getClass("TestKt"),
@@ -169,7 +169,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
             }
         }
 
-        "When visiting referenced classes" - {
+        When("visiting referenced classes") {
             val classCounter = ClassCounter()
             programClassPool.classAccept(
                 "TestKt",
@@ -187,7 +187,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
                     ClassNameFilter("Logger", visitor),
                 ),
             )
-            "Then the context receiver class should be visited" {
+            Then("the context receiver class should be visited") {
                 // There should be at least one more visit when taking
                 // into account Kotlin metadata references,
                 // since the metadata now references Logger.
@@ -197,7 +197,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
             }
         }
 
-        "When visiting filtered types" - {
+        When("visiting filtered types") {
             val typeVisitor = spyk<KotlinTypeVisitor>()
             programClassPool.classAccept(
                 "TestKt",
@@ -206,7 +206,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
                 ),
             )
 
-            "Then the context receiver type should be visited" {
+            Then("the context receiver type should be visited") {
                 verify(exactly = 1) {
                     typeVisitor.visitFunctionValParamType(
                         programClassPool.getClass("TestKt"),
@@ -222,7 +222,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
             }
         }
 
-        "When visiting context receivers" - {
+        When("visiting context receivers") {
             val valueParameterVisitor = spyk<KotlinValueParameterVisitor>()
             programClassPool.classAccept(
                 "TestKt",
@@ -236,7 +236,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
                     ),
                 ),
             )
-            "Then the visit method should be called with the correct type information" {
+            Then("the visit method should be called with the correct type information") {
                 verify(exactly = 1) {
                     valueParameterVisitor.visitFunctionContextParameter(
                         programClassPool.getClass("TestKt"),
@@ -251,7 +251,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
             }
         }
 
-        "When renaming a context receiver class and fixing the references" - {
+        When("renaming a context receiver class and fixing the references") {
             programClassPool.classesAccept("Logger", ClassRenamer { "ObfuscatedLogger" })
             programClassPool.classesAccept(ClassReferenceFixer(false))
 
@@ -268,7 +268,7 @@ class KotlinFunctionContextParametersTest : FreeSpec({
                     ),
                 ),
             )
-            "Then the visit method should be called with the correct type information" {
+            Then("the visit method should be called with the correct type information") {
                 verify(exactly = 1) {
                     valueParameterVisitor.visitFunctionContextParameter(
                         programClassPool.getClass("TestKt"),
