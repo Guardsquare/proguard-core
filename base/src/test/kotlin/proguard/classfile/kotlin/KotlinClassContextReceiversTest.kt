@@ -29,6 +29,11 @@ import proguard.testutils.ReWritingMetadataVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 
+/**
+ * Note that since Kotlin 2.3 the kotlin receiver data is stored in
+ * the 'context parameter' fields, since the context receiver fields
+ * are deprecated.
+ */
 class KotlinClassContextReceiversTest : FreeSpec({
     "Given a class with context receivers" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(

@@ -13,6 +13,7 @@ import proguard.classfile.kotlin.visitor.AllTypeVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataPrinter
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
+import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor
 import proguard.classfile.kotlin.visitor.MultiKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
@@ -30,6 +31,11 @@ import proguard.testutils.ReWritingMetadataVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 
+/**
+ * Note that since Kotlin 2.3 the kotlin receiver data is stored in
+ * the 'context parameter' fields, since the context receiver fields
+ * are deprecated.
+ */
 class KotlinFunctionContextReceiversTest : FreeSpec({
     "Given a function with context receivers" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
@@ -64,7 +70,8 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(KotlinMetadataPrinter(PrintWriter(writer))),
             )
             "Then the printed string should contain the context receiver" {
-                writer.toString() shouldContain "[CTRE] Logger"
+                writer.toString() shouldContain "[CTPA] Logger"
+                writer.toString() shouldContain "[TYPE] Logger"
             }
         }
 
@@ -82,7 +89,8 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
             )
 
             "Then the printed string should contain the context receiver" {
-                writer.toString() shouldContain "[CTRE] Logger"
+                writer.toString() shouldContain "[CTPA] Logger"
+                writer.toString() shouldContain "[TYPE] Logger"
             }
         }
 
@@ -92,8 +100,8 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
             programClassPool.getClass("TestKt").kotlinMetadataAccept(
                 AllFunctionVisitor(
                     KotlinFunctionFilter({ function -> function.name == "foo" }) { clazz, kotlinMetadata, kotlinFunctionMetadata ->
-                        kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata) { _, kotlinTypeMetadata ->
-                            kotlinTypeMetadata.processingInfo = processingInfo
+                        kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata) { _, kotlinValueParameterMetadata ->
+                            kotlinValueParameterMetadata.type.processingInfo = processingInfo
                         }
                     },
                 ),
@@ -101,13 +109,16 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
 
             "Then there should be processingInfo" {
                 val visitor = spyk<KotlinTypeVisitor>()
+                val allTypeVisitor = AllTypeVisitor(visitor)
                 programClassPool.getClass("TestKt").kotlinMetadataAccept(
                     AllFunctionVisitor(
-                        KotlinFunctionFilter({ function -> function.name == "foo" }, AllTypeVisitor(visitor)),
+                        KotlinFunctionFilter({ function -> function.name == "foo" }, allTypeVisitor),
                     ),
                 )
+
                 verify(exactly = 1) {
-                    visitor.visitFunctionContextReceiverType(
+                    allTypeVisitor.visitFunctionValParamType(
+                        ofType(),
                         ofType(),
                         ofType(),
                         ofType(),
@@ -130,7 +141,8 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
                     ),
                 )
                 verify(exactly = 1) {
-                    visitor.visitFunctionContextReceiverType(
+                    visitor.visitFunctionValParamType(
+                        ofType(),
                         ofType(),
                         ofType(),
                         ofType(),
@@ -148,10 +160,11 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
 
             "Then the context receiver type should be visited" {
                 verify(exactly = 1) {
-                    typeVisitor.visitFunctionContextReceiverType(
+                    typeVisitor.visitFunctionValParamType(
                         programClassPool.getClass("TestKt"),
-                        ofType<KotlinMetadata>(),
-                        ofType<KotlinFunctionMetadata>(),
+                        ofType(),
+                        ofType(),
+                        ofType(),
                         withArg {
                             it.className shouldBe "Logger"
                             it.referencedClass shouldBe loggerClass
@@ -200,10 +213,11 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
 
             "Then the context receiver type should be visited" {
                 verify(exactly = 1) {
-                    typeVisitor.visitFunctionContextReceiverType(
+                    typeVisitor.visitFunctionValParamType(
                         programClassPool.getClass("TestKt"),
-                        ofType<KotlinMetadata>(),
-                        ofType<KotlinFunctionMetadata>(),
+                        ofType(),
+                        ofType(),
+                        ofType(),
                         withArg {
                             it.className shouldBe "Logger"
                             it.referencedClass shouldBe loggerClass
@@ -214,14 +228,14 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
         }
 
         "When visiting context receivers" - {
-            val typeVisitor = spyk<KotlinTypeVisitor>()
+            val valueParameterVisitor = spyk<KotlinValueParameterVisitor>()
             programClassPool.classAccept(
                 "TestKt",
                 ReferencedKotlinMetadataVisitor(
                     AllFunctionVisitor(
                         object : KotlinFunctionVisitor {
                             override fun visitAnyFunction(clazz: Clazz, kotlinMetadata: KotlinMetadata, kotlinFunctionMetadata: KotlinFunctionMetadata) {
-                                kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, typeVisitor)
+                                kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata, valueParameterVisitor)
                             }
                         },
                     ),
@@ -229,13 +243,13 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
-                    typeVisitor.visitFunctionContextReceiverType(
+                    valueParameterVisitor.visitFunctionContextParameter(
                         programClassPool.getClass("TestKt"),
                         ofType<KotlinMetadata>(),
                         ofType<KotlinFunctionMetadata>(),
                         withArg {
-                            it.className shouldBe "Logger"
-                            it.referencedClass shouldBe loggerClass
+                            it.type.className shouldBe "Logger"
+                            it.type.referencedClass shouldBe loggerClass
                         },
                     )
                 }
@@ -246,14 +260,14 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
             programClassPool.classesAccept("Logger", ClassRenamer { "ObfuscatedLogger" })
             programClassPool.classesAccept(ClassReferenceFixer(false))
 
-            val typeVisitor = spyk<KotlinTypeVisitor>()
+            val valueParameterVisitor = spyk<KotlinValueParameterVisitor>()
             programClassPool.classAccept(
                 "TestKt",
                 ReferencedKotlinMetadataVisitor(
                     AllFunctionVisitor(
                         object : KotlinFunctionVisitor {
                             override fun visitAnyFunction(clazz: Clazz, kotlinMetadata: KotlinMetadata, kotlinFunctionMetadata: KotlinFunctionMetadata) {
-                                kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, typeVisitor)
+                                kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata, valueParameterVisitor)
                             }
                         },
                     ),
@@ -261,13 +275,13 @@ class KotlinFunctionContextReceiversTest : FreeSpec({
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
-                    typeVisitor.visitFunctionContextReceiverType(
+                    valueParameterVisitor.visitFunctionContextParameter(
                         programClassPool.getClass("TestKt"),
                         ofType<KotlinMetadata>(),
                         ofType<KotlinFunctionMetadata>(),
                         withArg {
-                            it.className shouldBe "ObfuscatedLogger"
-                            it.referencedClass shouldBe loggerClass
+                            it.type.className shouldBe "ObfuscatedLogger"
+                            it.type.referencedClass shouldBe loggerClass
                         },
                     )
                 }

@@ -93,6 +93,15 @@ public class MemberDescriptorReferencedClassVisitor implements MemberVisitor {
     }
 
     @Override
+    public void visitFunctionContextParameter(
+        Clazz clazz,
+        KotlinMetadata kotlinMetadata,
+        KotlinFunctionMetadata kotlinFunctionMetadata,
+        KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+      kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+    }
+
+    @Override
     public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata) {
       kotlinTypeMetadata.referencedClassAccept(
           new ReferencedKotlinMetadataVisitor(

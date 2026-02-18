@@ -50,6 +50,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -70,6 +71,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe true
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe true
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -90,6 +92,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe true
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -110,6 +113,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -130,6 +134,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -150,6 +155,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -170,8 +176,9 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
-            it.hasMethodBodiesInInterface shouldBe false
-            it.isCompiledInCompatibilityMode shouldBe false
+            it.hasAnnotationsInBytecode shouldBe false
+            it.hasMethodBodiesInInterface shouldBe true
+            it.isCompiledInCompatibilityMode shouldBe true
         },
     )
 
@@ -190,6 +197,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -212,6 +220,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -232,6 +241,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe false
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -252,8 +262,9 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe true
             // JVM specific flags
-            it.hasMethodBodiesInInterface shouldBe false
-            it.isCompiledInCompatibilityMode shouldBe false
+            it.hasAnnotationsInBytecode shouldBe false
+            it.hasMethodBodiesInInterface shouldBe true
+            it.isCompiledInCompatibilityMode shouldBe true
         },
     )
 
@@ -272,7 +283,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
                 }
             """.trimIndent(),
         ),
-        kotlincArguments = listOf("-Xjvm-default=all"),
+        kotlincArguments = listOf("-jvm-default=no-compatibility"),
     )
 
     include(
@@ -290,6 +301,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
+            it.hasAnnotationsInBytecode shouldBe false
             it.hasMethodBodiesInInterface shouldBe true
             it.isCompiledInCompatibilityMode shouldBe false
         },
@@ -306,7 +318,7 @@ class KotlinClassFlagsTest : BehaviorSpec({
                 }
             """.trimIndent(),
         ),
-        kotlincArguments = listOf("-Xjvm-default=all-compatibility"),
+        kotlincArguments = listOf("-jvm-default=disable"),
     )
 
     include(
@@ -324,8 +336,9 @@ class KotlinClassFlagsTest : BehaviorSpec({
             it.isValue shouldBe false
             it.isFun shouldBe false
             // JVM specific flags
-            it.hasMethodBodiesInInterface shouldBe true
-            it.isCompiledInCompatibilityMode shouldBe true
+            it.hasAnnotationsInBytecode shouldBe false
+            it.hasMethodBodiesInInterface shouldBe false
+            it.isCompiledInCompatibilityMode shouldBe false
         },
     )
 })

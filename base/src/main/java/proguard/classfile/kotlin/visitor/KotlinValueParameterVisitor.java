@@ -48,4 +48,28 @@ public interface KotlinValueParameterVisitor {
       KotlinValueParameterMetadata kotlinValueParameterMetadata) {
     visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
   }
+
+  default void visitAnyContextParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
+  }
+
+  default void visitFunctionContextParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    visitAnyContextParameter(clazz, kotlinMetadata, kotlinValueParameterMetadata);
+  }
+
+  default void visitPropertyContextParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    visitAnyContextParameter(
+        clazz, kotlinDeclarationContainerMetadata, kotlinValueParameterMetadata);
+  }
 }

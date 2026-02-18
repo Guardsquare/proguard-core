@@ -294,6 +294,35 @@ public class KotlinMetadataPrinter
   }
 
   @Override
+  public void visitFunctionContextParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    print("[CTPA] " + kotlinValueParameterMetadata.parameterName);
+    println();
+
+    indent();
+    kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+    outdent();
+  }
+
+  @Override
+  public void visitPropertyContextParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    print("[CTPA] " + kotlinValueParameterMetadata.parameterName);
+    println();
+
+    indent();
+    kotlinValueParameterMetadata.typeAccept(
+        clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, this);
+    outdent();
+  }
+
+  @Override
   public void visitConstructorValParameter(
       Clazz clazz,
       KotlinClassKindMetadata kotlinClassKindMetadata,
@@ -392,6 +421,8 @@ public class KotlinMetadataPrinter
 
     kotlinPropertyMetadata.receiverTypeAccept(clazz, kotlinDeclarationContainerMetadata, this);
     kotlinPropertyMetadata.contextReceiverTypesAccept(
+        clazz, kotlinDeclarationContainerMetadata, this);
+    kotlinPropertyMetadata.contextParameterValuesAccept(
         clazz, kotlinDeclarationContainerMetadata, this);
     kotlinPropertyMetadata.typeParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
     kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
@@ -703,6 +734,7 @@ public class KotlinMetadataPrinter
     kotlinFunctionMetadata.typeParametersAccept(clazz, kotlinMetadata, this);
     kotlinFunctionMetadata.receiverTypeAccept(clazz, kotlinMetadata, this);
     kotlinFunctionMetadata.contextReceiverTypesAccept(clazz, kotlinMetadata, this);
+    kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata, this);
     kotlinFunctionMetadata.valueParametersAccept(clazz, kotlinMetadata, this);
     kotlinFunctionMetadata.returnTypeAccept(clazz, kotlinMetadata, this);
     kotlinFunctionMetadata.contractsAccept(clazz, kotlinMetadata, this);
@@ -1036,13 +1068,17 @@ public class KotlinMetadataPrinter
         +
         // JVM specific flags
         (flags.isCompiledInCompatibilityMode ? "compiledInCompatibilityMode " : "")
-        + (flags.hasMethodBodiesInInterface ? "hasMethodBodiesInInterface " : "");
+        + (flags.hasMethodBodiesInInterface ? "hasMethodBodiesInInterface " : "")
+        + (flags.hasAnnotationsInBytecode ? "hasAnnotationsInBytecode" : "");
   }
 
   private String constructorFlags(KotlinConstructorFlags flags) {
     return visibilityFlags(flags.visibility)
         + (flags.isSecondary ? "secondary " : "primary ")
-        + (flags.hasNonStableParameterNames ? "nonstable " : "stable ");
+        + (flags.hasNonStableParameterNames ? "nonstable " : "stable ")
+        +
+        // JVM specific flags
+        (flags.hasAnnotationsInBytecode ? "hasAnnotationsInBytecode " : "");
   }
 
   private String effectExpressionFlags(KotlinEffectExpressionFlags flags) {
@@ -1063,7 +1099,10 @@ public class KotlinMetadataPrinter
         + (flags.isTailrec ? "tailrec " : "")
         + (flags.isExternal ? "external " : "")
         + (flags.isSuspend ? "suspend " : "")
-        + (flags.isExpect ? "expect " : "");
+        + (flags.isExpect ? "expect " : "")
+        +
+        // JVM specific flags
+        (flags.hasAnnotationsInBytecode ? "hasAnnotationsInBytecode " : "");
   }
 
   private String propertyAccessorFlags(KotlinPropertyAccessorMetadata accessorMetadata) {
@@ -1071,7 +1110,10 @@ public class KotlinMetadataPrinter
         + modalityFlags(accessorMetadata.modality)
         + (accessorMetadata.isDefault ? "" : "nonDefault ")
         + (accessorMetadata.isExternal ? "external " : "")
-        + (accessorMetadata.isInline ? "inline " : "");
+        + (accessorMetadata.isInline ? "inline " : "")
+        +
+        // JVM specific flags
+        (accessorMetadata.hasAnnotationsInBytecode ? "hasAnnotationsInBytecode " : "");
   }
 
   private String propertyFlags(KotlinPropertyFlags flags) {
@@ -1090,7 +1132,8 @@ public class KotlinMetadataPrinter
         + (flags.isExpect ? "expect " : "")
         +
         // JVM specific flags
-        (flags.isMovedFromInterfaceCompanion ? "movedFromInterfaceCompanion " : "");
+        (flags.isMovedFromInterfaceCompanion ? "movedFromInterfaceCompanion " : "")
+        + (flags.hasAnnotationsInBytecode ? "hasAnnotationsInBytecode " : "");
   }
 
   private String typeFlags(KotlinTypeFlags flags) {
@@ -1110,6 +1153,9 @@ public class KotlinMetadataPrinter
   private String valueParameterFlags(KotlinValueParameterFlags flags) {
     return (flags.isCrossInline ? "crossinline " : "")
         + (flags.isNoInline ? "noinline " : "")
-        + (flags.hasDefaultValue ? "hasDefault " : "");
+        + (flags.hasDefaultValue ? "hasDefault " : "")
+        +
+        // JVM specific flags
+        (flags.hasAnnotationsInBytecode ? "hasAnnotationsInBytecode " : "");
   }
 }

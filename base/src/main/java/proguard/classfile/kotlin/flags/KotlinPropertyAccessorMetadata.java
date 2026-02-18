@@ -53,6 +53,21 @@ public class KotlinPropertyAccessorMetadata extends SimpleProcessable
   /** Signifies that the corresponding property is `inline`. */
   public boolean isInline;
 
+  // JVM Specific flags
+
+  /**
+   * Indicates that the corresponding interface has at least one annotation in the JVM bytecode.
+   *
+   * <p>Before annotations in metadata are enabled by default in the Kotlin compiler
+   * (https://youtrack.jetbrains.com/issue/KT-75736), annotations are only generated in the JVM
+   * bytecode. The compiler writes and reads this flag to metadata as an optimization, to avoid
+   * parsing class file one additional time when it's not needed.
+   *
+   * <p>Only annotations with [AnnotationRetention.BINARY] and [AnnotationRetention.RUNTIME] are
+   * written to the class files.
+   */
+  public boolean hasAnnotationsInBytecode;
+
   @Deprecated public boolean hasAnnotations;
 
   public KotlinPropertyAccessorMetadata(

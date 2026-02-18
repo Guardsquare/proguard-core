@@ -42,11 +42,14 @@ class KotlinFunctionFlagsTest : FreeSpec({
                 infix fun infixFun(param: String) = param
                 operator fun plus(param: String) = param
             }
+            
+            annotation class Ann
 
             @Suppress("NOTHING_TO_INLINE")
             inline fun inlineFun() = "foo"
             suspend fun suspendFun() = "foo"
             tailrec fun tailrecFun(): String = tailrecFun()
+            @Ann fun annotationFun() = "foo" 
             """.trimIndent(),
         ),
     )
@@ -249,6 +252,40 @@ class KotlinFunctionFlagsTest : FreeSpec({
                     ofType(KotlinMetadata::class),
                     withArg {
                         it.flags.isTailrec shouldBe true
+                    },
+                )
+            }
+        }
+    }
+
+    "Given an annotated function" - {
+        val clazz = programClassPool.getClass("TestKt")
+
+        "Then the hasAnnotationsInBytecode flag should be set when initialized" {
+            val funcVisitor = spyk<KotlinFunctionVisitor>()
+            clazz.accept(ReferencedKotlinMetadataVisitor(createVisitor(funcVisitor, "annotationFun")))
+
+            verify(exactly = 1) {
+                funcVisitor.visitAnyFunction(
+                    clazz,
+                    ofType(KotlinMetadata::class),
+                    withArg {
+                        it.flags.hasAnnotationsInBytecode shouldBe true
+                    },
+                )
+            }
+        }
+
+        "Then the hasAnnotationsInBytecode flag should be set when written and re-initialized" {
+            val funcVisitor = spyk<KotlinFunctionVisitor>()
+            clazz.accept(ReWritingMetadataVisitor(createVisitor(funcVisitor, "annotationFun")))
+
+            verify(exactly = 1) {
+                funcVisitor.visitAnyFunction(
+                    clazz,
+                    ofType(KotlinMetadata::class),
+                    withArg {
+                        it.flags.hasAnnotationsInBytecode shouldBe true
                     },
                 )
             }

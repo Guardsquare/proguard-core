@@ -1,3 +1,9 @@
+## Version 9.3.1
+
+### Kotlin support
+
+- Add support for processing Kotlin 2.3 metadata.
+
 ## Version 9.3.0
 
 ### API changes

@@ -5,15 +5,18 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.spyk
 import io.mockk.verify
+import proguard.classfile.Clazz
 import proguard.classfile.ProgramClass
 import proguard.classfile.editor.ClassReferenceFixer
-import proguard.classfile.kotlin.visitor.AllPropertyVisitor
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllTypeVisitor
+import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinMetadataPrinter
 import proguard.classfile.kotlin.visitor.KotlinTypeVisitor
+import proguard.classfile.kotlin.visitor.KotlinValueParameterVisitor
 import proguard.classfile.kotlin.visitor.MultiKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
-import proguard.classfile.kotlin.visitor.filter.KotlinPropertyFilter
+import proguard.classfile.kotlin.visitor.filter.KotlinFunctionFilter
 import proguard.classfile.kotlin.visitor.filter.KotlinTypeFilter
 import proguard.classfile.util.ClassReferenceInitializer
 import proguard.classfile.util.ClassRenamer
@@ -28,36 +31,29 @@ import proguard.testutils.ReWritingMetadataVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 
-/**
- * Note that since Kotlin 2.3 the kotlin receiver data is stored in
- * the 'context parameter' fields, since the context receiver fields
- * are deprecated.
- */
-class KotlinPropertyContextReceiversTest : FreeSpec({
-    "Given a property with context receivers" - {
+class KotlinFunctionContextParametersTest : FreeSpec({
+    "Given a function with context receivers" - {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
                 """
+              context(logger: Logger)
+              fun foo() {
+                  logger.info("message")
+              }
+              
               class Logger {
                   fun info(message: String) {
                     println(message)
                   }
               }
-
-              context(Logger)
-              val foo: String
-                  get() { 
-                      info("message")
-                      return "test"
-                  }
-
+    
               fun main() {
-                with (Logger()) { println(foo) }
+                with (Logger()) { foo() }
               }
                 """.trimIndent(),
             ),
-            kotlincArguments = listOf("-Xcontext-receivers"),
+            kotlincArguments = listOf("-Xcontext-parameters"),
         )
 
         val loggerClass = programClassPool.getClass("Logger") as ProgramClass
@@ -69,7 +65,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                 ReferencedKotlinMetadataVisitor(KotlinMetadataPrinter(PrintWriter(writer))),
             )
             "Then the printed string should contain the context receiver" {
-                writer.toString() shouldContain "[CTPA] Logger"
+                writer.toString() shouldContain "[CTPA] logger"
                 writer.toString() shouldContain "[TYPE] Logger"
             }
         }
@@ -88,7 +84,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
             )
 
             "Then the printed string should contain the context receiver" {
-                writer.toString() shouldContain "[CTPA] Logger"
+                writer.toString() shouldContain "[CTPA] logger"
                 writer.toString() shouldContain "[TYPE] Logger"
             }
         }
@@ -97,10 +93,10 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
             val processingInfo = Object()
 
             programClassPool.getClass("TestKt").kotlinMetadataAccept(
-                AllPropertyVisitor(
-                    KotlinPropertyFilter({ property -> property.name == "foo" }) { clazz, kotlinMetadata, kotlinPropertyMetadata ->
-                        kotlinPropertyMetadata.contextParameterValuesAccept(clazz, kotlinMetadata) { _, kotlinTypeMetadata ->
-                            kotlinTypeMetadata.type.processingInfo = processingInfo
+                AllFunctionVisitor(
+                    KotlinFunctionFilter({ function -> function.name == "foo" }) { clazz, kotlinMetadata, kotlinFunctionMetadata ->
+                        kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata) { _, kotlinValueParameterMetadata ->
+                            kotlinValueParameterMetadata.type.processingInfo = processingInfo
                         }
                     },
                 ),
@@ -108,13 +104,15 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
 
             "Then there should be processingInfo" {
                 val visitor = spyk<KotlinTypeVisitor>()
+                val allTypeVisitor = AllTypeVisitor(visitor)
                 programClassPool.getClass("TestKt").kotlinMetadataAccept(
-                    AllPropertyVisitor(
-                        KotlinPropertyFilter({ property -> property.name == "foo" }, AllTypeVisitor(visitor)),
+                    AllFunctionVisitor(
+                        KotlinFunctionFilter({ function -> function.name == "foo" }, allTypeVisitor),
                     ),
                 )
+
                 verify(exactly = 1) {
-                    visitor.visitPropertyValParamType(
+                    allTypeVisitor.visitFunctionValParamType(
                         ofType(),
                         ofType(),
                         ofType(),
@@ -132,13 +130,13 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
                 programClassPool.classAccept(
                     "TestKt",
                     ReferencedKotlinMetadataVisitor(
-                        AllPropertyVisitor(
-                            KotlinPropertyFilter({ property -> property.name == "foo" }, AllTypeVisitor(visitor)),
+                        AllFunctionVisitor(
+                            KotlinFunctionFilter({ function -> function.name == "foo" }, AllTypeVisitor(visitor)),
                         ),
                     ),
                 )
                 verify(exactly = 1) {
-                    visitor.visitPropertyValParamType(
+                    visitor.visitFunctionValParamType(
                         ofType(),
                         ofType(),
                         ofType(),
@@ -157,7 +155,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
 
             "Then the context receiver type should be visited" {
                 verify(exactly = 1) {
-                    typeVisitor.visitPropertyValParamType(
+                    typeVisitor.visitFunctionValParamType(
                         programClassPool.getClass("TestKt"),
                         ofType(),
                         ofType(),
@@ -210,7 +208,7 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
 
             "Then the context receiver type should be visited" {
                 verify(exactly = 1) {
-                    typeVisitor.visitPropertyValParamType(
+                    typeVisitor.visitFunctionValParamType(
                         programClassPool.getClass("TestKt"),
                         ofType(),
                         ofType(),
@@ -225,35 +223,28 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
         }
 
         "When visiting context receivers" - {
-            val typeVisitor = spyk<KotlinTypeVisitor>()
+            val valueParameterVisitor = spyk<KotlinValueParameterVisitor>()
             programClassPool.classAccept(
                 "TestKt",
                 ReferencedKotlinMetadataVisitor(
-                    AllPropertyVisitor { clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata ->
-                        kotlinPropertyMetadata.contextParameterValuesAccept(
-                            clazz,
-                            kotlinDeclarationContainerMetadata,
-                        ) { clazz, kotlinValueParameterMetadata ->
-                            kotlinValueParameterMetadata?.typeAccept(
-                                clazz,
-                                kotlinDeclarationContainerMetadata,
-                                kotlinPropertyMetadata,
-                                typeVisitor,
-                            )
-                        }
-                    },
+                    AllFunctionVisitor(
+                        object : KotlinFunctionVisitor {
+                            override fun visitAnyFunction(clazz: Clazz, kotlinMetadata: KotlinMetadata, kotlinFunctionMetadata: KotlinFunctionMetadata) {
+                                kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata, valueParameterVisitor)
+                            }
+                        },
+                    ),
                 ),
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
-                    typeVisitor.visitPropertyValParamType(
+                    valueParameterVisitor.visitFunctionContextParameter(
                         programClassPool.getClass("TestKt"),
-                        ofType(),
-                        ofType(),
-                        ofType(),
+                        ofType<KotlinMetadata>(),
+                        ofType<KotlinFunctionMetadata>(),
                         withArg {
-                            it.className shouldBe "Logger"
-                            it.referencedClass shouldBe loggerClass
+                            it.type.className shouldBe "Logger"
+                            it.type.referencedClass shouldBe loggerClass
                         },
                     )
                 }
@@ -264,35 +255,28 @@ class KotlinPropertyContextReceiversTest : FreeSpec({
             programClassPool.classesAccept("Logger", ClassRenamer { "ObfuscatedLogger" })
             programClassPool.classesAccept(ClassReferenceFixer(false))
 
-            val typeVisitor = spyk<KotlinTypeVisitor>()
+            val valueParameterVisitor = spyk<KotlinValueParameterVisitor>()
             programClassPool.classAccept(
                 "TestKt",
                 ReferencedKotlinMetadataVisitor(
-                    AllPropertyVisitor { clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata ->
-                        kotlinPropertyMetadata.contextParameterValuesAccept(
-                            clazz,
-                            kotlinDeclarationContainerMetadata,
-                        ) { clazz, kotlinValueParameterMetadata ->
-                            kotlinValueParameterMetadata?.typeAccept(
-                                clazz,
-                                kotlinDeclarationContainerMetadata,
-                                kotlinPropertyMetadata,
-                                typeVisitor,
-                            )
-                        }
-                    },
+                    AllFunctionVisitor(
+                        object : KotlinFunctionVisitor {
+                            override fun visitAnyFunction(clazz: Clazz, kotlinMetadata: KotlinMetadata, kotlinFunctionMetadata: KotlinFunctionMetadata) {
+                                kotlinFunctionMetadata.contextParameterValuesAccept(clazz, kotlinMetadata, valueParameterVisitor)
+                            }
+                        },
+                    ),
                 ),
             )
             "Then the visit method should be called with the correct type information" {
                 verify(exactly = 1) {
-                    typeVisitor.visitPropertyValParamType(
+                    valueParameterVisitor.visitFunctionContextParameter(
                         programClassPool.getClass("TestKt"),
-                        ofType(),
-                        ofType(),
-                        ofType(),
+                        ofType<KotlinMetadata>(),
+                        ofType<KotlinFunctionMetadata>(),
                         withArg {
-                            it.className shouldBe "ObfuscatedLogger"
-                            it.referencedClass shouldBe loggerClass
+                            it.type.className shouldBe "ObfuscatedLogger"
+                            it.type.referencedClass shouldBe loggerClass
                         },
                     )
                 }

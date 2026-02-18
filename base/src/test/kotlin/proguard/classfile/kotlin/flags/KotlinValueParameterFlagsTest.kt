@@ -50,6 +50,10 @@ class KotlinValueParameterFlagsTest : BehaviorSpec({
              @Suppress("NOTHING_TO_INLINE")
              inline fun foo4(noinline noinlineVPWithDefault: () -> Unit = {}) = noinlineVPWithDefault
              inline fun foo5(crossinline crossinlineVPWithDefault: () -> Unit = {}) = crossinlineVPWithDefault()
+
+             annotation class Ann
+
+             fun foo6(@Ann annotatedValue: String) = annotatedValue
             """,
         ),
     )
@@ -117,6 +121,18 @@ class KotlinValueParameterFlagsTest : BehaviorSpec({
             withClue("isCrossInline") { it.isCrossInline shouldBe true }
 
             withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
+        },
+    )
+
+    include(
+        "Given an annotated value parameter with default value",
+        testValueParameterFlags(programClassPool.getClass("TestKt"), "annotatedValue") {
+            withClue("hasDefaultValue") { it.hasDefaultValue shouldBe false }
+            withClue("isNoInline") { it.isNoInline shouldBe false }
+            withClue("isCrossInline") { it.isCrossInline shouldBe false }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe true }
+
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe true }
         },
     )
 })

@@ -33,6 +33,7 @@ public class KotlinFunctionMetadata extends SimpleProcessable
   public KotlinTypeMetadata receiverType;
 
   public List<KotlinTypeMetadata> contextReceivers;
+  public List<KotlinValueParameterMetadata> contextParameters;
 
   public KotlinTypeMetadata returnType;
 
@@ -127,6 +128,18 @@ public class KotlinFunctionMetadata extends SimpleProcessable
       for (KotlinTypeMetadata contextReceiver : contextReceivers) {
         kotlinTypeVisitor.visitFunctionContextReceiverType(
             clazz, kotlinMetadata, this, contextReceiver);
+      }
+    }
+  }
+
+  public void contextParameterValuesAccept(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinValueParameterVisitor kotlinValueParameterVisitor) {
+    if (contextParameters != null) {
+      for (KotlinValueParameterMetadata contextParameter : contextParameters) {
+        kotlinValueParameterVisitor.visitFunctionContextParameter(
+            clazz, kotlinMetadata, this, contextParameter);
       }
     }
   }

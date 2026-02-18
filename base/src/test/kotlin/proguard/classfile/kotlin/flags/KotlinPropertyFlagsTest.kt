@@ -43,10 +43,13 @@ class KotlinPropertyFlagsTest : BehaviorSpec({
             """
             import kotlin.reflect.KProperty
 
+            annotation class Ann
+
             val valProperty: String = "valProperty"
             var varProperty: String = "varProperty"
             const val constProperty: String = "constProperty"
             val delegateProperty: String by lazy { "foo" }
+            @Ann val annotationProperty: String = "annotationProperty"
 
             interface Foo {
                 companion object {
@@ -78,6 +81,7 @@ class KotlinPropertyFlagsTest : BehaviorSpec({
             withClue("isDelegated") { it.isDelegated shouldBe false }
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe false }
 
             withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
@@ -99,6 +103,7 @@ class KotlinPropertyFlagsTest : BehaviorSpec({
             withClue("isDelegated") { it.isDelegated shouldBe false }
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe false }
 
             withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
@@ -120,6 +125,7 @@ class KotlinPropertyFlagsTest : BehaviorSpec({
             withClue("isDelegated") { it.isDelegated shouldBe false }
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe false }
 
             withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
@@ -141,6 +147,7 @@ class KotlinPropertyFlagsTest : BehaviorSpec({
             withClue("isDelegated") { it.isDelegated shouldBe false }
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe true }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe true }
 
             withClue("hasAnnotations") { it.hasAnnotations shouldBe true }
         },
@@ -162,6 +169,7 @@ class KotlinPropertyFlagsTest : BehaviorSpec({
             withClue("isDelegated") { it.isDelegated shouldBe false }
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe false }
 
             withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
         },
@@ -183,8 +191,31 @@ class KotlinPropertyFlagsTest : BehaviorSpec({
             withClue("isDelegated") { it.isDelegated shouldBe true }
             withClue("isExpect") { it.isExpect shouldBe false }
             withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe false }
 
             withClue("hasAnnotations") { it.hasAnnotations shouldBe false }
+        },
+    )
+
+    include(
+        "Given an annotated property",
+        testPropertyFlags(programClassPool.getClass("TestKt"), "annotationProperty") {
+
+            withClue("isDeclared") { it.isDeclared shouldBe true }
+            withClue("isFakeOverride") { it.isFakeOverride shouldBe false }
+            withClue("isDelegation") { it.isDelegation shouldBe false }
+            withClue("isSynthesized") { it.isSynthesized shouldBe false }
+            withClue("isVar") { it.isVar shouldBe false }
+            withClue("isConst") { it.isConst shouldBe false }
+            withClue("isLateinit") { it.isLateinit shouldBe false }
+            withClue("hasConstant") { it.hasConstant shouldBe true }
+            withClue("isExternal") { it.isExternal shouldBe false }
+            withClue("isDelegated") { it.isDelegated shouldBe false }
+            withClue("isExpect") { it.isExpect shouldBe false }
+            withClue("isMovedFromInterfaceCompanion") { it.isMovedFromInterfaceCompanion shouldBe false }
+            withClue("hasAnnotationsInBytecode") { it.hasAnnotationsInBytecode shouldBe true }
+
+            withClue("hasAnnotations") { it.hasAnnotations shouldBe true }
         },
     )
 

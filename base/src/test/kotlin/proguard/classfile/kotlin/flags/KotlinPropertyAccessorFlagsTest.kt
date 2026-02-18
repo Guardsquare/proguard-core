@@ -51,6 +51,8 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                         withClue("isDefault") { it.getterMetadata.isDefault shouldBe true }
                         withClue("isInline") { it.getterMetadata.isInline shouldBe false }
                         withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
+                        withClue("annotations") { it.getterMetadata.hasAnnotations shouldBe false }
+                        withClue("hasAnnotationsInBytecode") { it.getterMetadata.hasAnnotationsInBytecode shouldBe false }
                         // Value properties do not have setters.
                         it.setterMetadata shouldBe null
                     },
@@ -71,6 +73,8 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                         withClue("isDefault") { it.getterMetadata.isDefault shouldBe true }
                         withClue("isInline") { it.getterMetadata.isInline shouldBe false }
                         withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
+                        withClue("annotations") { it.getterMetadata.hasAnnotations shouldBe false }
+                        withClue("hasAnnotationsInBytecode") { it.getterMetadata.hasAnnotationsInBytecode shouldBe false }
                         // Value properties do not have setters.
                         it.setterMetadata shouldBe null
                     },
@@ -97,6 +101,8 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                         withClue("isDefault") { it.getterMetadata.isDefault shouldBe false }
                         withClue("isInline") { it.getterMetadata.isInline shouldBe true }
                         withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
+                        withClue("annotations") { it.getterMetadata.hasAnnotations shouldBe false }
+                        withClue("hasAnnotationsInBytecode") { it.getterMetadata.hasAnnotationsInBytecode shouldBe false }
                         // Value properties do not have setters.
                         it.setterMetadata shouldBe null
                     },
@@ -117,8 +123,76 @@ class KotlinPropertyAccessorFlagsTest : BehaviorSpec({
                         withClue("isDefault") { it.getterMetadata.isDefault shouldBe false }
                         withClue("isInline") { it.getterMetadata.isInline shouldBe true }
                         withClue("isExternal") { it.getterMetadata.isExternal shouldBe false }
+                        withClue("annotations") { it.getterMetadata.hasAnnotations shouldBe false }
+                        withClue("hasAnnotationsInBytecode") { it.getterMetadata.hasAnnotationsInBytecode shouldBe false }
                         // Value properties do not have setters.
                         it.setterMetadata shouldBe null
+                    },
+                )
+            }
+        }
+    }
+
+    Given("a value property with annotated getter and setter") {
+        val clazz = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+            annotation class Ann
+            @get:Ann
+            @set:Ann
+            var foo: Int = 1
+                """.trimIndent().trimIndent(),
+            ),
+        ).programClassPool.getClass("TestKt")
+
+        Then("the property accessor flags should be set accordingly") {
+            val propertyVisitor = spyk<KotlinPropertyVisitor>()
+            clazz.accept(ReferencedKotlinMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
+
+            verify {
+                propertyVisitor.visitProperty(
+                    clazz,
+                    ofType(KotlinDeclarationContainerMetadata::class),
+                    withArg {
+                        // getterFlags should be set correctly
+                        withClue("getter isDefault") { it.getterMetadata.isDefault shouldBe true }
+                        withClue("getter isInline") { it.getterMetadata.isInline shouldBe false }
+                        withClue("getter isExternal") { it.getterMetadata.isExternal shouldBe false }
+                        withClue("getter annotations") { it.getterMetadata.hasAnnotations shouldBe true }
+                        withClue("getter hasAnnotationsInBytecode") { it.getterMetadata.hasAnnotationsInBytecode shouldBe true }
+                        // setterFlags should be set correctly
+                        withClue("setter isDefault") { it.setterMetadata?.isDefault shouldBe true }
+                        withClue("setter isInline") { it.setterMetadata?.isInline shouldBe false }
+                        withClue("setter isExternal") { it.setterMetadata?.isExternal shouldBe false }
+                        withClue("setter annotations") { it.setterMetadata?.hasAnnotations shouldBe true }
+                        withClue("setter hasAnnotationsInBytecode") { it.setterMetadata?.hasAnnotationsInBytecode shouldBe true }
+                    },
+                )
+            }
+        }
+
+        Then("the property accessor flags should be written and re-initialized correctly") {
+            val propertyVisitor = spyk<KotlinPropertyVisitor>()
+            clazz.accept(ReWritingMetadataVisitor(AllPropertyVisitor(propertyVisitor)))
+
+            verify {
+                propertyVisitor.visitProperty(
+                    clazz,
+                    ofType(KotlinDeclarationContainerMetadata::class),
+                    withArg {
+                        // getterFlags should be set correctly
+                        withClue("getter isDefault") { it.getterMetadata.isDefault shouldBe true }
+                        withClue("getter isInline") { it.getterMetadata.isInline shouldBe false }
+                        withClue("getter isExternal") { it.getterMetadata.isExternal shouldBe false }
+                        withClue("getter annotations") { it.getterMetadata.hasAnnotations shouldBe true }
+                        withClue("getter hasAnnotationsInBytecode") { it.getterMetadata.hasAnnotationsInBytecode shouldBe true }
+                        // setterFlags should be set correctly
+                        withClue("setter isDefault") { it.setterMetadata?.isDefault shouldBe true }
+                        withClue("setter isInline") { it.setterMetadata?.isInline shouldBe false }
+                        withClue("setter isExternal") { it.setterMetadata?.isExternal shouldBe false }
+                        withClue("setter annotations") { it.setterMetadata?.hasAnnotations shouldBe true }
+                        withClue("setter hasAnnotationsInBytecode") { it.setterMetadata?.hasAnnotationsInBytecode shouldBe true }
                     },
                 )
             }

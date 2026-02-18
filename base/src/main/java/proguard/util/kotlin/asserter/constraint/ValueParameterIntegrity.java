@@ -72,4 +72,24 @@ public class ValueParameterIntegrity extends AbstractKotlinMetadataConstraint
     new AssertUtil("Property value parameter", reporter, programClassPool, libraryClassPool)
         .reportIfNullReference("type", kotlinValueParameterMetadata.type);
   }
+
+  @Override
+  public void visitFunctionContextParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    new AssertUtil("Function value parameter", reporter, programClassPool, libraryClassPool)
+        .reportIfNullReference("type", kotlinValueParameterMetadata.type);
+  }
+
+  @Override
+  public void visitPropertyContextParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    new AssertUtil("Property value parameter", reporter, programClassPool, libraryClassPool)
+        .reportIfNullReference("type", kotlinValueParameterMetadata.type);
+  }
 }

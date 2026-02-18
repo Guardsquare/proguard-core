@@ -67,6 +67,19 @@ public class KotlinClassFlags implements KotlinFlags {
   // JVM Specific flags
 
   /**
+   * Indicates that the corresponding interface has at least one annotation in the JVM bytecode.
+   *
+   * <p>Before annotations in metadata are enabled by default in the Kotlin compiler
+   * (https://youtrack.jetbrains.com/issue/KT-75736), annotations are only generated in the JVM
+   * bytecode. The compiler writes and reads this flag to metadata as an optimization, to avoid
+   * parsing class file one additional time when it's not needed.
+   *
+   * <p>Only annotations with [AnnotationRetention.BINARY] and [AnnotationRetention.RUNTIME] are
+   * written to the class files.
+   */
+  public boolean hasAnnotationsInBytecode;
+
+  /**
    * Applied to an interface compiled with -Xjvm-default=all or all-compatibility.
    *
    * <p>Without this flag or a `@JvmDefault` annotation on individual interface methods the Kotlin

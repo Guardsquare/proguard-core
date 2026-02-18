@@ -63,7 +63,34 @@ public class KotlinValueParameterFilter implements KotlinValueParameterVisitor {
   }
 
   @Override
+  public void visitFunctionContextParameter(
+      Clazz clazz,
+      KotlinMetadata kotlinMetadata,
+      KotlinFunctionMetadata kotlinFunctionMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    KotlinValueParameterVisitor delegate = this.getDelegate(kotlinValueParameterMetadata);
+
+    if (delegate != null) {
+      kotlinValueParameterMetadata.accept(clazz, kotlinMetadata, kotlinFunctionMetadata, delegate);
+    }
+  }
+
+  @Override
   public void visitPropertyValParameter(
+      Clazz clazz,
+      KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
+      KotlinPropertyMetadata kotlinPropertyMetadata,
+      KotlinValueParameterMetadata kotlinValueParameterMetadata) {
+    KotlinValueParameterVisitor delegate = this.getDelegate(kotlinValueParameterMetadata);
+
+    if (delegate != null) {
+      kotlinValueParameterMetadata.accept(
+          clazz, kotlinDeclarationContainerMetadata, kotlinPropertyMetadata, delegate);
+    }
+  }
+
+  @Override
+  public void visitPropertyContextParameter(
       Clazz clazz,
       KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
       KotlinPropertyMetadata kotlinPropertyMetadata,
