@@ -22,6 +22,8 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
 
   private final Clazz clazz;
 
+  private final Class<?> primitiveClass;
+
   /**
    * Mandatory no-argument constructor.
    *
@@ -29,14 +31,64 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
    */
   private ClassModel() {
     this.clazz = null;
+    this.primitiveClass = null;
   }
 
   public ClassModel(Clazz clazz) {
     this.clazz = clazz;
+    this.primitiveClass = null;
   }
 
+  /**
+   * Used for creating a {@link ClassModel} for any of the primitive classes.
+   *
+   * @param clazz one of the primitive classes. <code>int.class</code>,<code>boolean.class</code>,
+   *     ...
+   * @throws IllegalArgumentException iff a non-primitive {@link Class} object is passed.
+   */
+  public ClassModel(Class<?> clazz) {
+    if (!clazz.isPrimitive()) {
+      throw new IllegalArgumentException("The class parameter must be a primitive.");
+    }
+    this.clazz = null;
+    this.primitiveClass = clazz;
+  }
+
+  /**
+   * Use this in case {@link ClassModel#isPrimitive()} is true. Otherwise, use {@link
+   * ClassModel#getPrimitiveClass()}
+   *
+   * @return the modeled {@link Clazz}.
+   * @throws IllegalArgumentException if a primitive class is modeled.
+   */
   public Clazz getClazz() {
+    if (isPrimitive()) throw new IllegalArgumentException("A primitive class is modeled.");
     return clazz;
+  }
+
+  /**
+   * Use this in case {@link ClassModel#isPrimitive()} is false. Otherwise, use {@link
+   * ClassModel#getClazz()}.
+   *
+   * @return the modeled {@link Class}.
+   * @throws IllegalArgumentException if a non-primitive class is modeled.
+   */
+  public Class<?> getPrimitiveClass() {
+    if (!isPrimitive()) throw new IllegalArgumentException("A non-primitive class is modeled.");
+    return primitiveClass;
+  }
+
+  public boolean isPrimitive() {
+    return primitiveClass != null;
+  }
+
+  /**
+   * @return the name of the modeled class.
+   */
+  public @Nullable String getModeledClassName() {
+    if (isPrimitive()) return primitiveClass.getName();
+    if (clazz != null) return clazz.getName();
+    return null;
   }
 
   // Model implementation.
@@ -59,45 +111,72 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
   /** Models {@link Class#getName()}. */
   @ModeledInstanceMethod(name = "getName", descriptor = "()Ljava/lang/String;")
   MethodResult getName(ModelHelper.MethodExecutionContext context) {
-    if (clazz == null) return MethodResult.invalidResult();
-    return ModelHelper.createDefaultReturnResult(context, clazz.getName());
+    if (primitiveClass != null)
+      return ModelHelper.createDefaultReturnResult(context, primitiveClass.getName());
+    if (clazz != null) return ModelHelper.createDefaultReturnResult(context, clazz.getName());
+    return MethodResult.invalidResult();
   }
 
   /** Models {@link Class#getSimpleName()}. */
   @ModeledInstanceMethod(name = "getSimpleName", descriptor = "()Ljava/lang/String;")
   MethodResult getSimpleName(ModelHelper.MethodExecutionContext context) {
-    if (clazz == null) return MethodResult.invalidResult();
-    return ModelHelper.createDefaultReturnResult(
-        context, ClassUtil.internalSimpleClassName(clazz.getName()));
+    if (primitiveClass != null) {
+      return ModelHelper.createDefaultReturnResult(context, primitiveClass.getSimpleName());
+    }
+    if (clazz != null) {
+      return ModelHelper.createDefaultReturnResult(
+          context, ClassUtil.internalSimpleClassName(clazz.getName()));
+    }
+    return MethodResult.invalidResult();
   }
 
   /** Models {@link Class#getCanonicalName()}. */
   @ModeledInstanceMethod(name = "getCanonicalName", descriptor = "()Ljava/lang/String;")
   MethodResult getCanonicalName(ModelHelper.MethodExecutionContext context) {
-    if (clazz == null) return MethodResult.invalidResult();
-    return ModelHelper.createDefaultReturnResult(
-        context, ClassUtil.canonicalClassName(clazz.getName()));
+    if (primitiveClass != null) {
+      return ModelHelper.createDefaultReturnResult(context, primitiveClass.getCanonicalName());
+    }
+    if (clazz != null) {
+      return ModelHelper.createDefaultReturnResult(
+          context, ClassUtil.canonicalClassName(clazz.getName()));
+    }
+    return MethodResult.invalidResult();
   }
 
   /** Models {@link Class#getPackageName()}. */
   @ModeledInstanceMethod(name = "getPackageName", descriptor = "()Ljava/lang/String;")
   MethodResult getPackageName(ModelHelper.MethodExecutionContext context) {
-    if (clazz == null) return MethodResult.invalidResult();
-    return ModelHelper.createDefaultReturnResult(
-        context, ClassUtil.externalPackageName(ClassUtil.externalClassName(clazz.getName())));
+    if (primitiveClass != null) {
+      return ModelHelper.createDefaultReturnResult(
+          context,
+          // Hard coded since getPackage is not available on our language version.
+          "java.lang");
+    }
+    if (clazz != null) {
+      return ModelHelper.createDefaultReturnResult(
+          context, ClassUtil.externalPackageName(ClassUtil.externalClassName(clazz.getName())));
+    }
+    return MethodResult.invalidResult();
   }
 
   /** Models {@link Class#getTypeName()}. */
   @ModeledInstanceMethod(name = "getTypeName", descriptor = "()Ljava/lang/String;")
   MethodResult getTypeName(ModelHelper.MethodExecutionContext context) {
-    if (clazz == null) return MethodResult.invalidResult();
-    return ModelHelper.createDefaultReturnResult(
-        context, ClassUtil.externalClassName(clazz.getName()));
+    if (primitiveClass != null) {
+      return ModelHelper.createDefaultReturnResult(context, primitiveClass.getTypeName());
+    }
+    if (clazz != null) {
+      return ModelHelper.createDefaultReturnResult(
+          context, ClassUtil.externalClassName(clazz.getName()));
+    }
+    return MethodResult.invalidResult();
   }
 
   /** Models {@link Class#getSuperclass()}. */
   @ModeledInstanceMethod(name = "getSuperclass", descriptor = "()Ljava/lang/Class;")
   private MethodResult getSuperclass(ModelHelper.MethodExecutionContext context) {
+    if (isPrimitive()) return MethodResult.invalidResult();
+
     if (clazz == null) return MethodResult.invalidResult();
     Clazz superClass = clazz.getSuperClass();
     if (superClass == null) return MethodResult.invalidResult();
@@ -154,12 +233,16 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(clazz);
+    return Objects.hashCode(clazz != null ? clazz : primitiveClass);
   }
 
   @Override
   public String toString() {
-    return String.format("ClassModel{%s}", clazz.getName());
+    return String.format(
+        "ClassModel{%s}",
+        clazz != null
+            ? clazz.getName()
+            : primitiveClass != null ? primitiveClass.getName() : "null");
   }
 
   // Private helper methods.

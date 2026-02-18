@@ -18,6 +18,7 @@
 package proguard.classfile.util;
 
 import static proguard.classfile.AccessConstants.FINAL;
+import static proguard.classfile.TypeConstants.*;
 
 import java.util.List;
 import proguard.classfile.AccessConstants;
@@ -259,8 +260,7 @@ public class ClassUtil {
    * @return the internal class name, e.g. "<code>java/lang/Object</code>".
    */
   public static String internalClassName(String externalClassName) {
-    return externalClassName.replace(
-        JavaTypeConstants.PACKAGE_SEPARATOR, TypeConstants.PACKAGE_SEPARATOR);
+    return externalClassName.replace(JavaTypeConstants.PACKAGE_SEPARATOR, PACKAGE_SEPARATOR);
   }
 
   /**
@@ -296,7 +296,7 @@ public class ClassUtil {
     // internalClassName.indexOf(TypeConstants.PACKAGE_SEPARATOR,
     // ClassConstants.PACKAGE_JAVA_LANG.length() + 1) < 0 ?
     // internalClassName.substring(ClassConstants.PACKAGE_JAVA_LANG.length()) :
-    internalClassName.replace(TypeConstants.PACKAGE_SEPARATOR, JavaTypeConstants.PACKAGE_SEPARATOR);
+    internalClassName.replace(PACKAGE_SEPARATOR, JavaTypeConstants.PACKAGE_SEPARATOR);
   }
 
   /**
@@ -330,7 +330,7 @@ public class ClassUtil {
    * @return the internal short class name, e.g. "<code>Object</code>".
    */
   public static String internalShortClassName(String internalClassName) {
-    int index = internalClassName.lastIndexOf(TypeConstants.PACKAGE_SEPARATOR);
+    int index = internalClassName.lastIndexOf(PACKAGE_SEPARATOR);
     return internalClassName.substring(index + 1);
   }
 
@@ -341,7 +341,7 @@ public class ClassUtil {
    * @return <code>true</code> if the given type is an array type, <code>false</code> otherwise.
    */
   public static boolean isInternalArrayType(String internalType) {
-    return internalType.length() > 1 && internalType.charAt(0) == TypeConstants.ARRAY;
+    return internalType.length() > 1 && internalType.charAt(0) == ARRAY;
   }
 
   /**
@@ -352,8 +352,7 @@ public class ClassUtil {
    */
   public static int internalArrayTypeDimensionCount(String internalType) {
     int dimensions = 0;
-    while (dimensions < internalType.length()
-        && internalType.charAt(dimensions) == TypeConstants.ARRAY) {
+    while (dimensions < internalType.length() && internalType.charAt(dimensions) == ARRAY) {
       dimensions++;
     }
 
@@ -382,14 +381,14 @@ public class ClassUtil {
    * @return <code>true</code> if the given type is a class type, <code>false</code> otherwise.
    */
   public static boolean isInternalPrimitiveType(char internalType) {
-    return internalType == TypeConstants.BOOLEAN
-        || internalType == TypeConstants.BYTE
-        || internalType == TypeConstants.CHAR
-        || internalType == TypeConstants.SHORT
-        || internalType == TypeConstants.INT
-        || internalType == TypeConstants.FLOAT
-        || internalType == TypeConstants.LONG
-        || internalType == TypeConstants.DOUBLE;
+    return internalType == BOOLEAN
+        || internalType == BYTE
+        || internalType == CHAR
+        || internalType == SHORT
+        || internalType == INT
+        || internalType == FLOAT
+        || internalType == LONG
+        || internalType == DOUBLE;
   }
 
   /**
@@ -434,6 +433,29 @@ public class ClassUtil {
     return internalPrimitiveTypeFromNumericClassName(internalClassNameFromType(type));
   }
 
+  public static Class<?> primitiveClassFromInternalBoxingType(String internalBoxingType) {
+    switch (internalBoxingType) {
+      case ClassConstants.NAME_JAVA_LANG_BOOLEAN:
+        return boolean.class;
+      case ClassConstants.NAME_JAVA_LANG_BYTE:
+        return byte.class;
+      case ClassConstants.NAME_JAVA_LANG_CHARACTER:
+        return char.class;
+      case ClassConstants.NAME_JAVA_LANG_SHORT:
+        return short.class;
+      case ClassConstants.NAME_JAVA_LANG_INTEGER:
+        return int.class;
+      case ClassConstants.NAME_JAVA_LANG_LONG:
+        return long.class;
+      case ClassConstants.NAME_JAVA_LANG_FLOAT:
+        return float.class;
+      case ClassConstants.NAME_JAVA_LANG_DOUBLE:
+        return double.class;
+    }
+
+    throw new IllegalArgumentException("The argument is not a primitive boxing internal type");
+  }
+
   /**
    * Returns whether the given internal type is a plain primitive type (not void) or a
    * java/lang/String.
@@ -454,8 +476,7 @@ public class ClassUtil {
    */
   public static boolean isInternalCategory2Type(String internalType) {
     return internalType.length() == 1
-        && (internalType.charAt(0) == TypeConstants.LONG
-            || internalType.charAt(0) == TypeConstants.DOUBLE);
+        && (internalType.charAt(0) == LONG || internalType.charAt(0) == DOUBLE);
   }
 
   /**
@@ -470,7 +491,7 @@ public class ClassUtil {
     return length > 1
         &&
         //             internalType.charAt(0)        == TypeConstants.CLASS_START &&
-        internalType.charAt(length - 1) == TypeConstants.CLASS_END;
+        internalType.charAt(length - 1) == CLASS_END;
   }
 
   /**
@@ -492,6 +513,24 @@ public class ClassUtil {
    * @return the internal type, e.g. "<code>Ljava/lang/Object;</code>".
    */
   public static String internalTypeFromClassName(String internalClassName) {
+
+    switch (internalClassName) {
+      case "int":
+        return String.valueOf(TypeConstants.INT);
+      case "boolean":
+        return String.valueOf(BOOLEAN);
+      case "double":
+        return String.valueOf(TypeConstants.DOUBLE);
+      case "float":
+        return String.valueOf(FLOAT);
+      case "char":
+        return String.valueOf(TypeConstants.CHAR);
+      case "short":
+        return String.valueOf(SHORT);
+      case "long":
+        return String.valueOf(TypeConstants.LONG);
+    }
+
     return internalArrayTypeFromClassName(internalClassName, 0);
   }
 
@@ -508,14 +547,10 @@ public class ClassUtil {
     StringBuilder buffer = new StringBuilder(internalClassName.length() + dimensionCount + 2);
 
     for (int dimension = 0; dimension < dimensionCount; dimension++) {
-      buffer.append(TypeConstants.ARRAY);
+      buffer.append(ARRAY);
     }
 
-    return buffer
-        .append(TypeConstants.CLASS_START)
-        .append(internalClassName)
-        .append(TypeConstants.CLASS_END)
-        .toString();
+    return buffer.append(CLASS_START).append(internalClassName).append(CLASS_END).toString();
   }
 
   /**
@@ -530,7 +565,7 @@ public class ClassUtil {
     StringBuilder buffer = new StringBuilder(internalType.length() + dimensionDelta);
 
     for (int dimension = 0; dimension < dimensionDelta; dimension++) {
-      buffer.append(TypeConstants.ARRAY);
+      buffer.append(ARRAY);
     }
 
     return buffer.append(internalType).toString();
@@ -545,7 +580,7 @@ public class ClassUtil {
    *     <code>I</code>".
    */
   public static String internalTypeFromArrayType(String internalArrayType) {
-    int index = internalArrayType.lastIndexOf(TypeConstants.ARRAY);
+    int index = internalArrayType.lastIndexOf(ARRAY);
     return internalArrayType.substring(index + 1);
   }
 
@@ -592,8 +627,7 @@ public class ClassUtil {
   public static String internalClassNameFromClassType(String internalClassType) {
     return isInternalClassType(internalClassType)
         ? internalClassType.substring(
-            internalClassType.indexOf(TypeConstants.CLASS_START) + 1,
-            internalClassType.length() - 1)
+            internalClassType.indexOf(CLASS_START) + 1, internalClassType.length() - 1)
         : internalClassType;
   }
 
@@ -670,25 +704,25 @@ public class ClassUtil {
    */
   public static String internalNumericClassNameFromPrimitiveType(char internalPrimitiveType) {
     switch (internalPrimitiveType) {
-      case TypeConstants.VOID:
+      case VOID:
         return ClassConstants.NAME_JAVA_LANG_VOID;
-      case TypeConstants.BOOLEAN:
+      case BOOLEAN:
         return ClassConstants.NAME_JAVA_LANG_BOOLEAN;
-      case TypeConstants.BYTE:
+      case BYTE:
         return ClassConstants.NAME_JAVA_LANG_BYTE;
-      case TypeConstants.CHAR:
+      case CHAR:
         return ClassConstants.NAME_JAVA_LANG_CHARACTER;
-      case TypeConstants.SHORT:
+      case SHORT:
         return ClassConstants.NAME_JAVA_LANG_SHORT;
-      case TypeConstants.INT:
+      case INT:
         return ClassConstants.NAME_JAVA_LANG_INTEGER;
-      case TypeConstants.LONG:
+      case LONG:
         return ClassConstants.NAME_JAVA_LANG_LONG;
-      case TypeConstants.FLOAT:
+      case FLOAT:
         return ClassConstants.NAME_JAVA_LANG_FLOAT;
-      case TypeConstants.DOUBLE:
+      case DOUBLE:
         return ClassConstants.NAME_JAVA_LANG_DOUBLE;
-      case TypeConstants.ARRAY:
+      case ARRAY:
         return ClassConstants.NAME_JAVA_LANG_REFLECT_ARRAY;
       default:
         throw new IllegalArgumentException(
@@ -705,26 +739,17 @@ public class ClassUtil {
    * @return the internal class type, e.g. "<code>I</code>" or "<code>V</code>".
    */
   public static char internalPrimitiveTypeFromNumericClassName(String internalPrimitiveClassName) {
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_VOID))
-      return TypeConstants.VOID;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_BOOLEAN))
-      return TypeConstants.BOOLEAN;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_BYTE))
-      return TypeConstants.BYTE;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_CHARACTER))
-      return TypeConstants.CHAR;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_SHORT))
-      return TypeConstants.SHORT;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_INTEGER))
-      return TypeConstants.INT;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_LONG))
-      return TypeConstants.LONG;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_FLOAT))
-      return TypeConstants.FLOAT;
-    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_DOUBLE))
-      return TypeConstants.DOUBLE;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_VOID)) return VOID;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_BOOLEAN)) return BOOLEAN;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_BYTE)) return BYTE;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_CHARACTER)) return CHAR;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_SHORT)) return SHORT;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_INTEGER)) return INT;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_LONG)) return LONG;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_FLOAT)) return FLOAT;
+    if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_DOUBLE)) return DOUBLE;
     if (internalPrimitiveClassName.equals(ClassConstants.NAME_JAVA_LANG_REFLECT_ARRAY))
-      return TypeConstants.ARRAY;
+      return ARRAY;
 
     throw new IllegalArgumentException(
         "Unexpected primitive class name [" + internalPrimitiveClassName + "]");
@@ -738,8 +763,8 @@ public class ClassUtil {
    * @return the simple class name, e.g. "<code>Object</code>".
    */
   public static String internalSimpleClassName(String internalClassName) {
-    int index1 = internalClassName.lastIndexOf(TypeConstants.PACKAGE_SEPARATOR);
-    int index2 = internalClassName.lastIndexOf(TypeConstants.INNER_CLASS_SEPARATOR);
+    int index1 = internalClassName.lastIndexOf(PACKAGE_SEPARATOR);
+    int index2 = internalClassName.lastIndexOf(INNER_CLASS_SEPARATOR);
 
     return internalClassName.substring(Math.max(index1, index2) + 1);
   }
@@ -803,7 +828,7 @@ public class ClassUtil {
    * @return the internal return type, e.g. "<code>Z</code>".
    */
   public static String internalMethodReturnType(String internalMethodDescriptor) {
-    int index = internalMethodDescriptor.indexOf(TypeConstants.METHOD_ARGUMENTS_CLOSE);
+    int index = internalMethodDescriptor.indexOf(METHOD_ARGUMENTS_CLOSE);
     return internalMethodDescriptor.substring(index + 1);
   }
 
@@ -844,17 +869,17 @@ public class ClassUtil {
     while (true) {
       char c = internalMethodDescriptor.charAt(index++);
       switch (c) {
-        case TypeConstants.ARRAY:
+        case ARRAY:
           {
             // Just ignore all array characters.
             break;
           }
-        case TypeConstants.CLASS_START:
+        case CLASS_START:
           {
             counter++;
 
             // Skip the class name.
-            index = internalMethodDescriptor.indexOf(TypeConstants.CLASS_END, index) + 1;
+            index = internalMethodDescriptor.indexOf(CLASS_END, index) + 1;
             if (index == 0) {
               throw new IllegalStateException(
                   "No matching semicolon found for class start character");
@@ -866,7 +891,7 @@ public class ClassUtil {
             counter++;
             break;
           }
-        case TypeConstants.METHOD_ARGUMENTS_CLOSE:
+        case METHOD_ARGUMENTS_CLOSE:
           {
             return counter;
           }
@@ -915,30 +940,30 @@ public class ClassUtil {
     while (true) {
       char c = internalMethodDescriptor.charAt(index++);
       switch (c) {
-        case TypeConstants.LONG:
-        case TypeConstants.DOUBLE:
+        case LONG:
+        case DOUBLE:
           {
             size += 2;
             break;
           }
-        case TypeConstants.CLASS_START:
+        case CLASS_START:
           {
             size++;
 
             // Skip the class name.
-            index = internalMethodDescriptor.indexOf(TypeConstants.CLASS_END, index) + 1;
+            index = internalMethodDescriptor.indexOf(CLASS_END, index) + 1;
             break;
           }
-        case TypeConstants.ARRAY:
+        case ARRAY:
           {
             size++;
 
             // Skip all array characters.
-            while ((c = internalMethodDescriptor.charAt(index++)) == TypeConstants.ARRAY) {}
+            while ((c = internalMethodDescriptor.charAt(index++)) == ARRAY) {}
 
-            if (c == TypeConstants.CLASS_START) {
+            if (c == CLASS_START) {
               // Skip the class type.
-              index = internalMethodDescriptor.indexOf(TypeConstants.CLASS_END, index) + 1;
+              index = internalMethodDescriptor.indexOf(CLASS_END, index) + 1;
             }
             break;
           }
@@ -947,7 +972,7 @@ public class ClassUtil {
             size++;
             break;
           }
-        case TypeConstants.METHOD_ARGUMENTS_CLOSE:
+        case METHOD_ARGUMENTS_CLOSE:
           {
             return size;
           }
@@ -1089,10 +1114,9 @@ public class ClassUtil {
   public static int internalTypeSize(String internalType) {
     if (internalType.length() == 1) {
       char internalPrimitiveType = internalType.charAt(0);
-      if (internalPrimitiveType == TypeConstants.LONG
-          || internalPrimitiveType == TypeConstants.DOUBLE) {
+      if (internalPrimitiveType == LONG || internalPrimitiveType == DOUBLE) {
         return 2;
-      } else if (internalPrimitiveType == TypeConstants.VOID) {
+      } else if (internalPrimitiveType == VOID) {
         return 0;
       }
     }
@@ -1119,33 +1143,33 @@ public class ClassUtil {
     // Analyze the actual type part.
     char internalTypeChar =
         externalType.equals(JavaTypeConstants.VOID)
-            ? TypeConstants.VOID
+            ? VOID
             : externalType.equals(JavaTypeConstants.BOOLEAN)
-                ? TypeConstants.BOOLEAN
+                ? BOOLEAN
                 : externalType.equals(JavaTypeConstants.BYTE)
-                    ? TypeConstants.BYTE
+                    ? BYTE
                     : externalType.equals(JavaTypeConstants.CHAR)
-                        ? TypeConstants.CHAR
+                        ? CHAR
                         : externalType.equals(JavaTypeConstants.SHORT)
-                            ? TypeConstants.SHORT
+                            ? SHORT
                             : externalType.equals(JavaTypeConstants.INT)
-                                ? TypeConstants.INT
+                                ? INT
                                 : externalType.equals(JavaTypeConstants.FLOAT)
-                                    ? TypeConstants.FLOAT
+                                    ? FLOAT
                                     : externalType.equals(JavaTypeConstants.LONG)
-                                        ? TypeConstants.LONG
+                                        ? LONG
                                         : externalType.equals(JavaTypeConstants.DOUBLE)
-                                            ? TypeConstants.DOUBLE
+                                            ? DOUBLE
                                             : externalType.equals("%") ? '%' : (char) 0;
 
     String internalType =
         internalTypeChar != 0
             ? String.valueOf(internalTypeChar)
-            : TypeConstants.CLASS_START + internalClassName(externalType) + TypeConstants.CLASS_END;
+            : CLASS_START + internalClassName(externalType) + CLASS_END;
 
     // Prepend the array part, if any.
     for (int count = 0; count < dimensionCount; count++) {
-      internalType = TypeConstants.ARRAY + internalType;
+      internalType = ARRAY + internalType;
     }
 
     return internalType;
@@ -1198,45 +1222,42 @@ public class ClassUtil {
     char internalTypeChar = internalType.charAt(0);
 
     if ((isInternalPrimitiveType(internalTypeChar)
-            || internalTypeChar == TypeConstants.VOID
+            || internalTypeChar == VOID
             || internalTypeChar == '%')
         && internalType.length() > 1) {
       throw new IllegalArgumentException("Invalid primitive type [" + internalType + "]");
-    } else if (internalTypeChar == TypeConstants.CLASS_START
-        && internalType.indexOf(TypeConstants.CLASS_END) == -1) {
+    } else if (internalTypeChar == CLASS_START && internalType.indexOf(CLASS_END) == -1) {
       throw new IllegalArgumentException(
           "Invalid class type, missing \";\" [" + internalType + "]");
-    } else if (internalTypeChar == TypeConstants.VOID && dimensionCount > 0) {
+    } else if (internalTypeChar == VOID && dimensionCount > 0) {
       throw new IllegalArgumentException("Invalid array type [" + internalType + "]");
     }
 
     String externalType =
-        internalTypeChar == TypeConstants.VOID
+        internalTypeChar == VOID
             ? JavaTypeConstants.VOID
-            : internalTypeChar == TypeConstants.BOOLEAN
+            : internalTypeChar == BOOLEAN
                 ? JavaTypeConstants.BOOLEAN
-                : internalTypeChar == TypeConstants.BYTE
+                : internalTypeChar == BYTE
                     ? JavaTypeConstants.BYTE
-                    : internalTypeChar == TypeConstants.CHAR
+                    : internalTypeChar == CHAR
                         ? JavaTypeConstants.CHAR
-                        : internalTypeChar == TypeConstants.SHORT
+                        : internalTypeChar == SHORT
                             ? JavaTypeConstants.SHORT
-                            : internalTypeChar == TypeConstants.INT
+                            : internalTypeChar == INT
                                 ? JavaTypeConstants.INT
-                                : internalTypeChar == TypeConstants.FLOAT
+                                : internalTypeChar == FLOAT
                                     ? JavaTypeConstants.FLOAT
-                                    : internalTypeChar == TypeConstants.LONG
+                                    : internalTypeChar == LONG
                                         ? JavaTypeConstants.LONG
-                                        : internalTypeChar == TypeConstants.DOUBLE
+                                        : internalTypeChar == DOUBLE
                                             ? JavaTypeConstants.DOUBLE
                                             : internalTypeChar == '%'
                                                 ? "%"
-                                                : internalTypeChar == TypeConstants.CLASS_START
+                                                : internalTypeChar == CLASS_START
                                                     ? externalClassName(
                                                         internalType.substring(
-                                                            1,
-                                                            internalType.indexOf(
-                                                                TypeConstants.CLASS_END)))
+                                                            1, internalType.indexOf(CLASS_END)))
                                                     : null;
 
     if (externalType == null || externalType.length() == 0) {
@@ -1274,7 +1295,7 @@ public class ClassUtil {
    *     otherwise.
    */
   public static boolean isInternalMethodDescriptor(String internalDescriptor) {
-    return internalDescriptor.charAt(0) == TypeConstants.METHOD_ARGUMENTS_OPEN;
+    return internalDescriptor.charAt(0) == METHOD_ARGUMENTS_OPEN;
   }
 
   /**
@@ -1314,7 +1335,7 @@ public class ClassUtil {
   public static String internalMethodDescriptor(
       String externalReturnType, String externalMethodNameAndArguments) {
     StringBuilder internalMethodDescriptor = new StringBuilder();
-    internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_OPEN);
+    internalMethodDescriptor.append(METHOD_ARGUMENTS_OPEN);
 
     ExternalTypeEnumeration externalTypeEnumeration =
         new ExternalTypeEnumeration(externalMethodNameAndArguments);
@@ -1323,7 +1344,7 @@ public class ClassUtil {
       internalMethodDescriptor.append(internalType(externalTypeEnumeration.nextType()));
     }
 
-    internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_CLOSE);
+    internalMethodDescriptor.append(METHOD_ARGUMENTS_CLOSE);
     internalMethodDescriptor.append(internalType(externalReturnType));
 
     return internalMethodDescriptor.toString();
@@ -1340,13 +1361,13 @@ public class ClassUtil {
   public static String internalMethodDescriptor(
       String externalReturnType, List<String> externalArguments) {
     StringBuilder internalMethodDescriptor = new StringBuilder();
-    internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_OPEN);
+    internalMethodDescriptor.append(METHOD_ARGUMENTS_OPEN);
 
     for (String externalArgument : externalArguments) {
       internalMethodDescriptor.append(internalType(externalArgument));
     }
 
-    internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_CLOSE);
+    internalMethodDescriptor.append(METHOD_ARGUMENTS_CLOSE);
     internalMethodDescriptor.append(internalType(externalReturnType));
 
     return internalMethodDescriptor.toString();
@@ -1363,13 +1384,13 @@ public class ClassUtil {
   public static String internalMethodDescriptorFromInternalTypes(
       String internalReturnType, List<String> internalArguments) {
     StringBuilder internalMethodDescriptor = new StringBuilder();
-    internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_OPEN);
+    internalMethodDescriptor.append(METHOD_ARGUMENTS_OPEN);
 
     for (String argument : internalArguments) {
       internalMethodDescriptor.append(argument);
     }
 
-    internalMethodDescriptor.append(TypeConstants.METHOD_ARGUMENTS_CLOSE);
+    internalMethodDescriptor.append(METHOD_ARGUMENTS_CLOSE);
     internalMethodDescriptor.append(internalReturnType);
 
     return internalMethodDescriptor.toString();
@@ -1846,10 +1867,7 @@ public class ClassUtil {
    */
   public static String internalPackagePrefix(String internalClassName) {
     return internalClassName.substring(
-        0,
-        internalClassName.lastIndexOf(
-                TypeConstants.PACKAGE_SEPARATOR, internalClassName.length() - 2)
-            + 1);
+        0, internalClassName.lastIndexOf(PACKAGE_SEPARATOR, internalClassName.length() - 2) + 1);
   }
 
   /**

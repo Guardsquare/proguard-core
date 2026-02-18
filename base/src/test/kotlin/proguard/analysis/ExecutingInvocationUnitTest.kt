@@ -15,6 +15,7 @@ import proguard.evaluation.ParticularReferenceValueFactory
 import proguard.evaluation.ValueCalculator
 import proguard.evaluation.executor.Executor
 import proguard.evaluation.executor.MethodExecutionInfo
+import proguard.evaluation.executor.model.ClassModelExecutor
 import proguard.evaluation.value.ArrayReferenceValueFactory
 import proguard.evaluation.value.DetailedArrayReferenceValue
 import proguard.evaluation.value.DetailedArrayValueFactory
@@ -491,6 +492,58 @@ class ExecutingInvocationUnitTest : FreeSpec({
             array.shouldBeInstanceOf<DetailedArrayReferenceValue>()
             array.type shouldBe "[Ljava/lang/String;"
             (array.value.modeledValue as ArrayModel).values.map { value -> (value as ReferenceValue).value.preciseValue } shouldBe arrayOf("Hello", "World")
+        }
+    }
+
+    "Executed methods returning primitive array has correct type and value" - {
+
+        val code = JavaSource(
+            "Test.java",
+            """
+                class Test {
+                    public void testGetNameExecution(){
+                        String[] array = new String[] {int.class.getName(), boolean.class.getName()};
+                    }
+                }
+                """,
+        )
+
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            code,
+            javacArguments = listOf("-g", "-source", "1.8", "-target", "1.8"),
+        )
+        val valueFactory: ValueFactory = ParticularValueFactory(
+            DetailedArrayValueFactory(ParticularReferenceValueFactory()),
+            ParticularReferenceValueFactory(),
+        )
+        val invocationUnit = ExecutingInvocationUnit.Builder(programClassPool, libraryClassPool).addExecutor(
+            ClassModelExecutor.Builder(programClassPool, libraryClassPool),
+        ).build(valueFactory)
+        val partialEvaluator = PartialEvaluator(
+            valueFactory,
+            invocationUnit,
+            false,
+        )
+
+        val (instructions, variableTable) = PartialEvaluatorUtil.evaluate(
+            "Test",
+            "testGetNameExecution",
+            "()V",
+            programClassPool,
+            partialEvaluator,
+        )
+
+        val (instruction, _) = instructions.last()
+
+        val array = partialEvaluator.getVariablesBefore(instruction).getValue(variableTable["array"]!!)
+
+        "Class name array" {
+            array.shouldBeInstanceOf<DetailedArrayReferenceValue>()
+            array.type shouldBe "[Ljava/lang/String;"
+            (array.value.modeledValue as ArrayModel).values.map { value -> (value as ReferenceValue).value.preciseValue } shouldBe arrayOf(
+                "int",
+                "boolean",
+            )
         }
     }
 })

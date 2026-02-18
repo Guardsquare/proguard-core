@@ -61,6 +61,7 @@ public class ClassConstants {
   public static final String NAME_JAVA_LANG_INVOKE_STRING_CONCAT_FACTORY =
       "java/lang/invoke/StringConcatFactory";
   public static final String NAME_JAVA_LANG_VOID = "java/lang/Void";
+  public static final String TYPE_JAVA_LANG_VOID = "Ljava/lang/Void;";
   public static final String NAME_JAVA_LANG_BOOLEAN = "java/lang/Boolean";
   public static final String TYPE_JAVA_LANG_BOOLEAN = "Ljava/lang/Boolean;";
   public static final String NAME_JAVA_LANG_BYTE = "java/lang/Byte";
@@ -169,6 +170,13 @@ public class ClassConstants {
   public static final MethodSignature CLASS_GET_ANNOTATION_SIGNATURE =
       new MethodSignature(
           NAME_JAVA_LANG_CLASS, METHOD_NAME_GET_ANNOTATION, METHOD_TYPE_GET_ANNOTATION);
+  public static final String METHOD_NAME_IS_ANNOTATION_PRESENT = "isAnnotationPresent";
+  public static final String METHOD_TYPE_IS_ANNOTATION_PRESENT = "(Ljava/lang/Class;)Z";
+  public static final MethodSignature CLASS_IS_ANNOTATION_PRESENT_SIGNATURE =
+      new MethodSignature(
+          NAME_JAVA_LANG_CLASS,
+          METHOD_NAME_IS_ANNOTATION_PRESENT,
+          METHOD_TYPE_IS_ANNOTATION_PRESENT);
 
   public static final String METHOD_NAME_NEW_UPDATER = "newUpdater";
   public static final String METHOD_TYPE_NEW_INTEGER_UPDATER =
@@ -206,7 +214,7 @@ public class ClassConstants {
       "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;";
   public static final MethodSignature PROXY_NEW_INSTANCE_SIGNATURE =
       new MethodSignature(
-          NAME_JAVA_LANG_REFLECT_PARAMETERIZED_TYPE,
+          NAME_JAVA_LANG_REFLECT_PROXY,
           METHOD_NAME_NEW_PROXY_INSTANCE,
           METHOD_TYPE_NEW_PROXY_INSTANCE);
   public static final String METHOD_NAME_CLASS_GET_NAME = "getName";
