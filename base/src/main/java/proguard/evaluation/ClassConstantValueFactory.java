@@ -36,14 +36,20 @@ public class ClassConstantValueFactory extends ConstantValueFactory {
   }
 
   // Implementations for ConstantVisitor.
+
   @Override
   public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
+    ClassModel model =
+        classConstant.referencedClass == null
+            ? new ClassModel(classConstant.getName(clazz))
+            : new ClassModel(classConstant.referencedClass);
+
     // Create a Class reference instead of a reference to the class.
     value =
         valueFactory.createReferenceValue(
             classConstant.javaLangClassClass,
             false,
             false,
-            AnalyzedObjectFactory.createModeled(new ClassModel(classConstant.referencedClass)));
+            AnalyzedObjectFactory.createModeled(model));
   }
 }

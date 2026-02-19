@@ -34,13 +34,23 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
     this.name = null;
   }
 
-  public ClassModel(Clazz clazz) {
+  /**
+   * Creates a new {@link ClassModel} for the given {@link Clazz}.
+   *
+   * @param clazz The class to model.
+   */
+  public ClassModel(@NotNull Clazz clazz) {
     this.clazz = clazz;
     this.primitiveClass = null;
     this.name = null;
   }
 
-  private ClassModel(String name) {
+  /**
+   * Creates a new {@link ClassModel} for an unknown class.
+   *
+   * @param name The name of the class.
+   */
+  public ClassModel(String name) {
     this.clazz = null;
     this.primitiveClass = null;
     this.name = name;
@@ -71,6 +81,7 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
    */
   public @Nullable Clazz getClazz() {
     if (isPrimitive()) throw new IllegalArgumentException("A primitive class is modeled.");
+
     return clazz;
   }
 
@@ -100,8 +111,8 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
   public @Nullable String getModeledClassName() {
     if (isPrimitive()) return primitiveClass.getName();
     if (clazz != null) return clazz.getName();
-    if (name != null) return name;
-    return null;
+
+    return name;
   }
 
   // Model implementation.
@@ -191,9 +202,12 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
     if (isPrimitive()) return MethodResult.invalidResult();
 
     if (clazz == null) return MethodResult.invalidResult();
+
     Clazz superClass = clazz.getSuperClass();
-    if (superClass == null) return MethodResult.invalidResult();
-    return ModelHelper.createDefaultReturnResult(context, new ClassModel(clazz.getSuperClass()));
+    if (superClass != null)
+      return ModelHelper.createDefaultReturnResult(context, new ClassModel(superClass));
+
+    return MethodResult.invalidResult();
   }
 
   /** Models {@link Class#forName(String)}. */
@@ -265,10 +279,10 @@ public class ClassModel implements ReflectiveModel<ClassModel> {
    * Retrieves the class with the given name from the class pools.
    *
    * @param className Name of the class.
-   * @return An {@link Optional <Clazz>} containing the {@link Clazz} with the given name, or empty
-   *     if it was not in the class pools.
+   * @return An {@link Optional Clazz} containing the {@link Clazz} with the given name, or empty if
+   *     it was not in the class pools.
    */
-  private Optional<Clazz> findReferencedClazz(
+  private static Optional<Clazz> findReferencedClazz(
       @Nullable String className, ClassPool programClassPool, ClassPool libraryClassPool) {
     if (className == null) return Optional.empty();
 
