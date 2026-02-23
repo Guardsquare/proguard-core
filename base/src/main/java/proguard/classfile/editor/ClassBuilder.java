@@ -223,13 +223,27 @@ public class ClassBuilder {
    */
   public ProgramField addAndReturnField(
       int u2accessFlags, String fieldName, String fieldDescriptor) {
+    return addAndReturnField(u2accessFlags, fieldName, fieldDescriptor, null);
+  }
+
+  /**
+   * Adds a new field to the edited class, and returns it.
+   *
+   * @param u2accessFlags access flags for the new field.
+   * @param fieldName name of the new field.
+   * @param fieldDescriptor descriptor of the new field.
+   * @param referencedClass the {@link Clazz} object referenced in the descriptor string.
+   * @return the newly created field.
+   */
+  public ProgramField addAndReturnField(
+      int u2accessFlags, String fieldName, String fieldDescriptor, Clazz referencedClass) {
     // Create a simple field.
     ProgramField programField =
         new ProgramField(
             u2accessFlags,
             constantPoolEditor.addUtf8Constant(fieldName),
             constantPoolEditor.addUtf8Constant(fieldDescriptor),
-            null);
+            referencedClass);
 
     // Add it to the class.
     classEditor.addField(programField);
