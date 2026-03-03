@@ -1,23 +1,35 @@
 package proguard.classfile.attribute.signature.grammars;
 
-import java.io.EOFException;
 import proguard.classfile.attribute.signature.ast.descriptor.BaseTypeNode;
 import proguard.classfile.attribute.signature.ast.descriptor.VoidDescriptorNode;
 import proguard.classfile.attribute.signature.parsing.Parser;
 
 /** Utility class containing common terminals from the signature and descriptor grammar. */
 final class CommonTerminals {
+  private static final BaseTypeNode[] baseTypeNodes = new BaseTypeNode[256];
+
+  static {
+    for (BaseTypeNode node : BaseTypeNode.values()) {
+      char c = node.toString().charAt(0);
+      if (c < baseTypeNodes.length) {
+        baseTypeNodes[c] = node;
+      } // else case should never happen, baseTypeNodes are simple alphabetic characters
+    }
+  }
+
   static final Parser<BaseTypeNode> BASE_TYPE =
       (context) -> {
-        try {
-          BaseTypeNode result = BaseTypeNode.valueOf(String.valueOf(context.peekChar(0)));
-
-          context.advance(1);
-          return result;
-        } catch (IllegalArgumentException | EOFException e) {
-          // not possible to parse
+        if (context.remainingLength() == 0) {
           return null;
         }
+        char c = context.peekCharUnchecked(0);
+
+        if (c < baseTypeNodes.length && baseTypeNodes[c] != null) {
+          context.advance(1);
+          return baseTypeNodes[c];
+        }
+
+        return null;
       };
 
   static final Parser<String> CLASS_NAME =
@@ -32,14 +44,10 @@ final class CommonTerminals {
 
   static final Parser<VoidDescriptorNode> VOID_DESCRIPTOR =
       (context) -> {
-        try {
-          if (context.peekChar(0) == 'V') {
-            context.advance(1);
-            return VoidDescriptorNode.INSTANCE;
-          } else {
-            return null;
-          }
-        } catch (EOFException e) {
+        if (context.remainingLength() != 0 && context.peekCharUnchecked(0) == 'V') {
+          context.advance(1);
+          return VoidDescriptorNode.INSTANCE;
+        } else {
           return null;
         }
       };
