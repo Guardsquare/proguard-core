@@ -13,7 +13,6 @@ import com.guardsquare.proguard.assembler.io.JbcReader
 import com.tschuchort.compiletesting.KotlinCompilation
 import io.kotest.assertions.fail
 import io.kotest.core.listeners.TestListener
-import io.kotest.core.spec.AutoScan
 import io.kotest.core.test.TestCase
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import proguard.classfile.ClassPool
@@ -31,6 +30,7 @@ import proguard.io.FileDataEntry
 import proguard.io.JarReader
 import proguard.io.NameFilteredDataEntryReader
 import proguard.io.StreamingDataEntry
+import proguard.testutils.LibraryClassPoolBuilder.Companion.libraryClassPools
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.PrintWriter
@@ -237,17 +237,15 @@ private class LibraryClassPoolBuilder(private val compiler: KotlinCompilation) {
 
     companion object {
 
-        private val libraryClassPools: MutableMap<Int, ClassPool> = mutableMapOf()
-
-        @AutoScan
-        object LibraryClassPoolProcessingInfoCleaningListener : TestListener {
-            override suspend fun beforeTest(testCase: TestCase) {
-                libraryClassPools.values.forEach {
-                    it.classesAccept { clazz ->
-                        clazz.processingInfo = null
-                        clazz.processingFlags = 0
-                    }
-                }
+        val libraryClassPools: MutableMap<Int, ClassPool> = mutableMapOf()
+    }
+}
+object LibraryClassPoolProcessingInfoCleaningListener : TestListener {
+    override suspend fun beforeTest(testCase: TestCase) {
+        libraryClassPools.values.forEach {
+            it.classesAccept { clazz ->
+                clazz.processingInfo = null
+                clazz.processingFlags = 0
             }
         }
     }

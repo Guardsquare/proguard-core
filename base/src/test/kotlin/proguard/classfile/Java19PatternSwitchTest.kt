@@ -11,15 +11,15 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldNotBe
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
-import proguard.testutils.RequiresJavaVersion
+import proguard.testutils.RequiresJavaExtension
 import proguard.testutils.currentJavaVersion
 
 /**
  * Test the pattern matching switch in Java 19.
  * The preview in Java 19 changed the guard syntax from `&&` to `when`.
  */
-@RequiresJavaVersion(19, 19)
 class Java19PatternSwitchTest : FreeSpec({
+    extension(RequiresJavaExtension(19, 19))
 
     val javacArguments = if (currentJavaVersion in 19..19) {
         listOf("--enable-preview", "--release", currentJavaVersion.toString())

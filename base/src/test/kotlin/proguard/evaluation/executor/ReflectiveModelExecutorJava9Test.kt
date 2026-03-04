@@ -25,10 +25,9 @@ import proguard.evaluation.value.ParticularValueFactory
 import proguard.evaluation.value.`object`.model.ClassModel
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
-import proguard.testutils.RequiresJavaVersion
 
-@RequiresJavaVersion(9)
 class ReflectiveModelExecutorJava9Test : BehaviorSpec({
+
     Given("A method which uses various ways to access class details") {
         val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
             JavaSource(

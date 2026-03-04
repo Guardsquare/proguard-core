@@ -18,8 +18,9 @@
 
 package proguard.testutils
 
-import io.kotest.matchers.EqualityMatcherResult
+import io.kotest.assertions.print.Printed
 import io.kotest.matchers.Matcher
+import io.kotest.matchers.MatcherResultBuilder
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import proguard.classfile.Clazz
@@ -49,7 +50,7 @@ fun ClazzMemberPair.instructionsAccept(visitor: InstructionVisitor) =
 fun Clazz.findMethod(name: String) = findMethod(name, null)
 
 private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuilder) = Matcher<ClazzMemberPair> { value ->
-    EqualityMatcherResult(
+    MatcherResultBuilder(
         passed = with(value) {
             val (constants, instructions) = builder(InstructionBuilder())
             val matcher = InstructionMatcher(constants, instructions)
@@ -67,27 +68,29 @@ private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuild
 
             matcher.isMatching
         },
-        actual = object {
-            override fun toString(): String = with(value) {
+        actual = {
+            with(value) {
                 val instructions = MethodInstructionCollector.getMethodInstructions(clazz, member as Method)
                 var offset = 0
-                instructions.joinToString("\n") {
-                    val thisOffset = offset
-                    offset += it.length(offset)
-                    if (it !is ConstantInstruction || it.constantIndex < (clazz as ProgramClass).constantPool.size) {
-                        it.toString(clazz, thisOffset)
-                    } else {
-                        it.toString()
-                    }
-                }
+                Printed(
+                    instructions.joinToString("\n") {
+                        val thisOffset = offset
+                        offset += it.length(offset)
+                        if (it !is ConstantInstruction || it.constantIndex < (clazz as ProgramClass).constantPool.size) {
+                            it.toString(clazz, thisOffset)
+                        } else {
+                            it.toString()
+                        }
+                    },
+                )
             }
         },
-        expected = object {
-            override fun toString(): String {
-                val (constants, instructions) = builder(InstructionBuilder())
-                val clazz = ProgramClass().apply { constantPool = constants }
-                var offset = 0
-                return instructions.joinToString("\n") {
+        expected = {
+            val (constants, instructions) = builder(InstructionBuilder())
+            val clazz = ProgramClass().apply { constantPool = constants }
+            var offset = 0
+            Printed(
+                instructions.joinToString("\n") {
                     val thisOffset = offset
                     offset += it.length(offset)
                     if (it !is ConstantInstruction || it.constantIndex < clazz.constantPool.size) {
@@ -95,12 +98,12 @@ private fun matchInstructions(builder: InstructionBuilder.() -> InstructionBuild
                     } else {
                         it.toString()
                     }
-                }
-            }
+                },
+            )
         },
         failureMessageFn = { "Instructions should match" },
         negatedFailureMessageFn = { "Instructions should not match" },
-    )
+    ).build()
 }
 
 @Deprecated("Use shouldMatch or shouldNotMatch instead")
