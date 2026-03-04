@@ -3,7 +3,7 @@ aggregate-javadoc = "8.11"
 annotations = "26.0.1"
 jupiter = "5.11.3"
 kctfork = "0.12.0"
-kotest = "5.9.1"
+kotest = "6.1.4"
 kotlin = "2.3.0"
 kotlinx-cli = "0.3.6"
 log4j = "2.24.2"
@@ -22,7 +22,6 @@ kctfork = { group =  "dev.zacsweers.kctfork", name = "core", version.ref = "kctf
 kotest-runner-jvm = { group = "io.kotest", name = "kotest-runner-junit5-jvm", version.ref = "kotest" }
 kotest-assertions-jvm = { group = "io.kotest", name = "kotest-assertions-core-jvm", version.ref = "kotest" }
 kotest-property-jvm = { group = "io.kotest", name = "kotest-property-jvm", version.ref = "kotest" }
-kotest-framework-datatest = { group = "io.kotest", name = "kotest-framework-datatest", version.ref = "kotest" }
 kotlin-metadata = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
@@ -35,7 +34,7 @@ smali = { group = "org.smali", name = "smali", version.ref = "smali" }
 
 [bundles]
 log4j = ["log4j-api", "log4j-core"]
-kotest = ["kotest-assertions-jvm", "kotest-framework-datatest", "kotest-property-jvm", "kotest-runner-jvm"]
+kotest = ["kotest-assertions-jvm", "kotest-property-jvm", "kotest-runner-jvm"]
 kotlin = ["kotlin-stdlib", "kotlin-reflect"]
 
 [plugins]

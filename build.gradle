@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -38,7 +39,7 @@ spotless {
 	}
 }
 
-allprojects {
+allprojects { project ->
 	group = 'com.guardsquare'
 	version = proguardCoreVersion
 
@@ -47,26 +48,29 @@ allprojects {
 		google()
 	}
 
-	pluginManager.withPlugin('java') {
-		java {
-			toolchain {
-				languageVersion.set(JavaLanguageVersion.of(8))
+	if (project.name != "proguard-core-examples") {
+		pluginManager.withPlugin('java') {
+			java {
+				toolchain {
+					languageVersion.set(JavaLanguageVersion.of(11))
+				}
+				withJavadocJar()
+				withSourcesJar()
 			}
-			withJavadocJar()
-			withSourcesJar()
-		}
+			tasks.withType(JavaCompile).configureEach {
+				if (!it.name.contains("Test")) {
+					options.release = 8
+				}
+			}
+			tasks.withType(KotlinCompile).configureEach {
+				if (!it.name.contains("Test")) {
+					it.compilerOptions.jvmTarget = JvmTarget.JVM_1_8
+				}
+			}
 
-		javadoc {
-			options.addStringOption('Xdoclint:none', '-quiet')
-		}
-	}
-
-	tasks.withType(KotlinCompile).configureEach {
-		kotlinOptions {
-			jvmTarget = '1.8'
-			freeCompilerArgs = [
-				"-opt-in=kotlin.RequiresOptIn"
-			]
+			javadoc {
+				options.addStringOption('Xdoclint:none', '-quiet')
+			}
 		}
 	}
 	tasks.withType(KotlinCompilationTask.class)

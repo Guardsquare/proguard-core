@@ -10,7 +10,7 @@ import proguard.classfile.util.MemberRenamer
 import proguard.classfile.visitor.ClassCleaner
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
-import proguard.testutils.RequiresJavaVersion
+import proguard.testutils.RequiresJavaExtension
 
 class ConstantPoolShrinkerTest : BehaviorSpec({
     Given("A class Clazz with a single method test and a single field a") {
@@ -104,8 +104,8 @@ class ConstantPoolShrinkerTest : BehaviorSpec({
     }
 })
 
-@RequiresJavaVersion(from = 17)
 class Java17ConstantPoolShrinkerTest : BehaviorSpec({
+    extension(RequiresJavaExtension(from = 17))
     Given("A record class with a compact constructor") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
@@ -131,8 +131,9 @@ class Java17ConstantPoolShrinkerTest : BehaviorSpec({
     }
 })
 
-@RequiresJavaVersion(from = 21)
 class Java21ConstantPoolShrinkerTest : BehaviorSpec({
+    extensions(RequiresJavaExtension(from = 21))
+
     Given("A class containing a pattern matching switch statement referencing enum constants") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(

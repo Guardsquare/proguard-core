@@ -33,11 +33,11 @@ import proguard.classfile.constant.Constant
 import proguard.classfile.constant.visitor.ConstantVisitor
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
-import proguard.testutils.RequiresJavaVersion
+import proguard.testutils.RequiresJavaExtension
 import proguard.testutils.currentJavaVersion
 
-@RequiresJavaVersion(15)
 class SealedClassesTest : FreeSpec({
+    extensions(RequiresJavaExtension(from = 15))
 
     "Given a Java record class" - {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
