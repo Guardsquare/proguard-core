@@ -1,3 +1,18 @@
+## Version 9.3.2 
+
+### Upgrade consideration 
+
+- The proguardCORE test fixtures module now requires Java 11.
+
+### Java support
+
+- Update maximum supported Java class version to 70.65535 (Java 26).
+
+### API impovements 
+
+- Allow referencedClass to be provided in ClassBuilder.addAndReturnField.
+- Add name property to ClassModel.
+
 ## Version 9.3.1
 
 ### Kotlin support
