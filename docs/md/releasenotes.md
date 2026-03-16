@@ -10,8 +10,8 @@
 
 ### API impovements 
 
-- Allow referencedClass to be provided in ClassBuilder.addAndReturnField.
-- Add name property to ClassModel.
+- Allow referencedClass to be provided in `ClassBuilder.addAndReturnField`.
+- Add name property to `ClassModel`.
 
 ## Version 9.3.1
 
