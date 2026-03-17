@@ -8,7 +8,7 @@
 
 - Update maximum supported Java class version to 70.65535 (Java 26).
 
-### API impovements 
+### API improvements 
 
 - Allow referencedClass to be provided in `ClassBuilder.addAndReturnField`.
 - Add name property to `ClassModel`.
