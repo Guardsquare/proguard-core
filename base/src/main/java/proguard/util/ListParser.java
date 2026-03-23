@@ -56,13 +56,13 @@ public class ListParser implements StringParser {
    *
    * <p>An empty list results in a StringMatcher that matches any string.
    */
-  public StringMatcher parse(List regularExpressions) {
+  public StringMatcher parse(List<String> regularExpressions) {
     StringMatcher listMatcher = null;
 
     // Loop over all simple regular expressions, backward, creating a
     // linked list of matchers.
     for (int index = regularExpressions.size() - 1; index >= 0; ) {
-      String regularExpression = (String) regularExpressions.get(index);
+      String regularExpression = regularExpressions.get(index);
 
       boolean isNegated = isNegated(regularExpression);
 
@@ -98,9 +98,9 @@ public class ListParser implements StringParser {
   // Small utility methods.
 
   /** Returns the highest index that is negated or not, as specified. */
-  private int lastNegatedIndex(List regularExpressions, int lastIndex, boolean isNegated) {
+  private int lastNegatedIndex(List<String> regularExpressions, int lastIndex, boolean isNegated) {
     for (int index = lastIndex; index > 0; index--) {
-      String regularExpression = (String) regularExpressions.get(index - 1);
+      String regularExpression = regularExpressions.get(index - 1);
 
       if (isNegated(regularExpression) != isNegated) {
         return index;
@@ -111,11 +111,12 @@ public class ListParser implements StringParser {
   }
 
   /** Creates an array of StringMatcher instances for the specified simple regular expressions. */
-  private StringMatcher[] parseEntries(List regularExpressions, int firstIndex, int lastIndex) {
+  private StringMatcher[] parseEntries(
+      List<String> regularExpressions, int firstIndex, int lastIndex) {
     StringMatcher[] stringMatchers = new StringMatcher[lastIndex - firstIndex + 1];
 
     for (int index = firstIndex; index <= lastIndex; index++) {
-      String regularExpression = (String) regularExpressions.get(index);
+      String regularExpression = regularExpressions.get(index);
 
       stringMatchers[index - firstIndex] = parseEntry(regularExpression);
     }
@@ -135,7 +136,7 @@ public class ListParser implements StringParser {
 
   /** Returns whether the given simple regular expression is negated. */
   private boolean isNegated(String regularExpression) {
-    return regularExpression.length() > 0 && regularExpression.charAt(0) == '!';
+    return !regularExpression.isEmpty() && regularExpression.charAt(0) == '!';
   }
 
   /** A main method for testing name matching. */

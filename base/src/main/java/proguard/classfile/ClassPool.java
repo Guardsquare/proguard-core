@@ -17,9 +17,19 @@
  */
 package proguard.classfile;
 
-import java.util.*;
-import proguard.classfile.visitor.*;
-import proguard.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import proguard.classfile.visitor.ClassPoolVisitor;
+import proguard.classfile.visitor.ClassVisitor;
+import proguard.util.ClassNameParser;
+import proguard.util.ListParser;
+import proguard.util.MapUtil;
+import proguard.util.StringMatcher;
 
 /**
  * This is a set of {@link Clazz} instances. They can be enumerated or retrieved by name. They can
@@ -149,10 +159,8 @@ public class ClassPool {
     Map<String, T> refreshedMap = new HashMap<String, T>(map.size());
 
     // Iterate over all entries.
-    Iterator<Map.Entry<String, T>> entries = map.entrySet().iterator();
-    while (entries.hasNext()) {
+    for (Map.Entry<String, T> entry : map.entrySet()) {
       // Find the class.
-      Map.Entry<String, T> entry = entries.next();
       String className = entry.getKey();
       Clazz clazz = classes.get(className);
       if (clazz != null) {
@@ -173,10 +181,8 @@ public class ClassPool {
     Map<T, String> refreshedMap = new HashMap<T, String>(map.size());
 
     // Iterate over all entries.
-    Iterator<Map.Entry<T, String>> entries = map.entrySet().iterator();
-    while (entries.hasNext()) {
+    for (Map.Entry<T, String> entry : map.entrySet()) {
       // Find the class.
-      Map.Entry<T, String> entry = entries.next();
       String className = entry.getValue();
       Clazz clazz = classes.get(className);
       if (clazz != null) {
@@ -212,9 +218,7 @@ public class ClassPool {
 
   /** Applies the given ClassVisitor to all classes in the class pool, in random order. */
   public void classesAccept(ClassVisitor classVisitor) {
-    Iterator iterator = classes.values().iterator();
-    while (iterator.hasNext()) {
-      Clazz clazz = (Clazz) iterator.next();
+    for (Clazz clazz : classes.values()) {
       clazz.accept(classVisitor);
     }
   }
@@ -224,10 +228,7 @@ public class ClassPool {
     // We're already using a tree map.
     // TreeMap sortedClasses = new TreeMap(classes);
     // Iterator iterator = sortedClasses.values().iterator();
-
-    Iterator iterator = classes.values().iterator();
-    while (iterator.hasNext()) {
-      Clazz clazz = (Clazz) iterator.next();
+    for (Clazz clazz : classes.values()) {
       clazz.accept(classVisitor);
     }
   }
@@ -238,7 +239,7 @@ public class ClassPool {
   }
 
   /** Applies the given ClassVisitor to all matching classes in the class pool. */
-  public void classesAccept(List classNameFilter, ClassVisitor classVisitor) {
+  public void classesAccept(List<String> classNameFilter, ClassVisitor classVisitor) {
     classesAccept(new ListParser(new ClassNameParser()).parse(classNameFilter), classVisitor);
   }
 
