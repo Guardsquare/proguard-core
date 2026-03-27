@@ -1039,7 +1039,7 @@ public class ClassReferenceInitializer
           simpleName = aliasName.substring(innerClassMarkerIndex + 1);
         } else {
           // Declared in a file facade - we know which package only.
-          classNameFilter = ClassUtil.internalPackagePrefix(aliasName) + "*";
+          classNameFilter = ClassUtil.internalPackagePrefix(aliasName) + "**";
           simpleName = ClassUtil.internalSimpleClassName(kotlinTypeMetadata.aliasName);
         }
 

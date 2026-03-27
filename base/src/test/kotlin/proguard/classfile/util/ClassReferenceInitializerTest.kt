@@ -39,6 +39,7 @@ import proguard.classfile.kotlin.KotlinTypeMetadata
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.AllPropertyVisitor
+import proguard.classfile.kotlin.visitor.AllTypeVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor
@@ -271,6 +272,33 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                     },
                 )
             }
+        }
+    }
+
+    Given("A kotlin class extending a default Kotlin type alias with a custom JvmPackageName and JvmName") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                    class TestClass: kotlin.AutoCloseable {
+                        override fun close() {}
+                    }
+                """.trimIndent(),
+            ),
+        )
+
+        Then("All type alias metadata should be initialized") {
+            val testClass = programClassPool.getClass("TestClass")
+
+            testClass.accept(
+                ReferencedKotlinMetadataVisitor(
+                    AllTypeVisitor { _, kotlinTypeMetadata ->
+                        if (kotlinTypeMetadata?.aliasName != null) {
+                            kotlinTypeMetadata.referencedTypeAlias shouldNotBe null
+                        }
+                    },
+                ),
+            )
         }
     }
 

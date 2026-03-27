@@ -1,3 +1,9 @@
+## Version 9.3.3 
+
+### Bugfixes
+
+- Fix reference initialization for type aliases defined in file facades with a custom JvmPackageName.
+
 ## Version 9.3.2 
 
 ### Upgrade consideration 
