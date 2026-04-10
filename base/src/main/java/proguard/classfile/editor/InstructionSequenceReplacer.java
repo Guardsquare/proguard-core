@@ -21,6 +21,7 @@ import java.util.Objects;
 import proguard.classfile.Clazz;
 import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
+import proguard.classfile.ProgramMethod;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.constant.Constant;
 import proguard.classfile.constant.DoubleConstant;
@@ -316,7 +317,7 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
           System.out.println(
               "    "
                   + replacementInstructionFactory
-                      .create(clazz, codeAttribute, index)
+                      .create(clazz, method, codeAttribute, index)
                       .shrink()
                       .toString(matchedOffset));
         }
@@ -328,7 +329,7 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
         for (int index = 0; index < replacementCount; index++) {
           codeAttributeEditor.replaceInstruction(
               instructionSequenceMatcher.matchedInstructionOffset(index),
-              replacementInstructionFactory.create(clazz, codeAttribute, index));
+              replacementInstructionFactory.create(clazz, method, codeAttribute, index));
         }
 
         // Delete any remaining instructions in the matched sequence.
@@ -341,7 +342,7 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
         for (int index = 0; index < patternCount; index++) {
           codeAttributeEditor.replaceInstruction(
               instructionSequenceMatcher.matchedInstructionOffset(index),
-              replacementInstructionFactory.create(clazz, codeAttribute, index));
+              replacementInstructionFactory.create(clazz, method, codeAttribute, index));
         }
 
         // Append the remaining instructions in the replacement
@@ -349,7 +350,8 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
         Instruction[] extraInstructions = new Instruction[replacementCount - patternCount];
         for (int index = 0; index < extraInstructions.length; index++) {
           extraInstructions[index] =
-              replacementInstructionFactory.create(clazz, codeAttribute, patternCount + index);
+              replacementInstructionFactory.create(
+                  clazz, method, codeAttribute, patternCount + index);
         }
 
         codeAttributeEditor.insertAfterInstruction(
@@ -386,7 +388,7 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
     private Instruction replacementInstruction;
 
     /** Creates the replacement instruction for the given index in the instruction sequence. */
-    public Instruction create(Clazz clazz, CodeAttribute codeAttribute, int index) {
+    public Instruction create(Clazz clazz, Method method, CodeAttribute codeAttribute, int index) {
       int matchedInstructionIndex =
           index < instructionSequenceMatcher.instructionCount()
               ? index
@@ -397,7 +399,7 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
 
       // Create the instruction.
       replacementInstructions[index].accept(
-          clazz, null, codeAttribute, matchedInstructionOffset, this);
+          clazz, method, codeAttribute, matchedInstructionOffset, this);
 
       // Return it.
       return replacementInstruction;
@@ -443,7 +445,8 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
       replacementInstruction =
           new ConstantInstruction(
               constantInstruction.opcode,
-              matchedConstantIndex((ProgramClass) clazz, constantInstruction.constantIndex),
+              matchedConstantIndex(
+                  (ProgramClass) clazz, (ProgramMethod) method, constantInstruction.constantIndex),
               instructionSequenceMatcher.matchedArgument(constantInstruction.constant));
     }
 
@@ -513,7 +516,7 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
               uniqueLabel(catch_.identifier),
               uniqueLabel(catch_.startOffset),
               uniqueLabel(catch_.endOffset),
-              matchedConstantIndex((ProgramClass) clazz, catch_.catchType));
+              matchedConstantIndex((ProgramClass) clazz, (ProgramMethod) method, catch_.catchType));
     }
   }
 
@@ -535,8 +538,15 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
     return instructionSequenceMatcher.matchedArgument(argument);
   }
 
-  /** Returns the matched or newly created constant index for the given pattern constant index. */
+  // API for backwards compatibility.
+  @Deprecated
   protected int matchedConstantIndex(ProgramClass programClass, int constantIndex) {
+    return matchedConstantIndex(programClass, null, constantIndex);
+  }
+
+  /** Returns the matched or newly created constant index for the given pattern constant index. */
+  protected int matchedConstantIndex(
+      ProgramClass programClass, ProgramMethod programMethod, int constantIndex) {
     // Special case: do we have to create a concatenated string?
     if (constantIndex >= BOOLEAN_A_STRING && constantIndex <= (STRING_A_STRING | STRING_B_STRING)) {
       // Create a new concatenated string constant and return its index.
