@@ -52,7 +52,7 @@ allprojects { project ->
 		pluginManager.withPlugin('java') {
 			java {
 				toolchain {
-					languageVersion.set(JavaLanguageVersion.of(17))
+					languageVersion.set(JavaLanguageVersion.of(11))
 				}
 				withJavadocJar()
 				withSourcesJar()
@@ -60,15 +60,11 @@ allprojects { project ->
 			tasks.withType(JavaCompile).configureEach {
 				if (!it.name.contains("Test")) {
 					options.release = 8
-				} else {
-					options.release = 11
 				}
 			}
 			tasks.withType(KotlinCompile).configureEach {
 				if (!it.name.contains("Test")) {
 					it.compilerOptions.jvmTarget = JvmTarget.JVM_1_8
-				} else {
-					it.compilerOptions.jvmTarget = JvmTarget.JVM_11
 				}
 			}
 
