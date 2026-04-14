@@ -302,6 +302,41 @@ class ClassReferenceInitializerTest : BehaviorSpec({
         }
     }
 
+    Given("A Kotlin class with a type alias that references another type alias of the same name in a different package") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "TestContext.kt",
+                """
+                    package com.context
+
+                    typealias Name = com.Name
+                """.trimIndent(),
+            ),
+            KotlinSource(
+                "Test.kt",
+                """
+                    package com
+
+                    typealias Name = String
+                """.trimIndent(),
+            ),
+        )
+
+        Then("The referencedTypeAlias should not cause a loop") {
+            val fileFacadeClassTestContext = programClassPool.getClass("com/context/TestContextKt")
+
+            fileFacadeClassTestContext.accept(
+                ReferencedKotlinMetadataVisitor(
+                    AllTypeVisitor { _, kotlinTypeMetadata ->
+                        if (kotlinTypeMetadata?.aliasName != null) {
+                            kotlinTypeMetadata.referencedTypeAlias.referencedDeclarationContainer.ownerClassName shouldNotBe "com/context/TestContextKt"
+                        }
+                    },
+                ),
+            )
+        }
+    }
+
     Given("A Kotlin function with named types") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(

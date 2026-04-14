@@ -1371,7 +1371,18 @@ public class ClassReferenceInitializer
         Clazz clazz,
         KotlinDeclarationContainerMetadata kotlinDeclarationContainerMetadata,
         KotlinTypeAliasMetadata kotlinTypeAliasMetadata) {
-      if (this.simpleName.equals(kotlinTypeAliasMetadata.name)) {
+      // Checks if it is acceptable to (over)write `referencedTypeAlias`.
+      // If `referencedTypeAlias` is still null, it is a normal write, which is always acceptable.
+      // If `referencedTypeAlias` isn't null anymore, writing to it will overwrite the value already
+      // present,
+      // which is only acceptable if the `kotlinTypeAliasMetadata` is from a class in the expected
+      // package,
+      // and not from one of its subpackages.
+      boolean isWriteAcceptable =
+          this.kotlinTypeMetadata.referencedTypeAlias == null
+              || ClassUtil.internalPackageName(kotlinDeclarationContainerMetadata.ownerClassName)
+                  .equals(ClassUtil.internalPackageName(this.kotlinTypeMetadata.aliasName));
+      if (this.simpleName.equals(kotlinTypeAliasMetadata.name) && isWriteAcceptable) {
         this.kotlinTypeMetadata.referencedTypeAlias = kotlinTypeAliasMetadata;
       }
     }
