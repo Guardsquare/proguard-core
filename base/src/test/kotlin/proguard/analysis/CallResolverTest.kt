@@ -403,4 +403,101 @@ class CallResolverTest : FreeSpec({
         callGraph.incoming.isEmpty() shouldBe true
         callGraph.outgoing.isEmpty() shouldBe true
     }
+
+    "DOT graph representation" {
+        val callGraph = CallGraph()
+        val resolver =
+            CallResolver.Builder(classPools.programClassPool, classPools.libraryClassPool, callGraph).build()
+        classPools.programClassPool.classesAccept(resolver)
+        callGraph.incoming.isEmpty() shouldBe false
+        callGraph.outgoing.isEmpty() shouldBe false
+        callGraph.toDot() shouldBe """
+        digraph g {
+        	rankdir=TB;
+        	"LA;<init>()V" [label="LA;<init>()V"];
+        	"LA;<init>()V" -> "LSuper;<init>()V";
+        	"LB;<init>()V" [label="LB;<init>()V"];
+        	"LB;<init>()V" -> "LSuper;<init>()V";
+        	"LBike;<init>()V" [label="LBike;<init>()V"];
+        	"LBike;<init>()V" -> "LVehicle;<init>()V";
+        	"LBike;honk()V" [label="LBike;honk()V"];
+        	"LBike;honk()V" -> "Ljava/io/PrintStream;println(Ljava/lang/String;)V";
+        	"LCar;<init>()V" [label="LCar;<init>()V"];
+        	"LCar;<init>()V" -> "LVehicle;<init>()V";
+        	"LCar;honk()V" [label="LCar;honk()V"];
+        	"LCar;honk()V" -> "Ljava/io/PrintStream;println(Ljava/lang/String;)V";
+        	"LMain;<init>()V" [label="LMain;<init>()V"];
+        	"LMain;<init>()V" -> "Ljava/lang/Object;<init>()V";
+        	"LMain;ambiguous()V" [label="LMain;ambiguous()V"];
+        	"LMain;ambiguous()V" -> "Ljava/lang/String;hashCode()I";
+        	"LMain;ambiguous()V" -> "Ljava/lang/String;equals(Ljava/lang/Object;)Z";
+        	"LMain;ambiguous()V" -> "Ljava/lang/String;equals(Ljava/lang/Object;)Z";
+        	"LMain;ambiguous()V" -> "LA;<init>()V";
+        	"LMain;ambiguous()V" -> "LB;<init>()V";
+        	"LMain;ambiguous()V" -> "LA;test()V";
+        	"LMain;ambiguous()V" -> "LB;test()V";
+        	"LMain;ambiguous()V" -> "LSuper;staticTest()V";
+        	"LMain;a()V" [label="LMain;a()V"];
+        	"LMain;a()V" -> "LA;<init>()V";
+        	"LMain;a()V" -> "LA;test()V";
+        	"LMain;b()V" [label="LMain;b()V"];
+        	"LMain;b()V" -> "LB;<init>()V";
+        	"LMain;b()V" -> "LB;test()V";
+        	"LMain;s()V" [label="LMain;s()V"];
+        	"LMain;s()V" -> "LSuper;<init>()V";
+        	"LMain;s()V" -> "LSuper;test()V";
+        	"LMain;notOverridden()V" [label="LMain;notOverridden()V"];
+        	"LMain;notOverridden()V" -> "LNotOverridden;<init>()V";
+        	"LMain;notOverridden()V" -> "LSuper;test()V";
+        	"LMain;external()V" [label="LMain;external()V"];
+        	"LMain;external()V" -> "Ljava/io/PrintStream;println()V";
+        	"LMain;alwaysNull()V" [label="LMain;alwaysNull()V"];
+        	"LMain;alwaysNull()V" -> "LSuper;test()V";
+        	"LMain;dynamic()V" [label="LMain;dynamic()V"];
+        	"LMain;dynamic()V" -> "Ljava/util/Arrays;asList([Ljava/lang/Object;)Ljava/util/List;";
+        	"LMain;dynamic()V" -> "Ljava/util/Collection;stream()Ljava/util/stream/Stream;";
+        	"LMain;dynamic()V" -> "Ljava/util/stream/Stream;filter(Ljava/util/function/Predicate;)Ljava/util/stream/Stream;";
+        	"LMain;dynamic()V" -> "Ljava/util/stream/Stream;count()J";
+        	"LMain;invokeInterface()V" [label="LMain;invokeInterface()V"];
+        	"LMain;invokeInterface()V" -> "LNormalImplementor;<init>()V";
+        	"LMain;invokeInterface()V" -> "LSuperInterface;defaultTest()V";
+        	"LMain;invokeInterface()V" -> "LNormalImplementor;abstractTest()V";
+        	"LMain;mostSpecificDefaultSub()V" [label="LMain;mostSpecificDefaultSub()V"];
+        	"LMain;mostSpecificDefaultSub()V" -> "LSubImplementor;<init>()V";
+        	"LMain;mostSpecificDefaultSub()V" -> "LSubInterface;defaultTest()V";
+        	"LMain;mostSpecificDefaultSuper()V" [label="LMain;mostSpecificDefaultSuper()V"];
+        	"LMain;mostSpecificDefaultSuper()V" -> "LSuperImplementor;<init>()V";
+        	"LMain;mostSpecificDefaultSuper()V" -> "LSubInterface;defaultTest()V";
+        	"LMain;makeNoise(LVehicle;)V" [label="LMain;makeNoise(LVehicle;)V"];
+        	"LMain;makeNoise(LVehicle;)V" -> "LVehicle;honk()V";
+        	"LMain;makeString(Ljava/lang/Object;)V" [label="LMain;makeString(Ljava/lang/Object;)V"];
+        	"LMain;makeString(Ljava/lang/Object;)V" -> "Ljava/lang/Object;toString()Ljava/lang/String;";
+        	"LMain;lambda${'$'}dynamic$0(Ljava/lang/String;)Z" [label="LMain;lambda${'$'}dynamic$0(Ljava/lang/String;)Z"];
+        	"LMain;lambda${'$'}dynamic$0(Ljava/lang/String;)Z" -> "Ljava/lang/String;length()I";
+        	"LNormalImplementor;<init>()V" [label="LNormalImplementor;<init>()V"];
+        	"LNormalImplementor;<init>()V" -> "Ljava/lang/Object;<init>()V";
+        	"LNotOverridden;<init>()V" [label="LNotOverridden;<init>()V"];
+        	"LNotOverridden;<init>()V" -> "LSuper;<init>()V";
+        	"LSubImplementor;<init>()V" [label="LSubImplementor;<init>()V"];
+        	"LSubImplementor;<init>()V" -> "Ljava/lang/Object;<init>()V";
+        	"LSubNotOverridden;<init>()V" [label="LSubNotOverridden;<init>()V"];
+        	"LSubNotOverridden;<init>()V" -> "LNotOverridden;<init>()V";
+        	"LSubNotOverridden;test()V" [label="LSubNotOverridden;test()V"];
+        	"LSubNotOverridden;test()V" -> "LSuper;test()V";
+        	"LSuper;<init>()V" [label="LSuper;<init>()V"];
+        	"LSuper;<init>()V" -> "Ljava/lang/Object;<init>()V";
+        	"LSuperCall;<init>()V" [label="LSuperCall;<init>()V"];
+        	"LSuperCall;<init>()V" -> "LSuper;<init>()V";
+        	"LSuperCall;test()V" [label="LSuperCall;test()V"];
+        	"LSuperCall;test()V" -> "LSuper;test()V";
+        	"LSuperImplementor;<init>()V" [label="LSuperImplementor;<init>()V"];
+        	"LSuperImplementor;<init>()V" -> "LSubImplementor;<init>()V";
+        	"LVehicle;<init>()V" [label="LVehicle;<init>()V"];
+        	"LVehicle;<init>()V" -> "Ljava/lang/Object;<init>()V";
+        	"LVehicle;honk()V" [label="LVehicle;honk()V"];
+        	"LVehicle;honk()V" -> "Ljava/io/PrintStream;println(Ljava/lang/String;)V";
+        }
+        
+        """.trimIndent()
+    }
 })

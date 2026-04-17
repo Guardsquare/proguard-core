@@ -18,8 +18,12 @@
 
 package proguard.analysis.datastructure.callgraph;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import proguard.classfile.ClassPool;
 import proguard.classfile.Clazz;
 import proguard.classfile.MethodSignature;
+import proguard.exception.ErrorId;
+import proguard.exception.ProguardCoreException;
 import proguard.util.CallGraphWalker;
 
 /**
@@ -47,7 +53,7 @@ public class CallGraph {
 
   /** Create an empty call graph. */
   public CallGraph() {
-    this(new HashMap<>(), new HashMap<>(), false);
+    this(new LinkedHashMap<>(), new LinkedHashMap<>(), false);
   }
 
   protected CallGraph(
@@ -209,5 +215,40 @@ public class CallGraph {
     }
 
     return true;
+  }
+
+  /** Writes a DOT graph representation of the given call graph. */
+  public void writeDot(Writer writer) throws IOException {
+    PrintWriter out = new PrintWriter(writer);
+
+    out.println("digraph g {");
+    out.println("\trankdir=TB;");
+
+    outgoing.forEach(
+        (MethodSignature sourceMethod, Set<Call> calls) -> {
+          String label = sourceMethod.getFqn();
+          out.println("\t\"" + sourceMethod + "\" [label=\"" + label + "\"];");
+
+          calls.forEach(
+              call -> out.println("\t\"" + sourceMethod + "\" -> \"" + call.getTarget() + "\";"));
+        });
+
+    out.println("}");
+    out.flush();
+  }
+
+  /** Produces a DOT graph representation of the given call graph. */
+  public String toDot() {
+    StringWriter writer = new StringWriter();
+    try {
+      writeDot(writer);
+    } catch (IOException e) {
+      throw new ProguardCoreException.Builder(
+              "Failed to write DOT graph representation for call graph: %s.",
+              ErrorId.CG_DOT_GRAPH_IO_EXCEPTION)
+          .errorParameters(e.getMessage())
+          .build();
+    }
+    return writer.toString();
   }
 }

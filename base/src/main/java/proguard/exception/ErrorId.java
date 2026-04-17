@@ -87,6 +87,8 @@ public final class ErrorId {
 
   public static final int CLASSFILE_NULL_VALUES = 11_000;
 
+  public static final int CG_DOT_GRAPH_IO_EXCEPTION = 12_000;
+
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}
 }
