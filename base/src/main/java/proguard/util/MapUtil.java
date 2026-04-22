@@ -41,13 +41,16 @@ public class MapUtil {
       }
     } else {
       // If we can skip towards a specific entry using the prefix and handle a smaller part of the
-      // map, then it becomes worthwhile to traverse using higherEntry.
-      Map.Entry<String, T> entry = map.ceilingEntry(prefix);
-      while (entry != null && entry.getKey().startsWith(prefix)) {
+      // map, then it becomes worthwhile to traverse using tailMap. Creation is in O(log n) and
+      // iteration is in O(1).
+      for (Map.Entry<String, T> entry : map.tailMap(prefix).entrySet()) {
+        if (!entry.getKey().startsWith(prefix)) {
+          break;
+        }
+
         if (keyFilter.matches(entry.getKey())) {
           consumer.accept(entry.getValue());
         }
-        entry = map.higherEntry(entry.getKey());
       }
     }
   }
