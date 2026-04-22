@@ -20,6 +20,7 @@ package proguard.analysis
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.core.test.TestCaseOrder
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveKey
 import io.kotest.matchers.shouldBe
@@ -411,7 +412,8 @@ class CallResolverTest : FreeSpec({
         classPools.programClassPool.classesAccept(resolver)
         callGraph.incoming.isEmpty() shouldBe false
         callGraph.outgoing.isEmpty() shouldBe false
-        callGraph.toDot() shouldBe """
+        val actualGraph = callGraph.toDot()
+        val expectedGraph = """
         digraph g {
         	rankdir=TB;
         	"LA;<init>()V" [label="LA;<init>()V"];
@@ -499,5 +501,7 @@ class CallResolverTest : FreeSpec({
         }
         
         """.trimIndent()
+        // Calls added by CallResolver are not always in the same order.
+        actualGraph.lines() shouldContainExactlyInAnyOrder expectedGraph.lines()
     }
 })
