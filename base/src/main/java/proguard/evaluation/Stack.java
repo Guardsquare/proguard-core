@@ -18,6 +18,8 @@
 package proguard.evaluation;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import proguard.classfile.TypeConstants;
 import proguard.evaluation.exception.StackCategoryOneException;
 import proguard.evaluation.exception.StackTypeException;
@@ -425,6 +427,16 @@ public class Stack {
     for (int i = 0; i < values.length; i++) {
       if (values[i] == toReplace) {
         values[i] = replacement;
+      }
+    }
+  }
+
+  /** Apply {@param op} to all values that match {@param predicate}. */
+  public void replaceReferencesIf(Predicate<Value> predicate, UnaryOperator<Value> op) {
+    for (int i = 0; i < values.length; i++) {
+      Value value = values[i];
+      if (predicate.test(value)) {
+        values[i] = op.apply(value);
       }
     }
   }

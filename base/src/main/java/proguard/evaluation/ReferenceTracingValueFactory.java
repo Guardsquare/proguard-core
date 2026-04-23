@@ -38,6 +38,7 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
   private final ValueFactory valueFactory;
   private final boolean preserveTraceValueOnCasts;
 
+  private int initialized;
   private Value traceValue;
 
   /**
@@ -86,21 +87,25 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
 
   // Implementations for InstructionVisitor.
 
+  @Override
   public void visitAnyInstruction(
       Clazz clazz,
       Method method,
       CodeAttribute codeAttribute,
       int offset,
       Instruction instruction) {
+    initialized = Value.ALWAYS;
     traceValue = null;
   }
 
+  @Override
   public void visitSimpleInstruction(
       Clazz clazz,
       Method method,
       CodeAttribute codeAttribute,
       int offset,
       SimpleInstruction simpleInstruction) {
+    initialized = Value.ALWAYS;
     switch (simpleInstruction.opcode) {
       case Instruction.OP_ACONST_NULL:
       case Instruction.OP_NEWARRAY:
@@ -118,16 +123,21 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
     }
   }
 
+  @Override
   public void visitConstantInstruction(
       Clazz clazz,
       Method method,
       CodeAttribute codeAttribute,
       int offset,
       ConstantInstruction constantInstruction) {
+    initialized = Value.ALWAYS;
     switch (constantInstruction.opcode) {
+      case Instruction.OP_NEW:
+        // By default, we assume all references are initialized, unless they were created using
+        // 'new'.
+        initialized = TracedReferenceValue.NEVER;
       case Instruction.OP_LDC:
       case Instruction.OP_LDC_W:
-      case Instruction.OP_NEW:
       case Instruction.OP_ANEWARRAY:
       case Instruction.OP_MULTIANEWARRAY:
         traceValue = new InstructionOffsetValue(offset | InstructionOffsetValue.NEW_INSTANCE);
@@ -204,6 +214,7 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
     return valueFactory.createDoubleValue();
   }
 
+  @Override
   public DoubleValue createDoubleValue(double value) {
     return valueFactory.createDoubleValue(value);
   }
@@ -365,7 +376,7 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
 
   /** Attaches the current trace value to given value, if it is a reference value. */
   public Value trace(Value value) {
-    return value.computationalType() == Value.TYPE_REFERENCE
+    return (value != null && value.computationalType() == Value.TYPE_REFERENCE)
         ? trace(value.referenceValue())
         : value;
   }
@@ -373,7 +384,7 @@ public class ReferenceTracingValueFactory implements InstructionVisitor, ValueFa
   /** Attaches the current trace value to given reference value. */
   public ReferenceValue trace(ReferenceValue referenceValue) {
     return traceValue != null
-        ? new TracedReferenceValue(referenceValue, traceValue)
+        ? new TracedReferenceValue(referenceValue, traceValue, initialized)
         : referenceValue;
   }
 }

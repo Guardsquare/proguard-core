@@ -58,6 +58,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
 
   // Implementations for SimplifiedInvocationUnit.
 
+  @Override
   public Value getExceptionValue(Clazz clazz, ClassConstant catchClassConstant) {
     String catchClassName =
         catchClassConstant != null
@@ -73,11 +74,13 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
         false);
   }
 
+  @Override
   public void setFieldClassValue(
       Clazz clazz, FieldrefConstant fieldrefConstant, ReferenceValue value) {
     // We don't care about the new value.
   }
 
+  @Override
   public Value getFieldClassValue(Clazz clazz, FieldrefConstant fieldrefConstant, String type) {
     // Try to figure out the class of the return type.
     returnTypeClass = null;
@@ -87,10 +90,12 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
         type, returnTypeClass, ClassUtil.isExtendable(returnTypeClass), true);
   }
 
+  @Override
   public void setFieldValue(Clazz clazz, FieldrefConstant fieldrefConstant, Value value) {
     // We don't care about the new field value.
   }
 
+  @Override
   public Value getFieldValue(Clazz clazz, FieldrefConstant fieldrefConstant, String type) {
     // Try to figure out the class of the return type.
     returnTypeClass = null;
@@ -100,11 +105,13 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
         type, returnTypeClass, ClassUtil.isExtendable(returnTypeClass), true);
   }
 
+  @Override
   public void setMethodParameterValue(
       Clazz clazz, AnyMethodrefConstant anyMethodrefConstant, int parameterIndex, Value value) {
     // We don't care about the parameter value.
   }
 
+  @Override
   public Value getMethodParameterValue(
       Clazz clazz, Method method, int parameterIndex, String type, Clazz referencedClass) {
     // A "this" parameter can never be null.
@@ -114,10 +121,12 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
         type, referencedClass, ClassUtil.isExtendable(referencedClass), !isThis);
   }
 
+  @Override
   public void setMethodReturnValue(Clazz clazz, Method method, Value value) {
     // We don't care about the return value.
   }
 
+  @Override
   public Value getMethodReturnValue(
       Clazz clazz, AnyMethodrefConstant anyMethodrefConstant, String type) {
     // Try to figure out the class of the return type.
@@ -129,6 +138,7 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
   }
 
   /** Returns the return value of the specified method. */
+  @Override
   public Value getMethodReturnValue(
       Clazz clazz, InvokeDynamicConstant invokeDynamicConstant, String type) {
     // Try to figure out the class of the return type.
@@ -145,10 +155,12 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
 
   // Implementations for MemberVisitor.
 
+  @Override
   public void visitProgramField(ProgramClass programClass, ProgramField programField) {
     returnTypeClass = programField.referencedClass;
   }
 
+  @Override
   public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
     Clazz[] referencedClasses = programMethod.referencedClasses;
     if (referencedClasses != null
@@ -157,10 +169,12 @@ public class BasicInvocationUnit extends SimplifiedInvocationUnit
     }
   }
 
+  @Override
   public void visitLibraryField(LibraryClass programClass, LibraryField libraryField) {
     returnTypeClass = libraryField.referencedClass;
   }
 
+  @Override
   public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
     Clazz[] referencedClasses = libraryMethod.referencedClasses;
     if (referencedClasses != null

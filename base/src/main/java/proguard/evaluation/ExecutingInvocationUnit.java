@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -351,8 +352,23 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
     }
 
     for (Value replacingValue : valuesWithSideEffects) {
-      replaceReferenceInVariables(replacingValue, variables);
-      replaceReferenceOnStack(replacingValue, stack);
+      if (!replacingValue.isSpecific()) {
+        throw new IllegalStateException("Can't identify a non specific value");
+      }
+
+      Object replaceId =
+          PartialEvaluatorUtils.getIdFromSpecificReferenceValue(replacingValue.referenceValue());
+
+      Predicate<Value> predicate =
+          (value) ->
+              value instanceof ReferenceValue
+                  && value.isSpecific()
+                  && Objects.equals(
+                      PartialEvaluatorUtils.getIdFromSpecificReferenceValue(value.referenceValue()),
+                      replaceId);
+
+      variables.replaceReferencesIf(predicate, x -> replacingValue);
+      stack.replaceReferencesIf(predicate, x -> replacingValue);
     }
   }
 
@@ -676,66 +692,6 @@ public class ExecutingInvocationUnit extends BasicInvocationUnit {
    */
   public boolean supportsAnyMethodOf(@NotNull String className) {
     return executorLookup.shouldTrackInstancesOf(className);
-  }
-
-  /**
-   * Iterate the variables and replace all occurrences with the same reference id of the specified
-   * value with its updated value.
-   *
-   * <p>This is expected to be used just for values that have a reference identifier available
-   * (i.e., they are specific).
-   *
-   * @param newValue the value which should be put in.
-   * @param variables the variables to look through.
-   */
-  private void replaceReferenceInVariables(Value newValue, Variables variables) {
-    if (!newValue.isSpecific()) {
-      throw new IllegalStateException("Can't identify a non specific value");
-    }
-    for (int i = 0; i < variables.size(); i++) {
-      Value oldValue = variables.getValue(i);
-      if (oldValue == null) {
-        continue;
-      }
-      if (oldValue.isCategory2()) {
-        i++;
-      }
-      if (!oldValue.isSpecific() || !(oldValue instanceof ReferenceValue)) {
-        continue;
-      }
-      if (Objects.equals(
-          PartialEvaluatorUtils.getIdFromSpecificReferenceValue(oldValue.referenceValue()),
-          PartialEvaluatorUtils.getIdFromSpecificReferenceValue(newValue.referenceValue()))) {
-        variables.store(i, newValue);
-      }
-    }
-  }
-
-  /**
-   * Iterate the stack and replace all occurrences with the same reference id of the specified value
-   * with its updated value.
-   *
-   * <p>This is expected to be used just for values that have a reference identifier available
-   * (i.e., they are specific).
-   *
-   * @param newValue the value which should be put in.
-   * @param stack the variables to look through.
-   */
-  private void replaceReferenceOnStack(Value newValue, Stack stack) {
-    if (!newValue.isSpecific()) {
-      throw new IllegalStateException("Can't identify a non specific value");
-    }
-    for (int i = 0; i < stack.size(); i++) {
-      Value oldValue = stack.getTop(i);
-      if (oldValue == null || !oldValue.isSpecific() || !(oldValue instanceof ReferenceValue)) {
-        continue;
-      }
-      if (Objects.equals(
-          PartialEvaluatorUtils.getIdFromSpecificReferenceValue(oldValue.referenceValue()),
-          PartialEvaluatorUtils.getIdFromSpecificReferenceValue(newValue.referenceValue()))) {
-        stack.setTop(i, newValue);
-      }
-    }
   }
 
   @Override
