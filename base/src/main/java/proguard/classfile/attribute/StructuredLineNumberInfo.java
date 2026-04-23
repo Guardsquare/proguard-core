@@ -2,9 +2,9 @@ package proguard.classfile.attribute;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Line number info with extra information for lines that came from a different source than the
@@ -37,7 +37,7 @@ public class StructuredLineNumberInfo extends LineNumberInfo {
 
   // Required to handle the legacy expectation that lines from the same block use the same string
   // object. Do not rely on this behavior as it may change in the future.
-  private static final Map<Integer, String> sourceMap = new HashMap<>();
+  private static final Map<Integer, String> sourceMap = new ConcurrentHashMap<>();
 
   public String getSourceMethod() {
     return sourceMethod;
