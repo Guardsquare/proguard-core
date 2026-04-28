@@ -259,6 +259,20 @@ public class InstructionOffsetValue extends Category1Value {
     return new InstructionOffsetValue(newValues);
   }
 
+  /**
+   * Return true if any instruction in the current {@link InstructionOffsetValue} overlaps with the
+   * given instruction range.
+   */
+  public boolean overlaps(int startOffset, int endOffset) {
+    int count = instructionOffsetCount();
+    for (int index = 0; index < count; index++) {
+      int offset = instructionOffset(index);
+      if (startOffset <= offset && offset <= endOffset) return true;
+    }
+
+    return false;
+  }
+
   // Implementations for Value.
 
   public final InstructionOffsetValue instructionOffsetValue() {
