@@ -114,7 +114,7 @@ public class MoreZeroFrame extends StackMapFrame {
   }
 
   public String toString() {
-    StringBuffer buffer = new StringBuffer(super.toString()).append("Var: ...");
+    StringBuilder buffer = new StringBuilder(super.toString()).append("Var: ...");
 
     for (int index = 0; index < additionalVariablesCount; index++) {
       buffer = buffer.append('[').append(additionalVariables[index].toString()).append(']');

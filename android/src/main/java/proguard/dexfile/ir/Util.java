@@ -88,7 +88,7 @@ public class Util {
    * @param buf the buffer where the string must be added.
    * @param s the string to be added.
    */
-  public static void appendString(final StringBuffer buf, final String s) {
+  public static void appendString(final StringBuilder buf, final String s) {
     buf.append('\"');
     for (int i = 0; i < s.length(); ++i) {
       char c = s.charAt(i);

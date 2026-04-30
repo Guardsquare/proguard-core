@@ -28,15 +28,15 @@ import java.io.*;
  */
 public class DataEntryTokenizer {
   private Reader reader;
-  private StringBuffer buffer;
+  private StringBuilder buffer;
 
   public DataEntryTokenizer(Reader reader) {
     this.reader = reader;
-    this.buffer = new StringBuffer();
+    this.buffer = new StringBuilder();
   }
 
   public DataEntryToken nextToken() throws IOException {
-    StringBuffer tokenString = new StringBuffer(buffer.toString());
+    StringBuilder tokenString = new StringBuilder(buffer.toString());
     buffer.setLength(0);
 
     while (true) {

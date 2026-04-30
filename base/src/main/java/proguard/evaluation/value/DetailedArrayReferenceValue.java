@@ -196,7 +196,7 @@ public class DetailedArrayReferenceValue extends IdentifiedArrayReferenceValue {
       return super.toString();
     }
 
-    StringBuffer buffer = new StringBuffer(super.toString());
+    StringBuilder buffer = new StringBuilder(super.toString());
 
     buffer.append('{');
     for (int index = 0; index < values.length; index++) {

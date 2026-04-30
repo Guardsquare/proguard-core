@@ -81,6 +81,8 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.KotlinAnnotatable;
 import proguard.classfile.kotlin.KotlinAnnotation;
 import proguard.classfile.kotlin.KotlinAnnotationArgument;
+import proguard.classfile.kotlin.KotlinAnnotationArgument.EnumValue;
+import proguard.classfile.kotlin.KotlinAnnotationArgument.Value;
 import proguard.classfile.kotlin.KotlinClassKindMetadata;
 import proguard.classfile.kotlin.KotlinConstructorMetadata;
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata;
@@ -972,7 +974,7 @@ public class ClassReferenceFixer
     DescriptorClassEnumeration descriptorClassEnumeration =
         new DescriptorClassEnumeration(descriptor);
 
-    StringBuffer newDescriptorBuffer = new StringBuffer(descriptor.length());
+    StringBuilder newDescriptorBuffer = new StringBuilder(descriptor.length());
     newDescriptorBuffer.append(descriptorClassEnumeration.nextFluff());
 
     // Only if the descriptor contains a class name (e.g. with an array of
@@ -1007,7 +1009,7 @@ public class ClassReferenceFixer
       DescriptorClassEnumeration descriptorClassEnumeration =
           new DescriptorClassEnumeration(descriptor);
 
-      StringBuffer newDescriptorBuffer = new StringBuffer(descriptor.length());
+      StringBuilder newDescriptorBuffer = new StringBuilder(descriptor.length());
       newDescriptorBuffer.append(descriptorClassEnumeration.nextFluff());
 
       int index = 0;

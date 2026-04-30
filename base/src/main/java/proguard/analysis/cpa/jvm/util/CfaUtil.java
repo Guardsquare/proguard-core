@@ -210,7 +210,7 @@ public class CfaUtil {
 
   /** Produces a DOT graph representation of the given JVM control flow automaton. */
   public static String toDot(JvmCfa cfa) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("digraph G { ");
     sb.append("node")
         .append(Integer.toHexString(JvmUnknownCfaNode.INSTANCE.hashCode()))

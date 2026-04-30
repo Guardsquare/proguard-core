@@ -63,7 +63,7 @@ public class Constant extends E0Expr {
       }
       return value.toString();
     } else if (value instanceof String) {
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       Util.appendString(buf, (String) value);
       return buf.toString();
     } else if (value instanceof DexType) {

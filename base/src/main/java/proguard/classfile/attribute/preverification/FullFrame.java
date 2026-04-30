@@ -146,7 +146,7 @@ public class FullFrame extends StackMapFrame {
   }
 
   public String toString() {
-    StringBuffer buffer = new StringBuffer(super.toString()).append("Var: ");
+    StringBuilder buffer = new StringBuilder(super.toString()).append("Var: ");
 
     for (int index = 0; index < variablesCount; index++) {
       buffer = buffer.append('[').append(variables[index].toString()).append(']');

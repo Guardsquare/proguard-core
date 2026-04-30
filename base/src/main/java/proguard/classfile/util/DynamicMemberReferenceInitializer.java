@@ -660,7 +660,7 @@ public class DynamicMemberReferenceInitializer
     private int parameterCount;
     private int parameterIndex;
 
-    private final StringBuffer parameterTypes = new StringBuffer();
+    private final StringBuilder parameterTypes = new StringBuilder();
 
     public void reset() {
       label = LABEL_START;

@@ -35,7 +35,7 @@ public class Base64Util {
   public static String encode(byte[] bytes) {
     int len = bytes.length;
 
-    StringBuffer buffer = new StringBuffer((len + 3) * 4 / 3);
+    StringBuilder buffer = new StringBuilder((len + 3) * 4 / 3);
 
     for (int index = 0; index < len; ) {
       // Combine 3 bytes into 4 characters.

@@ -140,7 +140,7 @@ public class TracedVariables extends Variables {
   }
 
   public String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
 
     for (int index = 0; index < this.size(); index++) {
       Value value = this.values[index];

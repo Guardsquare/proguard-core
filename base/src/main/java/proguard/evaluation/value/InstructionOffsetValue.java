@@ -339,7 +339,7 @@ public class InstructionOffsetValue extends Category1Value {
   }
 
   public String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
 
     if (values != null) {
       for (int index = 0; index < values.length; index++) {

@@ -79,7 +79,7 @@ public class InterfaceSorter implements ClassVisitor, AttributeVisitor {
         referencedClasses == null ? null : new Clazz[referencedClasses.length];
 
     // Recompose the signature types in a string buffer.
-    StringBuffer newSignatureBuffer = new StringBuffer();
+    StringBuilder newSignatureBuffer = new StringBuilder();
 
     // Also update the array with referenced classes.
     int referencedClassIndex = 0;
@@ -189,7 +189,7 @@ public class InterfaceSorter implements ClassVisitor, AttributeVisitor {
     if (!newSignature.equals(signatureAttribute.getSignature(clazz))) {
       // Update the signature.
       ((Utf8Constant) ((ProgramClass) clazz).constantPool[signatureAttribute.u2signatureIndex])
-          .setString(newSignatureBuffer.toString());
+          .setString(newSignature);
 
       // Update the referenced classes.
       signatureAttribute.referencedClasses = newReferencedClasses;

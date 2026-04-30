@@ -113,7 +113,7 @@ public class InterfaceDeleter implements ClassVisitor, AttributeVisitor {
           new InternalTypeEnumeration(signatureAttribute.getSignature(clazz));
 
       // Recompose the signature types in a string buffer.
-      StringBuffer newSignatureBuffer = new StringBuffer();
+      StringBuilder newSignatureBuffer = new StringBuilder();
 
       // Also update the array with referenced classes.
       int referencedClassIndex = 0;
