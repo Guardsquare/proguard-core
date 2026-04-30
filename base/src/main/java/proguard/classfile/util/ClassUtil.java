@@ -27,7 +27,6 @@ import proguard.classfile.Clazz;
 import proguard.classfile.JavaAccessConstants;
 import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.JavaVersionConstants;
-import proguard.classfile.TypeConstants;
 import proguard.classfile.VersionConstants;
 import proguard.evaluation.value.Value;
 
@@ -517,20 +516,22 @@ public class ClassUtil {
   public static String internalTypeFromClassName(String internalClassName) {
 
     switch (internalClassName) {
-      case "int":
-        return String.valueOf(TypeConstants.INT);
-      case "boolean":
+      case JavaTypeConstants.INT:
+        return String.valueOf(INT);
+      case JavaTypeConstants.BOOLEAN:
         return String.valueOf(BOOLEAN);
-      case "double":
-        return String.valueOf(TypeConstants.DOUBLE);
-      case "float":
+      case JavaTypeConstants.BYTE:
+        return String.valueOf(BYTE);
+      case JavaTypeConstants.DOUBLE:
+        return String.valueOf(DOUBLE);
+      case JavaTypeConstants.FLOAT:
         return String.valueOf(FLOAT);
-      case "char":
-        return String.valueOf(TypeConstants.CHAR);
-      case "short":
+      case JavaTypeConstants.CHAR:
+        return String.valueOf(CHAR);
+      case JavaTypeConstants.SHORT:
         return String.valueOf(SHORT);
-      case "long":
-        return String.valueOf(TypeConstants.LONG);
+      case JavaTypeConstants.LONG:
+        return String.valueOf(LONG);
     }
 
     return internalArrayTypeFromClassName(internalClassName, 0);

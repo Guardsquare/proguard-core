@@ -7,6 +7,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.throwable.shouldHaveMessage
 import proguard.classfile.AccessConstants.PUBLIC
+import proguard.classfile.JavaTypeConstants
+import proguard.classfile.TypeConstants
 import proguard.classfile.VersionConstants
 import proguard.classfile.editor.ClassBuilder
 import proguard.classfile.util.ClassUtil.externalClassVersion
@@ -148,6 +150,19 @@ class ClassUtilTest : BehaviorSpec({
         val sig = "<T:Ljava/lang/Object;>Lcom/test/MyTest<TT;>.Inner;"
         Then("Converting it to an internal class name should remove generic type parameters and replace '.' by '$'") {
             ClassUtil.internalClassNameFromClassSignature(sig) shouldBe "com/test/MyTest\$Inner"
+        }
+    }
+
+    Given("Java primitive types") {
+        Then("The right internal primitive type should be returned") {
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.BOOLEAN) shouldBe TypeConstants.BOOLEAN.toString()
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.BYTE) shouldBe TypeConstants.BYTE.toString()
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.CHAR) shouldBe TypeConstants.CHAR.toString()
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.SHORT) shouldBe TypeConstants.SHORT.toString()
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.INT) shouldBe TypeConstants.INT.toString()
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.FLOAT) shouldBe TypeConstants.FLOAT.toString()
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.LONG) shouldBe TypeConstants.LONG.toString()
+            ClassUtil.internalTypeFromClassName(JavaTypeConstants.DOUBLE) shouldBe TypeConstants.DOUBLE.toString()
         }
     }
 })
