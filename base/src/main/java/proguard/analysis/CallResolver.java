@@ -532,7 +532,8 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
 
     call.setArguments(arguments);
 
-    if (target.descriptor.getReturnType().charAt(0) != TypeConstants.VOID
+    if (target.descriptor != null
+        && target.descriptor.getReturnType().charAt(0) != TypeConstants.VOID
         && particularValueEvaluationSuccessful) {
       call.setReturnValue(
           PartialEvaluatorUtils.getStackValue(
@@ -542,7 +543,8 @@ public class CallResolver implements AttributeVisitor, ClassVisitor, Instruction
 
   private List<Value> getArguments(
       CodeLocation location, MethodSignature invokedMethodSig, boolean isStaticCall) {
-    if (invokedMethodSig.descriptor.getArgumentTypes() == null) {
+    if (invokedMethodSig.descriptor == null
+        || invokedMethodSig.descriptor.getArgumentTypes() == null) {
       log.warn("Argument types list of {} is null!", invokedMethodSig);
       return Collections.emptyList();
     }
