@@ -39,6 +39,7 @@ import proguard.classfile.Method;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramField;
 import proguard.classfile.ProgramMethod;
+import proguard.classfile.TypeConstants;
 import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.attribute.EnclosingMethodAttribute;
@@ -1473,26 +1474,63 @@ public class ClassReferenceInitializer
 
       if (hasDefaults) {
         String defaultMethodName = methodName + DEFAULT_METHOD_SUFFIX;
+
         String descriptor = getDescriptor(kotlinFunctionMetadata);
+        findDefaultMethodAndCorrespondingClass(
+            clazz,
+            kotlinFunctionMetadata.referencedMethodClass,
+            defaultMethodName,
+            descriptor,
+            kotlinFunctionMetadata);
 
-        kotlinFunctionMetadata.referencedDefaultMethod =
-            strictMemberFinder.findMethod(
-                kotlinFunctionMetadata.referencedMethodClass, defaultMethodName, descriptor);
-
-        kotlinFunctionMetadata.referencedDefaultMethodClass =
-            strictMemberFinder.correspondingClass();
-
-        if (kotlinFunctionMetadata.referencedDefaultMethod == null && isInterface) {
-          Clazz defaultImplsClass =
-              findClass(clazz, clazz.getName() + DEFAULT_IMPLEMENTATIONS_SUFFIX, false);
-
-          if (defaultImplsClass != null) {
-            kotlinFunctionMetadata.referencedDefaultMethod =
-                strictMemberFinder.findMethod(defaultImplsClass, defaultMethodName, descriptor);
-
-            kotlinFunctionMetadata.referencedDefaultMethodClass =
-                strictMemberFinder.correspondingClass();
+        if (kotlinFunctionMetadata.referencedDefaultMethod == null) {
+          String alternativeDescriptor = getAlternativeDescriptor(kotlinFunctionMetadata);
+          if (alternativeDescriptor != null && !alternativeDescriptor.equals(descriptor)) {
+            findDefaultMethodAndCorrespondingClass(
+                clazz,
+                kotlinFunctionMetadata.referencedMethodClass,
+                defaultMethodName,
+                alternativeDescriptor,
+                kotlinFunctionMetadata);
           }
+        }
+      }
+    }
+
+    /**
+     * Try to find the default method from the given name and descriptor.
+     *
+     * <p>If the method cannot be found in the class referencing the original method and if the
+     * class is an interface, then we look for the method in the corresponding default
+     * implementation class.
+     *
+     * @param clazz the visited class.
+     * @param referencedMethodClazz the class referencing the original method.
+     * @param defaultMethodName the default method name.
+     * @param defaultMethodDescriptor the default method descriptor.
+     * @param kotlinFunctionMetadata the metadata to update.
+     */
+    private void findDefaultMethodAndCorrespondingClass(
+        Clazz clazz,
+        Clazz referencedMethodClazz,
+        String defaultMethodName,
+        String defaultMethodDescriptor,
+        KotlinFunctionMetadata kotlinFunctionMetadata) {
+
+      kotlinFunctionMetadata.referencedDefaultMethod =
+          strictMemberFinder.findMethod(
+              referencedMethodClazz, defaultMethodName, defaultMethodDescriptor);
+      kotlinFunctionMetadata.referencedDefaultMethodClass = strictMemberFinder.correspondingClass();
+
+      if (kotlinFunctionMetadata.referencedDefaultMethod == null && isInterface) {
+        Clazz defaultImplsClass =
+            findClass(clazz, clazz.getName() + DEFAULT_IMPLEMENTATIONS_SUFFIX, false);
+        if (defaultImplsClass != null) {
+          kotlinFunctionMetadata.referencedDefaultMethod =
+              strictMemberFinder.findMethod(
+                  defaultImplsClass, defaultMethodName, defaultMethodDescriptor);
+          kotlinFunctionMetadata.referencedDefaultMethodClass =
+              strictMemberFinder.correspondingClass();
         }
       }
     }
@@ -1520,7 +1558,10 @@ public class ClassReferenceInitializer
       String descriptor =
           originalDescriptor.replace(
               ")",
-              String.join("", Collections.nCopies(requiredIntParams, "I")) + "Ljava/lang/Object;)");
+              String.join(
+                      "", Collections.nCopies(requiredIntParams, String.valueOf(TypeConstants.INT)))
+                  + ClassConstants.TYPE_JAVA_LANG_OBJECT
+                  + ")");
 
       // Instance methods will have been made static and have the class
       // instance as its first parameter.
@@ -1528,8 +1569,61 @@ public class ClassReferenceInitializer
           == 0) {
         descriptor =
             descriptor.replace(
-                "(", "(L" + kotlinFunctionMetadata.referencedMethodClass.getName() + ";");
+                "(",
+                "("
+                    + ClassUtil.internalTypeFromClassName(
+                        kotlinFunctionMetadata.referencedMethodClass.getName()));
       }
+
+      return descriptor;
+    }
+
+    /**
+     * Rebuild the default method descriptor from the given metadata.
+     *
+     * <p>This method is meant to support some edge cases where the $default methods don't follow
+     * the standard pattern as assumed in {@link #getDescriptor(KotlinFunctionMetadata)}.
+     *
+     * @param kotlinFunctionMetadata the kotlin function metadata.
+     * @return the corresponding default method signature
+     */
+    private String getAlternativeDescriptor(KotlinFunctionMetadata kotlinFunctionMetadata) {
+      boolean canBuildDescriptor =
+          kotlinFunctionMetadata.referencedMethodClass != null
+              && kotlinFunctionMetadata.referencedMethodClass.getName() != null
+              && kotlinFunctionMetadata.valueParameters != null
+              && kotlinFunctionMetadata.valueParameters.stream()
+                  .noneMatch(
+                      parameter -> parameter.type == null || parameter.type.className == null)
+              && kotlinFunctionMetadata.returnType != null
+              && kotlinFunctionMetadata.returnType.className != null;
+      if (!canBuildDescriptor) {
+        // If the metadata doesn't allow to rebuild a $standard method descriptor return null.
+        // It allows to fallback on the usual Kotlin metadata processing which handles the case
+        // where no $default method can be retrieved.
+        return null;
+      }
+
+      String descriptor = "(";
+      descriptor +=
+          ClassUtil.internalTypeFromClassName(
+              kotlinFunctionMetadata.referencedMethodClass.getName());
+
+      descriptor +=
+          kotlinFunctionMetadata.valueParameters.stream()
+              .map(parameter -> ClassUtil.internalTypeFromClassName(parameter.type.className))
+              .collect(Collectors.joining(""));
+
+      // Each int param encodes up to 32 parameters as being present or not.
+      int requiredIntParams = 1 + (kotlinFunctionMetadata.valueParameters.size() / 32);
+      descriptor +=
+          String.join("", Collections.nCopies(requiredIntParams, String.valueOf(TypeConstants.INT)))
+              + ClassConstants.TYPE_JAVA_LANG_OBJECT
+              + ")";
+
+      KotlinTypeMetadata returnType = kotlinFunctionMetadata.returnType;
+      String returnTypeClassName = returnType.className;
+      descriptor += ClassUtil.internalTypeFromClassName(returnTypeClassName);
 
       return descriptor;
     }

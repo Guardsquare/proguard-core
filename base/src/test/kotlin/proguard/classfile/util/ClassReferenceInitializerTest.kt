@@ -35,13 +35,17 @@ import proguard.classfile.kotlin.KotlinAnnotationArgument
 import proguard.classfile.kotlin.KotlinAnnotationArgument.StringValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.Value
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
+import proguard.classfile.kotlin.KotlinFunctionMetadata
+import proguard.classfile.kotlin.KotlinMetadata
 import proguard.classfile.kotlin.KotlinTypeMetadata
+import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor
 import proguard.classfile.kotlin.visitor.AllPropertyVisitor
 import proguard.classfile.kotlin.visitor.AllTypeVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationArgumentVisitor
 import proguard.classfile.kotlin.visitor.KotlinAnnotationVisitor
+import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinPropertyVisitor
 import proguard.classfile.kotlin.visitor.ReferencedKotlinMetadataVisitor
 import proguard.classfile.kotlin.visitor.filter.KotlinAnnotationArgumentFilter
@@ -978,6 +982,53 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                 ),
             )
             attributeFound shouldBe false
+        }
+    }
+
+    Given("A kotlin class with inconsistent signatures for the copy and copy\$default methods") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                    internal data class Test (
+                        val field1 : BooleanWrapper,
+                        val field2 : BooleanWrapper ) {
+                    
+                        val passed: Boolean
+                            get() = field1.passed == true &&
+                                    field2.passed == true
+                    
+                        @JvmInline
+                        internal value class BooleanWrapper(
+                            val passed: Boolean?,
+                        ) {
+                            fun toStatus(): Boolean { return true }
+                        }
+                    }
+                """.trimIndent(),
+            ),
+        )
+
+        Then("The copy\$default method should be properly identified by the ClassReferenceInitializer") {
+            val testClass = programClassPool.getClass("Test") as ProgramClass
+            val classReferenceInitializer = ClassReferenceInitializer(programClassPool, ClassPool(), true)
+            classReferenceInitializer.visitProgramClass(testClass)
+
+            var testExecuted = false
+            testClass.kotlinMetadataAccept(
+                AllFunctionVisitor(object : KotlinFunctionVisitor {
+                    override fun visitAnyFunction(clazz: Clazz, kotlinMetadata: KotlinMetadata, kotlinFunctionMetadata: KotlinFunctionMetadata) {
+                        if ("copy" == kotlinFunctionMetadata.name) {
+                            kotlinFunctionMetadata.referencedMethod.getDescriptor(clazz) shouldBe "(Ljava/lang/Boolean;Ljava/lang/Boolean;)LTest;"
+                            kotlinFunctionMetadata.referencedDefaultMethod.getName(clazz) shouldBe kotlinFunctionMetadata.referencedMethod.getName(clazz) + "\$default"
+                            kotlinFunctionMetadata.referencedDefaultMethod.getDescriptor(clazz) shouldBe "(LTest;LTest\$BooleanWrapper;LTest\$BooleanWrapper;ILjava/lang/Object;)LTest;"
+                            kotlinFunctionMetadata.referencedDefaultMethodClass shouldBe testClass
+                            testExecuted = true
+                        }
+                    }
+                }),
+            )
+            testExecuted shouldBe true
         }
     }
 })
