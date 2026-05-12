@@ -20,7 +20,9 @@ package proguard.classfile.util;
 import static proguard.classfile.AccessConstants.FINAL;
 import static proguard.classfile.TypeConstants.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import proguard.classfile.AccessConstants;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
@@ -28,6 +30,11 @@ import proguard.classfile.JavaAccessConstants;
 import proguard.classfile.JavaTypeConstants;
 import proguard.classfile.JavaVersionConstants;
 import proguard.classfile.VersionConstants;
+import proguard.classfile.attribute.signature.ast.descriptor.FieldTypeNode;
+import proguard.classfile.attribute.signature.ast.signature.MethodSignatureNode;
+import proguard.classfile.attribute.signature.grammars.ClassSignatureGrammar;
+import proguard.classfile.attribute.signature.grammars.MethodDescriptorGrammar;
+import proguard.classfile.attribute.signature.grammars.MethodSignatureGrammar;
 import proguard.evaluation.value.Value;
 
 /**
@@ -641,38 +648,18 @@ public class ClassUtil {
    * @return the internal class name, e.g. "<code>some/package/Klass$Inner</code>".
    */
   public static String internalClassNameFromClassSignature(String classSignature) {
-    // Remove generic type information.
-    String internalClassName = removeGenericTypes(classSignature);
-
-    // Remove the 'L' and ';' bits.
-    internalClassName = internalClassNameFromClassType(internalClassName);
-
-    // Convert each '.' to a '$', as dictated by the JVM spec.
-    // See: https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3.4
-    return internalClassName.replace('.', '$');
+    return Objects.requireNonNull(ClassSignatureGrammar.parse(classSignature))
+        .getSuperclassSignature()
+        .getClassType()
+        .getClassname();
   }
 
   /** Remove any generic type parameters from the given descriptor. */
   public static String removeGenericTypes(String descriptor) {
-    int start = descriptor.indexOf('<');
-    int end = descriptor.lastIndexOf('>');
+    MethodSignatureNode signature = MethodSignatureGrammar.parse(descriptor);
+    Objects.requireNonNull(signature).setTypeParameters(new ArrayList<>());
 
-    if (start < end && start >= 0) {
-      int index = start;
-
-      while (index < end) {
-        index++;
-        if (descriptor.charAt(index) == '<') {
-          start = index;
-        } else if (descriptor.charAt(index) == '>') {
-          // Found a closing tag, by this point it has to be the most inner one.
-          return removeGenericTypes(
-              descriptor.substring(0, start) + descriptor.substring(index + 1));
-        }
-      }
-    }
-
-    return descriptor;
+    return signature.toString();
   }
 
   /**
@@ -866,40 +853,10 @@ public class ClassUtil {
    */
   public static int internalMethodParameterCount(
       String internalMethodDescriptor, boolean isStatic) {
-    int counter = isStatic ? 0 : 1;
-    int index = 1;
-
-    while (true) {
-      char c = internalMethodDescriptor.charAt(index++);
-      switch (c) {
-        case ARRAY:
-          {
-            // Just ignore all array characters.
-            break;
-          }
-        case CLASS_START:
-          {
-            counter++;
-
-            // Skip the class name.
-            index = internalMethodDescriptor.indexOf(CLASS_END, index) + 1;
-            if (index == 0) {
-              throw new IllegalStateException(
-                  "No matching semicolon found for class start character");
-            }
-            break;
-          }
-        default:
-          {
-            counter++;
-            break;
-          }
-        case METHOD_ARGUMENTS_CLOSE:
-          {
-            return counter;
-          }
-      }
-    }
+    return Objects.requireNonNull(MethodDescriptorGrammar.parse(internalMethodDescriptor))
+            .getParameters()
+            .size()
+        + (isStatic ? 0 : 1);
   }
 
   /**
@@ -937,50 +894,21 @@ public class ClassUtil {
    * @return the size taken up on the stack, e.g. 4.
    */
   public static int internalMethodParameterSize(String internalMethodDescriptor, boolean isStatic) {
-    int size = isStatic ? 0 : 1;
-    int index = 1;
-
-    while (true) {
-      char c = internalMethodDescriptor.charAt(index++);
-      switch (c) {
-        case LONG:
-        case DOUBLE:
-          {
-            size += 2;
-            break;
-          }
-        case CLASS_START:
-          {
-            size++;
-
-            // Skip the class name.
-            index = internalMethodDescriptor.indexOf(CLASS_END, index) + 1;
-            break;
-          }
-        case ARRAY:
-          {
-            size++;
-
-            // Skip all array characters.
-            while ((c = internalMethodDescriptor.charAt(index++)) == ARRAY) {}
-
-            if (c == CLASS_START) {
-              // Skip the class type.
-              index = internalMethodDescriptor.indexOf(CLASS_END, index) + 1;
-            }
-            break;
-          }
-        default:
-          {
-            size++;
-            break;
-          }
-        case METHOD_ARGUMENTS_CLOSE:
-          {
-            return size;
-          }
-      }
-    }
+    List<FieldTypeNode> parameters =
+        Objects.requireNonNull(MethodDescriptorGrammar.parse(internalMethodDescriptor))
+            .getParameters();
+    return (isStatic ? 0 : 1)
+        + parameters.stream()
+            .mapToInt(
+                parameter -> {
+                  if (parameter.isBaseType()
+                      && Objects.requireNonNull(parameter.getBaseType()).isCategory2()) {
+                    return 2;
+                  } else {
+                    return 1;
+                  }
+                })
+            .sum();
   }
 
   /**
