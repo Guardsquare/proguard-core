@@ -17,6 +17,8 @@
  */
 package proguard.classfile.editor;
 
+import java.util.HashSet;
+import java.util.Set;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.AttributeVisitor;
@@ -38,14 +40,33 @@ public class BridgeMethodFixer
     implements MemberVisitor, AttributeVisitor, InstructionVisitor, ConstantVisitor {
   private static final boolean DEBUG = false;
 
-  // Return values for the visitor methods.
-  private String bridgedMethodName;
+  // Used to store the methods invoked by the bridge method.
+  // If the bridged method is not in here, then the bridge flag will be cleared.
+  private final Set<String> bridgeInvokedMethodNames = new HashSet<>();
 
   // Implementations for MemberVisitor.
 
   public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
     if ((programMethod.getAccessFlags() & AccessConstants.BRIDGE) != 0) {
+      bridgeInvokedMethodNames.clear();
       programMethod.attributesAccept(programClass, this);
+
+      // The bridge method must contain a call to the bridged's method.
+      // Otherwise, remove the bridge flag.
+      if (!bridgeInvokedMethodNames.contains(programMethod.getName(programClass))) {
+        if (DEBUG) {
+          System.out.println(
+              "BridgeMethodFixer: ["
+                  + programClass.getName()
+                  + "."
+                  + programMethod.getName(programClass)
+                  + programMethod.getDescriptor(programClass)
+                  + "] does not bridge to its implementation");
+        }
+
+        // Clear the bridge flag.
+        programMethod.u2accessFlags &= ~AccessConstants.BRIDGE;
+      }
     }
   }
 
@@ -78,26 +99,8 @@ public class BridgeMethodFixer
       case Instruction.OP_INVOKESPECIAL:
       case Instruction.OP_INVOKESTATIC:
       case Instruction.OP_INVOKEINTERFACE:
-        // Get the name of the bridged method.
+        // Get the names of the invoked methods.
         clazz.constantPoolEntryAccept(constantInstruction.constantIndex, this);
-
-        // Check if the name is different.
-        if (!method.getName(clazz).equals(bridgedMethodName)) {
-          if (DEBUG) {
-            System.out.println(
-                "BridgeMethodFixer: ["
-                    + clazz.getName()
-                    + "."
-                    + method.getName(clazz)
-                    + method.getDescriptor(clazz)
-                    + "] does not bridge to ["
-                    + bridgedMethodName
-                    + "]");
-          }
-
-          // Clear the bridge flag.
-          ((ProgramMethod) method).u2accessFlags &= ~AccessConstants.BRIDGE;
-        }
         break;
     }
   }
@@ -105,6 +108,6 @@ public class BridgeMethodFixer
   // Implementations for ConstantVisitor.
 
   public void visitAnyMethodrefConstant(Clazz clazz, AnyMethodrefConstant anyMethodrefConstant) {
-    bridgedMethodName = anyMethodrefConstant.getName(clazz);
+    bridgeInvokedMethodNames.add(anyMethodrefConstant.getName(clazz));
   }
 }
