@@ -461,7 +461,7 @@ class PartialEvaluatorErrorsTest : FreeSpec({
                     it
                         .getstatic("java.lang.System", "out", "bingbong")
                         .ldc("Hello World!")
-                        .invokevirtual("java.io.PrintStream", "println", "(Ljava/lang/String;)V")
+                        .invokevirtual("java.io.PrintStream", "println", "(Ljava/lang/String;)void")
                         .return_()
                 }
                 .programClass
