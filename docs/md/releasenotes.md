@@ -4,6 +4,14 @@
 
 - Fix reference initialization for type aliases defined in file facades with a custom JvmPackageName.
 
+### API improvements
+
+- `MemberRemover` will now throw an exception if you attempt to collect a member from a class for removal while you're still collecting members from another class. You must commit member removal for the current class before collecting members from another class.  
+
+### API changes
+
+- Add `reset` method to `MemberRemover`.
+
 ## Version 9.3.2 
 
 ### Upgrade consideration 

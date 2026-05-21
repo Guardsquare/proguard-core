@@ -89,6 +89,11 @@ public final class ErrorId {
 
   public static final int CG_DOT_GRAPH_IO_EXCEPTION = 12_000;
 
+  /**
+   * @see proguard.classfile.editor
+   */
+  public static final int MEMBER_REMOVER_NOT_FINISHED_WITH_CURRENT_CLASS = 13_001;
+
   /** Private constructor to prevent instantiation of the class. */
   private ErrorId() {}
 }
