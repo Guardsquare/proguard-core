@@ -20,7 +20,7 @@ package proguard.io;
 import java.io.*;
 
 /**
- * This interface describes a data entry, for exanple a ZIP entry, a file, or a directory.
+ * This interface describes a data entry, for example a ZIP entry, a file, or a directory.
  *
  * @author Eric Lafortune
  */
