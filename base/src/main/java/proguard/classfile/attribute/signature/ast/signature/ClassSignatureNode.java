@@ -3,12 +3,13 @@ package proguard.classfile.attribute.signature.ast.signature;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.attribute.signature.ast.ASTStructureException;
+import proguard.classfile.attribute.signature.ast.visitor.ASTNode;
 import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
  */
-public class ClassSignatureNode {
+public class ClassSignatureNode implements ASTNode {
   private @NotNull List<TypeParameterNode> typeParameters;
   private @NotNull SuperclassSignatureNode superclassSignature;
   private @NotNull List<SuperinterfaceSignatureNode> superinterfaceSignatures;
@@ -56,6 +57,7 @@ public class ClassSignatureNode {
     this.superinterfaceSignatures = superinterfaceSignatures;
   }
 
+  @Override
   public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
     return visitor.visit(this, arg);
   }

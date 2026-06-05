@@ -3,12 +3,13 @@ package proguard.classfile.attribute.signature.ast.descriptor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import proguard.classfile.attribute.signature.ast.ASTStructureException;
+import proguard.classfile.attribute.signature.ast.visitor.ASTNode;
 import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
  */
-public class FieldTypeNode {
+public class FieldTypeNode implements ASTNode {
   private @Nullable BaseTypeNode baseType;
   private @Nullable ClassTypeNode classType;
   private @Nullable ArrayTypeNode arrayType;
@@ -97,6 +98,7 @@ public class FieldTypeNode {
     this.classType = null;
   }
 
+  @Override
   public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
     return visitor.visit(this, arg);
   }

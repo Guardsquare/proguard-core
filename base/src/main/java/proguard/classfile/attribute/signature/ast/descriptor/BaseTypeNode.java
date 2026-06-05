@@ -1,11 +1,12 @@
 package proguard.classfile.attribute.signature.ast.descriptor;
 
+import proguard.classfile.attribute.signature.ast.visitor.ASTNode;
 import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
  */
-public enum BaseTypeNode {
+public enum BaseTypeNode implements ASTNode {
   B,
   C,
   D,
@@ -20,6 +21,7 @@ public enum BaseTypeNode {
     return (this == J || this == D);
   }
 
+  @Override
   public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
     return visitor.visit(this, arg);
   }

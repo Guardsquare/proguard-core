@@ -4,12 +4,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.attribute.signature.ast.ASTStructureException;
+import proguard.classfile.attribute.signature.ast.visitor.ASTNode;
 import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
  */
-public class SimpleClassTypeSignatureNode {
+public class SimpleClassTypeSignatureNode implements ASTNode {
   private @NotNull String identifier;
   private @NotNull List<TypeArgumentNode> typeArguments;
 
@@ -44,6 +45,7 @@ public class SimpleClassTypeSignatureNode {
     this.typeArguments = typeArguments;
   }
 
+  @Override
   public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
     return visitor.visit(this, arg);
   }

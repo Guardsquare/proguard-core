@@ -4,12 +4,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import proguard.classfile.attribute.signature.ast.ASTStructureException;
+import proguard.classfile.attribute.signature.ast.visitor.ASTNode;
 import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
  */
-public class MethodDescriptorNode {
+public class MethodDescriptorNode implements ASTNode {
   private @NotNull List<FieldTypeNode> parameters;
   private @NotNull ReturnDescriptorNode returnDescriptor;
 
@@ -41,6 +42,7 @@ public class MethodDescriptorNode {
     this.returnDescriptor = returnDescriptor;
   }
 
+  @Override
   public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
     return visitor.visit(this, arg);
   }

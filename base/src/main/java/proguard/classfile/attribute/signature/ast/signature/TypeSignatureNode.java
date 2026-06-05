@@ -4,12 +4,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import proguard.classfile.attribute.signature.ast.ASTStructureException;
 import proguard.classfile.attribute.signature.ast.descriptor.BaseTypeNode;
+import proguard.classfile.attribute.signature.ast.visitor.ASTNode;
 import proguard.classfile.attribute.signature.ast.visitor.ASTNodeVisitor;
 
 /**
  * @see proguard.classfile.attribute.signature.ast
  */
-public class TypeSignatureNode {
+public class TypeSignatureNode implements ASTNode {
   private @Nullable ReferenceTypeSignatureNode referenceTypeSignature;
   private @Nullable BaseTypeNode baseType;
 
@@ -61,6 +62,7 @@ public class TypeSignatureNode {
     this.referenceTypeSignature = null;
   }
 
+  @Override
   public <R, P> R accept(ASTNodeVisitor<R, P> visitor, P arg) {
     return visitor.visit(this, arg);
   }
