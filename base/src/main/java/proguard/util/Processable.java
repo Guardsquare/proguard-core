@@ -39,6 +39,15 @@ public interface Processable extends Serializable {
   /** Returns the processing flags. */
   public int getProcessingFlags();
 
+  /** Adds all given flags to this processable. */
+  public void addProcessingFlags(int... flags);
+
+  /** Removes all given flags from this processable. */
+  public void removeProcessingFlags(int... flags);
+
+  /** Checks whether all the given flags are set on this processable. */
+  public boolean hasProcessingFlags(int... flags);
+
   /** Sets the processing information. */
   public void setProcessingInfo(Object processingInfo);
 

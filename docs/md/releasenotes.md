@@ -12,6 +12,7 @@
 ### API changes
 
 - Add `reset` method to `MemberRemover`.
+- Add processing flags helper methods to `Processable`.
 
 ## Version 9.3.2 
 
