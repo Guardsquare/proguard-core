@@ -18,7 +18,14 @@
 
 package proguard.util;
 
-/** This class contains utility methods operating on instances. */
+/**
+ * This class contains utility methods operating on instances.
+ *
+ * @deprecated This class should not be used anymore. It will be removed in a future release. Use
+ *     {@link java.util.Objects} instead.
+ * @since 9.3.3
+ */
+@Deprecated
 public class ObjectUtil {
   /**
    * Returns whether the given objects are the same.
