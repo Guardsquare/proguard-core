@@ -17,6 +17,8 @@ dependencies {
 	implementation(libs.bundles.log4j)
 	testImplementation(libs.bundles.kotlin)
 	testImplementation(libs.bundles.kotest)
+	testImplementation(libs.bouncycastle.prov)
+	testImplementation(libs.bouncycastle.pkix)
 	testFixturesImplementation(libs.kotlin.reflect)
 	testFixturesImplementation(libs.kctfork)
 	testFixturesImplementation(libs.kotest.runner.jvm) // for kotest framework

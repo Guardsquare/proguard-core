@@ -3,6 +3,7 @@
 ### Bugfixes
 
 - Fix reference initialization for type aliases defined in file facades with a custom JvmPackageName.
+- Fix PKCS7OutputStream incorrectly handling escaped quotes certificates.
 
 ### API improvements
 
