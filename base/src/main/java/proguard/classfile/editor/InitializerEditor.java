@@ -55,16 +55,17 @@ public class InitializerEditor implements AttributeVisitor {
 
   /**
    * Adds the specified static initializer instructions to the edited class. If the class already
-   * contains a static initializer, the new instructions will be appended to the existing
-   * initializer.
+   * contains a static initializer, the new instructions will be inserted at the start of the
+   * existing initializer.
    *
    * @param mergeIntoExistingInitializer Indicates whether the instructions should be added to the
    *     existing static initializer (if it exists), or if a new method should be created, which is
    *     then called from the existing initializer.
    * @param codeBuilder The provider of a builder to add instructions. This functional interface can
    *     conveniently be implemented as a closure.
+   * @return The created or modified static initializer.
    */
-  public void addStaticInitializerInstructions(
+  public Method addStaticInitializerInstructions(
       boolean mergeIntoExistingInitializer, CodeBuilder codeBuilder) {
     // Create an instruction sequence builder.
     InstructionSequenceBuilder builder = new InstructionSequenceBuilder(programClass);
@@ -73,20 +74,21 @@ public class InitializerEditor implements AttributeVisitor {
     codeBuilder.build(builder);
 
     // Add the instructions.
-    addStaticInitializerInstructions(mergeIntoExistingInitializer, builder.instructions());
+    return addStaticInitializerInstructions(mergeIntoExistingInitializer, builder.instructions());
   }
 
   /**
    * Adds the given static initializer instructions to the edited class. If the class already
-   * contains a static initializer, the new instructions will be appended to the existing
-   * initializer.
+   * contains a static initializer, the new instructions will be inserted at the start of the
+   * existing initializer.
    *
    * @param mergeIntoExistingInitializer Indicates whether the instructions should be added to the
    *     existing static initializer (if it exists), or if a new method should be created, which is
    *     then called from the existing initializer.
    * @param instructions The instructions to be added.
+   * @return The created or modified static initializer.
    */
-  public void addStaticInitializerInstructions(
+  public Method addStaticInitializerInstructions(
       boolean mergeIntoExistingInitializer, Instruction[] instructions) {
     // Is there a static initializer?
     Method method =
@@ -94,8 +96,8 @@ public class InitializerEditor implements AttributeVisitor {
             ClassConstants.METHOD_NAME_CLINIT, ClassConstants.METHOD_TYPE_CLINIT);
     if (method == null) {
       // Create a new static initializer with the instructions and a return.
-      new ClassBuilder(programClass)
-          .addMethod(
+      return new ClassBuilder(programClass)
+          .addAndReturnMethod(
               AccessConstants.STATIC,
               ClassConstants.METHOD_NAME_CLINIT,
               ClassConstants.METHOD_TYPE_CLINIT,
@@ -105,6 +107,7 @@ public class InitializerEditor implements AttributeVisitor {
       // Insert the instructions at the start of the static initializer.
       insertInstructions = instructions;
       method.accept(programClass, new AllAttributeVisitor(this));
+      return method;
     } else {
       // Create a new static method with the instructions and a return.
       String methodName = uniqueMethodName(ClassConstants.METHOD_TYPE_INIT);
@@ -138,6 +141,7 @@ public class InitializerEditor implements AttributeVisitor {
               .instructions();
 
       method.accept(programClass, new AllAttributeVisitor(this));
+      return method;
     }
   }
 
