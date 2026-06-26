@@ -30,6 +30,7 @@ import proguard.classfile.kotlin.KotlinMetadata;
 import proguard.classfile.kotlin.KotlinTypeAliasMetadata;
 import proguard.classfile.kotlin.KotlinTypeMetadata;
 import proguard.classfile.kotlin.KotlinTypeParameterMetadata;
+import proguard.classfile.kotlin.visitor.AllKotlinAnnotationVisitor;
 import proguard.classfile.kotlin.visitor.AllTypeAliasVisitor;
 import proguard.classfile.kotlin.visitor.AllTypeParameterVisitor;
 import proguard.classfile.kotlin.visitor.AllTypeVisitor;
@@ -56,6 +57,7 @@ public class KmAnnotationIntegrity extends AbstractKotlinMetadataConstraint
     kotlinMetadata.accept(
         clazz,
         new MultiKotlinMetadataVisitor(
+            new AllKotlinAnnotationVisitor(this),
             new AllTypeVisitor(this),
             new AllTypeAliasVisitor(this),
             new AllTypeParameterVisitor(this)));

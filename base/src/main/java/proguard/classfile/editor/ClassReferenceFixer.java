@@ -17,8 +17,6 @@
  */
 package proguard.classfile.editor;
 
-import static proguard.classfile.kotlin.KotlinAnnotationArgument.EnumValue;
-import static proguard.classfile.kotlin.KotlinAnnotationArgument.Value;
 import static proguard.classfile.kotlin.KotlinConstants.FUNCTION_NAME_MANGLE_SEPARATOR;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
 import static proguard.classfile.util.ClassUtil.internalSimpleClassName;
@@ -81,7 +79,6 @@ import proguard.classfile.constant.visitor.ConstantVisitor;
 import proguard.classfile.kotlin.KotlinAnnotatable;
 import proguard.classfile.kotlin.KotlinAnnotation;
 import proguard.classfile.kotlin.KotlinAnnotationArgument;
-import proguard.classfile.kotlin.KotlinAnnotationArgument.EnumValue;
 import proguard.classfile.kotlin.KotlinAnnotationArgument.Value;
 import proguard.classfile.kotlin.KotlinClassKindMetadata;
 import proguard.classfile.kotlin.KotlinConstructorMetadata;
@@ -902,7 +899,7 @@ public class ClassReferenceFixer
         KotlinAnnotationArgument argument,
         Value value) {
       argument.name =
-          argument.referencedAnnotationMethod.getName(annotation.referencedAnnotationClass);
+          argument.referencedAnnotationMethod.getName(argument.referencedAnnotationMethodClass);
     }
 
     @Override
@@ -923,7 +920,7 @@ public class ClassReferenceFixer
         KotlinAnnotatable annotatable,
         KotlinAnnotation annotation,
         KotlinAnnotationArgument argument,
-        EnumValue value) {
+        KotlinAnnotationArgument.EnumValue value) {
       this.visitAnyArgument(clazz, annotatable, annotation, argument, value);
 
       value.className = value.referencedClass.getName();
