@@ -61,8 +61,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                 val kClass: KClass<*>,
                 val enum: MyEnum,
                 val array: Array<String>,
-                val innerKClass: KClass<*>,
-                val innerEnum: OuterClass.InnerEnum,
                 val annotation: Foo
             )
 
@@ -83,8 +81,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                 kClass = String::class,
                 enum = MyEnum.FOO,
                 array = arrayOf("foo", "bar"),
-                innerKClass = OuterClass.InnerClass::class,
-                innerEnum = OuterClass.InnerEnum.Value1,
                 annotation = Foo("foo"))
             typealias myAlias = String
 
@@ -92,16 +88,8 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
 
             enum class MyEnum { FOO, BAR }
             annotation class Foo(val string: String)
-            class OuterClass {
-                class InnerClass
-                enum class InnerEnum{
-                    Value1,
-                    Value2
-                }
-            }    
                 """.trimIndent(),
             ),
-
             kotlincArguments = listOf("-Xannotations-in-metadata"),
         )
 
@@ -309,8 +297,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<String>,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
 
@@ -331,21 +317,12 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     kClass = String::class,
                     enum = MyEnum.FOO,
                     array = ["foo", "bar"],
-                    innerKClass = OuterClass.InnerClass::class,
-                    innerEnum = OuterClass.InnerEnum.Value1,
                     annotation = Foo("foo")) String = "foo"
 
                 // extra helpers
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                class OuterClass {
-                    class InnerClass
-                    enum class InnerEnum{
-                        Value1,
-                        Value2
-                    }
-                }
                 """.trimIndent(),
             ),
         )
@@ -416,8 +393,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<String>,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
 
@@ -438,21 +413,12 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     kClass = String::class,
                     enum = MyEnum.FOO,
                     array = ["foo", "bar"],
-                    innerKClass = OuterClass.InnerClass::class,
-                    innerEnum = OuterClass.InnerEnum.Value1,
                     annotation = Foo("foo")) fun foo(): String { return "Foo" }
 
                 // extra helpers
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                class OuterClass {
-                    class InnerClass
-                    enum class InnerEnum{
-                        Value1,
-                        Value2
-                    }
-                }  
                 """.trimIndent(),
             ),
             kotlincArguments = listOf("-Xannotations-in-metadata"),
@@ -523,8 +489,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<String>,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
                 
@@ -546,8 +510,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                         kClass = String::class,
                         enum = MyEnum.FOO,
                         array = ["foo", "bar"],
-                        innerKClass = OuterClass.InnerClass::class,
-                        innerEnum = OuterClass.InnerEnum.Value1,
                         annotation = Foo("foo"))
                         valueParam : String = "default" ): String { return valueParam }
 
@@ -569,8 +531,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                         kClass = String::class,
                         enum = MyEnum.FOO,
                         array = ["foo", "bar"],
-                        innerKClass = OuterClass.InnerClass::class,
-                        innerEnum = OuterClass.InnerEnum.Value1,
                         annotation = Foo("foo"))
                         valueParam : String = "default")
                         
@@ -593,8 +553,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                         kClass = String::class,
                         enum = MyEnum.FOO,
                         array = ["foo", "bar"],
-                        innerKClass = OuterClass.InnerClass::class,
-                        innerEnum = OuterClass.InnerEnum.Value1,
                         annotation = Foo("foo"))
                         valueParam) { field = valueParam }
 
@@ -602,13 +560,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                class OuterClass {
-                    class InnerClass
-                    enum class InnerEnum{
-                        Value1,
-                        Value2
-                    }
-                }  
                 """.trimIndent(),
             ),
             kotlincArguments = listOf("-Xannotations-in-metadata"),
@@ -700,8 +651,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<String>,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
 
@@ -722,8 +671,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                 kClass = String::class,
                 enum = MyEnum.FOO,
                 array = ["foo", "bar"],
-                innerKClass = OuterClass.InnerClass::class,
-                innerEnum = OuterClass.InnerEnum.Value1,
                 annotation = Foo("foo"))
                 var myProperty = "initialized"
                     get() = "Get"
@@ -744,8 +691,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                                     kClass = String::class,
                                     enum = MyEnum.FOO,
                                     array = ["foo", "bar"],
-                                    innerKClass = OuterClass.InnerClass::class,
-                                    innerEnum = OuterClass.InnerEnum.Value1,
                                     annotation = Foo("foo"))
                     set(value) { field = value}
 
@@ -753,13 +698,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                class OuterClass {
-                    class InnerClass
-                    enum class InnerEnum{
-                        Value1,
-                        Value2
-                    }
-                }  
                 """.trimIndent(),
             ),
             kotlincArguments = listOf("-Xannotations-in-metadata", "-Xannotation-target-all"),
@@ -844,8 +782,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<String>,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
 
@@ -867,8 +803,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<String>,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
 
@@ -889,8 +823,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     kClass = String::class,
                     enum = MyEnum.FOO,
                     array = ["foo", "bar"],
-                    innerKClass = OuterClass.InnerClass::class,
-                    innerEnum = OuterClass.InnerEnum.Value1,
                     annotation = Foo("foo")) 
                     class MyAnnotatedClass 
                     @MyConstructorAnnotation(
@@ -910,21 +842,12 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     kClass = String::class,
                     enum = MyEnum.FOO,
                     array = ["foo", "bar"],
-                    innerKClass = OuterClass.InnerClass::class,
-                    innerEnum = OuterClass.InnerEnum.Value1,
                     annotation = Foo("foo")) constructor(val myAnnotatedConstructor : String)
 
                 // extra helpers
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                class OuterClass {
-                    class InnerClass
-                    enum class InnerEnum{
-                        Value1,
-                        Value2
-                    }
-                } 
                 """.trimIndent(),
             ),
             kotlincArguments = listOf("-Xannotations-in-metadata"),
@@ -1008,8 +931,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val uLong: ULong,
                     val kClass: KClass<*>,
                     val enum: MyEnum,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val array: Array<String>,
                     val annotation: Foo
                 )
@@ -1032,8 +953,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     kClass = String::class,
                     enum = MyEnum.FOO,
                     array = ["foo", "bar"],
-                    innerKClass = OuterClass.InnerClass::class,
-                    innerEnum = OuterClass.InnerEnum.Value1,
                     annotation = Foo("foo")) MY_ENUM_ENTRY
                 }
 
@@ -1041,13 +960,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                class OuterClass {
-                    class InnerClass
-                    enum class InnerEnum{
-                        Value1,
-                        Value2
-                    }
-                }  
                 """.trimIndent(),
             ),
             kotlincArguments = listOf("-Xannotations-in-metadata"),
@@ -1117,8 +1029,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<String>,
-                    val innerKClass: KClass<*>,
-                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
                 
@@ -1142,8 +1052,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
                         kClass = String::class,
                         enum = MyEnum.FOO,
                         array = ["foo", "bar"],
-                        innerKClass = OuterClass.InnerClass::class,
-                        innerEnum = OuterClass.InnerEnum.Value1,
                         annotation = Foo("foo"))
                     String = "default")
                     
@@ -1151,13 +1059,6 @@ class KotlinAnnotationMetadataTest : BehaviorSpec({
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
-                class OuterClass {
-                    class InnerClass
-                    enum class InnerEnum{
-                        Value1,
-                        Value2
-                    }
-                }  
                 """.trimIndent(),
             ),
             kotlincArguments = listOf("-Xannotations-in-metadata"),

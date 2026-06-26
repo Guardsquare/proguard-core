@@ -72,7 +72,7 @@ fun convertAnnotation(kmAnnotation: KmAnnotation): ProGuardKotlinAnnotation = km
 @ExperimentalUnsignedTypes
 private fun KmAnnotation.toProGuardKotlinAnnotation(): ProGuardKotlinAnnotation =
     ProGuardKotlinAnnotation(
-        toProguardClassName(className),
+        className,
         arguments.map { (key, value) ->
             ProGuardAnnotationArgument(key, value.toProGuardKotlinAnnotationArgumentValue())
         },
@@ -94,9 +94,9 @@ private fun KmAnnotationArgument.toProGuardKotlinAnnotationArgumentValue(): ProG
         is UIntValue -> ProGuardUIntValue(value.toInt())
         is ULongValue -> ProGuardULongValue(value.toLong())
         is StringValue -> ProGuardStringValue(value)
-        is KClassValue -> ProGuardClassValue(toProguardClassName(className))
-        is ArrayKClassValue -> ProGuardClassValue(toProguardClassName(className), arrayDimensionCount)
-        is EnumValue -> ProGuardEnumValue(toProguardClassName(enumClassName), enumEntryName)
+        is KClassValue -> ProGuardClassValue(className)
+        is ArrayKClassValue -> ProGuardClassValue(className, arrayDimensionCount)
+        is EnumValue -> ProGuardEnumValue(enumClassName, enumEntryName)
         is AnnotationValue -> ProGuardAnnotationValue(annotation.toProGuardKotlinAnnotation())
         is ArrayValue -> ProGuardArrayValue(elements.map { it.toProGuardKotlinAnnotationArgumentValue() })
     }
@@ -116,20 +116,8 @@ class AnnotationConstructor(private val consumer: Consumer<KmAnnotation>) : Kotl
                 AnnotationArgumentConstructor { key, value -> this[key] = value },
             )
             // Create the KmAnnotation with the arguments
-            consumer.accept(KmAnnotation(toKotlinClassName(annotation.className), this))
+            consumer.accept(KmAnnotation(annotation.className, this))
         }
-}
-
-@ExperimentalUnsignedTypes
-private fun toProguardClassName(kotlinClassName: String): String {
-    // Kotlin fully qualified name in the format: `org/foo/bar/Test.Inner`
-    return kotlinClassName.replace('.', '$')
-}
-
-@ExperimentalUnsignedTypes
-private fun toKotlinClassName(proguardClassName: String): String {
-    // Kotlin fully qualified name in the format: `org/foo/bar/Test.Inner`
-    return proguardClassName.replace('$', '.')
 }
 
 @ExperimentalUnsignedTypes
@@ -257,9 +245,9 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         value: ProGuardClassValue,
     ) = run {
         if (value.arrayDimensionsCount == 0) {
-            consumer.accept(argument.name, KClassValue(toKotlinClassName(value.className)))
+            consumer.accept(argument.name, KClassValue(value.className))
         } else {
-            consumer.accept(argument.name, ArrayKClassValue(toKotlinClassName(value.className), value.arrayDimensionsCount))
+            consumer.accept(argument.name, ArrayKClassValue(value.className, value.arrayDimensionsCount))
         }
     }
 
@@ -269,7 +257,7 @@ private class AnnotationArgumentConstructor(private val consumer: BiConsumer<Str
         annotation: ProGuardKotlinAnnotation,
         argument: ProGuardAnnotationArgument,
         value: ProGuardEnumValue,
-    ) = consumer.accept(argument.name, EnumValue(toKotlinClassName(value.className), value.enumEntryName))
+    ) = consumer.accept(argument.name, EnumValue(value.className, value.enumEntryName))
 
     override fun visitAnnotationArgument(
         clazz: Clazz,
