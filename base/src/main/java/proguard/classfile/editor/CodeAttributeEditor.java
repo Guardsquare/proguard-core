@@ -1604,6 +1604,7 @@ public class CodeAttributeEditor
    * This pseudo-instruction represents a label that marks an instruction offset, for use in the
    * context of the code attribute editor only.
    */
+  // TODO: Extract common pseudo-instruction classes
   public static class Label extends Instruction {
     protected final int identifier;
 
@@ -1777,7 +1778,8 @@ public class CodeAttributeEditor
    * This special label represents a line number, for use in the context of the code attribute
    * editor only.
    */
-  private static class LineNumber extends Label {
+  // TODO: Extract common pseudo-instruction classes
+  static class LineNumber extends Label {
     private final int lineNumber;
     private final String source;
     private final LineNumberInfoBlock block;
@@ -1830,6 +1832,14 @@ public class CodeAttributeEditor
         CodeAttribute codeAttribute,
         int offset,
         InstructionVisitor instructionVisitor) {
+      // TODO: Extract common pseudo-instruction classes
+      if (instructionVisitor
+          instanceof InstructionSequenceReplacer.MyReplacementInstructionFactory) {
+        ((InstructionSequenceReplacer.MyReplacementInstructionFactory) instructionVisitor)
+            .handleLineNumber(this);
+        return;
+      }
+
       if (instructionVisitor.getClass() != CodeAttributeEditor.class) {
         throw new UnsupportedOperationException("Unexpected visitor [" + instructionVisitor + "]");
       }
