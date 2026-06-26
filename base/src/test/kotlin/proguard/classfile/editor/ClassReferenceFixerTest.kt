@@ -127,6 +127,8 @@ class ClassReferenceFixerTest : FunSpec({
                     val kClass: KClass<*>,
                     val enum: MyEnum,
                     val array: Array<Foo>,
+                    val innerKClass: KClass<*>,
+                    val innerEnum: OuterClass.InnerEnum,
                     val annotation: Foo
                 )
 
@@ -147,12 +149,21 @@ class ClassReferenceFixerTest : FunSpec({
                     kClass = String::class,
                     enum = MyEnum.FOO,
                     array = arrayOf(Foo("foo"), Foo("bar")),
+                    innerKClass = OuterClass.InnerClass::class,
+                    innerEnum = OuterClass.InnerEnum.Value1,
                     annotation = Foo("foo")) String = "foo"
 
                 // extra helpers
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
+                class OuterClass {
+                    class InnerClass
+                    enum class InnerEnum{
+                        Value1,
+                        Value2
+                    }
+                }  
                 """.trimIndent(),
             ),
             kotlincArguments = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"),
@@ -166,6 +177,9 @@ class ClassReferenceFixerTest : FunSpec({
                             "MyTypeAnnotation" -> "MyRenamedTypeAnnotation"
                             "MyEnum" -> "MyRenamedEnum"
                             "Foo" -> "RenamedFoo"
+                            "OuterClass" -> "RenamedOuterClass"
+                            "InnerClass" -> "RenamedInnerClass"
+                            "InnerEnum" -> "RenamedInnerEnum"
                             else -> it.name
                         }
                     },
@@ -225,7 +239,7 @@ class ClassReferenceFixerTest : FunSpec({
                 ),
             )
 
-            verify(exactly = 17) {
+            verify(exactly = 19) {
                 annotationArgVisitor.visitAnyArgument(
                     programClassPool.getClass("TestKt"),
                     ofType<KotlinAnnotatable>(),
@@ -306,6 +320,16 @@ class ClassReferenceFixerTest : FunSpec({
                                 "renamedArray" -> argument.referencedAnnotationMethod shouldBe findMethod(
                                     "renamedArray",
                                     "()[LRenamedFoo;",
+                                )
+
+                                "renamedInnerKClass" -> argument.referencedAnnotationMethod shouldBe findMethod(
+                                    "renamedInnerKClass",
+                                    "()Ljava/lang/Class;",
+                                )
+
+                                "renamedInnerEnum" -> argument.referencedAnnotationMethod shouldBe findMethod(
+                                    "renamedInnerEnum",
+                                    "()LOuterClass\$InnerEnum;",
                                 )
 
                                 "renamedAnnotation" -> argument.referencedAnnotationMethod shouldBe findMethod(
