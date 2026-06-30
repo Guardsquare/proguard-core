@@ -46,21 +46,21 @@ public class SimpleProcessable implements Processable {
     this.processingFlags = processingFlags;
   }
 
-  /** Adds all given flags to this processable. */
+  @Override
   public void addProcessingFlags(int... flags) {
     for (int flag : flags) {
       processingFlags = processingFlags | flag;
     }
   }
 
-  /** Removes all given flags from this processable. */
+  @Override
   public void removeProcessingFlags(int... flags) {
     for (int flag : flags) {
       processingFlags = processingFlags & ~flag;
     }
   }
 
-  /** Checks whether all the given flags are set on this processable. */
+  @Override
   public boolean hasProcessingFlags(int... flags) {
     int allFlags = 0;
     for (int flag : flags) {

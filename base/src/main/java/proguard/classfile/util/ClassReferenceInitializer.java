@@ -953,6 +953,8 @@ public class ClassReferenceInitializer
           clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.typeAccept(clazz, kotlinDeclarationContainerMetadata, this);
       kotlinPropertyMetadata.setterParameterAccept(clazz, kotlinDeclarationContainerMetadata, this);
+      kotlinPropertyMetadata.propertyAccessorsAccept(
+          clazz, kotlinDeclarationContainerMetadata, this);
     }
 
     // Implementations for KotlinFunctionVisitor.
@@ -1097,6 +1099,7 @@ public class ClassReferenceInitializer
         KotlinValueParameterMetadata kotlinValueParameterMetadata) {
       kotlinFunctionMetadata.annotationsAccept(clazz, this);
       kotlinValueParameterMetadata.typeAccept(clazz, kotlinMetadata, kotlinFunctionMetadata, this);
+      kotlinValueParameterMetadata.annotationsAccept(clazz, this);
     }
 
     @Override

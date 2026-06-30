@@ -13,6 +13,7 @@ spotless = "6.18.0"
 smali = "2.5.2"
 sonarqube = "6.0.1.5171"
 testLogger = "4.0.0"
+bouncyCastle = "1.84"
 
 [libraries]
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
@@ -31,6 +32,8 @@ log4j-core = { group = "org.apache.logging.log4j",name = "log4j-core", version.r
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 r8 = { group = "com.android.tools", name = "r8", version.ref = "r8" }
 smali = { group = "org.smali", name = "smali", version.ref = "smali" }
+bouncycastle-prov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle" }
+bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle" }
 
 [bundles]
 log4j = ["log4j-api", "log4j-core"]

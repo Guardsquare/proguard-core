@@ -19,6 +19,8 @@ package proguard.util;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
 
 /** This class contains utility methods operating on arrays. */
 public class ArrayUtil {
@@ -783,7 +785,9 @@ public class ArrayUtil {
     int minSize = Math.min(size1, size2);
 
     for (int index = 0; index < minSize; index++) {
-      int comparison = ObjectUtil.compare(array1[index], array2[index]);
+      int comparison =
+          Objects.compare(
+              array1[index], array2[index], Comparator.nullsFirst(Comparable::compareTo));
       if (comparison != 0) {
         return comparison;
       }

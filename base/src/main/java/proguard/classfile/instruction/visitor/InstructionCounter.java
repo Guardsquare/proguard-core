@@ -17,6 +17,7 @@
  */
 package proguard.classfile.instruction.visitor;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.CodeAttribute;
 import proguard.classfile.instruction.Instruction;
@@ -28,22 +29,24 @@ import proguard.util.Counter;
  * @author Eric Lafortune
  */
 public class InstructionCounter implements InstructionVisitor, Counter {
-  private int count;
+  private final AtomicInteger count = new AtomicInteger(0);
 
   // Implementations for Counter.
 
-  public synchronized int getCount() {
-    return count;
+  @Override
+  public int getCount() {
+    return count.get();
   }
 
   // Implementations for InstructionVisitor.
 
-  public synchronized void visitAnyInstruction(
+  @Override
+  public void visitAnyInstruction(
       Clazz clazz,
       Method method,
       CodeAttribute codeAttribute,
       int offset,
       Instruction instruction) {
-    count++;
+    count.getAndIncrement();
   }
 }

@@ -31,35 +31,62 @@ import proguard.classfile.attribute.CodeAttribute;
 public class AttributeProcessingFlagFilter implements AttributeVisitor {
   private final int requiredSetProcessingFlags;
   private final int requiredUnsetProcessingFlags;
-  private final AttributeVisitor attributeVisitor;
+  private final AttributeVisitor acceptedAttributeVisitor;
+  private final AttributeVisitor rejectedAttributeVisitor;
 
   /**
    * Creates a new AttributeProcessingFlagFilter.
    *
    * @param requiredSetProcessingFlags the attribute processing flags that should be set.
-   * @param requiredUnsetProcessingFlags the attribute processing flags that should beunset.
+   * @param requiredUnsetProcessingFlags the attribute processing flags that should be unset.
    * @param attributeVisitor the <code>AttributeVisitor</code> to which visits will be delegated.
    */
   public AttributeProcessingFlagFilter(
       int requiredSetProcessingFlags,
       int requiredUnsetProcessingFlags,
       AttributeVisitor attributeVisitor) {
+    this(requiredSetProcessingFlags, requiredUnsetProcessingFlags, attributeVisitor, null);
+  }
+
+  /**
+   * Creates a new AttributeProcessingFlagFilter.
+   *
+   * @param requiredSetProcessingFlags the attribute processing flags that should be set.
+   * @param requiredUnsetProcessingFlags the attribute processing flags that should beunset.
+   * @param acceptedAttributeVisitor the <code>AttributeVisitor</code> to which visits will be
+   *     delegated.
+   * @param rejectedAttributeVisitor the <code>AttributeVisitor</code> to which visits of attributes
+   *     that do not have the proper flags will be delegated.
+   */
+  public AttributeProcessingFlagFilter(
+      int requiredSetProcessingFlags,
+      int requiredUnsetProcessingFlags,
+      AttributeVisitor acceptedAttributeVisitor,
+      AttributeVisitor rejectedAttributeVisitor) {
     this.requiredSetProcessingFlags = requiredSetProcessingFlags;
     this.requiredUnsetProcessingFlags = requiredUnsetProcessingFlags;
-    this.attributeVisitor = attributeVisitor;
+    this.acceptedAttributeVisitor = acceptedAttributeVisitor;
+    this.rejectedAttributeVisitor = rejectedAttributeVisitor;
   }
 
   // Implementations for AttributeVisitor.
 
+  @Override
   public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
+  @Override
   public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
-    if (accepted(codeAttribute.processingFlags)) {
-      codeAttribute.accept(clazz, method, attributeVisitor);
+    AttributeVisitor delegateVisitor = getDelegateVisitor(codeAttribute.processingFlags);
+    if (delegateVisitor != null) {
+      codeAttribute.accept(clazz, method, delegateVisitor);
     }
   }
 
   // Small utility methods.
+
+  private AttributeVisitor getDelegateVisitor(int processingFlags) {
+    return accepted(processingFlags) ? acceptedAttributeVisitor : rejectedAttributeVisitor;
+  }
 
   private boolean accepted(int processingFlags) {
     return (requiredSetProcessingFlags & ~processingFlags) == 0

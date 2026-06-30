@@ -34,6 +34,7 @@ import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinAnnotationArgument
 import proguard.classfile.kotlin.KotlinAnnotationArgument.StringValue
 import proguard.classfile.kotlin.KotlinAnnotationArgument.Value
+import proguard.classfile.kotlin.KotlinClassKindMetadata
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
 import proguard.classfile.kotlin.KotlinFunctionMetadata
 import proguard.classfile.kotlin.KotlinMetadata
@@ -1029,6 +1030,153 @@ class ClassReferenceInitializerTest : BehaviorSpec({
                 }),
             )
             testExecuted shouldBe true
+        }
+    }
+
+    Given("Kotlin annotations referencing inner classes or enum") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                import kotlin.reflect.KClass
+
+                annotation class MyTypeAnnotation(
+                    val kClass: KClass<*>,
+                    val enum: OuterClass.InnerEnum
+                )
+
+                @MyTypeAnnotation(kClass = OuterClass.InnerClass::class, enum = OuterClass.InnerEnum.Value1)
+                private class Foo {
+                    fun bar() {
+                        println("Foo.bar")
+                    }
+                }
+
+                // Inner elements.
+                class OuterClass {
+                    class InnerClass
+                    enum class InnerEnum{
+                        Value1,
+                        Value2
+                    }
+                }
+                """.trimIndent(),
+            ),
+            kotlincArguments = listOf("-Xannotations-in-metadata"), // experimental for Kotlin < 2.4 but released for Kotlin >= 2.4
+        )
+
+        // Note: the `ClassReferenceInitializer` is called by `ClassPoolBuilder.fromSource`
+        // when creating a class pool, so no need to call it again in the test.
+
+        val annotationVisitor = spyk<KotlinAnnotationVisitor>()
+
+        programClassPool.classesAccept(ReferencedKotlinMetadataVisitor(AllKotlinAnnotationVisitor(annotationVisitor)))
+        val annotation = slot<KotlinAnnotation>()
+
+        val classWithAnnotation = programClassPool.getClass("Foo")
+
+        Then("There should be 1 annotation visited") {
+            verify(exactly = 1) {
+                annotationVisitor.visitClassAnnotation(classWithAnnotation, ofType(KotlinClassKindMetadata::class), capture(annotation))
+            }
+        }
+
+        Then("The annotation referenced class should be correct") {
+            annotation.captured.className shouldBe "MyTypeAnnotation"
+            annotation.captured.referencedAnnotationClass shouldBe programClassPool.getClass("MyTypeAnnotation")
+        }
+
+        Then("The annotation argument value references should be correctly set") {
+
+            val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
+
+            programClassPool.classesAccept(
+                ReferencedKotlinMetadataVisitor(
+                    AllKotlinAnnotationVisitor(
+                        AllKotlinAnnotationArgumentVisitor(
+                            annotationArgVisitor,
+                        ),
+                    ),
+                ),
+            )
+
+            verify(exactly = 2) {
+                annotationArgVisitor.visitAnyArgument(
+                    classWithAnnotation,
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    withArg { argument ->
+                        with(programClassPool.getClass("MyTypeAnnotation")) {
+                            when (argument.name) {
+                                "enum" -> argument.referencedAnnotationMethod shouldBe findMethod("enum", "()LOuterClass\$InnerEnum;")
+                                "kClass" -> argument.referencedAnnotationMethod shouldBe findMethod("kClass", "()Ljava/lang/Class;")
+                                else -> RuntimeException("Unexpected argument $argument")
+                            }
+                        }
+                    },
+                    ofType<Value>(),
+                )
+            }
+        }
+
+        Then("The class argument values should have their references correctly set") {
+            val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
+
+            programClassPool.classesAccept(
+                ReferencedKotlinMetadataVisitor(
+                    AllKotlinAnnotationVisitor(
+                        AllKotlinAnnotationArgumentVisitor(
+                            KotlinAnnotationArgumentFilter(
+                                { it.name == "kClass" },
+                                annotationArgVisitor,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            verify(exactly = 1) {
+                annotationArgVisitor.visitClassArgument(
+                    classWithAnnotation,
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    ofType<KotlinAnnotationArgument>(),
+                    withArg {
+                        it.className shouldBe "OuterClass\$InnerClass"
+                        it.referencedClass shouldBe programClassPool.getClass("OuterClass\$InnerClass")
+                    },
+                )
+            }
+        }
+
+        Then("The enum argument values should have their references correctly set") {
+            val annotationArgVisitor = spyk<KotlinAnnotationArgumentVisitor>()
+
+            programClassPool.classesAccept(
+                ReferencedKotlinMetadataVisitor(
+                    AllKotlinAnnotationVisitor(
+                        AllKotlinAnnotationArgumentVisitor(
+                            KotlinAnnotationArgumentFilter(
+                                { it.name == "enum" },
+                                annotationArgVisitor,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            verify(exactly = 1) {
+                annotationArgVisitor.visitEnumArgument(
+                    classWithAnnotation,
+                    ofType<KotlinAnnotatable>(),
+                    ofType<KotlinAnnotation>(),
+                    ofType<KotlinAnnotationArgument>(),
+                    withArg {
+                        it.className shouldBe "OuterClass\$InnerEnum"
+                        it.referencedClass shouldBe programClassPool.getClass("OuterClass\$InnerEnum")
+                    },
+                )
+            }
         }
     }
 })

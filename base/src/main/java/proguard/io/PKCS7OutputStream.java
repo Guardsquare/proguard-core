@@ -17,9 +17,21 @@
  */
 package proguard.io;
 
-import java.io.*;
-import java.security.cert.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 
 /**
  * This class provides methods to write signature data in PKCS7 format (= Cryptographic Message
@@ -208,70 +220,49 @@ class PKCS7OutputStream {
     {
       derOutputStream.startSequence();
 
-      // We need the distinguished name of the issuer,
-      // which might be different from the name of the subject.
-      String distinguishedName = certificate.getIssuerDN().getName();
+      String distinguishedName = certificate.getIssuerX500Principal().getName();
 
-      // Apparently, the attribute sequence has to be in the reverse
-      // order of the comma-separated list in the distinguished name.
-      // The "jarsigner -verify" prints out "java.lang.SecurityException:
-      // cannot verify signature block file META-INF/CERT" if the order,
-      // the contents, or the even the string formats are wrong.
+      try {
+        // LdapName automatically handles parsing RFC 2253 formatted DNs,
+        // including unquoting values and dealing with escaped characters.
+        LdapName ldapName = new LdapName(distinguishedName);
 
-      // Start parsing at the end.
-      int endIndex = distinguishedName.length();
-      do {
-        // We have to strip any quotes from attribute values.
-        // Quoted attribute values may contain commas.
-        boolean quoted = distinguishedName.charAt(endIndex - 1) == '"';
+        // LdapName.getRdns() returns the Relative Distinguished Names
+        // in order from most significant (right-most) to least significant (left-most).
+        for (Rdn rdn : ldapName.getRdns()) {
+          String attributeName = rdn.getType();
+          String attributeValue = rdn.getValue().toString();
 
-        int commaEndIndex =
-            quoted ? distinguishedName.lastIndexOf('"', endIndex - 2) : endIndex - 1;
-
-        // Extract the attribute name/value pair.
-        int commaIndex = distinguishedName.lastIndexOf(',', commaEndIndex);
-        String attribute = distinguishedName.substring(commaIndex + 1, endIndex);
-
-        // Extract the name and the value from the attribute.
-        // Apparently, the value can contain unquoted control characters
-        // (e.g. EMAILADDRESS=^some.one@example.com).
-        int equalsIndex = attribute.indexOf('=');
-        String attributeName = attribute.substring(0, equalsIndex).trim();
-        String attributeValue =
-            quoted
-                ? attribute.substring(equalsIndex + 2, attribute.length() - 1)
-                : trimSpaces(attribute.substring(equalsIndex + 1));
-
-        // Write out the name and value.
-        // Note that the email address needs to be written out as an
-        // IA5 string.
-        if (attributeName.equals(COMMON_NAME_ATTRIBUTE))
-          writeStringAttributeSingleton(COMMON_NAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(SURNAME_ATTRIBUTE))
-          writeStringAttributeSingleton(SURNAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(SERIAL_NUMBER_ATTRIBUTE))
-          writeStringAttributeSingleton(SERIAL_NUMBER_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(COUNTRY_NAME_ATTRIBUTE))
-          writeStringAttributeSingleton(COUNTRY_NAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(LOCALITY_NAME_ATTRIBUTE))
-          writeStringAttributeSingleton(LOCALITY_NAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(STATE_NAME_ATTRIBUTE))
-          writeStringAttributeSingleton(STATE_NAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(STREET_ADDRESS_ATTRIBUTE))
-          writeStringAttributeSingleton(STREET_ADDRESS_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(ORGANIZATION_NAME_ATTRIBUTE))
-          writeStringAttributeSingleton(ORGANIZATION_NAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(UNIT_NAME_ATTRIBUTE))
-          writeStringAttributeSingleton(UNIT_NAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(TITLE_ATTRIBUTE))
-          writeStringAttributeSingleton(TITLE_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(GIVEN_NAME_ATTRIBUTE))
-          writeStringAttributeSingleton(GIVEN_NAME_OBJECT_ID, attributeValue, false);
-        else if (attributeName.equals(EMAIL_ADDRESS_ATTRIBUTE))
-          writeStringAttributeSingleton(EMAIL_ADDRESS_OBJECT_ID, attributeValue, true);
-
-        endIndex = commaIndex;
-      } while (endIndex > 0);
+          // Write out the name and value.
+          // Note that the email address needs to be written out as an IA5 string.
+          if (attributeName.equals(COMMON_NAME_ATTRIBUTE))
+            writeStringAttributeSingleton(COMMON_NAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(SURNAME_ATTRIBUTE))
+            writeStringAttributeSingleton(SURNAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(SERIAL_NUMBER_ATTRIBUTE))
+            writeStringAttributeSingleton(SERIAL_NUMBER_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(COUNTRY_NAME_ATTRIBUTE))
+            writeStringAttributeSingleton(COUNTRY_NAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(LOCALITY_NAME_ATTRIBUTE))
+            writeStringAttributeSingleton(LOCALITY_NAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(STATE_NAME_ATTRIBUTE))
+            writeStringAttributeSingleton(STATE_NAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(STREET_ADDRESS_ATTRIBUTE))
+            writeStringAttributeSingleton(STREET_ADDRESS_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(ORGANIZATION_NAME_ATTRIBUTE))
+            writeStringAttributeSingleton(ORGANIZATION_NAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(UNIT_NAME_ATTRIBUTE))
+            writeStringAttributeSingleton(UNIT_NAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(TITLE_ATTRIBUTE))
+            writeStringAttributeSingleton(TITLE_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(GIVEN_NAME_ATTRIBUTE))
+            writeStringAttributeSingleton(GIVEN_NAME_OBJECT_ID, attributeValue, false);
+          else if (attributeName.equals(EMAIL_ADDRESS_ATTRIBUTE))
+            writeStringAttributeSingleton(EMAIL_ADDRESS_OBJECT_ID, attributeValue, true);
+        }
+      } catch (InvalidNameException e) {
+        throw new IOException("Failed to parse the issuer distinguished name", e);
+      }
 
       derOutputStream.endSequence();
     }
@@ -280,23 +271,6 @@ class PKCS7OutputStream {
     derOutputStream.writeInteger(certificate.getSerialNumber());
 
     derOutputStream.endSequence();
-  }
-
-  /** Returns the given string with any leading or trailing spaces trimmed. */
-  private String trimSpaces(String string) {
-    // Find the first non-space character.
-    int startIndex = 0;
-    while (startIndex < string.length() && string.charAt(startIndex) == ' ') {
-      startIndex++;
-    }
-
-    // Find the last non-space character.
-    int endIndex = string.length();
-    while (endIndex > startIndex && string.charAt(endIndex - 1) == ' ') {
-      endIndex--;
-    }
-
-    return string.substring(startIndex, endIndex);
   }
 
   /**
@@ -365,54 +339,6 @@ class PKCS7OutputStream {
     throw new IllegalArgumentException(message);
   }
 
-  //    /**
-  //     * Writes out encoded objects IDs of algorithms.
-  //     */
-  //    public static void main(String[] args)
-  //    {
-  //        ObjectIdentifier[] oids =
-  //        {
-  //            AlgorithmId.SHA_oid,
-  //            AlgorithmId.SHA256_oid,
-  //            AlgorithmId.SHA384_oid,
-  //            AlgorithmId.SHA512_oid,
-  //
-  //            AlgorithmId.RSAEncryption_oid,
-  //            AlgorithmId.DH_oid,
-  //            AlgorithmId.DSA_oid,
-  //            AlgorithmId.EC_oid,
-  //        };
-  //
-  //        try
-  //        {
-  //            Field field = ObjectIdentifier.class.getDeclaredField("encoding");
-  //            field.setAccessible(true);
-  //
-  //            for (int oidIndex = 0; oidIndex < oids.length; oidIndex++)
-  //            {
-  //                ObjectIdentifier oid = oids[oidIndex];
-  //
-  //                System.out.print("{ ");
-  //                byte[] bytes = (byte[])field.get(oid);
-  //                for (int byteIndex = 0; byteIndex < bytes.length; byteIndex++)
-  //                {
-  //                    byte b = bytes[byteIndex];
-  //                    System.out.print((b < 0 ? "(byte)":"") + "0x" + Integer.toHexString(b &
-  // 0xff) + ", ");
-  //                }
-  //                System.out.println("}; // "+oid);
-  //            }
-  //        }
-  //        catch (IllegalAccessException e)
-  //        {
-  //            e.printStackTrace();
-  //        }
-  //        catch (NoSuchFieldException e)
-  //        {
-  //            e.printStackTrace();
-  //        }
-  //    }
-
   /**
    * Reads a certificate with java.security.cert and writes a copy with this class. For example:
    * java proguard.io.PKCS7OutputStream META-INF/CERT.RSA copy.RSA
@@ -429,10 +355,11 @@ class PKCS7OutputStream {
 
       InputStream inputStream = new FileInputStream(inputCertificateFileName);
       CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-      Collection certificates = certificateFactory.generateCertificates(inputStream);
+      Collection<? extends Certificate> certificates =
+          certificateFactory.generateCertificates(inputStream);
 
       int counter = 0;
-      Iterator iterator = certificates.iterator();
+      Iterator<? extends Certificate> iterator = certificates.iterator();
       while (iterator.hasNext()) {
         X509Certificate cert509 = (X509Certificate) iterator.next();
         System.out.println("IssuerDN:   " + cert509.getIssuerDN());

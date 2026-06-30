@@ -3,6 +3,11 @@
 ### Bugfixes
 
 - Fix reference initialization for type aliases defined in file facades with a custom JvmPackageName.
+- Fix PKCS7OutputStream incorrectly handling escaped quotes certificates.
+
+### Kotlin support
+
+- Add support for inner classes and inner enums used as annotations argument in Kotlin metadata.
 
 ### API improvements
 
@@ -12,6 +17,7 @@
 ### API changes
 
 - Add `reset` method to `MemberRemover`.
+- Add processing flags helper methods to `Processable`.
 
 ## Version 9.3.2 
 

@@ -17,6 +17,7 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import proguard.classfile.*;
 import proguard.util.Counter;
 
@@ -26,18 +27,19 @@ import proguard.util.Counter;
  * @author Eric Lafortune
  */
 public class ClassCounter implements ClassVisitor, Counter {
-  private int count;
+  private final AtomicInteger count = new AtomicInteger(0);
 
   // Implementations for Counter.
 
-  public synchronized int getCount() {
-    return count;
+  @Override
+  public int getCount() {
+    return count.get();
   }
 
   // Implementations for ClassVisitor.
 
   @Override
   public void visitAnyClass(Clazz clazz) {
-    count++;
+    count.getAndIncrement();
   }
 }

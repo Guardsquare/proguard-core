@@ -384,7 +384,7 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
    * This class creates replacement instructions for matched sequences, with any matched arguments
    * filled out.
    */
-  private class MyReplacementInstructionFactory implements InstructionVisitor {
+  class MyReplacementInstructionFactory implements InstructionVisitor {
     private Instruction replacementInstruction;
 
     /** Creates the replacement instruction for the given index in the instruction sequence. */
@@ -403,6 +403,10 @@ public class InstructionSequenceReplacer implements InstructionVisitor, Constant
 
       // Return it.
       return replacementInstruction;
+    }
+
+    public void handleLineNumber(CodeAttributeEditor.LineNumber instruction) {
+      replacementInstruction = instruction;
     }
 
     // Implementations for InstructionVisitor.
