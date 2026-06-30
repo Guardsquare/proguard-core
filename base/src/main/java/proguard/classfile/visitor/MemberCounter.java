@@ -17,6 +17,7 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import proguard.classfile.*;
 import proguard.util.Counter;
 
@@ -26,30 +27,35 @@ import proguard.util.Counter;
  * @author Eric Lafortune
  */
 public class MemberCounter implements MemberVisitor, Counter {
-  private int count;
+  private final AtomicInteger count = new AtomicInteger(0);
 
   // Implementations for Counter.
 
   /** Returns the number of class members that has been visited so far. */
+  @Override
   public int getCount() {
-    return count;
+    return count.get();
   }
 
   // Implementations for MemberVisitor.
 
+  @Override
   public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
-    count++;
+    count.getAndIncrement();
   }
 
+  @Override
   public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
-    count++;
+    count.getAndIncrement();
   }
 
+  @Override
   public void visitProgramField(ProgramClass programClass, ProgramField programField) {
-    count++;
+    count.getAndIncrement();
   }
 
+  @Override
   public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
-    count++;
+    count.getAndIncrement();
   }
 }

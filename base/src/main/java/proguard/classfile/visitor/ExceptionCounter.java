@@ -17,6 +17,7 @@
  */
 package proguard.classfile.visitor;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import proguard.classfile.*;
 import proguard.classfile.attribute.*;
 import proguard.classfile.attribute.visitor.ExceptionInfoVisitor;
@@ -28,19 +29,21 @@ import proguard.util.Counter;
  * @author Eric Lafortune
  */
 public class ExceptionCounter implements ExceptionInfoVisitor, Counter {
-  private int count;
+  private final AtomicInteger count = new AtomicInteger(0);
 
   // Implementations for Counter.
 
   /** Returns the number of exceptions that has been visited so far. */
+  @Override
   public int getCount() {
-    return count;
+    return count.get();
   }
 
   // Implementations for ExceptionInfoVisitor.
 
+  @Override
   public void visitExceptionInfo(
       Clazz clazz, Method method, CodeAttribute codeAttribute, ExceptionInfo exceptionInfo) {
-    count++;
+    count.getAndIncrement();
   }
 }

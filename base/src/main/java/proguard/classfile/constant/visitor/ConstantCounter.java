@@ -17,6 +17,7 @@
  */
 package proguard.classfile.constant.visitor;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import proguard.classfile.*;
 import proguard.classfile.constant.Constant;
 import proguard.util.Counter;
@@ -27,18 +28,20 @@ import proguard.util.Counter;
  * @author Eric Lafortune
  */
 public class ConstantCounter implements ConstantVisitor, Counter {
-  private int count;
+  private final AtomicInteger count = new AtomicInteger(0);
 
   // Implementations for Counter.
 
   /** Returns the number of class members that has been visited so far. */
+  @Override
   public int getCount() {
-    return count;
+    return count.get();
   }
 
   // Implementations for ConstantVisitor.
 
+  @Override
   public void visitAnyConstant(Clazz clazz, Constant constant) {
-    count++;
+    count.getAndIncrement();
   }
 }

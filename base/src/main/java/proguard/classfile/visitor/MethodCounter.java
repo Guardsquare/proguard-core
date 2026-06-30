@@ -7,6 +7,7 @@
 
 package proguard.classfile.visitor;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import proguard.classfile.Clazz;
 import proguard.classfile.Member;
 import proguard.classfile.ProgramClass;
@@ -19,13 +20,13 @@ import proguard.util.Counter;
  * @author Ruben Pieters
  */
 public class MethodCounter implements MemberVisitor, Counter {
-  private int count;
+  private final AtomicInteger count = new AtomicInteger(0);
 
   // Implementations for Counter.
 
   @Override
   public int getCount() {
-    return count;
+    return count.get();
   }
 
   // Implementations for MemberVisitor.
@@ -35,6 +36,6 @@ public class MethodCounter implements MemberVisitor, Counter {
 
   @Override
   public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
-    count++;
+    count.getAndIncrement();
   }
 }
