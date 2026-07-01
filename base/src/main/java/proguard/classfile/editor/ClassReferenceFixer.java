@@ -770,7 +770,7 @@ public class ClassReferenceFixer
         kotlinTypeMetadata.className = kotlinTypeMetadata.referencedClass.getName();
       }
 
-      // We fix aliasName using KotlinAliasReferenceFixer after ClassReferenceFixer is finished.
+      // aliasName is fixed by KotlinAliasReferenceFixer, run after ClassReferenceFixer.
 
       kotlinTypeMetadata.annotationsAccept(clazz, this);
       kotlinTypeMetadata.typeArgumentsAccept(clazz, this);
