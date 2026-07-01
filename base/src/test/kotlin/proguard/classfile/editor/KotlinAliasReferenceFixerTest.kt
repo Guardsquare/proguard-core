@@ -41,6 +41,35 @@ class KotlinAliasReferenceFixerTest : FunSpec({
             aliasNames shouldNotContain "a/b/Alias"
         }
     }
+
+    test("aliasName follows its declaring class when the class is renamed to another package") {
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Foo.kt",
+                """
+                package a.b
+
+                class Foo {
+                    typealias Alias = String
+
+                    val usage: Alias = ""
+                }
+                """.trimIndent(),
+            ),
+        )
+
+        // Rename the class that declares the alias.
+        programClassPool.classAccept("a/b/Foo", ClassRenamer { "x/Bar" })
+
+        // ClassReferenceFixer fixes className but, by design, leaves aliasName.
+        programClassPool.classesAccept(ClassReferenceFixer(false))
+        programClassPool.classesAccept(KotlinAliasReferenceFixer())
+
+        aliasNamesIn(programClassPool).let { aliasNames ->
+            aliasNames shouldContain "x/Bar.Alias"
+            aliasNames shouldNotContain "a/b/Foo.Alias"
+        }
+    }
 })
 
 private fun aliasNamesIn(programClassPool: ClassPool): List<String> {
