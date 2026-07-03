@@ -58,4 +58,33 @@ class ClassReferenceFixerDanglingReferenceTest : FunSpec({
             programClassPool.classesAccept(ClassReferenceFixer(false))
         }
     }
+
+    test("A dangling Kotlin annotation-argument reference does not crash the ClassReferenceFixer") {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Holder.kt",
+                """
+                import kotlin.reflect.KClass
+
+                @Target(AnnotationTarget.TYPE)
+                annotation class Anno(val cls: KClass<*>)
+
+                class Referenced
+
+                class Holder {
+                    val annotated: @Anno(Referenced::class) String = ""
+                }
+                """.trimIndent(),
+            ),
+        )
+
+        // Simulate an incomplete class pool: remove the class referenced by the annotation argument
+        // and reinitialize so the KClass argument's referencedClass is left null.
+        programClassPool.removeClass("Referenced")
+        programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+
+        shouldNotThrowAny {
+            programClassPool.classesAccept(ClassReferenceFixer(false))
+        }
+    }
 })
