@@ -37,6 +37,10 @@ public class KotlinConstants {
 
   public static final String METHOD_NAME_LAMBDA_INVOKE = "invoke";
 
+  public static final String METHOD_NAME_LAMBDA_INVOKE_SUSPEND = "invokeSuspend";
+  public static final String METHOD_TYPE_LAMBDA_INVOKE_SUSPEND =
+      "(Ljava/lang/Object;)Ljava/lang/Object;";
+
   public static final String NAME_KOTLIN_METADATA = "kotlin/Metadata";
   public static final String TYPE_KOTLIN_METADATA = "Lkotlin/Metadata;";
   public static final String NAME_KOTLIN_ANY = "kotlin/Any";
