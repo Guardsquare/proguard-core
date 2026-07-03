@@ -18,6 +18,7 @@
 
 package proguard.classfile.editor
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -462,6 +463,53 @@ class ClassReferenceFixerTest : FunSpec({
                         },
                     )
                 }
+            }
+        }
+    }
+
+    context("Given a Kotlin coroutine suspend lambda") {
+        // A suspend lambda compiles to a SuspendLambda subclass whose body lives in
+        // invokeSuspend(Object)Object, not invoke, so ClassReferenceInitializer must resolve
+        // referencedMethod to invokeSuspend. Otherwise it stays null and NPEs the fixer (#175).
+        val (programClassPool, _) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun runIt(block: suspend () -> Unit) { }
+                fun caller() {
+                    runIt { println("hello") }
+                }
+                """.trimIndent(),
+            ),
+        )
+
+        test("Then its anonymous function metadata resolves to invokeSuspend") {
+            var referencedMethodName: String? = null
+            programClassPool.classesAccept(
+                ReferencedKotlinMetadataVisitor(
+                    AllFunctionVisitor(
+                        object : KotlinFunctionVisitor {
+                            override fun visitAnyFunction(
+                                clazz: Clazz,
+                                metadata: proguard.classfile.kotlin.KotlinMetadata,
+                                function: proguard.classfile.kotlin.KotlinFunctionMetadata,
+                            ) {
+                                if (function.jvmSignature?.method != "<anonymous>") return
+                                function.referencedMethod shouldNotBe null
+                                referencedMethodName =
+                                    function.referencedMethod.getName(function.referencedMethodClass)
+                            }
+                        },
+                    ),
+                ),
+            )
+
+            referencedMethodName shouldBe "invokeSuspend"
+        }
+
+        test("Then applying the ClassReferenceFixer does not throw") {
+            shouldNotThrowAny {
+                programClassPool.classesAccept(ClassReferenceFixer(false))
             }
         }
     }

@@ -24,6 +24,8 @@ import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_IMPLEMENTATIONS_
 import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_METHOD_SUFFIX;
 import static proguard.classfile.kotlin.KotlinConstants.FUNCTION_NAME_ANONYMOUS;
 import static proguard.classfile.kotlin.KotlinConstants.METHOD_NAME_LAMBDA_INVOKE;
+import static proguard.classfile.kotlin.KotlinConstants.METHOD_NAME_LAMBDA_INVOKE_SUSPEND;
+import static proguard.classfile.kotlin.KotlinConstants.METHOD_TYPE_LAMBDA_INVOKE_SUSPEND;
 
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -965,8 +967,10 @@ public class ClassReferenceInitializer
       kotlinFunctionMetadata.referencedMethodClass = clazz;
 
       if (kotlinFunctionMetadata.jvmSignature != null) {
+        boolean isAnonymous =
+            FUNCTION_NAME_ANONYMOUS.equals(kotlinFunctionMetadata.jvmSignature.method);
         String method =
-            !FUNCTION_NAME_ANONYMOUS.equals(kotlinFunctionMetadata.jvmSignature.method)
+            !isAnonymous
                 ? kotlinFunctionMetadata.jvmSignature.method
                 :
                 // T16483: In some cases, the jvmSignature erroneously contains the name <anonymous>
@@ -978,6 +982,19 @@ public class ClassReferenceInitializer
                 kotlinFunctionMetadata.referencedMethodClass,
                 method,
                 kotlinFunctionMetadata.jvmSignature.descriptor.toString());
+
+        if (kotlinFunctionMetadata.referencedMethod == null && isAnonymous) {
+          // A coroutine suspend lambda's body is compiled into SuspendLambda.invokeSuspend
+          // rather than invoke, and its jvmSignature carries the Kotlin-level descriptor, so the
+          // invoke lookup above misses and leaves referencedMethod null (which later NPEs the
+          // ClassReferenceFixer). Fall back to the fixed invokeSuspend(Object)Object signature;
+          // only SuspendLambda subclasses declare it, so this cannot mismatch a plain lambda.
+          kotlinFunctionMetadata.referencedMethod =
+              strictMemberFinder.findMethod(
+                  kotlinFunctionMetadata.referencedMethodClass,
+                  METHOD_NAME_LAMBDA_INVOKE_SUSPEND,
+                  METHOD_TYPE_LAMBDA_INVOKE_SUSPEND);
+        }
       }
 
       if (kotlinFunctionMetadata.lambdaClassOriginName != null) {
