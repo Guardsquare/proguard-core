@@ -329,4 +329,26 @@ class KotlinMetadataAsserterTest : BehaviorSpec({
             facadeClass.kotlinMetadata shouldBe null
         }
     }
+
+    Given("a top-level function callable reference and no loaded .kotlin_module resource") {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun foo() = "bar"
+                fun ref() = ::foo
+                """.trimIndent(),
+            ),
+        )
+
+        When("the KotlinMetadataAsserter is run") {
+            val referenceClass = programClassPool.getClass("TestKt\$ref\$1") as ProgramClass
+
+            Then("the callable reference metadata should not be thrown away") {
+                referenceClass.kotlinMetadata shouldNotBe null
+                KotlinMetadataAsserter().execute(warningLogger, programClassPool, libraryClassPool, ResourceFilePool())
+                referenceClass.kotlinMetadata shouldNotBe null
+            }
+        }
+    }
 })
