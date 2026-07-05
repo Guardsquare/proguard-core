@@ -18,8 +18,6 @@
 package proguard.util.kotlin.asserter.constraint;
 
 import static proguard.classfile.kotlin.KotlinConstants.DEFAULT_IMPLEMENTATIONS_SUFFIX;
-import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_FILE_FACADE;
-import static proguard.classfile.kotlin.KotlinConstants.METADATA_KIND_MULTI_FILE_CLASS_PART;
 import static proguard.classfile.kotlin.KotlinConstants.REFLECTION;
 import static proguard.classfile.kotlin.KotlinConstants.WHEN_MAPPINGS_SUFFIX;
 
@@ -109,17 +107,7 @@ public class SyntheticClassIntegrity extends AbstractKotlinMetadataConstraint
 
             private void checkOwner(CallableReferenceInfo callableReferenceInfo) {
               // We don't check this for JavaReferenceInfo.
-
               util.reportIfNull("owner", callableReferenceInfo.getOwner());
-              if (callableReferenceInfo.getOwner() != null) {
-                // We need the module to update the getOwner() method for file facades and
-                // multi-file class parts.
-                if (callableReferenceInfo.getOwner().k == METADATA_KIND_FILE_FACADE
-                    || callableReferenceInfo.getOwner().k == METADATA_KIND_MULTI_FILE_CLASS_PART) {
-                  util.reportIfNull(
-                      "referenced module", callableReferenceInfo.getOwner().referencedModule);
-                }
-              }
             }
           });
     }
