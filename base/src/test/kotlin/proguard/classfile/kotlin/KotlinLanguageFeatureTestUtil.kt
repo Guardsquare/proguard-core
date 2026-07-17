@@ -60,7 +60,7 @@ class KotlinLanguageFeatureTestUtil : FunSpec({
                 message = "Interfaces in this library are experimental"
                 )
                 annotation class UnstableApi()
-                
+
                 @SubclassOptInRequired(UnstableApi::class)
                 interface CoreLibraryApi
                 """.trimIndent(),
@@ -77,12 +77,12 @@ class KotlinLanguageFeatureTestUtil : FunSpec({
                     data class Cat(val mouseHunter: Boolean) : Animal {
                         fun feedCat() {}
                     }
-                
+
                     data class Dog(val breed: String) : Animal {
                         fun feedDog() {}
                     }
                 }
-                
+
                 fun feedAnimal(animal: Animal) {
                     when (animal) {
                         // Branch with only the primary condition. Calls `feedDog()` when `animal` is `Dog`
@@ -109,6 +109,121 @@ class KotlinLanguageFeatureTestUtil : FunSpec({
                               get() = ${"$$"}${"\"\"\""}aMultiDollarString${"\"\"\""}
                     }
                 }
+                """.trimIndent(),
+            ),
+        ),
+    )
+
+    // Kotlin language features added in Kotlin 2.4.
+
+    include(
+        shouldRewriteMetadataCorrectly(
+            "Backing fields",
+            KotlinSource(
+                "Test.kt",
+                """
+                    class ShoppingCart {
+                        // Public read-only view with explicit backing field
+                        val items: List<String>
+                            field = mutableListOf()
+
+                        fun addItem(item: String) {
+                            items.add(item)
+                        }
+
+                        fun removeItem(item: String) {
+                            items.remove(item)
+                        }
+                    }
+
+                """.trimIndent(),
+            ),
+        ),
+    )
+
+    include(
+        shouldRewriteMetadataCorrectly(
+            "Experimental Explicit context arguments for context parameters",
+            KotlinSource(
+                "Test.kt",
+                """
+                     class EmailSender
+                        class SmsSender
+    
+                    context(emailSender: EmailSender)
+                    fun sendNotification() {
+                        println("Sent email notification")
+                    }
+    
+                    context(smsSender: SmsSender)
+                    fun sendNotification() {
+                        println("Sent SMS notification")
+                    }
+    
+                    context(defaultEmailSender: EmailSender, defaultSmsSender: SmsSender)
+                    fun notifyUser() {
+    
+                        // Selects the overload with the EmailSender context parameter
+                        sendNotification(emailSender = defaultEmailSender)
+    
+                        // Selects the overload with the SmsSender context parameter
+                        sendNotification(smsSender = defaultSmsSender)
+                    }
+                """.trimIndent(),
+            ),
+            listOf("-Xexplicit-context-arguments"),
+        ),
+    )
+
+    include(
+        shouldRewriteMetadataCorrectly(
+            "Experimental collection literals",
+            KotlinSource(
+                "Test.kt",
+                """
+                     val fruit = ["apple", "banana", "cherry"]
+
+                """.trimIndent(),
+            ),
+            listOf("-Xcollection-literals"),
+        ),
+    )
+
+    include(
+        shouldRewriteMetadataCorrectly(
+            "New API for converting unsigned integers to BigInteger",
+            KotlinSource(
+                "Test.kt",
+                """
+                    val unsignedLong = Long.MAX_VALUE.toULong() + 1uL
+                    val unsignedInt = UInt.MAX_VALUE
+                """.trimIndent(),
+            ),
+        ),
+    )
+
+    include(
+        shouldRewriteMetadataCorrectly(
+            "Checking sorted order",
+            KotlinSource(
+                "Test.kt",
+                """
+                        data class User(val name: String, val age: Int)
+                        
+                        fun main() {
+                            val numbers = listOf(1, 2, 3, 4)
+                            println(numbers.isSorted())
+                            // true
+                        
+                            val users = listOf(
+                                User("Alice", 24),
+                                User("Bob", 31),
+                                User("Charlie", 29),
+                            )
+                            println(users.isSortedBy(User::age))
+                            // false
+                        }
+
                 """.trimIndent(),
             ),
         ),

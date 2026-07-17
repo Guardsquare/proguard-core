@@ -59,7 +59,7 @@ public class KotlinClassKindMetadata extends KotlinDeclarationContainerMetadata
 
   public List<KotlinTypeParameterMetadata> typeParameters;
 
-  public List<KotlinTypeMetadata> contextReceivers;
+  @Deprecated public List<KotlinTypeMetadata> contextReceivers;
 
   public KotlinVersionRequirementMetadata versionRequirement;
 

@@ -48,7 +48,7 @@ public class KotlinPropertyMetadata extends SimpleProcessable implements KotlinA
 
   public KotlinTypeMetadata receiverType;
 
-  public List<KotlinTypeMetadata> contextReceivers;
+  @Deprecated public List<KotlinTypeMetadata> contextReceivers;
   public List<KotlinValueParameterMetadata> contextParameters;
 
   public KotlinVersionRequirementMetadata versionRequirement;

@@ -32,7 +32,7 @@ public class KotlinFunctionMetadata extends SimpleProcessable
 
   public KotlinTypeMetadata receiverType;
 
-  public List<KotlinTypeMetadata> contextReceivers;
+  @Deprecated public List<KotlinTypeMetadata> contextReceivers;
   public List<KotlinValueParameterMetadata> contextParameters;
 
   public KotlinTypeMetadata returnType;

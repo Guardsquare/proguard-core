@@ -8,6 +8,7 @@
 ### Kotlin support
 
 - Add support for inner classes and inner enums used as annotations argument in Kotlin metadata.
+- Add support for processing Kotlin 2.4 metadata.
 
 ### API improvements
 
