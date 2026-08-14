@@ -25,6 +25,7 @@ import io.mockk.verify
 import proguard.classfile.Clazz
 import proguard.classfile.MethodSignature
 import proguard.classfile.editor.MemberReferenceFixer
+import proguard.classfile.kotlin.KotlinConstants
 import proguard.classfile.kotlin.KotlinSyntheticClassKindMetadata
 import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.KotlinFunctionVisitor
@@ -272,6 +273,46 @@ class KotlinMetadataInitializerTest : FreeSpec({
                     logger.accept(
                         ofType<Clazz>(),
                         ofType<String>(),
+                    )
+                }
+            }
+        }
+    }
+
+    "Given an anonymous suspended lambda function" - {
+        val (programClassPool, libraryClassPool) = ClassPoolBuilder.fromSource(
+            KotlinSource(
+                "Test.kt",
+                """
+                fun runIt(block: suspend () -> Unit) { }
+                fun caller() {
+                    runIt { println("hello") }
+                }
+                """.trimIndent(),
+            ),
+        )
+
+        "When the jvmSignature method name is <anonymous>" - {
+            val visitor = spyk<KotlinFunctionVisitor>()
+            val clazz = programClassPool.getClass("TestKt\$caller\$1")
+
+            clazz.kotlinMetadataAccept(
+                AllFunctionVisitor(
+                    { _, _, func -> func.jvmSignature = MethodSignature(func.jvmSignature.className, "<anonymous>", func.jvmSignature.descriptor) },
+                ),
+            )
+            clazz.accept(ClassReferenceInitializer(programClassPool, libraryClassPool))
+            clazz.kotlinMetadataAccept(AllFunctionVisitor(visitor))
+
+            "Then the referencedMethod should be initialized" {
+                verify(exactly = 1) {
+                    visitor.visitSyntheticFunction(
+                        clazz,
+                        ofType<KotlinSyntheticClassKindMetadata>(),
+                        withArg {
+                            it.name shouldBe "<anonymous>"
+                            it.referencedMethod shouldBe clazz.findMethod(KotlinConstants.METHOD_NAME_LAMBDA_INVOKE_SUSPEND, null)
+                        },
                     )
                 }
             }
