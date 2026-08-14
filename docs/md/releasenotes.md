@@ -33,6 +33,7 @@
 - Fix PKCS7OutputStream incorrectly handling escaped quotes certificates.
 - Fix ReferenceTracingInvocationUnit treating the current reference inside constructors as initialized prior to the invocation of the super or object initializer.
 - Fix `NullPointerException` in `ClassReferenceFixer` for Kotlin coroutine suspend lambdas by resolving their `referencedMethod` to `invokeSuspend`.
+- Fix `KotlinMetadataAsserter` incorrectly discarding metadata for top-level function and property callable references when no `.kotlin_module` resource is loaded.
 
 ## Version 9.3.2 
 
