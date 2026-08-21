@@ -47,36 +47,37 @@ allprojects { project ->
 		mavenCentral()
 		google()
 	}
-
-	if (project.name != "proguard-core-examples") {
-		pluginManager.withPlugin('java') {
-			java {
-				toolchain {
-					languageVersion.set(JavaLanguageVersion.of(11))
-				}
-				withJavadocJar()
-				withSourcesJar()
+	pluginManager.withPlugin('java') {
+		java {
+			toolchain {
+				languageVersion.set(JavaLanguageVersion.of(17))
 			}
-			tasks.withType(JavaCompile).configureEach {
-				if (!it.name.contains("Test")) {
+			withJavadocJar()
+			withSourcesJar()
+		}
+		tasks.withType(JavaCompile).configureEach {
+			if (!it.name.contains("Test")) {
+				if (project.name != "proguard-core-examples") {
 					options.release = 8
 				}
-			}
-			tasks.withType(KotlinCompile).configureEach {
-				if (!it.name.contains("Test")) {
-					it.compilerOptions.jvmTarget = JvmTarget.JVM_1_8
-				}
-			}
-
-			javadoc {
-				options.addStringOption('Xdoclint:none', '-quiet')
+			} else {
+				options.release = 11
 			}
 		}
-	}
-	tasks.withType(KotlinCompilationTask.class)
-			.configureEach {
-				compilerOptions.languageVersion = KotlinVersion.KOTLIN_2_0
+		tasks.withType(KotlinCompile).configureEach {
+			if (!it.name.contains("Test")) {
+				it.compilerOptions.jvmTarget = JvmTarget.JVM_1_8
+			} else {
+				it.compilerOptions.jvmTarget = JvmTarget.JVM_11
 			}
+		}
+		javadoc {
+			options.addStringOption('Xdoclint:none', '-quiet')
+		}
+	}
+	tasks.withType(KotlinCompilationTask.class).configureEach {
+		compilerOptions.languageVersion = KotlinVersion.KOTLIN_2_0
+	}
 }
 
 dependencies {

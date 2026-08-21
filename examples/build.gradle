@@ -11,12 +11,3 @@ dependencies {
 	implementation project(':proguard-core')
 	implementation project(':proguard-core-android')
 }
-
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(11))
-	}
-
-	withSourcesJar()
-	withJavadocJar()
-}
