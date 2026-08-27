@@ -30,6 +30,7 @@
 ### Bugfixes
 
 - Fix reference initialization for type aliases defined in file facades with a custom JvmPackageName.
+- Fix `NullPointerException` in `ClassReferenceFixer` when a Kotlin metadata reference left unresolved by an incomplete class pool is dereferenced.
 - Fix PKCS7OutputStream incorrectly handling escaped quotes certificates.
 - Fix ReferenceTracingInvocationUnit treating the current reference inside constructors as initialized prior to the invocation of the super or object initializer.
 - Fix `NullPointerException` in `ClassReferenceFixer` for Kotlin coroutine suspend lambdas by resolving their `referencedMethod` to `invokeSuspend`.
