@@ -89,6 +89,10 @@ public final class ErrorId {
 
   public static final int CG_DOT_GRAPH_IO_EXCEPTION = 12_000;
 
+  public static final int JRT_INVALID_JAVA_HOME = 13_000;
+  public static final int JRT_INVALID_MODULE = 13_001;
+  public static final int JRT_FILE_SYSTEM_ERROR = 13_002;
+
   /**
    * @see proguard.classfile.editor
    */
