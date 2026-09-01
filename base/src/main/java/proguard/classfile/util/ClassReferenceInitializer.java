@@ -319,8 +319,14 @@ public class ClassReferenceInitializer
 
   @Override
   public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
-    libraryMethod.referencedClasses =
-        findReferencedClasses(libraryClass, libraryMethod.getDescriptor(libraryClass));
+    if (libraryMethod.hasPolymorphicSignature) {
+      libraryMethod.referencedClasses =
+          findReferencedClassesForPolymorphicMethod(
+              libraryClass, libraryMethod.getDescriptor(libraryClass));
+    } else {
+      libraryMethod.referencedClasses =
+          findReferencedClasses(libraryClass, libraryMethod.getDescriptor(libraryClass));
+    }
   }
 
   // Implementations for ConstantVisitor.
@@ -1294,6 +1300,40 @@ public class ClassReferenceInitializer
   }
 
   /**
+   * Returns an array of classes referenced by the given descriptor, or <code>null</code> if there
+   * aren't any useful references.
+   */
+  private Clazz[] findReferencedClassesForPolymorphicMethod(
+      Clazz referencingClass, String descriptor) {
+    DescriptorClassEnumeration enumeration = new DescriptorClassEnumeration(descriptor);
+
+    int classCount = enumeration.classCount();
+    if (classCount > 0) {
+      Clazz[] referencedClasses = new Clazz[classCount];
+
+      boolean foundReferencedClasses = false;
+
+      for (int index = 0; index < classCount; index++) {
+        String fluff = enumeration.nextFluff();
+        String name = enumeration.nextClassName();
+
+        Clazz referencedClass = findClass(referencingClass, name, true, false);
+
+        if (referencedClass != null) {
+          referencedClasses[index] = referencedClass;
+          foundReferencedClasses = true;
+        }
+      }
+
+      if (foundReferencedClasses) {
+        return referencedClasses;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Returns the class with the given name, either for the dummy Kotlin class pool, program class
    * pool or from the library class pool, or <code>null</code> if it can't be found.
    */
@@ -1319,8 +1359,10 @@ public class ClassReferenceInitializer
   /**
    * @param report Report if the class is not found. Set to false if the class doesn't necessarily
    *     exist.
+   * @param reportDependency Report if the library class has a dependency on a program class.
    */
-  private Clazz findClass(Clazz referencingClass, String name, boolean report) {
+  private Clazz findClass(
+      Clazz referencingClass, String name, boolean report, boolean reportDependency) {
     // Is it an array type?
     if (ClassUtil.isInternalArrayType(name)) {
       // Ignore any primitive array types.
@@ -1347,12 +1389,20 @@ public class ClassReferenceInitializer
       }
     } else if (referencingClass instanceof LibraryClass) {
       // The superclass or interface was found in the program class pool.
-      if (invalidReferenceVisitor != null) {
+      if (reportDependency && invalidReferenceVisitor != null) {
         invalidReferenceVisitor.visitProgramDependency(referencingClass, clazz);
       }
     }
 
     return clazz;
+  }
+
+  /**
+   * @param report Report if the class is not found. Set to false if the class doesn't necessarily
+   *     exist.
+   */
+  private Clazz findClass(Clazz referencingClass, String name, boolean report) {
+    return findClass(referencingClass, name, report, true);
   }
 
   // Helper classes for KotlinReferenceInitializer.

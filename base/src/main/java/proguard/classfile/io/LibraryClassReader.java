@@ -25,6 +25,7 @@ import static proguard.classfile.util.kotlin.KotlinMetadataInitializer.metadataT
 import java.io.DataInput;
 import java.util.ArrayList;
 import java.util.List;
+import proguard.classfile.AccessConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.LibraryClass;
 import proguard.classfile.LibraryField;
@@ -33,6 +34,7 @@ import proguard.classfile.LibraryMethod;
 import proguard.classfile.ProgramClass;
 import proguard.classfile.ProgramMember;
 import proguard.classfile.TypeConstants;
+import proguard.classfile.attribute.Attribute;
 import proguard.classfile.attribute.annotation.Annotation;
 import proguard.classfile.attribute.annotation.AnnotationElementValue;
 import proguard.classfile.attribute.annotation.ArrayElementValue;
@@ -216,7 +218,7 @@ public class LibraryClassReader implements ClassVisitor, MemberVisitor, Constant
     int visibleMethodsCount = 0;
     for (int index = 0; index < u2methodsCount; index++) {
       LibraryMethod method = new LibraryMethod();
-      this.visitLibraryMember(libraryClass, method);
+      this.visitLibraryMethod(libraryClass, method);
 
       // Only store methods that are visible, except if
       // we're building the Kotlin metadata model, we may need
@@ -243,6 +245,55 @@ public class LibraryClassReader implements ClassVisitor, MemberVisitor, Constant
   // Implementations for MemberVisitor.
 
   public void visitProgramMember(ProgramClass libraryClass, ProgramMember libraryMember) {}
+
+  public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
+    libraryMethod.u2accessFlags = dataInput.readUnsignedShort();
+    libraryMethod.name = getString(dataInput.readUnsignedShort());
+    libraryMethod.descriptor = getString(dataInput.readUnsignedShort());
+
+    final int polymorphicAccessFlags = AccessConstants.VARARGS | AccessConstants.NATIVE;
+    if ((libraryMethod.u2accessFlags & polymorphicAccessFlags) != polymorphicAccessFlags) {
+      skipMemberAttributes();
+      return;
+    }
+    if (!libraryMethod.descriptor.startsWith("([Ljava/lang/Object;)")) {
+      skipMemberAttributes();
+      return;
+    }
+    String className = libraryClass.getName();
+    libraryMethod.hasPolymorphicSignature =
+        "java/lang/invoke/MethodHandle".equals(className)
+            || "java/lang/invoke/VarHandle".equals(className);
+    if (libraryMethod.hasPolymorphicSignature) {
+      skipMemberAttributes();
+      return;
+    }
+
+    for (int attributeCount = dataInput.readUnsignedShort(); attributeCount-- != 0; ) {
+      int u2attributeNameIndex = dataInput.readUnsignedShort();
+      int u4attributeLength = dataInput.readInt();
+      String attributeName = getString(u2attributeNameIndex);
+      if (!Attribute.RUNTIME_VISIBLE_ANNOTATIONS.equals(attributeName)) {
+        dataInput.skipBytes(u4attributeLength);
+        continue;
+      }
+      int u2AnnotationCount = dataInput.readUnsignedShort();
+      while (u2AnnotationCount-- != 0) {
+        int u2typeIndex = dataInput.readUnsignedShort();
+        String annotationType = getString(u2typeIndex);
+        if ("Ljava/lang/invoke/MethodHandle$PolymorphicSignature;".equals(annotationType)) {
+          libraryMethod.hasPolymorphicSignature = true;
+        }
+        int u2elementValuesCount = dataInput.readUnsignedShort();
+        while (u2elementValuesCount-- != 0) {
+          int u2elementNameIndex = dataInput.readUnsignedShort();
+          ElementValue elementValue = createElementValue();
+          elementValue.u2elementNameIndex = u2elementNameIndex;
+          elementValue.accept(libraryClass, new Annotation(), new SkipAnnotationElementVisitor());
+        }
+      }
+    }
+  }
 
   public void visitLibraryMember(LibraryClass libraryClass, LibraryMember libraryMember) {
     // Read the general field information.
