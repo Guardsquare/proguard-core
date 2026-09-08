@@ -21,6 +21,7 @@
 - Add processing flags helper methods to `Processable`.
 - Add `isLeader` and `isFallThrough` methods to the `BranchTargetFinder`. These methods can be used to determine if an offset is the leader of a basic block or the fallthrough of a conditional branch respectively.
 - Deprecate methods of `CallGraphWalker` using a default depth and width.
+- Improve performance of `CallGraphWalker`. This makes exploring the full width of even huge `CallGraph`s possible, removing the need for a maximum width.
 
 ### Improved
 
