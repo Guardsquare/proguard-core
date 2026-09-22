@@ -1,28 +1,10 @@
-/*
- * ProGuardCORE -- library to process Java bytecode.
- *
- * Copyright (c) 2002-2022 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package proguard.classfile.editor;
 
 import static proguard.classfile.kotlin.KotlinConstants.FUNCTION_NAME_MANGLE_SEPARATOR;
 import static proguard.classfile.kotlin.KotlinConstants.TYPE_KOTLIN_JVM_JVMNAME;
 import static proguard.classfile.util.ClassUtil.internalSimpleClassName;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.Arrays;
 import proguard.classfile.ClassConstants;
 import proguard.classfile.Clazz;
 import proguard.classfile.Field;
@@ -121,8 +103,8 @@ import proguard.exception.ProguardCoreException;
  * and kotlin metadata to classes whose names have changed. Descriptors of programMember references
  * are not updated yet.
  *
- * @see MemberReferenceFixer
  * @author Eric Lafortune
+ * @see MemberReferenceFixer
  */
 public class ClassReferenceFixer
     implements ClassVisitor,
@@ -137,16 +119,14 @@ public class ClassReferenceFixer
         LocalVariableTypeInfoVisitor,
         AnnotationVisitor,
         ElementValueVisitor {
-  private static final Logger logger = LogManager.getLogger(ClassReferenceFixer.class);
-
-  private NameGenerationStrategy newNameStrategy;
+  private final NameGenerationStrategy newNameStrategy;
 
   private final KotlinReferenceFixer kotlinReferenceFixer = new KotlinReferenceFixer();
 
   /**
    * Creates a new ClassReferenceFixer.
    *
-   * @param ensureUniqueMemberNames specifies whether class members whose descriptor changes should
+   * @param ensureUniqueMemberNames Specifies whether class members whose descriptor changes should
    *     get new, unique names, in order to avoid naming conflicts with similar methods.
    */
   public ClassReferenceFixer(boolean ensureUniqueMemberNames) {
@@ -164,7 +144,7 @@ public class ClassReferenceFixer
   /**
    * Creates a new ClassReferenceFixer.
    *
-   * @param newNameStrategy specifies how class members whose descriptor changes should get a new
+   * @param newNameStrategy Specifies how class members whose descriptor changes should get a new
    *     name in order to avoid naming conflicts with similar members.
    */
   public ClassReferenceFixer(NameGenerationStrategy newNameStrategy) {
@@ -204,6 +184,7 @@ public class ClassReferenceFixer
 
   // Implementations for MemberVisitor.
 
+  @Override
   public void visitProgramField(ProgramClass programClass, ProgramField programField) {
     // Has the descriptor changed?
     String descriptor = programField.getDescriptor(programClass);
@@ -212,6 +193,7 @@ public class ClassReferenceFixer
     visitProgramMember(programClass, programField, descriptor, newDescriptor);
   }
 
+  @Override
   public void visitProgramMethod(ProgramClass programClass, ProgramMethod programMethod) {
     String descriptor = programMethod.getDescriptor(programClass);
     String newDescriptor = newDescriptor(descriptor, programMethod.referencedClasses);
@@ -243,15 +225,16 @@ public class ClassReferenceFixer
     programMember.attributesAccept(programClass, this);
   }
 
+  @Override
   public void visitLibraryField(LibraryClass libraryClass, LibraryField libraryField) {
     // Has the descriptor changed?
     String descriptor = libraryField.getDescriptor(libraryClass);
-    String newDescriptor = newDescriptor(descriptor, libraryField.referencedClass);
 
     // Update the descriptor.
-    libraryField.descriptor = newDescriptor;
+    libraryField.descriptor = newDescriptor(descriptor, libraryField.referencedClass);
   }
 
+  @Override
   public void visitLibraryMethod(LibraryClass libraryClass, LibraryMethod libraryMethod) {
     // Has the descriptor changed?
     String descriptor = libraryMethod.getDescriptor(libraryClass);
@@ -265,8 +248,10 @@ public class ClassReferenceFixer
 
   // Implementations for ConstantVisitor.
 
+  @Override
   public void visitAnyConstant(Clazz clazz, Constant constant) {}
 
+  @Override
   public void visitStringConstant(Clazz clazz, StringConstant stringConstant) {
     // Does the string refer to a class, due to a Class.forName construct?
     Clazz referencedClass = stringConstant.referencedClass;
@@ -279,8 +264,7 @@ public class ClassReferenceFixer
 
       // Update the String entry if required.
       if (!newInternalClassName.equals(internalClassName)) {
-        // Only convert to an internal class name if the original was
-        // an internal class name too.
+        // Only convert to an internal class name if the original was an internal class name too.
         String newClassName =
             externalClassName.indexOf(TypeConstants.PACKAGE_SEPARATOR) >= 0
                 ? newInternalClassName
@@ -293,6 +277,7 @@ public class ClassReferenceFixer
     }
   }
 
+  @Override
   public void visitDynamicConstant(Clazz clazz, DynamicConstant dynamicConstant) {
     // Has the descriptor changed?
     String descriptor = dynamicConstant.getType(clazz);
@@ -307,6 +292,7 @@ public class ClassReferenceFixer
     }
   }
 
+  @Override
   public void visitInvokeDynamicConstant(Clazz clazz, InvokeDynamicConstant invokeDynamicConstant) {
     // Has the descriptor changed?
     String descriptor = invokeDynamicConstant.getType(clazz);
@@ -321,6 +307,7 @@ public class ClassReferenceFixer
     }
   }
 
+  @Override
   public void visitClassConstant(Clazz clazz, ClassConstant classConstant) {
     // Do we know the referenced class?
     Clazz referencedClass = classConstant.referencedClass;
@@ -336,6 +323,7 @@ public class ClassReferenceFixer
     }
   }
 
+  @Override
   public void visitMethodTypeConstant(Clazz clazz, MethodTypeConstant methodTypeConstant) {
     // Has the descriptor changed?
     String descriptor = methodTypeConstant.getType(clazz);
@@ -350,23 +338,28 @@ public class ClassReferenceFixer
 
   // Implementations for AttributeVisitor.
 
+  @Override
   public void visitAnyAttribute(Clazz clazz, Attribute attribute) {}
 
+  @Override
   public void visitRecordAttribute(Clazz clazz, RecordAttribute recordAttribute) {
     // Fix the components.
     recordAttribute.componentsAccept(clazz, this);
   }
 
+  @Override
   public void visitInnerClassesAttribute(Clazz clazz, InnerClassesAttribute innerClassesAttribute) {
     // Fix the inner class names.
     innerClassesAttribute.innerClassEntriesAccept(clazz, this);
   }
 
+  @Override
   public void visitCodeAttribute(Clazz clazz, Method method, CodeAttribute codeAttribute) {
     // Fix the attributes.
     codeAttribute.attributesAccept(clazz, method, this);
   }
 
+  @Override
   public void visitLocalVariableTableAttribute(
       Clazz clazz,
       Method method,
@@ -376,6 +369,7 @@ public class ClassReferenceFixer
     localVariableTableAttribute.localVariablesAccept(clazz, method, codeAttribute, this);
   }
 
+  @Override
   public void visitLocalVariableTypeTableAttribute(
       Clazz clazz,
       Method method,
@@ -385,6 +379,7 @@ public class ClassReferenceFixer
     localVariableTypeTableAttribute.localVariablesAccept(clazz, method, codeAttribute, this);
   }
 
+  @Override
   public void visitSignatureAttribute(Clazz clazz, SignatureAttribute signatureAttribute) {
     // Has the signature changed?
     String signature = signatureAttribute.getSignature(clazz);
@@ -397,17 +392,20 @@ public class ClassReferenceFixer
     }
   }
 
+  @Override
   public void visitAnyAnnotationsAttribute(Clazz clazz, AnnotationsAttribute annotationsAttribute) {
     // Fix the annotations.
     annotationsAttribute.annotationsAccept(clazz, this);
   }
 
+  @Override
   public void visitAnyParameterAnnotationsAttribute(
       Clazz clazz, Method method, ParameterAnnotationsAttribute parameterAnnotationsAttribute) {
     // Fix the annotations.
     parameterAnnotationsAttribute.annotationsAccept(clazz, method, this);
   }
 
+  @Override
   public void visitAnnotationDefaultAttribute(
       Clazz clazz, Method method, AnnotationDefaultAttribute annotationDefaultAttribute) {
     // Fix the annotation.
@@ -416,6 +414,7 @@ public class ClassReferenceFixer
 
   // Implementations for RecordComponentInfoVisitor.
 
+  @Override
   public void visitRecordComponentInfo(Clazz clazz, RecordComponentInfo recordComponentInfo) {
     // Fix the attributes.
     recordComponentInfo.attributesAccept(clazz, this);
@@ -423,6 +422,7 @@ public class ClassReferenceFixer
 
   // Implementations for InnerClassesInfoVisitor.
 
+  @Override
   public void visitInnerClassesInfo(Clazz clazz, InnerClassesInfo innerClassesInfo) {
     // Fix the inner class name.
     int innerClassIndex = innerClassesInfo.u2innerClassIndex;
@@ -445,6 +445,7 @@ public class ClassReferenceFixer
 
   // Implementations for LocalVariableInfoVisitor.
 
+  @Override
   public void visitLocalVariableInfo(
       Clazz clazz,
       Method method,
@@ -463,6 +464,7 @@ public class ClassReferenceFixer
 
   // Implementations for LocalVariableTypeInfoVisitor.
 
+  @Override
   public void visitLocalVariableTypeInfo(
       Clazz clazz,
       Method method,
@@ -481,6 +483,7 @@ public class ClassReferenceFixer
 
   // Implementations for AnnotationVisitor.
 
+  @Override
   public void visitAnnotation(Clazz clazz, Annotation annotation) {
     // Has the type changed?
     String typeName = annotation.getType(clazz);
@@ -498,9 +501,11 @@ public class ClassReferenceFixer
 
   // Implementations for ElementValueVisitor.
 
+  @Override
   public void visitConstantElementValue(
       Clazz clazz, Annotation annotation, ConstantElementValue constantElementValue) {}
 
+  @Override
   public void visitEnumConstantElementValue(
       Clazz clazz, Annotation annotation, EnumConstantElementValue enumConstantElementValue) {
     // Has the type name changed?
@@ -514,6 +519,7 @@ public class ClassReferenceFixer
     }
   }
 
+  @Override
   public void visitClassElementValue(
       Clazz clazz, Annotation annotation, ClassElementValue classElementValue) {
     // Has the class info changed?
@@ -527,12 +533,14 @@ public class ClassReferenceFixer
     }
   }
 
+  @Override
   public void visitAnnotationElementValue(
       Clazz clazz, Annotation annotation, AnnotationElementValue annotationElementValue) {
     // Fix the annotation.
     annotationElementValue.annotationAccept(clazz, this);
   }
 
+  @Override
   public void visitArrayElementValue(
       Clazz clazz, Annotation annotation, ArrayElementValue arrayElementValue) {
     // Fix the element values.
@@ -552,7 +560,9 @@ public class ClassReferenceFixer
           KotlinAnnotationVisitor,
           KotlinAnnotationArgumentVisitor,
           KotlinPropertyAccessorVisitor {
+
     // Implementations for KotlinMetadataVisitor.
+
     @Override
     public void visitAnyKotlinMetadata(Clazz clazz, KotlinMetadata kotlinMetadata) {}
 
@@ -656,6 +666,7 @@ public class ClassReferenceFixer
     }
 
     // Implementations for KotlinPropertyVisitor.
+
     @Override
     public void visitAnyProperty(
         Clazz clazz,
@@ -713,6 +724,7 @@ public class ClassReferenceFixer
     }
 
     // Implementations for KotlinFunctionVisitor.
+
     @Override
     public void visitAnyFunction(
         Clazz clazz, KotlinMetadata kotlinMetadata, KotlinFunctionMetadata kotlinFunctionMetadata) {
@@ -749,6 +761,7 @@ public class ClassReferenceFixer
     }
 
     // Implementations for KotlinConstructorVisitor.
+
     @Override
     public void visitConstructor(
         Clazz clazz,
@@ -764,6 +777,7 @@ public class ClassReferenceFixer
     }
 
     // Implementations for KotlinTypeVisitor.
+
     @Override
     public void visitAnyType(Clazz clazz, KotlinTypeMetadata kotlinTypeMetadata) {
       if (kotlinTypeMetadata.className != null) {
@@ -780,6 +794,7 @@ public class ClassReferenceFixer
     }
 
     // Implementations for KotlinTypeAliasVisitor.
+
     @Override
     public void visitTypeAlias(
         Clazz clazz,
@@ -791,7 +806,8 @@ public class ClassReferenceFixer
       kotlinTypeAliasMetadata.typeParametersAccept(clazz, kotlinDeclarationContainerMetadata, this);
     }
 
-    // Implementations for KotlinValueParameterVisitor
+    // Implementations for KotlinValueParameterVisitor.
+
     @Override
     public void visitAnyValueParameter(
         Clazz clazz, KotlinValueParameterMetadata kotlinValueParameterMetadata) {
@@ -851,7 +867,8 @@ public class ClassReferenceFixer
       visitAnyValueParameter(clazz, kotlinValueParameterMetadata);
     }
 
-    // Implementations for KotlinTypeParameterVisitor
+    // Implementations for KotlinTypeParameterVisitor.
+
     @Override
     public void visitAnyTypeParameter(
         Clazz clazz, KotlinTypeParameterMetadata kotlinTypeParameterMetadata) {
@@ -877,7 +894,7 @@ public class ClassReferenceFixer
       kotlinPropertyAccessorMetadata.annotationsAccept(clazz, this);
     }
 
-    // Implementations for KotlinAnnotationVisitor
+    // Implementations for KotlinAnnotationVisitor.
 
     @Override
     public void visitAnyAnnotation(
@@ -889,7 +906,7 @@ public class ClassReferenceFixer
       annotation.argumentsAccept(clazz, annotatable, this);
     }
 
-    // Implementation for KotlinAnnotationArgumentVisitor
+    // Implementations for KotlinAnnotationArgumentVisitor.
 
     @Override
     public void visitAnyArgument(
@@ -929,19 +946,19 @@ public class ClassReferenceFixer
 
   // Small utility methods.
 
-  /** Returns the short classname to be used as the nested classname. */
+  /** Returns the short class name to be used as the nested class name. */
   public static String shortKotlinNestedClassName(
       String enclosingClassName, String shortInnerClassName, Clazz referencedClass) {
-    String newFulllName =
+    String newFullName =
         newClassName(enclosingClassName + "$" + shortInnerClassName, referencedClass);
 
-    if (newFulllName.equals(enclosingClassName + "$" + shortInnerClassName)) {
+    if (newFullName.equals(enclosingClassName + "$" + shortInnerClassName)) {
       // If the name has not changed, no need to recompute the short name.
       // Original names may contain `$` so reusing the name here avoids the problem of
       // finding the short name from the full name.
       return shortInnerClassName;
     } else {
-      return internalSimpleClassName(newFulllName);
+      return internalSimpleClassName(newFullName);
     }
   }
 
@@ -959,7 +976,7 @@ public class ClassReferenceFixer
 
   /**
    * Returns the new descriptor of a field after applying the obfuscation, given the old descriptor
-   * and the referenced classes.
+   * and the referenced class.
    */
   private static String newDescriptor(String descriptor, Clazz referencedClass) {
     // If there is no referenced class, the descriptor won't change.
@@ -974,8 +991,8 @@ public class ClassReferenceFixer
     StringBuilder newDescriptorBuffer = new StringBuilder(descriptor.length());
     newDescriptorBuffer.append(descriptorClassEnumeration.nextFluff());
 
-    // Only if the descriptor contains a class name (e.g. with an array of
-    // primitive types), the descriptor can change.
+    // Only if the descriptor contains a class name (e.g. with an array of primitive types), the
+    // descriptor can change.
     if (descriptorClassEnumeration.hasMoreClassNames()) {
       String className = descriptorClassEnumeration.nextClassName();
       String fluff = descriptorClassEnumeration.nextFluff();
@@ -994,6 +1011,21 @@ public class ClassReferenceFixer
    * and the referenced classes.
    */
   public static String newDescriptor(String descriptor, Clazz[] referencedClasses) {
+    if (referencedClasses == null) {
+      return descriptor;
+    }
+    return newDescriptor(
+        descriptor,
+        Arrays.stream(referencedClasses)
+            .map(clazz -> clazz == null ? null : clazz.getName())
+            .toArray(String[]::new));
+  }
+
+  /**
+   * Returns the new descriptor of a method after applying the obfuscation, given the old descriptor
+   * and the referenced classes.
+   */
+  public static String newDescriptor(String descriptor, String[] referencedClasses) {
     // If there are no referenced classes, the descriptor won't change.
     if (referencedClasses == null || referencedClasses.length == 0) {
       return descriptor;
@@ -1042,13 +1074,13 @@ public class ClassReferenceFixer
               .append(referencedClasses.length)
               .append(System.lineSeparator());
       for (int index = 0; index < referencedClasses.length; index++) {
-        Clazz referencedClass = referencedClasses[index];
+        String referencedClass = referencedClasses[index];
         if (referencedClass != null) {
           error
               .append("    #")
               .append(index)
               .append(": [")
-              .append(referencedClass.getName())
+              .append(referencedClass)
               .append("]")
               .append(System.lineSeparator());
         }
@@ -1062,13 +1094,24 @@ public class ClassReferenceFixer
    * referenced class. Class names of array types are handled properly.
    */
   private static String newClassName(String className, Clazz referencedClass) {
+    if (referencedClass == null) {
+      return className;
+    }
+    return newClassName(className, referencedClass.getName());
+  }
+
+  /**
+   * Returns the new class name based on the given class name and the new name of the given
+   * referenced class. Class names of array types are handled properly.
+   */
+  private static String newClassName(String className, String referencedClass) {
     // If there is no referenced class, the class name won't change.
     if (referencedClass == null) {
       return className;
     }
 
     // Reconstruct the class name.
-    String newClassName = referencedClass.getName();
+    String newClassName = referencedClass;
 
     // Is it an array type?
     if (className.charAt(0) == TypeConstants.ARRAY) {
@@ -1080,14 +1123,6 @@ public class ClassReferenceFixer
     }
 
     return newClassName;
-  }
-
-  private static String newInnerClassName(
-      String enclosingClassName, String shortInnerClassName, Clazz referencedClass) {
-    String newFulllName =
-        newClassName(enclosingClassName + "$" + shortInnerClassName, referencedClass);
-
-    return newFulllName.substring(newFulllName.indexOf('$') + 1);
   }
 
   // Small utility helper methods for KotlinReferenceFixer.

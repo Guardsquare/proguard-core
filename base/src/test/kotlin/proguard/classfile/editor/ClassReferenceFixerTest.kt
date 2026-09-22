@@ -1,24 +1,7 @@
-/*
- * ProGuardCORE -- library to process Java bytecode.
- *
- * Copyright (c) 2002-2021 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package proguard.classfile.editor
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -47,6 +30,8 @@ import proguard.classfile.kotlin.KotlinAnnotatable
 import proguard.classfile.kotlin.KotlinAnnotation
 import proguard.classfile.kotlin.KotlinAnnotationArgument
 import proguard.classfile.kotlin.KotlinDeclarationContainerMetadata
+import proguard.classfile.kotlin.KotlinFunctionMetadata
+import proguard.classfile.kotlin.KotlinMetadata
 import proguard.classfile.kotlin.KotlinTypeMetadata
 import proguard.classfile.kotlin.visitor.AllFunctionVisitor
 import proguard.classfile.kotlin.visitor.AllKotlinAnnotationArgumentVisitor
@@ -65,6 +50,7 @@ import proguard.classfile.visitor.ClassNameFilter
 import proguard.classfile.visitor.MemberCounter
 import proguard.classfile.visitor.MemberNameFilter
 import proguard.classfile.visitor.MultiClassVisitor
+import proguard.exception.ProguardCoreException
 import proguard.testutils.ClassPoolBuilder
 import proguard.testutils.JavaSource
 import proguard.testutils.KotlinSource
@@ -77,17 +63,17 @@ class ClassReferenceFixerTest : FunSpec({
             shortKotlinNestedClassName("OuterClass", "innerClass", referencedClass) shouldBe "innerClass"
         }
 
-        // dollar symbols are valid in Kotlin when surrounded by backticks `$innerClass`
+        // Dollar symbols are valid in Kotlin when surrounded by backticks `$innerClass`.
         test("with 1 dollar symbol") {
             val referencedClass =
-                ClassBuilder(55, PUBLIC, "OuterClass\$\$innerClass", NAME_JAVA_LANG_OBJECT).programClass
+                ClassBuilder(55, PUBLIC, "OuterClass$\$innerClass", NAME_JAVA_LANG_OBJECT).programClass
             shortKotlinNestedClassName("OuterClass", "\$innerClass", referencedClass) shouldBe "\$innerClass"
         }
 
         test("with multiple dollar symbols") {
             val referencedClass =
-                ClassBuilder(55, PUBLIC, "OuterClass\$\$\$inner\$Class", NAME_JAVA_LANG_OBJECT).programClass
-            shortKotlinNestedClassName("OuterClass", "\$\$inner\$Class", referencedClass) shouldBe "\$\$inner\$Class"
+                ClassBuilder(55, PUBLIC, "OuterClass$$\$inner\$Class", NAME_JAVA_LANG_OBJECT).programClass
+            shortKotlinNestedClassName("OuterClass", "$\$inner\$Class", referencedClass) shouldBe "$\$inner\$Class"
         }
 
         test("when they have a new name") {
@@ -154,7 +140,7 @@ class ClassReferenceFixerTest : FunSpec({
                     innerEnum = OuterClass.InnerEnum.Value1,
                     annotation = Foo("foo")) String = "foo"
 
-                // extra helpers
+                // Extra helpers.
 
                 enum class MyEnum { FOO, BAR }
                 annotation class Foo(val string: String)
@@ -184,7 +170,7 @@ class ClassReferenceFixerTest : FunSpec({
                             else -> it.name
                         }
                     },
-                    // Rename all the methods in the annotation class
+                    // Rename all the methods in the annotation class.
                     ClassNameFilter(
                         "MyRenamedTypeAnnotation",
                         AllMethodVisitor(
@@ -201,7 +187,7 @@ class ClassReferenceFixerTest : FunSpec({
                 ),
             )
 
-            // The ClassReferenceFixer should rename everything correctly
+            // The ClassReferenceFixer should rename everything correctly.
             classesAccept(ClassReferenceFixer(false))
         }
 
@@ -434,7 +420,7 @@ class ClassReferenceFixerTest : FunSpec({
                 "Test.kt",
                 """
                 interface Service {
-                    // This results in a mangled JVM method name like `useCase-IoAF18A`
+                    // This results in a mangled JVM method name like `useCase-IoAF18A`.
                     suspend fun useCase(): Result<Int>
                 }
                 """.trimIndent(),
@@ -470,7 +456,7 @@ class ClassReferenceFixerTest : FunSpec({
     context("Given a Kotlin coroutine suspend lambda") {
         // A suspend lambda compiles to a SuspendLambda subclass whose body lives in
         // invokeSuspend(Object)Object, not invoke, so ClassReferenceInitializer must resolve
-        // referencedMethod to invokeSuspend. Otherwise it stays null and NPEs the fixer (#175).
+        // referencedMethod to invokeSuspend. Otherwise, it stays null and NPEs the fixer (#175).
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             KotlinSource(
                 "Test.kt",
@@ -491,8 +477,8 @@ class ClassReferenceFixerTest : FunSpec({
                         object : KotlinFunctionVisitor {
                             override fun visitAnyFunction(
                                 clazz: Clazz,
-                                metadata: proguard.classfile.kotlin.KotlinMetadata,
-                                function: proguard.classfile.kotlin.KotlinFunctionMetadata,
+                                metadata: KotlinMetadata,
+                                function: KotlinFunctionMetadata,
                             ) {
                                 if (function.jvmSignature?.method != "<anonymous>") return
                                 function.referencedMethod shouldNotBe null
@@ -544,7 +530,7 @@ class ClassReferenceFixerTest : FunSpec({
         }
     }
 
-    context("Given two classes with an unidirectional association relationship") {
+    context("Given two classes with a unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -565,7 +551,7 @@ class ClassReferenceFixerTest : FunSpec({
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
         context("When we obfuscate the Producer class") {
-            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+            programClassPool.classAccept("Producer", ClassRenamer { "Obfuscated" })
 
             context("And apply the ClassReferenceFixer without ensuring unique names") {
                 programClassPool.classesAccept(ClassReferenceFixer(false))
@@ -577,7 +563,7 @@ class ClassReferenceFixerTest : FunSpec({
         }
     }
 
-    context("Given two classes with an unidirectional association relationship") {
+    context("Given two classes with a unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -598,7 +584,7 @@ class ClassReferenceFixerTest : FunSpec({
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
         context("When we obfuscate the Producer class") {
-            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+            programClassPool.classAccept("Producer", ClassRenamer { "Obfuscated" })
 
             context("And apply the ClassReferenceFixer with ensuring unique names") {
                 programClassPool.classesAccept(ClassReferenceFixer(true))
@@ -633,7 +619,7 @@ class ClassReferenceFixerTest : FunSpec({
             }
         }
 
-    context("Given two classes with an unidirectional association relationship") {
+    context("Given two classes with a unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -654,7 +640,7 @@ class ClassReferenceFixerTest : FunSpec({
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
         context("When we obfuscate the Producer class") {
-            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+            programClassPool.classAccept("Producer", ClassRenamer { "Obfuscated" })
 
             context("And there is no member signature clashing") {
                 context("But we apply the ClassReferenceFixer with rename member when there is a member signature clash") {
@@ -668,7 +654,7 @@ class ClassReferenceFixerTest : FunSpec({
         }
     }
 
-    context("Given two classes with an unidirectional association relationship") {
+    context("Given two classes with a unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -689,7 +675,7 @@ class ClassReferenceFixerTest : FunSpec({
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
         context("When we obfuscate the Producer class and introduce a member that clashes") {
-            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+            programClassPool.classAccept("Producer", ClassRenamer { "Obfuscated" })
             val consumerClass = programClassPool.getClass("Consumer") as ProgramClass
             val fieldToRename = consumerClass.findField("producer", "LProducer;")
             val constantEditor = ConstantPoolEditor(consumerClass)
@@ -714,7 +700,7 @@ class ClassReferenceFixerTest : FunSpec({
         }
     }
 
-    context("Given two classes with an unidirectional association relationship") {
+    context("Given two classes with a unidirectional association relationship") {
         val (programClassPool, _) = ClassPoolBuilder.fromSource(
             JavaSource(
                 "Producer.java",
@@ -738,7 +724,7 @@ class ClassReferenceFixerTest : FunSpec({
         programClassPool.classesAccept(ClassReferenceInitializer(programClassPool, programClassPool))
 
         context("When we obfuscate the Producer class and introduce a member that clashes") {
-            programClassPool.classAccept("Producer", ClassRenamer({ "Obfuscated" }))
+            programClassPool.classAccept("Producer", ClassRenamer { "Obfuscated" })
             val consumerClass = programClassPool.getClass("Consumer") as ProgramClass
             val fieldToRename = consumerClass.findField("producer", "LProducer;")
             val methodToRename = consumerClass.findMethod("getProducer", "()LProducer;")
@@ -874,6 +860,58 @@ class ClassReferenceFixerTest : FunSpec({
                 classStringConstantFinder.foundConstant shouldNotBe null
                 classStringConstantFinder.foundConstant?.getString(reflectClassWithPackage) shouldBe newClassWithPackageExternalName
             }
+        }
+    }
+
+    context("newDescriptor testing") {
+        test("The new descriptor can be found for existing referenced classes") {
+            ClassReferenceFixer.newDescriptor(
+                "(LMyClass;IJCZLYourClass;LHis\$Class;)LOurClass;",
+                arrayOf("MyRenamed", "YourRenamed", "His\$Renamed", "OurRenamed"),
+            ) shouldBe "(LMyRenamed;IJCZLYourRenamed;LHis\$Renamed;)LOurRenamed;"
+        }
+
+        test("The new descriptor can be found for null String references") {
+            ClassReferenceFixer.newDescriptor(
+                "(LMyClass;IJCZLYourClass;)LOurClass;",
+                arrayOf("MyRenamed", null, null),
+            ) shouldBe "(LMyRenamed;IJCZLYourClass;)LOurClass;"
+        }
+
+        test("The new descriptor can be found for null Clazz references") {
+            ClassReferenceFixer.newDescriptor(
+                "(LMyClass;IJCZLYourClass;)LOurClass;",
+                arrayOf<Clazz?>(null, null, null),
+            ) shouldBe "(LMyClass;IJCZLYourClass;)LOurClass;"
+        }
+
+        test("An exception is thrown for too few references") {
+            shouldThrow<ProguardCoreException> {
+                ClassReferenceFixer.newDescriptor(
+                    "(LMyClass;IJCZLYourClass;)LOurClass;",
+                    arrayOf("MyRenamed", null),
+                )
+            }
+        }
+
+        test("No exception is thrown for too many references") {
+            ClassReferenceFixer.newDescriptor(
+                "(LMyClass;IJCZLYourClass;)LOurClass;",
+                arrayOf("MyRenamed", null, "OurRenamed", null),
+            ) shouldBe "(LMyRenamed;IJCZLYourClass;)LOurRenamed;"
+        }
+
+        test("The original descriptor is returned for null arrays") {
+            val referencedClazzNull: Array<Clazz>? = null
+            val referencedStringNull: Array<String>? = null
+            ClassReferenceFixer.newDescriptor(
+                "(LMyClass;)LYourClass;",
+                referencedClazzNull,
+            ) shouldBe "(LMyClass;)LYourClass;"
+            ClassReferenceFixer.newDescriptor(
+                "(LMyClass;)LYourClass;",
+                referencedStringNull,
+            ) shouldBe "(LMyClass;)LYourClass;"
         }
     }
 })
