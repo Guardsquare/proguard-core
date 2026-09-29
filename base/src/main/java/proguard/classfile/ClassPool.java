@@ -18,11 +18,9 @@
 package proguard.classfile;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import proguard.classfile.visitor.ClassPoolVisitor;
 import proguard.classfile.visitor.ClassVisitor;
@@ -43,8 +41,8 @@ public class ClassPool {
   // in order to make the processing more deterministic.
   private final TreeMap<String, Clazz> classes = new TreeMap<>();
 
-  // Keep a separate set of the classes to speed up `contains(Clazz)`.
-  private final Set<Clazz> clazzSet = new HashSet<>();
+  // Keep a separate reverse map of the classes to speed up `contains(Clazz)` and reverse lookup.
+  private final Map<Clazz, String> reverse = new HashMap<>();
 
   /** Creates a new empty ClassPool. */
   public ClassPool() {}
@@ -83,7 +81,7 @@ public class ClassPool {
   /** Clears the class pool. */
   public void clear() {
     classes.clear();
-    clazzSet.clear();
+    reverse.clear();
   }
 
   /** Adds the given Clazz to the class pool. */
@@ -94,8 +92,8 @@ public class ClassPool {
   /** Adds the given Clazz with the given name to the class pool. */
   public void addClass(String name, Clazz clazz) {
     Clazz existing = classes.put(name, clazz);
-    clazzSet.remove(existing);
-    clazzSet.add(clazz);
+    reverse.remove(existing);
+    reverse.put(clazz, name);
   }
 
   /** Removes the given Clazz from the class pool. */
@@ -106,7 +104,7 @@ public class ClassPool {
   /** Removes the Class with the specified name from the class pool. */
   public Clazz removeClass(String className) {
     Clazz removed = classes.remove(className);
-    clazzSet.remove(removed);
+    reverse.remove(removed);
     return removed;
   }
 
@@ -122,9 +120,13 @@ public class ClassPool {
     return classes.get(className);
   }
 
+  public String getOriginalName(Clazz clazz) {
+    return reverse.get(clazz);
+  }
+
   /** Checks whether the given class exists in the class pool. */
   public boolean contains(Clazz clazz) {
-    return clazzSet.contains(clazz);
+    return reverse.containsKey(clazz);
   }
 
   // Note: for consistency, use visitors whenever possible.
@@ -158,7 +160,7 @@ public class ClassPool {
    * useful to create a map with obfuscated names as keys.
    */
   public <T> Map<String, T> refreshedKeysCopy(Map<String, T> map) {
-    Map<String, T> refreshedMap = new HashMap<String, T>(map.size());
+    Map<String, T> refreshedMap = new HashMap<>(map.size());
 
     // Iterate over all entries.
     for (Map.Entry<String, T> entry : map.entrySet()) {
@@ -180,7 +182,7 @@ public class ClassPool {
    * useful to create a map with obfuscated names as values.
    */
   public <T> Map<T, String> refreshedValuesCopy(Map<T, String> map) {
-    Map<T, String> refreshedMap = new HashMap<T, String>(map.size());
+    Map<T, String> refreshedMap = new HashMap<>(map.size());
 
     // Iterate over all entries.
     for (Map.Entry<T, String> entry : map.entrySet()) {
@@ -200,9 +202,12 @@ public class ClassPool {
    * Returns a Map that represents a mapping from every Clazz in the ClassPool to its original name.
    * This can be useful to retrieve the original name of classes after name obfuscation has been
    * applied.
+   *
+   * @deprecated use {@link #getOriginalName(Clazz)} instead.
    */
+  @Deprecated
   public Map<Clazz, String> reverseMapping() {
-    Map<Clazz, String> reversedMap = new HashMap<Clazz, String>(classes.size());
+    Map<Clazz, String> reversedMap = new HashMap<>(classes.size());
 
     // Reverse each entry.
     for (String originalClassName : classes.keySet()) {
