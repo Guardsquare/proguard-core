@@ -39,9 +39,6 @@ import proguard.util.StringMatcher;
  */
 public class ClassPool {
 
-  private static final boolean ENABLE_CLASSPOOL_ASSERTS =
-      System.getProperty("enable.class.pool.asserts") != null;
-
   // We're using a sorted tree map instead of a hash map to store the classes,
   // in order to make the processing more deterministic.
   private final TreeMap<String, Clazz> classes = new TreeMap<>();
@@ -97,14 +94,6 @@ public class ClassPool {
   /** Adds the given Clazz with the given name to the class pool. */
   public void addClass(String name, Clazz clazz) {
     Clazz existing = classes.put(name, clazz);
-    if (ENABLE_CLASSPOOL_ASSERTS) {
-      if (existing != null) {
-        throw new AssertionError(
-            String.format(
-                "Replacing an existing class %s (%s) with %s",
-                name, existing.getName(), clazz.getName()));
-      }
-    }
     clazzSet.remove(existing);
     clazzSet.add(clazz);
   }
