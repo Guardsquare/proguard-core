@@ -48,20 +48,27 @@ test {
 
 def testAllJavaVersions = tasks.register("testAllJavaVersions") { dependsOn(test) }
 
-javaVersionsForTest.each {version ->
+testing.suites.register("testAllJavaVersionsSuite", JvmTestSuite) {
+	targets.with {
+		for (version in javaVersionsForTest) {
+			def testJavaVersion = register("testJava$version") {
+				testTask.configure { testTask ->
+					testTask.testClassesDirs = sourceSets.test.output.classesDirs
+					testTask.classpath = sourceSets.test.runtimeClasspath
+					// The version of bytebuddy used by mockk only supports Java 20 experimentally so far
+					if (version == 20) testTask.systemProperty 'net.bytebuddy.experimental', true
 
-	def testVersion = tasks.register("testJava$version",Test) {
-		// The version of bytebuddy used by mockk only supports Java 20 experimentally so far
-		if (version == 20) systemProperty 'net.bytebuddy.experimental', true
-
-		useJUnitPlatform()
+					testTask.useJUnitPlatform()
 
 
-		javaLauncher = javaToolchains.launcherFor {
-			languageVersion = JavaLanguageVersion.of(version)
+					testTask.javaLauncher = javaToolchains.launcherFor {
+						languageVersion = JavaLanguageVersion.of(version)
+					}
+				}
+			}
+			testAllJavaVersions.configure { it.dependsOn(testJavaVersion) }
 		}
 	}
-	testAllJavaVersions.configure { dependsOn(testVersion) }
 }
 
 
@@ -73,7 +80,7 @@ jacocoTestReport {
 	sourceDirectories.setFrom(sources)
 	def classes = files(sourceSets.main.output.classesDirs)
 	classDirectories.setFrom(classes)
-	executionData.setFrom project.fileTree(dir: "$project.buildDir/jacoco", include: '*.exec')
+	executionData.setFrom project.fileTree(dir: project.layout.buildDirectory.dir("jacoco").get(), include: '*.exec')
 	reports {
 		xml.required = true
 		csv.required = false
