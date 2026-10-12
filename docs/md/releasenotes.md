@@ -1,3 +1,9 @@
+## Version 9.4.1
+
+### Improved
+
+- Greatly improved performance for generalization of deeply nested CompositeIntegerValues.
+
 ## Version 9.4.0
 
 ### Java support 

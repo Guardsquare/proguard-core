@@ -17,11 +17,13 @@
  */
 package proguard.evaluation.value;
 
-/**
- * This {@link IntegerValue} represents the result of a binary operation on two integer values.
- *
- * @author Eric Lafortune
- */
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+/** This {@link IntegerValue} represents the result of a binary operation on two integer values. */
 public final class CompositeIntegerValue extends SpecificIntegerValue {
   public static final byte ADD = '+';
   public static final byte SUBTRACT = '-';
@@ -39,31 +41,95 @@ public final class CompositeIntegerValue extends SpecificIntegerValue {
   private final byte operation;
   private final IntegerValue integerValue2;
 
-  /**
-   * Creates a new composite integer value of the two given integer values and the given operation.
-   */
+  private final int hash;
+
   public CompositeIntegerValue(
       IntegerValue integerValue1, byte operation, IntegerValue integerValue2) {
     this.integerValue1 = integerValue1;
     this.operation = operation;
     this.integerValue2 = integerValue2;
+
+    this.hash = Objects.hash(super.hashCode(), integerValue1, operation, integerValue2);
   }
 
   // Implementations for Object.
 
+  @Override
   public boolean equals(Object object) {
-    return this == object
-        || super.equals(object)
-            && this.integerValue1.equals(((CompositeIntegerValue) object).integerValue1)
-            && this.operation == ((CompositeIntegerValue) object).operation
-            && this.integerValue2.equals(((CompositeIntegerValue) object).integerValue2);
+    if (this == object) {
+      return true;
+    }
+    if (!super.equals(object)) {
+      return false;
+    }
+
+    CompositeIntegerValue other = (CompositeIntegerValue) object;
+    if (this.hash != other.hash || this.operation != other.operation) {
+      return false; // cheap reject
+    }
+
+    Map<Object, Set<Object>> visited = new IdentityHashMap<>();
+
+    return equalsMemoised(other, visited);
   }
 
+  /** Structural comparison of the children of two nodes whose operation and hash match. */
+  private boolean equalsMemoised(CompositeIntegerValue other, Map<Object, Set<Object>> visited) {
+    IntegerValue a1 = this.integerValue1, a2 = this.integerValue2;
+    IntegerValue b1 = other.integerValue1, b2 = other.integerValue2;
+
+    // Shared-child shortcut (x+x vs y+y): one comparison instead of two.
+    if (a1 == a2 && b1 == b2) {
+      return childEquals(a1, b1, visited);
+    }
+    return childEquals(a1, b1, visited) && childEquals(a2, b2, visited);
+  }
+
+  private static boolean childEquals(
+      IntegerValue a, IntegerValue b, Map<Object, Set<Object>> visited) {
+
+    if (a == b) {
+      return true;
+    }
+
+    if (a instanceof CompositeIntegerValue && b instanceof CompositeIntegerValue) {
+      CompositeIntegerValue ca = (CompositeIntegerValue) a;
+      CompositeIntegerValue cb = (CompositeIntegerValue) b;
+
+      // Same checks equals() would do, without going through it.
+      // We don't need to verify if .getClass() are equal since CompositeIntegerValue is final.
+      if (ca.hash != cb.hash || ca.operation != cb.operation) {
+        return false;
+      }
+
+      // Already compared in this equals() call: any mismatch would
+      // have aborted the whole comparison, so it's safe to treat as equal.
+      // Note: that since the map is not bidirectional, its possible that ca.equals(cb) is not found
+      // while cb.equals(ca) already exists. Solving this properly, would require double the amount
+      // of memory,
+      // which is overkill for a situation that won't happen that frequently.
+      Set<Object> seen =
+          visited.computeIfAbsent(ca, k -> Collections.newSetFromMap(new IdentityHashMap<>()));
+      if (!seen.add(cb)) {
+        return true;
+      }
+      return ca.equalsMemoised(cb, visited);
+    }
+
+    // Original behaviour when either side is not composite.
+    return a.equals(b);
+  }
+
+  @Override
   public int hashCode() {
-    return super.hashCode() ^ integerValue1.hashCode() ^ integerValue2.hashCode();
+    return hash;
   }
 
+  @Override
   public String toString() {
-    return "(" + integerValue1 + ((char) operation) + integerValue2 + ")";
+    String type1 = (integerValue1 != null) ? integerValue1.getClass().getSimpleName() : "null";
+    String type2 = (integerValue2 != null) ? integerValue2.getClass().getSimpleName() : "null";
+
+    return "(" + type1 + ((char) operation) + type2 + ")";
   }
 }
