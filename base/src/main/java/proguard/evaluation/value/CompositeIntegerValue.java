@@ -65,7 +65,7 @@ public final class CompositeIntegerValue extends SpecificIntegerValue {
 
     CompositeIntegerValue other = (CompositeIntegerValue) object;
     if (this.hash != other.hash || this.operation != other.operation) {
-      return false; // cheap reject
+      return false;
     }
 
     Map<Object, Set<Object>> visited = new IdentityHashMap<>();
@@ -73,12 +73,14 @@ public final class CompositeIntegerValue extends SpecificIntegerValue {
     return equalsMemoised(other, visited);
   }
 
-  /** Structural comparison of the children of two nodes whose operation and hash match. */
+  /**
+   * Recursive comparison of nested IntegerValues. We use a map to
+   * keep track of which comparisons have already been made in the past, to avoid duplicate work.
+   */
   private boolean equalsMemoised(CompositeIntegerValue other, Map<Object, Set<Object>> visited) {
     IntegerValue a1 = this.integerValue1, a2 = this.integerValue2;
     IntegerValue b1 = other.integerValue1, b2 = other.integerValue2;
 
-    // Shared-child shortcut (x+x vs y+y): one comparison instead of two.
     if (a1 == a2 && b1 == b2) {
       return childEquals(a1, b1, visited);
     }
@@ -106,8 +108,7 @@ public final class CompositeIntegerValue extends SpecificIntegerValue {
       // have aborted the whole comparison, so it's safe to treat as equal.
       // Note: that since the map is not bidirectional, its possible that ca.equals(cb) is not found
       // while cb.equals(ca) already exists. Solving this properly, would require double the amount
-      // of memory,
-      // which is overkill for a situation that won't happen that frequently.
+      // of memory, which is overkill for a situation that won't happen that frequently.
       Set<Object> seen =
           visited.computeIfAbsent(ca, k -> Collections.newSetFromMap(new IdentityHashMap<>()));
       if (!seen.add(cb)) {
@@ -116,7 +117,6 @@ public final class CompositeIntegerValue extends SpecificIntegerValue {
       return ca.equalsMemoised(cb, visited);
     }
 
-    // Original behaviour when either side is not composite.
     return a.equals(b);
   }
 
