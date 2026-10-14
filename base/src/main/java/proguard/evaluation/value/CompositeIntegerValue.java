@@ -74,8 +74,8 @@ public final class CompositeIntegerValue extends SpecificIntegerValue {
   }
 
   /**
-   * Recursive comparison of nested IntegerValues. We use a map to
-   * keep track of which comparisons have already been made in the past, to avoid duplicate work.
+   * Recursive comparison of nested IntegerValues. We use a map to keep track of which comparisons
+   * have already been made in the past, to avoid duplicate work.
    */
   private boolean equalsMemoised(CompositeIntegerValue other, Map<Object, Set<Object>> visited) {
     IntegerValue a1 = this.integerValue1, a2 = this.integerValue2;
