@@ -265,6 +265,7 @@ class ClassUtilTest : BehaviorSpec({
 
     Given("Class names starting with a char representing a primitive") {
         Then("It should not be considered a primitive") {
+            // This test is intentionally passing wrong data to isInternalPrimitiveType() as the method expect internal types.
             checkAll(listOf('Z', 'B', 'S', 'C', 'I', 'F', 'D', 'J').exhaustive(), Arb.string(minSize = 1, maxSize = 20)) { prefix, name ->
                 val className = "$prefix$name"
                 ClassUtil.isInternalPrimitiveType(className) shouldBe false

@@ -2084,16 +2084,35 @@ public class InstructionSequenceBuilder {
    *
    * <p>Operand stack: ... -> ..., array.
    *
-   * @param type The array element type (or class name in case of objects).
+   * @param elementTypeOrClassName The array element type (or class name in case of objects).
    * @param size The size of the array to be created.
+   * @deprecated Prefer using the more robust version {{@link #pushArray(String, int)}}
    */
-  public InstructionSequenceBuilder pushNewArray(String type, int size) {
+  @Deprecated
+  public InstructionSequenceBuilder pushNewArray(String elementTypeOrClassName, int size) {
     // Create new array.
     pushInt(size);
 
-    return ClassUtil.isInternalPrimitiveType(type)
-        ? newarray(InstructionUtil.arrayTypeFromInternalType(type.charAt(0)))
-        : anewarray(type, null);
+    return ClassUtil.isInternalPrimitiveType(elementTypeOrClassName)
+        ? newarray(InstructionUtil.arrayTypeFromInternalType(elementTypeOrClassName.charAt(0)))
+        : anewarray(elementTypeOrClassName, null);
+  }
+
+  /**
+   * Pushes a new array on the stack.
+   *
+   * <p>Operand stack: ... -> ..., array.
+   *
+   * @param elementInternalType The array element internal type.
+   * @param size The size of the array to be created.
+   */
+  public InstructionSequenceBuilder pushArray(String elementInternalType, int size) {
+    // Create new array.
+    pushInt(size);
+
+    return ClassUtil.isInternalPrimitiveType(elementInternalType)
+        ? newarray(InstructionUtil.arrayTypeFromInternalType(elementInternalType.charAt(0)))
+        : anewarray(ClassUtil.internalClassTypeFromType(elementInternalType), null);
   }
 
   /**
@@ -2104,16 +2123,17 @@ public class InstructionSequenceBuilder {
    *
    * <p>Operand stack: ... -> ..., array.
    *
-   * @param type The array element type (or class name in case of objects).
+   * @param elementInternalType The array element type.
    * @param values The array values.
    */
-  public InstructionSequenceBuilder pushPrimitiveOrStringArray(String type, Object[] values) {
-    String internalClassType = ClassUtil.internalClassTypeFromType(type);
+  public InstructionSequenceBuilder pushPrimitiveOrStringArray(
+      String elementInternalType, Object[] values) {
+    String internalClassType = ClassUtil.internalClassTypeFromType(elementInternalType);
     pushNewArray(internalClassType, values.length);
     dup();
     for (int i = 0; i < values.length; i++) {
       pushInt(i);
-      pushPrimitiveOrString(values[i], type);
+      pushPrimitiveOrString(values[i], elementInternalType);
       storeToArray(internalClassType);
       if (i != values.length - 1) {
         dup();
