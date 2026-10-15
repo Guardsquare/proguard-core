@@ -6,6 +6,10 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.throwable.shouldHaveMessage
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.string
+import io.kotest.property.checkAll
+import io.kotest.property.exhaustive.exhaustive
 import proguard.classfile.AccessConstants.PUBLIC
 import proguard.classfile.JavaTypeConstants
 import proguard.classfile.TypeConstants
@@ -256,6 +260,15 @@ class ClassUtilTest : BehaviorSpec({
         Then("Converting it to an external method arguments description should return any-arguments") {
             ClassUtil.externalMethodArguments(internalMethodDescriptor, false) shouldBe "..."
             ClassUtil.externalMethodArguments(internalMethodDescriptor, true) shouldBe "..."
+        }
+    }
+
+    Given("Class names starting with a char representing a primitive") {
+        Then("It should not be considered a primitive") {
+            checkAll(listOf('Z', 'B', 'S', 'C', 'I', 'F', 'D', 'J').exhaustive(), Arb.string(minSize = 1, maxSize = 20)) { prefix, name ->
+                val className = "$prefix$name"
+                ClassUtil.isInternalPrimitiveType(className) shouldBe false
+            }
         }
     }
 })
