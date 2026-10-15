@@ -415,7 +415,7 @@ public class ClassUtil {
    *     otherwise.
    */
   public static boolean isInternalPrimitiveType(String internalType) {
-    return isInternalPrimitiveType(internalType.charAt(0));
+    return internalType.length() == 1 && isInternalPrimitiveType(internalType.charAt(0));
   }
 
   /**
