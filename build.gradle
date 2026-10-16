@@ -43,10 +43,6 @@ allprojects { project ->
 	group = 'com.guardsquare'
 	version = proguardCoreVersion
 
-	repositories {
-		mavenCentral()
-		google()
-	}
 	pluginManager.withPlugin('java') {
 		java {
 			toolchain {
