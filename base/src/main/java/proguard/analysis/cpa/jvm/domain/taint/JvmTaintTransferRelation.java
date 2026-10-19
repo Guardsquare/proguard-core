@@ -247,6 +247,25 @@ public class JvmTaintTransferRelation extends JvmTransferRelation<SetAbstractSta
                 value);
             break;
           }
+        case Instruction.OP_GETSTATIC:
+          {
+            constantLookupVisitor.isStatic = true;
+            clazz.constantPoolEntryAccept(constantInstruction.constantIndex, constantLookupVisitor);
+            SetAbstractState<TaintSource> result =
+                abstractState.getStaticOrDefault(
+                    constantLookupVisitor.result, getAbstractDefault());
+            Set<TaintSource> fieldSources =
+                taintSources.get(constantLookupVisitor.resultFieldSignature);
+            if (fieldSources != null && !fieldSources.isEmpty()) {
+              result = result.copy();
+              result.addAll(fieldSources);
+            }
+            if (constantLookupVisitor.resultSize > 1) {
+              abstractState.push(getAbstractDefault());
+            }
+            abstractState.push(result);
+            break;
+          }
         default:
           super.visitConstantInstruction(clazz, method, codeAttribute, offset, constantInstruction);
       }
