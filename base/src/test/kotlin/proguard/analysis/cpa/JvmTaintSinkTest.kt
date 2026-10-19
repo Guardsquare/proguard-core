@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import proguard.analysis.CallResolver
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.analysis.datastructure.callgraph.Call
@@ -67,7 +67,7 @@ class JvmTaintSinkTest : FreeSpec({
     val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPoolAndCallGraph(classPool, callGraph)
 
     val taintSourceReturnSignature = MethodSignature("A", "source", "()Ljava/lang/String;")
-    val taintSourceReturn = JvmTaintSource(
+    val taintSourceReturn = JvmMethodTaintSource(
         taintSourceReturnSignature,
         false,
         true,
@@ -88,8 +88,9 @@ class JvmTaintSinkTest : FreeSpec({
 
     "Call filter selects the correct call" {
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn), setOf(taintSinkArgumentLast))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn), setOf(taintSinkArgumentLast))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
 
         interproceduralCfa.clear()

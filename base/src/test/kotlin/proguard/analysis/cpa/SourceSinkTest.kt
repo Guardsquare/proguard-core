@@ -4,26 +4,26 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource
 import proguard.classfile.MethodSignature
 
 class SourceSinkTest : FreeSpec({
     "Taint sources" - {
-        val source1 = JvmTaintSource(
+        val source1 = JvmMethodTaintSource(
             MethodSignature("Test", "source1", "(Ljava/lang/String;II)Ljava/lang/String;"),
             true,
             true,
             setOf(1, 3),
             setOf("Test.field", "Test.other"),
         )
-        val source1Copy = JvmTaintSource(
+        val source1Copy = JvmMethodTaintSource(
             MethodSignature("Test", "source1", "(Ljava/lang/String;II)Ljava/lang/String;"),
             true,
             true,
             setOf(1, 3),
             setOf("Test.field", "Test.other"),
         )
-        val source2 = JvmTaintSource(
+        val source2 = JvmMethodTaintSource(
             MethodSignature("Test", "source2", "()Ljava/lang/String;"),
             false,
             true,

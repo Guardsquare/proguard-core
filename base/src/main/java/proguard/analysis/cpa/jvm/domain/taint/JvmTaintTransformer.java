@@ -1,6 +1,7 @@
 package proguard.analysis.cpa.jvm.domain.taint;
 
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.domain.taint.TaintSource;
 
 /**
  * Class that can be passed to {@link
@@ -18,8 +19,7 @@ public interface JvmTaintTransformer {
    * @param returnValue the original return state
    * @return the modified return state
    */
-  default SetAbstractState<JvmTaintSource> transformReturn(
-      SetAbstractState<JvmTaintSource> returnValue) {
+  default SetAbstractState<TaintSource> transformReturn(SetAbstractState<TaintSource> returnValue) {
     return returnValue;
   }
 }

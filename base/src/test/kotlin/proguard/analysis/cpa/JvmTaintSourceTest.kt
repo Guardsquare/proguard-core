@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import proguard.analysis.CallResolver
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
+import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.analysis.datastructure.callgraph.Call
@@ -70,7 +70,7 @@ class JvmTaintSourceTest : FreeSpec({
     val interproceduralCfa = CfaUtil.createInterproceduralCfaFromClassPoolAndCallGraph(classPool, callGraph)
 
     val taintSourceReturnLastSignature = MethodSignature("A", "source", "()Ljava/lang/String;")
-    val taintSourceReturnLast = JvmTaintSource(
+    val taintSourceReturnLast = JvmMethodTaintSource(
         taintSourceReturnLastSignature,
         { c -> callGraph.incoming[c.target]!!.maxOf { it.caller.offset } == c.caller.offset },
         false,
