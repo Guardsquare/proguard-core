@@ -1,28 +1,10 @@
-/*
- * ProGuardCORE -- library to process Java bytecode.
- *
- * Copyright (c) 2002-2022 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package proguard.analysis.cpa
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink
+import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource
 import proguard.analysis.cpa.jvm.domain.taint.JvmReturnTaintSink
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource
 import proguard.analysis.cpa.jvm.util.CfaUtil
 import proguard.analysis.cpa.util.TaintAnalyzer
 import proguard.classfile.MethodSignature
@@ -31,28 +13,28 @@ import proguard.testutils.JavaSource
 
 class TraceExtractorTest : StringSpec({
 
-    val taintSourceReturn1 = JvmTaintSource(
+    val taintSourceReturn1 = JvmMethodTaintSource(
         MethodSignature("A", "source1", "()Ljava/lang/String;"),
         false,
         true,
         setOf(),
         setOf(),
     )
-    val taintSourceReturn2 = JvmTaintSource(
+    val taintSourceReturn2 = JvmMethodTaintSource(
         MethodSignature("A", "source2", "()Ljava/lang/String;"),
         false,
         true,
         setOf(),
         setOf(),
     )
-    val taintSourceStatic = JvmTaintSource(
+    val taintSourceStatic = JvmMethodTaintSource(
         MethodSignature("A", "source", "()V"),
         false,
         false,
         setOf(),
         setOf("A.s:Ljava/lang/String;"),
     )
-    val taintSourceReturnDouble = JvmTaintSource(
+    val taintSourceReturnDouble = JvmMethodTaintSource(
         MethodSignature("A", "source", "()D"),
         false,
         true,
@@ -122,10 +104,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -174,10 +159,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -227,9 +215,15 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
+        val taintAnalyzer = TaintAnalyzer.Builder(
+            interproceduralCfa,
+            setOf(taintSourceReturn1, taintSourceReturn2),
+            setOf(taintSinkArgument),
+        )
             .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
@@ -237,19 +231,19 @@ class TraceExtractorTest : StringSpec({
 
         interproceduralCfa.clear()
 
-            /*
-        Bytecode of main:
-            [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-            [3] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
-            [6] invokestatic #4 = Methodref(A.source2()Ljava/lang/String;)
-            [9] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
-            [12] return
+        /*
+    Bytecode of main:
+        [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+        [3] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
+        [6] invokestatic #4 = Methodref(A.source2()Ljava/lang/String;)
+        [9] invokestatic #3 = Methodref(A.callee(Ljava/lang/String;)V)
+        [12] return
 
-         Bytecode of callee:
-             [0] aload_0 v0
-             [1] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
-             [4] return
-        */
+     Bytecode of callee:
+         [0] aload_0 v0
+         [1] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
+         [4] return
+    */
 
         traces.map { trace -> trace.map { it.toString() } }.toSet() shouldBe setOf(
             listOf(
@@ -300,7 +294,9 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
         val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceStatic), setOf(taintSinkStatic))
             .build()
@@ -351,10 +347,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -397,10 +396,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -448,10 +450,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -495,10 +500,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -541,10 +549,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentLong))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentLong))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -587,10 +598,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentMultiple))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgumentMultiple))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -641,24 +655,27 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
 
-            /*
-        Bytecode of main:
-            [0] iload_1 v1
-            [1] ifeq +9 (target=10)
-            [4] invokestatic #2 = Methodref(A.getSource1()Ljava/lang/String;)
-            [7] goto +6 (target=13)
-            [10] invokestatic #3 = Methodref(A.getSource2()Ljava/lang/String;)
-            [13] invokestatic #4 = Methodref(A.sink(Ljava/lang/String;)V)
-            [16] return
-         */
+        /*
+    Bytecode of main:
+        [0] iload_1 v1
+        [1] ifeq +9 (target=10)
+        [4] invokestatic #2 = Methodref(A.getSource1()Ljava/lang/String;)
+        [7] goto +6 (target=13)
+        [10] invokestatic #3 = Methodref(A.getSource2()Ljava/lang/String;)
+        [13] invokestatic #4 = Methodref(A.sink(Ljava/lang/String;)V)
+        [16] return
+     */
 
         traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
             listOf(
@@ -715,10 +732,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -766,10 +786,13 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
@@ -815,28 +838,34 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
+        val taintAnalyzer = TaintAnalyzer.Builder(
+            interproceduralCfa,
+            setOf(taintSourceReturn1, taintSourceReturn2),
+            setOf(taintSinkArgument),
+        )
             .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
 
-            /*
-        Bytecode of main:
-            [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-            [3] astore_2 v2
-            [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-            [7] astore_3 v3
-            [8] iload_1 v1
-            [9] ifeq +7 (target=16)
-            [12] aload_2 v2
-            [13] goto +4 (target=17)
-            [16] aload_3 v3
-            [17] invokestatic #3 = Methodref(A.sink(Ljava/lang/String;)V)
-            [20] return
-        */
+        /*
+    Bytecode of main:
+        [0] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+        [3] astore_2 v2
+        [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+        [7] astore_3 v3
+        [8] iload_1 v1
+        [9] ifeq +7 (target=16)
+        [12] aload_2 v2
+        [13] goto +4 (target=17)
+        [16] aload_3 v3
+        [17] invokestatic #3 = Methodref(A.sink(Ljava/lang/String;)V)
+        [20] return
+    */
 
         traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
             listOf(
@@ -907,31 +936,37 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
+        val taintAnalyzer = TaintAnalyzer.Builder(
+            interproceduralCfa,
+            setOf(taintSourceReturn1, taintSourceReturn2),
+            setOf(taintSinkArgument),
+        )
             .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
 
-            /*
-        Bytecode of main:
-            [0] iload_1 v1
-            [1] ifeq +12 (target=13)
-            [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-            [7] putstatic #3 = Fieldref(A.s Ljava/lang/String;)
-            [10] goto +6 (target=16)
-            [13] invokestatic #4 = Methodref(A.callee()V)
-            [16] getstatic #3 = Fieldref(A.s Ljava/lang/String;)
-            [19] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
-            [22] return
+        /*
+    Bytecode of main:
+        [0] iload_1 v1
+        [1] ifeq +12 (target=13)
+        [4] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+        [7] putstatic #3 = Fieldref(A.s Ljava/lang/String;)
+        [10] goto +6 (target=16)
+        [13] invokestatic #4 = Methodref(A.callee()V)
+        [16] getstatic #3 = Fieldref(A.s Ljava/lang/String;)
+        [19] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
+        [22] return
 
-        Bytecode of callee:
-            [0] invokestatic #6 = Methodref(A.source2()Ljava/lang/String;)
-            [3] putstatic #3 = Fieldref(A.s Ljava/lang/String;)
-            [6] return
-        */
+    Bytecode of callee:
+        [0] invokestatic #6 = Methodref(A.source2()Ljava/lang/String;)
+        [3] putstatic #3 = Fieldref(A.s Ljava/lang/String;)
+        [6] return
+    */
 
         traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
             listOf(
@@ -986,40 +1021,46 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1, taintSourceReturn2), setOf(taintSinkArgument))
+        val taintAnalyzer = TaintAnalyzer.Builder(
+            interproceduralCfa,
+            setOf(taintSourceReturn1, taintSourceReturn2),
+            setOf(taintSinkArgument),
+        )
             .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
 
-            /*
-        Bytecode of main:
-            [0] aload_0 v0
-            [1] iload_1 v1
-            [2] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
-            [5] invokestatic #3 = Methodref(A.source2()Ljava/lang/String;)
-            [8] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
-            [11] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
-            [14] return
+        /*
+    Bytecode of main:
+        [0] aload_0 v0
+        [1] iload_1 v1
+        [2] invokestatic #2 = Methodref(A.source1()Ljava/lang/String;)
+        [5] invokestatic #3 = Methodref(A.source2()Ljava/lang/String;)
+        [8] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
+        [11] invokestatic #5 = Methodref(A.sink(Ljava/lang/String;)V)
+        [14] return
 
-        Bytecode of callee:
-            [0] iload_1 v1
-            [1] ifeq +21 (target=22)
-            [4] aload_0 v0
-            [5] iload_1 v1
-            [6] ifne +7 (target=13)
-            [9] iconst_1
-            [10] goto +4 (target=14)
-            [13] iconst_0
-            [14] aload_2 v2
-            [15] aload_3 v3
-            [16] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
-            [19] goto +4 (target=23)
-            [22] aload_2 v2
-            [23] areturn
-         */
+    Bytecode of callee:
+        [0] iload_1 v1
+        [1] ifeq +21 (target=22)
+        [4] aload_0 v0
+        [5] iload_1 v1
+        [6] ifne +7 (target=13)
+        [9] iconst_1
+        [10] goto +4 (target=14)
+        [13] iconst_0
+        [14] aload_2 v2
+        [15] aload_3 v3
+        [16] invokevirtual #4 = Methodref(A.callee(ZLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;)
+        [19] goto +4 (target=23)
+        [22] aload_2 v2
+        [23] areturn
+     */
 
         traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
             listOf(
@@ -1070,23 +1111,26 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkArgument))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()
 
-            /*
-        Bytecode of main:
-            [0] invokestatic #2 = Methodref(A.callee()V)
-            [3] ldc #3 = String("42")
-            [5] putstatic #4 = Fieldref(A.s1 Ljava/lang/String;)
-            [8] getstatic #7 = Fieldref(A.s Ljava/lang/String;)
-            [11] invokestatic #8 = Methodref(A.sink(Ljava/lang/String;)V)
-            [14] return
-         */
+        /*
+    Bytecode of main:
+        [0] invokestatic #2 = Methodref(A.callee()V)
+        [3] ldc #3 = String("42")
+        [5] putstatic #4 = Fieldref(A.s1 Ljava/lang/String;)
+        [8] getstatic #7 = Fieldref(A.s Ljava/lang/String;)
+        [11] invokestatic #8 = Methodref(A.sink(Ljava/lang/String;)V)
+        [14] return
+     */
 
         traces.map { it.map { it.toString() } }.toSet() shouldBe setOf(
             listOf(
@@ -1132,22 +1176,24 @@ class TraceExtractorTest : StringSpec({
                 javacArguments = listOf("-source", "1.8", "-target", "1.8"),
             ).programClassPool,
         )
-            /*
-            Bytecode of main:
-                [0] invokestatic #2 = Methodref(A.callee()Ljava/lang/String;)
-                [3] invokestatic #3 = Methodref(A.sink(Ljava/lang/String;)Ljava/lang/String;)
-                [6] pop
-                [7] return
+        /*
+        Bytecode of main:
+            [0] invokestatic #2 = Methodref(A.callee()Ljava/lang/String;)
+            [3] invokestatic #3 = Methodref(A.sink(Ljava/lang/String;)Ljava/lang/String;)
+            [6] pop
+            [7] return
 
-            Bytecode of callee:
-                [0] invokestatic #4 = Methodref(A.source1()Ljava/lang/String;)
-                [3] areturn
+        Bytecode of callee:
+            [0] invokestatic #4 = Methodref(A.source1()Ljava/lang/String;)
+            [3] areturn
 
-            Bytecode of sink:
-                [0] aload_0 v0
-                [1] areturn
-             */
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        Bytecode of sink:
+            [0] aload_0 v0
+            [1] areturn
+         */
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
         val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturn1), setOf(taintSinkReturn))
             .build()
@@ -1196,25 +1242,28 @@ class TraceExtractorTest : StringSpec({
             javacArguments = listOf("-source", "1.8", "-target", "1.8"),
         )
         val interproceduralCfa = CfaUtil.createInterproceduralCfa(programClassPool)
-            /*
-            Bytecode of main:
-                 [0] invokestatic #7 = Methodref(A.source()D)
-                 [3] invokestatic #13 = Methodref(A.foo(D)V)
-                 [6] return
-            Bytecode of source:
-                 [0] dconst_0
-                 [1] dreturn
-            Bytecode of foo:
-                [0] dload_0 v0
-                [1] invokestatic #17 = Methodref(A.sink(D)V)
-                [4] return
-            Bytecode of sink:
-                [0] return
-             */
-        val mainSignature = interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst().get().signature
+        /*
+        Bytecode of main:
+             [0] invokestatic #7 = Methodref(A.source()D)
+             [3] invokestatic #13 = Methodref(A.foo(D)V)
+             [6] return
+        Bytecode of source:
+             [0] dconst_0
+             [1] dreturn
+        Bytecode of foo:
+            [0] dload_0 v0
+            [1] invokestatic #17 = Methodref(A.sink(D)V)
+            [4] return
+        Bytecode of sink:
+            [0] return
+         */
+        val mainSignature =
+            interproceduralCfa!!.functionEntryNodes.stream().filter { it.signature.fqn.contains("main") }.findFirst()
+                .get().signature
 
-        val taintAnalyzer = TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturnDouble), setOf(taintSinkArgumentDouble))
-            .build()
+        val taintAnalyzer =
+            TaintAnalyzer.Builder(interproceduralCfa, setOf(taintSourceReturnDouble), setOf(taintSinkArgumentDouble))
+                .build()
         val result = taintAnalyzer.analyze(mainSignature).traceReconstructionResult
         interproceduralCfa.clear()
         val traces = result.extractLinearTraces()

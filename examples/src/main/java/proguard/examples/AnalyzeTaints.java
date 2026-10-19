@@ -5,11 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import proguard.analysis.cpa.defaults.SetAbstractState;
+import proguard.analysis.cpa.domain.taint.TaintSource;
 import proguard.analysis.cpa.jvm.cfa.JvmCfa;
 import proguard.analysis.cpa.jvm.domain.memory.BamLocationDependentJvmMemoryLocation;
 import proguard.analysis.cpa.jvm.domain.taint.JvmInvokeTaintSink;
+import proguard.analysis.cpa.jvm.domain.taint.JvmMethodTaintSource;
 import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSink;
-import proguard.analysis.cpa.jvm.domain.taint.JvmTaintSource;
 import proguard.analysis.cpa.jvm.util.CfaUtil;
 import proguard.analysis.cpa.util.TaintAnalyzer;
 import proguard.classfile.ClassPool;
@@ -32,14 +33,14 @@ public class AnalyzeTaints {
       JvmCfa cfa = CfaUtil.createInterproceduralCfaFromClassPool(programClassPool);
 
       // Create a taint source.
-      JvmTaintSource source =
-          new JvmTaintSource(
+      JvmMethodTaintSource source =
+          new JvmMethodTaintSource(
               new MethodSignature(
                   "A", "source", "()Ljava/lang/String;"), // the signature of a source method
               false, // whether the source taints the calling instance
               true, // whether the source taints its return
               Collections.emptySet(), // a set of tainted arguments
-              Collections.emptySet()); // taintsGlobals - a set of tainted global variables
+              Collections.emptySet()); // taintGlobals - a set of tainted global variables
 
       // Create a taint sink.
       JvmTaintSink sink =
@@ -61,7 +62,7 @@ public class AnalyzeTaints {
               .build();
 
       // Run the analysis and get witness traces.
-      Set<List<BamLocationDependentJvmMemoryLocation<SetAbstractState<JvmTaintSource>>>> traces =
+      Set<List<BamLocationDependentJvmMemoryLocation<SetAbstractState<TaintSource>>>> traces =
           analyzer.analyze(mainSignature).getTraceReconstructionResult().extractLinearTraces();
 
       // Print the analysis result.

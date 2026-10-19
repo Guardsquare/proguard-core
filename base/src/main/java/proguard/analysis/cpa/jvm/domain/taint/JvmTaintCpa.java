@@ -1,21 +1,3 @@
-/*
- * ProGuardCORE -- library to process Java bytecode.
- *
- * Copyright (c) 2002-2022 Guardsquare NV
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package proguard.analysis.cpa.jvm.domain.taint;
 
 import java.util.Collections;
@@ -38,17 +20,17 @@ import proguard.classfile.MethodSignature;
 import proguard.classfile.Signature;
 
 /**
- * The {@link JvmTaintCpa} computes abstract states containing {@link JvmTaintSource}s which can
- * reach the given code location.
+ * The {@link JvmTaintCpa} computes abstract states containing {@link TaintSource}s which can reach
+ * the given code location.
  */
-public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<JvmTaintSource>>> {
+public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<TaintSource>>> {
 
   /**
    * Create a taint CPA.
    *
    * @param sources a set of taint sources
    */
-  public JvmTaintCpa(Set<? extends JvmTaintSource> sources) {
+  public JvmTaintCpa(Set<? extends TaintSource> sources) {
     this(
         createSourcesMap(sources),
         Collections.emptyMap(),
@@ -67,7 +49,7 @@ public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<Jvm
    * @param abortOperator an operator used to stop the analysis prematurely.
    */
   public JvmTaintCpa(
-      Map<Signature, Set<JvmTaintSource>> signaturesToSources,
+      Map<Signature, Set<TaintSource>> signaturesToSources,
       Map<MethodSignature, JvmTaintTransformer> taintTransformers,
       Map<Call, Set<JvmMemoryLocation>> extraTaintPropagationLocations,
       AbortOperator abortOperator) {
@@ -81,14 +63,14 @@ public class JvmTaintCpa extends SimpleCpa<JvmAbstractState<SetAbstractState<Jvm
   }
 
   /**
-   * Since the used data structure is a map that uses the fqn as key, which is a parameter of the
-   * {@link TaintSource}s, this method constructs the map correctly starting from a set of sources.
+   * Constructs a map from the source signatures to the sources with that signature, starting from a
+   * set of sources.
    */
-  public static Map<Signature, Set<JvmTaintSource>> createSourcesMap(
-      Set<? extends JvmTaintSource> sources) {
-    Map<Signature, Set<JvmTaintSource>> taintSourcesMap = new HashMap<>();
+  public static Map<Signature, Set<TaintSource>> createSourcesMap(
+      Set<? extends TaintSource> sources) {
+    Map<Signature, Set<TaintSource>> taintSourcesMap = new HashMap<>();
     sources.forEach(
-        s -> taintSourcesMap.computeIfAbsent(s.signature, key -> new HashSet<>()).add(s));
+        s -> taintSourcesMap.computeIfAbsent(s.getSignature(), key -> new HashSet<>()).add(s));
     return taintSourcesMap;
   }
 }
