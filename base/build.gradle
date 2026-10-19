@@ -1,13 +1,23 @@
 plugins {
-	id 'java'
+	id 'proguardcore.conventions'
 	id 'distribution'
 	id 'java-library'
 	id 'maven-publish'
 	id 'signing'
 	id 'jacoco'
 	id "java-test-fixtures"
-	alias(libs.plugins.kotlin.plugin)
 	alias(libs.plugins.test.logger)
+}
+
+configurations {
+	jarDistribution {
+		canBeConsumed = true
+		canBeResolved = false
+	}
+}
+
+artifacts {
+	jarDistribution jar
 }
 
 dependencies {

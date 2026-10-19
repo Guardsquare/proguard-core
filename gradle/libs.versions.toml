@@ -27,6 +27,7 @@ kotest-property-jvm = { group = "io.kotest", name = "kotest-property-jvm", versi
 kotlin-metadata = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-cli = { group = "org.jetbrains.kotlinx", name = "kotlinx-cli", version.ref = "kotlinx-cli" }
 log4j-api = { group = "org.apache.logging.log4j",name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j",name = "log4j-core", version.ref = "log4j" }
@@ -43,7 +44,6 @@ kotlin = ["kotlin-stdlib", "kotlin-reflect"]
 
 [plugins]
 aggregate-javadoc = { id = "io.freefair.aggregate-javadoc", version.ref = "aggregate-javadoc" }
-kotlin-plugin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 nexus-publish = { id  = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqube"}
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
