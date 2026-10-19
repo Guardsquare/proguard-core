@@ -1,0 +1,38 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+	id 'java'
+	id 'org.jetbrains.kotlin.jvm'
+}
+
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(17))
+	}
+	withJavadocJar()
+	withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+	if (it.name.contains("Test")) {
+		options.release = 11
+	} else {
+		options.release = 8
+	}
+}
+
+tasks.withType(KotlinCompile).configureEach {
+	it.compilerOptions.jvmTarget = it.name.contains("Test") ? JvmTarget.JVM_11 : JvmTarget.JVM_1_8
+}
+
+tasks.withType(KotlinCompilationTask.class).configureEach {
+	it.compilerOptions.languageVersion = KotlinVersion.KOTLIN_2_0
+}
+
+tasks.withType(Javadoc).configureEach {
+	options.addStringOption('Xdoclint:none', '-quiet')
+	options.addBooleanOption('Xwerror', true)
+}

@@ -1,12 +1,6 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
 	id 'distribution'
 	id 'signing'
-	alias(libs.plugins.kotlin.plugin) apply false
 	alias(libs.plugins.spotless)
 	alias(libs.plugins.nexus.publish)
 	alias(libs.plugins.test.logger) apply false
@@ -39,50 +33,18 @@ spotless {
 	}
 }
 
-allprojects { project ->
-	group = 'com.guardsquare'
-	version = proguardCoreVersion
-
-	pluginManager.withPlugin('java') {
-		java {
-			toolchain {
-				languageVersion.set(JavaLanguageVersion.of(17))
-			}
-			withJavadocJar()
-			withSourcesJar()
-		}
-		tasks.withType(JavaCompile).configureEach {
-			if (!it.name.contains("Test")) {
-				if (project.name != "proguard-core-examples") {
-					options.release = 8
-				}
-			} else {
-				options.release = 11
-			}
-		}
-		tasks.withType(KotlinCompile).configureEach {
-			if (!it.name.contains("Test")) {
-				it.compilerOptions.jvmTarget = JvmTarget.JVM_1_8
-			} else {
-				it.compilerOptions.jvmTarget = JvmTarget.JVM_11
-			}
-		}
-		javadoc {
-			options.addStringOption('Xdoclint:none', '-quiet')
-			options.addBooleanOption('Xwerror', true)
-		}
-	}
-	tasks.withType(KotlinCompilationTask.class).configureEach {
-		compilerOptions.languageVersion = KotlinVersion.KOTLIN_2_0
+configurations {
+	distLibs {
+		canBeConsumed = false
+		canBeResolved = true
 	}
 }
 
 dependencies {
-	rootProject.subprojects { subproject ->
-		subproject.plugins.withId("java") {
-			javadoc subproject
-		}
-	}
+	javadoc project(':proguard-core')
+	javadoc project(':proguard-core-android')
+
+	distLibs project(path: ':proguard-core', configuration: 'jarDistribution')
 }
 
 javadoc {
@@ -110,7 +72,7 @@ distributions {
 		distributionBaseName.set('proguard-core')
 		contents {
 			into('lib') {
-				from tasks.getByPath(":proguard-core:jar").outputs
+				from(configurations.distLibs)
 			}
 			into('docs') {
 				from('docs/md') {
