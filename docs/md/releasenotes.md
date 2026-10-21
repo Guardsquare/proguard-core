@@ -9,6 +9,7 @@
 - `TaintSource` is now an interface, so it can be implemented by taint sources other than methods.
 - `JvmTaintSource` has been renamed to `JvmMethodTaintSource`.
 - The fields of `JvmMethodTaintSource` are now private. Use the `getSignature`, `getTaintsThis`, `getTaintsReturn`, `getTaintArgs`, and `getTaintGlobals` methods instead.
+- Add `JrtDataEntry` and `JrtDataEntrySource`.
 
 ## Version 9.4.0
 
