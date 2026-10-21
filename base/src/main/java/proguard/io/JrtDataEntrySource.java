@@ -35,35 +35,15 @@ import org.jetbrains.annotations.Nullable;
  *
  * @see <a href="https://openjdk.org/jeps/220">JEP 220</a>
  */
-public class JrtDataEntrySource implements DataEntrySource, Closeable {
+public class JrtDataEntrySource implements DataEntrySource {
   private final Path javaHome;
+  private final Path jrtFsJarPath;
   @Nullable private final String moduleName;
-  private final FileSystem jrtFileSystem;
-  private final URLClassLoader fallbackClassLoader;
 
   public JrtDataEntrySource(Path javaHome, Path jrtFsJarPath, @Nullable String moduleName) {
     this.javaHome = javaHome;
+    this.jrtFsJarPath = jrtFsJarPath;
     this.moduleName = moduleName;
-
-    // TODO: Perform all of this in `pumpDataEntries`?
-    try {
-      // This class loader is used as fallback when the current JDK is JDK 8 and does not itself
-      // have the provider for the `jrt:/` file system, see JEP 220
-      fallbackClassLoader = new URLClassLoader(new URL[] {jrtFsJarPath.toUri().toURL()});
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("Failed converting file path to URL", e);
-    }
-
-    try {
-      jrtFileSystem =
-          FileSystems.newFileSystem(
-              URI.create("jrt:/"),
-              Collections.singletonMap("java.home", javaHome.toString()),
-              fallbackClassLoader);
-    } catch (Exception e) {
-      // Should not happen normally
-      throw new RuntimeException("Failed creating jrt:/ file system for JAVA_HOME " + javaHome, e);
-    }
   }
 
   /**
@@ -85,18 +65,46 @@ public class JrtDataEntrySource implements DataEntrySource, Closeable {
 
   @Override
   public void pumpDataEntries(DataEntryReader dataEntryReader) throws IOException {
-    Path modulesPath = jrtFileSystem.getPath("modules");
-    if (moduleName != null) {
-      Path moduleDir = modulesPath.resolve(moduleName);
-      if (!Files.isDirectory(moduleDir)) {
-        throw new IOException(
-            "Module '" + moduleName + "' does not exist for JDK at path " + javaHome);
-      }
-      processModuleFiles(moduleDir, dataEntryReader);
-    } else {
-      try (Stream<Path> moduleDirs = Files.list(modulesPath)) {
-        for (Path moduleDir : (Iterable<? extends Path>) moduleDirs::iterator) {
-          processModuleFiles(moduleDir, dataEntryReader);
+    URLClassLoader fallbackClassLoader;
+    try {
+      // This class loader is used as fallback when the current JDK is JDK 8 and does not itself
+      // have the provider for the `jrt:/` file system, see JEP 220
+      fallbackClassLoader = new URLClassLoader(new URL[] {jrtFsJarPath.toUri().toURL()});
+    } catch (MalformedURLException e) {
+      throw new RuntimeException("Failed converting file path to URL", e);
+    }
+
+    FileSystem jrtFileSystem;
+    try {
+      jrtFileSystem =
+          FileSystems.newFileSystem(
+              URI.create("jrt:/"),
+              Collections.singletonMap("java.home", javaHome.toString()),
+              fallbackClassLoader);
+    } catch (Exception e) {
+      // Should not happen normally
+      throw new IOException("Failed creating jrt:/ file system for JAVA_HOME " + javaHome, e);
+    }
+
+    // Note: Closing the class loader might not be thread-safe because by default the JDK caches the
+    // underlying JarFile, so closing it implicitly here might affect other users of that jar
+    // See https://bugs.openjdk.org/browse/JDK-8246714 and potentially also
+    // https://bugs.openjdk.org/browse/JDK-8205976
+    try (Closeable ignored = fallbackClassLoader;
+        Closeable ignored2 = jrtFileSystem) {
+      Path modulesPath = jrtFileSystem.getPath("modules");
+      if (moduleName != null) {
+        Path moduleDir = modulesPath.resolve(moduleName);
+        if (!Files.isDirectory(moduleDir)) {
+          throw new IOException(
+              "Module '" + moduleName + "' does not exist for JDK at path " + javaHome);
+        }
+        processModuleFiles(moduleDir, dataEntryReader);
+      } else {
+        try (Stream<Path> moduleDirs = Files.list(modulesPath)) {
+          for (Path moduleDir : (Iterable<? extends Path>) moduleDirs::iterator) {
+            processModuleFiles(moduleDir, dataEntryReader);
+          }
         }
       }
     }
@@ -115,15 +123,5 @@ public class JrtDataEntrySource implements DataEntrySource, Closeable {
             return FileVisitResult.CONTINUE;
           }
         });
-  }
-
-  @Override
-  public void close() throws IOException {
-    jrtFileSystem.close();
-    // Note: Closing the class loader might not be thread-safe because by default the JDK caches the
-    // underlying JarFile, so closing it implicitly here might affect other users of that jar
-    // See https://bugs.openjdk.org/browse/JDK-8246714 and potentially also
-    // https://bugs.openjdk.org/browse/JDK-8205976
-    fallbackClassLoader.close();
   }
 }
