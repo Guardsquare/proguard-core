@@ -114,6 +114,7 @@ class JrtDataEntrySourceTest {
         InputStream inputStream = dataEntry.getInputStream();
         long bytes = countBytes(inputStream);
         dataEntry.closeInputStream();
+        assertTrue(bytes > 0, "unexpected empty entry: " + dataEntry);
         assertEquals(bytes, dataEntry.getSize(), "unexpected size for: " + dataEntry);
       }
 
