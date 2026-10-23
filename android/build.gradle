@@ -20,6 +20,7 @@ dependencies {
 	testImplementation(libs.bundles.kotest)
 	testImplementation(libs.jupiter.api)
 	testImplementation(libs.mockk)
+	testImplementation(libs.smali)
 	testRuntimeOnly(libs.jupiter.engine) // for junit framework
 	testFixturesImplementation(libs.smali)
 }

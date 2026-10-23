@@ -11,6 +11,10 @@
 - The fields of `JvmMethodTaintSource` are now private. Use the `getSignature`, `getTaintsThis`, `getTaintsReturn`, `getTaintArgs`, and `getTaintGlobals` methods instead.
 - Add `JrtDataEntry` and `JrtDataEntrySource`.
 
+### Bugfixes
+
+- Fix concurrent dex conversion through one `Dex2Pro` instance corrupting the class pool.
+
 ## Version 9.4.0
 
 ### Java support 
